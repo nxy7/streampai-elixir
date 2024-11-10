@@ -1,0 +1,41 @@
+defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults do
+  @moduledoc """
+  Preparation for getting widget config or creating with defaults merged.
+  """
+  use Ash.Resource.Preparation
+
+  def prepare(query, _opts, _context) do
+    Ash.Query.after_action(query, fn _query, results ->
+      widget_type = Ash.Query.get_argument(query, :type)
+      default_config = get_default_config(widget_type)
+
+      case results do
+        [] ->
+          IO.puts("no config, creating default")
+
+          default_record = %Streampai.Accounts.WidgetConfig{
+            user_id: Ash.Query.get_argument(query, :user_id),
+            type: Ash.Query.get_argument(query, :type),
+            config: default_config
+          }
+
+          {:ok, [default_record]}
+
+        [result] ->
+          IO.puts("found res" <> inspect(result))
+
+          merged_config =
+            Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
+
+          updated_result = %{result | config: merged_config}
+
+          {:ok, [updated_result]}
+      end
+    end)
+  end
+
+  # Helper functions for default config based on widget type
+  defp get_default_config(:chat_widget), do: Streampai.Fake.Chat.default_config()
+  defp get_default_config(:alertbox_widget), do: Streampai.Fake.Alert.default_config()
+  defp get_default_config(_), do: %{}
+end

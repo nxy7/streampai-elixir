@@ -1,0 +1,61 @@
+services:
+  timescaledb:
+    container_name: streampai-db
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TIMESCALEDB_TELEMETRY: "off"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    networks:
+      - streampai-network
+
+  streampai:
+    container_name: streampai-app
+    image: ghcr.io/nxy7/streampai-elixir:latest
+    restart: unless-stopped
+    ports:
+      - "80:4000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+      ECTO_IPV6: "false"
+      POOL_SIZE: "35"
+
+      PHX_SERVER: "true"
+      PHX_HOST: "${PHX_HOST:-streampai.com}"
+      PORT: "4000"
+      MIX_ENV: "prod"
+      GIT_SHA: ${GIT_SHA:-unknown}
+
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+      TWITCH_REDIRECT_URI: ${TWITCH_REDIRECT_URI}
+
+      TOKEN_SIGNING_SECRET: ${TOKEN_SIGNING_SECRET}
+
+      CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
+      CLOUDFLARE_AUTH_EMAIL: ${CLOUDFLARE_AUTH_EMAIL}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+
+    depends_on:
+      - timescaledb
+    networks:
+      - streampai-network
+
+networks:
+  streampai-network:
+    driver: bridge
+
+volumes:
+  timescaledb_data:
+    driver: local

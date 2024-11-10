@@ -1,0 +1,9 @@
+.direnv
+node_modules
+.env
+.env
+
+.lexical
+.elixir_ls
+
+tasks
