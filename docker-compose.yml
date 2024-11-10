@@ -1,0 +1,37 @@
+services:
+  timescaledb:
+    container_name: db
+    image: timescale/timescaledb:latest-pg16
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TIMESCALEDB_TELEMETRY: "off"
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=4MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+  pgweb:
+    container_name: pgweb
+    restart: always
+    image: sosedoff/pgweb
+    ports:
+      - "8082:8081"
+    environment:
+      - PGWEB_DATABASE_URL=postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+    depends_on:
+      - timescaledb
+
+volumes:
+  timescaledb_data:
+    driver: local

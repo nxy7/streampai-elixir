@@ -1,0 +1,42 @@
+# Code Quality Improvements (High Priority)
+- Consolidate platform utility functions (remove duplication between PlatformUtils and scattered platform code)
+- Convert case statements to function heads (UserHelpers.get_fallback_username/1, LiveView error handling)
+- Split large functions (process_twitch_event/2, error handlers, make_api_request/3)
+- Standardize error handling patterns ({:ok, result} vs exceptions across modules) - prefer pattern matching
+- Extract platform color/styling logic to single PlatformUtils module
+- Add missing documentation to public functions
+- Use proper types for numeric data (Decimal for money, integers for counts)
+- Optimize Enum operations (use map_join instead of map + join)
+
+# Short Term
+- add ability to start stream (it's basically changing some inner state in our app and creating live outputs)
+  - starting stream also spawns processess observing the livestreams collecting metrics, events, metadata (like descriptions)
+- when stream ends we want to delete live outputs to be sure that they won't be accidentally reused
+- how do we guarantee alerts being show? Do we even try to guarantee that (I guess that's problem for later)?
+
+# Long Term
+- tell me if it's possible to monkey patch modules in elixir, it worked in DEV but `mix release` didn't allow it
+- what happens if our stream manager or some platform crashes? Like do we go back to valid state?
+- how do we handle user disconnecting? I think that we can wait for some predefined time like 15minutes and disable live outputs and then disable live input. 
+- how do we test presence manager system
+- ai chat helper that can point user to how to make some things (like can point him to correct)
+ link to create widgets etc etc
+- make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
+to stdout, I'll want to confirm that multiple invocations don't print out multiple times. Macro should be configurable as in it should take in cache duration. Or maybe some library
+like cachex already supports something like that?
+
+- thumbnail generator (user can provide some of his photos or other materials that he wants in a thumbnail, we use it and plug it into stream settings)
+
+- Streampai Donations
+1. We need some way to accept donations, it would probably require some integration with payment platform
+that doesn't have high fees
+2. We need donation page on which users can make donations, such page should show top donors, allow to
+input donor name, custom message, pick lector voice - question is how do we match top donors, by username?
+- figure out how caching and singleflight could work
+
+- allow users to be moderators (it's like limited impersonation where user can access someones account and can do few things
+like moderate chat, create/edit widgets but doesn't have access to things like account balance or settings)
+- what if we had some way to use AI to measure audience stream enthusiasm, maybe make summary of chat messages - things like that
+- it would be also nice if we could use AI to make stream timestamps, thumbnails, maybe even modify widget CSS (crazy)? things like that 
+
+- fix twitch icon in signup

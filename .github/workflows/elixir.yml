@@ -1,0 +1,189 @@
+name: Elixir CI/CD
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+  pull_request:
+    branches: ["master", "main"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: streampai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MIX_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/streampai_test
+      TOKEN_SIGNING_SECRET: test_jwt_secret_for_ci_only
+
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.18.4"
+          otp-version: "27.0"
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/deps
+            backend/_build
+          key: ${{ runner.os }}-mix-${{ hashFiles('backend/mix.lock') }}-${{ hashFiles('backend/lib/**/*.ex') }}-${{ hashFiles('backend/test/**/*.exs') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ hashFiles('backend/mix.lock') }}-
+            ${{ runner.os }}-mix-
+
+      - name: Cache PLT files
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/priv/plts
+          key: ${{ runner.os }}-plt-${{ hashFiles('backend/mix.lock') }}-26.0-1.15.7
+          restore-keys: |
+            ${{ runner.os }}-plt-${{ hashFiles('backend/mix.lock') }}-
+            ${{ runner.os }}-plt-
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          mix deps.get
+
+      - name: Check Formatting
+        run: |
+          cd backend
+          mix format --check-formatted
+
+      - name: Compile
+        run: |
+          cd backend
+          echo "Compile started at: $(date)"
+          START_TIME=$(date +%s)
+          mix compile
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "::notice title=Compile Duration::Compilation completed in ${DURATION} seconds"
+
+      - name: Run tests
+        run: |
+          cd backend
+          echo "Test started at: $(date)" > test_timing.log
+          START_TIME=$(date +%s)
+
+          CI=true mix test --max-failures 3 --exclude external
+
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "Test completed in: ${DURATION} seconds" >> test_timing.log
+          echo "::notice title=Test Duration::Tests completed in ${DURATION} seconds"
+
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Inspect builder
+        run: docker buildx inspect --bootstrap
+
+      - name: Debug repository info
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Image will be: ghcr.io/${{ github.repository }}:latest"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    environment:
+      name: prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H static.245.61.108.65.clients.your-server.de >> ~/.ssh/known_hosts
+
+      - name: Copy docker-compose and deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key root@static.245.61.108.65.clients.your-server.de "mkdir -p /tmp/streampai-elixir"
+          scp -i ~/.ssh/deploy_key docker-compose.prod.yml root@static.245.61.108.65.clients.your-server.de:/tmp/streampai-elixir/docker-compose.yml
+
+          ssh -i ~/.ssh/deploy_key root@static.245.61.108.65.clients.your-server.de << 'EOF'
+            export GIT_SHA=${{ github.sha }}
+            export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+            export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            export GOOGLE_REDIRECT_URI="${{ vars.GOOGLE_REDIRECT_URI }}"
+            export TWITCH_CLIENT_ID="${{ secrets.TWITCH_CLIENT_ID }}"
+            export TWITCH_CLIENT_SECRET="${{ secrets.TWITCH_CLIENT_SECRET }}"
+            export TWITCH_REDIRECT_URI="${{ vars.TWITCH_REDIRECT_URI }}"
+            export TOKEN_SIGNING_SECRET="${{ secrets.TOKEN_SIGNING_SECRET }}"
+            export CLOUDFLARE_API_KEY="${{ secrets.CLOUDFLARE_API_KEY }}"
+            export CLOUDFLARE_AUTH_EMAIL="${{ secrets.CLOUDFLARE_AUTH_EMAIL }}"
+            export CLOUDFLARE_ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+            export ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}"
+            export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
+            export PHX_HOST="streampai.com"
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
+
+            cd /tmp/streampai-elixir
+            docker compose -f /tmp/streampai-elixir/docker-compose.yml up -d --remove-orphans
+          EOF
