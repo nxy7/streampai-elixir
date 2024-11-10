@@ -1,0 +1,14 @@
+defmodule Streampai.Accounts do
+  use Ash.Domain,
+    extensions: [AshAdmin.Domain]
+
+  admin do
+    show? true
+  end
+
+  resources do
+    resource Streampai.Accounts.Token
+    resource Streampai.Accounts.User
+    resource Streampai.Accounts.StreamingAccount
+  end
+end

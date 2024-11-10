@@ -1,0 +1,47 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: streampai
+image: rancher/k3s:v1.31.2-k3s1
+
+
+servers: 1
+subnet: "172.69.0.0/16"
+# agents: 2
+
+ports:
+- port: 80:80
+  nodeFilters:
+  - loadbalancer
+- port: 443:443
+  nodeFilters:
+  - loadbalancer
+
+options:
+  k3d:
+    wait: true
+  k3s:
+    extraArgs:
+    - arg: --disable=traefik
+      nodeFilters:
+      - server:*
+    - arg: --disable-network-policy
+      nodeFilters:
+      - server:*
+    - arg: --flannel-backend=none
+      nodeFilters:
+      - server:*
+
+
+registries:
+  create:
+    name: myregistry
+  config: |
+    mirrors:
+      "noxy.ddns.net:5000":
+        endpoint:
+          - http://noxy.ddns.net:5000
+      "nxyt.zapto.org:5000":
+        endpoint:
+          - http://nxyt.zapto.org:5000
+

@@ -1,0 +1,17 @@
+{
+  "repository": {},
+  "license": "MIT",
+  "scripts": {
+    "deploy": "NODE_ENV=production tailwindcss --input=css/app.css --output=../priv/static/assets/app.css --postcss && NODE_ENV=production esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets"
+  },
+  "dependencies": {
+    "live_svelte": "^0.13.3",
+    "svelte": "^4.2.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.11",
+    "esbuild-plugin-import-glob": "^0.1.1",
+    "esbuild-svelte": "^0.9.3",
+    "svelte-preprocess": "^6.0.3"
+  }
+}

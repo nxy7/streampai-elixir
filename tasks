@@ -1,0 +1,28 @@
+# Short Term
+- add yearly discount info on /dashboard/settings
+- clicking on sidebar icon should lead back to landing page
+- you created landing page components to make the code more reusable, use that (I think right now landing page
+is still one big component)
+- make pages for Privacy Terms Support and Contact and plug then on landing page
+- make adding youtube/twitch accounts functional
+- in settings allow users to set their own names
+- add new "coming soon" features like "Donations" which will allow streamers to accept donations through
+streampai with lower Fees than streaming platforms
+- make dashboard sidebar so that it's a bit more spaced out (maybe divide tabs into 2 sections) 
+- add logout option
+- make separate 'widget' page that's blank and can be used on stream, it should probably sit at /w/{uuid}
+path, then backend can query widget in database using said ID, check what widget type that is and display
+it conditionally. If no widget with said ID is found then display such message.
+- create simple widget, for starters let's create carousel widget that displays images in carousel
+- create livestream chat widget, for starters it should just create some fake messages and display them
+in a loop (it's fine to display max 40-50 messages). Later it will plug into some actor probably
+
+
+# Long Term
+- Streampai Donations
+1. We need some way to accept donations, it would probably require some integration with payment platform
+that doesn't have high fees
+2. We need donation page on which users can make donations, such page should show top donors, allow to
+input donor name, custom message, pick lector voice - question is how do we match top donors, by username?
+- figure out how caching and singleflight could work
+
