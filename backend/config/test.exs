@@ -1,6 +1,7 @@
 import Config
+config :streampai, Oban, testing: :manual
 config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"
-config :ash, disable_async?: true
+config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 #

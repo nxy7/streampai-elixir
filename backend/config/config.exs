@@ -7,20 +7,62 @@
 # General application configuration
 import Config
 
+signing_salt = "WVzcyVtA"
+
+config :streampai,
+       StreampaiWeb.CmsEndpoint,
+       url: [host: "localhost"],
+       adapter: Bandit.PhoenixAdapter,
+       render_errors: [
+         formats: [html: Beacon.Web.ErrorHTML],
+         layout: false
+       ],
+       pubsub_server: Streampai.PubSub,
+       live_view: [signing_salt: signing_salt]
+
+config :streampai,
+       StreampaiWeb.ProxyEndpoint,
+       adapter: Bandit.PhoenixAdapter,
+       pubsub_server: Streampai.PubSub,
+       render_errors: [
+         formats: [html: Beacon.Web.ErrorHTML],
+         layout: false
+       ],
+       live_view: [signing_salt: signing_salt]
+
+config :ex_cldr, default_backend: Streampai.Cldr
+config :ash_oban, pro?: false
+
+config :streampai, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: Streampai.Repo,
+  plugins: [{Oban.Plugins.Cron, []}]
+
 config :ash,
   include_embedded_source_by_default?: false,
   default_page_type: :keyset,
   policies: [no_filter_static_forbidden_reads?: false],
   custom_types: [
     ticket_status: Streampai.Support.Ticket.Types.Status,
-    event_type: Streampai.Stream.StreamEvent.Type
-  ]
+    event_type: Streampai.Stream.StreamEvent.Type,
+    money: AshMoney.Types.Money
+  ],
+  allow_forbidden_field_for_relationships_by_default?: true,
+  show_keysets_for_all_actions?: false,
+  keep_read_action_loads_when_loading?: false,
+  default_actions_require_atomic?: true,
+  read_action_after_action_hooks_in_order?: true,
+  bulk_actions_default_to_errors?: true,
+  known_types: [AshMoney.Types.Money]
 
 config :spark,
   formatter: [
     remove_parens?: true,
     "Ash.Resource": [
       section_order: [
+        :admin,
         :authentication,
         :tokens,
         :postgres,
@@ -40,13 +82,21 @@ config :spark,
         :identities
       ]
     ],
-    "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
+    "Ash.Domain": [
+      section_order: [:admin, :resources, :policies, :authorization, :domain, :execution]
+    ]
   ]
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
   ash_domains: [Streampai.Stream, Streampai.Accounts],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  session_options: [
+    store: :cookie,
+    key: "_streampai_key",
+    signing_salt: signing_salt,
+    same_site: "Lax"
+  ]
 
 config :streampai, Streampai.Repo,
   stacktrace: true,
@@ -62,11 +112,11 @@ config :streampai, StreampaiWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: StreampaiWeb.ErrorHTML, json: StreampaiWeb.ErrorJSON],
+    formats: [html: Beacon.Web.ErrorHTML, json: StreampaiWeb.ErrorJSON],
     layout: false
   ],
   pubsub_server: Streampai.PubSub,
-  live_view: [signing_salt: "0Ouo0+pY"]
+  live_view: [signing_salt: signing_salt]
 
 # Configures the mailer
 #
@@ -114,18 +164,12 @@ config :ueberauth, Ueberauth,
 
 # Configures Elixir's Logger
 config :logger, :console,
+  level: :info,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-# Configure LiveSvelte
-config :live_svelte,
-  watcher_args: [
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

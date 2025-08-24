@@ -10,7 +10,8 @@ defmodule Streampai.MixProject do
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      preferred_cli_env: ["mneme.test": :test, "mneme.watch": :test]
     ]
   end
 
@@ -20,7 +21,11 @@ defmodule Streampai.MixProject do
   def application do
     [
       mod: {Streampai.Application, []},
-      extra_applications: [:logger, :runtime_tools, :inets]
+      extra_applications: [
+        :logger,
+        :runtime_tools,
+        :inets
+      ]
     ]
   end
 
@@ -33,10 +38,26 @@ defmodule Streampai.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ex_money_sql, "~> 1.0"},
+      {:ex_cldr, "~> 2.0"},
+      {:usage_rules, "~> 0.1"},
+      {:sourceror, "~> 1.8"},
+      {:oban, "~> 2.0"},
+      {:beacon_live_admin, "~> 0.4"},
+      {:beacon, "~> 0.5"},
+      {:ash_money, "~> 0.2"},
+      {:ash_ai, "~> 0.2"},
+      {:tidewave, "~> 0.4", only: [:dev]},
+      {:live_debugger, "~> 0.4", only: [:dev]},
+      {:ash_events, "~> 0.4"},
+      {:ash_state_machine, "~> 0.2"},
+      {:oban_web, "~> 2.0"},
+      {:ash_oban, "~> 0.4"},
+      {:uuid, "~> 1.1"},
       # {:hermes_mcp, "~> 0.11.2"},
-      {:tidewave, "~> 0.4", only: :dev},
+      # {:tidewave, "~> 0.4", only: :dev}, # Temporarily removed for Mneme compatibility
       {:bcrypt_elixir, "~> 3.0"},
-      {:ash_admin, "~> 0.11.4"},
+      {:ash_admin, "~> 0.13"},
       {:ash_authentication_phoenix, "~> 2.0"},
       {:picosat_elixir, "~> 0.2"},
       {:ash_phoenix, "~> 2.0"},
@@ -44,7 +65,7 @@ defmodule Streampai.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ash_authentication, "~> 4.0"},
       {:ash, "~> 3.0"},
-      {:igniter, "~> 0.4"},
+      {:igniter, "~> 0.6", override: true},
       {:phoenix, "~> 1.7.14"},
       {:assent, "~> 0.2.9"},
       {:ueberauth, "~> 0.10"},
@@ -61,7 +82,9 @@ defmodule Streampai.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       # {:phoenix_live_view, "~> 1.0.0"},
       {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
-      {:floki, ">= 0.30.0", only: :test},
+      {:floki, ">= 0.30.0"},
+      {:rewrite, "~> 1.1", override: true},
+      {:mneme, "~> 0.10.1", only: [:test, :dev]},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
@@ -79,8 +102,7 @@ defmodule Streampai.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"},
-      {:live_svelte, "~> 0.13.3"}
+      {:bandit, "~> 1.5"}
     ]
   end
 

@@ -1,19 +1,6 @@
 defmodule StreampaiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :streampai
-
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
-  @session_options [
-    store: :cookie,
-    key: "_streampai_key",
-    signing_salt: "rPcvNv67",
-    same_site: "Lax"
-  ]
-
-  socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]],
-    longpoll: [connect_info: [session: @session_options]]
+  @session_options Application.compile_env!(:streampai, :session_options)
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -32,9 +19,16 @@ defmodule StreampaiWeb.Endpoint do
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
+    plug AshAi.Mcp.Dev,
+      # For many tools, you will need to set the `protocol_version_statement` to the older version.
+      protocol_version_statement: "2024-11-05",
+      otp_app: :streampai,
+      path: "/ash_ai/mcp"
+
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
+    plug AshPhoenix.Plug.CheckCodegenStatus
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :streampai
   end
 

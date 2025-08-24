@@ -16,28 +16,39 @@ defmodule StreampaiWeb.Components.LandingNavigation do
             </div>
             <span class="text-2xl font-bold text-white">Streampai</span>
           </div>
-          
+
           <div class="hidden md:flex items-center space-x-8">
             <a href="#features" class="text-gray-300 hover:text-white transition-colors">Features</a>
             <a href="#pricing" class="text-gray-300 hover:text-white transition-colors">Pricing</a>
             <a href="#about" class="text-gray-300 hover:text-white transition-colors">About</a>
-            
+
             <%= if @current_user do %>
-              <a href="/dashboard" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+              <a
+                href="/dashboard"
+                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+              >
                 Dashboard
               </a>
             <% else %>
-              <a href="/sign-in" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+              <a
+                href="/sign-in"
+                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+              >
                 Get Started
               </a>
             <% end %>
           </div>
           
-          <!-- Mobile menu button -->
+    <!-- Mobile menu button -->
           <div class="md:hidden">
             <button type="button" class="text-gray-300 hover:text-white">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           </div>

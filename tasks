@@ -1,24 +1,23 @@
 # Short Term
-- add yearly discount info on /dashboard/settings
-- clicking on sidebar icon should lead back to landing page
-- you created landing page components to make the code more reusable, use that (I think right now landing page
-is still one big component)
-- make pages for Privacy Terms Support and Contact and plug then on landing page
+- put_flash doesn't seem to be working?
+- make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
+to stdout, I'll want to confirm that multiple invocations don't print out multiple times. Macro should be configurable as in it should take in cache duration. Or maybe some library
+like cachex already supports something like that?
 - make adding youtube/twitch accounts functional
+
 - in settings allow users to set their own names
-- add new "coming soon" features like "Donations" which will allow streamers to accept donations through
-streampai with lower Fees than streaming platforms
-- make dashboard sidebar so that it's a bit more spaced out (maybe divide tabs into 2 sections) 
-- add logout option
-- make separate 'widget' page that's blank and can be used on stream, it should probably sit at /w/{uuid}
-path, then backend can query widget in database using said ID, check what widget type that is and display
-it conditionally. If no widget with said ID is found then display such message.
+	- in settings add some ecto validation on user name with feedback when user writes (like name
+	has to be alphanumeric and longer than 3 chars)
+	- how to implement additional check on this field, checking if username is taken (with debounce
+	so we don't run this check on every character input)
+	- finally allow saving the name
 - create simple widget, for starters let's create carousel widget that displays images in carousel
 - create livestream chat widget, for starters it should just create some fake messages and display them
 in a loop (it's fine to display max 40-50 messages). Later it will plug into some actor probably
 
 
 # Long Term
+- figure out a way for llm to inspect the app (Tidewave?)
 - Streampai Donations
 1. We need some way to accept donations, it would probably require some integration with payment platform
 that doesn't have high fees
@@ -26,3 +25,9 @@ that doesn't have high fees
 input donor name, custom message, pick lector voice - question is how do we match top donors, by username?
 - figure out how caching and singleflight could work
 
+- implement impersonation based on role, for now treat user with 'lolnoxy@gmail.com' email
+as :admin and all others as :regular. Admin can impersonate anyone, regular cannot impersonate
+anyone. That might mean that we need some way to put :current_user and :impersonator into
+assigns, but I'm not 100% sure about that yet
+- fix user policy (not it has authorize_if always())
+- fix mneme tests so that they correctly assert input

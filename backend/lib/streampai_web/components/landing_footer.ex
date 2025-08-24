@@ -15,17 +15,19 @@ defmodule StreampaiWeb.Components.LandingFooter do
             </div>
             <span class="text-xl font-bold text-white">Streampai</span>
           </div>
-          
+
           <div class="flex space-x-6 text-gray-300">
-            <a href="#" class="hover:text-white transition-colors">Privacy</a>
-            <a href="#" class="hover:text-white transition-colors">Terms</a>
-            <a href="#" class="hover:text-white transition-colors">Support</a>
-            <a href="#" class="hover:text-white transition-colors">Contact</a>
+            <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+            <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+            <a href="/support" class="hover:text-white transition-colors">Support</a>
+            <a href="/contact" class="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
-        
+
         <div class="mt-8 pt-8 border-t border-white/10 text-center text-gray-400">
-          <p>&copy; 2024 Streampai. All rights reserved. Made with ❤️ for streamers.</p>
+          <p>
+            &copy; {Date.utc_today().year} Streampai. All rights reserved. Made with ❤️ for streamers.
+          </p>
         </div>
       </div>
     </footer>

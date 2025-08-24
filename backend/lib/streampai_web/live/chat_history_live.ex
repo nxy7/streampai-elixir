@@ -1,23 +1,13 @@
 defmodule StreampaiWeb.ChatHistoryLive do
-  use StreampaiWeb, :live_view
-  import StreampaiWeb.Components.DashboardLayout
+  use StreampaiWeb.BaseLive
 
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, sidebar_expanded: true), layout: false}
-  end
-
-  def handle_event("toggle_sidebar", _params, socket) do
-    {:noreply, assign(socket, sidebar_expanded: !socket.assigns.sidebar_expanded)}
+  def mount_page(socket, _params, _session) do
+    {:ok, socket, layout: false}
   end
 
   def render(assigns) do
     ~H"""
-    <.dashboard_layout 
-      current_user={@current_user} 
-      sidebar_expanded={@sidebar_expanded}
-      current_page="chat-history"
-      page_title="Chat History"
-    >
+    <.dashboard_layout {assigns} current_page="chat-history" page_title="Chat History">
       <div class="max-w-7xl mx-auto">
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -54,12 +44,16 @@ defmodule StreampaiWeb.ChatHistoryLive do
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-              <input type="text" placeholder="Search messages..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <input
+                type="text"
+                placeholder="Search messages..."
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
             </div>
           </div>
         </div>
-
-        <!-- Chat Messages -->
+        
+    <!-- Chat Messages -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Recent Messages</h3>
@@ -124,17 +118,22 @@ defmodule StreampaiWeb.ChatHistoryLive do
                     </span>
                     <span class="text-xs text-gray-500">8 minutes ago</span>
                   </div>
-                  <p class="text-sm text-gray-600">Thanks for the entertainment! Here's a little something for coffee ☕</p>
+                  <p class="text-sm text-gray-600">
+                    Thanks for the entertainment! Here's a little something for coffee ☕
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Pagination -->
+          
+    <!-- Pagination -->
           <div class="px-6 py-4 border-t border-gray-200">
             <div class="flex items-center justify-between">
               <p class="text-sm text-gray-700">
-                Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">97</span> messages
+                Showing <span class="font-medium">1</span>
+                to <span class="font-medium">3</span>
+                of <span class="font-medium">97</span>
+                messages
               </p>
               <div class="flex items-center space-x-2">
                 <button class="bg-gray-100 text-gray-400 px-3 py-2 rounded-lg text-sm cursor-not-allowed">

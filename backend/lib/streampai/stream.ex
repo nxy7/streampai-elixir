@@ -9,9 +9,10 @@ defmodule Streampai.Stream do
   resources do
     resource Streampai.Stream.ChatMessage
     resource Streampai.Stream.StreamEvent
-    resource Streampai.Stream.StreamMetric
+    resource Streampai.Stream.LivestreamMetric
     resource Streampai.Stream.StreamDonation
     resource Streampai.Stream.Patreon
     resource Streampai.Stream.Raid
+    resource Streampai.Stream.Livestream
   end
 end

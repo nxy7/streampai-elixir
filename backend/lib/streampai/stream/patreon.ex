@@ -160,14 +160,6 @@ defmodule Streampai.Stream.Patreon do
     end
   end
 
-  identities do
-    # One pledge record per patron-creator pair
-    identity :unique_patron_creator, [:patron_patreon_id, :creator_patreon_id]
-
-    # Patreon's unique pledge ID
-    identity :unique_patreon_pledge, [:patreon_pledge_id]
-  end
-
   calculations do
     calculate :monthly_value_category,
               :string,
@@ -189,5 +181,13 @@ defmodule Streampai.Stream.Patreon do
               )
 
     calculate :is_active, :boolean, expr(status == "active")
+  end
+
+  identities do
+    # One pledge record per patron-creator pair
+    identity :unique_patron_creator, [:patron_patreon_id, :creator_patreon_id]
+
+    # Patreon's unique pledge ID
+    identity :unique_patreon_pledge, [:patreon_pledge_id]
   end
 end

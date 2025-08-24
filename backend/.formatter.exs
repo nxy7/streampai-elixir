@@ -1,5 +1,15 @@
 [
   import_deps: [
+    :beacon_live_admin,
+    :beacon,
+    :ash_ai,
+    :ash_events,
+    :ash_state_machine,
+    :ash_oban,
+    :oban,
+    :ash_phoenix,
+    :reactor,
+    :mneme,
     :ash_authentication_phoenix,
     :ash_authentication,
     :ash_admin,

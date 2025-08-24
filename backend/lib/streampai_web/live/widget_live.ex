@@ -11,7 +11,7 @@ defmodule StreampaiWeb.WidgetLive do
 
   def render(assigns) do
     ~H"""
-    <div>elo <span><%= @val %></span></div>
+    <div>elo <span>{@val}</span></div>
 
     <button phx-click="toggle">on</button>
     """

@@ -1,4 +1,6 @@
 # CLAUDE.md
+ALWAYS SEE backend/AGENTS.md with USAGE RULES BEFORE IMPLEMENTING ANYTHING.
+After implementing changes make sure the app compliles.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -102,8 +104,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Test support files in `test/support/`
 - Ash setup runs before tests
 - Both unit and integration testing supported
+- **Snapshot Testing** with Snapshy for regression testing and component validation
+  - Run `mix test` for normal testing
+  - Run `SNAPSHY_OVERRIDE=true mix test` to update snapshots
+  - See `SNAPSHOT_TESTING.md` for detailed guide
 
-When working with this codebase:
+### When working with this codebase:
 - All dashboard pages should use the shared `DashboardLayout` component to avoid code duplication
 - New Ash resources require both resource definition and domain registration
 - LiveView pages need `layout: false` when using custom layouts
@@ -111,3 +117,6 @@ When working with this codebase:
 - Asset changes require running `mix assets.build` to see updates
 - Write reusable code that follows best practises
 - Regularly update CLAUDE.md file to keep it up to date wit the project
+
+### Additional notes
+- we have ./tasks file that holds tasks that need to be done

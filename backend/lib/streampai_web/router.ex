@@ -1,9 +1,20 @@
 defmodule StreampaiWeb.Router do
   use StreampaiWeb, :router
 
+  use Beacon.LiveAdmin.Router
+  use Beacon.Router
+  import Oban.Web.Router
   use AshAuthentication.Phoenix.Router
 
   import AshAdmin.Router
+
+  pipeline :beacon_admin do
+    plug Beacon.LiveAdmin.Plug
+  end
+
+  pipeline :beacon do
+    plug Beacon.Plug
+  end
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -21,6 +32,11 @@ defmodule StreampaiWeb.Router do
   end
 
   scope "/" do
+    pipe_through [:browser, :beacon_admin]
+    beacon_live_admin "/cms/admin"
+  end
+
+  scope "/" do
     pipe_through :browser
 
     ash_admin "/admin"
@@ -32,25 +48,37 @@ defmodule StreampaiWeb.Router do
     ash_authentication_live_session :authentication_optional,
       on_mount: {StreampaiWeb.LiveUserAuth, :live_user_optional} do
       live "/", LandingLive
+      live "/privacy", PrivacyLive
+      live "/terms", TermsLive
+      live "/support", SupportLive
+      live "/contact", ContactLive
     end
+
     get "/home", PageController, :home
     get "/streaming/connect/:provider", MultiProviderAuth, :request
     get "/streaming/connect/:provider/callback", MultiProviderAuth, :callback
 
     ash_authentication_live_session :authentication_required,
-      on_mount: {StreampaiWeb.LiveUserAuth, :live_user_required} do
+      on_mount: [
+        {StreampaiWeb.LiveUserAuth, :live_user_required},
+        {StreampaiWeb.LiveUserAuth, :dashboard_presence}
+      ] do
       live "/dashboard", DashboardLive
       live "/dashboard/stream", StreamLive
       live "/dashboard/chat-history", ChatHistoryLive
       live "/dashboard/widgets", WidgetsLive
       live "/dashboard/analytics", AnalyticsLive
       live "/dashboard/settings", SettingsLive
+      live "/dashboard/users", UsersLive
     end
+
+    # Impersonation routes (need authentication)
+    get "/impersonation/start/:user_id", ImpersonationController, :start_impersonation
+    get "/impersonation/stop", ImpersonationController, :stop_impersonation
     live "/button/:id", ButtonLive
     live "/counter", CounterLive
     live "/cursors", SharedCursorLive
-    live "/svelte-cursors", SvelteCursorLive
-    live "/svelte-test", SvelteTestLive
+    live "/w/:uuid", WidgetDisplayLive
     auth_routes AuthController, Streampai.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
@@ -76,7 +104,7 @@ defmodule StreampaiWeb.Router do
     match :*, "/echo", EchoController, :echo
     match :*, "/echo/*path", EchoController, :echo
 
-    # Simple echo for performance testing  
+    # Simple echo for performance testing
     match :*, "/simple", EchoController, :simple_echo
 
     # Optimized versions for performance testing
@@ -95,7 +123,7 @@ defmodule StreampaiWeb.Router do
     pipe_through []
 
     get "/test", EchoController, :ultra_minimal
-    get "/plug", StreampaiWeb.Plugs.FastResponse, []
+    # get "/plug", StreampaiWeb.Plugs.FastResponse, []
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
@@ -113,5 +141,16 @@ defmodule StreampaiWeb.Router do
       live_dashboard "/dashboard", metrics: StreampaiWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+
+    scope "/" do
+      pipe_through :browser
+
+      oban_dashboard("/oban")
+    end
+  end
+
+  scope "/", alias: StreampaiWeb do
+    pipe_through [:browser, :beacon]
+    beacon_site "/content", site: :cms
   end
 end

@@ -4,7 +4,7 @@ defmodule Streampai.Repo do
 
   def installed_extensions do
     # Add extensions here, and the migration generator will install them.
-    ["ash-functions", "citext"]
+    ["ash-functions", "citext", AshMoney.AshPostgresExtension]
   end
 
   def prefer_transaction? do

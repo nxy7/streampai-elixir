@@ -13,7 +13,10 @@ defmodule StreampaiWeb.Components.LandingCTA do
           Join thousands of streamers who are already growing their audience with Streampai
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/sign-in" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl">
+          <a
+            href="/sign-in"
+            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
+          >
             Start Free Trial - No Credit Card
           </a>
           <button class="border border-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all">

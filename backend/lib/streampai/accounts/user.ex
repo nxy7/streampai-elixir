@@ -6,6 +6,10 @@ defmodule Streampai.Accounts.User do
     extensions: [AshAuthentication, AshAdmin.Resource],
     data_layer: AshPostgres.DataLayer
 
+  admin do
+    actor? true
+  end
+
   authentication do
     tokens do
       enabled? true
@@ -14,7 +18,6 @@ defmodule Streampai.Accounts.User do
       require_token_presence_for_authentication? false
       session_identifier :jti
     end
-
 
     strategies do
       google do
@@ -37,7 +40,7 @@ defmodule Streampai.Accounts.User do
         monitor_fields [:email]
         confirm_on_create? true
         confirm_on_update? false
-        require_interaction?(true)
+        require_interaction? true
         sender Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail
       end
     end
@@ -48,11 +51,9 @@ defmodule Streampai.Accounts.User do
     repo Streampai.Repo
   end
 
-  admin do
-    actor? true
-  end
-
   actions do
+    defaults [:read]
+
     read :get_by_subject do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false
@@ -231,8 +232,14 @@ defmodule Streampai.Accounts.User do
       authorize_if always()
     end
 
+    bypass action_type(:read) do
+      authorize_if expr(id == ^actor(:id))
+      authorize_if expr(^actor(:email) == "lolnoxy@gmail.com")
+    end
+
     policy always() do
-      forbid_if always()
+      authorize_if always()
+      # forbid_if always()
     end
   end
 

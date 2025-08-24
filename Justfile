@@ -1,7 +1,3 @@
-alias id := init-dev
-alias es := elixir-start
-alias si := start-interactive
-
 _default:
   @just --unstable --list
 
@@ -10,8 +6,11 @@ init-dev:
 	code .
 	docker compose up
 
-elixir-start:
-	cd backend; mix phx.server
+test:
+	cd backend; mix test
+
+start:
+	cd backend; mix start
 	
 start-interactive:
 	cd backend; iex -S mix phx.server

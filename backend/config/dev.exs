@@ -1,4 +1,22 @@
 import Config
+secret_key_base = "jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF"
+
+config :streampai,
+       StreampaiWeb.CmsEndpoint,
+       http: [ip: {127, 0, 0, 1}, port: 4464],
+       check_origin: false,
+       code_reloader: true,
+       debug_errors: true,
+       secret_key_base: secret_key_base
+
+config :streampai,
+       StreampaiWeb.ProxyEndpoint,
+       http: [ip: {127, 0, 0, 1}, port: 4000],
+       check_origin: false,
+       debug_errors: true,
+       secret_key_base: secret_key_base
+
+config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 config :streampai, Streampai.Repo,
@@ -29,14 +47,13 @@ config :phoenix_live_view,
 config :streampai, StreampaiWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: 4100],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "av/6/NUMNgt1WHSWo2DyuVdLqjIlb/F/7bZg/QxkXKiXwYdHP/GQu5RkQJZcAk2C",
+  secret_key_base: secret_key_base,
   watchers: [
-    node: ["build.js", "--watch", cd: Path.expand("../assets", __DIR__)],
-    # esbuild: {Esbuild, :install_and_run, [:streampai, ~w(--sourcemap=inline --watch)]},
+    esbuild: {Esbuild, :install_and_run, [:streampai, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:streampai, ~w(--watch)]}
   ]
 
@@ -69,8 +86,7 @@ config :streampai, StreampaiWeb.Endpoint,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/streampai_web/(controllers|live|components)/.*(ex|heex)$",
-      ~r"priv/svelte/.*(js|svelte)$"
+      ~r"lib/streampai_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
 

@@ -9,22 +9,29 @@ defmodule Streampai.Application do
     Logger.info("streampai startup")
 
     children = [
-      {NodeJS.Supervisor, [path: LiveSvelte.SSR.NodeJS.server_path(), pool_size: 4]},
       StreampaiWeb.Telemetry,
       Streampai.Repo,
       # Streampai.Claude,
       {Phoenix.PubSub, name: Streampai.PubSub},
+      {Beacon, [sites: [Application.fetch_env!(:beacon, :cms)]]},
+      {Oban,
+       AshOban.config(
+         Application.fetch_env!(:streampai, :ash_domains),
+         Application.fetch_env!(:streampai, Oban)
+       )},
+      StreampaiWeb.CmsEndpoint,
+      # {DNSCluster, query: Application.get_env(:streampai, :dns_cluster_query) || :ignore},
       Streampai.ButtonServer,
       Streampai.Double,
-      # {DNSCluster, query: Application.get_env(:streampai, :dns_cluster_query) || :ignore},
       StreampaiWeb.Presence,
       # Start the Finch HTTP client for sending emails
-      {Finch, name: Streampai.Finch},
       # Start a worker by calling: Streampai.Worker.start_link(arg)
       # {Streampai.Worker, arg},
       # Start to serve requests, typically the last entry
+      {Finch, name: Streampai.Finch},
       StreampaiWeb.Endpoint,
-      {AshAuthentication.Supervisor, [otp_app: :streampai]}
+      {AshAuthentication.Supervisor, [otp_app: :streampai]},
+      StreampaiWeb.ProxyEndpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

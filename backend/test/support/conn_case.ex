@@ -20,7 +20,7 @@ defmodule StreampaiWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint StreampaiWeb.Endpoint
+      # @endpoint StreampaiWeb.Endpoint
 
       use StreampaiWeb, :verified_routes
 
@@ -28,6 +28,9 @@ defmodule StreampaiWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import StreampaiWeb.ConnCase
+
+      # Import mock user helpers for testing authentication
+      import StreampaiWeb.TestHelpers.MockUser
     end
   end
 

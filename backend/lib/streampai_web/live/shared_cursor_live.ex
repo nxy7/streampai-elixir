@@ -172,10 +172,10 @@ defmodule StreampaiWeb.SharedCursorLive do
             </div>
             <div class="text-right">
               <div class="text-sm font-medium text-gray-900">
-                Online Users: <span class="text-blue-600"><%= @online_users %></span>
+                Online Users: <span class="text-blue-600">{@online_users}</span>
               </div>
               <div class="text-xs text-gray-500">
-                Your ID: <code class="bg-gray-100 px-1 rounded"><%= @user_id %></code>
+                Your ID: <code class="bg-gray-100 px-1 rounded">{@user_id}</code>
                 <%= if @connected do %>
                   <span class="ml-2 text-green-600">● Connected</span>
                 <% else %>
@@ -237,7 +237,7 @@ defmodule StreampaiWeb.SharedCursorLive do
           </svg>
           <!-- User ID label -->
           <div class="absolute top-5 left-5 bg-red-500 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap shadow-lg">
-            <%= user_id %> (<%= cursor.x %>,<%= cursor.y %>)
+            {user_id} ({cursor.x},{cursor.y})
           </div>
         </div>
       <% end %>

@@ -1,0 +1,90 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: streampai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MIX_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/streampai_test
+
+    steps:
+    - name: Set up Git repository
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.15.7' # [Required] Define the Elixir version
+        otp-version: '26.0'      # [Required] Define the Erlang/OTP version
+        
+    - name: Restore dependencies cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          backend/deps
+          backend/_build
+        key: ${{ runner.os }}-mix-${{ hashFiles('backend/mix.lock') }}-${{ hashFiles('backend/lib/**/*.ex') }}-${{ hashFiles('backend/test/**/*.exs') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-${{ hashFiles('backend/mix.lock') }}-
+          ${{ runner.os }}-mix-
+
+    - name: Cache PLT files
+      uses: actions/cache@v4
+      with:
+        path: |
+          backend/priv/plts
+        key: ${{ runner.os }}-plt-${{ hashFiles('backend/mix.lock') }}-26.0-1.15.7
+        restore-keys: |
+          ${{ runner.os }}-plt-${{ hashFiles('backend/mix.lock') }}-
+          ${{ runner.os }}-plt-
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        mix deps.get
+
+    - name: Check Formatting
+      run: |
+        cd backend
+        mix format --check-formatted
+
+    - name: Run Credo
+      run: |
+        cd backend
+        mix credo --strict
+
+    - name: Compile
+      run: |
+        cd backend
+        mix compile --warnings-as-errors
+
+    - name: Run tests
+      run: |
+        cd backend
+        CI=true mix test --max-failures 10

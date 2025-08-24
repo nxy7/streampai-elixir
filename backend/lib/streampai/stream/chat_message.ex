@@ -30,10 +30,6 @@ defmodule Streampai.Stream.ChatMessage do
       allow_nil? false
     end
 
-    attribute :platform_user_id, :string do
-      allow_nil? false
-    end
-
     attribute :channel_id, :string do
       allow_nil? false
     end
@@ -42,7 +38,7 @@ defmodule Streampai.Stream.ChatMessage do
       default false
     end
 
-    attribute :is_subscriber, :boolean do
+    attribute :is_patreon, :boolean do
       default false
     end
 
@@ -51,7 +47,12 @@ defmodule Streampai.Stream.ChatMessage do
 
   relationships do
     belongs_to :user, Streampai.Accounts.User do
-      allow_nil? true
+      allow_nil? false
+      attribute_writable? true
+    end
+
+    belongs_to :livestream, Streampai.Stream.Livestream do
+      allow_nil? false
       attribute_writable? true
     end
   end

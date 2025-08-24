@@ -32,17 +32,17 @@ defmodule StreampaiWeb.ButtonLive do
   def render(assigns) do
     ~H"""
     <div>
-      <h2>Button <%= @id %></h2>
-      <p>Count: <%= @count %></p>
+      <h2>Button {@id}</h2>
+      <p>Count: {@count}</p>
       <button phx-click="increment">Increment</button>
     </div>
 
     <div phx-click="dbl">
-      dable: <%= @dmg %>
+      dable: {@dmg}
     </div>
 
     <div>
-      User Amount: <%= @amnt %>
+      User Amount: {@amnt}
     </div>
     """
   end

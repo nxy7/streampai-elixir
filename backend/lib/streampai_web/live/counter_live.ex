@@ -1,17 +1,16 @@
 defmodule StreampaiWeb.CounterLive do
   use StreampaiWeb, :live_view
-  import LiveSvelte
 
   def mount(_params, _session, socket) do
     {:ok, assign(socket, count: 0, step: 1, color: "blue")}
   end
 
-  def handle_event("increment", %{"count" => count}, socket) do
-    {:noreply, assign(socket, count: count)}
+  def handle_event("increment", _params, socket) do
+    {:noreply, assign(socket, count: socket.assigns.count + socket.assigns.step)}
   end
 
-  def handle_event("decrement", %{"count" => count}, socket) do
-    {:noreply, assign(socket, count: count)}
+  def handle_event("decrement", _params, socket) do
+    {:noreply, assign(socket, count: socket.assigns.count - socket.assigns.step)}
   end
 
   def handle_event("change_step", %{"step" => step}, socket) do
@@ -27,11 +26,28 @@ defmodule StreampaiWeb.CounterLive do
     ~H"""
     <div class="min-h-screen bg-gray-100 py-8">
       <div class="max-w-4xl mx-auto px-4">
-        <h1 class="text-3xl font-bold text-center mb-8">LiveSvelte Counter Demo</h1>
+        <h1 class="text-3xl font-bold text-center mb-8">Counter Demo</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <.svelte name="Counter" props={%{count: @count, step: @step, color: @color}} class="mb-6" />
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Counter</h3>
+            <div class={"text-6xl font-bold text-center mb-6 text-#{@color}-600"}>
+              {@count}
+            </div>
+            <div class="flex justify-center space-x-4">
+              <button
+                phx-click="increment"
+                class={"px-6 py-2 bg-#{@color}-600 text-white rounded hover:bg-#{@color}-700"}
+              >
+                +{@step}
+              </button>
+              <button
+                phx-click="decrement"
+                class="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                -{@step}
+              </button>
+            </div>
           </div>
 
           <div class="bg-white p-6 rounded-lg shadow-lg">
