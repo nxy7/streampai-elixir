@@ -1,6 +1,18 @@
 {
   "attributes": [
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "confirmed_at",
+      "type": "utc_datetime_usec"
+    },
+    {
       "allow_nil?": false,
       "default": "fragment(\"gen_random_uuid()\")",
       "generated?": false,
@@ -21,8 +33,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "started_at",
-      "type": "utc_datetime"
+      "source": "email",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -33,8 +45,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "ended_at",
-      "type": "utc_datetime"
+      "source": "hashed_password",
+      "type": "text"
     }
   ],
   "base_filter": null,
@@ -42,8 +54,23 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "B78B38994FFA7099E4541965DDA46146B4D4E283AE8C14033C0F15156A1F6653",
-  "identities": [],
+  "hash": "3C96B22DC2674ED4CA4484EE3F4F83B5747E672F4A3BB6F62D949A9AB48E9E5B",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "users_unique_email_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "email"
+        }
+      ],
+      "name": "unique_email",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -51,5 +78,5 @@
   },
   "repo": "Elixir.Streampai.Repo",
   "schema": null,
-  "table": "livestream"
+  "table": "users"
 }

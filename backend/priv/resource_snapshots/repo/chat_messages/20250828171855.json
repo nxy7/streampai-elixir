@@ -21,7 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "raider_channel_id",
+      "source": "message",
       "type": "text"
     },
     {
@@ -33,44 +33,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "raider_username",
+      "source": "username",
       "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "target_channel_id",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "target_username",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "viewer_count",
-      "type": "bigint"
     },
     {
       "allow_nil?": false,
@@ -85,7 +49,7 @@
       "type": "text"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -93,32 +57,32 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "platform_raid_id",
+      "source": "channel_id",
       "type": "text"
     },
     {
       "allow_nil?": true,
-      "default": "nil",
+      "default": "false",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "message",
-      "type": "text"
+      "source": "is_moderator",
+      "type": "boolean"
     },
     {
       "allow_nil?": true,
-      "default": "%{}",
+      "default": "false",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "platform_metadata",
-      "type": "map"
+      "source": "is_patreon",
+      "type": "boolean"
     },
     {
       "allow_nil?": false,
@@ -145,7 +109,7 @@
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -163,7 +127,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "raids_raider_user_id_fkey",
+        "name": "chat_messages_user_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -172,11 +136,11 @@
       },
       "scale": null,
       "size": null,
-      "source": "raider_user_id",
+      "source": "user_id",
       "type": "uuid"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -194,16 +158,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "raids_target_user_id_fkey",
+        "name": "chat_messages_livestream_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "livestream"
       },
       "scale": null,
       "size": null,
-      "source": "target_user_id",
+      "source": "livestream_id",
       "type": "uuid"
     }
   ],
@@ -212,7 +176,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "73376D57546217C7896310B51067F89B7BC62071FF45320087914A8AE4E3C00C",
+  "hash": "021111BCEE172AE1C7498AC4A05D6BC20E94C3430FEC8490077CD589A2EC1895",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -221,5 +185,5 @@
   },
   "repo": "Elixir.Streampai.Repo",
   "schema": null,
-  "table": "raids"
+  "table": "chat_messages"
 }

@@ -13,7 +13,7 @@ defmodule Streampai.Application do
       Streampai.Repo,
       # Streampai.Claude,
       {Phoenix.PubSub, name: Streampai.PubSub},
-      {Beacon, [sites: [Application.fetch_env!(:beacon, :cms)]]},
+      # {Beacon, [sites: [Application.fetch_env!(:beacon, :cms)]]},
       {Oban,
        AshOban.config(
          Application.fetch_env!(:streampai, :ash_domains),

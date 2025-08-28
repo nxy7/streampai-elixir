@@ -21,7 +21,55 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "amount",
+      "source": "patron_patreon_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "patron_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "patron_email",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "creator_patreon_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pledge_amount",
       "type": "decimal"
     },
     {
@@ -37,7 +85,7 @@
       "type": "text"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -45,7 +93,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "donor_name",
+      "source": "tier_id",
       "type": "text"
     },
     {
@@ -57,43 +105,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "message",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "platform",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "platform_donation_id",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "channel_id",
+      "source": "tier_title",
       "type": "text"
     },
     {
@@ -105,8 +117,128 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "donor_email",
+      "source": "tier_description",
       "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"active\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "patreon_pledge_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "patreon_campaign_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pledge_created_at",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_charge_date",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "next_charge_date",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cancelled_at",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "paused_at",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "lifetime_support_cents",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "pledge_relationship_start",
+      "type": "utc_datetime"
     },
     {
       "allow_nil?": true,
@@ -117,32 +249,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "platform_metadata",
+      "source": "patreon_metadata",
       "type": "map"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "featured",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "processed_at",
-      "type": "utc_datetime"
     },
     {
       "allow_nil?": false,
@@ -187,7 +295,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "stream_donations_user_id_fkey",
+        "name": "patreons_patron_user_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -196,7 +304,38 @@
       },
       "scale": null,
       "size": null,
-      "source": "user_id",
+      "source": "patron_user_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "patreons_creator_user_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "creator_user_id",
       "type": "uuid"
     }
   ],
@@ -205,23 +344,37 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "4ACE565FB1FBFEA95CE1479096D4177CBCF1FD0DBF8532D1F450235B4EC47D07",
+  "hash": "F5A52A352EF70D350D3076CF6306A394066DAB9B423970B0975129AC8E4C2D2B",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "stream_donations_unique_platform_donation_index",
+      "index_name": "patreons_unique_patreon_pledge_index",
       "keys": [
         {
           "type": "atom",
-          "value": "platform"
+          "value": "patreon_pledge_id"
+        }
+      ],
+      "name": "unique_patreon_pledge",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "patreons_unique_patron_creator_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "patron_patreon_id"
         },
         {
           "type": "atom",
-          "value": "platform_donation_id"
+          "value": "creator_patreon_id"
         }
       ],
-      "name": "unique_platform_donation",
+      "name": "unique_patron_creator",
       "nils_distinct?": true,
       "where": null
     }
@@ -233,5 +386,5 @@
   },
   "repo": "Elixir.Streampai.Repo",
   "schema": null,
-  "table": "stream_donations"
+  "table": "patreons"
 }

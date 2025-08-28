@@ -21,7 +21,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "message",
+      "source": "amount",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"USD\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
       "type": "text"
     },
     {
@@ -33,7 +45,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "username",
+      "source": "donor_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "message",
       "type": "text"
     },
     {
@@ -57,20 +81,44 @@
       "references": null,
       "scale": null,
       "size": null,
+      "source": "platform_donation_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
       "source": "channel_id",
       "type": "text"
     },
     {
       "allow_nil?": true,
-      "default": "false",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "is_moderator",
-      "type": "boolean"
+      "source": "donor_email",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "platform_metadata",
+      "type": "map"
     },
     {
       "allow_nil?": true,
@@ -81,8 +129,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "is_patreon",
+      "source": "featured",
       "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "processed_at",
+      "type": "utc_datetime"
     },
     {
       "allow_nil?": false,
@@ -109,7 +169,7 @@
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -127,7 +187,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "chat_messages_user_id_fkey",
+        "name": "stream_donations_user_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -138,37 +198,6 @@
       "size": null,
       "source": "user_id",
       "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "chat_messages_livestream_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "livestream"
-      },
-      "scale": null,
-      "size": null,
-      "source": "livestream_id",
-      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -176,8 +205,27 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "614F337DED6BA280E3EC3C51A793612C9FA86EBA127ECD67A3A1D13BFC292BBA",
-  "identities": [],
+  "hash": "FF3414911A6A63FCE28AB391D1B62451427E0879B908C8D9A45B31B83D641DCC",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "stream_donations_unique_platform_donation_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "platform"
+        },
+        {
+          "type": "atom",
+          "value": "platform_donation_id"
+        }
+      ],
+      "name": "unique_platform_donation",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -185,5 +233,5 @@
   },
   "repo": "Elixir.Streampai.Repo",
   "schema": null,
-  "table": "chat_messages"
+  "table": "stream_donations"
 }
