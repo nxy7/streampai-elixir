@@ -8,7 +8,9 @@ config :beacon,
     router: StreampaiWeb.Router
   ]
 
-config :tidewave, :root, File.cwd!()
+if config_env() != :test do
+  config :tidewave, :root, File.cwd!()
+end
 
 import Dotenvy
 

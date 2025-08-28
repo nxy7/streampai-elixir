@@ -116,7 +116,7 @@ defmodule StreampaiWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}
       role="alert"
       class={[
-        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-50 rounded-xl p-4 shadow-lg border cursor-pointer",
+        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-50 rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
         @kind == :info && "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
         @kind == :error && "bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
       ]}
@@ -142,14 +142,36 @@ defmodule StreampaiWeb.CoreComponents do
         </button>
       </div>
       
+      <!-- Slide in animation -->
+      <script>
+        (function() {
+          var element = document.getElementById('<%= @id %>');
+          if (element) {
+            // Start off-screen
+            element.style.transform = 'translateX(100%)';
+            // Slide in after a brief moment
+            setTimeout(function() {
+              element.style.transform = 'translateX(0)';
+            }, 50);
+          }
+        })();
+      </script>
+      
       <%= if @kind == :info do %>
         <script>
-          setTimeout(function() {
-            var element = document.getElementById('<%= @id %>');
-            if (element) {
-              element.click();
-            }
-          }, 4000);
+          (function() {
+            var elementId = '<%= @id %>';
+            setTimeout(function() {
+              console.log('Auto-dismiss: Looking for element:', elementId);
+              var element = document.getElementById(elementId);
+              if (element && element.parentNode) {
+                console.log('Auto-dismiss: Element found, clicking');
+                element.click();
+              } else {
+                console.log('Auto-dismiss: Element not found or removed');
+              }
+            }, 4000);
+          })();
         </script>
       <% end %>
     </div>

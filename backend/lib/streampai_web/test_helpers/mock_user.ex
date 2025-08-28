@@ -9,8 +9,6 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
   - Bypass authentication in tests
   """
 
-  # import Phoenix.ConnTest
-  # import Phoenix.LiveViewTest
 
   @doc """
   Creates a mock user with various options.
@@ -113,10 +111,13 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
         impersonator_opts: [admin: true]
       )
   """
-  def mock_live(conn, path, opts \\ []) do
-    conn
-    |> mock_user_conn(opts)
-    |> Phoenix.LiveViewTest.live(path)
+  defmacro mock_live(conn, path, opts \\ []) do
+    quote do
+      import Phoenix.LiveViewTest
+      unquote(conn)
+      |> StreampaiWeb.TestHelpers.MockUser.mock_user_conn(unquote(opts))
+      |> live(unquote(path))
+    end
   end
 
   @doc """
