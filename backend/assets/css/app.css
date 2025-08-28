@@ -37,3 +37,34 @@
 .scrollbar-thumb-gray-600::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Flash notification animations */
+.flash-card.phx-show-start {
+  transform: translateX(100%) scale(0.95);
+  opacity: 0;
+}
+
+.flash-card.phx-show-end {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+.flash-card.phx-hide-start {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+.flash-card.phx-hide-end {
+  transform: translateX(100%) scale(0.95);
+  opacity: 0;
+}
+
+/* Add a subtle bounce animation on hover */
+.flash-card:hover {
+  animation: flashPulse 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes flashPulse {
+  0%, 100% { transform: translateX(0) scale(1); }
+  50% { transform: translateX(0) scale(1.02); }
+}

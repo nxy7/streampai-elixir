@@ -1,5 +1,4 @@
 # Short Term
-- put_flash doesn't seem to be working?
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
 to stdout, I'll want to confirm that multiple invocations don't print out multiple times. Macro should be configurable as in it should take in cache duration. Or maybe some library
 like cachex already supports something like that?

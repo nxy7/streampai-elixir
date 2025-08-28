@@ -113,24 +113,45 @@ defmodule StreampaiWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}
       role="alert"
       class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-50 rounded-xl p-4 shadow-lg border cursor-pointer",
+        @kind == :info && "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
+        @kind == :error && "bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
       ]}
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        {@title}
-      </p>
-      <p class="mt-2 text-sm leading-5">{msg}</p>
-      <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
-      </button>
+      <div class="flex items-start gap-3">
+        <div class={[
+          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+          @kind == :info && "bg-purple-100",
+          @kind == :error && "bg-red-100"
+        ]}>
+          <.icon :if={@kind == :info} name="hero-check-circle-solid" class="h-5 w-5 text-purple-600" />
+          <.icon :if={@kind == :error} name="hero-exclamation-triangle-solid" class="h-5 w-5 text-red-600" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p :if={@title} class="text-sm font-semibold leading-5 mb-1">
+            {@title}
+          </p>
+          <p class="text-sm leading-5">{msg}</p>
+        </div>
+        <button type="button" class="group flex-shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors" aria-label={gettext("close")}>
+          <.icon name="hero-x-mark-solid" class="h-4 w-4 opacity-50 group-hover:opacity-70" />
+        </button>
+      </div>
+      
+      <%= if @kind == :info do %>
+        <script>
+          setTimeout(function() {
+            var element = document.getElementById('<%= @id %>');
+            if (element) {
+              element.click();
+            }
+          }, 4000);
+        </script>
+      <% end %>
     </div>
     """
   end

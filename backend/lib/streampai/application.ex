@@ -14,12 +14,8 @@ defmodule Streampai.Application do
       # Streampai.Claude,
       {Phoenix.PubSub, name: Streampai.PubSub},
       # {Beacon, [sites: [Application.fetch_env!(:beacon, :cms)]]},
-      {Oban,
-       AshOban.config(
-         Application.fetch_env!(:streampai, :ash_domains),
-         Application.fetch_env!(:streampai, Oban)
-       )},
-      StreampaiWeb.CmsEndpoint,
+
+      # StreampaiWeb.CmsEndpoint,
       # {DNSCluster, query: Application.get_env(:streampai, :dns_cluster_query) || :ignore},
       Streampai.ButtonServer,
       Streampai.Double,

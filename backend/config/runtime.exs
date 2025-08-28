@@ -8,6 +8,8 @@ config :beacon,
     router: StreampaiWeb.Router
   ]
 
+config :tidewave, :root, File.cwd!()
+
 import Dotenvy
 
 source!(["../.env", System.get_env()])

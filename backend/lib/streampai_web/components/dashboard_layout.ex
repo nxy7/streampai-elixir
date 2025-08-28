@@ -339,6 +339,9 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           </div>
         <% end %>
 
+        <!-- Flash Messages -->
+        <.flash_group flash={assigns[:flash] || %{}} />
+
         <script>
           // Sidebar toggle functionality
           document.addEventListener('DOMContentLoaded', function() {

@@ -32,7 +32,11 @@ defmodule StreampaiWeb.DashboardLive do
   end
 
   def handle_event("click", _, socket) do
-    {:noreply, socket |> put_flash(:info, "Button clicked")}
+    socket = 
+      socket 
+      |> clear_flash()
+      |> put_flash(:info, "Button clicked")
+    {:noreply, socket}
   end
 
   def render(assigns) do
