@@ -31,14 +31,14 @@ defmodule StreampaiWeb.Components.LandingNavigation do
               </a>
             <% else %>
               <a
-                href="/sign-in"
+                href="/auth/sign-in"
                 class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Get Started
               </a>
             <% end %>
           </div>
-          
+
     <!-- Mobile menu button -->
           <div class="md:hidden">
             <button type="button" class="text-gray-300 hover:text-white">

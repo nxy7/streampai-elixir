@@ -79,18 +79,20 @@ defmodule StreampaiWeb.Router do
     live "/counter", CounterLive
     live "/cursors", SharedCursorLive
     live "/w/:uuid", WidgetDisplayLive
-    auth_routes AuthController, Streampai.Accounts.User, path: "/auth"
-    sign_out_route AuthController
+    sign_out_route AuthController, "/auth/sign-out"
 
     # Remove these if you'd like to use your own authentication views
-    sign_in_route register_path: "/register",
-                  reset_path: "/reset",
+    sign_in_route path: "/auth/sign-in",
+                  register_path: "/auth/register",
+                  reset_path: "/auth/reset",
                   auth_routes_prefix: "/auth",
                   on_mount: [{StreampaiWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
                     StreampaiWeb.AuthOverrides,
                     AshAuthentication.Phoenix.Overrides.Default
                   ]
+
+    auth_routes AuthController, Streampai.Accounts.User, path: "/auth"
 
     # Remove this if you do not want to use the reset password feature
     reset_route auth_routes_prefix: "/auth"

@@ -22,7 +22,7 @@ defmodule StreampaiWeb.Components.LandingHero do
 
           <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <a
-              href="/sign-in"
+              href="/auth/sign-in"
               class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
             >
               Start Free Trial
@@ -31,7 +31,7 @@ defmodule StreampaiWeb.Components.LandingHero do
               Watch Demo
             </button>
           </div>
-          
+
     <!-- Platform Logos -->
           <div class="flex flex-wrap justify-center items-center gap-8 opacity-70">
             <div class="flex items-center space-x-3">
@@ -80,7 +80,7 @@ defmodule StreampaiWeb.Components.LandingHero do
           </div>
         </div>
       </div>
-      
+
     <!-- Floating Elements -->
       <div class="absolute top-20 left-10 w-20 h-20 bg-purple-500/20 rounded-full blur-xl animate-pulse">
       </div>

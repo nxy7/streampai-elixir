@@ -4,7 +4,7 @@ defmodule StreampaiWeb.AuthController do
   use AshAuthentication.Phoenix.Controller
 
   def success(conn, _activity, user, _token) do
-    return_to = get_session(conn, :return_to) || ~p"/"
+    return_to = get_session(conn, :return_to) || ~p"/dashboard"
 
     conn
     |> delete_session(:return_to)
@@ -17,14 +17,12 @@ defmodule StreampaiWeb.AuthController do
   def failure(conn, _activity, _reason) do
     conn
     |> put_flash(:error, "Incorrect email or password")
-    |> redirect(to: ~p"/sign-in")
+    |> redirect(to: ~p"/auth/sign-in")
   end
 
   def sign_out(conn, _params) do
-    return_to = get_session(conn, :return_to) || ~p"/"
-
     conn
     |> clear_session(:streampai)
-    |> redirect(to: return_to)
+    |> redirect(to: ~p"/")
   end
 end

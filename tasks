@@ -1,6 +1,5 @@
 # Short Term
-- when adding account fix extra_data column so it actually contains name, email and nickname
-- after login redirect to dashboard
+- can we persist sessions across app restarts? Right now we're using ETS so that might be hard
 - use streaming accounts in Quick Actions on dashboard and in each place that refers to
 connected platforms (like settings)
 

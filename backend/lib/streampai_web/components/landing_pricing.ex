@@ -122,14 +122,14 @@ defmodule StreampaiWeb.Components.LandingPricing do
               </a>
             <% else %>
               <a
-                href="/sign-in"
+                href="/auth/sign-in"
                 class="block w-full text-center border border-white/30 text-white py-3 px-6 rounded-lg font-semibold hover:bg-white/10 transition-all"
               >
                 Start Free Trial
               </a>
             <% end %>
           </div>
-          
+
     <!-- Pro Tier -->
           <div class="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:from-purple-500/30 hover:to-pink-500/30 transition-all relative">
             <!-- Popular badge -->
@@ -294,7 +294,7 @@ defmodule StreampaiWeb.Components.LandingPricing do
               </a>
             <% else %>
               <a
-                href="/sign-in"
+                href="/auth"
                 class="block w-full text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
               >
                 Start Pro Plan

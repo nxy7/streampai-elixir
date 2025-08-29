@@ -19,7 +19,7 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   def on_mount(:live_user_required, _params, session, socket) do
-    # Handle impersonation on top of existing authentication  
+    # Handle impersonation on top of existing authentication
     socket = handle_impersonation(socket, session)
 
     # For testing, allow loading user from session
@@ -28,7 +28,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     if socket.assigns[:current_user] do
       {:cont, socket}
     else
-      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/sign-in")}
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in")}
     end
   end
 
@@ -58,7 +58,7 @@ defmodule StreampaiWeb.LiveUserAuth do
 
       {:cont, socket}
     else
-      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/sign-in")}
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in")}
     end
   end
 
@@ -137,8 +137,9 @@ defmodule StreampaiWeb.LiveUserAuth do
     else
       # Check if we have a mock user in session (for testing)
       case session["current_user_id"] do
-        nil -> 
+        nil ->
           socket
+
         user_id when is_binary(user_id) ->
           # For testing, create a mock user with this ID
           mock_user = %Streampai.Accounts.User{
@@ -147,8 +148,10 @@ defmodule StreampaiWeb.LiveUserAuth do
             confirmed_at: DateTime.utc_now(),
             __meta__: %Ecto.Schema.Metadata{state: :loaded, source: "users"}
           }
+
           assign(socket, :current_user, mock_user)
-        _ -> 
+
+        _ ->
           socket
       end
     end
