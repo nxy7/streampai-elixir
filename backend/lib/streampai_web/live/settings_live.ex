@@ -204,7 +204,7 @@ defmodule StreampaiWeb.SettingsLive do
                   <div id="availability-status" class="absolute right-3 top-1/2 transform -translate-y-1/2"></div>
                 </div>
                 <div id="availability-message" class="text-xs mt-1 h-4"></div>
-                <p class="text-xs text-gray-500 mt-1">Name must be 3-30 characters and contain only letters, numbers, and underscores</p>
+                <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden">Name must be 3-30 characters and contain only letters, numbers, and underscores</p>
                 <%= if @name_success do %>
                   <p class="text-xs text-green-600 mt-1"><%= @name_success %></p>
                 <% end %>
