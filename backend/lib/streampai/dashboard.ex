@@ -56,12 +56,14 @@ defmodule Streampai.Dashboard do
   end
 
   @doc """
-  Gets current streaming status for a user.
+  Gets current streaming status for a user based on their actual streaming accounts.
   """
-  def get_streaming_status(%User{} = _user) do
+  def get_streaming_status(%User{} = user) do
+    connected_platforms = get_connected_platforms(user)
+    
     %{
       status: :offline,
-      connected_platforms: 0,
+      connected_platforms: length(connected_platforms),
       active_streams: []
     }
   end
@@ -81,40 +83,83 @@ defmodule Streampai.Dashboard do
   end
 
   @doc """
-  Gets quick actions available to the user.
+  Gets quick actions available to the user based on their connected streaming accounts.
   """
-  def get_quick_actions(%User{} = _user) do
-    [
+  def get_quick_actions(%User{} = user) do
+    connected_platforms = get_connected_platforms(user)
+    
+    # Define all available platforms
+    all_platforms = [
       %{
-        name: "Connect Twitch",
+        platform: :twitch,
+        name: "Connect Twitch", 
         description: "Link your Twitch account",
         url: "/streaming/connect/twitch",
         icon: "twitch",
         color: "purple"
       },
       %{
+        platform: :youtube,
         name: "Connect YouTube",
-        description: "Link your YouTube channel",
+        description: "Link your YouTube channel", 
         url: "/streaming/connect/google",
         icon: "youtube",
         color: "red"
       }
     ]
+    
+    # Filter out already connected platforms and add manage actions for connected ones
+    connected_actions = connected_platforms
+    |> Enum.map(fn platform ->
+      case platform do
+        :twitch -> 
+          %{
+            name: "Manage Twitch",
+            description: "Connected - Manage settings",
+            url: "/dashboard/settings",
+            icon: "twitch", 
+            color: "green"
+          }
+        :youtube ->
+          %{
+            name: "Manage YouTube", 
+            description: "Connected - Manage settings",
+            url: "/dashboard/settings",
+            icon: "youtube",
+            color: "green"
+          }
+      end
+    end)
+    
+    # Show connect actions for unconnected platforms
+    unconnected_actions = all_platforms
+    |> Enum.reject(fn platform_info -> platform_info.platform in connected_platforms end)
+    
+    # Combine connected management actions with unconnected connection actions
+    connected_actions ++ unconnected_actions
   end
 
   @doc """
-  Gets platform connections for a user.
+  Gets platform connections for a user based on their actual streaming accounts.
   """
-  def get_platform_connections(%User{} = _user) do
-    # TODO: Implement real platform connection logic
+  def get_platform_connections(%User{} = user) do
+    connected_platforms = get_connected_platforms(user)
+    
     [
       %{
         name: "Twitch",
-        connected: false,
+        platform: :twitch,
+        connected: :twitch in connected_platforms,
         connect_url: "/streaming/connect/twitch",
         color: "purple"
       },
-      %{name: "YouTube", connected: false, connect_url: "/streaming/connect/google", color: "red"}
+      %{
+        name: "YouTube", 
+        platform: :youtube,
+        connected: :youtube in connected_platforms,
+        connect_url: "/streaming/connect/google", 
+        color: "red"
+      }
     ]
   end
 
@@ -125,6 +170,18 @@ defmodule Streampai.Dashboard do
   def admin?(_), do: false
 
   # Private functions
+
+  defp get_connected_platforms(%User{} = user) do
+    query = Streampai.Accounts.StreamingAccount
+    |> Ash.Query.for_read(:for_user, %{user_id: user.id})
+    
+    case Ash.read(query) do
+      {:ok, streaming_accounts} ->
+        Enum.map(streaming_accounts, & &1.platform)
+      {:error, _} ->
+        []
+    end
+  end
 
   defp get_display_name(%User{email: email}) when is_binary(email) do
     email
@@ -148,9 +205,9 @@ defmodule Streampai.Dashboard do
   defp get_hours_limit(:free), do: Constants.free_tier_hour_limit()
   defp get_hours_limit(_), do: Constants.free_tier_hour_limit()
 
-  defp get_platforms_used(%User{} = _user) do
-    # TODO: Implement real platform counting
-    0
+  defp get_platforms_used(%User{} = user) do
+    connected_platforms = get_connected_platforms(user)
+    length(connected_platforms)
   end
 
   defp get_platforms_limit(:free), do: 1

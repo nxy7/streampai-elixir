@@ -46,7 +46,7 @@ defmodule StreampaiWeb.SettingsLive do
     <.dashboard_layout {assigns} current_page="settings" page_title="Settings">
       <div class="max-w-6xl mx-auto space-y-6">
         <!-- Subscription Widget -->
-        <.subscription_widget current_plan={@current_plan} usage={@usage} />
+        <.subscription_widget current_plan={@current_plan} usage={@usage} platform_connections={@platform_connections} />
         
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -76,6 +76,7 @@ defmodule StreampaiWeb.SettingsLive do
                 <%= for connection <- @platform_connections do %>
                   <.platform_connection
                     name={connection.name}
+                    platform={connection.platform}
                     connected={connection.connected}
                     connect_url={connection.connect_url}
                     color={connection.color}

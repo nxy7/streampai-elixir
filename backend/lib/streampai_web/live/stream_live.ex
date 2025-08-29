@@ -1,7 +1,14 @@
 defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
+  
+  alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
+    platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
+    
+    socket = socket
+    |> assign(:platform_connections, platform_connections)
+    
     {:ok, socket, layout: false}
   end
 
@@ -112,47 +119,43 @@ defmodule StreampaiWeb.StreamLive do
           </div>
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Twitch -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
-                    </svg>
+              <%= for connection <- @platform_connections do %>
+                <div class={"flex items-center justify-between p-4 border rounded-lg #{if connection.connected, do: "border-#{connection.color}-200 bg-#{connection.color}-50", else: "border-gray-200"}"}>
+                  <div class="flex items-center space-x-3">
+                    <div class={"w-10 h-10 rounded-lg flex items-center justify-center #{if connection.connected, do: "bg-#{connection.color}-500", else: "bg-gray-400"}"}>
+                      <%= if connection.platform == :twitch do %>
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
+                        </svg>
+                      <% else %>
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                        </svg>
+                      <% end %>
+                    </div>
+                    <div>
+                      <h4 class={"text-sm font-medium #{if connection.connected, do: "text-#{connection.color}-900", else: "text-gray-900"}"}>
+                        <%= connection.name %>
+                      </h4>
+                      <p class={"text-sm #{if connection.connected, do: "text-#{connection.color}-700", else: "text-gray-500"}"}>
+                        <%= if connection.connected, do: "Connected", else: "Not connected" %>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-900">Twitch</h4>
-                    <p class="text-sm text-gray-500">Not connected</p>
-                  </div>
+                  <%= if not connection.connected do %>
+                    <a
+                      href={connection.connect_url}
+                      class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors"
+                    >
+                      Connect
+                    </a>
+                  <% else %>
+                    <span class={"bg-#{connection.color}-600 text-white px-4 py-2 rounded-lg text-sm"}>
+                      ✓ Connected
+                    </span>
+                  <% end %>
                 </div>
-                <a
-                  href="/streaming/connect/twitch"
-                  class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
-                >
-                  Connect
-                </a>
-              </div>
-              
-    <!-- YouTube -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-900">YouTube</h4>
-                    <p class="text-sm text-gray-500">Not connected</p>
-                  </div>
-                </div>
-                <a
-                  href="/streaming/connect/google"
-                  class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
-                >
-                  Connect
-                </a>
-              </div>
+              <% end %>
             </div>
           </div>
         </div>

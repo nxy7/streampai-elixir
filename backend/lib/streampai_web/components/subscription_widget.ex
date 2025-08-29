@@ -13,6 +13,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
           platforms_limit: 1
         }
       end)
+      |> assign_new(:platform_connections, fn -> [] end)
 
     ~H"""
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -71,16 +72,19 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
               </span>
             </div>
             <div class="flex space-x-2 mt-2">
-              <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
-                </svg>
-              </div>
-              <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </div>
+              <%= for connection <- @platform_connections do %>
+                <div class={"w-8 h-8 rounded-lg flex items-center justify-center #{if connection.connected, do: "bg-#{connection.color}-500", else: "bg-gray-200"}"}>
+                  <%= if connection.platform == :twitch do %>
+                    <svg class={"w-5 h-5 #{if connection.connected, do: "text-white", else: "text-gray-400"}"} fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
+                    </svg>
+                  <% else %>
+                    <svg class={"w-5 h-5 #{if connection.connected, do: "text-white", else: "text-gray-400"}"} fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                    </svg>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
             <p class="text-xs text-gray-500 mt-1">
               <%= if @usage.platforms_limit == :unlimited do %>

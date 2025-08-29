@@ -125,37 +125,57 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   end
 
   @doc """
-  Renders a platform connection item.
+  Renders a platform connection item with icon that changes color based on connection status.
   
   ## Examples
   
       <.platform_connection
         name="Twitch"
+        platform={:twitch}
         connected={false}
         connect_url="/streaming/connect/twitch"
         color="purple"
       />
   """
   attr :name, :string, required: true, doc: "Platform name"
+  attr :platform, :atom, default: nil, doc: "Platform identifier for icon selection"
   attr :connected, :boolean, required: true, doc: "Connection status"
   attr :connect_url, :string, required: true, doc: "Connection URL"
   attr :color, :string, default: "purple", doc: "Platform brand color"
 
   def platform_connection(assigns) do
     ~H"""
-    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-      <span class="text-sm text-gray-600">
-        <%= @name %>: <%= if @connected, do: "Connected", else: "Not connected" %>
-      </span>
+    <div class={"flex items-center justify-between p-3 border rounded-lg #{if @connected, do: "border-#{@color}-200 bg-#{@color}-50", else: "border-gray-200"}"}>
+      <div class="flex items-center space-x-3">
+        <div class={"w-8 h-8 rounded-lg flex items-center justify-center #{if @connected, do: "bg-#{@color}-500", else: "bg-gray-400"}"}>
+          <%= case assigns[:platform] || String.downcase(@name) do %>
+            <% platform when platform in ["twitch", :twitch] -> %>
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
+              </svg>
+            <% platform when platform in ["youtube", :youtube] -> %>
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+            <% _ -> %>
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+          <% end %>
+        </div>
+        <span class={"text-sm #{if @connected, do: "text-#{@color}-800 font-medium", else: "text-gray-600"}"}>
+          <%= @name %>: <%= if @connected, do: "Connected", else: "Not connected" %>
+        </span>
+      </div>
       <%= if not @connected do %>
         <a
           href={@connect_url}
-          class={"text-#{@color}-600 hover:text-#{@color}-700 text-sm font-medium"}
+          class="text-gray-600 hover:text-gray-700 text-sm font-medium"
         >
           Connect
         </a>
       <% else %>
-        <span class="text-green-600 text-sm font-medium">✓ Connected</span>
+        <span class={"text-#{@color}-600 text-sm font-medium"}>✓ Connected</span>
       <% end %>
     </div>
     """
