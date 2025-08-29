@@ -15,7 +15,11 @@ defmodule StreampaiWeb.SettingsLive do
      socket
      |> assign(:current_plan, "free")
      |> assign(:usage, user_data.usage)
-     |> assign(:platform_connections, platform_connections),
+     |> assign(:platform_connections, platform_connections)
+     |> assign(:name_form, AshPhoenix.Form.for_update(socket.assigns.current_user, :update_name) |> to_form())
+     |> assign(:name_error, nil)
+     |> assign(:name_success, nil)
+     |> assign(:name_available, nil),
      layout: false}
   end
 
@@ -41,6 +45,129 @@ defmodule StreampaiWeb.SettingsLive do
      |> put_flash(:info, "Successfully downgraded to Free plan!")}
   end
 
+  def handle_event("validate_name", %{"form" => form_params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.name_form, form_params, errors: true) |> to_form()
+    
+    # Reset availability when input changes
+    socket = socket
+    |> assign(:name_form, form)
+    |> assign(:name_available, nil)
+    |> assign(:name_success, nil)
+    
+    {:noreply, socket}
+  end
+
+  def handle_event("check_name_availability", %{"name" => name}, socket) do
+    current_user = socket.assigns.current_user
+    
+    {available, message} = cond do
+      String.length(name) < 3 ->
+        {false, "Name must be at least 3 characters"}
+        
+      !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
+        {false, "Name can only contain letters, numbers, and underscores"}
+        
+      name == current_user.name ->
+        {true, "This is your current name"}
+        
+      true ->
+        case Ash.read(Streampai.Accounts.User) do
+          {:ok, users} ->
+            taken = Enum.any?(users, fn user -> user.name == name end)
+            
+            if taken do
+              {false, "Name is already taken"}
+            else
+              {true, "Name is available"}
+            end
+            
+          {:error, _error} ->
+            {false, "Error checking availability"}
+        end
+    end
+    
+    socket = assign(socket, :name_available, available)
+    {:reply, %{available: available, message: message}, socket}
+  end
+
+  def handle_event("update_name", %{"form" => form_params}, socket) do
+    # Don't submit if name is not available
+    if socket.assigns.name_available == false do
+      {:noreply,
+       socket
+       |> assign(:name_error, "Cannot update to an invalid or taken name")
+       |> assign(:name_success, nil)}
+    else
+      case AshPhoenix.Form.submit(socket.assigns.name_form, params: form_params) do
+        {:ok, user} ->
+          {:noreply,
+           socket
+           |> assign(:current_user, user)
+           |> assign(:name_form, AshPhoenix.Form.for_update(user, :update_name) |> to_form())
+           |> assign(:name_error, nil)
+           |> assign(:name_success, "Name updated successfully!")
+           |> assign(:name_available, nil)
+           |> put_flash(:info, "Name updated successfully!")}
+           
+        {:error, form} ->
+          {:noreply,
+           socket
+           |> assign(:name_form, form |> to_form())
+           |> assign(:name_error, "Failed to update name")
+           |> assign(:name_success, nil)}
+      end
+    end
+  end
+
+  def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
+    platform = String.to_existing_atom(platform_str)
+    user = socket.assigns.current_user
+    
+    case disconnect_streaming_account(user, platform) do
+      :ok ->
+        # Refresh platform connections after successful disconnect
+        platform_connections = Dashboard.get_platform_connections(user)
+        
+        socket = socket
+        |> assign(:platform_connections, platform_connections)
+        |> put_flash(:info, "Successfully disconnected #{String.capitalize(platform_str)} account")
+        
+        {:noreply, socket}
+        
+      {:error, reason} ->
+        socket = socket
+        |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
+        
+        {:noreply, socket}
+    end
+  end
+
+  defp disconnect_streaming_account(user, target_platform) do
+    # Find the streaming account to delete
+    case Ash.read(Streampai.Accounts.StreamingAccount) do
+      {:ok, streaming_accounts} ->
+        account_to_delete = Enum.find(streaming_accounts, fn account -> 
+          account.user_id == user.id && account.platform == target_platform
+        end)
+        
+        case account_to_delete do
+          nil ->
+            # Account not found (already disconnected?)
+            :ok
+            
+          account ->
+            # Delete the streaming account
+            case Ash.destroy(account) do
+              :ok -> :ok
+              {:error, error} -> {:error, error}
+            end
+        end
+        
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="settings" page_title="Settings">
@@ -63,12 +190,43 @@ defmodule StreampaiWeb.SettingsLive do
               <p class="text-xs text-gray-500 mt-1">Your email address cannot be changed</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
-              <input
-                type="text"
-                placeholder="Enter display name"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2"
-              />
+              <.form for={@name_form} phx-change="validate_name" phx-submit="update_name">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                <div class="relative">
+                  <.input
+                    field={@name_form[:name]}
+                    type="text"
+                    placeholder="Enter display name"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10"
+                    phx-hook="NameAvailabilityChecker"
+                    id="name-input"
+                  />
+                  <div id="availability-status" class="absolute right-3 top-1/2 transform -translate-y-1/2"></div>
+                </div>
+                <div id="availability-message" class="text-xs mt-1 h-4"></div>
+                <p class="text-xs text-gray-500 mt-1">Name must be 3-30 characters and contain only letters, numbers, and underscores</p>
+                <%= if @name_success do %>
+                  <p class="text-xs text-green-600 mt-1"><%= @name_success %></p>
+                <% end %>
+                <%= if @name_error do %>
+                  <p class="text-xs text-red-600 mt-1"><%= @name_error %></p>
+                <% end %>
+                <div class="mt-3">
+                  <button 
+                    type="submit" 
+                    disabled={@name_available == false}
+                    class={
+                      if @name_available == false do
+                        "bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed text-sm"
+                      else
+                        "bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                      end
+                    }
+                  >
+                    Update Name
+                  </button>
+                </div>
+              </.form>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Streaming Platforms</label>
@@ -80,14 +238,10 @@ defmodule StreampaiWeb.SettingsLive do
                     connected={connection.connected}
                     connect_url={connection.connect_url}
                     color={connection.color}
+                    show_disconnect={true}
                   />
                 <% end %>
               </div>
-            </div>
-            <div>
-              <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                Save Settings
-              </button>
             </div>
           </div>
         </div>

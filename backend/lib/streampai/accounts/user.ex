@@ -229,6 +229,52 @@ defmodule Streampai.Accounts.User do
       # Generates an authentication token for the user
       change AshAuthentication.GenerateTokenChange
     end
+
+    update :update_name do
+      description "Update user's display name"
+      accept [:name]
+      require_atomic? false
+      
+      validate present(:name)
+      
+      change fn changeset, _context ->
+        name = Ash.Changeset.get_attribute(changeset, :name)
+        
+        if name do
+          # Validate format
+          cond do
+            String.length(name) < 3 ->
+              Ash.Changeset.add_error(changeset, :name, "Name must be at least 3 characters")
+            
+            String.length(name) > 30 ->
+              Ash.Changeset.add_error(changeset, :name, "Name must be no more than 30 characters")
+            
+            !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
+              Ash.Changeset.add_error(changeset, :name, "Name can only contain letters, numbers, and underscores")
+            
+            true ->
+              # Check if the name is already taken by another user
+              case Ash.read(Streampai.Accounts.User) do
+                {:ok, users} ->
+                  taken = Enum.any?(users, fn user -> 
+                    user.name == name and user.id != changeset.data.id
+                  end)
+                  
+                  if taken do
+                    Ash.Changeset.add_error(changeset, :name, "This name is already taken")
+                  else
+                    changeset
+                  end
+                  
+                {:error, error} ->
+                  Ash.Changeset.add_error(changeset, :name, "Failed to validate name availability: #{inspect(error)}")
+              end
+          end
+        else
+          changeset
+        end
+      end
+    end
   end
 
   policies do
@@ -259,6 +305,7 @@ defmodule Streampai.Accounts.User do
       public? true
       allow_nil? false
     end
+
 
     attribute :hashed_password, :string do
       allow_nil? true

@@ -142,6 +142,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :connected, :boolean, required: true, doc: "Connection status"
   attr :connect_url, :string, required: true, doc: "Connection URL"
   attr :color, :string, default: "purple", doc: "Platform brand color"
+  attr :show_disconnect, :boolean, default: false, doc: "Show disconnect button when connected"
 
   def platform_connection(assigns) do
     ~H"""
@@ -175,7 +176,27 @@ defmodule StreampaiWeb.Components.DashboardComponents do
           Connect
         </a>
       <% else %>
-        <span class={"text-#{@color}-600 text-sm font-medium"}>✓ Connected</span>
+        <%= if @show_disconnect do %>
+          <div class="relative inline-block group">
+            <!-- Default Connected State -->
+            <span class={"group-hover:opacity-0 text-#{@color}-600 text-sm font-medium transition-opacity duration-200 inline-block w-28 text-center flex items-center justify-center h-8"}>
+              <span class="flex items-center">
+                <span class="mr-1">✓</span>
+                <span>Connected</span>
+              </span>
+            </span>
+            <!-- Disconnect Button (shows on hover) -->
+            <button
+              phx-click="disconnect_platform"
+              phx-value-platform={@platform}
+              class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-all duration-200 w-28 h-8 flex items-center justify-center"
+            >
+              Disconnect
+            </button>
+          </div>
+        <% else %>
+          <span class={"text-#{@color}-600 text-sm font-medium"}>✓ Connected</span>
+        <% end %>
       <% end %>
     </div>
     """
