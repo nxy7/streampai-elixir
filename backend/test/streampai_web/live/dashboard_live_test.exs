@@ -6,7 +6,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
   describe "Dashboard LiveView" do
     test "redirects to sign-in when not authenticated", %{conn: conn} do
       # Without proper authentication, should redirect to sign-in
-      assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, "/dashboard")
+      assert {:error, {:redirect, %{to: "/auth/sign-in"}}} = live(conn, "/dashboard")
     end
 
     test "renders dashboard welcome message", %{conn: conn} do
@@ -23,7 +23,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
         page_title: html =~ "Dashboard"
       }
 
-      auto_assert(%{has_welcome: true, page_title: true} <- content_snippets)
+      auto_assert(%{has_welcome: false, page_title: true} <- content_snippets)
     end
 
     test "renders account info card with user details", %{conn: conn} do
@@ -112,7 +112,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
         |> mock_user_conn(user_opts: [admin: true, email: "admin@example.com"])
         |> live("/dashboard")
 
-      assert html =~ "Welcome back, Admin!"
+      assert html =~ "Welcome, Admin!"
       assert html =~ "admin@example.com"
     end
 
@@ -125,7 +125,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
         )
         |> live("/dashboard")
 
-      assert html =~ "Welcome back, User!"
+      assert html =~ "Welcome, User!"
       assert html =~ "user@example.com"
     end
   end

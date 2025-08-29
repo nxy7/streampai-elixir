@@ -1,5 +1,7 @@
 defmodule StreampaiWeb.Components.DashboardLayout do
   use StreampaiWeb, :html
+  
+  alias Streampai.Accounts.UserPolicy
 
   def dashboard_layout(assigns) do
     # Accept all assigns and only set defaults for what we need
@@ -161,7 +163,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               </div>
               
     <!-- Admin Section -->
-              <%= if @current_user && @current_user.email == "lolnoxy@gmail.com" do %>
+              <%= if @current_user && UserPolicy.admin?(@current_user) do %>
                 <div class="px-4 mb-8">
                   <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                     Admin

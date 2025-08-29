@@ -6,6 +6,8 @@ defmodule StreampaiWeb.SettingsLive do
   import StreampaiWeb.Components.SubscriptionWidget
   
   alias Streampai.Dashboard
+  alias Streampai.Accounts.StreamingAccountManager
+  alias Streampai.Accounts.NameValidator
 
   def mount_page(socket, _params, _session) do
     user_data = Dashboard.get_dashboard_data(socket.assigns.current_user)
@@ -60,34 +62,19 @@ defmodule StreampaiWeb.SettingsLive do
   def handle_event("check_name_availability", %{"name" => name}, socket) do
     current_user = socket.assigns.current_user
     
-    {available, message} = cond do
-      String.length(name) < 3 ->
-        {false, "Name must be at least 3 characters"}
+    case NameValidator.validate_availability(name, current_user) do
+      {:ok, :available, message} ->
+        socket = assign(socket, :name_available, true)
+        {:reply, %{available: true, message: message}, socket}
         
-      !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
-        {false, "Name can only contain letters, numbers, and underscores"}
+      {:ok, :current_name, message} ->
+        socket = assign(socket, :name_available, true)
+        {:reply, %{available: true, message: message}, socket}
         
-      name == current_user.name ->
-        {true, "This is your current name"}
-        
-      true ->
-        case Ash.read(Streampai.Accounts.User) do
-          {:ok, users} ->
-            taken = Enum.any?(users, fn user -> user.name == name end)
-            
-            if taken do
-              {false, "Name is already taken"}
-            else
-              {true, "Name is available"}
-            end
-            
-          {:error, _error} ->
-            {false, "Error checking availability"}
-        end
+      {:error, _reason, message} ->
+        socket = assign(socket, :name_available, false)
+        {:reply, %{available: false, message: message}, socket}
     end
-    
-    socket = assign(socket, :name_available, available)
-    {:reply, %{available: available, message: message}, socket}
   end
 
   def handle_event("update_name", %{"form" => form_params}, socket) do
@@ -123,10 +110,10 @@ defmodule StreampaiWeb.SettingsLive do
     platform = String.to_existing_atom(platform_str)
     user = socket.assigns.current_user
     
-    case disconnect_streaming_account(user, platform) do
+    case StreamingAccountManager.disconnect_account(user, platform) do
       :ok ->
         # Refresh platform connections after successful disconnect
-        platform_connections = Dashboard.get_platform_connections(user)
+        platform_connections = StreamingAccountManager.refresh_platform_connections(user)
         
         socket = socket
         |> assign(:platform_connections, platform_connections)
@@ -139,32 +126,6 @@ defmodule StreampaiWeb.SettingsLive do
         |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
         
         {:noreply, socket}
-    end
-  end
-
-  defp disconnect_streaming_account(user, target_platform) do
-    # Find the streaming account to delete
-    case Ash.read(Streampai.Accounts.StreamingAccount) do
-      {:ok, streaming_accounts} ->
-        account_to_delete = Enum.find(streaming_accounts, fn account -> 
-          account.user_id == user.id && account.platform == target_platform
-        end)
-        
-        case account_to_delete do
-          nil ->
-            # Account not found (already disconnected?)
-            :ok
-            
-          account ->
-            # Delete the streaming account
-            case Ash.destroy(account) do
-              :ok -> :ok
-              {:error, error} -> {:error, error}
-            end
-        end
-        
-      {:error, error} ->
-        {:error, error}
     end
   end
 
@@ -204,7 +165,7 @@ defmodule StreampaiWeb.SettingsLive do
                   <div id="availability-status" class="absolute right-3 top-1/2 transform -translate-y-1/2"></div>
                 </div>
                 <div id="availability-message" class="text-xs mt-1 h-4"></div>
-                <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden">Name must be 3-30 characters and contain only letters, numbers, and underscores</p>
+                <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden"><%= NameValidator.validation_help_text() %></p>
                 <%= if @name_success do %>
                   <p class="text-xs text-green-600 mt-1"><%= @name_success %></p>
                 <% end %>

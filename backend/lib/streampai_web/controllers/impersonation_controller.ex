@@ -7,6 +7,8 @@ defmodule StreampaiWeb.ImpersonationController do
   - Stop impersonation and return to original user
   """
   use StreampaiWeb, :controller
+  
+  alias Streampai.Accounts.UserPolicy
 
   def start_impersonation(conn, %{"user_id" => user_id}) do
     # Get the real user (current authenticated user)
@@ -50,6 +52,6 @@ defmodule StreampaiWeb.ImpersonationController do
   defp load_user_by_id(_, _), do: {:error, :invalid_id}
 
   defp can_impersonate?(user) do
-    user && user.email == "lolnoxy@gmail.com"
+    UserPolicy.can_impersonate?(user)
   end
 end

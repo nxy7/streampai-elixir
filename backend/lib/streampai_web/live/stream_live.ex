@@ -2,7 +2,7 @@ defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
   
   alias Streampai.Dashboard
-  require Ash.Query
+  alias Streampai.Accounts.StreamingAccountManager
 
   def mount_page(socket, _params, _session) do
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
@@ -17,10 +17,10 @@ defmodule StreampaiWeb.StreamLive do
     platform = String.to_existing_atom(platform_str)
     user = socket.assigns.current_user
     
-    case disconnect_streaming_account(user, platform) do
+    case StreamingAccountManager.disconnect_account(user, platform) do
       :ok ->
         # Refresh platform connections after successful disconnect
-        platform_connections = Dashboard.get_platform_connections(user)
+        platform_connections = StreamingAccountManager.refresh_platform_connections(user)
         
         socket = socket
         |> assign(:platform_connections, platform_connections)
@@ -33,29 +33,6 @@ defmodule StreampaiWeb.StreamLive do
         |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
         
         {:noreply, socket}
-    end
-  end
-
-  defp disconnect_streaming_account(user, target_platform) do
-    # Find the streaming account to delete
-    query = Streampai.Accounts.StreamingAccount
-    |> Ash.Query.for_read(:for_user, %{user_id: user.id})
-    |> Ash.Query.filter(platform == ^target_platform)
-    
-    case Ash.read(query) do
-      {:ok, [streaming_account]} ->
-        # Delete the streaming account
-        case Ash.destroy(streaming_account) do
-          :ok -> :ok
-          {:error, error} -> {:error, error}
-        end
-        
-      {:ok, []} ->
-        # Account not found (already disconnected?)
-        :ok
-        
-      {:error, error} ->
-        {:error, error}
     end
   end
 

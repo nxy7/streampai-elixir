@@ -10,6 +10,7 @@ defmodule StreampaiWeb.UsersLive do
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
   alias StreampaiWeb.Presence
+  alias Streampai.Accounts.UserPolicy
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -21,7 +22,7 @@ defmodule StreampaiWeb.UsersLive do
      socket
      |> assign(
        users: [],
-       can_impersonate: can_impersonate?(socket.assigns.current_user),
+       can_impersonate: UserPolicy.can_impersonate?(socket.assigns.current_user),
        online_users: %{}
      )
      |> load_users()
@@ -63,16 +64,9 @@ defmodule StreampaiWeb.UsersLive do
     {:noreply, load_presence(socket)}
   end
 
-  defp can_impersonate?(user) do
-    user && user.email == "lolnoxy@gmail.com"
-  end
 
   defp user_role(user) do
-    if user.email == "lolnoxy@gmail.com" do
-      :admin
-    else
-      :regular
-    end
+    UserPolicy.user_role(user)
   end
 
   def render(assigns) do
