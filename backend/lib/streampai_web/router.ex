@@ -5,6 +5,7 @@ defmodule StreampaiWeb.Router do
   use Beacon.Router
   import Oban.Web.Router
   use AshAuthentication.Phoenix.Router
+  import Phoenix.LiveDashboard.Router
 
   import AshAdmin.Router
 
@@ -24,11 +25,52 @@ defmodule StreampaiWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug StreampaiWeb.Plugs.ErrorTracker
   end
 
   pipeline :api do
     plug :accepts, ["json"]
     plug :load_from_bearer
+    plug StreampaiWeb.Plugs.ErrorTracker
+  end
+
+  pipeline :check_monitoring_ip do
+    plug :check_monitoring_access
+  end
+
+  # IP allowlist for monitoring endpoints
+  @monitoring_allowed_ips [
+    # localhost
+    "127.0.0.1",
+    # localhost IPv6
+    "::1"
+    # Add your monitoring server IP here
+    # "10.0.0.100",
+    # "192.168.1.50"
+  ]
+
+  defp check_monitoring_access(conn, _opts) do
+    #
+    client_ip = get_client_ip(conn)
+
+    if client_ip in @monitoring_allowed_ips do
+      conn
+    else
+      conn
+      |> put_status(:forbidden)
+      |> Phoenix.Controller.text("Access denied to monitoring interface")
+      |> halt()
+    end
+  end
+
+  defp get_client_ip(conn) do
+    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
+      [forwarded_ip | _] ->
+        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
+
+      [] ->
+        conn.remote_ip |> :inet.ntoa() |> to_string()
+    end
   end
 
   scope "/" do
@@ -36,10 +78,25 @@ defmodule StreampaiWeb.Router do
     beacon_live_admin "/cms/admin"
   end
 
+  # Ash Admin UI (separate scope to avoid conflicts)
   scope "/" do
     pipe_through :browser
+    ash_admin "/admin/ash"
+  end
 
-    ash_admin "/admin"
+  # Monitoring dashboards
+  scope "/admin", StreampaiWeb do
+    if Mix.env() == :prod do
+      pipe_through [:browser, :check_monitoring_ip]
+    else
+      pipe_through :browser
+    end
+
+    oban_dashboard("/oban")
+
+    live_dashboard "/dashboard",
+      metrics: StreampaiWeb.Telemetry,
+      live_session_name: :monitoring_dashboard
   end
 
   scope "/", StreampaiWeb do
@@ -128,27 +185,15 @@ defmodule StreampaiWeb.Router do
     # get "/plug", StreampaiWeb.Plugs.FastResponse, []
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
-  if Application.compile_env(:streampai, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
-    import Phoenix.LiveDashboard.Router
+  # Monitoring endpoints (IP-restricted)
+  scope "/monitoring", StreampaiWeb do
+    pipe_through :api
 
-    scope "/dev" do
-      pipe_through :browser
-
-      live_dashboard "/dashboard", metrics: StreampaiWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-
-    scope "/" do
-      pipe_through :browser
-
-      oban_dashboard("/oban")
-    end
+    get "/health", MonitoringController, :health_check
+    get "/metrics", MonitoringController, :metrics
+    get "/system", MonitoringController, :system_info
+    get "/errors", MonitoringController, :errors
+    get "/errors/:id", MonitoringController, :error_detail
   end
 
   scope "/", alias: StreampaiWeb do

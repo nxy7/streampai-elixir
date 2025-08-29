@@ -76,9 +76,24 @@ defmodule StreampaiWeb.Telemetry do
 
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
+      summary("vm.memory.processes", unit: {:byte, :kilobyte}),
+      summary("vm.memory.processes_used", unit: {:byte, :kilobyte}),
+      summary("vm.memory.system", unit: {:byte, :kilobyte}),
+      summary("vm.memory.atom", unit: {:byte, :kilobyte}),
+      summary("vm.memory.atom_used", unit: {:byte, :kilobyte}),
+      summary("vm.memory.binary", unit: {:byte, :kilobyte}),
+      summary("vm.memory.code", unit: {:byte, :kilobyte}),
+      summary("vm.memory.ets", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
+      summary("vm.system_counts.process_count"),
+      summary("vm.system_counts.atom_count"),
+      summary("vm.system_counts.port_count"),
+      last_value("vm.system_info.uptime", unit: :second),
+      last_value("vm.system_info.process_count"),
+      last_value("vm.system_info.port_count"),
+      last_value("vm.system_info.atom_count")
     ]
   end
 
