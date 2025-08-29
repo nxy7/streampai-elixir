@@ -37,6 +37,18 @@
       "type": "text"
     },
     {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "name",
+      "type": "text"
+    },
+    {
       "allow_nil?": true,
       "default": "nil",
       "generated?": false,
@@ -54,7 +66,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "3C96B22DC2674ED4CA4484EE3F4F83B5747E672F4A3BB6F62D949A9AB48E9E5B",
+  "hash": "625A6D7F1C587941EA4D942FFEB8932736641B794E134FAC88DB8BAB144AD3C8",
   "identities": [
     {
       "all_tenants?": false,
@@ -67,6 +79,20 @@
         }
       ],
       "name": "unique_email",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "users_unique_name_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "name"
+        }
+      ],
+      "name": "unique_name",
       "nils_distinct?": true,
       "where": null
     }

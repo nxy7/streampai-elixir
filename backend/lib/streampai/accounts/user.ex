@@ -78,6 +78,8 @@ defmodule Streampai.Accounts.User do
         Ash.Changeset.change_attributes(changeset, Map.take(user_info, ["email"]))
       end
 
+      change Streampai.Accounts.DefaultUsername
+
       # Required if you're using the password & confirmation strategies
       upsert_fields []
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
@@ -162,6 +164,8 @@ defmodule Streampai.Accounts.User do
 
       # Generates an authentication token for the user
       change AshAuthentication.GenerateTokenChange
+
+      change Streampai.Accounts.DefaultUsername
 
       # validates that the password matches the confirmation
       validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
@@ -251,6 +255,11 @@ defmodule Streampai.Accounts.User do
       allow_nil? false
     end
 
+    attribute :name, :string do
+      public? true
+      allow_nil? false
+    end
+
     attribute :hashed_password, :string do
       allow_nil? true
       sensitive? true
@@ -258,7 +267,7 @@ defmodule Streampai.Accounts.User do
   end
 
   identities do
-    # If the `email` attribute must be unique across all records
     identity :unique_email, [:email]
+    identity :unique_name, [:name]
   end
 end
