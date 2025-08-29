@@ -9,12 +9,22 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     repo Streampai.Repo
   end
 
-  code_interface do
-  end
-
   actions do
     defaults [:read, create: :*]
+
+    create :grant_premium do
+      accept [:user_id, :lock_in_amount, :type, :granted_until]
+    end
   end
+
+
+  code_interface do
+    define :list, action: :read
+    define :get, action: :read, get?: true
+    define :create
+    define :grant_premium, action: :grant_premium, args: [:user_id, :lock_in_amount, :type, :granted_until]
+  end
+
 
   attributes do
     uuid_primary_key :id

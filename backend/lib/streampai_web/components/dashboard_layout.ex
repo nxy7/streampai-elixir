@@ -32,7 +32,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           <!-- Sidebar -->
           <div class="sidebar fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0">
             <!-- Sidebar Header -->
-            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+            <div class="flex items-center justify-center p-4 border-b border-gray-700 relative">
               <a href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
                 <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -41,8 +41,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
                 <span class="sidebar-text text-xl font-bold">Streampai</span>
               </a>
-              <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button id="sidebar-toggle" class="hidden md:block absolute right-2 p-1.5 rounded-lg hover:bg-gray-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     class="collapse-icon"
                     stroke-linecap="round"
@@ -72,9 +72,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   <!-- Dashboard -->
                   <a
                     href="/dashboard"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "dashboard", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "dashboard", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Dashboard"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -88,15 +89,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"
                       />
                     </svg>
-                    <span class="sidebar-text">Dashboard</span>
+                    <span class="sidebar-text ml-3">Dashboard</span>
                   </a>
                   
     <!-- Analytics -->
                   <a
                     href="/dashboard/analytics"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "analytics", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "analytics", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Analytics"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -104,7 +106,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                       />
                     </svg>
-                    <span class="sidebar-text">Analytics</span>
+                    <span class="sidebar-text ml-3">Analytics</span>
                   </a>
                 </div>
               </div>
@@ -118,9 +120,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   <!-- Stream -->
                   <a
                     href="/dashboard/stream"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "stream", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "stream", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Stream"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -128,15 +131,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M15 10l4.553-2.276A1 1 0 0021 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                       />
                     </svg>
-                    <span class="sidebar-text">Stream</span>
+                    <span class="sidebar-text ml-3">Stream</span>
                   </a>
                   
     <!-- Chat History -->
                   <a
                     href="/dashboard/chat-history"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "chat-history", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "chat-history", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Chat History"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -144,15 +148,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                       />
                     </svg>
-                    <span class="sidebar-text">Chat History</span>
+                    <span class="sidebar-text ml-3">Chat History</span>
                   </a>
                   
     <!-- Widgets -->
                   <a
                     href="/dashboard/widgets"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "widgets", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "widgets", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Widgets"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -160,7 +165,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"
                       />
                     </svg>
-                    <span class="sidebar-text">Widgets</span>
+                    <span class="sidebar-text ml-3">Widgets</span>
                   </a>
                 </div>
               </div>
@@ -175,9 +180,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     <!-- User Management -->
                     <a
                       href="/dashboard/admin/users"
-                      class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "users", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                      class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "users", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                      title="Users"
                     >
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           stroke-linecap="round"
                           stroke-linejoin="round"
@@ -185,7 +191,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                           d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
                         />
                       </svg>
-                      <span class="sidebar-text">Users</span>
+                      <span class="sidebar-text ml-3">Users</span>
                     </a>
                   </div>
                 </div>
@@ -200,9 +206,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   <!-- Settings -->
                   <a
                     href="/dashboard/settings"
-                    class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "settings", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "settings", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Settings"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -216,7 +223,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    <span class="sidebar-text">Settings</span>
+                    <span class="sidebar-text ml-3">Settings</span>
                   </a>
                 </div>
               </div>
@@ -227,7 +234,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               <a
                 href="/auth/sign-out"
                 method="delete"
-                class="flex items-center space-x-3 p-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors w-full"
+                class="nav-item flex items-center p-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors w-full"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -237,7 +244,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                <span class="sidebar-text">Sign Out</span>
+                <span class="sidebar-text ml-3">Sign Out</span>
               </a>
             </div>
           </div>
@@ -355,43 +362,101 @@ defmodule StreampaiWeb.Components.DashboardLayout do
         <!-- Flash Messages -->
         <.flash_group flash={assigns[:flash] || %{}} />
 
+        <style>
+          /* Collapsed sidebar styles */
+          .sidebar.w-20 .nav-item {
+            justify-content: center;
+            padding: 0.75rem;
+          }
+        </style>
+
         <script>
           // Sidebar toggle functionality
           document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggle = document.getElementById('sidebar-toggle');
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+            const backdrop = document.getElementById('mobile-sidebar-backdrop');
             const sidebarTexts = document.querySelectorAll('.sidebar-text');
             const collapseIcon = document.querySelector('.collapse-icon');
             const expandIcon = document.querySelector('.expand-icon');
             
             let isExpanded = true;
+            let isMobileOpen = false;
             
-            function toggleSidebar() {
+            // Desktop sidebar toggle
+            function toggleDesktopSidebar() {
               isExpanded = !isExpanded;
               
               if (isExpanded) {
-                sidebar.classList.remove('w-16');
+                sidebar.classList.remove('w-20');
                 sidebar.classList.add('w-64');
                 sidebarTexts.forEach(text => text.classList.remove('hidden'));
                 collapseIcon.classList.remove('hidden');
                 expandIcon.classList.add('hidden');
               } else {
                 sidebar.classList.remove('w-64');
-                sidebar.classList.add('w-16');
+                sidebar.classList.add('w-20');
                 sidebarTexts.forEach(text => text.classList.add('hidden'));
                 collapseIcon.classList.add('hidden');
                 expandIcon.classList.remove('hidden');
               }
             }
             
-            if (sidebarToggle) {
-              sidebarToggle.addEventListener('click', toggleSidebar);
+            // Mobile sidebar toggle
+            function toggleMobileSidebar() {
+              isMobileOpen = !isMobileOpen;
+              
+              if (isMobileOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                // Ensure mobile sidebar is always full width
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                // Show all text on mobile
+                sidebarTexts.forEach(text => text.classList.remove('hidden'));
+                backdrop.classList.remove('hidden');
+              } else {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+              }
             }
             
-            if (mobileSidebarToggle) {
-              mobileSidebarToggle.addEventListener('click', toggleSidebar);
+            // Close mobile sidebar
+            function closeMobileSidebar() {
+              if (isMobileOpen) {
+                isMobileOpen = false;
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+              }
             }
+            
+            // Desktop toggle event
+            if (sidebarToggle) {
+              sidebarToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+            
+            // Mobile toggle event
+            if (mobileSidebarToggle) {
+              mobileSidebarToggle.addEventListener('click', toggleMobileSidebar);
+            }
+            
+            // Backdrop click to close mobile sidebar
+            if (backdrop) {
+              backdrop.addEventListener('click', closeMobileSidebar);
+            }
+            
+            // Close mobile sidebar when clicking on menu items (optional)
+            const mobileMediaQuery = window.matchMedia('(max-width: 768px)');
+            document.querySelectorAll('.sidebar a').forEach(link => {
+              link.addEventListener('click', () => {
+                if (mobileMediaQuery.matches && isMobileOpen) {
+                  closeMobileSidebar();
+                }
+              });
+            });
           });
         </script>
       </body>

@@ -1,18 +1,8 @@
 # Short Term
-- sidebar should show adequately on mobile devices (as top bar maybe?)
-- when sidebar is collapsed icons are too small and button to expand it overflows to the right
-- add livebook (also on admin route like /admin/livebook)
-
-- in settings allow users to set their own names
-	- in settings add some ecto validation on user name with feedback when user writes (like name
-	has to be alphanumeric and longer than 3 chars)
-	- how to implement additional check on this field, checking if username is taken (with debounce
-	so we don't run this check on every character input)
-	- finally allow saving the name
-- figure out deployment, I think that for starters docker compose on VPS will be sufficient
-- create simple widget, for starters let's create carousel widget that displays images in carousel
 - create livestream chat widget, for starters it should just create some fake messages and display them
 in a loop (it's fine to display max 40-50 messages). Later it will plug into some actor probably
+- create simple widget, for starters let's create carousel widget that displays images in carousel
+- figure out deployment, I think that for starters docker compose on VPS will be sufficient
 
 
 # Long Term
