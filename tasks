@@ -1,4 +1,5 @@
 # Short Term
+- sidebar should show adequately on mobile devices (as top bar maybe?)
 - can we persist sessions across app restarts? Right now we're using ETS so that might be hard
 - on sidebar move users into separate Admin category, it should also have /dashboard/admin/users path. Fix paths wherever it's used.
 - I need some way to monitor the app, CPU usage, memory usage of all nodes, what are my options? This should also be exposed just to specific IP

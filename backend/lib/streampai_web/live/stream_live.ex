@@ -2,6 +2,7 @@ defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
   
   alias Streampai.Dashboard
+  require Ash.Query
 
   def mount_page(socket, _params, _session) do
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
@@ -10,6 +11,52 @@ defmodule StreampaiWeb.StreamLive do
     |> assign(:platform_connections, platform_connections)
     
     {:ok, socket, layout: false}
+  end
+
+  def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
+    platform = String.to_existing_atom(platform_str)
+    user = socket.assigns.current_user
+    
+    case disconnect_streaming_account(user, platform) do
+      :ok ->
+        # Refresh platform connections after successful disconnect
+        platform_connections = Dashboard.get_platform_connections(user)
+        
+        socket = socket
+        |> assign(:platform_connections, platform_connections)
+        |> put_flash(:info, "Successfully disconnected #{String.capitalize(platform_str)} account")
+        
+        {:noreply, socket}
+        
+      {:error, reason} ->
+        socket = socket
+        |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
+        
+        {:noreply, socket}
+    end
+  end
+
+  defp disconnect_streaming_account(user, target_platform) do
+    # Find the streaming account to delete
+    query = Streampai.Accounts.StreamingAccount
+    |> Ash.Query.for_read(:for_user, %{user_id: user.id})
+    |> Ash.Query.filter(platform == ^target_platform)
+    
+    case Ash.read(query) do
+      {:ok, [streaming_account]} ->
+        # Delete the streaming account
+        case Ash.destroy(streaming_account) do
+          :ok -> :ok
+          {:error, error} -> {:error, error}
+        end
+        
+      {:ok, []} ->
+        # Account not found (already disconnected?)
+        :ok
+        
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   def render(assigns) do
@@ -120,7 +167,7 @@ defmodule StreampaiWeb.StreamLive do
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <%= for connection <- @platform_connections do %>
-                <div class={"flex items-center justify-between p-4 border rounded-lg #{if connection.connected, do: "border-#{connection.color}-200 bg-#{connection.color}-50", else: "border-gray-200"}"}>
+                <div class={"group flex items-center justify-between p-4 border rounded-lg #{if connection.connected, do: "border-#{connection.color}-200 bg-#{connection.color}-50", else: "border-gray-200"}"}>
                   <div class="flex items-center space-x-3">
                     <div class={"w-10 h-10 rounded-lg flex items-center justify-center #{if connection.connected, do: "bg-#{connection.color}-500", else: "bg-gray-400"}"}>
                       <%= if connection.platform == :twitch do %>
@@ -150,9 +197,23 @@ defmodule StreampaiWeb.StreamLive do
                       Connect
                     </a>
                   <% else %>
-                    <span class={"bg-#{connection.color}-600 text-white px-4 py-2 rounded-lg text-sm"}>
-                      ✓ Connected
-                    </span>
+                    <div class="relative inline-block">
+                      <!-- Default Connected State -->
+                      <span class={"group-hover:opacity-0 bg-#{connection.color}-600 text-white px-4 py-2 rounded-lg text-sm transition-opacity duration-200 inline-block w-28 text-center flex items-center justify-center"}>
+                        <span class="flex items-center">
+                          <span class="mr-1">✓</span>
+                          <span>Connected</span>
+                        </span>
+                      </span>
+                      <!-- Disconnect Button (shows on hover) -->
+                      <button
+                        phx-click="disconnect_platform"
+                        phx-value-platform={connection.platform}
+                        class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-200 w-28 text-center"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
                   <% end %>
                 </div>
               <% end %>
