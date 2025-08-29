@@ -26,8 +26,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
       </head>
       <body class="h-full bg-gray-50">
         <div class="flex h-screen" id="dashboard-layout">
+          <!-- Mobile sidebar backdrop -->
+          <div id="mobile-sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"></div>
+          
           <!-- Sidebar -->
-          <div class="sidebar transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col">
+          <div class="sidebar fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0">
             <!-- Sidebar Header -->
             <div class="flex items-center justify-between p-4 border-b border-gray-700">
               <a href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">

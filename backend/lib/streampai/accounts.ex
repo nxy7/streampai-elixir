@@ -9,6 +9,7 @@ defmodule Streampai.Accounts do
   resources do
     resource Streampai.Accounts.Token
     resource Streampai.Accounts.User
+    resource Streampai.Accounts.UserPremiumGrant
     resource Streampai.Accounts.StreamingAccount
   end
 end

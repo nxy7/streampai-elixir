@@ -12,7 +12,7 @@ test:
 start:
 	cd backend; mix start
 	
-start-interactive:
+si:
 	cd backend; iex -S mix phx.server
 
 tasks:

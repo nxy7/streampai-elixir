@@ -1,5 +1,6 @@
 # Short Term
 - sidebar should show adequately on mobile devices (as top bar maybe?)
+- when sidebar is collapsed icons are too small and button to expand it overflows to the right
 - add livebook (also on admin route like /admin/livebook)
 
 - in settings allow users to set their own names

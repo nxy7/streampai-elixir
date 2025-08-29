@@ -1,4 +1,4 @@
-defmodule Streampai.Repo.Migrations.Add do
+defmodule Streampai.Repo.Migrations.AddStreamingAccountIndex do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

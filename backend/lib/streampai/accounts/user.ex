@@ -234,40 +234,49 @@ defmodule Streampai.Accounts.User do
       description "Update user's display name"
       accept [:name]
       require_atomic? false
-      
+
       validate present(:name)
-      
+
       change fn changeset, _context ->
         name = Ash.Changeset.get_attribute(changeset, :name)
-        
+
         if name do
           # Validate format
           cond do
             String.length(name) < 3 ->
               Ash.Changeset.add_error(changeset, :name, "Name must be at least 3 characters")
-            
+
             String.length(name) > 30 ->
               Ash.Changeset.add_error(changeset, :name, "Name must be no more than 30 characters")
-            
+
             !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
-              Ash.Changeset.add_error(changeset, :name, "Name can only contain letters, numbers, and underscores")
-            
+              Ash.Changeset.add_error(
+                changeset,
+                :name,
+                "Name can only contain letters, numbers, and underscores"
+              )
+
             true ->
               # Check if the name is already taken by another user
               case Ash.read(Streampai.Accounts.User) do
                 {:ok, users} ->
-                  taken = Enum.any?(users, fn user -> 
-                    user.name == name and user.id != changeset.data.id
-                  end)
-                  
+                  taken =
+                    Enum.any?(users, fn user ->
+                      user.name == name and user.id != changeset.data.id
+                    end)
+
                   if taken do
                     Ash.Changeset.add_error(changeset, :name, "This name is already taken")
                   else
                     changeset
                   end
-                  
+
                 {:error, error} ->
-                  Ash.Changeset.add_error(changeset, :name, "Failed to validate name availability: #{inspect(error)}")
+                  Ash.Changeset.add_error(
+                    changeset,
+                    :name,
+                    "Failed to validate name availability: #{inspect(error)}"
+                  )
               end
           end
         else
@@ -306,21 +315,28 @@ defmodule Streampai.Accounts.User do
       allow_nil? false
     end
 
-
     attribute :hashed_password, :string do
       allow_nil? true
       sensitive? true
     end
   end
 
-  identities do
-    identity :unique_email, [:email]
-    identity :unique_name, [:name]
-  end
-
   relationships do
     has_many :streaming_accounts, Streampai.Accounts.StreamingAccount do
       destination_attribute :user_id
     end
+
+    has_many :user_premium_grants, Streampai.Accounts.UserPremiumGrant do
+      destination_attribute :user_id
+    end
+  end
+
+  calculations do
+    calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
+  end
+
+  identities do
+    identity :unique_email, [:email]
+    identity :unique_name, [:name]
   end
 end
