@@ -1,8 +1,11 @@
 # Short Term
+- when adding account fix extra_data column so it actually contains name, email and nickname
+- use streaming accounts in Quick Actions on dashboard and in each place that refers to
+connected platforms (like settings)
+
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
 to stdout, I'll want to confirm that multiple invocations don't print out multiple times. Macro should be configurable as in it should take in cache duration. Or maybe some library
 like cachex already supports something like that?
-- make adding youtube/twitch accounts functional
 
 - in settings allow users to set their own names
 	- in settings add some ecto validation on user name with feedback when user writes (like name

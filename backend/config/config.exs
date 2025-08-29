@@ -92,9 +92,9 @@ config :streampai,
   ash_domains: [Streampai.Stream, Streampai.Accounts],
   generators: [timestamp_type: :utc_datetime],
   session_options: [
-    store: :cookie,
+    store: :ets,
     key: "_streampai_key",
-    signing_salt: signing_salt,
+    table: :session,
     same_site: "Lax"
   ]
 
@@ -150,15 +150,20 @@ config :tailwind,
   ]
 
 config :ueberauth, Ueberauth,
+  base_path: "/streaming/connect",
   providers: [
     google:
       {Ueberauth.Strategy.Google,
        [
-         request_path: "/streaming/connect/google",
-         callback_path: "/streaming/connect/google/callback",
          access_type: "offline",
+         prompt: "consent",
          default_scope:
-           "openid https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
+           "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
+       ]},
+    twitch:
+      {Ueberauth.Strategy.Twitch,
+       [
+         default_scope: "user:read:email channel:read:subscriptions"
        ]}
   ]
 

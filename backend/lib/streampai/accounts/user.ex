@@ -270,4 +270,10 @@ defmodule Streampai.Accounts.User do
     identity :unique_email, [:email]
     identity :unique_name, [:name]
   end
+
+  relationships do
+    has_many :streaming_accounts, Streampai.Accounts.StreamingAccount do
+      destination_attribute :user_id
+    end
+  end
 end
