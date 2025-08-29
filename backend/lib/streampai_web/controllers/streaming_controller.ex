@@ -31,36 +31,6 @@ defmodule StreampaiWeb.MultiProviderAuth do
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{"provider" => provider}) do
     current_user = conn.assigns[:current_user]
 
-    # Temporary debug logging to see what data is available
-    IO.puts("=== Google OAuth Debug Info ===")
-    IO.puts("auth.info: #{inspect(auth.info)}")
-    IO.puts("auth.extra keys: #{inspect(Map.keys(auth.extra))}")
-    if Map.has_key?(auth.extra, :raw_info), do: IO.puts("auth.extra.raw_info keys: #{inspect(Map.keys(auth.extra.raw_info))}")
-    
-    # Try to decode JWT and show what's in it
-    case auth.extra.raw_info do
-      %{token: %OAuth2.AccessToken{other_params: %{"id_token" => id_token}}} ->
-        case String.split(id_token, ".") do
-          [_header, payload, _signature] ->
-            case Base.url_decode64(payload, padding: false) do
-              {:ok, decoded_payload} ->
-                case Jason.decode(decoded_payload) do
-                  {:ok, jwt_data} -> 
-                    IO.puts("JWT payload: #{inspect(jwt_data)}")
-                  _ -> 
-                    IO.puts("Failed to decode JWT JSON")
-                end
-              _ -> 
-                IO.puts("Failed to decode JWT base64")
-            end
-          _ -> 
-            IO.puts("Invalid JWT format")
-        end
-      _ -> 
-        IO.puts("No id_token found")
-    end
-    IO.puts("===============================")
-
     if current_user do
       case create_or_update_streaming_account(current_user, auth, provider) do
         {:ok, _account} ->

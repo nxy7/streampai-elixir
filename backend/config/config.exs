@@ -156,7 +156,9 @@ config :ueberauth, Ueberauth,
       {Ueberauth.Strategy.Google,
        [
          access_type: "offline",
-         prompt: "consent",
+         prompt: "consent select_account",
+         approval_prompt: "force",
+         include_granted_scopes: true,
          default_scope:
            "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
        ]},

@@ -1,5 +1,6 @@
 # Short Term
 - when adding account fix extra_data column so it actually contains name, email and nickname
+- after login redirect to dashboard
 - use streaming accounts in Quick Actions on dashboard and in each place that refers to
 connected platforms (like settings)
 
