@@ -24,12 +24,12 @@ defmodule StreampaiWeb.ImpersonationController do
         {:error, _} ->
           conn
           |> put_flash(:error, "User not found")
-          |> redirect(to: "/dashboard/users")
+          |> redirect(to: "/dashboard/admin/users")
       end
     else
       conn
       |> put_flash(:error, "You don't have permission to impersonate users")
-      |> redirect(to: "/dashboard/users")
+      |> redirect(to: "/dashboard/admin/users")
     end
   end
 
@@ -38,7 +38,7 @@ defmodule StreampaiWeb.ImpersonationController do
     |> delete_session(:impersonated_user_id)
     |> delete_session(:impersonator_user_id)
     |> put_flash(:info, "Impersonation stopped")
-    |> redirect(to: "/dashboard/users")
+    |> redirect(to: "/dashboard/admin/users")
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do

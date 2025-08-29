@@ -60,7 +60,7 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
       # Should include the Users menu item
       assert html =~ "User Management"
-      assert html =~ "/dashboard/users"
+      assert html =~ "/dashboard/admin/users"
 
       auto_assert(^html <- html)
     end
@@ -76,7 +76,7 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
       html = render_component(&dashboard_layout/1, assigns)
 
       # Should not include the Users menu item
-      refute html =~ "/dashboard/users"
+      refute html =~ "/dashboard/admin/users"
 
       auto_assert(^html <- html)
     end

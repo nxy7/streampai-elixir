@@ -32,10 +32,11 @@ defmodule StreampaiWeb.DashboardLive do
   end
 
   def handle_event("click", _, socket) do
-    socket = 
-      socket 
+    socket =
+      socket
       |> clear_flash()
       |> put_flash(:info, "Button clicked")
+
     {:noreply, socket}
   end
 
@@ -47,7 +48,15 @@ defmodule StreampaiWeb.DashboardLive do
       </button>
       <div class="max-w-7xl mx-auto">
         <!-- Welcome Card -->
-        <.dashboard_card title={"Welcome back, #{@display_name}!"} class="mb-6">
+        <.dashboard_card
+          title={
+            get_welcome_message(
+              @display_name,
+              DateTime.to_date(@dashboard_data.user_info.joined_at)
+            )
+          }
+          class="mb-6"
+        >
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-2 text-sm text-gray-500">
               <StreampaiWeb.Components.DashboardComponents.icon name="clock" class="w-4 h-4" />
@@ -137,5 +146,16 @@ defmodule StreampaiWeb.DashboardLive do
       </div>
     </.dashboard_layout>
     """
+  end
+
+  defp get_welcome_message(display_name, joined_date) do
+    today = Date.utc_today()
+    same_day = Date.compare(joined_date, today) == :eq
+
+    if same_day do
+      "Welcome, #{display_name}! Great to have you here :-)"
+    else
+      "Welcome back, #{display_name}!"
+    end
   end
 end

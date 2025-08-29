@@ -160,6 +160,32 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
               </div>
               
+    <!-- Admin Section -->
+              <%= if @current_user && @current_user.email == "lolnoxy@gmail.com" do %>
+                <div class="px-4 mb-8">
+                  <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                    Admin
+                  </h3>
+                  <div class="space-y-2">
+                    <!-- User Management -->
+                    <a
+                      href="/dashboard/admin/users"
+                      class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "users", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
+                        />
+                      </svg>
+                      <span class="sidebar-text">Users</span>
+                    </a>
+                  </div>
+                </div>
+              <% end %>
+              
     <!-- Settings Section -->
               <div class="px-4">
                 <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -187,24 +213,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text">Settings</span>
                   </a>
-                  
-    <!-- User Management (Admin Only) -->
-                  <%= if @current_user && @current_user.email == "lolnoxy@gmail.com" do %>
-                    <a
-                      href="/dashboard/users"
-                      class={"flex items-center space-x-3 p-3 rounded-lg transition-colors #{if @current_page == "users", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
-                    >
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
-                        />
-                      </svg>
-                      <span class="sidebar-text">Users</span>
-                    </a>
-                  <% end %>
                 </div>
               </div>
             </nav>

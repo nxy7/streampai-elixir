@@ -69,7 +69,7 @@ defmodule StreampaiWeb.Router do
       live "/dashboard/widgets", WidgetsLive
       live "/dashboard/analytics", AnalyticsLive
       live "/dashboard/settings", SettingsLive
-      live "/dashboard/users", UsersLive
+      live "/dashboard/admin/users", UsersLive
     end
 
     # Impersonation routes (need authentication)
