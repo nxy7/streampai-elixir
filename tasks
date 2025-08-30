@@ -1,4 +1,6 @@
 # Short Term
+- refactor time, find all things that can be problematic in the future when we scale our
+codebase and fix them
 - can we move connecting streaming accounts to actions so we can do appropriate checks
 (like ensure that free tier accounts only have max 1 connected stremaing account)
 - create livestream chat widget, for starters it should just create some fake messages and display them

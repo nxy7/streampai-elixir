@@ -49,7 +49,7 @@ defmodule StreampaiWeb.ButtonLive do
 
   def handle_event("increment", _params, socket) do
     ButtonServer.increment(socket.assigns.id)
-    _z = Ash.Query.for_read(Streampai.Accounts.StreamingAccount, :read)
+    _z = Ash.Query.for_read(Streampai.Accounts.StreamingAccount, :get)
     {:noreply, socket}
   end
 

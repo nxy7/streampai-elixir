@@ -88,7 +88,7 @@ defmodule Streampai.Accounts.NameValidator do
 
   defp validate_uniqueness(name, current_user) do
     import Ash.Query
-    query = User |> for_read(:read) |> filter(name == ^name)
+    query = User |> for_read(:get) |> filter(name == ^name)
 
     case Ash.read(query) do
       {:ok, users} ->

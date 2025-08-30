@@ -34,7 +34,7 @@ defmodule Streampai.Accounts.DefaultUsername do
   defp username_available?(username) do
     query =
       Streampai.Accounts.User
-      |> Ash.Query.for_read(:read)
+      |> Ash.Query.for_read(:get)
       |> Ash.Query.filter(name == ^username)
 
     case Ash.read(query) do

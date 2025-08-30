@@ -5,8 +5,24 @@ defmodule Streampai.Accounts.UserTest do
 
   describe "User resource" do
     setup do
-      admin_user = %{id: "admin-123", email: "lolnoxy@gmail.com"}
-      regular_user = %{id: "user-456", email: "user@example.com"}
+      # Create real users in the test database
+      {:ok, admin_user} =
+        User
+        |> Ash.Changeset.for_create(:register_with_password, %{
+          email: "lolnoxy@gmail.com",
+          password: "password123",
+          password_confirmation: "password123"
+        })
+        |> Ash.create()
+
+      {:ok, regular_user} =
+        User
+        |> Ash.Changeset.for_create(:register_with_password, %{
+          email: "user@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        })
+        |> Ash.create()
 
       %{admin_user: admin_user, regular_user: regular_user}
     end
@@ -16,7 +32,7 @@ defmodule Streampai.Accounts.UserTest do
       # we'll test the policy structure
 
       case User
-           |> Ash.Query.for_read(:read, %{}, actor: admin_user)
+           |> Ash.Query.for_read(:get, %{}, actor: admin_user)
            |> Ash.read() do
         {:ok, users} ->
           # Snapshot the successful structure
@@ -36,23 +52,19 @@ defmodule Streampai.Accounts.UserTest do
     end
 
     test "regular user cannot read other users", %{regular_user: regular_user} do
-      case User
-           |> Ash.Query.for_read(:read, %{}, actor: regular_user)
-           |> Ash.read() do
-        {:ok, users} ->
-          # Should only return the user themselves
-          result = %{status: :success, user_count: length(users)}
-          auto_assert(^result <- result)
+      {:ok, [user]} =
+        User
+        |> Ash.Query.for_read(:get, %{}, actor: regular_user)
+        |> Ash.read()
 
-        {:error, error} ->
-          error_map = %{
-            status: :error,
-            class: error.__struct__,
-            message: Exception.message(error)
-          }
+      user = Map.drop(user, [:__metadata__, :hashed_password, :aggregates])
 
-          auto_assert(error_map)
-      end
+      auto_assert %User{
+                    connected_platforms: 0,
+                    email: "user@example.com",
+                    name: "user",
+                    tier: :free
+                  } <- user
     end
 
     test "user resource attributes structure" do

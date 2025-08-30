@@ -52,7 +52,7 @@ defmodule Streampai.Accounts.User do
   end
 
   actions do
-    read :read do
+    read :get do
       prepare build(load: [:tier, :connected_platforms])
     end
 
@@ -283,23 +283,21 @@ defmodule Streampai.Accounts.User do
             true ->
               import Ash.Query
 
-              users =
-                Streampai.Accounts.User |> filter(name == ^name) |> for_read(:read) |> Ash.read()
+              # Check if the name is already taken by another user (optimized)
+              case Streampai.Accounts.User
+                   |> filter(name == ^name and id != ^changeset.data.id)
+                   |> for_read(:get)
+                   |> select([:id])
+                   |> limit(1)
+                   |> Ash.read() do
+                {:ok, []} ->
+                  changeset
 
-              # Check if the name is already taken by another user
-              # TODO dont load all users?
-              case users do
-                {:ok, users} ->
-                  taken =
-                    Enum.any?(users, fn user ->
-                      user.name == name and user.id != changeset.data.id
-                    end)
+                {:ok, [_user]} ->
+                  Ash.Changeset.add_error(changeset, :name, "This name is already taken")
 
-                  if taken do
-                    Ash.Changeset.add_error(changeset, :name, "This name is already taken")
-                  else
-                    changeset
-                  end
+                {:ok, _users} ->
+                  Ash.Changeset.add_error(changeset, :name, "This name is already taken")
 
                 {:error, error} ->
                   Ash.Changeset.add_error(
@@ -326,9 +324,20 @@ defmodule Streampai.Accounts.User do
       authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
     end
 
-    policy always() do
+    # Allow user registration and authentication creates (no actor required)
+    policy action_type(:create) do
       authorize_if always()
-      # forbid_if always()
+    end
+
+    # Only allow users to update themselves or admins to update anyone
+    policy action_type(:update) do
+      authorize_if expr(id == ^actor(:id))
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+    end
+
+    # Only admins can delete users
+    policy action_type(:destroy) do
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
     end
   end
 
