@@ -343,7 +343,13 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                           do: @current_user.email,
                           else: "Unknown User"}
                       </p>
-                      <p class="text-xs text-gray-500">Free Plan</p>
+                      <p class="text-xs text-gray-500">
+                        {case @current_user && Map.get(@current_user, :tier) do
+                          :pro -> "Pro Plan"
+                          :free -> "Free Plan"
+                          _ -> "Free Plan"
+                        end}
+                      </p>
                     </div>
                   </div>
                 </div>

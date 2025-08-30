@@ -81,7 +81,11 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
               <.info_row label="Plan">
                 <.status_badge status="success">
-                  Free ({Streampai.Constants.free_tier_hour_limit()} hours/month)
+                  {case Map.get(@current_user, :tier) do
+                    :pro -> "Pro (Unlimited hours/month)"
+                    :free -> "Free (#{Streampai.Constants.free_tier_hour_limit()} hours/month)"
+                    _ -> "Free (#{Streampai.Constants.free_tier_hour_limit()} hours/month)"
+                  end}
                 </.status_badge>
               </.info_row>
             </div>
@@ -100,7 +104,11 @@ defmodule StreampaiWeb.DashboardLive do
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">
-                  {@dashboard_data.usage.hours_used} / {@dashboard_data.usage.hours_limit}
+                  {@dashboard_data.usage.hours_used} / {case Map.get(@current_user, :tier) do
+                    :pro -> "∞"
+                    :free -> @dashboard_data.usage.hours_limit
+                    _ -> @dashboard_data.usage.hours_limit
+                  end}
                 </span>
               </.info_row>
             </div>

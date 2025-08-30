@@ -12,10 +12,17 @@ defmodule StreampaiWeb.SettingsLive do
   def mount_page(socket, _params, _session) do
     user_data = Dashboard.get_dashboard_data(socket.assigns.current_user)
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
+    
+    # Get current plan from user tier
+    current_plan = case Map.get(socket.assigns.current_user, :tier) do
+      :free -> "free"
+      :pro -> "pro"
+      _ -> "free"  # fallback to free
+    end
 
     {:ok,
      socket
-     |> assign(:current_plan, "free")
+     |> assign(:current_plan, current_plan)
      |> assign(:usage, user_data.usage)
      |> assign(:platform_connections, platform_connections)
      |> assign(
@@ -54,12 +61,11 @@ defmodule StreampaiWeb.SettingsLive do
     form =
       AshPhoenix.Form.validate(socket.assigns.name_form, form_params, errors: true) |> to_form()
 
-    # Reset availability when input changes
+    # Reset availability when input changes, but keep success message until next submission
     socket =
       socket
       |> assign(:name_form, form)
       |> assign(:name_available, nil)
-      |> assign(:name_success, nil)
 
     {:noreply, socket}
   end
@@ -83,12 +89,14 @@ defmodule StreampaiWeb.SettingsLive do
   end
 
   def handle_event("update_name", %{"form" => form_params}, socket) do
+    # Clear previous messages at start of submission
+    socket = socket |> assign(:name_error, nil) |> assign(:name_success, nil)
+    
     # Don't submit if name is not available
     if socket.assigns.name_available == false do
       {:noreply,
        socket
-       |> assign(:name_error, "Cannot update to an invalid or taken name")
-       |> assign(:name_success, nil)}
+       |> assign(:name_error, "Cannot update to an invalid or taken name")}
     else
       case AshPhoenix.Form.submit(socket.assigns.name_form, params: form_params) do
         {:ok, user} ->
@@ -96,7 +104,6 @@ defmodule StreampaiWeb.SettingsLive do
            socket
            |> assign(:current_user, user)
            |> assign(:name_form, AshPhoenix.Form.for_update(user, :update_name) |> to_form())
-           |> assign(:name_error, nil)
            |> assign(:name_success, "Name updated successfully!")
            |> assign(:name_available, nil)
            |> put_flash(:info, "Name updated successfully!")}
@@ -105,8 +112,7 @@ defmodule StreampaiWeb.SettingsLive do
           {:noreply,
            socket
            |> assign(:name_form, form |> to_form())
-           |> assign(:name_error, "Failed to update name")
-           |> assign(:name_success, nil)}
+           |> assign(:name_error, "Failed to update name")}
       end
     end
   end

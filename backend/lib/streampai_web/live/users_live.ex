@@ -34,6 +34,7 @@ defmodule StreampaiWeb.UsersLive do
 
     case Streampai.Accounts.User
          |> Ash.Query.for_read(:read, %{}, actor: actor)
+         |> Ash.Query.load([:tier])
          |> Ash.read() do
       {:ok, users} ->
         IO.puts("users: " <> inspect(users))
@@ -125,6 +126,9 @@ defmodule StreampaiWeb.UsersLive do
                     Role
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tier
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -167,6 +171,19 @@ defmodule StreampaiWeb.UsersLive do
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{if user_role(user) == :admin, do: "bg-red-100 text-red-800", else: "bg-gray-100 text-gray-800"}"}>
                         {user_role(user) |> Atom.to_string() |> String.capitalize()}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{case Map.get(user, :tier) do
+                        :pro -> "bg-purple-100 text-purple-800"
+                        :free -> "bg-gray-100 text-gray-800"
+                        _ -> "bg-gray-100 text-gray-800"
+                      end}"}>
+                        {case Map.get(user, :tier) do
+                          :pro -> "Pro"
+                          :free -> "Free"
+                          _ -> "Free"
+                        end}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">

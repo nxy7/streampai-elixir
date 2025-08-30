@@ -16,15 +16,15 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   def on_mount(:live_user_required, _params, session, socket) do
-    # Handle impersonation for LiveView contexts
-    socket = handle_impersonation(socket, session)
+    socket =
+      handle_impersonation(socket, session)
+      |> maybe_load_user_from_session(session)
+      # TODO extract these into auth plug instead of lading it so late
+      |> ensure_tier_loaded()
 
     # For testing, allow loading user from session
-    socket = maybe_load_user_from_session(socket, session)
 
     if socket.assigns[:current_user] do
-      # Ensure tier is loaded for the current user
-      socket = ensure_tier_loaded(socket)
       {:cont, socket}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in")}
@@ -32,16 +32,11 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   def on_mount(:dashboard_presence, _params, session, socket) do
-    # Handle impersonation for LiveView contexts
     socket = handle_impersonation(socket, session)
 
-    # For testing, allow loading user from session
     socket = maybe_load_user_from_session(socket, session)
 
     if socket.assigns[:current_user] do
-      # Ensure tier is loaded before presence tracking
-      socket = ensure_tier_loaded(socket)
-      
       # Track user presence when they connect to any dashboard page
       if Phoenix.LiveView.connected?(socket) do
         topic = "users_presence"
@@ -85,12 +80,10 @@ defmodule StreampaiWeb.LiveUserAuth do
           |> assign(:impersonator, impersonator_user)
         else
           _ ->
-            # Either impersonator or impersonated user loading failed
             socket |> assign(:impersonator, nil)
         end
 
       _ ->
-        # No impersonation, just ensure impersonator is nil
         socket |> assign(:impersonator, nil)
     end
   end
@@ -130,24 +123,26 @@ defmodule StreampaiWeb.LiveUserAuth do
     case socket.assigns[:current_user] do
       nil ->
         socket
-      
+
       %{tier: %Ash.NotLoaded{}} = user ->
         case Ash.load(user, [:tier]) do
           {:ok, user_with_tier} ->
             assign(socket, :current_user, user_with_tier)
+
           {:error, _} ->
             socket
         end
-        
+
       %{tier: _} = _user ->
         # Tier already loaded
         socket
-        
+
       user ->
         # Fallback: try to load tier
         case Ash.load(user, [:tier]) do
           {:ok, user_with_tier} ->
             assign(socket, :current_user, user_with_tier)
+
           {:error, _} ->
             socket
         end

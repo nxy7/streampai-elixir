@@ -16,9 +16,7 @@ defmodule StreampaiWeb.AuthController do
       end
 
     conn
-    # |> delete_session(:return_to)
     |> store_in_session(user_with_tier)
-    # If your resource has a different name, update the assign name here (i.e :current_admin)
     |> assign(:current_user, user_with_tier)
     |> redirect(to: return_to)
   end
