@@ -64,7 +64,6 @@ defmodule StreampaiWeb.UsersLive do
     {:noreply, load_presence(socket)}
   end
 
-
   defp user_role(user) do
     UserPolicy.user_role(user)
   end

@@ -88,6 +88,7 @@ defmodule Streampai.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:smokestack, "~> 0.9.2"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",

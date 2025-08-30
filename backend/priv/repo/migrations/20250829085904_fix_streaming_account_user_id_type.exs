@@ -12,7 +12,9 @@ defmodule Streampai.Repo.Migrations.FixStreamingAccountUserIdType do
     execute("ALTER TABLE streaming_account ALTER COLUMN user_id TYPE uuid USING user_id::uuid")
 
     # Add the foreign key constraint
-    execute("ALTER TABLE streaming_account ADD CONSTRAINT streaming_account_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id)")
+    execute(
+      "ALTER TABLE streaming_account ADD CONSTRAINT streaming_account_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id)"
+    )
 
     create index(:streaming_account, [:user_id])
   end

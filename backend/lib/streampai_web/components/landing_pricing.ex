@@ -129,7 +129,7 @@ defmodule StreampaiWeb.Components.LandingPricing do
               </a>
             <% end %>
           </div>
-
+          
     <!-- Pro Tier -->
           <div class="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:from-purple-500/30 hover:to-pink-500/30 transition-all relative">
             <!-- Popular badge -->

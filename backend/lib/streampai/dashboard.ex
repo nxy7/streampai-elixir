@@ -12,7 +12,33 @@ defmodule Streampai.Dashboard do
   alias Streampai.Accounts.User
   alias Streampai.Constants
 
+  @platform_configs [
+    %{
+      platform: :twitch,
+      name: "Twitch",
+      connect_name: "Connect Twitch",
+      manage_name: "Manage Twitch",
+      description: "Link your Twitch account",
+      connect_url: "/streaming/connect/twitch",
+      icon: "twitch",
+      connect_color: "purple",
+      manage_color: "green"
+    },
+    %{
+      platform: :youtube,
+      name: "YouTube",
+      connect_name: "Connect YouTube",
+      manage_name: "Manage YouTube",
+      description: "Link your YouTube channel",
+      connect_url: "/streaming/connect/google",
+      icon: "youtube",
+      connect_color: "red",
+      manage_color: "green"
+    }
+  ]
+
   def get_dashboard_data(nil) do
+    
     %{
       user_info: %{email: "unknown", id: nil, display_name: "Guest"},
       streaming_status: %{status: :offline, connected_platforms: 0},
@@ -60,7 +86,7 @@ defmodule Streampai.Dashboard do
   """
   def get_streaming_status(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
-    
+
     %{
       status: :offline,
       connected_platforms: length(connected_platforms),
@@ -87,55 +113,10 @@ defmodule Streampai.Dashboard do
   """
   def get_quick_actions(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
-    
-    # Define all available platforms
-    all_platforms = [
-      %{
-        platform: :twitch,
-        name: "Connect Twitch", 
-        description: "Link your Twitch account",
-        url: "/streaming/connect/twitch",
-        icon: "twitch",
-        color: "purple"
-      },
-      %{
-        platform: :youtube,
-        name: "Connect YouTube",
-        description: "Link your YouTube channel", 
-        url: "/streaming/connect/google",
-        icon: "youtube",
-        color: "red"
-      }
-    ]
-    
-    # Filter out already connected platforms and add manage actions for connected ones
-    connected_actions = connected_platforms
-    |> Enum.map(fn platform ->
-      case platform do
-        :twitch -> 
-          %{
-            name: "Manage Twitch",
-            description: "Connected - Manage settings",
-            url: "/dashboard/settings",
-            icon: "twitch", 
-            color: "green"
-          }
-        :youtube ->
-          %{
-            name: "Manage YouTube", 
-            description: "Connected - Manage settings",
-            url: "/dashboard/settings",
-            icon: "youtube",
-            color: "green"
-          }
-      end
-    end)
-    
-    # Show connect actions for unconnected platforms
-    unconnected_actions = all_platforms
-    |> Enum.reject(fn platform_info -> platform_info.platform in connected_platforms end)
-    
-    # Combine connected management actions with unconnected connection actions
+
+    connected_actions = build_connected_actions(connected_platforms)
+    unconnected_actions = build_unconnected_actions(connected_platforms)
+
     connected_actions ++ unconnected_actions
   end
 
@@ -144,23 +125,16 @@ defmodule Streampai.Dashboard do
   """
   def get_platform_connections(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
-    
-    [
+
+    Enum.map(@platform_configs, fn config ->
       %{
-        name: "Twitch",
-        platform: :twitch,
-        connected: :twitch in connected_platforms,
-        connect_url: "/streaming/connect/twitch",
-        color: "purple"
-      },
-      %{
-        name: "YouTube", 
-        platform: :youtube,
-        connected: :youtube in connected_platforms,
-        connect_url: "/streaming/connect/google", 
-        color: "red"
+        name: config.name,
+        platform: config.platform,
+        connected: config.platform in connected_platforms,
+        connect_url: config.connect_url,
+        color: config.connect_color
       }
-    ]
+    end)
   end
 
   @doc """
@@ -171,45 +145,66 @@ defmodule Streampai.Dashboard do
 
   # Private functions
 
+  defp build_connected_actions(connected_platforms) do
+    @platform_configs
+    |> Enum.filter(fn config -> config.platform in connected_platforms end)
+    |> Enum.map(fn config ->
+      %{
+        name: config.manage_name,
+        description: "Connected - Manage settings",
+        url: "/dashboard/settings",
+        icon: config.icon,
+        color: config.manage_color
+      }
+    end)
+  end
+
+  defp build_unconnected_actions(connected_platforms) do
+    @platform_configs
+    |> Enum.reject(fn config -> config.platform in connected_platforms end)
+    |> Enum.map(fn config ->
+      %{
+        name: config.connect_name,
+        description: config.description,
+        url: config.connect_url,
+        icon: config.icon,
+        color: config.connect_color
+      }
+    end)
+  end
+
   defp get_connected_platforms(%User{} = user) do
-    query = Streampai.Accounts.StreamingAccount
-    |> Ash.Query.for_read(:for_user, %{user_id: user.id})
-    
-    case Ash.read(query) do
-      {:ok, streaming_accounts} ->
-        Enum.map(streaming_accounts, & &1.platform)
-      {:error, _} ->
-        []
+    query =
+      Streampai.Accounts.StreamingAccount
+      |> Ash.Query.for_read(:for_user, %{user_id: user.id})
+
+    with {:ok, streaming_accounts} <- Ash.read(query) do
+      Enum.map(streaming_accounts, & &1.platform)
+    else
+      {:error, _} -> []
     end
   end
 
   defp get_display_name(%User{email: email}) when is_binary(email) do
     email
     |> String.split("@")
-    |> hd()
+    |> List.first()
     |> String.capitalize()
   end
 
   defp get_display_name(_), do: "User"
 
-  defp get_user_plan(%User{} = _user) do
-    # TODO: Implement real plan detection
-    :free
-  end
+  defp get_user_plan(%User{}), do: :free
 
-  defp get_hours_used(%User{} = _user) do
-    # TODO: Implement real usage tracking
-    0.0
-  end
+  defp get_hours_used(%User{}), do: 0.0
 
-  defp get_hours_limit(:free), do: Constants.free_tier_hour_limit()
-  defp get_hours_limit(_), do: Constants.free_tier_hour_limit()
+  defp get_hours_limit(_plan), do: Constants.free_tier_hour_limit()
 
   defp get_platforms_used(%User{} = user) do
-    connected_platforms = get_connected_platforms(user)
-    length(connected_platforms)
+    user
+    |> get_connected_platforms()
+    |> length()
   end
 
-  defp get_platforms_limit(:free), do: 1
-  defp get_platforms_limit(_), do: 1
+  defp get_platforms_limit(_plan), do: 1
 end

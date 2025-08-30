@@ -1,7 +1,7 @@
 defmodule Streampai.Accounts.NameValidator do
   @moduledoc """
   Centralized name validation logic for user display names.
-  
+
   This module handles all business rules around user name validation,
   availability checking, and formatting requirements.
   """
@@ -14,11 +14,11 @@ defmodule Streampai.Accounts.NameValidator do
 
   @doc """
   Validates name availability for a given user.
-  
+
   ## Parameters
   - name: The name to check
   - current_user: The user requesting the name change
-  
+
   ## Returns
   - {:ok, :available, message} if name is available
   - {:ok, :current_name, message} if it's the user's current name
@@ -40,7 +40,7 @@ defmodule Streampai.Accounts.NameValidator do
 
   @doc """
   Validates just the format and length of a name without checking availability.
-  
+
   Useful for client-side validation before making server requests.
   """
   def validate_format_and_length(name) do
@@ -78,7 +78,7 @@ defmodule Streampai.Accounts.NameValidator do
 
   defp validate_length(name) when is_binary(name) do
     length = String.length(name)
-    
+
     cond do
       length < @min_length -> {:error, :too_short}
       length > @max_length -> {:error, :too_long}
@@ -89,16 +89,17 @@ defmodule Streampai.Accounts.NameValidator do
   defp validate_uniqueness(name, current_user) do
     case Ash.read(User) do
       {:ok, users} ->
-        taken = Enum.any?(users, fn user -> 
-          user.name == name && user.id != current_user.id
-        end)
-        
+        taken =
+          Enum.any?(users, fn user ->
+            user.name == name && user.id != current_user.id
+          end)
+
         if taken do
           {:error, :name_taken}
         else
           :ok
         end
-        
+
       {:error, _error} ->
         {:error, :validation_error}
     end
@@ -106,14 +107,17 @@ defmodule Streampai.Accounts.NameValidator do
 
   defp format_error_message(:too_short), do: "Name must be at least #{@min_length} characters"
   defp format_error_message(:too_long), do: "Name must be no more than #{@max_length} characters"
-  defp format_error_message(:invalid_format), do: "Name can only contain letters, numbers, and underscores"
+
+  defp format_error_message(:invalid_format),
+    do: "Name can only contain letters, numbers, and underscores"
+
   defp format_error_message(:name_taken), do: "This name is already taken"
   defp format_error_message(:validation_error), do: "Error checking name availability"
   defp format_error_message(_), do: "Invalid name"
 
   @doc """
   Sanitizes a name by removing invalid characters and trimming to valid length.
-  
+
   This is useful for generating names from other sources (like email addresses).
   """
   def sanitize_name(input) when is_binary(input) do

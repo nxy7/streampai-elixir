@@ -7,7 +7,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
   def request(conn, _params) do
     # Check if user is logged in before starting OAuth flow
     current_user = conn.assigns[:current_user]
-    
+
     if current_user do
       # This action should never be reached as Ueberauth intercepts the request
       # But we need it defined for the route to work
@@ -28,7 +28,9 @@ defmodule StreampaiWeb.MultiProviderAuth do
     |> redirect(to: @redirect_url)
   end
 
-  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{"provider" => provider}) do
+  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{
+        "provider" => provider
+      }) do
     current_user = conn.assigns[:current_user]
 
     if current_user do
@@ -40,7 +42,10 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
         {:error, error} ->
           conn
-          |> put_flash(:error, "Failed to save #{String.capitalize(provider)} account: #{inspect(error)}")
+          |> put_flash(
+            :error,
+            "Failed to save #{String.capitalize(provider)} account: #{inspect(error)}"
+          )
           |> redirect(to: @redirect_url)
       end
     else
@@ -52,11 +57,12 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
   defp create_or_update_streaming_account(user, auth, provider) do
     # Map OAuth providers to our platform enum values
-    platform = case provider do
-      "google" -> :youtube
-      "twitch" -> :twitch
-      _ -> String.to_atom(provider)
-    end
+    platform =
+      case provider do
+        "google" -> :youtube
+        "twitch" -> :twitch
+        _ -> String.to_atom(provider)
+      end
 
     account_params = %{
       user_id: user.id,
@@ -65,10 +71,20 @@ defmodule StreampaiWeb.MultiProviderAuth do
       refresh_token: auth.credentials.refresh_token || "",
       access_token_expires_at: expires_at_from_auth(auth),
       extra_data: %{
-        email: auth.info.email || extract_from_raw_info(auth, "email") || extract_from_jwt(auth, "email"),
-        name: auth.info.name || auth.info.first_name || extract_from_raw_info(auth, "name") || extract_from_raw_info(auth, "given_name") || extract_from_jwt(auth, "name") || extract_from_jwt(auth, "given_name"),
-        nickname: auth.info.nickname || auth.info.name || extract_from_raw_info(auth, "given_name") || extract_from_raw_info(auth, "name") || extract_from_jwt(auth, "given_name") || extract_from_jwt(auth, "name"),
-        image: auth.info.image || extract_from_raw_info(auth, "picture") || extract_from_jwt(auth, "picture"),
+        email:
+          auth.info.email || extract_from_raw_info(auth, "email") ||
+            extract_from_jwt(auth, "email"),
+        name:
+          auth.info.name || auth.info.first_name || extract_from_raw_info(auth, "name") ||
+            extract_from_raw_info(auth, "given_name") || extract_from_jwt(auth, "name") ||
+            extract_from_jwt(auth, "given_name"),
+        nickname:
+          auth.info.nickname || auth.info.name || extract_from_raw_info(auth, "given_name") ||
+            extract_from_raw_info(auth, "name") || extract_from_jwt(auth, "given_name") ||
+            extract_from_jwt(auth, "name"),
+        image:
+          auth.info.image || extract_from_raw_info(auth, "picture") ||
+            extract_from_jwt(auth, "picture"),
         uid: auth.uid
         # Removed raw_info to reduce cookie size
       }
@@ -80,11 +96,13 @@ defmodule StreampaiWeb.MultiProviderAuth do
     |> Ash.create()
   end
 
-  defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}}) when is_integer(expires_at) do
+  defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}})
+       when is_integer(expires_at) do
     DateTime.from_unix!(expires_at)
   end
 
-  defp expires_at_from_auth(%{credentials: %{expires_in: expires_in}}) when is_integer(expires_in) do
+  defp expires_at_from_auth(%{credentials: %{expires_in: expires_in}})
+       when is_integer(expires_in) do
     DateTime.add(DateTime.utc_now(), expires_in, :second)
   end
 
@@ -98,7 +116,8 @@ defmodule StreampaiWeb.MultiProviderAuth do
     case auth.extra.raw_info do
       %{user: user_data} when is_map(user_data) ->
         Map.get(user_data, field_name)
-      _ -> 
+
+      _ ->
         nil
     end
   end
@@ -118,11 +137,17 @@ defmodule StreampaiWeb.MultiProviderAuth do
                     {:ok, jwt_data} -> Map.get(jwt_data, field_name)
                     _ -> nil
                   end
-                _ -> nil
+
+                _ ->
+                  nil
               end
-            _ -> nil
+
+            _ ->
+              nil
           end
-        _ -> nil
+
+        _ ->
+          nil
       end
     rescue
       _ -> nil

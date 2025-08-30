@@ -49,7 +49,7 @@
     <h1 class="text-brand mt-10 flex flex-col items-center text-sm font-semibold leading-6">
       <%= if @current_user do %>
         <span class="px-3 py-2 text-sm font-medium  rounded-md">
-          <%= IO.inspect(@current_user.email) %>
+          {IO.inspect(@current_user.email)}
         </span>
         <a
           href="/auth/sign-out"
@@ -66,14 +66,14 @@
         </a>
       <% end %>
       <small class="bg-brand/5 text-[0.8125rem] ml-3 rounded-full px-2 font-medium leading-6">
-        <%= Application.spec(:phoenix, :vsn) %>
+        {Application.spec(:phoenix, :vsn)}
       </small>
     </h1>50
     <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-zinc-900 text-balance">
       Peace of mind from prototype to production.
       <div>
         <%= for i <- 1..10 do %>
-          <a href={"/button/#{i}"} class="btn w-20 hover:bg-red-200"><%= i %></a>
+          <a href={"/button/#{i}"} class="btn w-20 hover:bg-red-200">{i}</a>
         <% end %>
       </div>
     </p>

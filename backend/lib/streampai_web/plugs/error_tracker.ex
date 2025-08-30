@@ -1,7 +1,7 @@
 defmodule StreampaiWeb.Plugs.ErrorTracker do
   @moduledoc """
   Plug for tracking and logging errors that users encounter.
-  
+
   This plug captures errors and stores them in ETS for later inspection.
   Errors include user-facing HTTP errors and unexpected application errors.
   """
@@ -14,11 +14,12 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   def call(conn, _opts) do
     # Start tracking the request
     start_time = System.monotonic_time(:millisecond)
-    
-    conn = Plug.Conn.register_before_send(conn, fn conn ->
-      track_response(conn, start_time)
-      conn
-    end)
+
+    conn =
+      Plug.Conn.register_before_send(conn, fn conn ->
+        track_response(conn, start_time)
+        conn
+      end)
 
     try do
       conn
@@ -35,7 +36,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
   defp track_response(conn, start_time) do
     duration = System.monotonic_time(:millisecond) - start_time
-    
+
     # Track 4xx and 5xx errors
     if conn.status >= 400 do
       error_data = %{
@@ -54,11 +55,11 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
         duration_ms: duration,
         response_body: get_response_body_sample(conn)
       }
-      
+
       store_error(error_data)
-      
+
       # Log error for immediate visibility
-      Logger.error("HTTP Error: #{conn.status} #{conn.method} #{conn.request_path}", 
+      Logger.error("HTTP Error: #{conn.status} #{conn.method} #{conn.request_path}",
         error_id: error_data.id,
         user_id: error_data.user_id,
         duration: duration
@@ -68,7 +69,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
   defp track_error(conn, exception, stacktrace, start_time, kind \\ :error) do
     duration = System.monotonic_time(:millisecond) - start_time
-    
+
     error_data = %{
       id: generate_error_id(),
       timestamp: DateTime.utc_now(),
@@ -90,11 +91,11 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
       duration_ms: duration,
       request_body_sample: get_request_body_sample(conn)
     }
-    
+
     store_error(error_data)
-    
+
     # Log error for immediate visibility
-    Logger.error("Application Error: #{inspect(exception)}", 
+    Logger.error("Application Error: #{inspect(exception)}",
       error_id: error_data.id,
       user_id: error_data.user_id,
       path: "#{conn.method} #{conn.request_path}"
@@ -106,21 +107,25 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
     case :ets.whereis(:streampai_errors) do
       :undefined ->
         :ets.new(:streampai_errors, [:named_table, :public, :set, {:read_concurrency, true}])
-      _ -> :ok
+
+      _ ->
+        :ok
     end
-    
+
     # Keep only last 1000 errors in memory
     current_count = :ets.info(:streampai_errors, :size) || 0
+
     if current_count >= 1000 do
       # Remove oldest entries (this is a simple implementation)
-      oldest_keys = :ets.tab2list(:streampai_errors)
-                    |> Enum.sort_by(fn {_id, data} -> data.timestamp end)
-                    |> Enum.take(100)
-                    |> Enum.map(fn {id, _data} -> id end)
-      
+      oldest_keys =
+        :ets.tab2list(:streampai_errors)
+        |> Enum.sort_by(fn {_id, data} -> data.timestamp end)
+        |> Enum.take(100)
+        |> Enum.map(fn {id, _data} -> id end)
+
       Enum.each(oldest_keys, &:ets.delete(:streampai_errors, &1))
     end
-    
+
     :ets.insert(:streampai_errors, {error_data.id, error_data})
   end
 
@@ -143,15 +148,16 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp get_session_id(conn) do
-    Plug.Conn.get_session(conn, "_csrf_token") || 
-    Plug.Conn.get_session(conn, "phoenix_flash") |> then(&inspect(&1)) |> String.slice(0, 16)
+    Plug.Conn.get_session(conn, "_csrf_token") ||
+      Plug.Conn.get_session(conn, "phoenix_flash") |> then(&inspect(&1)) |> String.slice(0, 16)
   end
 
   defp get_client_ip(conn) do
     case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] -> 
+      [forwarded_ip | _] ->
         forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-      [] -> 
+
+      [] ->
         conn.remote_ip |> :inet.ntoa() |> to_string()
     end
   end
@@ -175,7 +181,9 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   # Public API for retrieving errors
   def list_errors(limit \\ 50) do
     case :ets.whereis(:streampai_errors) do
-      :undefined -> []
+      :undefined ->
+        []
+
       _ ->
         :ets.tab2list(:streampai_errors)
         |> Enum.map(fn {_id, error} -> error end)
@@ -186,7 +194,9 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
   def get_error(error_id) do
     case :ets.whereis(:streampai_errors) do
-      :undefined -> nil
+      :undefined ->
+        nil
+
       _ ->
         case :ets.lookup(:streampai_errors, error_id) do
           [{^error_id, error_data}] -> error_data

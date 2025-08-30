@@ -4,7 +4,7 @@ defmodule StreampaiWeb.SettingsLive do
   """
   use StreampaiWeb.BaseLive
   import StreampaiWeb.Components.SubscriptionWidget
-  
+
   alias Streampai.Dashboard
   alias Streampai.Accounts.StreamingAccountManager
   alias Streampai.Accounts.NameValidator
@@ -12,26 +12,29 @@ defmodule StreampaiWeb.SettingsLive do
   def mount_page(socket, _params, _session) do
     user_data = Dashboard.get_dashboard_data(socket.assigns.current_user)
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
-    
+
     {:ok,
      socket
      |> assign(:current_plan, "free")
      |> assign(:usage, user_data.usage)
      |> assign(:platform_connections, platform_connections)
-     |> assign(:name_form, AshPhoenix.Form.for_update(socket.assigns.current_user, :update_name) |> to_form())
+     |> assign(
+       :name_form,
+       AshPhoenix.Form.for_update(socket.assigns.current_user, :update_name) |> to_form()
+     )
      |> assign(:name_error, nil)
      |> assign(:name_success, nil)
-     |> assign(:name_available, nil),
-     layout: false}
+     |> assign(:name_available, nil), layout: false}
   end
 
   def handle_event("upgrade_to_pro", _params, socket) do
     # TODO: Integrate with payment processor
-    updated_usage = Map.merge(socket.assigns.usage, %{
-      hours_limit: :unlimited,
-      platforms_limit: :unlimited
-    })
-    
+    updated_usage =
+      Map.merge(socket.assigns.usage, %{
+        hours_limit: :unlimited,
+        platforms_limit: :unlimited
+      })
+
     {:noreply,
      socket
      |> assign(:current_plan, "pro")
@@ -48,29 +51,31 @@ defmodule StreampaiWeb.SettingsLive do
   end
 
   def handle_event("validate_name", %{"form" => form_params}, socket) do
-    form = AshPhoenix.Form.validate(socket.assigns.name_form, form_params, errors: true) |> to_form()
-    
+    form =
+      AshPhoenix.Form.validate(socket.assigns.name_form, form_params, errors: true) |> to_form()
+
     # Reset availability when input changes
-    socket = socket
-    |> assign(:name_form, form)
-    |> assign(:name_available, nil)
-    |> assign(:name_success, nil)
-    
+    socket =
+      socket
+      |> assign(:name_form, form)
+      |> assign(:name_available, nil)
+      |> assign(:name_success, nil)
+
     {:noreply, socket}
   end
 
   def handle_event("check_name_availability", %{"name" => name}, socket) do
     current_user = socket.assigns.current_user
-    
+
     case NameValidator.validate_availability(name, current_user) do
       {:ok, :available, message} ->
         socket = assign(socket, :name_available, true)
         {:reply, %{available: true, message: message}, socket}
-        
+
       {:ok, :current_name, message} ->
         socket = assign(socket, :name_available, true)
         {:reply, %{available: true, message: message}, socket}
-        
+
       {:error, _reason, message} ->
         socket = assign(socket, :name_available, false)
         {:reply, %{available: false, message: message}, socket}
@@ -95,7 +100,7 @@ defmodule StreampaiWeb.SettingsLive do
            |> assign(:name_success, "Name updated successfully!")
            |> assign(:name_available, nil)
            |> put_flash(:info, "Name updated successfully!")}
-           
+
         {:error, form} ->
           {:noreply,
            socket
@@ -109,22 +114,27 @@ defmodule StreampaiWeb.SettingsLive do
   def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
     platform = String.to_existing_atom(platform_str)
     user = socket.assigns.current_user
-    
+
     case StreamingAccountManager.disconnect_account(user, platform) do
       :ok ->
         # Refresh platform connections after successful disconnect
         platform_connections = StreamingAccountManager.refresh_platform_connections(user)
-        
-        socket = socket
-        |> assign(:platform_connections, platform_connections)
-        |> put_flash(:info, "Successfully disconnected #{String.capitalize(platform_str)} account")
-        
+
+        socket =
+          socket
+          |> assign(:platform_connections, platform_connections)
+          |> put_flash(
+            :info,
+            "Successfully disconnected #{String.capitalize(platform_str)} account"
+          )
+
         {:noreply, socket}
-        
+
       {:error, reason} ->
-        socket = socket
-        |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
-        
+        socket =
+          socket
+          |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
+
         {:noreply, socket}
     end
   end
@@ -134,7 +144,11 @@ defmodule StreampaiWeb.SettingsLive do
     <.dashboard_layout {assigns} current_page="settings" page_title="Settings">
       <div class="max-w-6xl mx-auto space-y-6">
         <!-- Subscription Widget -->
-        <.subscription_widget current_plan={@current_plan} usage={@usage} platform_connections={@platform_connections} />
+        <.subscription_widget
+          current_plan={@current_plan}
+          usage={@usage}
+          platform_connections={@platform_connections}
+        />
         
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -162,19 +176,25 @@ defmodule StreampaiWeb.SettingsLive do
                     phx-hook="NameAvailabilityChecker"
                     id="name-input"
                   />
-                  <div id="availability-status" class="absolute right-3 top-1/2 transform -translate-y-1/2"></div>
+                  <div
+                    id="availability-status"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                  </div>
                 </div>
                 <div id="availability-message" class="text-xs mt-1 h-4"></div>
-                <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden"><%= NameValidator.validation_help_text() %></p>
+                <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden">
+                  {NameValidator.validation_help_text()}
+                </p>
                 <%= if @name_success do %>
-                  <p class="text-xs text-green-600 mt-1"><%= @name_success %></p>
+                  <p class="text-xs text-green-600 mt-1">{@name_success}</p>
                 <% end %>
                 <%= if @name_error do %>
-                  <p class="text-xs text-red-600 mt-1"><%= @name_error %></p>
+                  <p class="text-xs text-red-600 mt-1">{@name_error}</p>
                 <% end %>
                 <div class="mt-3">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={@name_available == false}
                     class={
                       if @name_available == false do

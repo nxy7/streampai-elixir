@@ -1,16 +1,18 @@
 defmodule StreampaiWeb.MonitoringController do
   @moduledoc """
   Controller for monitoring endpoints with IP-based access control.
-  
+
   Provides system monitoring data including CPU, memory, and application metrics.
   Access is restricted to specific IP addresses for security.
   """
   use StreampaiWeb, :controller
-  
+
   # Configure allowed IPs - you can modify this list as needed
   @allowed_ips [
-    "127.0.0.1",      # localhost
-    "::1",            # localhost IPv6
+    # localhost
+    "127.0.0.1",
+    # localhost IPv6
+    "::1"
     # Add your monitoring server IP here
     # "10.0.0.100",
     # "192.168.1.50"
@@ -20,7 +22,7 @@ defmodule StreampaiWeb.MonitoringController do
 
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
-    
+
     conn
     |> put_resp_content_type("application/json")
     |> json(metrics)
@@ -34,7 +36,7 @@ defmodule StreampaiWeb.MonitoringController do
       node: Node.self(),
       version: Application.spec(:streampai, :vsn) |> to_string()
     }
-    
+
     conn
     |> put_resp_content_type("application/json")
     |> json(health_status)
@@ -47,7 +49,7 @@ defmodule StreampaiWeb.MonitoringController do
       database: collect_database_metrics(),
       errors: collect_error_metrics()
     }
-    
+
     conn
     |> put_resp_content_type("application/json")
     |> json(metrics)
@@ -56,7 +58,7 @@ defmodule StreampaiWeb.MonitoringController do
   def errors(conn, params) do
     limit = String.to_integer(params["limit"] || "50")
     errors = StreampaiWeb.Plugs.ErrorTracker.list_errors(limit)
-    
+
     conn
     |> put_resp_content_type("application/json")
     |> json(%{
@@ -71,7 +73,7 @@ defmodule StreampaiWeb.MonitoringController do
         conn
         |> put_status(:not_found)
         |> json(%{error: "Error not found"})
-      
+
       error_data ->
         conn
         |> put_resp_content_type("application/json")
@@ -81,7 +83,7 @@ defmodule StreampaiWeb.MonitoringController do
 
   defp check_ip_access(conn, _opts) do
     client_ip = get_client_ip(conn)
-    
+
     if client_ip in @allowed_ips do
       conn
     else
@@ -94,9 +96,10 @@ defmodule StreampaiWeb.MonitoringController do
 
   defp get_client_ip(conn) do
     case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] -> 
+      [forwarded_ip | _] ->
         forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-      [] -> 
+
+      [] ->
         conn.remote_ip |> :inet.ntoa() |> to_string()
     end
   end
@@ -106,7 +109,7 @@ defmodule StreampaiWeb.MonitoringController do
     {wall_clock_time, _} = :erlang.statistics(:wall_clock)
     {reductions, _} = :erlang.statistics(:reductions)
     {run_queue, _} = :erlang.statistics(:run_queue)
-    
+
     %{
       timestamp: DateTime.utc_now(),
       node: Node.self(),
@@ -146,7 +149,7 @@ defmodule StreampaiWeb.MonitoringController do
     try do
       # Get database connection pool info
       pool_size = Streampai.Repo.config()[:pool_size] || 0
-      
+
       %{
         pool_size: pool_size,
         status: "connected"
@@ -158,10 +161,12 @@ defmodule StreampaiWeb.MonitoringController do
 
   defp collect_error_metrics do
     errors = StreampaiWeb.Plugs.ErrorTracker.list_errors(100)
-    recent_errors = Enum.filter(errors, fn error ->
-      DateTime.diff(DateTime.utc_now(), error.timestamp, :minute) <= 60
-    end)
-    
+
+    recent_errors =
+      Enum.filter(errors, fn error ->
+        DateTime.diff(DateTime.utc_now(), error.timestamp, :minute) <= 60
+      end)
+
     %{
       total_errors: StreampaiWeb.Plugs.ErrorTracker.error_count(),
       recent_errors_1h: length(recent_errors),

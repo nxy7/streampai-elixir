@@ -1,7 +1,7 @@
 defmodule StreampaiWeb.Components.DashboardComponents do
   @moduledoc """
   Reusable dashboard UI components for consistent interface patterns.
-  
+
   This module contains common dashboard elements like cards, status indicators,
   and other UI patterns used across multiple dashboard pages.
   """
@@ -9,9 +9,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   @doc """
   Renders a dashboard card with consistent styling.
-  
+
   ## Examples
-  
+
       <.dashboard_card title="Account Info" icon="user">
         Card content goes here
       </.dashboard_card>
@@ -29,48 +29,68 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     ~H"""
     <div class={"bg-white rounded-lg shadow-sm border border-gray-200 p-6 #{@class}"}>
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-medium text-gray-900"><%= @title %></h3>
+        <h3 class="text-lg font-medium text-gray-900">{@title}</h3>
         <%= if @icon do %>
           <.icon name={@icon} class="w-5 h-5 text-purple-500" />
         <% end %>
       </div>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
 
   @doc """
   Renders a status badge with consistent styling.
-  
+
   ## Examples
-  
+
       <.status_badge status="online">Online</.status_badge>
       <.status_badge status="offline">Offline</.status_badge>
       <.status_badge status="warning">Warning</.status_badge>
   """
-  attr :status, :string, required: true, doc: "Status type: online, offline, warning, success, error"
+  attr :status, :string,
+    required: true,
+    doc: "Status type: online, offline, warning, success, error"
+
   slot :inner_block, required: true, doc: "Badge content"
 
   def status_badge(assigns) do
     ~H"""
     <span class={status_badge_class(@status)}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </span>
     """
   end
 
-  defp status_badge_class("online"), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-  defp status_badge_class("offline"), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-  defp status_badge_class("warning"), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
-  defp status_badge_class("success"), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-  defp status_badge_class("error"), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-  defp status_badge_class(_), do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+  defp status_badge_class("online"),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+
+  defp status_badge_class("offline"),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+
+  defp status_badge_class("warning"),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+
+  defp status_badge_class("success"),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+
+  defp status_badge_class("error"),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+
+  defp status_badge_class(_),
+    do:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
 
   @doc """
   Renders a status indicator with dot and text.
-  
+
   ## Examples
-  
+
       <.status_indicator status="online">Online</.status_indicator>
       <.status_indicator status="offline">Offline</.status_indicator>
   """
@@ -82,7 +102,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     <div class="flex items-center">
       <div class={"w-2 h-2 rounded-full mr-2 #{status_dot_class(@status)}"}></div>
       <span class={status_text_class(@status)}>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </span>
     </div>
     """
@@ -98,9 +118,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   @doc """
   Renders an info row with label and value.
-  
+
   ## Examples
-  
+
       <.info_row label="Email" value={@user.email} />
       <.info_row label="Status">
         <.status_badge status="online">Online</.status_badge>
@@ -114,11 +134,11 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def info_row(assigns) do
     ~H"""
     <div class={@class}>
-      <p class="text-sm text-gray-500"><%= @label %></p>
+      <p class="text-sm text-gray-500">{@label}</p>
       <%= if @value do %>
-        <p class="font-medium"><%= @value %></p>
+        <p class="font-medium">{@value}</p>
       <% else %>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       <% end %>
     </div>
     """
@@ -126,9 +146,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   @doc """
   Renders a platform connection item with icon that changes color based on connection status.
-  
+
   ## Examples
-  
+
       <.platform_connection
         name="Twitch"
         platform={:twitch}
@@ -160,19 +180,21 @@ defmodule StreampaiWeb.Components.DashboardComponents do
               </svg>
             <% _ -> %>
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
               </svg>
           <% end %>
         </div>
         <span class={"text-sm #{if @connected, do: "text-#{@color}-800 font-medium", else: "text-gray-600"}"}>
-          <%= @name %>: <%= if @connected, do: "Connected", else: "Not connected" %>
+          {@name}: {if @connected, do: "Connected", else: "Not connected"}
         </span>
       </div>
       <%= if not @connected do %>
-        <a
-          href={@connect_url}
-          class="text-gray-600 hover:text-gray-700 text-sm font-medium"
-        >
+        <a href={@connect_url} class="text-gray-600 hover:text-gray-700 text-sm font-medium">
           Connect
         </a>
       <% else %>
@@ -204,9 +226,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   @doc """
   Renders an empty state with icon and message.
-  
+
   ## Examples
-  
+
       <.empty_state
         icon="chart-bar"
         title="No Analytics Yet"
@@ -222,8 +244,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     ~H"""
     <div class={@class}>
       <.icon name={@icon} class="mx-auto h-12 w-12 text-gray-400" />
-      <h3 class="mt-2 text-lg font-medium text-gray-900"><%= @title %></h3>
-      <p class="mt-1 text-sm text-gray-500"><%= @message %></p>
+      <h3 class="mt-2 text-lg font-medium text-gray-900">{@title}</h3>
+      <p class="mt-1 text-sm text-gray-500">{@message}</p>
     </div>
     """
   end
@@ -238,7 +260,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(%{name: "user"} = assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+      />
     </svg>
     """
   end
@@ -246,7 +273,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(%{name: "activity"} = assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0021 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 10l4.553-2.276A1 1 0 0021 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+      />
     </svg>
     """
   end
@@ -254,7 +286,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(%{name: "chart-bar"} = assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+      />
     </svg>
     """
   end
@@ -262,7 +299,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(%{name: "lightning"} = assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M13 10V3L4 14h7v7l9-11h-7z"
+      />
     </svg>
     """
   end
@@ -270,7 +312,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(%{name: "clock"} = assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
     """
   end
@@ -279,7 +326,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def icon(assigns) do
     ~H"""
     <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
     """
   end

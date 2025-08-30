@@ -117,8 +117,10 @@ defmodule StreampaiWeb.CoreComponents do
       role="alert"
       class={[
         "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-50 rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
-        @kind == :info && "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
-        @kind == :error && "bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
+        @kind == :info &&
+          "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
+        @kind == :error &&
+          "bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
       ]}
       {@rest}
     >
@@ -129,7 +131,11 @@ defmodule StreampaiWeb.CoreComponents do
           @kind == :error && "bg-red-100"
         ]}>
           <.icon :if={@kind == :info} name="hero-check-circle-solid" class="h-5 w-5 text-purple-600" />
-          <.icon :if={@kind == :error} name="hero-exclamation-triangle-solid" class="h-5 w-5 text-red-600" />
+          <.icon
+            :if={@kind == :error}
+            name="hero-exclamation-triangle-solid"
+            class="h-5 w-5 text-red-600"
+          />
         </div>
         <div class="flex-1 min-w-0">
           <p :if={@title} class="text-sm font-semibold leading-5 mb-1">
@@ -137,12 +143,16 @@ defmodule StreampaiWeb.CoreComponents do
           </p>
           <p class="text-sm leading-5">{msg}</p>
         </div>
-        <button type="button" class="group flex-shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors" aria-label={gettext("close")}>
+        <button
+          type="button"
+          class="group flex-shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors"
+          aria-label={gettext("close")}
+        >
           <.icon name="hero-x-mark-solid" class="h-4 w-4 opacity-50 group-hover:opacity-70" />
         </button>
       </div>
       
-      <!-- Slide in animation -->
+    <!-- Slide in animation -->
       <script>
         (function() {
           var element = document.getElementById('<%= @id %>');
@@ -156,7 +166,7 @@ defmodule StreampaiWeb.CoreComponents do
           }
         })();
       </script>
-      
+
       <%= if @kind == :info do %>
         <script>
           (function() {

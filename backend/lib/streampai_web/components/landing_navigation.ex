@@ -38,7 +38,7 @@ defmodule StreampaiWeb.Components.LandingNavigation do
               </a>
             <% end %>
           </div>
-
+          
     <!-- Mobile menu button -->
           <div class="md:hidden">
             <button type="button" class="text-gray-300 hover:text-white">

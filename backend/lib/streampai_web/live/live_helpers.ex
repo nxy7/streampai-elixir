@@ -1,22 +1,22 @@
 defmodule StreampaiWeb.LiveHelpers do
   @moduledoc """
   Common helpers and patterns for LiveView modules.
-  
+
   This module provides consistent patterns for:
   - Error handling
   - Flash message management  
   - Socket state management
   - Common LiveView operations
   """
-  
+
   import Phoenix.LiveView
   import Phoenix.Component, only: [assign: 3]
-  
+
   @doc """
   Handles errors consistently across LiveViews with user-friendly messages.
-  
+
   ## Examples
-  
+
       {:error, :not_found} -> handle_error(socket, :not_found, "Resource not found")
       {:error, changeset} -> handle_error(socket, changeset)
   """
@@ -68,26 +68,27 @@ defmodule StreampaiWeb.LiveHelpers do
 
   @doc """
   Safely loads data with error handling.
-  
+
   ## Examples
-  
+
       safe_load(socket, fn -> Dashboard.get_dashboard_data(user) end, :dashboard_data)
   """
   def safe_load(socket, load_fn, assign_key, error_message \\ nil) do
     case load_fn.() do
       {:ok, data} ->
         assign(socket, assign_key, data)
-        
+
       {:error, reason} ->
         handle_error(socket, reason, error_message)
         |> assign(assign_key, nil)
-        
+
       data when not is_tuple(data) ->
         assign(socket, assign_key, data)
     end
   rescue
     exception ->
       error_msg = error_message || "Failed to load data: #{Exception.message(exception)}"
+
       socket
       |> handle_error(error_msg)
       |> assign(assign_key, nil)
@@ -95,24 +96,28 @@ defmodule StreampaiWeb.LiveHelpers do
 
   @doc """
   Handles form submissions with consistent error handling.
-  
+
   ## Examples
-  
+
       handle_form_submit(socket, fn -> create_user(params) end, "User created successfully!")
   """
-  def handle_form_submit(socket, submit_fn, success_message \\ "Operation completed successfully!") do
+  def handle_form_submit(
+        socket,
+        submit_fn,
+        success_message \\ "Operation completed successfully!"
+      ) do
     case submit_fn.() do
       {:ok, _result} ->
         socket
         |> show_success(success_message)
         |> then(fn s -> {:noreply, s} end)
-        
+
       {:error, %Ecto.Changeset{} = changeset} ->
         socket
         |> handle_error(changeset)
         |> assign(:changeset, changeset)
         |> then(fn s -> {:noreply, s} end)
-        
+
       {:error, reason} ->
         socket
         |> handle_error(reason)
@@ -127,20 +132,20 @@ defmodule StreampaiWeb.LiveHelpers do
 
   @doc """
   Validates required assigns are present in socket.
-  
+
   ## Examples
-  
+
       validate_assigns(socket, [:current_user, :dashboard_data])
   """
   def validate_assigns(socket, required_assigns) do
-    missing = 
+    missing =
       required_assigns
       |> Enum.reject(&Map.has_key?(socket.assigns, &1))
-    
+
     case missing do
-      [] -> 
+      [] ->
         {:ok, socket}
-        
+
       missing_assigns ->
         error_msg = "Missing required data: #{Enum.join(missing_assigns, ", ")}"
         {:error, handle_error(socket, error_msg)}

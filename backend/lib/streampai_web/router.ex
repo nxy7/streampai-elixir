@@ -25,12 +25,14 @@ defmodule StreampaiWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    # plug StreampaiWeb.AuthPlug, :load_from_session
     plug StreampaiWeb.Plugs.ErrorTracker
   end
 
   pipeline :api do
     plug :accepts, ["json"]
     plug :load_from_bearer
+    # plug StreampaiWeb.AuthPlug, :load_from_bearer
     plug StreampaiWeb.Plugs.ErrorTracker
   end
 

@@ -9,7 +9,6 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
   - Bypass authentication in tests
   """
 
-
   @doc """
   Creates a mock user with various options.
 
@@ -44,11 +43,13 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
     confirmed_at = if confirmed, do: DateTime.utc_now(), else: nil
 
     # Adjust email for admin users
-    final_email = if admin and email == "mock@example.com" do
-      "lolnoxy@gmail.com" # This email is recognized as admin in Dashboard.admin?/1
-    else
-      email
-    end
+    final_email =
+      if admin and email == "mock@example.com" do
+        # This email is recognized as admin in Dashboard.admin?/1
+        "lolnoxy@gmail.com"
+      else
+        email
+      end
 
     %Streampai.Accounts.User{
       id: id,
@@ -114,6 +115,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
   defmacro mock_live(conn, path, opts \\ []) do
     quote do
       import Phoenix.LiveViewTest
+
       unquote(conn)
       |> StreampaiWeb.TestHelpers.MockUser.mock_user_conn(unquote(opts))
       |> live(unquote(path))
@@ -167,6 +169,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
   end
 
   defp maybe_add_impersonator_session(conn, nil), do: conn
+
   defp maybe_add_impersonator_session(conn, impersonator) do
     conn
     |> Plug.Conn.put_session("impersonator_id", impersonator.id)
@@ -174,11 +177,13 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
   end
 
   defp maybe_assign_impersonator(conn, nil), do: conn
+
   defp maybe_assign_impersonator(conn, impersonator) do
     Plug.Conn.assign(conn, :impersonator, impersonator)
   end
 
   defp maybe_add_plan_data(user, :free), do: user
+
   defp maybe_add_plan_data(user, :pro) do
     # In a real implementation, you might have a separate plans table
     # For now, we'll just add a virtual field or metadata

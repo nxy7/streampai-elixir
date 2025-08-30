@@ -1,7 +1,7 @@
 defmodule Streampai.Accounts.TokenRefresher do
   @moduledoc """
   Handles refreshing OAuth tokens for streaming platforms.
-  
+
   This module provides functions to refresh expired tokens using the refresh tokens
   stored in the database. Each platform may have different refresh flows.
   """
@@ -16,18 +16,23 @@ defmodule Streampai.Accounts.TokenRefresher do
     case Ash.read(Streampai.Accounts.StreamingAccount, action: :expired_tokens) do
       {:ok, expired_accounts} ->
         Logger.info("Found #{length(expired_accounts)} expired tokens to refresh")
-        
+
         Enum.each(expired_accounts, fn account ->
           case refresh_account_token(account) do
             {:ok, _updated_account} ->
-              Logger.info("Successfully refreshed token for user #{account.user_id} on #{account.platform}")
+              Logger.info(
+                "Successfully refreshed token for user #{account.user_id} on #{account.platform}"
+              )
+
             {:error, error} ->
-              Logger.error("Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}")
+              Logger.error(
+                "Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}"
+              )
           end
         end)
-        
+
         {:ok, length(expired_accounts)}
-      
+
       {:error, error} ->
         Logger.error("Failed to fetch expired tokens: #{inspect(error)}")
         {:error, error}
@@ -51,7 +56,7 @@ defmodule Streampai.Accounts.TokenRefresher do
     # For now, just simulate a successful refresh
     new_token = "refreshed_google_token_#{:rand.uniform(10000)}"
     new_expires_at = DateTime.add(DateTime.utc_now(), 3600, :second)
-    
+
     account
     |> Ash.Changeset.for_update(:refresh_token, %{
       access_token: new_token,
@@ -66,7 +71,7 @@ defmodule Streampai.Accounts.TokenRefresher do
     # For now, just simulate a successful refresh
     new_token = "refreshed_twitch_token_#{:rand.uniform(10000)}"
     new_expires_at = DateTime.add(DateTime.utc_now(), 3600, :second)
-    
+
     account
     |> Ash.Changeset.for_update(:refresh_token, %{
       access_token: new_token,
@@ -85,7 +90,10 @@ defmodule Streampai.Accounts.TokenRefresher do
   @doc """
   Check if a streaming account's token is expired or will expire soon.
   """
-  def token_expires_soon?(%Streampai.Accounts.StreamingAccount{access_token_expires_at: expires_at}, minutes \\ 10) do
+  def token_expires_soon?(
+        %Streampai.Accounts.StreamingAccount{access_token_expires_at: expires_at},
+        minutes \\ 10
+      ) do
     threshold = DateTime.add(DateTime.utc_now(), minutes * 60, :second)
     DateTime.compare(expires_at, threshold) == :lt
   end

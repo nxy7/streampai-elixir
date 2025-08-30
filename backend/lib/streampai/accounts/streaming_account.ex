@@ -13,7 +13,15 @@ defmodule Streampai.Accounts.StreamingAccount do
     defaults [:read, :destroy, update: :*]
 
     create :create do
-      accept [:user_id, :platform, :access_token, :refresh_token, :access_token_expires_at, :extra_data]
+      accept [
+        :user_id,
+        :platform,
+        :access_token,
+        :refresh_token,
+        :access_token_expires_at,
+        :extra_data
+      ]
+
       upsert? true
       upsert_identity :unique_user_platform
     end
@@ -30,7 +38,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     update :refresh_token do
       accept [:access_token, :refresh_token, :access_token_expires_at]
       require_atomic? false
-      
+
       change fn changeset, _context ->
         # This would be called by a background job or API call
         # For now, just update the timestamps

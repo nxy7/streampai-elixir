@@ -1,37 +1,43 @@
 defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
-  
+
   alias Streampai.Dashboard
   alias Streampai.Accounts.StreamingAccountManager
 
   def mount_page(socket, _params, _session) do
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
-    
-    socket = socket
-    |> assign(:platform_connections, platform_connections)
-    
+
+    socket =
+      socket
+      |> assign(:platform_connections, platform_connections)
+
     {:ok, socket, layout: false}
   end
 
   def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
     platform = String.to_existing_atom(platform_str)
     user = socket.assigns.current_user
-    
+
     case StreamingAccountManager.disconnect_account(user, platform) do
       :ok ->
         # Refresh platform connections after successful disconnect
         platform_connections = StreamingAccountManager.refresh_platform_connections(user)
-        
-        socket = socket
-        |> assign(:platform_connections, platform_connections)
-        |> put_flash(:info, "Successfully disconnected #{String.capitalize(platform_str)} account")
-        
+
+        socket =
+          socket
+          |> assign(:platform_connections, platform_connections)
+          |> put_flash(
+            :info,
+            "Successfully disconnected #{String.capitalize(platform_str)} account"
+          )
+
         {:noreply, socket}
-        
+
       {:error, reason} ->
-        socket = socket
-        |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
-        
+        socket =
+          socket
+          |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
+
         {:noreply, socket}
     end
   end
@@ -159,10 +165,10 @@ defmodule StreampaiWeb.StreamLive do
                     </div>
                     <div>
                       <h4 class={"text-sm font-medium #{if connection.connected, do: "text-#{connection.color}-900", else: "text-gray-900"}"}>
-                        <%= connection.name %>
+                        {connection.name}
                       </h4>
                       <p class={"text-sm #{if connection.connected, do: "text-#{connection.color}-700", else: "text-gray-500"}"}>
-                        <%= if connection.connected, do: "Connected", else: "Not connected" %>
+                        {if connection.connected, do: "Connected", else: "Not connected"}
                       </p>
                     </div>
                   </div>

@@ -7,10 +7,7 @@ defmodule StreampaiWeb.LiveUserAuth do
   use StreampaiWeb, :verified_routes
   alias StreampaiWeb.Presence
 
-  def on_mount(:live_user_optional, _params, session, socket) do
-    # Handle impersonation on top of existing authentication
-    socket = handle_impersonation(socket, session)
-
+  def on_mount(:live_user_optional, _params, _session, socket) do
     if socket.assigns[:current_user] do
       {:cont, socket}
     else
@@ -19,13 +16,15 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   def on_mount(:live_user_required, _params, session, socket) do
-    # Handle impersonation on top of existing authentication
+    # Handle impersonation for LiveView contexts
     socket = handle_impersonation(socket, session)
 
     # For testing, allow loading user from session
     socket = maybe_load_user_from_session(socket, session)
 
     if socket.assigns[:current_user] do
+      # Ensure tier is loaded for the current user
+      socket = ensure_tier_loaded(socket)
       {:cont, socket}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in")}
@@ -33,13 +32,16 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   def on_mount(:dashboard_presence, _params, session, socket) do
-    # Handle impersonation and authentication first
+    # Handle impersonation for LiveView contexts
     socket = handle_impersonation(socket, session)
 
     # For testing, allow loading user from session
     socket = maybe_load_user_from_session(socket, session)
 
     if socket.assigns[:current_user] do
+      # Ensure tier is loaded before presence tracking
+      socket = ensure_tier_loaded(socket)
+      
       # Track user presence when they connect to any dashboard page
       if Phoenix.LiveView.connected?(socket) do
         topic = "users_presence"
@@ -75,23 +77,15 @@ defmodule StreampaiWeb.LiveUserAuth do
     case {session["impersonated_user_id"], session["impersonator_user_id"]} do
       {impersonated_id, impersonator_id}
       when not is_nil(impersonated_id) and not is_nil(impersonator_id) ->
-        # We are in impersonation mode - first load the impersonator to use as actor
-        case load_user_by_id_administrative(impersonator_id) do
-          {:ok, impersonator_user} ->
-            # Now load the impersonated user using the impersonator as actor
-            case load_user_by_id(impersonated_id, impersonator_user) do
-              {:ok, impersonated_user} ->
-                socket
-                |> assign(:current_user, impersonated_user)
-                |> assign(:impersonator, impersonator_user)
-
-              _ ->
-                # Invalid impersonated user data
-                socket |> assign(:impersonator, nil)
-            end
-
+        # Use 'with' to chain the impersonation loading operations
+        with {:ok, impersonator_user} <- load_user_by_id_administrative(impersonator_id),
+             {:ok, impersonated_user} <- load_user_by_id(impersonated_id, impersonator_user) do
+          socket
+          |> assign(:current_user, impersonated_user)
+          |> assign(:impersonator, impersonator_user)
+        else
           _ ->
-            # Invalid impersonator data, clear impersonation state
+            # Either impersonator or impersonated user loading failed
             socket |> assign(:impersonator, nil)
         end
 
@@ -102,7 +96,7 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
-    Ash.get(Streampai.Accounts.User, user_id, actor: actor)
+    Ash.get(Streampai.Accounts.User, user_id, actor: actor, load: [:tier])
   rescue
     _ -> {:error, :not_found}
   end
@@ -120,6 +114,7 @@ defmodule StreampaiWeb.LiveUserAuth do
          |> for_read(:read, %{})
          |> filter(id == ^user_id)
          |> filter(email == "lolnoxy@gmail.com")
+         |> load([:tier])
          |> Ash.read_one() do
       {:ok, user} when not is_nil(user) -> {:ok, user}
       _ -> {:error, :not_found}
@@ -129,6 +124,35 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   defp load_user_by_id_administrative(_), do: {:error, :invalid_id}
+
+  # Helper to ensure tier is loaded for the current user
+  defp ensure_tier_loaded(socket) do
+    case socket.assigns[:current_user] do
+      nil ->
+        socket
+      
+      %{tier: %Ash.NotLoaded{}} = user ->
+        case Ash.load(user, [:tier]) do
+          {:ok, user_with_tier} ->
+            assign(socket, :current_user, user_with_tier)
+          {:error, _} ->
+            socket
+        end
+        
+      %{tier: _} = _user ->
+        # Tier already loaded
+        socket
+        
+      user ->
+        # Fallback: try to load tier
+        case Ash.load(user, [:tier]) do
+          {:ok, user_with_tier} ->
+            assign(socket, :current_user, user_with_tier)
+          {:error, _} ->
+            socket
+        end
+    end
+  end
 
   # Helper function to load user from session for testing purposes
   defp maybe_load_user_from_session(socket, session) do

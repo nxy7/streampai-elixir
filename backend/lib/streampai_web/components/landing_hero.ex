@@ -31,7 +31,7 @@ defmodule StreampaiWeb.Components.LandingHero do
               Watch Demo
             </button>
           </div>
-
+          
     <!-- Platform Logos -->
           <div class="flex flex-wrap justify-center items-center gap-8 opacity-70">
             <div class="flex items-center space-x-3">
@@ -80,7 +80,7 @@ defmodule StreampaiWeb.Components.LandingHero do
           </div>
         </div>
       </div>
-
+      
     <!-- Floating Elements -->
       <div class="absolute top-20 left-10 w-20 h-20 bg-purple-500/20 rounded-full blur-xl animate-pulse">
       </div>

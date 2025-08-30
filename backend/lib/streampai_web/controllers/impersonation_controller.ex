@@ -7,7 +7,7 @@ defmodule StreampaiWeb.ImpersonationController do
   - Stop impersonation and return to original user
   """
   use StreampaiWeb, :controller
-  
+
   alias Streampai.Accounts.UserPolicy
 
   def start_impersonation(conn, %{"user_id" => user_id}) do
