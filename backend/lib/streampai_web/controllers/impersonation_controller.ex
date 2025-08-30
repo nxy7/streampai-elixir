@@ -11,8 +11,7 @@ defmodule StreampaiWeb.ImpersonationController do
   alias Streampai.Accounts.UserPolicy
 
   def start_impersonation(conn, %{"user_id" => user_id}) do
-    # Get the real user (current authenticated user)
-    real_user = conn.assigns[:current_user]
+    real_user = conn.assigns.current_user
 
     if can_impersonate?(real_user) do
       case load_user_by_id(user_id, real_user) do
@@ -23,9 +22,9 @@ defmodule StreampaiWeb.ImpersonationController do
           |> put_flash(:info, "Impersonation started")
           |> redirect(to: "/dashboard")
 
-        {:error, _} ->
+        {:error, error} ->
           conn
-          |> put_flash(:error, "User not found")
+          |> put_flash(:error, error)
           |> redirect(to: "/dashboard/admin/users")
       end
     else
@@ -44,9 +43,9 @@ defmodule StreampaiWeb.ImpersonationController do
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
-    Ash.get(Streampai.Accounts.User, user_id, actor: actor)
-  rescue
-    _ -> {:error, :not_found}
+    Streampai.Accounts.User
+    |> Ash.Query.for_read(:get_by_id, %{id: user_id}, actor: actor)
+    |> Ash.read()
   end
 
   defp load_user_by_id(_, _), do: {:error, :invalid_id}

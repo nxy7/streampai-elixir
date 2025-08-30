@@ -53,8 +53,17 @@ defmodule Streampai.Accounts.User do
 
   actions do
     read :read do
-      get? true
       prepare build(load: [:tier])
+    end
+
+    read :get_by_id do
+      get? true
+
+      argument :id, :ci_string do
+        allow_nil? false
+      end
+
+      filter expr(id == ^arg(:id))
     end
 
     read :get_by_subject do

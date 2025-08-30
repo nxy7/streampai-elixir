@@ -105,7 +105,7 @@ defmodule StreampaiWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authentication_optional,
-      on_mount: {StreampaiWeb.LiveUserAuth, :live_user_optional} do
+      on_mount: {StreampaiWeb.LiveUserAuth, :handle_impersonation} do
       live "/", LandingLive
       live "/privacy", PrivacyLive
       live "/terms", TermsLive
@@ -119,7 +119,7 @@ defmodule StreampaiWeb.Router do
 
     ash_authentication_live_session :authentication_required,
       on_mount: [
-        {StreampaiWeb.LiveUserAuth, :live_user_required},
+        {StreampaiWeb.LiveUserAuth, :handle_impersonation},
         {StreampaiWeb.LiveUserAuth, :dashboard_presence}
       ] do
       live "/dashboard", DashboardLive
@@ -145,7 +145,6 @@ defmodule StreampaiWeb.Router do
                   register_path: "/auth/register",
                   reset_path: "/auth/reset",
                   auth_routes_prefix: "/auth",
-                  on_mount: [{StreampaiWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
                     StreampaiWeb.AuthOverrides,
                     AshAuthentication.Phoenix.Overrides.Default

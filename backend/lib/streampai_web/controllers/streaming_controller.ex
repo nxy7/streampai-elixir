@@ -6,7 +6,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
   def request(conn, _params) do
     # Check if user is logged in before starting OAuth flow
-    current_user = conn.assigns[:current_user]
+    current_user = conn.assigns.current_user
 
     if current_user do
       # This action should never be reached as Ueberauth intercepts the request
@@ -31,7 +31,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{
         "provider" => provider
       }) do
-    current_user = conn.assigns[:current_user]
+    current_user = conn.assigns.current_user
 
     if current_user do
       case create_or_update_streaming_account(current_user, auth, provider) do

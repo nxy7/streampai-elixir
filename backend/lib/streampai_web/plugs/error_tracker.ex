@@ -141,7 +141,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp get_current_user_id(conn) do
-    case conn.assigns[:current_user] do
+    case conn.assigns.current_user do
       %{id: id} -> id
       _ -> nil
     end

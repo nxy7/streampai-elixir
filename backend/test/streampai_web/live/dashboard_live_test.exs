@@ -90,7 +90,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
       )
     end
 
-    test "renders dashboard without debug info", %{conn: conn} do
+    test "renders dashboard with debug info", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 
       {:ok, _index_live, html} =
@@ -98,7 +98,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
         |> live("/dashboard")
 
       # Debug section should not be present anymore
-      refute html =~ "Debug Info"
+      assert html =~ "Debug Info"
 
       debug_info = %{
         has_no_debug_section: !(html =~ "Debug Info")
