@@ -23,7 +23,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
           {String.capitalize(@current_plan)} Plan
         </span>
       </div>
-      
+
     <!-- Current Plan Overview -->
       <div class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -60,7 +60,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
               <% end %>
             </p>
           </div>
-          
+
     <!-- Platforms -->
           <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex items-center justify-between mb-2">
@@ -106,7 +106,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
           </div>
         </div>
       </div>
-      
+
     <!-- Plan Comparison -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-900 mb-3">Available Plans</h4>
@@ -165,7 +165,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
               </button>
             <% end %>
           </div>
-          
+
     <!-- Pro Plan -->
           <div class={"border-2 rounded-lg p-4 transition-all duration-200 #{if @current_plan == "pro", do: "border-purple-500 bg-purple-50", else: "border-gray-200 hover:border-gray-300"}"}>
             <div class="flex items-center justify-between mb-2">
@@ -261,7 +261,7 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
           </div>
         </div>
       </div>
-      
+
     <!-- Billing History -->
       <div>
         <div class="flex items-center justify-between mb-3">

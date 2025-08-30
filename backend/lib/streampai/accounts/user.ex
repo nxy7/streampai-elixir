@@ -281,8 +281,14 @@ defmodule Streampai.Accounts.User do
               )
 
             true ->
+              import Ash.Query
+
+              users =
+                Streampai.Accounts.User |> filter(name == ^name) |> for_read(:read) |> Ash.read()
+
               # Check if the name is already taken by another user
-              case Ash.read(Streampai.Accounts.User) do
+              # TODO dont load all users?
+              case users do
                 {:ok, users} ->
                   taken =
                     Enum.any?(users, fn user ->

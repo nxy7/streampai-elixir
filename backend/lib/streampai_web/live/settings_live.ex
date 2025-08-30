@@ -12,13 +12,13 @@ defmodule StreampaiWeb.SettingsLive do
   def mount_page(socket, _params, _session) do
     user_data = Dashboard.get_dashboard_data(socket.assigns.current_user)
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
-    
+
     # Get current plan from user tier
-    current_plan = case Map.get(socket.assigns.current_user, :tier) do
-      :free -> "free"
-      :pro -> "pro"
-      _ -> "free"  # fallback to free
-    end
+    current_plan =
+      case Map.get(socket.assigns.current_user, :tier) do
+        :pro -> "pro"
+        _ -> "free"
+      end
 
     {:ok,
      socket
@@ -91,7 +91,7 @@ defmodule StreampaiWeb.SettingsLive do
   def handle_event("update_name", %{"form" => form_params}, socket) do
     # Clear previous messages at start of submission
     socket = socket |> assign(:name_error, nil) |> assign(:name_success, nil)
-    
+
     # Don't submit if name is not available
     if socket.assigns.name_available == false do
       {:noreply,
