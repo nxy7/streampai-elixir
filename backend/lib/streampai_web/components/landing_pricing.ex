@@ -111,7 +111,9 @@ defmodule StreampaiWeb.Components.LandingPricing do
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span class="text-gray-300">Data from last 3 days only</span>
+                <span class="text-gray-300">
+                  Data from last <%= Streampai.Constants.free_tier_data_retention_days() %> days only
+                </span>
               </li>
             </ul>
 
@@ -304,7 +306,9 @@ defmodule StreampaiWeb.Components.LandingPricing do
             <% end %>
 
             <div class="text-center mt-4">
-              <span class="text-sm text-gray-300">30-day money-back guarantee</span>
+              <span class="text-sm text-gray-300">
+                <%= Streampai.Constants.money_back_guarantee_days() %>-day money-back guarantee
+              </span>
             </div>
           </div>
         </div>

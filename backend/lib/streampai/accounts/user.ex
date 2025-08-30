@@ -149,7 +149,7 @@ defmodule Streampai.Accounts.User do
       argument :password, :string do
         description "The proposed password for the user, in plain text."
         allow_nil? false
-        constraints min_length: 8
+        constraints min_length: Streampai.Constants.password_min_length()
         sensitive? true
       end
 
@@ -207,7 +207,7 @@ defmodule Streampai.Accounts.User do
       argument :password, :string do
         description "The proposed password for the user, in plain text."
         allow_nil? false
-        constraints min_length: 8
+        constraints min_length: Streampai.Constants.password_min_length()
         sensitive? true
       end
 
@@ -243,11 +243,11 @@ defmodule Streampai.Accounts.User do
         if name do
           # Validate format
           cond do
-            String.length(name) < 3 ->
-              Ash.Changeset.add_error(changeset, :name, "Name must be at least 3 characters")
+            String.length(name) < Streampai.Constants.username_min_length() ->
+              Ash.Changeset.add_error(changeset, :name, "Name must be at least #{Streampai.Constants.username_min_length()} characters")
 
-            String.length(name) > 30 ->
-              Ash.Changeset.add_error(changeset, :name, "Name must be no more than 30 characters")
+            String.length(name) > Streampai.Constants.username_max_length() ->
+              Ash.Changeset.add_error(changeset, :name, "Name must be no more than #{Streampai.Constants.username_max_length()} characters")
 
             !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
               Ash.Changeset.add_error(
@@ -293,7 +293,7 @@ defmodule Streampai.Accounts.User do
 
     bypass action_type(:read) do
       authorize_if expr(id == ^actor(:id))
-      authorize_if expr(^actor(:email) == "lolnoxy@gmail.com")
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
     end
 
     policy always() do

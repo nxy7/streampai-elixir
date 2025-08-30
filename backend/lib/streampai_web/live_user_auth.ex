@@ -8,6 +8,8 @@ defmodule StreampaiWeb.LiveUserAuth do
   alias StreampaiWeb.Presence
 
   def on_mount(:live_user_optional, _params, _session, socket) do
+    dbg(socket.assigns.current_user)
+
     if socket.assigns[:current_user] do
       {:cont, socket}
     else
@@ -103,7 +105,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     case Streampai.Accounts.User
          |> for_read(:read, %{})
          |> filter(id == ^user_id)
-         |> filter(email == "lolnoxy@gmail.com")
+         |> filter(email == ^Streampai.Constants.admin_email())
          |> load([:tier])
          |> Ash.read_one() do
       {:ok, user} when not is_nil(user) -> {:ok, user}
