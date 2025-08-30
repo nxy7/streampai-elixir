@@ -31,21 +31,9 @@ defmodule StreampaiWeb.DashboardLive do
     "User"
   end
 
-  def handle_event("click", _, socket) do
-    socket =
-      socket
-      |> clear_flash()
-      |> put_flash(:info, "Button clicked")
-
-    {:noreply, socket}
-  end
-
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="dashboard" page_title="Dashboard">
-      <button phx-click="click">
-        press me
-      </button>
       <div class="max-w-7xl mx-auto">
         <!-- Welcome Card -->
         <.dashboard_card
