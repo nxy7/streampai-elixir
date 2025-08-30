@@ -8,8 +8,6 @@ defmodule StreampaiWeb.AuthPlug do
   use AshAuthentication.Plug, otp_app: :streampai
   import Plug.Conn
 
-  def init(opts), do: opts
-
   def handle_success(conn, _activity, user, token) do
     if is_api_request?(conn) do
       conn
@@ -55,39 +53,4 @@ defmodule StreampaiWeb.AuthPlug do
   end
 
   defp is_api_request?(conn), do: "application/json" in get_req_header(conn, "accept")
-  # Plug function for loading user from session with tier
-  def load_from_session(conn, opts) do
-    # First load user using AshAuthentication Phoenix plug
-    conn = AshAuthentication.Phoenix.Plug.load_from_session(conn, opts)
-
-    # Then enhance the current_user with tier if present
-    load_tier_for_current_user(conn)
-  end
-
-  # Plug function for loading user from bearer token with tier
-  def load_from_bearer(conn, opts) do
-    # First load user using AshAuthentication Phoenix plug
-    conn = AshAuthentication.Phoenix.Plug.load_from_bearer(conn, opts)
-
-    # Then enhance the current_user with tier if present
-    load_tier_for_current_user(conn)
-  end
-
-  # Helper function to load tier for current user
-  defp load_tier_for_current_user(conn) do
-    case conn.assigns[:current_user] do
-      nil ->
-        conn
-
-      user ->
-        case Ash.load(user, [:tier]) do
-          {:ok, user_with_tier} ->
-            assign(conn, :current_user, user_with_tier)
-
-          {:error, _error} ->
-            # Keep original user if tier loading fails
-            conn
-        end
-    end
-  end
 end

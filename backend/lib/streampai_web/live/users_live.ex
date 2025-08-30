@@ -34,7 +34,6 @@ defmodule StreampaiWeb.UsersLive do
 
     case Streampai.Accounts.User
          |> Ash.Query.for_read(:read, %{}, actor: actor)
-         |> Ash.Query.load([:tier])
          |> Ash.read() do
       {:ok, users} ->
         IO.puts("users: " <> inspect(users))

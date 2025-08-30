@@ -6,18 +6,9 @@ defmodule StreampaiWeb.AuthController do
   def success(conn, _activity, user, _token) do
     return_to = get_session(conn, :return_to) || ~p"/dashboard"
 
-    user_with_tier =
-      case Ash.load(user, [:tier]) do
-        {:ok, loaded_user} ->
-          loaded_user
-
-        {:error, _err} ->
-          user
-      end
-
     conn
-    |> store_in_session(user_with_tier)
-    |> assign(:current_user, user_with_tier)
+    |> store_in_session(user)
+    |> assign(:current_user, user)
     |> redirect(to: return_to)
   end
 

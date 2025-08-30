@@ -52,12 +52,17 @@ defmodule Streampai.Accounts.User do
   end
 
   actions do
-    defaults [:read]
+    read :read do
+      get? true
+      prepare build(load: [:tier])
+    end
 
     read :get_by_subject do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false
+
       get? true
+      prepare build(load: [:tier])
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
@@ -244,10 +249,18 @@ defmodule Streampai.Accounts.User do
           # Validate format
           cond do
             String.length(name) < Streampai.Constants.username_min_length() ->
-              Ash.Changeset.add_error(changeset, :name, "Name must be at least #{Streampai.Constants.username_min_length()} characters")
+              Ash.Changeset.add_error(
+                changeset,
+                :name,
+                "Name must be at least #{Streampai.Constants.username_min_length()} characters"
+              )
 
             String.length(name) > Streampai.Constants.username_max_length() ->
-              Ash.Changeset.add_error(changeset, :name, "Name must be no more than #{Streampai.Constants.username_max_length()} characters")
+              Ash.Changeset.add_error(
+                changeset,
+                :name,
+                "Name must be no more than #{Streampai.Constants.username_max_length()} characters"
+              )
 
             !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
               Ash.Changeset.add_error(

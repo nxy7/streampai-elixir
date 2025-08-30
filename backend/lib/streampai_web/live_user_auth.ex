@@ -88,7 +88,7 @@ defmodule StreampaiWeb.LiveUserAuth do
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
-    Ash.get(Streampai.Accounts.User, user_id, actor: actor, load: [:tier])
+    Ash.get(Streampai.Accounts.User, user_id, actor: actor)
   rescue
     _ -> {:error, :not_found}
   end
@@ -106,7 +106,6 @@ defmodule StreampaiWeb.LiveUserAuth do
          |> for_read(:read, %{})
          |> filter(id == ^user_id)
          |> filter(email == ^Streampai.Constants.admin_email())
-         |> load([:tier])
          |> Ash.read_one() do
       {:ok, user} when not is_nil(user) -> {:ok, user}
       _ -> {:error, :not_found}
@@ -118,33 +117,8 @@ defmodule StreampaiWeb.LiveUserAuth do
   defp load_user_by_id_administrative(_), do: {:error, :invalid_id}
 
   # Helper to ensure tier is loaded for the current user
+  # Since tier is now loaded by default in the User resource, this is simplified
   defp ensure_tier_loaded(socket) do
-    case socket.assigns[:current_user] do
-      nil ->
-        socket
-
-      %{tier: %Ash.NotLoaded{}} = user ->
-        case Ash.load(user, [:tier]) do
-          {:ok, user_with_tier} ->
-            assign(socket, :current_user, user_with_tier)
-
-          {:error, _} ->
-            socket
-        end
-
-      %{tier: _} = _user ->
-        # Tier already loaded
-        socket
-
-      user ->
-        # Fallback: try to load tier
-        case Ash.load(user, [:tier]) do
-          {:ok, user_with_tier} ->
-            assign(socket, :current_user, user_with_tier)
-
-          {:error, _} ->
-            socket
-        end
-    end
+    socket
   end
 end
