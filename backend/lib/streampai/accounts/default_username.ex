@@ -17,8 +17,8 @@ defmodule Streampai.Accounts.DefaultUsername do
       {:error, error} ->
         Ash.Changeset.add_error(
           changeset,
-          :name,
-          "Failed to generate username: #{inspect(error)}"
+          "Failed to generate username: #{inspect(error)}",
+          field: :name
         )
     end
   end
