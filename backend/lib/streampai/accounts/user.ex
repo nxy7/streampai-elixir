@@ -65,7 +65,7 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms, :role])
+      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
 
       filter expr(id == ^arg(:id))
     end
@@ -75,7 +75,8 @@ defmodule Streampai.Accounts.User do
       argument :subject, :string, allow_nil?: false
 
       get? true
-      prepare build(load: [:tier, :connected_platforms, :role])
+
+      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
@@ -322,6 +323,7 @@ defmodule Streampai.Accounts.User do
     end
 
     bypass action_type(:read) do
+      authorize_if always()
       authorize_if expr(id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
     end

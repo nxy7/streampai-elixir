@@ -33,7 +33,7 @@ defmodule StreampaiWeb.UsersLive do
     actor = socket.assigns[:impersonator] || socket.assigns.current_user
 
     case Streampai.Accounts.User
-         |> Ash.Query.for_read(:get, %{}, actor: actor)
+         |> Ash.Query.for_read(:get, %{}, load: [:role], actor: actor)
          |> Ash.read() do
       {:ok, users} ->
         IO.puts("users: " <> inspect(users))

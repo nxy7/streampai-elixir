@@ -97,13 +97,11 @@ defmodule Streampai.Dashboard do
   Gets usage statistics for a user.
   """
   def get_usage_stats(%User{} = user) do
-    plan = get_user_plan(user)
-
     %{
       hours_used: get_hours_used(user),
-      hours_limit: get_hours_limit(plan),
+      hours_limit: get_hours_limit(user),
       platforms_used: get_platforms_used(user),
-      platforms_limit: get_platforms_limit(plan)
+      platforms_limit: get_platforms_limit(user)
     }
   end
 
@@ -114,7 +112,7 @@ defmodule Streampai.Dashboard do
     connected_platforms = get_connected_platforms(user)
 
     connected_actions = build_connected_actions(connected_platforms)
-    unconnected_actions = build_unconnected_actions(connected_platforms)
+    unconnected_actions = build_unconnected_actions(connected_platforms, user)
 
     connected_actions ++ unconnected_actions
   end
@@ -158,14 +156,17 @@ defmodule Streampai.Dashboard do
     end)
   end
 
-  defp build_unconnected_actions(connected_platforms) do
+  defp build_unconnected_actions(connected_platforms, %User{} = user) do
+    connectable = user.tier == :pro or user.connected_platforms == 0
+
     @platform_configs
     |> Enum.reject(fn config -> config.platform in connected_platforms end)
     |> Enum.map(fn config ->
       %{
         name: config.connect_name,
-        description: config.description,
-        url: config.connect_url,
+        description:
+          if(connectable, do: config.description, else: "Upgrade to Pro to connect more accounts"),
+        url: if(connectable, do: config.connect_url, else: nil),
         icon: config.icon,
         color: config.connect_color
       }
@@ -195,11 +196,13 @@ defmodule Streampai.Dashboard do
 
   defp get_display_name(_), do: "User"
 
+  defp get_user_plan(%User{tier: :pro}), do: :paid
   defp get_user_plan(%User{}), do: :free
 
   defp get_hours_used(%User{}), do: 0.0
 
-  defp get_hours_limit(_plan), do: Constants.free_tier_hour_limit()
+  defp get_hours_limit(%User{tier: :pro}), do: :unlimited
+  defp get_hours_limit(_), do: Constants.free_tier_hour_limit()
 
   defp get_platforms_used(%User{} = user) do
     user
@@ -207,5 +210,6 @@ defmodule Streampai.Dashboard do
     |> length()
   end
 
+  defp get_platforms_limit(%User{tier: :pro}), do: 99
   defp get_platforms_limit(_plan), do: 1
 end

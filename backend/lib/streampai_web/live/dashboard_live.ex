@@ -88,7 +88,7 @@ defmodule StreampaiWeb.DashboardLive do
               </div>
               <.info_row
                 label="Connected Platforms"
-                value={to_string(@dashboard_data.streaming_status.connected_platforms)}
+                value={to_string(@current_user.connected_platforms)}
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">

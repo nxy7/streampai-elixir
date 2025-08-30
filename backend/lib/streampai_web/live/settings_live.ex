@@ -6,7 +6,6 @@ defmodule StreampaiWeb.SettingsLive do
   import StreampaiWeb.Components.SubscriptionWidget
 
   alias Streampai.Dashboard
-  alias Streampai.Accounts.StreamingAccountManager
   alias Streampai.Accounts.NameValidator
 
   def mount_page(socket, _params, _session) do
@@ -163,7 +162,7 @@ defmodule StreampaiWeb.SettingsLive do
           usage={@usage}
           platform_connections={@platform_connections}
         />
-        
+
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Account Settings</h3>
@@ -241,7 +240,7 @@ defmodule StreampaiWeb.SettingsLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Notifications Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h3>
