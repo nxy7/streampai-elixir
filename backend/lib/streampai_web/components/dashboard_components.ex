@@ -15,7 +15,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <.dashboard_card title="Account Info" icon="user">
         Card content goes here
       </.dashboard_card>
-      
+
       <.dashboard_card title="Status" icon="activity" class="bg-red-50">
         <p>Custom content</p>
       </.dashboard_card>
@@ -155,6 +155,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         connected={false}
         connect_url="/streaming/connect/twitch"
         color="purple"
+        current_user={@current_user}
       />
   """
   attr :name, :string, required: true, doc: "Platform name"
@@ -163,6 +164,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :connect_url, :string, required: true, doc: "Connection URL"
   attr :color, :string, default: "purple", doc: "Platform brand color"
   attr :show_disconnect, :boolean, default: false, doc: "Show disconnect button when connected"
+  attr :current_user, :map, default: nil, doc: "Current user for permission checks"
 
   def platform_connection(assigns) do
     ~H"""
@@ -194,9 +196,15 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         </span>
       </div>
       <%= if not @connected do %>
-        <a href={@connect_url} class="text-gray-600 hover:text-gray-700 text-sm font-medium">
-          Connect
-        </a>
+        <%= if can_connect_platform?(@current_user, @platform) do %>
+          <a href={@connect_url} class="text-gray-600 hover:text-gray-700 text-sm font-medium">
+            Connect
+          </a>
+        <% else %>
+          <span class="text-gray-400 text-sm" title="Upgrade to Pro to connect more platforms">
+            Pro Required
+          </span>
+        <% end %>
       <% else %>
         <%= if @show_disconnect do %>
           <div class="relative inline-block group">
@@ -335,4 +343,11 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     </svg>
     """
   end
+
+  # Helper function to check if a user can connect a platform using Ash policies
+  defp can_connect_platform?(user, platform) when not is_nil(user) do
+    Streampai.Accounts.StreamingAccount.can_create?(user)
+  end
+
+  defp can_connect_platform?(_user, _platform), do: false
 end
