@@ -61,11 +61,11 @@ defmodule Streampai.Accounts.User do
     read :get_by_id do
       get? true
 
-      argument :id, :ci_string do
+      argument :id, :string do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms])
+      prepare build(load: [:tier, :connected_platforms, :role])
 
       filter expr(id == ^arg(:id))
     end
@@ -75,7 +75,7 @@ defmodule Streampai.Accounts.User do
       argument :subject, :string, allow_nil?: false
 
       get? true
-      prepare build(load: [:tier, :connected_platforms])
+      prepare build(load: [:tier, :connected_platforms, :role])
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
@@ -323,7 +323,7 @@ defmodule Streampai.Accounts.User do
 
     bypass action_type(:read) do
       authorize_if expr(id == ^actor(:id))
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
 
     # Allow user registration and authentication creates (no actor required)
@@ -334,12 +334,12 @@ defmodule Streampai.Accounts.User do
     # Only allow users to update themselves or admins to update anyone
     policy action_type(:update) do
       authorize_if expr(id == ^actor(:id))
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
 
     # Only admins can delete users
     policy action_type(:destroy) do
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
   end
 
@@ -374,6 +374,7 @@ defmodule Streampai.Accounts.User do
 
   calculations do
     calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
+    calculate :role, :atom, expr(if email == "lolnoxy@gmail.com", do: :admin, else: :regular)
   end
 
   aggregates do

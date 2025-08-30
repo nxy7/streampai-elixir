@@ -89,8 +89,8 @@ defmodule StreampaiWeb.SettingsLive do
   end
 
   def handle_event("update_name", %{"form" => form_params}, socket) do
-    # Clear previous messages at start of submission
     socket = socket |> assign(:name_error, nil) |> assign(:name_success, nil)
+    actor = socket.assigns.current_user
 
     # Don't submit if name is not available
     if socket.assigns.name_available == false do
@@ -98,12 +98,18 @@ defmodule StreampaiWeb.SettingsLive do
        socket
        |> assign(:name_error, "Cannot update to an invalid or taken name")}
     else
-      case AshPhoenix.Form.submit(socket.assigns.name_form, params: form_params) do
+      case AshPhoenix.Form.submit(socket.assigns.name_form,
+             params: form_params,
+             action_opts: [actor: actor]
+           ) do
         {:ok, user} ->
           {:noreply,
            socket
-           |> assign(:current_user, user)
-           |> assign(:name_form, AshPhoenix.Form.for_update(user, :update_name) |> to_form())
+           |> assign(
+             :name_form,
+             AshPhoenix.Form.for_update(user, :update_name, actor: actor)
+             |> to_form()
+           )
            |> assign(:name_success, "Name updated successfully!")
            |> assign(:name_available, nil)
            |> put_flash(:info, "Name updated successfully!")}
@@ -117,21 +123,23 @@ defmodule StreampaiWeb.SettingsLive do
     end
   end
 
-  def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
-    platform = String.to_existing_atom(platform_str)
+  def handle_event("disconnect_platform", %{"platform" => platform}, socket) do
     user = socket.assigns.current_user
 
-    case StreamingAccountManager.disconnect_account(user, platform) do
+    case Streampai.Accounts.StreamingAccount.destroy(%{user_id: user.id, platform: platform},
+           actor: user
+         )
+         |> dbg do
       :ok ->
         # Refresh platform connections after successful disconnect
-        platform_connections = StreamingAccountManager.refresh_platform_connections(user)
+        platform_connections = Streampai.Accounts.StreamingAccount.read(%{}, actor: user)
 
         socket =
           socket
           |> assign(:platform_connections, platform_connections)
           |> put_flash(
             :info,
-            "Successfully disconnected #{String.capitalize(platform_str)} account"
+            "Successfully disconnected #{String.capitalize(platform)} account"
           )
 
         {:noreply, socket}

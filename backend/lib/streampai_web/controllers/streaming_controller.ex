@@ -35,7 +35,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
     if current_user do
       case create_or_update_streaming_account(current_user, auth, provider) do
-        {:ok, _account} ->
+        {:ok, account} ->
           conn
           |> put_flash(:info, "Successfully connected #{String.capitalize(provider)} account")
           |> redirect(to: @redirect_url)
@@ -61,39 +61,37 @@ defmodule StreampaiWeb.MultiProviderAuth do
       case provider do
         "google" -> :youtube
         "twitch" -> :twitch
-        _ -> String.to_atom(provider)
+        _ -> raise "Unsupported provider"
       end
+
+    extra_data = %{
+      email:
+        auth.info.email || extract_from_raw_info(auth, "email") ||
+          extract_from_jwt(auth, "email"),
+      name:
+        auth.info.name || auth.info.first_name || extract_from_raw_info(auth, "name") ||
+          extract_from_raw_info(auth, "given_name") || extract_from_jwt(auth, "name") ||
+          extract_from_jwt(auth, "given_name"),
+      nickname:
+        auth.info.nickname || auth.info.name || extract_from_raw_info(auth, "given_name") ||
+          extract_from_raw_info(auth, "name") || extract_from_jwt(auth, "given_name") ||
+          extract_from_jwt(auth, "name"),
+      image:
+        auth.info.image || extract_from_raw_info(auth, "picture") ||
+          extract_from_jwt(auth, "picture"),
+      uid: auth.uid
+    }
 
     account_params = %{
       user_id: user.id,
       platform: platform,
       access_token: auth.credentials.token,
-      refresh_token: auth.credentials.refresh_token || "",
+      refresh_token: auth.credentials.refresh_token,
       access_token_expires_at: expires_at_from_auth(auth),
-      extra_data: %{
-        email:
-          auth.info.email || extract_from_raw_info(auth, "email") ||
-            extract_from_jwt(auth, "email"),
-        name:
-          auth.info.name || auth.info.first_name || extract_from_raw_info(auth, "name") ||
-            extract_from_raw_info(auth, "given_name") || extract_from_jwt(auth, "name") ||
-            extract_from_jwt(auth, "given_name"),
-        nickname:
-          auth.info.nickname || auth.info.name || extract_from_raw_info(auth, "given_name") ||
-            extract_from_raw_info(auth, "name") || extract_from_jwt(auth, "given_name") ||
-            extract_from_jwt(auth, "name"),
-        image:
-          auth.info.image || extract_from_raw_info(auth, "picture") ||
-            extract_from_jwt(auth, "picture"),
-        uid: auth.uid
-        # Removed raw_info to reduce cookie size
-      }
+      extra_data: extra_data
     }
 
-    # Try to create, if it exists (upsert based on composite primary key), it will update
-    Streampai.Accounts.StreamingAccount
-    |> Ash.Changeset.for_create(:create, account_params, upsert?: true)
-    |> Ash.create()
+    Streampai.Accounts.StreamingAccount.create(account_params, upsert?: true, actor: user) |> dbg
   end
 
   defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}})

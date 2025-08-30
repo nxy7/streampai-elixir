@@ -16,15 +16,12 @@ defmodule Streampai.Accounts.UserPolicy do
       iex> user = %User{email: "lolnoxy@gmail.com"}
       iex> UserPolicy.admin?(user)
       true
-      
+
       iex> user = %User{email: "regular@example.com"}
       iex> UserPolicy.admin?(user)
       false
   """
-  def admin?(%{email: email}) when is_binary(email) do
-    email in @admin_emails
-  end
-
+  def admin?(%{role: :admin}), do: true
   def admin?(_), do: false
 
   @doc """
@@ -33,42 +30,7 @@ defmodule Streampai.Accounts.UserPolicy do
   Currently only admins can impersonate other users.
   """
   def can_impersonate?(user) do
-    admin?(user)
-  end
-
-  @doc """
-  Gets the role of a user as an atom.
-
-  ## Returns
-  - `:admin` for administrators
-  - `:regular` for regular users
-  """
-  def user_role(user) do
-    if admin?(user) do
-      :admin
-    else
-      :regular
-    end
-  end
-
-  @doc """
-  Checks if a user can access admin features.
-
-  This is currently the same as admin? but provides
-  semantic clarity for admin feature access.
-  """
-  def can_access_admin?(user) do
-    admin?(user)
-  end
-
-  @doc """
-  Checks if a user can moderate chat or content.
-
-  Currently only admins can moderate, but this could
-  be expanded to include moderator roles in the future.
-  """
-  def can_moderate?(user) do
-    admin?(user)
+    user.role == :admin
   end
 
   @doc """
@@ -78,7 +40,7 @@ defmodule Streampai.Accounts.UserPolicy do
   Regular users cannot impersonate anyone.
   """
   def can_impersonate_user?(user, target_user) do
-    case {user_role(user), user_role(target_user)} do
+    case {user.role, target_user.role} do
       {:admin, :regular} -> true
       # Admins cannot impersonate other admins
       {:admin, :admin} -> false

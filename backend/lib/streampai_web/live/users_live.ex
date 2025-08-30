@@ -64,10 +64,6 @@ defmodule StreampaiWeb.UsersLive do
     {:noreply, load_presence(socket)}
   end
 
-  defp user_role(user) do
-    UserPolicy.user_role(user)
-  end
-
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="users" page_title="User Management">
@@ -168,8 +164,8 @@ defmodule StreampaiWeb.UsersLive do
                       {user.email}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{if user_role(user) == :admin, do: "bg-red-100 text-red-800", else: "bg-gray-100 text-gray-800"}"}>
-                        {user_role(user) |> Atom.to_string() |> String.capitalize()}
+                      <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{if user.role == :admin, do: "bg-red-100 text-red-800", else: "bg-gray-100 text-gray-800"}"}>
+                        {user.role |> Atom.to_string() |> String.capitalize()}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">

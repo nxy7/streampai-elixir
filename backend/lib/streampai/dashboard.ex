@@ -175,12 +175,14 @@ defmodule Streampai.Dashboard do
   defp get_connected_platforms(%User{} = user) do
     query =
       Streampai.Accounts.StreamingAccount
-      |> Ash.Query.for_read(:for_user, %{user_id: user.id})
+      |> Ash.Query.for_read(:for_user, %{user_id: user.id}, actor: user)
 
     with {:ok, streaming_accounts} <- Ash.read(query) do
       Enum.map(streaming_accounts, & &1.platform)
     else
-      {:error, _} -> []
+      {:error, error} ->
+        dbg(error)
+        []
     end
   end
 

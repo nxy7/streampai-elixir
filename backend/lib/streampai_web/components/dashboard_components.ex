@@ -346,7 +346,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   # Helper function to check if a user can connect a platform using Ash policies
   defp can_connect_platform?(user, platform) when not is_nil(user) do
-    Streampai.Accounts.StreamingAccount.can_create?(user)
+    Streampai.Accounts.StreamingAccount.can_create?(user, %{platform: platform})
   end
 
   defp can_connect_platform?(_user, _platform), do: false

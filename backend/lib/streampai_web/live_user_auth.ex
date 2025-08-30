@@ -46,20 +46,15 @@ defmodule StreampaiWeb.LiveUserAuth do
       when not is_nil(impersonated_id) and not is_nil(impersonator_id) ->
         dbg("Handling impersonation")
         # Use 'with' to chain the impersonation loading operations
-        with {:ok, impersonator_user} <- load_user_by_id_administrative(impersonator_id),
-             {:ok, impersonated_user} <- load_user_by_id(impersonated_id, impersonator_user) do
-          dbg("Impersonation successful")
-          dbg(impersonated_user)
-          dbg(impersonator_user)
+        impersonator_user = load_user_by_id_administrative(impersonator_id)
+        impersonated_user = load_user_by_id(impersonated_id, impersonator_user)
+        dbg("Impersonation successful")
+        dbg(impersonated_user)
+        dbg(impersonator_user)
 
-          socket
-          |> assign(:current_user, impersonated_user)
-          |> assign(:impersonator, impersonator_user)
-        else
-          e ->
-            dbg(e)
-            socket |> assign(:impersonator, nil)
-        end
+        socket
+        |> assign(:current_user, impersonated_user)
+        |> assign(:impersonator, impersonator_user)
 
       _ ->
         socket |> assign(:impersonator, nil)
@@ -69,9 +64,12 @@ defmodule StreampaiWeb.LiveUserAuth do
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
     import Ash.Query
 
-    Streampai.Accounts.User
-    |> for_read(:get_by_id, %{id: user_id}, actor: actor)
-    |> Ash.read_one()
+    {:ok, [user]} =
+      Streampai.Accounts.User
+      |> for_read(:get_by_id, %{id: user_id}, actor: actor)
+      |> Ash.read()
+
+    user
   end
 
   defp load_user_by_id(_, _), do: {:error, :invalid_id}
@@ -81,9 +79,12 @@ defmodule StreampaiWeb.LiveUserAuth do
   defp load_user_by_id_administrative(user_id) when is_binary(user_id) do
     import Ash.Query
 
-    Streampai.Accounts.User
-    |> for_read(:get_by_id, %{id: user_id})
-    |> Ash.read_one()
+    {:ok, [user]} =
+      Streampai.Accounts.User
+      |> for_read(:get_by_id, %{id: user_id}, authorize?: false)
+      |> Ash.read()
+
+    user
   end
 
   defp load_user_by_id_administrative(_), do: {:error, :invalid_id}

@@ -14,6 +14,8 @@ defmodule Streampai.Accounts.StreamingAccount do
 
   code_interface do
     define :create
+    define :destroy
+    define :read
   end
 
   actions do
@@ -58,27 +60,22 @@ defmodule Streampai.Accounts.StreamingAccount do
     # Allow all read operations for users viewing their own accounts or admins
     policy action_type(:read) do
       authorize_if expr(user_id == ^actor(:id))
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
 
     # Allow all destroy operations for users deleting their own accounts or admins
     policy action_type(:destroy) do
       authorize_if expr(user_id == ^actor(:id))
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
 
     # Allow all update operations for users updating their own accounts or admins
     policy action_type(:update) do
       authorize_if expr(user_id == ^actor(:id))
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+      authorize_if expr(^actor(:role) == :admin)
     end
 
-    # Policy for create operations - this is where we enforce tier limits
     policy action_type(:create) do
-      # Admins can always create streaming accounts
-      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
-
-      # For regular users, check tier limits
       authorize_if Streampai.Accounts.StreamingAccount.Checks.TierLimitCheck
     end
   end
