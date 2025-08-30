@@ -100,7 +100,7 @@ defmodule StreampaiWeb.SupportLive do
                         Is there a limit on streaming hours?
                       </h3>
                       <p class="text-gray-300">
-                        Free users get 5 hours per month. Pro users have unlimited streaming time.
+                        Free users get <%= Streampai.Constants.free_tier_hour_limit() %> hours per month. Pro users have unlimited streaming time.
                       </p>
                     </div>
                     <div class="bg-white/5 border border-white/10 rounded-lg p-6">

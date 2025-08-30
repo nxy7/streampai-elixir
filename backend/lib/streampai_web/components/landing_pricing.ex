@@ -45,7 +45,9 @@ defmodule StreampaiWeb.Components.LandingPricing do
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span class="text-gray-300">5 hours of streaming time</span>
+                <span class="text-gray-300">
+                  <%= Streampai.Constants.free_tier_hour_limit() %> hours of streaming time
+                </span>
               </li>
               <li class="flex items-center space-x-3">
                 <svg
