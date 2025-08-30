@@ -12,9 +12,11 @@ defmodule StreampaiWeb.AuthController do
     |> redirect(to: return_to)
   end
 
-  def failure(conn, _activity, _reason) do
+  def failure(conn, _activity, reason) do
+    Logger.error("Authentication failure: #{inspect(reason)}")
+
     conn
-    |> put_flash(:error, "Incorrect email or password")
+    |> put_flash(:error, "Authentication failed")
     |> redirect(to: ~p"/auth/sign-in")
   end
 

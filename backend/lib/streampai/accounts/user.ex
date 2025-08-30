@@ -53,7 +53,7 @@ defmodule Streampai.Accounts.User do
 
   actions do
     read :read do
-      prepare build(load: [:tier])
+      prepare build(load: [:tier, :connected_platforms])
     end
 
     read :get_by_id do
@@ -63,6 +63,8 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
+      prepare build(load: [:tier, :connected_platforms])
+
       filter expr(id == ^arg(:id))
     end
 
@@ -71,7 +73,7 @@ defmodule Streampai.Accounts.User do
       argument :subject, :string, allow_nil?: false
 
       get? true
-      prepare build(load: [:tier])
+      prepare build(load: [:tier, :connected_platforms])
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
@@ -355,6 +357,10 @@ defmodule Streampai.Accounts.User do
 
   calculations do
     calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
+  end
+
+  aggregates do
+    count :connected_platforms, :streaming_accounts
   end
 
   identities do
