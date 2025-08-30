@@ -29,8 +29,8 @@ defmodule StreampaiWeb.ConnCase do
       import Phoenix.ConnTest
       import StreampaiWeb.ConnCase
 
-      # Import mock user helpers for testing authentication
-      import StreampaiWeb.TestHelpers.MockUser
+      # Import authentication helpers for testing
+      import StreampaiWeb.TestHelpers.AuthHelper
     end
   end
 

@@ -18,7 +18,6 @@ defmodule StreampaiWeb.LiveUserAuth do
   def on_mount(:live_user_required, _params, session, socket) do
     socket =
       handle_impersonation(socket, session)
-      |> maybe_load_user_from_session(session)
       # TODO extract these into auth plug instead of lading it so late
       |> ensure_tier_loaded()
 
@@ -33,8 +32,6 @@ defmodule StreampaiWeb.LiveUserAuth do
 
   def on_mount(:dashboard_presence, _params, session, socket) do
     socket = handle_impersonation(socket, session)
-
-    socket = maybe_load_user_from_session(socket, session)
 
     if socket.assigns[:current_user] do
       # Track user presence when they connect to any dashboard page
@@ -146,33 +143,6 @@ defmodule StreampaiWeb.LiveUserAuth do
           {:error, _} ->
             socket
         end
-    end
-  end
-
-  # Helper function to load user from session for testing purposes
-  defp maybe_load_user_from_session(socket, session) do
-    if socket.assigns[:current_user] do
-      socket
-    else
-      # Check if we have a mock user in session (for testing)
-      case session["current_user_id"] do
-        nil ->
-          socket
-
-        user_id when is_binary(user_id) ->
-          # For testing, create a mock user with this ID
-          mock_user = %Streampai.Accounts.User{
-            id: user_id,
-            email: session["current_user_email"] || "test@example.com",
-            confirmed_at: DateTime.utc_now(),
-            __meta__: %Ecto.Schema.Metadata{state: :loaded, source: "users"}
-          }
-
-          assign(socket, :current_user, mock_user)
-
-        _ ->
-          socket
-      end
     end
   end
 end
