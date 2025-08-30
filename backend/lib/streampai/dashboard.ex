@@ -38,7 +38,6 @@ defmodule Streampai.Dashboard do
   ]
 
   def get_dashboard_data(nil) do
-    
     %{
       user_info: %{email: "unknown", id: nil, display_name: "Guest"},
       streaming_status: %{status: :offline, connected_platforms: 0},

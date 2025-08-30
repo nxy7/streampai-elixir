@@ -1,7 +1,7 @@
 defmodule StreampaiWeb.TestHelpers.AuthHelper do
   @moduledoc """
   Authentication helper for tests following Ash Authentication testing recommendations.
-  
+
   This module provides utilities to create and authenticate real users for tests,
   following the official Ash Authentication testing guide.
   """
@@ -10,10 +10,10 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
 
   @doc """
   Registers and logs in a user for testing.
-  
+
   This follows the Ash Authentication testing pattern of creating a real user
   with hashed password and proper session storage.
-  
+
   ## Options
   - `:email` - User email (default: generates unique email)
   - `:password` - User password (default: "password123")
@@ -49,8 +49,9 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
     email = Map.get(attrs, :email, "test#{System.unique_integer([:positive])}@example.com")
     password = Map.get(attrs, :password, "password123")
     name = Map.get(attrs, :name, email |> String.split("@") |> hd() |> String.capitalize())
-    
-    user = User
+
+    user =
+      User
       |> Ash.Changeset.for_create(:register_with_password, %{
         email: email,
         password: password,
@@ -61,10 +62,10 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
     # Confirm user if needed (default true)
     confirmed = Map.get(attrs, :confirmed, true)
     user = if confirmed, do: confirm_user(user), else: user
-    
+
     # Set name if provided
     user = if name, do: set_user_name(user, name), else: user
-    
+
     user
   end
 
@@ -82,7 +83,8 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   Uses the hardcoded admin email from the User policies.
   """
   def admin_fixture(attrs \\ %{}) do
-    admin_attrs = Map.put(attrs, :email, "lolnoxy@gmail.com")  # From User policies
+    # From User policies
+    admin_attrs = Map.put(attrs, :email, "lolnoxy@gmail.com")
     user_fixture(admin_attrs)
   end
 
@@ -100,15 +102,16 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
     # For tests, manually set confirmed_at using direct database update
     # In production this would go through the confirmation flow
     confirmed_at = DateTime.utc_now()
-    
+
     import Ecto.Query
-    
+
     case Streampai.Repo.update_all(
-      from(u in Streampai.Accounts.User, where: u.id == ^user.id),
-      set: [confirmed_at: confirmed_at]
-    ) do
+           from(u in Streampai.Accounts.User, where: u.id == ^user.id),
+           set: [confirmed_at: confirmed_at]
+         ) do
       {1, _} -> %{user | confirmed_at: confirmed_at}
-      _ -> %{user | confirmed_at: confirmed_at}  # fallback with manual assignment
+      # fallback with manual assignment
+      _ -> %{user | confirmed_at: confirmed_at}
     end
   end
 
@@ -117,7 +120,8 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
          |> Ash.Changeset.for_update(:update_name, %{name: name})
          |> Ash.update() do
       {:ok, updated_user} -> updated_user
-      _ -> user  # fallback to original user if name update fails
+      # fallback to original user if name update fails
+      _ -> user
     end
   end
 end

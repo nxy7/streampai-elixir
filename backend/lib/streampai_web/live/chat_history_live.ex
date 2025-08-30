@@ -4,21 +4,37 @@ defmodule StreampaiWeb.ChatHistoryLive do
   def mount_page(socket, _params, _session) do
     # Generate sample chat messages using Ash.Seed
     chat_messages = generate_sample_messages()
-    
+
     socket = assign(socket, :chat_messages, chat_messages)
     {:ok, socket, layout: false}
   end
-  
+
   defp generate_sample_messages do
     platforms = [:twitch, :youtube]
+
     usernames = [
-      "viewer123", "YouTubeFan", "generousviewer", "streamer_fan",
-      "chat_lover", "gamer_pro", "support_user", "new_follower",
-      "long_time_viewer", "donation_helper", "mod_user", "subscriber_vip",
-      "casual_watcher", "emote_spammer", "question_asker", "compliment_giver",
-      "stream_regular", "first_timer", "comeback_viewer", "community_member"
+      "viewer123",
+      "YouTubeFan",
+      "generousviewer",
+      "streamer_fan",
+      "chat_lover",
+      "gamer_pro",
+      "support_user",
+      "new_follower",
+      "long_time_viewer",
+      "donation_helper",
+      "mod_user",
+      "subscriber_vip",
+      "casual_watcher",
+      "emote_spammer",
+      "question_asker",
+      "compliment_giver",
+      "stream_regular",
+      "first_timer",
+      "comeback_viewer",
+      "community_member"
     ]
-    
+
     messages = [
       "Great stream! Love the new overlay design 🎉",
       "Just subscribed! Keep up the amazing content",
@@ -41,41 +57,45 @@ defmodule StreampaiWeb.ChatHistoryLive do
       "You should totally speedrun this game",
       "Chat is moving so fast today! Hi everyone! 👋"
     ]
-    
+
     # Generate 20 sample messages
     1..20
     |> Enum.map(fn i ->
       platform = Enum.random(platforms)
       username = Enum.random(usernames)
       message = Enum.random(messages)
-      minutes_ago = :rand.uniform(120) # Random between 1-120 minutes
-      
+      # Random between 1-120 minutes
+      minutes_ago = :rand.uniform(120)
+
       %{
         id: "msg_#{i}",
         username: username,
         message: message,
         platform: platform,
         minutes_ago: minutes_ago,
-        is_donation: :rand.uniform(10) == 1, # 10% chance of donation
-        donation_amount: if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]), else: nil)
+        # 10% chance of donation
+        is_donation: :rand.uniform(10) == 1,
+        donation_amount:
+          if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]), else: nil)
       }
     end)
-    |> Enum.sort_by(& &1.minutes_ago) # Sort by time, most recent first
+    # Sort by time, most recent first
+    |> Enum.sort_by(& &1.minutes_ago)
   end
-  
+
   # Helper functions for platform styling
   defp platform_color(:twitch), do: "bg-purple-500"
   defp platform_color(:youtube), do: "bg-red-500"
-  
+
   defp platform_initial(:twitch), do: "T"
   defp platform_initial(:youtube), do: "Y"
-  
+
   defp platform_name(:twitch), do: "Twitch"
   defp platform_name(:youtube), do: "YouTube"
-  
+
   defp platform_badge_color(:twitch), do: "bg-purple-100 text-purple-800"
   defp platform_badge_color(:youtube), do: "bg-red-100 text-red-800"
-  
+
   defp format_time_ago(minutes) when minutes < 1, do: "just now"
   defp format_time_ago(minutes) when minutes < 60, do: "#{minutes} minutes ago"
   defp format_time_ago(minutes), do: "#{div(minutes, 60)} hours ago"
@@ -140,26 +160,26 @@ defmodule StreampaiWeb.ChatHistoryLive do
                   <div class="flex-shrink-0">
                     <div class={"w-8 h-8 rounded-full flex items-center justify-center #{platform_color(message.platform)}"}>
                       <span class="text-white font-medium text-xs">
-                        <%= platform_initial(message.platform) %>
+                        {platform_initial(message.platform)}
                       </span>
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-1">
-                      <span class="text-sm font-medium text-gray-900"><%= message.username %></span>
+                      <span class="text-sm font-medium text-gray-900">{message.username}</span>
                       <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(message.platform)}"}>
-                        <%= platform_name(message.platform) %>
+                        {platform_name(message.platform)}
                       </span>
                       <%= if message.is_donation && message.donation_amount do %>
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          Donation: $<%= :erlang.float_to_binary(message.donation_amount, decimals: 2) %>
+                          Donation: ${:erlang.float_to_binary(message.donation_amount, decimals: 2)}
                         </span>
                       <% end %>
                       <span class="text-xs text-gray-500">
-                        <%= format_time_ago(message.minutes_ago) %>
+                        {format_time_ago(message.minutes_ago)}
                       </span>
                     </div>
-                    <p class="text-sm text-gray-600"><%= message.message %></p>
+                    <p class="text-sm text-gray-600">{message.message}</p>
                   </div>
                 </div>
               </div>
@@ -171,8 +191,8 @@ defmodule StreampaiWeb.ChatHistoryLive do
             <div class="flex items-center justify-between">
               <p class="text-sm text-gray-700">
                 Showing <span class="font-medium">1</span>
-                to <span class="font-medium"><%= length(@chat_messages) %></span>
-                of <span class="font-medium"><%= length(@chat_messages) %></span>
+                to <span class="font-medium">{length(@chat_messages)}</span>
+                of <span class="font-medium">{length(@chat_messages)}</span>
                 messages
               </p>
               <div class="flex items-center space-x-2">

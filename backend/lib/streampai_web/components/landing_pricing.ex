@@ -46,7 +46,7 @@ defmodule StreampaiWeb.Components.LandingPricing do
                   />
                 </svg>
                 <span class="text-gray-300">
-                  <%= Streampai.Constants.free_tier_hour_limit() %> hours of streaming time
+                  {Streampai.Constants.free_tier_hour_limit()} hours of streaming time
                 </span>
               </li>
               <li class="flex items-center space-x-3">
@@ -112,7 +112,7 @@ defmodule StreampaiWeb.Components.LandingPricing do
                   />
                 </svg>
                 <span class="text-gray-300">
-                  Data from last <%= Streampai.Constants.free_tier_data_retention_days() %> days only
+                  Data from last {Streampai.Constants.free_tier_data_retention_days()} days only
                 </span>
               </li>
             </ul>
@@ -307,7 +307,7 @@ defmodule StreampaiWeb.Components.LandingPricing do
 
             <div class="text-center mt-4">
               <span class="text-sm text-gray-300">
-                <%= Streampai.Constants.money_back_guarantee_days() %>-day money-back guarantee
+                {Streampai.Constants.money_back_guarantee_days()}-day money-back guarantee
               </span>
             </div>
           </div>
