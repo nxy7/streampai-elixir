@@ -225,6 +225,7 @@ defmodule StreampaiWeb.SettingsLive do
                     connected={connection.connected}
                     connect_url={connection.connect_url}
                     color={connection.color}
+                    current_user={@current_user}
                     show_disconnect={true}
                   />
                 <% end %>

@@ -31,10 +31,10 @@ defmodule StreampaiWeb.WidgetsLive do
               </svg>
             </div>
             <div class="space-y-3">
-              <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <.link navigate={~p"/widgets/chat"} class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Live Chat Overlay</h4>
                 <p class="text-xs text-gray-500">Display live chat on stream</p>
-              </div>
+              </.link>
               <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Chat Commands</h4>
                 <p class="text-xs text-gray-500">Show recent commands used</p>
