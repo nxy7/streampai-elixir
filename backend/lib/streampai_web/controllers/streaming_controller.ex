@@ -35,7 +35,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
     if current_user do
       case create_or_update_streaming_account(current_user, auth, provider) do
-        {:ok, account} ->
+        {:ok, _} ->
           conn
           |> put_flash(:info, "Successfully connected #{String.capitalize(provider)} account")
           |> redirect(to: @redirect_url)

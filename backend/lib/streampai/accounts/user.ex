@@ -323,7 +323,6 @@ defmodule Streampai.Accounts.User do
     end
 
     bypass action_type(:read) do
-      authorize_if always()
       authorize_if expr(id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
     end

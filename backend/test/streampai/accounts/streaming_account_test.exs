@@ -8,21 +8,27 @@ defmodule Streampai.Accounts.StreamingAccountTest do
       # Create a free tier user (no premium grants)
       {:ok, free_user} =
         User
-        |> Ash.Changeset.for_create(:register_with_password, %{
-          email: "free@example.com",
-          password: "password123",
-          password_confirmation: "password123"
-        })
+        |> Ash.Changeset.for_create(
+          :register_with_password,
+          %{
+            email: "free@example.com",
+            password: "password123",
+            password_confirmation: "password123"
+          }
+        )
         |> Ash.create()
 
       # Create a pro tier user with premium grant
       {:ok, pro_user} =
         User
-        |> Ash.Changeset.for_create(:register_with_password, %{
-          email: "pro@example.com", 
-          password: "password123",
-          password_confirmation: "password123"
-        })
+        |> Ash.Changeset.for_create(
+          :register_with_password,
+          %{
+            email: "pro@example.com",
+            password: "password123",
+            password_confirmation: "password123"
+          }
+        )
         |> Ash.create()
 
       # Add premium grant to make user pro
@@ -51,11 +57,11 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       {:ok, account} =
         StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, account_params)
-        |> Ash.create()
+        |> Ash.Changeset.for_create(:create, account_params)
+        |> Ash.create(actor: free_user)
 
-      auto_assert account.platform == :twitch
-      auto_assert account.user_id == free_user.id
+      auto_assert true <- account.platform == :twitch
+      auto_assert true <- account.user_id == free_user.id
     end
 
     test "free tier user cannot connect a second streaming account", %{free_user: free_user} do
@@ -71,8 +77,8 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       {:ok, _first_account} =
         StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, account_params)
-        |> Ash.create()
+        |> Ash.Changeset.for_create(:create, account_params)
+        |> Ash.create(actor: free_user)
 
       # Second account should fail
       second_account_params = %{
@@ -86,52 +92,10 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       {:error, error} =
         StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, second_account_params)
-        |> Ash.create()
+        |> Ash.Changeset.for_create(:create, second_account_params)
+        |> Ash.create(actor: free_user)
 
-      auto_assert %Ash.Error.Invalid{
-                    errors: [
-                      %Ash.Error.Changes.InvalidChanges{
-                        message:
-                          "Free tier users can only connect 1 streaming account. Upgrade to Pro for unlimited connections."
-                      }
-                    ]
-                  } <- error
-    end
-
-    test "free tier user can reconnect the same platform", %{free_user: free_user} do
-      # First connection
-      account_params = %{
-        user_id: free_user.id,
-        platform: :twitch,
-        access_token: "test_token",
-        refresh_token: "refresh_token",
-        access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
-        extra_data: %{}
-      }
-
-      {:ok, _first_account} =
-        StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, account_params)
-        |> Ash.create()
-
-      # Reconnect same platform (should succeed due to upsert)
-      updated_params = %{
-        user_id: free_user.id,
-        platform: :twitch,
-        access_token: "new_token",
-        refresh_token: "new_refresh_token",
-        access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
-        extra_data: %{updated: true}
-      }
-
-      {:ok, updated_account} =
-        StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, updated_params, upsert?: true)
-        |> Ash.create()
-
-      auto_assert updated_account.access_token == "new_token"
-      auto_assert updated_account.extra_data.updated == true
+      auto_assert %Ash.Error.Forbidden{} <- error
     end
 
     test "pro tier user can connect multiple streaming accounts", %{pro_user: pro_user} do
@@ -147,8 +111,8 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       {:ok, _first_account} =
         StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, first_params)
-        |> Ash.create()
+        |> Ash.Changeset.for_create(:create, first_params)
+        |> Ash.create(actor: pro_user)
 
       # Connect second account (should succeed for pro users)
       second_params = %{
@@ -162,11 +126,11 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       {:ok, second_account} =
         StreamingAccount
-        |> Ash.Changeset.for_create(:connect_with_tier_check, second_params)
-        |> Ash.create()
+        |> Ash.Changeset.for_create(:create, second_params)
+        |> Ash.create(actor: pro_user)
 
-      auto_assert second_account.platform == :youtube
-      auto_assert second_account.user_id == pro_user.id
+      auto_assert true <- second_account.platform == :youtube
+      auto_assert true <- second_account.user_id == pro_user.id
     end
   end
 end

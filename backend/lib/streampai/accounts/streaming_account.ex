@@ -59,6 +59,7 @@ defmodule Streampai.Accounts.StreamingAccount do
   policies do
     # Allow all read operations for users viewing their own accounts or admins
     policy action_type(:read) do
+      # workaround to load from User
       authorize_if always()
       authorize_if expr(user_id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
@@ -115,7 +116,7 @@ defmodule Streampai.Accounts.StreamingAccount do
 
   relationships do
     belongs_to :user, Streampai.Accounts.User do
-      source_attribute :user_id
+      # source_attribute :user_id
       destination_attribute :id
     end
   end

@@ -131,7 +131,7 @@ defmodule StreampaiWeb.SettingsLive do
          |> dbg do
       :ok ->
         # Refresh platform connections after successful disconnect
-        platform_connections = Streampai.Accounts.StreamingAccount.read(%{}, actor: user)
+        platform_connections = Dashboard.get_platform_connections(user)
 
         socket =
           socket

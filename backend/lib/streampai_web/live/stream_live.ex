@@ -2,7 +2,7 @@ defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
 
   alias Streampai.Dashboard
-  alias Streampai.Accounts.StreamingAccountManager
+  alias Streampai.Accounts.StreamingAccount
 
   def mount_page(socket, _params, _session) do
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
@@ -15,13 +15,12 @@ defmodule StreampaiWeb.StreamLive do
   end
 
   def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
-    platform = String.to_existing_atom(platform_str)
     user = socket.assigns.current_user
 
-    case StreamingAccountManager.disconnect_account(user, platform) do
+    case StreamingAccount.destroy(%{user_id: user.id, platform: platform_str}, actor: user) do
       :ok ->
         # Refresh platform connections after successful disconnect
-        platform_connections = StreamingAccountManager.refresh_platform_connections(user)
+        platform_connections = Dashboard.get_platform_connections(user)
 
         socket =
           socket
@@ -100,7 +99,13 @@ defmodule StreampaiWeb.StreamLive do
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt class="text-sm font-medium text-gray-500 truncate">Active Platforms</dt>
-                  <dd class="text-lg font-medium text-gray-900">0 / 4</dd>
+                  <dd class="text-lg font-medium text-gray-900">
+                    {@current_user.connected_platforms} / {if @current_user.tier == :free do
+                      1
+                    else
+                      99
+                    end}
+                  </dd>
                 </dl>
               </div>
             </div>
@@ -148,57 +153,17 @@ defmodule StreampaiWeb.StreamLive do
             <h3 class="text-lg font-medium text-gray-900">Platform Connections</h3>
           </div>
           <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
               <%= for connection <- @platform_connections do %>
-                <div class={"group flex items-center justify-between p-4 border rounded-lg #{if connection.connected, do: "border-#{connection.color}-200 bg-#{connection.color}-50", else: "border-gray-200"}"}>
-                  <div class="flex items-center space-x-3">
-                    <div class={"w-10 h-10 rounded-lg flex items-center justify-center #{if connection.connected, do: "bg-#{connection.color}-500", else: "bg-gray-400"}"}>
-                      <%= if connection.platform == :twitch do %>
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
-                        </svg>
-                      <% else %>
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                        </svg>
-                      <% end %>
-                    </div>
-                    <div>
-                      <h4 class={"text-sm font-medium #{if connection.connected, do: "text-#{connection.color}-900", else: "text-gray-900"}"}>
-                        {connection.name}
-                      </h4>
-                      <p class={"text-sm #{if connection.connected, do: "text-#{connection.color}-700", else: "text-gray-500"}"}>
-                        {if connection.connected, do: "Connected", else: "Not connected"}
-                      </p>
-                    </div>
-                  </div>
-                  <%= if not connection.connected do %>
-                    <a
-                      href={connection.connect_url}
-                      class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors"
-                    >
-                      Connect
-                    </a>
-                  <% else %>
-                    <div class="relative inline-block">
-                      <!-- Default Connected State -->
-                      <span class={"group-hover:opacity-0 bg-#{connection.color}-600 text-white px-4 py-2 rounded-lg text-sm transition-opacity duration-200 inline-block w-28 text-center flex items-center justify-center"}>
-                        <span class="flex items-center">
-                          <span class="mr-1">✓</span>
-                          <span>Connected</span>
-                        </span>
-                      </span>
-                      <!-- Disconnect Button (shows on hover) -->
-                      <button
-                        phx-click="disconnect_platform"
-                        phx-value-platform={connection.platform}
-                        class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-200 w-28 text-center"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-                  <% end %>
-                </div>
+                <.platform_connection
+                  name={connection.name}
+                  platform={connection.platform}
+                  connected={connection.connected}
+                  connect_url={connection.connect_url}
+                  color={connection.color}
+                  current_user={@current_user}
+                  show_disconnect={true}
+                />
               <% end %>
             </div>
           </div>

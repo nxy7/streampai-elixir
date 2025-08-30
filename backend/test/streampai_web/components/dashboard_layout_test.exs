@@ -50,7 +50,7 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
     test "renders admin-only users menu for admin user" do
       assigns = %{
-        current_user: %{id: "123", email: "lolnoxy@gmail.com"},
+        current_user: %{id: "123", email: "lolnoxy@gmail.com", role: :admin},
         current_page: "users",
         page_title: "User Management",
         inner_block: []
