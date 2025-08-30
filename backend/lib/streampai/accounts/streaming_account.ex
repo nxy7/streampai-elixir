@@ -2,11 +2,18 @@ defmodule Streampai.Accounts.StreamingAccount do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Accounts,
+    authorizers: [Ash.Policy.Authorizer],
     data_layer: AshPostgres.DataLayer
+
+  require Ash.Query
 
   postgres do
     table "streaming_account"
     repo Streampai.Repo
+  end
+
+  code_interface do
+    define :create
   end
 
   actions do
@@ -44,6 +51,35 @@ defmodule Streampai.Accounts.StreamingAccount do
         # For now, just update the timestamps
         Ash.Changeset.change_attribute(changeset, :updated_at, DateTime.utc_now())
       end
+    end
+  end
+
+  policies do
+    # Allow all read operations for users viewing their own accounts or admins
+    policy action_type(:read) do
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+    end
+
+    # Allow all destroy operations for users deleting their own accounts or admins
+    policy action_type(:destroy) do
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+    end
+
+    # Allow all update operations for users updating their own accounts or admins
+    policy action_type(:update) do
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+    end
+
+    # Policy for create operations - this is where we enforce tier limits
+    policy action_type(:create) do
+      # Admins can always create streaming accounts
+      authorize_if expr(^actor(:email) == ^Streampai.Constants.admin_email())
+
+      # For regular users, check tier limits
+      authorize_if Streampai.Accounts.StreamingAccount.Checks.TierLimitCheck
     end
   end
 
