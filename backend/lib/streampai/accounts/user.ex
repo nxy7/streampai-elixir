@@ -52,6 +52,8 @@ defmodule Streampai.Accounts.User do
   end
 
   actions do
+    defaults [:read]
+
     read :get do
       prepare build(load: [:tier, :connected_platforms])
     end
