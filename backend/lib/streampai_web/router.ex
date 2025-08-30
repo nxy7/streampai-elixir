@@ -129,6 +129,8 @@ defmodule StreampaiWeb.Router do
       live "/dashboard/analytics", AnalyticsLive
       live "/dashboard/settings", SettingsLive
       live "/dashboard/admin/users", UsersLive
+      live "/widgets/chat", ChatWidgetLive
+      live "/widgets/chat/display", StreampaiWeb.Components.ChatWidget
     end
 
     # Impersonation routes (need authentication)
