@@ -62,10 +62,7 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
                   {Calendar.strftime(message.timestamp, "%H:%M")}
                 </span>
               <% end %>
-              <span class={[
-                "font-semibold",
-                message.username_color
-              ]}>
+              <span class="font-semibold" style={"color: #{message.username_color}"}>
                 {message.username}:
               </span>
               <span class="ml-1 text-gray-100">{message.content}</span>

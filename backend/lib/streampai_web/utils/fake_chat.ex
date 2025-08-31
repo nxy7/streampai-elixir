@@ -2,6 +2,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
   @moduledoc """
   Utilities for generating fake chat messages for demo and testing purposes.
   """
+  alias StreampaiWeb.Utils.ColorUtils
 
   @doc """
   Generates a list of initial fake messages.
@@ -17,13 +18,15 @@ defmodule StreampaiWeb.Utils.FakeChat do
   Generates a single fake chat message.
   """
   def generate_message do
+    username = Enum.random(usernames())
+    
     %{
       id: System.unique_integer([:positive]),
-      username: Enum.random(usernames()),
+      username: username,
       content: Enum.random(messages()),
       badge: Enum.random(badges()),
       badge_color: Enum.random(badge_colors()),
-      username_color: Enum.random(username_colors()),
+      username_color: ColorUtils.username_color(username),
       emotes: Enum.take_random(emotes(), Enum.random(0..2)),
       timestamp: DateTime.utc_now()
     }
@@ -48,12 +51,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
 
   defp usernames do
     [
-      "StreamWatcher92", "GamingLegend", "ChatMaster", "PixelHunter", "LiveViewer",
-      "TwitchFan", "StreamLover", "GamerGirl123", "ProPlayer", "ChatBot9000",
-      "ViewerOne", "StreamSniper", "GameMaster", "DigitalNinja", "StreamKing",
-      "ChatLurker", "GamingGuru", "LiveFeed", "StreamStar", "GameChaser",
-      "PixelWarrior", "StreamGeek", "GameAddict", "ChatHero", "ViewerPro",
-      "StreamBuddy", "GameWizard", "DigitalDragon", "StreamFox", "GamingBeast"
+      "Alice", "Bob", "Charlie"
     ]
   end
 
@@ -96,13 +94,6 @@ defmodule StreampaiWeb.Utils.FakeChat do
     ]
   end
 
-  defp username_colors do
-    [
-      "text-purple-400", "text-blue-400", "text-green-400", "text-yellow-400",
-      "text-pink-400", "text-red-400", "text-indigo-400", "text-cyan-400",
-      "text-orange-400", "text-lime-400", "text-emerald-400", "text-sky-400"
-    ]
-  end
 
   defp emotes do
     ["😂", "❤️", "🔥", "💯", "👏", "🎉", "😮", "🤩", "💪", "🙌", "👑", "⚡", "🚀", "💎", "🎮"]
