@@ -13,6 +13,13 @@ defmodule StreampaiWeb.AnalyticsLive do
     ~H"""
     <.dashboard_layout {assigns} current_page="analytics" page_title="Analytics">
       <div class="max-w-7xl mx-auto">
+        <.vue
+    count={2}
+    v-component="Counter"
+    v-socket={@socket}
+    v-on:inc={JS.push("inc")}
+    />
+
         <.empty_state
           icon="chart-bar"
           title="Analytics Dashboard"

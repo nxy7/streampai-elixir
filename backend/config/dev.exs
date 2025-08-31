@@ -56,8 +56,9 @@ config :streampai, StreampaiWeb.Endpoint,
   debug_errors: true,
   secret_key_base: secret_key_base,
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:streampai, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:streampai, ~w(--watch)]}
+    npm: ["--silent", "run", "dev", cd: Path.expand("../assets", __DIR__)]
+    # esbuild: {Esbuild, :install_and_run, [:streampai, ~w(--sourcemap=inline --watch)]},
+    # tailwind: {Tailwind, :install_and_run, [:streampai, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -114,3 +115,8 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :live_vue,
+  vite_host: "http://localhost:5173",
+  ssr: false,
+  enable_props_diff: true

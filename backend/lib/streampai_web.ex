@@ -90,6 +90,10 @@ defmodule StreampaiWeb do
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
+      use LiveVue
+
+      use LiveVue.Components, vue_root: ["./assets/vue", "./lib/my_app_web"]
+
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end

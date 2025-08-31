@@ -2,9 +2,12 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import topbar from "../vendor/topbar";
+import topbar from "topbar";
 
-console.log("app.js loaded!");
+// live_vue related imports
+import { getHooks } from "live_vue";
+import "../css/app.css";
+import liveVueApp from "../vue";
 
 // Import collocated hooks
 import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_live.js";
@@ -57,6 +60,7 @@ let Hooks = {
   NameAvailabilityChecker,
   CursorTracker,
   CopyToClipboard,
+  ...getHooks(liveVueApp),
 };
 
 // Carousel Widget Hook
@@ -217,9 +221,10 @@ liveSocket.connect();
 // WebSocket connection debugging using proper Phoenix Socket events
 if (liveSocket.socket) {
   liveSocket.socket.onOpen(() => {
-    const transport = liveSocket.socket.transport?.constructor.name || "Unknown";
+    const transport =
+      liveSocket.socket.transport?.constructor.name || "Unknown";
     console.log(`🟢 Socket connected via ${transport}!`);
-    
+
     if (transport.includes("WebSocket")) {
       console.log("✅ Using WebSocket (real-time)");
     } else if (transport.includes("LongPoll")) {
