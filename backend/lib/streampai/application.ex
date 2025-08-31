@@ -8,8 +8,7 @@ defmodule Streampai.Application do
   def start(_type, _args) do
     Logger.info("streampai startup")
 
-    # Create ETS table for session storage
-    :ets.new(:session, [:set, :public, :named_table])
+    # Session storage is now handled by cookie store instead of ETS
 
     children = [
       StreampaiWeb.Telemetry,

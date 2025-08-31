@@ -12,7 +12,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      dbg("connecting")
       schedule_next_message()
     end
 

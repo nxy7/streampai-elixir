@@ -92,9 +92,9 @@ config :streampai,
   ash_domains: [Streampai.Stream, Streampai.Accounts],
   generators: [timestamp_type: :utc_datetime],
   session_options: [
-    store: :ets,
+    store: :cookie,
     key: "_streampai_key",
-    table: :session,
+    signing_salt: "streampai_session_salt",
     same_site: "Lax"
   ]
 
