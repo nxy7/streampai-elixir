@@ -1,0 +1,107 @@
+services:
+  # TimescaleDB/PostgreSQL database
+  timescaledb:
+    container_name: streampai-db
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TIMESCALEDB_TELEMETRY: "off"
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=4MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    networks:
+      - streampai-network
+
+  # Phoenix/Elixir application
+  streampai:
+    container_name: streampai-app
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+      ECTO_IPV6: "false"
+      POOL_SIZE: "25"
+      
+      # Phoenix/App config
+      PHX_SERVER: "true"
+      PHX_HOST: "${PHX_HOST:-localhost}"
+      PORT: "4000"
+      MIX_ENV: "prod"
+      
+      # Security
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
+      
+      # OAuth - Google
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      GOOGLE_REDIRECT_URI: "${GOOGLE_REDIRECT_URI:-http://localhost:4000/auth/user/google/callback}"
+      
+      # OAuth - Twitch
+      TWITCH_CLIENT_ID: "${TWITCH_CLIENT_ID}"
+      TWITCH_CLIENT_SECRET: "${TWITCH_CLIENT_SECRET}"
+      TWITCH_REDIRECT_URI: "${TWITCH_REDIRECT_URI:-http://localhost:4000/streaming/connect/twitch/callback}"
+      
+      # Cloudflare (if used)
+      CLOUDFLARE_API_KEY: "${CLOUDFLARE_API_KEY}"
+      CLOUDFLARE_AUTH_EMAIL: "${CLOUDFLARE_AUTH_EMAIL}"
+      CLOUDFLARE_ACCOUNT_ID: "${CLOUDFLARE_ACCOUNT_ID}"
+      
+      # Additional config
+      DNS_CLUSTER_QUERY: "${DNS_CLUSTER_QUERY}"
+      
+    # Run migrations then start the server
+    command: >
+      sh -c "/app/bin/streampai eval 'Streampai.Release.migrate()' &&
+             /app/bin/server"
+    depends_on:
+      - timescaledb
+    networks:
+      - streampai-network
+    volumes:
+      # Mount logs directory if needed
+      - streampai_logs:/app/log
+
+  # Optional: pgweb for database management
+  pgweb:
+    container_name: streampai-pgweb
+    image: sosedoff/pgweb
+    restart: unless-stopped
+    ports:
+      - "8082:8081"
+    environment:
+      PGWEB_DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+    depends_on:
+      - timescaledb
+    networks:
+      - streampai-network
+    profiles:
+      - tools
+
+networks:
+  streampai-network:
+    driver: bridge
+
+volumes:
+  timescaledb_data:
+    driver: local
+  streampai_logs:
+    driver: local
