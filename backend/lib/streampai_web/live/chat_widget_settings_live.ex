@@ -12,6 +12,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
+      dbg("connecting")
       schedule_next_message()
     end
 
@@ -22,18 +23,12 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   end
 
   def handle_info(:generate_message, socket) do
-    new_message = FakeChat.generate_message()
-    max_messages = socket.assigns.widget_config.max_messages
+    # max_messages = socket.assigns.widget_config.max_messages
 
     # Add new message to stream and let stream handle limiting
-    socket = socket |> stream_insert(:messages, new_message, at: -1)
+    socket = socket |> stream_insert(:messages, FakeChat.generate_message(), at: -1)
 
-    # For now, we'll trust that we're not exceeding max_messages significantly
-    # In a real implementation, you might track count separately or use other approaches
-
-    # Schedule the next message
     schedule_next_message()
-
     {:noreply, socket}
   end
 
@@ -312,11 +307,5 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     """
   end
 
-  # Helper functions
-
-  defp schedule_next_message do
-    # 1000ms = once per second for active preview
-    delay = 1000
-    Process.send_after(self(), :generate_message, delay)
-  end
+  defp schedule_next_message, do: Process.send_after(self(), :generate_message, 1000)
 end

@@ -1,8 +1,23 @@
 # Short Term
+- can we try moving the session from :ets to session again
+- in chat messages in widget settings two messages are added at a time, is it possible that some timer is not being
+cleaned up correctly? Weird thing is that if I open this page from URL messages are duplicated, I also see
+[(streampai 0.1.1) lib/streampai_web/live/chat_widget_settings_live.ex:15: StreampaiWeb.ChatWidgetSettingsLive.mount/3]
+"connecting" #=> "connecting"
+
+[info] CONNECTED TO LiveDebugger.Client.Socket in 27µs
+  Transport: :websocket
+  Serializer: Phoenix.Socket.V2.JSONSerializer
+  Parameters: %{"socketID" => "phx-GGDU2H-bBWVrWQPG", "vsn" => "2.0.0"}
+[info] JOINED client:phx-GGDU2H-bBWVrWQPG in 49µs
+  Parameters: %{}
+[(streampai 0.1.1) lib/streampai_web/live/chat_widget_settings_live.ex:15: StreampaiWeb.ChatWidgetSettingsLive.mount/3]
+"connecting" #=> "connecting"
+meaning that we're connecting to WS twice - hence duplicated message schedulation. But if I go to the page from other page
+(manual navigation), then it's connecting just once and doesn't schedule messages twice.
+
 - we now use streams in chat widget, but if I use limit then after reaching that limit new
 messages stop showing up
-- in chat messages two messages are added at a time, is it possible that some timer is not being
-cleaned up correctly?
 - need better name for chat related files because right now I don't know which one is in settings page, which one
 is stateless component and which one is supposed to be used in OBS
 - sidebar collapse doesnt work on /widgets/chat but works on other pages?! 
