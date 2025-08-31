@@ -159,7 +159,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
           </div>
           
     <!-- Chat Widget Display -->
-          <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4">
+          <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden">
             <div class="text-xs text-gray-400 mb-2">Preview (actual widget is transparent)</div>
             <.chat_display id="preview-chat-widget" config={@widget_config} messages={@messages} />
           </div>

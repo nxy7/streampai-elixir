@@ -82,7 +82,9 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.chat_display id="live-chat-widget" config={@widget_config} messages={@messages} />
+    <div class="h-screen w-screen">
+      <.chat_display id="live-chat-widget" config={@widget_config} messages={@messages} />
+    </div>
     """
   end
 

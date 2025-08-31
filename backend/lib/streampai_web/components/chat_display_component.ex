@@ -36,15 +36,14 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
       |> assign(:messages, messages)
 
     ~H"""
-    <div class="chat-widget text-white h-96 flex flex-col">
+    <div class="chat-widget text-white h-full w-full flex flex-col">
       <!-- Chat Messages Container -->
       <div 
         id={"chat-messages-#{@id}"} 
-        class="flex-1 overflow-y-auto p-3 chat-messages-container"
+        class="flex-1 overflow-y-hidden p-3 chat-messages-container flex flex-col-reverse"
       >
-        <div class="min-h-full flex flex-col justify-end">
-          <div class="space-y-2" id={"messages-#{@id}"}>
-          <%= for message <- @messages do %>
+        <div id={"messages-#{@id}"} class="flex flex-col gap-2">
+        <%= for message <- @messages do %>
             <div id={"messages-#{@id}-#{message.id}"} class={"chat-message flex items-start space-x-2 #{@font_class}"}>
             <!-- Platform Icon (leftmost) -->
             <%= if @config.show_platform do %>
@@ -84,7 +83,6 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
             </div>
             </div>
           <% end %>
-          </div>
         </div>
       </div>
     </div>
