@@ -32,7 +32,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"
           >
           </div>
-
+          
     <!-- Sidebar -->
           <div class="sidebar fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0">
             <!-- Sidebar Header -->
@@ -67,7 +67,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </svg>
               </button>
             </div>
-
+            
     <!-- Main Navigation (flex-1 to take up remaining space) -->
             <nav class="flex-1 mt-6">
               <!-- Primary Section -->
@@ -103,7 +103,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Dashboard</span>
                   </a>
-
+                  
     <!-- Analytics -->
                   <a
                     href="/dashboard/analytics"
@@ -127,7 +127,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </a>
                 </div>
               </div>
-
+              
     <!-- Streaming Section -->
               <div class="px-4 mb-8">
                 <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -155,7 +155,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Stream</span>
                   </a>
-
+                  
     <!-- Chat History -->
                   <a
                     href="/dashboard/chat-history"
@@ -177,7 +177,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Chat History</span>
                   </a>
-
+                  
     <!-- Widgets -->
                   <a
                     href="/dashboard/widgets"
@@ -201,7 +201,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </a>
                 </div>
               </div>
-
+              
     <!-- Admin Section -->
               <%= if @current_user && UserPolicy.admin?(@current_user) do %>
                 <div class="px-4 mb-8">
@@ -233,7 +233,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </div>
                 </div>
               <% end %>
-
+              
     <!-- Settings Section -->
               <div class="px-4">
                 <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -270,7 +270,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
               </div>
             </nav>
-
+            
     <!-- Bottom Logout Section -->
             <div class="p-4 border-t border-gray-700">
               <a
@@ -290,7 +290,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               </a>
             </div>
           </div>
-
+          
     <!-- Main Content -->
           <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
@@ -355,14 +355,14 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
               </div>
             </header>
-
+            
     <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
               {render_slot(@inner_block)}
             </main>
           </div>
         </div>
-
+        
     <!-- Floating Impersonation Notification -->
         <%= if @impersonator do %>
           <div class="fixed top-4 right-4 bg-amber-100 border-l-4 border-amber-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
@@ -406,7 +406,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             </div>
           </div>
         <% end %>
-
+        
     <!-- Flash Messages -->
         <.flash_group flash={assigns[:flash] || %{}} />
 

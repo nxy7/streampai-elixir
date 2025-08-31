@@ -54,7 +54,7 @@ defmodule StreampaiWeb.DashboardLive do
             Ready to start streaming to multiple platforms? Connect your accounts and manage your content all in one place.
           </p>
         </.dashboard_card>
-
+        
     <!-- User Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <!-- Account Info -->
@@ -77,7 +77,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
+          
     <!-- Streaming Status -->
           <.dashboard_card title="Streaming Status" icon="activity">
             <div class="space-y-3">
@@ -100,7 +100,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
+          
     <!-- Quick Actions -->
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
@@ -123,7 +123,7 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
         </div>
-
+        
     <!-- Debug Info (for development) -->
         <%= if Mix.env() == :dev do %>
           <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
