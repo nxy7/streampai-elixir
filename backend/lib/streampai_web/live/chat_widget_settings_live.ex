@@ -62,7 +62,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       show_badges: Map.get(params, "show_badges") == "on",
       show_emotes: Map.get(params, "show_emotes") == "on", 
       hide_bots: Map.get(params, "hide_bots") == "on",
-      show_timestamps: Map.get(params, "show_timestamps") == "on"
+      show_timestamps: Map.get(params, "show_timestamps") == "on",
+      show_platform: Map.get(params, "show_platform") == "on"
     }
 
     # Broadcast to OBS widgets
@@ -216,6 +217,16 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
                       checked={@widget_config.show_timestamps}
                     />
                     <span class="ml-2 text-sm text-gray-700">Show timestamps</span>
+                  </label>
+
+                  <label class="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="show_platform"
+                      class="rounded border-gray-300 text-purple-600"
+                      checked={@widget_config.show_platform}
+                    />
+                    <span class="ml-2 text-sm text-gray-700">Show platform badges</span>
                   </label>
                 </div>
               </form>

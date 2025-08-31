@@ -19,6 +19,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
   """
   def generate_message do
     username = Enum.random(usernames())
+    platform = Enum.random(platforms())
     
     %{
       id: System.unique_integer([:positive]),
@@ -27,6 +28,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
       badge: Enum.random(badges()),
       badge_color: Enum.random(badge_colors()),
       username_color: ColorUtils.username_color(username),
+      platform: platform,
       emotes: Enum.take_random(emotes(), Enum.random(0..2)),
       timestamp: DateTime.utc_now()
     }
@@ -41,6 +43,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
       show_emotes: true,
       hide_bots: false,
       show_timestamps: false,
+      show_platform: true,
       max_messages: 25,
       message_fade_time: 60,
       font_size: "medium"
@@ -94,6 +97,15 @@ defmodule StreampaiWeb.Utils.FakeChat do
     ]
   end
 
+
+  defp platforms do
+    [
+      %{name: "Twitch", color: "bg-purple-500", icon: "twitch"},
+      %{name: "YouTube", color: "bg-red-500", icon: "youtube"},
+      %{name: "Facebook", color: "bg-blue-600", icon: "facebook"},
+      %{name: "Kick", color: "bg-green-500", icon: "kick"}
+    ]
+  end
 
   defp emotes do
     ["😂", "❤️", "🔥", "💯", "👏", "🎉", "😮", "🤩", "💪", "🙌", "👑", "⚡", "🚀", "💎", "🎮"]
