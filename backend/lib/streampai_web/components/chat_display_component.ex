@@ -28,16 +28,12 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
         _ -> "text-sm"
       end
 
-    # |> dbg
-
     messages = assigns.messages |> Enum.take(assigns.config.max_messages)
 
     assigns =
       assigns
       |> assign(:font_class, font_class)
       |> assign(:messages, messages)
-
-    # dbg(assigns)
 
     ~H"""
     <div class="chat-widget text-white h-96 flex flex-col">

@@ -34,9 +34,7 @@ defmodule Streampai.ButtonServer do
   end
 
   @impl true
-  def handle_info(%{event: "presence_diff", topic: topic} = event, state) do
-    IO.puts("presence ev")
-    IO.inspect(event)
+  def handle_info(%{event: "presence_diff", topic: topic} = _event, state) do
     new_state = handle_leaves(topic, state)
     {:noreply, new_state}
   end
@@ -47,8 +45,6 @@ defmodule Streampai.ButtonServer do
       |> map_size()
 
     if viewers_amount == 0 do
-      IO.puts("last viewer")
-
       button_id =
         topic
         |> String.split(":")

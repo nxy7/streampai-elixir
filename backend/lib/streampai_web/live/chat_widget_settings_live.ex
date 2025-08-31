@@ -77,10 +77,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   end
 
   def handle_event("update_setting", params, socket) do
-    start = DateTime.utc_now()
-    IO.inspect(params, label: "UPDATE_SETTING_PARAMS")
     current_config = socket.assigns.widget_config
-    IO.inspect(current_config, label: "CURRENT_CONFIG")
 
     {setting, value} =
       case params do
@@ -90,8 +87,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         %{"_target" => [field]} = p when is_map_key(p, field) ->
           {field, Map.get(p, field)}
 
-        other ->
-          IO.inspect(other, label: "UNEXPECTED_PARAMS")
+        _other ->
           # fallback
           {"max_messages", "25"}
       end
@@ -134,8 +130,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       "widget_config:#{user_id}",
       %{config: updated_config}
     )
-
-    IO.inspect(DateTime.diff(DateTime.utc_now(), start, :millisecond))
 
     {:noreply,
      socket

@@ -18,12 +18,10 @@ defmodule StreampaiWeb.WidgetLive do
   end
 
   def handle_event("toggle", _, %{assigns: %{val: 0}} = socket) do
-    IO.inspect(socket)
     {:noreply, assign(socket, val: 100)}
   end
 
   def handle_event("toggle", _, socket) do
-    IO.inspect(socket)
     {:noreply, assign(socket, val: 0)}
   end
 end

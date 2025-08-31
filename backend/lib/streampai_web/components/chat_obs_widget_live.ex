@@ -25,8 +25,6 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   @impl true
   def handle_params(params, _uri, socket) do
     user_id = params["user_id"]
-    IO.inspect({connected?(socket), user_id, params}, label: "WIDGET_HANDLE_PARAMS")
-
     socket = socket |> assign(:user_id, user_id)
 
     if connected?(socket) and user_id do
@@ -64,8 +62,6 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
 
   # Handle widget config updates from PubSub
   def handle_info(%{config: new_config}, socket) do
-    IO.inspect(new_config, label: "WIDGET_CONFIG_UPDATE_RECEIVED")
-    
     # Update messages list to respect new max_messages limit
     updated_messages =
       socket.assigns.messages
