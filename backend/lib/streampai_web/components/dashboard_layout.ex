@@ -20,9 +20,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{@page_title} - Streampai</title>
-        <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-        <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-        </script>
       </head>
       <body class="h-full bg-gray-50">
         <div class="flex h-screen" id="dashboard-layout">

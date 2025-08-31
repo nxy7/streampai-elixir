@@ -17,9 +17,6 @@ defmodule StreampaiWeb.PrivacyLive do
           name="description"
           content="Streampai Privacy Policy - Learn how we collect, use, and protect your personal information."
         />
-        <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-        <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-        </script>
       </head>
       <body class="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">

@@ -41,9 +41,6 @@ defmodule StreampaiWeb.ContactLive do
           name="description"
           content="Get in touch with the Streampai team. Send us your questions, feedback, or support requests."
         />
-        <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-        <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-        </script>
       </head>
       <body class="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">

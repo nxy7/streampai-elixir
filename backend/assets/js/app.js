@@ -1,21 +1,3 @@
-// If you want to use Phoenix channels, run `mix help phx.gen.channel`
-// to get started and then uncomment the line below.
-// import "./user_socket.js"
-
-// You can include dependencies in two ways.
-//
-// The simplest option is to put them in assets/vendor and
-// import them using relative paths:
-//
-//     import "../vendor/some-package.js"
-//
-// Alternatively, you can `npm install some-package --prefix assets` and import
-// them using a path starting with the package name:
-//
-//     import "some-package"
-//
-
-// Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
@@ -229,19 +211,31 @@ let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
 });
 window.liveSocket = liveSocket;
-console.log("socket", liveSocket);
 
 liveSocket.connect();
 
-// Show progress bar on live navigation and form submits
+// WebSocket connection debugging using proper Phoenix Socket events
+if (liveSocket.socket) {
+  liveSocket.socket.onOpen(() => {
+    const transport = liveSocket.socket.transport?.constructor.name || "Unknown";
+    console.log(`🟢 Socket connected via ${transport}!`);
+    
+    if (transport.includes("WebSocket")) {
+      console.log("✅ Using WebSocket (real-time)");
+    } else if (transport.includes("LongPoll")) {
+      console.log("⚠️ Using Long Polling (fallback)");
+    }
+  });
+
+  liveSocket.socket.onError(() => {
+    console.log("🔴 Socket connection error");
+  });
+
+  liveSocket.socket.onClose((event) => {
+    console.log("🟡 Socket disconnected:", event);
+  });
+}
+
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
-
-// Add connection debugging
-// liveSocket.onOpen(() => console.log("LiveSocket connected!"));
-// liveSocket.onError(() => console.log("LiveSocket connection error!"));
-// liveSocket.onClose(() => console.log("LiveSocket disconnected!"));
-
-window.liveSocket = liveSocket;
-// liveSocket.disableLatencySim();

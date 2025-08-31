@@ -164,9 +164,6 @@ defmodule StreampaiWeb.WidgetDisplayLive do
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Streampai Widget</title>
-        <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-        <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-        </script>
         <style>
           body { margin: 0; padding: 0; overflow: hidden; }
         </style>
