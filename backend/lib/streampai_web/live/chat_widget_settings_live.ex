@@ -11,11 +11,10 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   alias StreampaiWeb.Utils.FakeChat
 
   def mount(_params, _session, socket) do
-    # seems like
     if connected?(socket) do
       schedule_next_message()
     end
-
+    
     {:ok,
      socket
      |> assign(:messages, FakeChat.initial_messages())
@@ -26,10 +25,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     new_message = FakeChat.generate_message()
 
     # Add new message and respect max_messages limit
-    messages = socket.assigns.messages
-
     updated_messages =
-      (messages ++ [new_message])
+      (socket.assigns.messages ++ [new_message])
       |> Enum.take(-socket.assigns.widget_config.max_messages)
 
     # Schedule the next message
@@ -317,8 +314,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   # Helper functions
 
   defp schedule_next_message do
-    # 5000ms = once every 5 seconds (reasonable for demo)
-    delay = 5000
+    # 1000ms = once per second for active preview
+    delay = 1000
     Process.send_after(self(), :generate_message, delay)
   end
 end

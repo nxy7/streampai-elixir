@@ -15,9 +15,11 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
       schedule_next_message()
     end
 
+    initial_messages = FakeChat.initial_messages()
+    
     {:ok,
      socket
-     |> assign(:messages, FakeChat.initial_messages())
+     |> assign(:messages, initial_messages)
      |> assign(:user_id, nil)
      |> assign(:widget_config, FakeChat.default_config()), layout: false}
   end
@@ -30,15 +32,15 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     if connected?(socket) and user_id do
       # Subscribe to widget config updates for this user
       Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
-      
+
       # Load user's current config if available, otherwise use default
       # For now, we'll use the default config but this is where we'd fetch user's saved config
       current_config = FakeChat.default_config()
       socket = assign(socket, :widget_config, current_config)
-      
+
       # Start generating fake messages
       schedule_next_message()
-      
+
       {:noreply, socket}
     else
       {:noreply, socket}
@@ -48,11 +50,12 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   @impl true
   def handle_info(:generate_message, socket) do
     new_message = FakeChat.generate_message()
+    max_messages = socket.assigns.widget_config.max_messages
 
     # Add new message and respect max_messages limit
     updated_messages =
       (socket.assigns.messages ++ [new_message])
-      |> Enum.take(-socket.assigns.widget_config.max_messages)
+      |> Enum.take(-max_messages)
 
     # Schedule the next message
     schedule_next_message()
@@ -62,10 +65,13 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
 
   # Handle widget config updates from PubSub
   def handle_info(%{config: new_config}, socket) do
-    # Update messages list to respect new max_messages limit
+    # Update max messages limit if changed
     updated_messages =
-      socket.assigns.messages
-      |> Enum.take(-new_config.max_messages)
+      if length(socket.assigns.messages) > new_config.max_messages do
+        socket.assigns.messages |> Enum.take(-new_config.max_messages)
+      else
+        socket.assigns.messages
+      end
 
     {:noreply,
      socket
