@@ -113,6 +113,8 @@ defmodule StreampaiWeb.Router do
       live "/contact", ContactLive
     end
 
+    live "/widgets/chat/display", Components.ChatObsWidgetLive
+
     get "/home", PageController, :home
     get "/streaming/connect/:provider", MultiProviderAuth, :request
     get "/streaming/connect/:provider/callback", MultiProviderAuth, :callback
@@ -129,8 +131,7 @@ defmodule StreampaiWeb.Router do
       live "/dashboard/analytics", AnalyticsLive
       live "/dashboard/settings", SettingsLive
       live "/dashboard/admin/users", UsersLive
-      live "/widgets/chat", ChatWidgetLive
-      live "/widgets/chat/display", StreampaiWeb.Components.ChatWidget
+      live "/widgets/chat", ChatWidgetSettingsLive
     end
 
     # Impersonation routes (need authentication)

@@ -44,13 +44,8 @@ defmodule StreampaiWeb.LiveUserAuth do
     case {session["impersonated_user_id"], session["impersonator_user_id"]} do
       {impersonated_id, impersonator_id}
       when not is_nil(impersonated_id) and not is_nil(impersonator_id) ->
-        dbg("Handling impersonation")
-        # Use 'with' to chain the impersonation loading operations
         impersonator_user = load_user_by_id_administrative(impersonator_id)
         impersonated_user = load_user_by_id(impersonated_id, impersonator_user)
-        dbg("Impersonation successful")
-        dbg(impersonated_user)
-        dbg(impersonator_user)
 
         socket
         |> assign(:current_user, impersonated_user)

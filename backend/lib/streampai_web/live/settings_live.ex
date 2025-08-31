@@ -127,8 +127,7 @@ defmodule StreampaiWeb.SettingsLive do
 
     case Streampai.Accounts.StreamingAccount.destroy(%{user_id: user.id, platform: platform},
            actor: user
-         )
-         |> dbg do
+         ) do
       :ok ->
         # Refresh platform connections after successful disconnect
         platform_connections = Dashboard.get_platform_connections(user)
@@ -162,7 +161,7 @@ defmodule StreampaiWeb.SettingsLive do
           usage={@usage}
           platform_connections={@platform_connections}
         />
-
+        
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Account Settings</h3>
@@ -240,7 +239,7 @@ defmodule StreampaiWeb.SettingsLive do
             </div>
           </div>
         </div>
-
+        
     <!-- Notifications Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h3>

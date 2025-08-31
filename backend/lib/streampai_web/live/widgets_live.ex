@@ -5,6 +5,11 @@ defmodule StreampaiWeb.WidgetsLive do
     {:ok, socket, layout: false}
   end
 
+  # Handle orphaned events from other pages (due to browser cache/DOM issues)
+  def handle_event(_event, _params, socket) do
+    {:noreply, socket}
+  end
+
   def render(assigns) do
     ~H"""
     <.dashboard_layout

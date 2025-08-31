@@ -33,7 +33,7 @@ defmodule StreampaiWeb.Components.WidgetComponents do
     ~H"""
     <div
       id="chat-widget"
-      phx-hook="ChatWidget"
+      phx-hook="ChatDisplay"
       data-config={Jason.encode!(@widget.config)}
       class="w-full h-screen bg-black/80 text-white p-4 flex flex-col"
     >

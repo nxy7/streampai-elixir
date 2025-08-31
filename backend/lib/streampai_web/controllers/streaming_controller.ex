@@ -20,9 +20,6 @@ defmodule StreampaiWeb.MultiProviderAuth do
   end
 
   def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{} = err}} = conn, params) do
-    dbg(err)
-    dbg(params)
-
     conn
     |> put_flash(:error, "Failed to authenticate with #{params["provider"]}")
     |> redirect(to: @redirect_url)
@@ -91,7 +88,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
       extra_data: extra_data
     }
 
-    Streampai.Accounts.StreamingAccount.create(account_params, upsert?: true, actor: user) |> dbg
+    Streampai.Accounts.StreamingAccount.create(account_params, upsert?: true, actor: user)
   end
 
   defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}})

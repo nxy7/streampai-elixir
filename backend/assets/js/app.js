@@ -29,9 +29,67 @@ import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_l
 import { CursorTracker } from "../../lib/streampai_web/live/shared_cursor_live.js";
 
 // Hooks for various functionality
+// Auto scroll hook for chat widgets
+const AutoScroll = {
+  mounted() {
+    this.scrollToBottom();
+  },
+
+  updated() {
+    this.scrollToBottom();
+  },
+
+  scrollToBottom() {
+    this.el.scrollTop = this.el.scrollHeight;
+  },
+};
+
+// Copy to clipboard hook
+const CopyToClipboard = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const text = this.el.dataset.clipboardText;
+      if (navigator.clipboard) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            // Success feedback could be handled by the LiveView
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+            // Fallback to older method
+            this.fallbackCopyText(text);
+          });
+      } else {
+        // Fallback for older browsers
+        this.fallbackCopyText(text);
+      }
+    });
+  },
+
+  fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+    } catch (err) {
+      console.error("Fallback: Oops, unable to copy", err);
+    }
+    document.body.removeChild(textArea);
+  },
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CursorTracker,
+  AutoScroll,
+  CopyToClipboard,
 };
 
 // Carousel Widget Hook
@@ -63,7 +121,7 @@ Hooks.CarouselWidget = {
 };
 
 // Chat Widget Hook
-Hooks.ChatWidget = {
+Hooks.ChatDisplay = {
   mounted() {
     const config = JSON.parse(this.el.dataset.config);
     const messagesContainer = this.el.querySelector("#chat-messages");
@@ -181,28 +239,24 @@ const csrfToken = document
   .getAttribute("content");
 console.log("All hooks registered:", Object.keys(Hooks));
 
-const liveSocket = new LiveSocket("/live", Socket, {
-  longPollFallbackMs: 3500,
+let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: Hooks,
 });
+window.liveSocket = liveSocket;
+console.log("socket", liveSocket);
+
+liveSocket.connect();
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 
-// connect if there are any LiveViews on the page
-console.log("Connecting LiveSocket...");
-liveSocket.connect();
-
 // Add connection debugging
-liveSocket.onOpen(() => console.log("LiveSocket connected!"));
-liveSocket.onError(() => console.log("LiveSocket connection error!"));
-liveSocket.onClose(() => console.log("LiveSocket disconnected!"));
+// liveSocket.onOpen(() => console.log("LiveSocket connected!"));
+// liveSocket.onError(() => console.log("LiveSocket connection error!"));
+// liveSocket.onClose(() => console.log("LiveSocket disconnected!"));
 
-// expose liveSocket on window for web console debug logs and latency simulation:
-// >> liveSocket.enableDebug()
-// >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
-// >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+// liveSocket.disableLatencySim();

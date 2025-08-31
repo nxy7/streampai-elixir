@@ -1,12 +1,7 @@
 # Short Term
-- on /dashboard/stream page we don't disable connecting accounts if user cannot connect anymore
-(we do that on dashboard and settings page). Additionally I feel like we have some duplicated
-code between those 3 places, can we consolidate somehow? 
-- can we move connecting streaming accounts to actions so we can do appropriate checks
-(like ensure that free tier accounts only have max 1 connected stremaing account)
-- create livestream chat widget, for starters it should just create some fake messages and display them
-in a loop (it's fine to display max 40-50 messages). Later it will plug into some actor probably
-- create simple widget, for starters let's create carousel widget that displays images in carousel
+- need better name for chat related files because right now I don't know which one is in settings page, which one
+is stateless component and which one is supposed to be used in OBS
+- sidebar collapse doesnt work on /widgets/chat but works on other pages?! 
 - figure out deployment, I think that for starters docker compose on VPS will be sufficient
 
 
