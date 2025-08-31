@@ -24,6 +24,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
      |> assign(:widget_config, FakeChat.default_config()), layout: false}
   end
 
+  # TODO why do we need it? it seems like we were initializing twice instead of just in mount
   @impl true
   def handle_params(params, _uri, socket) do
     user_id = params["user_id"]
@@ -39,7 +40,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
       socket = assign(socket, :widget_config, current_config)
 
       # Start generating fake messages
-      schedule_next_message()
+      # schedule_next_message()
 
       {:noreply, socket}
     else

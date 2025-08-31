@@ -1,6 +1,8 @@
 # Short Term
 - we now use streams in chat widget, but if I use limit then after reaching that limit new
 messages stop showing up
+- in chat messages two messages are added at a time, is it possible that some timer is not being
+cleaned up correctly?
 - need better name for chat related files because right now I don't know which one is in settings page, which one
 is stateless component and which one is supposed to be used in OBS
 - sidebar collapse doesnt work on /widgets/chat but works on other pages?! 
