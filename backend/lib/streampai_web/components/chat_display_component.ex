@@ -42,7 +42,10 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
     ~H"""
     <div class="chat-widget text-white h-96 flex flex-col">
       <!-- Chat Messages Container -->
-      <div id={"chat-messages-#{@id}"} class="flex-1 overflow-y-auto p-3 space-y-2">
+      <div 
+        id={"chat-messages-#{@id}"} 
+        class="flex-1 overflow-y-auto p-3 space-y-2 flex flex-col justify-end"
+      >
         <%= for message <- @messages do %>
           <div class={"chat-message flex items-start space-x-2 #{@font_class}"}>
             <!-- User Badge/Avatar -->

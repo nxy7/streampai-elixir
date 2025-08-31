@@ -29,20 +29,6 @@ import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_l
 import { CursorTracker } from "../../lib/streampai_web/live/shared_cursor_live.js";
 
 // Hooks for various functionality
-// Auto scroll hook for chat widgets
-const AutoScroll = {
-  mounted() {
-    this.scrollToBottom();
-  },
-
-  updated() {
-    this.scrollToBottom();
-  },
-
-  scrollToBottom() {
-    this.el.scrollTop = this.el.scrollHeight;
-  },
-};
 
 // Copy to clipboard hook
 const CopyToClipboard = {
@@ -88,7 +74,6 @@ const CopyToClipboard = {
 let Hooks = {
   NameAvailabilityChecker,
   CursorTracker,
-  AutoScroll,
   CopyToClipboard,
 };
 
