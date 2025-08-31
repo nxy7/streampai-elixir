@@ -17,7 +17,7 @@ defmodule Streampai.Accounts.User.Senders.SendPasswordResetEmail do
     IO.puts("""
     Click this link to reset your password:
 
-    #{url(~p"/auth/password-reset/#{token}")}
+    #{url(~p"/auth/reset?#{[token: token]}")}
     """)
   end
 end

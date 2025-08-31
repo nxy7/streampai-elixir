@@ -19,7 +19,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
     end
   end
 
-  def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{} = err}} = conn, params) do
+  def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{} = _err}} = conn, params) do
     conn
     |> put_flash(:error, "Failed to authenticate with #{params["provider"]}")
     |> redirect(to: @redirect_url)

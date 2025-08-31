@@ -103,7 +103,7 @@ defmodule Streampai.Accounts.NameValidator do
           :ok
         end
 
-      {:error, error} ->
+      {:error, _error} ->
         {:error, :validation_error}
     end
   end

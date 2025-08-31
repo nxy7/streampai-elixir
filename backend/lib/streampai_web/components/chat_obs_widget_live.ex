@@ -34,13 +34,8 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
       # Subscribe to widget config updates for this user
       Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
 
-      # Load user's current config if available, otherwise use default
-      # For now, we'll use the default config but this is where we'd fetch user's saved config
       current_config = FakeChat.default_config()
       socket = assign(socket, :widget_config, current_config)
-
-      # Start generating fake messages
-      # schedule_next_message()
 
       {:noreply, socket}
     else
@@ -51,7 +46,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   @impl true
   def handle_info(:generate_message, socket) do
     new_message = FakeChat.generate_message()
-    max_messages = socket.assigns.widget_config.max_messages
+    _max_messages = socket.assigns.widget_config.max_messages
 
     # Add new message to stream and let stream handle limiting
     socket = stream_insert(socket, :messages, new_message)

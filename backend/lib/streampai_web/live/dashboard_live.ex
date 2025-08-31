@@ -26,7 +26,7 @@ defmodule StreampaiWeb.DashboardLive do
        when is_binary(name),
        do: name
 
-  defp get_display_name(s) do
+  defp get_display_name(_s) do
     "User"
   end
 

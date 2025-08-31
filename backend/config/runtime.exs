@@ -8,7 +8,7 @@ config :beacon,
     router: StreampaiWeb.Router
   ]
 
-if config_env() != :test do
+if config_env() == :dev do
   config :tidewave, :root, File.cwd!()
 end
 
@@ -100,7 +100,7 @@ if config_env() == :prod do
 
   config :streampai, StreampaiWeb.Endpoint,
     url: [host: host, port: 8443, scheme: "https"],
-    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: 4100],
+    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: port],
     secret_key_base: secret_key_base
 
   config :streampai, StreampaiWeb.ProxyEndpoint,
