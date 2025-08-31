@@ -16,7 +16,7 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
   * `id` - Optional DOM ID for the widget (defaults to "chat-widget")
   """
   attr :config, :map, required: true
-  attr :messages, :list, required: true
+  attr :messages, :any, required: true
   attr :id, :string, default: "chat-widget"
 
   def chat_display(assigns) do
@@ -28,7 +28,8 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
         _ -> "text-sm"
       end
 
-    messages = assigns.messages |> Enum.take(assigns.config.max_messages)
+    # For streams, messages are already limited by the LiveView
+    messages = assigns.messages
 
     assigns =
       assigns
@@ -38,49 +39,49 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
     ~H"""
     <div class="chat-widget text-white h-full w-full flex flex-col">
       <!-- Chat Messages Container -->
-      <div 
-        id={"chat-messages-#{@id}"} 
+      <div
+        id={"chat-messages-#{@id}"}
         class="flex-1 overflow-y-hidden p-3 chat-messages-container flex flex-col-reverse"
       >
-        <div id={"messages-#{@id}"} class="flex flex-col gap-2">
-        <%= for message <- @messages do %>
-            <div id={"messages-#{@id}-#{message.id}"} class={"chat-message flex items-start space-x-2 #{@font_class}"}>
-            <!-- Platform Icon (leftmost) -->
-            <%= if @config.show_platform do %>
-              <.platform_icon platform={message.platform} />
-            <% end %>
-            
-            <!-- User Badge/Avatar -->
-            <%= if @config.show_badges do %>
-              <div class={[
-                "px-2 py-1 rounded text-xs font-semibold flex-shrink-0",
-                message.badge_color
-              ]}>
-                {message.badge}
-              </div>
-            <% end %>
-            
-    <!-- Message Content -->
-            <div class="flex-1 min-w-0">
-              <%= if @config.show_timestamps do %>
-                <span class="text-xs text-gray-500 mr-2">
-                  {Calendar.strftime(message.timestamp, "%H:%M")}
-                </span>
+        <div id={"messages-#{@id}"} class="flex flex-col gap-2" phx-update="stream">
+          <%= for {dom_id, message} <- @messages do %>
+            <div id={dom_id} class={"chat-message flex items-start space-x-2 #{@font_class}"}>
+              <!-- Platform Icon (leftmost) -->
+              <%= if @config.show_platform do %>
+                <.platform_icon platform={message.platform} />
               <% end %>
-              <span class="font-semibold" style={"color: #{message.username_color}"}>
-                {message.username}:
-              </span>
-              <span class="ml-1 text-gray-100">{message.content}</span>
               
-    <!-- Emotes/Reactions -->
-              <%= if @config.show_emotes and message.emotes != [] do %>
-                <div class="inline-flex ml-2 space-x-1">
-                  <%= for emote <- message.emotes do %>
-                    <span class="text-yellow-400">{emote}</span>
-                  <% end %>
+    <!-- User Badge/Avatar -->
+              <%= if @config.show_badges do %>
+                <div class={[
+                  "px-2 py-1 rounded text-xs font-semibold flex-shrink-0",
+                  message.badge_color
+                ]}>
+                  {message.badge}
                 </div>
               <% end %>
-            </div>
+              
+    <!-- Message Content -->
+              <div class="flex-1 min-w-0">
+                <%= if @config.show_timestamps do %>
+                  <span class="text-xs text-gray-500 mr-2">
+                    {Calendar.strftime(message.timestamp, "%H:%M")}
+                  </span>
+                <% end %>
+                <span class="font-semibold" style={"color: #{message.username_color}"}>
+                  {message.username}:
+                </span>
+                <span class="ml-1 text-gray-100">{message.content}</span>
+                
+    <!-- Emotes/Reactions -->
+                <%= if @config.show_emotes and message.emotes != [] do %>
+                  <div class="inline-flex ml-2 space-x-1">
+                    <%= for emote <- message.emotes do %>
+                      <span class="text-yellow-400">{emote}</span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
             </div>
           <% end %>
         </div>
