@@ -96,17 +96,18 @@ if config_env() == :prod do
   host = env!("PHX_HOST") || "example.com"
   port = String.to_integer(env!("PORT") || "4000")
 
-  config :streampai, :dns_cluster_query, env!("DNS_CLUSTER_QUERY")
+  # config :streampai, :dns_cluster_query, env!("DNS_CLUSTER_QUERY")
 
   config :streampai, StreampaiWeb.Endpoint,
     url: [host: host, port: 8443, scheme: "https"],
     http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: port],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: ["https://streampai.com", "http://streampai.com", "https://#{host}", "http://#{host}"]
 
   config :streampai, StreampaiWeb.ProxyEndpoint,
     check_origin: {StreampaiWeb.ProxyEndpoint, :check_origin, []},
     url: [port: 443, scheme: "https"],
-    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: port],
+    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: "4001"],
     secret_key_base: secret_key_base,
     server: !!System.get_env("PHX_SERVER")
 

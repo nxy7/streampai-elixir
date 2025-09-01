@@ -26,3 +26,8 @@ build-prod:
 
 tasks:
 	hx ./tasks
+
+test-deploy-prod:
+	git pull
+	docker compose -f docker-compose.prod.yml build streampai
+	docker compose -f docker-compose.prod.yml up

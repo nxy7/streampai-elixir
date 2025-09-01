@@ -6,15 +6,20 @@
     nix2container.url = "github:nlewo/nix2container";
   };
 
-  outputs = { flake-parts, nixpkgs, ... }@inputs:
+  outputs =
+    { flake-parts, nixpkgs, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
-      perSystem = { config, system, ... }:
-        let pkgs = import nixpkgs { inherit system; };
-        in {
+      perSystem =
+        { config, system, ... }:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
               elixir
+              # beamMinimal28Packages.elixir_1_19
               elixir-ls
               lexical
               next-ls

@@ -12,6 +12,7 @@ defmodule Streampai.MixProject do
       consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
       deps: deps(),
+      releases: releases(),
       preferred_cli_env: ["mneme.test": :test, "mneme.watch": :test]
     ]
   end
@@ -102,7 +103,7 @@ defmodule Streampai.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
+      # {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"}
     ]
   end
@@ -131,6 +132,16 @@ defmodule Streampai.MixProject do
         "phx.digest"
       ],
       "ash.setup": ["ash.setup", "run priv/repo/seeds.exs"]
+    ]
+  end
+
+  defp releases do
+    [
+      streampai: [
+        include_executables_for: [:unix],
+        applications: [runtime_tools: :permanent],
+        steps: [:assemble, :tar]
+      ]
     ]
   end
 end

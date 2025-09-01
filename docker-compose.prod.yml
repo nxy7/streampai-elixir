@@ -15,36 +15,37 @@ services:
 
   streampai:
     container_name: streampai-app
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "80:4000"
     environment:
+      SECRET_KEY_BASE: jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF
       DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
       ECTO_IPV6: "false"
       POOL_SIZE: "25"
-      
+
       PHX_SERVER: "true"
       PHX_HOST: "${PHX_HOST:-localhost}"
       PORT: "4000"
       MIX_ENV: "prod"
-      
+
       # SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
-      
+
       GOOGLE_CLIENT_ID: 303595880638-jiu78jshmvrkijsesifoi26plpqmg631.apps.googleusercontent.com
       GOOGLE_CLIENT_SECRET: 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
-      GOOGLE_REDIRECT_URI: http://localhost:4000/auth/user/google/callback
-      
+      GOOGLE_REDIRECT_URI: https://streampai.com/auth/user/google/callback
+
       TWITCH_CLIENT_ID: 19bbrmyqid8xl91qv23gkafvdxfx68
       TWITCH_CLIENT_SECRET: gbg0ys1brcrb4t8q4z6ao4r4jx4vbo
-      TWITCH_REDIRECT_URI: http://localhost:4000/streaming/connect/twitch/callback
-      
+      TWITCH_REDIRECT_URI: https://streampai.com/streaming/connect/twitch/callback
+
       CLOUDFLARE_API_KEY: gNzXsYUOpikbbkESSBeD42gbhWQBPvCh_6hrVnrf
       CLOUDFLARE_AUTH_EMAIL: lolnoxy@gmail.com
       CLOUDFLARE_ACCOUNT_ID: d5a0082bed5625be834ab9d5bffba488
-      
+
     depends_on:
       - timescaledb
     networks:
