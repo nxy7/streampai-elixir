@@ -50,8 +50,10 @@ const displayMessages = computed(() => {
   return [...props.messages].reverse().slice(-props.config.max_messages)
 })
 
-const formatTimestamp = (timestamp: Date) => {
-  return timestamp.toLocaleTimeString('en-US', { 
+const formatTimestamp = (timestamp: Date | string) => {
+  const ts = timestamp instanceof Date ? timestamp : new Date(timestamp)
+
+  return ts.toLocaleTimeString('en-US', { 
     hour12: false, 
     hour: '2-digit', 
     minute: '2-digit' 

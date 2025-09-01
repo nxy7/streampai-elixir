@@ -80,13 +80,23 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     }
 
     # Broadcast to OBS widgets
-    user_id = socket.assigns.current_user.id
+    current_user = socket.assigns.current_user
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
-      "widget_config:#{user_id}",
+      "widget_config:#{current_user.id}",
       %{config: updated_config}
     )
+
+    Streampai.Accounts.WidgetConfig.create(
+      %{
+        user_id: current_user.id,
+        type: :chat_widget,
+        config: updated_config
+      },
+      actor: current_user.id
+    )
+    |> dbg
 
     {:noreply, assign(socket, :widget_config, updated_config)}
   end
@@ -133,13 +143,24 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     # In a real implementation, you might track message count separately or reset the stream
 
     # Broadcast config update to all connected widgets for this user
-    user_id = socket.assigns.current_user.id
+    # Broadcast to OBS widgets
+    current_user = socket.assigns.current_user
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
-      "widget_config:#{user_id}",
+      "widget_config:#{current_user.id}",
       %{config: updated_config}
     )
+
+    Streampai.Accounts.WidgetConfig.create(
+      %{
+        user_id: current_user.id,
+        type: :chat_widget,
+        config: updated_config
+      },
+      actor: current_user
+    )
+    |> dbg
 
     {:noreply, assign(socket, :widget_config, updated_config)}
   end

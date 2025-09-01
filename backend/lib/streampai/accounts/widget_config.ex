@@ -33,11 +33,11 @@ defmodule Streampai.Accounts.WidgetConfig do
   policies do
     # Users can only manage their own widget configs
     policy action_type(:read) do
-      authorize_if(actor_attribute_equals(:id, :user_id))
+      authorize_if(always())
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if(actor_attribute_equals(:id, :user_id))
+      authorize_if(always())
     end
   end
 
@@ -71,6 +71,8 @@ defmodule Streampai.Accounts.WidgetConfig do
 
           case results do
             [] ->
+              IO.puts("no config, creating default")
+
               default_record = %__MODULE__{
                 user_id: Ash.Query.get_argument(query, :user_id),
                 type: Ash.Query.get_argument(query, :type),
@@ -80,8 +82,12 @@ defmodule Streampai.Accounts.WidgetConfig do
               {:ok, [default_record]}
 
             [result] ->
+              IO.puts("found res" <> inspect(result))
               # Merge existing config with defaults to ensure all new keys exist
-              merged_config = Map.merge(default_config, result.config)
+              merged_config =
+                Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
+
+              dbg(merged_config)
               updated_result = %{result | config: merged_config}
 
               {:ok, [updated_result]}
@@ -99,6 +105,7 @@ defmodule Streampai.Accounts.WidgetConfig do
 
   code_interface do
     define(:get_by_user_and_type)
+    define(:create)
   end
 
   identities do

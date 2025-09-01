@@ -12,6 +12,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   def mount(%{"user_id" => user_id}, _session, socket) do
     if connected?(socket) do
       schedule_next_message()
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
     end
 
     initial_messages = FakeChat.initial_messages()
@@ -29,25 +30,6 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
      |> assign(:user_id, nil)
      |> assign(:widget_config, config)
      |> assign(:vue_messages, initial_messages), layout: false}
-  end
-
-  # TODO why do we need it? it seems like we were initializing twice instead of just in mount
-  @impl true
-  def handle_params(params, _uri, socket) do
-    user_id = params["user_id"]
-    socket = socket |> assign(:user_id, user_id)
-
-    if connected?(socket) and user_id do
-      # Subscribe to widget config updates for this user
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
-
-      current_config = FakeChat.default_config()
-      socket = assign(socket, :widget_config, current_config)
-
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
   end
 
   @impl true

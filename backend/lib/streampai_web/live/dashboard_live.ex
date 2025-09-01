@@ -7,6 +7,18 @@ defmodule StreampaiWeb.DashboardLive do
   alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
+    greeting_text =
+      if connected?(socket) and Map.has_key?(socket.assigns, :greeting_text) do
+        # On subsequent loads, get the value from the existing assigns
+        socket.assigns.greeting_text
+      else
+        # On the first load, generate a new random value
+        Enum.random([
+          "Ready to start streaming to multiple platforms? Connect your accounts and manage your content all in one place.",
+          "How is it going handsome?"
+        ])
+      end
+
     socket =
       socket
       |> safe_load(
@@ -16,8 +28,7 @@ defmodule StreampaiWeb.DashboardLive do
         :dashboard_data,
         "Failed to load dashboard data"
       )
-
-    socket = socket |> assign(:display_name, get_display_name(socket))
+      |> assign(display_name: get_display_name(socket), greeting_text: greeting_text)
 
     {:ok, socket, layout: false}
   end
@@ -51,10 +62,10 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </div>
           <p class="text-gray-600">
-            Ready to start streaming to multiple platforms? Connect your accounts and manage your content all in one place.
+            {@greeting_text}
           </p>
         </.dashboard_card>
-        
+
     <!-- User Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <!-- Account Info -->
@@ -77,7 +88,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-          
+
     <!-- Streaming Status -->
           <.dashboard_card title="Streaming Status" icon="activity">
             <div class="space-y-3">
@@ -100,7 +111,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-          
+
     <!-- Quick Actions -->
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
@@ -123,7 +134,7 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
         </div>
-        
+
     <!-- Debug Info (for development) -->
         <%= if Mix.env() == :dev do %>
           <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
