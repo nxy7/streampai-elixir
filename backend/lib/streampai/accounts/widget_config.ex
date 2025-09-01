@@ -1,0 +1,124 @@
+defmodule Streampai.Accounts.WidgetConfig do
+  use Ash.Resource,
+    otp_app: :streampai,
+    domain: Streampai.Accounts,
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshAdmin.Resource],
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table("widget_configs")
+    repo(Streampai.Repo)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+
+    attribute(:user_id, :uuid, allow_nil?: false, public?: true)
+    attribute(:type, :atom, allow_nil?: false, public?: true)
+    attribute(:config, :map, allow_nil?: false, public?: true, default: %{})
+
+    timestamps()
+  end
+
+  relationships do
+    belongs_to :user, Streampai.Accounts.User do
+      source_attribute(:user_id)
+      destination_attribute(:id)
+      allow_nil?(false)
+      public?(true)
+    end
+  end
+
+  policies do
+    # Users can only manage their own widget configs
+    policy action_type(:read) do
+      authorize_if(actor_attribute_equals(:id, :user_id))
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if(actor_attribute_equals(:id, :user_id))
+    end
+  end
+
+  actions do
+    # Default actions
+    defaults([:read, :destroy])
+
+    create :create do
+      accept([:user_id, :type, :config])
+      upsert?(true)
+      upsert_identity(:user_type_unique)
+
+      change(fn changeset, _context ->
+        case changeset.context[:actor] do
+          %{id: user_id} -> Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
+          _ -> changeset
+        end
+      end)
+    end
+
+    read :get_by_user_and_type do
+      get?(true)
+      argument(:user_id, :uuid, allow_nil?: false)
+      argument(:type, :atom, allow_nil?: false)
+
+      filter(expr(user_id == ^arg(:user_id) and type == ^arg(:type)))
+
+      prepare(fn query, _context ->
+        Ash.Query.after_action(query, fn _query, results ->
+          default_config = StreampaiWeb.Utils.FakeChat.default_config()
+
+          case results do
+            [] ->
+              default_record = %__MODULE__{
+                user_id: Ash.Query.get_argument(query, :user_id),
+                type: Ash.Query.get_argument(query, :type),
+                config: default_config
+              }
+
+              {:ok, [default_record]}
+
+            [result] ->
+              # Merge existing config with defaults to ensure all new keys exist
+              merged_config = Map.merge(default_config, result.config)
+              updated_result = %{result | config: merged_config}
+
+              {:ok, [updated_result]}
+          end
+        end)
+      end)
+    end
+
+    read :for_user do
+      argument(:user_id, :uuid, allow_nil?: false)
+
+      filter(expr(user_id == ^arg(:user_id)))
+    end
+  end
+
+  code_interface do
+    define(:get_by_user_and_type)
+  end
+
+  identities do
+    identity(:user_type_unique, [:user_id, :type])
+  end
+
+  validations do
+    validate one_of(:type, [
+               :chat_widget,
+               :donation_widget,
+               :follow_widget,
+               :subscriber_widget,
+               :overlay_widget,
+               :alert_widget,
+               :goal_widget,
+               :leaderboard_widget
+             ]) do
+      message(
+        "Type must be one of: chat_widget, donation_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      )
+    end
+  end
+end

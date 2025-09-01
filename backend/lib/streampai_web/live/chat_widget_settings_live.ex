@@ -10,16 +10,25 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   alias StreampaiWeb.Utils.FakeChat
 
   def mount(_params, _session, socket) do
+    current_user = socket.assigns.current_user
+
     if connected?(socket) do
       schedule_next_message()
     end
 
     initial_messages = FakeChat.initial_messages()
 
+    {:ok, %{config: initial_config}} =
+      Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
+        user_id: current_user.id,
+        type: :chat_widget
+      })
+      |> dbg
+
     {:ok,
      socket
      |> stream(:messages, initial_messages)
-     |> assign(:widget_config, FakeChat.default_config())
+     |> assign(:widget_config, initial_config)
      |> assign(:vue_messages, initial_messages), layout: false}
   end
 
@@ -29,13 +38,11 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     # Add new message to stream and let stream handle limiting
     socket = socket |> stream_insert(:messages, new_message, at: -1)
 
-    # Keep track of messages for Vue component in a separate assign
-    # Use prepend (O(1)) - Vue component will handle ordering for display
     current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
     updated_vue_messages = [new_message | current_vue_messages]
-    
+
     # Limit messages to max_messages
-    limited_vue_messages = 
+    limited_vue_messages =
       Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
 
     socket = assign(socket, :vue_messages, limited_vue_messages)

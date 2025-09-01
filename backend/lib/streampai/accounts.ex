@@ -11,5 +11,6 @@ defmodule Streampai.Accounts do
     resource Streampai.Accounts.User
     resource Streampai.Accounts.UserPremiumGrant
     resource Streampai.Accounts.StreamingAccount
+    resource Streampai.Accounts.WidgetConfig
   end
 end

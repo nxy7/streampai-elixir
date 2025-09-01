@@ -9,18 +9,25 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   alias StreampaiWeb.Utils.FakeChat
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(%{"user_id" => user_id}, _session, socket) do
     if connected?(socket) do
       schedule_next_message()
     end
 
     initial_messages = FakeChat.initial_messages()
 
+    {:ok, %{config: config}} =
+      Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
+        user_id: user_id,
+        type: :chat_widget
+      })
+      |> dbg
+
     {:ok,
      socket
      |> stream(:messages, initial_messages)
      |> assign(:user_id, nil)
-     |> assign(:widget_config, FakeChat.default_config())
+     |> assign(:widget_config, config)
      |> assign(:vue_messages, initial_messages), layout: false}
   end
 
