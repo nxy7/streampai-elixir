@@ -7,7 +7,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   """
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
-  import StreampaiWeb.Components.ChatDisplayComponent
   alias StreampaiWeb.Utils.FakeChat
 
   def mount(_params, _session, socket) do
@@ -15,15 +14,31 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       schedule_next_message()
     end
 
+    initial_messages = FakeChat.initial_messages()
+
     {:ok,
      socket
-     |> stream(:messages, FakeChat.initial_messages())
-     |> assign(:widget_config, FakeChat.default_config()), layout: false}
+     |> stream(:messages, initial_messages)
+     |> assign(:widget_config, FakeChat.default_config())
+     |> assign(:vue_messages, initial_messages), layout: false}
   end
 
   def handle_info(:generate_message, socket) do
+    new_message = FakeChat.generate_message()
+
     # Add new message to stream and let stream handle limiting
-    socket = socket |> stream_insert(:messages, FakeChat.generate_message(), at: -1)
+    socket = socket |> stream_insert(:messages, new_message, at: -1)
+
+    # Keep track of messages for Vue component in a separate assign
+    # Use prepend (O(1)) - Vue component will handle ordering for display
+    current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
+    updated_vue_messages = [new_message | current_vue_messages]
+    
+    # Limit messages to max_messages
+    limited_vue_messages = 
+      Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
+
+    socket = assign(socket, :vue_messages, limited_vue_messages)
 
     schedule_next_message()
     {:noreply, socket}
@@ -144,18 +159,21 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
               </button>
             </div>
           </div>
-          
+
     <!-- Chat Widget Display -->
           <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden">
             <div class="text-xs text-gray-400 mb-2">Preview (actual widget is transparent)</div>
-            <.chat_display
-              id="preview-chat-widget"
+            <.vue
+              v-component="ChatWidget"
+              v-socket={@socket}
               config={@widget_config}
-              messages={@streams.messages}
+              messages={@vue_messages}
+              class="w-full h-full"
+              id="preview-chat-widget"
             />
           </div>
         </div>
-        
+
     <!-- Configuration Options -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
@@ -219,7 +237,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
                 </div>
               </form>
             </div>
-            
+
     <!-- Message Settings -->
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Message Settings</h4>
@@ -282,7 +300,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Usage Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>

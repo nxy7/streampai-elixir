@@ -28,6 +28,7 @@
   "\u0000/home/nxyt/streampai-elixir/backend/assets/node_modules/vue/dist/vue.cjs.prod.js?commonjs-exports": [],
   "\u0000/home/nxyt/streampai-elixir/backend/assets/node_modules/vue/index.js?commonjs-module": [],
   "\u0000commonjsHelpers.js": [],
+  "\u0000plugin-vue:export-helper": [],
   "../deps/live_vue/priv/static/app.js": [],
   "../deps/live_vue/priv/static/link.js": [],
   "../deps/live_vue/priv/static/server.js": [],
@@ -62,6 +63,9 @@
   "node_modules/vue/dist/vue.cjs.prod.js": [],
   "node_modules/vue/dist/vue.runtime.esm-bundler.js": [],
   "node_modules/vue/index.js": [],
+  "vue/ChatWidget.vue": [],
+  "vue/ChatWidget.vue?vue&type=script&setup=true&lang.ts": [],
+  "vue/ChatWidget.vue?vue&type=style&index=0&scoped=ae4a8808&lang.css": [],
   "vue/Counter.vue": [],
   "vue/Counter.vue?vue&type=script&setup=true&lang.ts": [],
   "vue/index.ts": []

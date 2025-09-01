@@ -14,6 +14,6 @@
   <button 
     @click="emit('inc', {value: parseInt(diff)})"
     class="mt-4 bg-black text-white rounded p-2 block">
-    Increase counter by {{ diff }}
+    Increase counter by cos {{ diff }}
   </button> 
 </template>

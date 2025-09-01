@@ -6,7 +6,6 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   Manages its own message state and subscribes to configuration changes.
   """
   use StreampaiWeb, :live_view
-  import StreampaiWeb.Components.ChatDisplayComponent
   alias StreampaiWeb.Utils.FakeChat
 
   @impl true
@@ -21,7 +20,8 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
      socket
      |> stream(:messages, initial_messages)
      |> assign(:user_id, nil)
-     |> assign(:widget_config, FakeChat.default_config()), layout: false}
+     |> assign(:widget_config, FakeChat.default_config())
+     |> assign(:vue_messages, initial_messages), layout: false}
   end
 
   # TODO why do we need it? it seems like we were initializing twice instead of just in mount
@@ -51,8 +51,16 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     # Add new message to stream and let stream handle limiting
     socket = stream_insert(socket, :messages, new_message)
 
-    # For now, we'll trust that we're not exceeding max_messages significantly
-    # In a real implementation, you might track count separately or use other approaches
+    # Keep track of messages for Vue component in a separate assign
+    # Use prepend (O(1)) - Vue component will handle ordering for display
+    current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
+    updated_vue_messages = [new_message | current_vue_messages]
+
+    # Limit messages to max_messages
+    limited_vue_messages =
+      Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
+
+    socket = assign(socket, :vue_messages, limited_vue_messages)
 
     # Schedule the next message
     schedule_next_message()
@@ -71,7 +79,14 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   def render(assigns) do
     ~H"""
     <div class="h-screen w-screen">
-      <.chat_display id="live-chat-widget" config={@widget_config} messages={@streams.messages} />
+      <.vue
+        v-component="ChatWidget"
+        v-socket={@socket}
+        config={@widget_config}
+        messages={@vue_messages}
+        class="w-full h-full"
+        id="live-chat-widget"
+      />
     </div>
     """
   end
