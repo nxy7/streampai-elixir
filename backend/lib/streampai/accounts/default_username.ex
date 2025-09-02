@@ -1,4 +1,7 @@
 defmodule Streampai.Accounts.DefaultUsername do
+  @moduledoc """
+  Ash resource change that generates a default username from an email address.
+  """
   use Ash.Resource.Change
 
   def change(changeset, _opts, _) do
@@ -11,9 +14,10 @@ defmodule Streampai.Accounts.DefaultUsername do
   defp set_username_from_email(changeset, email) do
     username = generate_username_from_email(email)
 
-    with {:ok, final_username} <- ensure_unique_username(username) do
-      Ash.Changeset.change_attribute(changeset, :name, final_username)
-    else
+    case ensure_unique_username(username) do
+      {:ok, final_username} ->
+        Ash.Changeset.change_attribute(changeset, :name, final_username)
+
       {:error, error} ->
         Ash.Changeset.add_error(
           changeset,

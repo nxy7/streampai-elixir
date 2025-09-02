@@ -154,10 +154,12 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
               </button>
             </div>
           </div>
-
-          <!-- Alertbox Widget Display -->
+          
+    <!-- Alertbox Widget Display -->
           <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden relative">
-            <div class="text-xs text-gray-400 mb-2">Preview (actual widget has transparent background)</div>
+            <div class="text-xs text-gray-400 mb-2">
+              Preview (actual widget has transparent background)
+            </div>
             <.vue
               v-component="AlertboxWidget"
               v-socket={@socket}
@@ -168,8 +170,8 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             />
           </div>
         </div>
-
-        <!-- Configuration Options -->
+        
+    <!-- Configuration Options -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
 
@@ -212,8 +214,8 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
                 </div>
               </form>
             </div>
-
-            <!-- Alert Settings -->
+            
+    <!-- Alert Settings -->
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Alert Settings</h4>
 
@@ -229,7 +231,9 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
                       value={@widget_config.display_duration}
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
                     />
-                    <p class="text-xs text-gray-500 mt-1">How long alerts stay visible (1-30 seconds)</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      How long alerts stay visible (1-30 seconds)
+                    </p>
                   </div>
 
                   <div>
@@ -303,8 +307,8 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             </div>
           </div>
         </div>
-
-        <!-- Usage Instructions -->
+        
+    <!-- Usage Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>
           <div class="space-y-2 text-sm text-blue-800">

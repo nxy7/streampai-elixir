@@ -1,4 +1,7 @@
 defmodule Streampai.ButtonServer do
+  @moduledoc """
+  GenServer for handling button interactions and tracking presence.
+  """
   use GenServer
   alias StreampaiWeb.Presence
 

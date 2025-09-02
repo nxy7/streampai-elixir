@@ -98,7 +98,7 @@ defmodule StreampaiWeb.Utils.FakeAlert do
     type = Enum.random(@alert_types)
     platform = Enum.random(@platforms)
     username = Enum.random(@usernames)
-    
+
     base_event = %{
       id: generate_id(),
       type: type,
@@ -110,6 +110,7 @@ defmodule StreampaiWeb.Utils.FakeAlert do
     case type do
       :donation ->
         amount = generate_donation_amount()
+
         Map.merge(base_event, %{
           amount: amount,
           currency: "$",
@@ -118,7 +119,8 @@ defmodule StreampaiWeb.Utils.FakeAlert do
 
       :subscription ->
         Map.merge(base_event, %{
-          message: if(Enum.random([true, false]), do: Enum.random(@subscription_messages), else: nil)
+          message:
+            if(Enum.random([true, false]), do: Enum.random(@subscription_messages), else: nil)
         })
 
       :follow ->
@@ -128,6 +130,7 @@ defmodule StreampaiWeb.Utils.FakeAlert do
 
       :raid ->
         viewers = Enum.random(5..500)
+
         Map.merge(base_event, %{
           message: "Raiding with #{viewers} viewers!"
         })
@@ -137,10 +140,14 @@ defmodule StreampaiWeb.Utils.FakeAlert do
   defp generate_donation_amount do
     # Generate realistic donation amounts with weighted distribution
     case Enum.random(1..100) do
-      n when n <= 50 -> Enum.random([1, 2, 3, 5]) + :rand.uniform() # $1-6
-      n when n <= 80 -> Enum.random([5, 10, 15, 20]) + :rand.uniform() # $5-21
-      n when n <= 95 -> Enum.random([25, 50, 75, 100]) + :rand.uniform() # $25-101
-      _ -> Enum.random([100, 200, 500, 1000]) + :rand.uniform() # $100-1001
+      # $1-6
+      n when n <= 50 -> Enum.random([1, 2, 3, 5]) + :rand.uniform()
+      # $5-21
+      n when n <= 80 -> Enum.random([5, 10, 15, 20]) + :rand.uniform()
+      # $25-101
+      n when n <= 95 -> Enum.random([25, 50, 75, 100]) + :rand.uniform()
+      # $100-1001
+      _ -> Enum.random([100, 200, 500, 1000]) + :rand.uniform()
     end
     |> Float.round(2)
   end

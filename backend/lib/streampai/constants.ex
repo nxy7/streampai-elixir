@@ -1,4 +1,7 @@
 defmodule Streampai.Constants do
+  @moduledoc """
+  Application-wide constants including billing limits, validation rules, and configuration values.
+  """
   # Billing & Limits
   @free_tier_hour_limit 7
   @free_tier_data_retention_days 3

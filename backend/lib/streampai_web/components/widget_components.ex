@@ -1,4 +1,7 @@
 defmodule StreampaiWeb.Components.WidgetComponents do
+  @moduledoc """
+  Phoenix components for rendering various streaming widgets.
+  """
   use StreampaiWeb, :html
 
   @doc """

@@ -9,7 +9,7 @@ defmodule StreampaiWeb.AuthPlug do
   import Plug.Conn
 
   def handle_success(conn, _activity, user, token) do
-    if is_api_request?(conn) do
+    if api_request?(conn) do
       conn
       |> send_resp(
         200,
@@ -36,7 +36,7 @@ defmodule StreampaiWeb.AuthPlug do
   end
 
   def handle_failure(conn, _activity, _reason) do
-    if is_api_request?(conn) do
+    if api_request?(conn) do
       conn
       |> send_resp(
         401,
@@ -52,5 +52,5 @@ defmodule StreampaiWeb.AuthPlug do
     end
   end
 
-  defp is_api_request?(conn), do: "application/json" in get_req_header(conn, "accept")
+  defp api_request?(conn), do: "application/json" in get_req_header(conn, "accept")
 end

@@ -1,4 +1,7 @@
 defmodule StreampaiWeb.MultiProviderAuth do
+  @moduledoc """
+  Handles OAuth authentication with multiple streaming platforms (Google, Twitch, etc.).
+  """
   use StreampaiWeb, :controller
   plug Ueberauth
 

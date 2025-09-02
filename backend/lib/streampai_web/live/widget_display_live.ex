@@ -13,36 +13,7 @@ defmodule StreampaiWeb.WidgetDisplayLive do
             error: nil
           )
 
-        # Start timer server for timer widgets (only once per LiveView)
-        socket =
-          if widget.type == "timer" do
-            # Check if we already have a timer running for this LiveView
-            if socket.assigns[:timer_pid] && Process.alive?(socket.assigns.timer_pid) do
-              IO.puts(
-                "Timer already running for widget #{widget.id}, PID: #{inspect(socket.assigns.timer_pid)}"
-              )
-
-              socket
-            else
-              IO.puts(
-                "Starting timer server for widget #{widget.id}, LiveView PID: #{inspect(self())}"
-              )
-
-              case Streampai.Widgets.TimerServer.start_timer(widget.id, self()) do
-                {:ok, pid} ->
-                  IO.puts("Timer server started successfully: #{inspect(pid)}")
-                  # Link to the timer process so it dies when LiveView dies
-                  Process.link(pid)
-                  assign(socket, timer_count: 0, timer_pid: pid)
-
-                {:error, reason} ->
-                  IO.puts("Failed to start timer server: #{inspect(reason)}")
-                  assign(socket, timer_count: 0, timer_pid: nil)
-              end
-            end
-          else
-            socket
-          end
+        socket = maybe_start_timer_server(socket, widget)
 
         {:ok, socket, layout: false}
 
@@ -137,6 +108,35 @@ defmodule StreampaiWeb.WidgetDisplayLive do
         else
           {:error, :invalid_uuid}
         end
+    end
+  end
+
+  defp maybe_start_timer_server(socket, %{type: "timer"} = widget) do
+    if socket.assigns[:timer_pid] && Process.alive?(socket.assigns.timer_pid) do
+      IO.puts(
+        "Timer already running for widget #{widget.id}, PID: #{inspect(socket.assigns.timer_pid)}"
+      )
+
+      socket
+    else
+      start_timer_server(socket, widget)
+    end
+  end
+
+  defp maybe_start_timer_server(socket, _widget), do: socket
+
+  defp start_timer_server(socket, widget) do
+    IO.puts("Starting timer server for widget #{widget.id}, LiveView PID: #{inspect(self())}")
+
+    case Streampai.Widgets.TimerServer.start_timer(widget.id, self()) do
+      {:ok, pid} ->
+        IO.puts("Timer server started successfully: #{inspect(pid)}")
+        Process.link(pid)
+        assign(socket, timer_count: 0, timer_pid: pid)
+
+      {:error, reason} ->
+        IO.puts("Failed to start timer server: #{inspect(reason)}")
+        assign(socket, timer_count: 0, timer_pid: nil)
     end
   end
 
