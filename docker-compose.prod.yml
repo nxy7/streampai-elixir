@@ -15,6 +15,7 @@ services:
 
   streampai:
     container_name: streampai-app
+    # image: ghcr.io/nxyt/streampai-elixir:latest
     build:
       context: ./backend
       dockerfile: Dockerfile

@@ -70,7 +70,7 @@ defmodule StreampaiWeb.DashboardLive do
             {@greeting_text}
           </p>
         </.dashboard_card>
-        
+
     <!-- User Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <!-- Account Info -->
@@ -93,7 +93,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-          
+
     <!-- Streaming Status -->
           <.dashboard_card title="Streaming Status" icon="activity">
             <div class="space-y-3">
@@ -116,7 +116,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-          
+
     <!-- Quick Actions -->
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
@@ -139,7 +139,7 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
         </div>
-        
+
     <!-- Debug Info (for development) -->
         <%= debug_section(assigns) %>
       </div>

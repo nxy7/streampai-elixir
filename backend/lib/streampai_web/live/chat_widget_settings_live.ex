@@ -59,10 +59,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     {:noreply, socket}
   end
 
-  # Handle copy URL action
-  def handle_event("copy_browser_source_url", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Browser source URL copied to clipboard!")}
-  end
 
   # Handle configuration changes for checkboxes (from form events)
   def handle_event("toggle_setting", params, socket) do
@@ -177,8 +173,9 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
               <button
                 id="copy-url-button"
                 class="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                phx-click="copy_browser_source_url"
+                phx-hook="CopyToClipboard"
                 data-clipboard-text={url(~p"/widgets/chat/display?user_id=#{@current_user.id}")}
+                data-clipboard-message="Browser source URL copied!"
               >
                 Copy Browser Source URL
               </button>

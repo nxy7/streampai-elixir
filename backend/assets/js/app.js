@@ -20,25 +20,27 @@ const CopyToClipboard = {
   mounted() {
     this.el.addEventListener("click", () => {
       const text = this.el.dataset.clipboardText;
+      const successMessage = this.el.dataset.clipboardMessage || "Copied to clipboard!";
+      
       if (navigator.clipboard) {
         navigator.clipboard
           .writeText(text)
           .then(() => {
-            // Success feedback could be handled by the LiveView
+            this.showNotification(successMessage);
           })
           .catch((err) => {
             console.error("Failed to copy: ", err);
             // Fallback to older method
-            this.fallbackCopyText(text);
+            this.fallbackCopyText(text, successMessage);
           });
       } else {
         // Fallback for older browsers
-        this.fallbackCopyText(text);
+        this.fallbackCopyText(text, successMessage);
       }
     });
   },
 
-  fallbackCopyText(text) {
+  fallbackCopyText(text, successMessage) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.position = "fixed";
@@ -48,11 +50,46 @@ const CopyToClipboard = {
     textArea.focus();
     textArea.select();
     try {
-      document.execCommand("copy");
+      const success = document.execCommand("copy");
+      if (success) {
+        this.showNotification(successMessage);
+      } else {
+        this.showNotification("Failed to copy to clipboard", "error");
+      }
     } catch (err) {
       console.error("Fallback: Oops, unable to copy", err);
+      this.showNotification("Failed to copy to clipboard", "error");
     }
     document.body.removeChild(textArea);
+  },
+
+  showNotification(message, type = "success") {
+    // Create notification element
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+      type === "success" 
+        ? "bg-green-500 text-white" 
+        : "bg-red-500 text-white"
+    }`;
+    notification.textContent = message;
+    notification.style.transform = "translateX(100%)";
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+      notification.style.transform = "translateX(0)";
+    });
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.transform = "translateX(100%)";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
   },
 };
 
