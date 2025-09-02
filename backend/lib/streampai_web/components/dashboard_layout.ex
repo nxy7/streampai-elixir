@@ -31,7 +31,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           </div>
           
     <!-- Sidebar -->
-          <div class="sidebar fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0">
+          <div class="sidebar fixed inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0 overflow-y-auto">
             <!-- Sidebar Header -->
             <div class="flex items-center justify-center p-4 border-b border-gray-700 relative">
               <.link
@@ -292,7 +292,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           </div>
           
     <!-- Main Content -->
-          <div class="flex-1 flex flex-col overflow-hidden">
+          <div id="main-content" class="flex-1 flex flex-col overflow-hidden ml-0 md:ml-64">
             <!-- Top Bar -->
             <header class="bg-white shadow-sm border-b border-gray-200">
               <div class="flex items-center justify-between px-6 py-4">
@@ -416,6 +416,15 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             justify-content: center;
             padding: 0.75rem;
           }
+
+          /* Hide scrollbar while keeping scroll functionality */
+          .sidebar {
+            -ms-overflow-style: none;  /* Internet Explorer 10+ */
+            scrollbar-width: none;  /* Firefox */
+          }
+          .sidebar::-webkit-scrollbar {
+            display: none;  /* Safari and Chrome */
+          }
         </style>
 
         <script>
@@ -435,6 +444,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             // Desktop sidebar toggle
             function toggleDesktopSidebar() {
               isExpanded = !isExpanded;
+              const mainContent = document.getElementById('main-content');
 
               if (isExpanded) {
                 sidebar.classList.remove('w-20');
@@ -442,12 +452,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 sidebarTexts.forEach(text => text.classList.remove('hidden'));
                 collapseIcon.classList.remove('hidden');
                 expandIcon.classList.add('hidden');
+                mainContent.classList.remove('md:ml-20');
+                mainContent.classList.add('md:ml-64');
               } else {
                 sidebar.classList.remove('w-64');
                 sidebar.classList.add('w-20');
                 sidebarTexts.forEach(text => text.classList.add('hidden'));
                 collapseIcon.classList.add('hidden');
                 expandIcon.classList.remove('hidden');
+                mainContent.classList.remove('md:ml-64');
+                mainContent.classList.add('md:ml-20');
               }
             }
 
