@@ -30,7 +30,11 @@ defmodule StreampaiWeb.DashboardLive do
         :dashboard_data,
         "Failed to load dashboard data"
       )
-      |> assign(display_name: get_display_name(socket), greeting_text: greeting_text)
+      |> assign(
+        display_name: get_display_name(socket),
+        greeting_text: greeting_text,
+        show_debug: @dev_env
+      )
 
     {:ok, socket, layout: false}
   end
@@ -67,7 +71,7 @@ defmodule StreampaiWeb.DashboardLive do
             {@greeting_text}
           </p>
         </.dashboard_card>
-
+        
     <!-- User Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <!-- Account Info -->
@@ -90,7 +94,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
+          
     <!-- Streaming Status -->
           <.dashboard_card title="Streaming Status" icon="activity">
             <div class="space-y-3">
@@ -113,7 +117,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
+          
     <!-- Quick Actions -->
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
@@ -136,9 +140,9 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
         </div>
-
+        
     <!-- Debug Info (for development) -->
-        <%= if @dev_env do %>
+        <%= if @show_debug do %>
           <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 class="text-sm font-medium text-yellow-800 mb-2">Debug Info (Development Only)</h3>
             <details>

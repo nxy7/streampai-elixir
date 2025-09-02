@@ -18,7 +18,7 @@ defmodule StreampaiWeb.AnalyticsLive do
           v-component="Counter"
           v-socket={@socket}
           v-on:inc={JS.push("inc")}
-          />
+        />
 
         <.empty_state
           icon="chart-bar"

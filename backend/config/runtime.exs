@@ -103,7 +103,12 @@ if config_env() == :prod do
     url: [host: host, port: 8443, scheme: "https"],
     http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: port],
     secret_key_base: secret_key_base,
-    check_origin: ["https://streampai.com", "http://streampai.com", "https://#{host}", "http://#{host}"]
+    check_origin: [
+      "https://streampai.com",
+      "http://streampai.com",
+      "https://#{host}",
+      "http://#{host}"
+    ]
 
   config :streampai, StreampaiWeb.ProxyEndpoint,
     check_origin: {StreampaiWeb.ProxyEndpoint, :check_origin, []},

@@ -7,7 +7,7 @@ defmodule Streampai.Application do
   @impl true
   def start(_type, _args) do
     Logger.info("streampai startup")
-    
+
     # Run migrations on startup if in production
     if System.get_env("PHX_SERVER") do
       run_migrations()
@@ -53,7 +53,7 @@ defmodule Streampai.Application do
 
   defp run_migrations do
     Logger.info("Running migrations...")
-    
+
     try do
       Streampai.Release.migrate()
       Logger.info("Migrations completed successfully")
