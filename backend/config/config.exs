@@ -119,4 +119,10 @@ config :logger, :console,
 
 config :phoenix, :json_library, Jason
 
+# Configure Tailwind version
+config :tailwind, :version, "4.0.9"
+
+# Configure esbuild version (even though we're using Vite)
+config :esbuild, :version, "0.25.0"
+
 import_config "#{config_env()}.exs"
