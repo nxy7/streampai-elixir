@@ -17,15 +17,8 @@ defmodule Streampai.Accounts.StreamingAccount.Checks.TierLimitCheck do
     user_id = actor.id
     platform = Ash.Changeset.get_attribute(changeset, :platform)
 
-    # Get the user with tier information
-    case get_user_with_tier(actor, user_id) do
-      {:ok, user} ->
-        check_tier_limits(user, platform)
-
-      {:error, e} ->
-        dbg(e)
-        false
-    end
+    {:ok, user} = get_user_with_tier(actor, user_id)
+    check_tier_limits(user, platform)
   end
 
   @impl true

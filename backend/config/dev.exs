@@ -1,13 +1,12 @@
 import Config
 secret_key_base = "jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF"
 
-
 config :ash, policies: [show_policy_breakdowns?: true]
 
 # Database configuration
 config :streampai, Streampai.Repo,
   username: "postgres",
-  password: "postgres", 
+  password: "postgres",
   hostname: "localhost",
   database: "postgres",
   pool_size: 30,
@@ -44,7 +43,7 @@ config :streampai, StreampaiWeb.Endpoint,
   ]
 
 # Development specific settings
-config :streampai, 
+config :streampai,
   dev_routes: true,
   token_signing_secret: "4Yc5enena8OiT95MV+wgXk7L14cROxd1"
 

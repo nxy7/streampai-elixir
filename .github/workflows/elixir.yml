@@ -41,8 +41,8 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.15.7" # [Required] Define the Elixir version
-          otp-version: "26.0" # [Required] Define the Erlang/OTP version
+          elixir-version: "1.18.4"
+          otp-version: "27.0"
 
       - name: Restore dependencies cache
         uses: actions/cache@v4
@@ -83,12 +83,23 @@ jobs:
       - name: Compile
         run: |
           cd backend
+          echo "Compile started at: $(date)"
+          START_TIME=$(date +%s)
           mix compile --warnings-as-errors
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "::notice title=Compile Duration::Compilation completed in ${DURATION} seconds"
 
       - name: Run tests
         run: |
           cd backend
+          echo "Test started at: $(date)" > test_timing.log
+          START_TIME=$(date +%s)
           CI=true mix test --max-failures 10
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "Test completed in: ${DURATION} seconds" >> test_timing.log
+          echo "::notice title=Test Duration::Tests completed in ${DURATION} seconds"
 
   docker:
     name: Build and push Docker image

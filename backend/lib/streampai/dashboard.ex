@@ -1,12 +1,6 @@
 defmodule Streampai.Dashboard do
   @moduledoc """
   Dashboard context for managing user dashboard data and operations.
-
-  This context handles dashboard-specific business logic, including:
-  - User statistics and metrics
-  - Platform connection status
-  - Usage tracking and limits
-  - Dashboard configuration
   """
 
   alias Streampai.Accounts.User
@@ -46,18 +40,7 @@ defmodule Streampai.Dashboard do
     }
   end
 
-  @doc """
-  Gets dashboard data for a user.
-
-  ## Examples
-
-      iex> get_dashboard_data(user)
-      %{
-        user_info: %{email: "user@example.com", ...},
-        streaming_status: %{status: :offline, ...},
-        quick_actions: [...]
-      }
-  """
+  @doc "Gets dashboard data for a user."
   def get_dashboard_data(%User{} = user) do
     %{
       user_info: get_user_info(user),
@@ -67,9 +50,7 @@ defmodule Streampai.Dashboard do
     }
   end
 
-  @doc """
-  Gets user information for dashboard display.
-  """
+  @doc "Gets user information for dashboard display."
   def get_user_info(%User{} = user) do
     %{
       email: user.email,
@@ -80,9 +61,7 @@ defmodule Streampai.Dashboard do
     }
   end
 
-  @doc """
-  Gets current streaming status for a user based on their actual streaming accounts.
-  """
+  @doc "Gets streaming status for a user."
   def get_streaming_status(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
 
@@ -93,9 +72,7 @@ defmodule Streampai.Dashboard do
     }
   end
 
-  @doc """
-  Gets usage statistics for a user.
-  """
+  @doc "Gets usage statistics for a user."
   def get_usage_stats(%User{} = user) do
     %{
       hours_used: get_hours_used(user),
@@ -105,9 +82,7 @@ defmodule Streampai.Dashboard do
     }
   end
 
-  @doc """
-  Gets quick actions available to the user based on their connected streaming accounts.
-  """
+  @doc "Gets quick actions for a user."
   def get_quick_actions(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
 
@@ -117,9 +92,7 @@ defmodule Streampai.Dashboard do
     connected_actions ++ unconnected_actions
   end
 
-  @doc """
-  Gets platform connections for a user based on their actual streaming accounts.
-  """
+  @doc "Gets platform connections for a user."
   def get_platform_connections(%User{} = user) do
     connected_platforms = get_connected_platforms(user)
 
@@ -134,13 +107,9 @@ defmodule Streampai.Dashboard do
     end)
   end
 
-  @doc """
-  Checks if user has admin privileges.
-  """
+  @doc "Checks if user has admin privileges."
   def admin?(%User{email: "lolnoxy@gmail.com"}), do: true
   def admin?(_), do: false
-
-  # Private functions
 
   defp build_connected_actions(connected_platforms) do
     @platform_configs
@@ -178,13 +147,8 @@ defmodule Streampai.Dashboard do
       Streampai.Accounts.StreamingAccount
       |> Ash.Query.for_read(:for_user, %{user_id: user.id}, actor: user)
 
-    with {:ok, streaming_accounts} <- Ash.read(query) do
-      Enum.map(streaming_accounts, & &1.platform)
-    else
-      {:error, error} ->
-        dbg(error)
-        []
-    end
+    {:ok, streaming_accounts} = Ash.read(query)
+    Enum.map(streaming_accounts, & &1.platform)
   end
 
   defp get_display_name(%User{email: email}) when is_binary(email) do

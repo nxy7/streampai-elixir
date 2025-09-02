@@ -11,10 +11,8 @@ defmodule StreampaiWeb.DashboardLive do
   def mount_page(socket, _params, _session) do
     greeting_text =
       if connected?(socket) and Map.has_key?(socket.assigns, :greeting_text) do
-        # On subsequent loads, get the value from the existing assigns
         socket.assigns.greeting_text
       else
-        # On the first load, generate a new random value
         Enum.random([
           "Ready to start streaming to multiple platforms? Connect your accounts and manage your content all in one place.",
           "How is it going handsome?"
@@ -70,10 +68,7 @@ defmodule StreampaiWeb.DashboardLive do
             {@greeting_text}
           </p>
         </.dashboard_card>
-
-    <!-- User Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          <!-- Account Info -->
           <.dashboard_card title="Account Info" icon="user">
             <div class="space-y-3">
               <.info_row label="Email" value={@dashboard_data.user_info.email || "Not available"} />
@@ -93,8 +88,6 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
-    <!-- Streaming Status -->
           <.dashboard_card title="Streaming Status" icon="activity">
             <div class="space-y-3">
               <div class="flex items-center justify-between">
@@ -116,8 +109,6 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
             </div>
           </.dashboard_card>
-
-    <!-- Quick Actions -->
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
               <%= for action <- @dashboard_data.quick_actions do %>
@@ -139,9 +130,7 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
         </div>
-
-    <!-- Debug Info (for development) -->
-        <%= debug_section(assigns) %>
+        {debug_section(assigns)}
       </div>
     </.dashboard_layout>
     """
@@ -158,8 +147,7 @@ defmodule StreampaiWeb.DashboardLive do
     end
   end
 
-  # Compile-time conditional debug section
-  if Application.compile_env(:streampai, :env) == :dev do
+  if Application.compile_env(:streampai, :env) != :prod do
     defp debug_section(assigns) do
       ~H"""
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

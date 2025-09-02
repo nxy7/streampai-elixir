@@ -87,8 +87,6 @@ defmodule Streampai.MixProject do
       {:rewrite, "~> 1.1", override: true},
       {:mneme, "~> 0.10.1", only: [:test, :dev]},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      # {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      # {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
       {:smokestack, "~> 0.9.2"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
@@ -103,7 +101,6 @@ defmodule Streampai.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      # {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"}
     ]
   end

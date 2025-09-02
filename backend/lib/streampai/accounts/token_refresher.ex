@@ -84,7 +84,7 @@ defmodule Streampai.Accounts.TokenRefresher do
   Get streaming accounts for a specific user.
   """
   def get_user_accounts(user_id) do
-    Ash.read(Streampai.Accounts.StreamingAccount, action: :for_user, user_id: user_id) |> dbg
+    Ash.read(Streampai.Accounts.StreamingAccount, action: :for_user, user_id: user_id)
   end
 
   @doc """

@@ -7,7 +7,6 @@ defmodule StreampaiWeb.Router do
 
   import AshAdmin.Router
 
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -31,19 +30,9 @@ defmodule StreampaiWeb.Router do
     plug :check_monitoring_access
   end
 
-  # IP allowlist for monitoring endpoints
-  @monitoring_allowed_ips [
-    # localhost
-    "127.0.0.1",
-    # localhost IPv6
-    "::1"
-    # Add your monitoring server IP here
-    # "10.0.0.100",
-    # "192.168.1.50"
-  ]
+  @monitoring_allowed_ips ["127.0.0.1", "::1"]
 
   defp check_monitoring_access(conn, _opts) do
-    #
     client_ip = get_client_ip(conn)
 
     if client_ip in @monitoring_allowed_ips do
@@ -66,14 +55,11 @@ defmodule StreampaiWeb.Router do
     end
   end
 
-
-  # Ash Admin UI (separate scope to avoid conflicts)
   scope "/" do
     pipe_through :browser
     ash_admin "/admin/ash"
   end
 
-  # Monitoring dashboards
   scope "/admin", StreampaiWeb do
     if Application.compile_env(:streampai, :env) == :prod do
       pipe_through [:browser, :check_monitoring_ip]
@@ -121,7 +107,6 @@ defmodule StreampaiWeb.Router do
       live "/widgets/chat", ChatWidgetSettingsLive
     end
 
-    # Impersonation routes (need authentication)
     get "/impersonation/start/:user_id", ImpersonationController, :start_impersonation
     get "/impersonation/stop", ImpersonationController, :stop_impersonation
     live "/button/:id", ButtonLive
@@ -186,5 +171,4 @@ defmodule StreampaiWeb.Router do
     get "/errors", MonitoringController, :errors
     get "/errors/:id", MonitoringController, :error_detail
   end
-
 end

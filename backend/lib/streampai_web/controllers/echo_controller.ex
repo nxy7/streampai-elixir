@@ -2,7 +2,6 @@ defmodule StreampaiWeb.EchoController do
   use StreampaiWeb, :controller
 
   def echo(conn, params) do
-    # Get request details for benchmarking
     response_data = %{
       method: conn.method,
       path: conn.request_path,
@@ -18,23 +17,19 @@ defmodule StreampaiWeb.EchoController do
   end
 
   def simple_echo(conn, _params) do
-    # Minimal echo for performance testing
     text(conn, "Test")
   end
 
-  # Ultra-minimal endpoint - no middleware, direct response
   def ultra_minimal(conn, _params) do
     conn
     |> put_resp_content_type("text/plain")
     |> send_resp(200, "Test")
   end
 
-  # JSON version for comparison
   def simple_json(conn, _params) do
     json(conn, %{status: "ok"})
   end
 
-  # Static content - bypass all processing
   def static_response(conn, _params) do
     conn
     |> put_resp_content_type("text/plain")
@@ -56,7 +51,6 @@ defmodule StreampaiWeb.EchoController do
   end
 
   def echo_with_delay(conn, params) do
-    # Default 100ms delay
     Process.sleep(100)
 
     json(conn, %{
@@ -71,7 +65,6 @@ defmodule StreampaiWeb.EchoController do
   defp get_raw_body(conn) do
     case conn.assigns[:raw_body] do
       nil ->
-        # Try to read body if not already read
         case Plug.Conn.read_body(conn, length: 1_000_000) do
           {:ok, body, _conn} -> body
           {:error, _} -> ""

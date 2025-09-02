@@ -58,11 +58,10 @@ defmodule Streampai.Accounts.WidgetConfig do
 
             [result] ->
               IO.puts("found res" <> inspect(result))
-              # Merge existing config with defaults to ensure all new keys exist
+
               merged_config =
                 Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
 
-              dbg(merged_config)
               updated_result = %{result | config: merged_config}
 
               {:ok, [updated_result]}

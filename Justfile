@@ -7,7 +7,11 @@ init-dev:
 	docker compose up
 
 test:
-	cd backend; mix test
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	cd backend
+	mix test
 
 start:
 	cd backend; mix start

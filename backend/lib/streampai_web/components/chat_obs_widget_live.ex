@@ -22,7 +22,6 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
         user_id: user_id,
         type: :chat_widget
       })
-      |> dbg
 
     {:ok,
      socket

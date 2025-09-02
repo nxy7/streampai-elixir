@@ -1,22 +1,10 @@
 defmodule StreampaiWeb.MonitoringController do
   @moduledoc """
   Controller for monitoring endpoints with IP-based access control.
-
-  Provides system monitoring data including CPU, memory, and application metrics.
-  Access is restricted to specific IP addresses for security.
   """
   use StreampaiWeb, :controller
 
-  # Configure allowed IPs - you can modify this list as needed
-  @allowed_ips [
-    # localhost
-    "127.0.0.1",
-    # localhost IPv6
-    "::1"
-    # Add your monitoring server IP here
-    # "10.0.0.100",
-    # "192.168.1.50"
-  ]
+  @allowed_ips ["127.0.0.1", "::1"]
 
   plug :check_ip_access
 
@@ -147,7 +135,6 @@ defmodule StreampaiWeb.MonitoringController do
 
   defp collect_database_metrics do
     try do
-      # Get database connection pool info
       pool_size = Streampai.Repo.config()[:pool_size] || 0
 
       %{

@@ -1,9 +1,6 @@
 defmodule StreampaiWeb.Plugs.ErrorTracker do
   @moduledoc """
-  Plug for tracking and logging errors that users encounter.
-
-  This plug captures errors and stores them in ETS for later inspection.
-  Errors include user-facing HTTP errors and unexpected application errors.
+  Plug for tracking and logging errors in ETS.
   """
   require Logger
 
@@ -12,7 +9,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    # Start tracking the request
     start_time = System.monotonic_time(:millisecond)
 
     conn =
@@ -37,7 +33,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   defp track_response(conn, start_time) do
     duration = System.monotonic_time(:millisecond) - start_time
 
-    # Track 4xx and 5xx errors
     if conn.status >= 400 do
       error_data = %{
         id: generate_error_id(),
@@ -58,7 +53,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
       store_error(error_data)
 
-      # Log error for immediate visibility
       Logger.error("HTTP Error: #{conn.status} #{conn.method} #{conn.request_path}",
         error_id: error_data.id,
         user_id: error_data.user_id,
@@ -103,7 +97,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp store_error(error_data) do
-    # Store in ETS table for quick access
     case :ets.whereis(:streampai_errors) do
       :undefined ->
         :ets.new(:streampai_errors, [:named_table, :public, :set, {:read_concurrency, true}])
@@ -112,11 +105,9 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
         :ok
     end
 
-    # Keep only last 1000 errors in memory
     current_count = :ets.info(:streampai_errors, :size) || 0
 
     if current_count >= 1000 do
-      # Remove oldest entries (this is a simple implementation)
       oldest_keys =
         :ets.tab2list(:streampai_errors)
         |> Enum.sort_by(fn {_id, data} -> data.timestamp end)
@@ -163,12 +154,10 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp get_response_body_sample(_conn) do
-    # This is challenging to get in a plug - consider using Phoenix telemetry instead
     nil
   end
 
   defp get_request_body_sample(conn) do
-    # Only sample for non-GET requests and keep it small
     if conn.method != "GET" and conn.body_params != %Plug.Conn.Unfetched{} do
       conn.body_params
       |> inspect()
@@ -178,7 +167,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
     end
   end
 
-  # Public API for retrieving errors
   def list_errors(limit \\ 50) do
     case :ets.whereis(:streampai_errors) do
       :undefined ->

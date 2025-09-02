@@ -1,14 +1,6 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Config module.
-#
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
 import Config
 
 signing_salt = "WVzcyVtA"
-
 
 config :ex_cldr, default_backend: Streampai.Cldr
 config :ash_oban, pro?: false
@@ -88,7 +80,6 @@ config :streampai, Streampai.Repo,
   timeout: 15_000,
   ownership_timeout: 30_000
 
-# Configures the endpoint
 config :streampai, StreampaiWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
@@ -99,13 +90,6 @@ config :streampai, StreampaiWeb.Endpoint,
   pubsub_server: Streampai.PubSub,
   live_view: [signing_salt: signing_salt]
 
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
 config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Local
 
 config :ueberauth, Ueberauth,
@@ -128,15 +112,11 @@ config :ueberauth, Ueberauth,
        ]}
   ]
 
-# Configures Elixir's Logger
 config :logger, :console,
   level: :info,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-# Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

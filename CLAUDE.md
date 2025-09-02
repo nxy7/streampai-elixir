@@ -120,3 +120,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Additional notes
 - we have ./tasks file that holds tasks that need to be done
+
+### Code Style Preferences
+- **Comments**: Only add comments when absolutely necessary for complex business logic or non-obvious code
+- **Self-documenting code**: Prefer clear variable names, function names, and code structure over explanatory comments
+- **No redundant comments**: Never add comments that simply restate what the code does
+- **Remove existing useless comments**: Clean up verbose, obvious, or outdated comments during any code changes
+- **Always format code**: Run `mix format` after making any code changes before yielding control

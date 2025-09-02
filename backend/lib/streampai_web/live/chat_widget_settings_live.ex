@@ -1,9 +1,6 @@
 defmodule StreampaiWeb.ChatWidgetSettingsLive do
   @moduledoc """
-  LiveView for configuring the chat widget settings.
-
-  Provides a dashboard interface for customizing chat widget display options
-  and generates the browser source URL for OBS embedding.
+  LiveView for configuring chat widget settings and OBS browser source URL generation.
   """
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
@@ -23,7 +20,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         user_id: current_user.id,
         type: :chat_widget
       })
-      |> dbg
 
     {:ok,
      socket
@@ -51,7 +47,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     {:noreply, socket}
   end
 
-  # Handle presence updates (inherited from BaseLive)
   def handle_info(
         %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
         socket
@@ -59,13 +54,9 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     {:noreply, socket}
   end
 
-
-  # Handle configuration changes for checkboxes (from form events)
   def handle_event("toggle_setting", params, socket) do
     current_config = socket.assigns.widget_config
 
-    # Extract checkbox values from form params
-    # Checkboxes not checked won't be in params, so default to false
     updated_config = %{
       current_config
       | show_badges: Map.get(params, "show_badges") == "on",
@@ -75,7 +66,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         show_platform: Map.get(params, "show_platform") == "on"
     }
 
-    # Broadcast to OBS widgets
     current_user = socket.assigns.current_user
 
     Phoenix.PubSub.broadcast(
@@ -92,7 +82,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       },
       actor: current_user.id
     )
-    |> dbg
 
     {:noreply, assign(socket, :widget_config, updated_config)}
   end
@@ -109,18 +98,15 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
           {field, Map.get(p, field)}
 
         _other ->
-          # fallback
           {"max_messages", "25"}
       end
 
     atom_setting = String.to_existing_atom(setting)
 
-    # Convert value to appropriate type and validate
     converted_value =
       case atom_setting do
         :max_messages ->
           num = String.to_integer(value)
-          # Clamp between 1 and 100
           max(1, min(100, num))
 
         :message_fade_time ->
@@ -135,11 +121,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
 
     updated_config = Map.put(current_config, atom_setting, converted_value)
 
-    # For now, just update the config. Stream limiting is complex without being able to enumerate streams
-    # In a real implementation, you might track message count separately or reset the stream
-
-    # Broadcast config update to all connected widgets for this user
-    # Broadcast to OBS widgets
     current_user = socket.assigns.current_user
 
     Phoenix.PubSub.broadcast(
@@ -156,7 +137,6 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       },
       actor: current_user
     )
-    |> dbg
 
     {:noreply, assign(socket, :widget_config, updated_config)}
   end
