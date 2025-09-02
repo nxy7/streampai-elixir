@@ -4,6 +4,8 @@ defmodule StreampaiWeb.DashboardLive do
   """
   use StreampaiWeb.BaseLive
 
+  @dev_env Application.compile_env(:streampai, :env) == :dev
+
   alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
@@ -136,7 +138,7 @@ defmodule StreampaiWeb.DashboardLive do
         </div>
 
     <!-- Debug Info (for development) -->
-        <%= if Mix.env() == :dev do %>
+        <%= if @dev_env do %>
           <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 class="text-sm font-medium text-yellow-800 mb-2">Debug Info (Development Only)</h3>
             <details>

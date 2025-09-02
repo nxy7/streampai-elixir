@@ -88,7 +88,7 @@ defmodule StreampaiWeb.Router do
 
   # Monitoring dashboards
   scope "/admin", StreampaiWeb do
-    if Mix.env() == :prod do
+    if Application.compile_env(:streampai, :env) == :prod do
       pipe_through [:browser, :check_monitoring_ip]
     else
       pipe_through :browser

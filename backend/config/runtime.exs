@@ -45,7 +45,8 @@ database_url =
 config :streampai,
   google_client_id: env!("GOOGLE_CLIENT_ID", :string),
   google_client_secret: env!("GOOGLE_CLIENT_SECRET", :string),
-  google_redirect_uri: env!("GOOGLE_REDIRECT_URI", :string)
+  google_redirect_uri: env!("GOOGLE_REDIRECT_URI", :string),
+  token_signing_secret: env!("TOKEN_SIGNING_SECRET", :string)
 
 config :streampai, :strategies,
   google: [

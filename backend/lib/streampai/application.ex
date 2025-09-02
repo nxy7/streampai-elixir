@@ -7,6 +7,11 @@ defmodule Streampai.Application do
   @impl true
   def start(_type, _args) do
     Logger.info("streampai startup")
+    
+    # Run migrations on startup if in production
+    if System.get_env("PHX_SERVER") do
+      run_migrations()
+    end
 
     # Session storage is now handled by cookie store instead of ETS
 
@@ -44,5 +49,19 @@ defmodule Streampai.Application do
   def config_change(changed, _new, removed) do
     StreampaiWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp run_migrations do
+    Logger.info("Running migrations...")
+    
+    try do
+      Streampai.Release.migrate()
+      Logger.info("Migrations completed successfully")
+    rescue
+      error ->
+        Logger.error("Migration failed: #{inspect(error)}")
+        # Don't crash the application if migrations fail
+        :ok
+    end
   end
 end

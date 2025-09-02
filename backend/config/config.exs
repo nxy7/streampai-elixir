@@ -91,6 +91,7 @@ config :streampai,
   ecto_repos: [Streampai.Repo],
   ash_domains: [Streampai.Stream, Streampai.Accounts],
   generators: [timestamp_type: :utc_datetime],
+  env: Mix.env(),
   session_options: [
     store: :cookie,
     key: "_streampai_key",
