@@ -1,4 +1,5 @@
 import Config
+import Dotenvy
 
 config :beacon,
   cms: [
@@ -11,8 +12,6 @@ config :beacon,
 if config_env() == :dev do
   config :tidewave, :root, File.cwd!()
 end
-
-import Dotenvy
 
 source!(["../.env", System.get_env()])
 # config/runtime.exs is executed for all environments, including
