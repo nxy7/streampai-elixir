@@ -22,7 +22,6 @@ defmodule Streampai.Application do
       {Phoenix.PubSub, name: Streampai.PubSub},
       # {Beacon, [sites: [Application.fetch_env!(:beacon, :cms)]]},
 
-      # StreampaiWeb.CmsEndpoint,
       # {DNSCluster, query: Application.get_env(:streampai, :dns_cluster_query) || :ignore},
       Streampai.ButtonServer,
       Streampai.Double,
@@ -33,8 +32,7 @@ defmodule Streampai.Application do
       # Start to serve requests, typically the last entry
       {Finch, name: Streampai.Finch},
       StreampaiWeb.Endpoint,
-      {AshAuthentication.Supervisor, [otp_app: :streampai]},
-      StreampaiWeb.ProxyEndpoint
+      {AshAuthentication.Supervisor, [otp_app: :streampai]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

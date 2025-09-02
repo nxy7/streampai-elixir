@@ -9,26 +9,6 @@ import Config
 
 signing_salt = "WVzcyVtA"
 
-config :streampai,
-       StreampaiWeb.CmsEndpoint,
-       url: [host: "localhost"],
-       adapter: Bandit.PhoenixAdapter,
-       render_errors: [
-         formats: [html: Beacon.Web.ErrorHTML],
-         layout: false
-       ],
-       pubsub_server: Streampai.PubSub,
-       live_view: [signing_salt: signing_salt]
-
-config :streampai,
-       StreampaiWeb.ProxyEndpoint,
-       adapter: Bandit.PhoenixAdapter,
-       pubsub_server: Streampai.PubSub,
-       render_errors: [
-         formats: [html: Beacon.Web.ErrorHTML],
-         layout: false
-       ],
-       live_view: [signing_salt: signing_salt]
 
 config :ex_cldr, default_backend: Streampai.Cldr
 config :ash_oban, pro?: false

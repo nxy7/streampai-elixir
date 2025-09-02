@@ -4,7 +4,7 @@ defmodule StreampaiWeb.DashboardLive do
   """
   use StreampaiWeb.BaseLive
 
-  @dev_env Application.compile_env(:streampai, :env) == :dev
+  # @dev_env Application.compile_env(:streampai, :env) == :dev
 
   alias Streampai.Dashboard
 

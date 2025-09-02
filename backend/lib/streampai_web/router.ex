@@ -1,21 +1,12 @@
 defmodule StreampaiWeb.Router do
   use StreampaiWeb, :router
 
-  use Beacon.LiveAdmin.Router
-  use Beacon.Router
   import Oban.Web.Router
   use AshAuthentication.Phoenix.Router
   import Phoenix.LiveDashboard.Router
 
   import AshAdmin.Router
 
-  pipeline :beacon_admin do
-    plug Beacon.LiveAdmin.Plug
-  end
-
-  pipeline :beacon do
-    plug Beacon.Plug
-  end
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -75,10 +66,6 @@ defmodule StreampaiWeb.Router do
     end
   end
 
-  scope "/" do
-    pipe_through [:browser, :beacon_admin]
-    beacon_live_admin "/cms/admin"
-  end
 
   # Ash Admin UI (separate scope to avoid conflicts)
   scope "/" do
@@ -200,8 +187,4 @@ defmodule StreampaiWeb.Router do
     get "/errors/:id", MonitoringController, :error_detail
   end
 
-  scope "/", alias: StreampaiWeb do
-    pipe_through [:browser, :beacon]
-    beacon_site "/content", site: :cms
-  end
 end

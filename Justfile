@@ -13,7 +13,11 @@ start:
 	cd backend; mix start
 	
 si:
-	cd backend; iex -S mix phx.server
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	cd backend
+	iex -S mix phx.server
 
 # Build and run in production mode
 prod:

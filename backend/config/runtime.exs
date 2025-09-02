@@ -1,19 +1,10 @@
 import Config
-import Dotenvy
 
-config :beacon,
-  cms: [
-    site: :cms,
-    repo: Streampai.Repo,
-    endpoint: StreampaiWeb.CmsEndpoint,
-    router: StreampaiWeb.Router
-  ]
 
+# Development-specific config
 if config_env() == :dev do
   config :tidewave, :root, File.cwd!()
 end
-
-source!(["../.env", System.get_env()])
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -34,37 +25,33 @@ if System.get_env("PHX_SERVER") do
   config :streampai, StreampaiWeb.Endpoint, server: true
 end
 
-database_url =
-  env!("DATABASE_URL") ||
-    raise """
-    environment variable DATABASE_URL is missing.
-    For example: ecto://USER:PASS@HOST/DATABASE
-    """
+database_url = System.get_env("DATABASE_URL") || 
+  raise "DATABASE_URL environment variable is missing"
 
 config :streampai,
-  google_client_id: env!("GOOGLE_CLIENT_ID", :string),
-  google_client_secret: env!("GOOGLE_CLIENT_SECRET", :string),
-  google_redirect_uri: env!("GOOGLE_REDIRECT_URI", :string),
-  token_signing_secret: env!("TOKEN_SIGNING_SECRET", :string)
+  google_client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"), 
+  google_redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
+  token_signing_secret: System.get_env("TOKEN_SIGNING_SECRET")
 
 config :streampai, :strategies,
   google: [
-    client_id: env!("GOOGLE_CLIENT_ID"),
-    client_secret: env!("GOOGLE_CLIENT_SECRET"),
-    redirect_uri: env!("GOOGLE_REDIRECT_URI"),
+    client_id: System.get_env("GOOGLE_CLIENT_ID"),
+    client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
+    redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
     strategy: Assent.Strategy.Google
   ]
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: env!("GOOGLE_CLIENT_ID"),
-  client_secret: env!("GOOGLE_CLIENT_SECRET")
+  client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
 config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
-  client_id: env!("TWITCH_CLIENT_ID"),
-  client_secret: env!("TWITCH_CLIENT_SECRET")
+  client_id: System.get_env("TWITCH_CLIENT_ID"),
+  client_secret: System.get_env("TWITCH_CLIENT_SECRET")
 
 if config_env() == :prod do
-  maybe_ipv6 = if env!("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :streampai, Streampai.Repo,
     username: "postgres",
@@ -74,7 +61,7 @@ if config_env() == :prod do
     port: 5432,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(env!("POOL_SIZE") || "25"),
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "25"),
     queue_target: 5000,
     queue_interval: 1000,
     timeout: 15_000,
@@ -86,15 +73,11 @@ if config_env() == :prod do
   # want to use a different value for prod and you most likely don't want
   # to check this value into version control, so we use an environment
   # variable instead.
-  secret_key_base =
-    env!("SECRET_KEY_BASE") ||
-      raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
-      """
+  secret_key_base = System.get_env("SECRET_KEY_BASE") || 
+    raise "SECRET_KEY_BASE environment variable is missing"
 
-  host = env!("PHX_HOST") || "example.com"
-  port = String.to_integer(env!("PORT") || "4000")
+  host = System.get_env("PHX_HOST") || "streampai.com"
+  port = String.to_integer(System.get_env("PORT") || "4000")
 
   # config :streampai, :dns_cluster_query, env!("DNS_CLUSTER_QUERY")
 
@@ -109,18 +92,6 @@ if config_env() == :prod do
       "http://#{host}"
     ]
 
-  config :streampai, StreampaiWeb.ProxyEndpoint,
-    check_origin: {StreampaiWeb.ProxyEndpoint, :check_origin, []},
-    url: [port: 443, scheme: "https"],
-    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: "4001"],
-    secret_key_base: secret_key_base,
-    server: !!System.get_env("PHX_SERVER")
-
-  config :streampai, StreampaiWeb.CmsEndpoint,
-    url: [host: host, port: 8868, scheme: "https"],
-    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: 4464],
-    secret_key_base: secret_key_base,
-    server: !!System.get_env("PHX_SERVER")
 
   # twitch: [
   #   client_id: "REPLACE_WITH_CLIENT_ID",
