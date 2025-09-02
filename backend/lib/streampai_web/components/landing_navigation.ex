@@ -1,7 +1,7 @@
 defmodule StreampaiWeb.Components.LandingNavigation do
   use StreampaiWeb, :html
 
-  attr :current_user, :any, default: nil
+  attr(:current_user, :any, default: nil)
 
   def landing_navigation(assigns) do
     ~H"""
@@ -18,24 +18,30 @@ defmodule StreampaiWeb.Components.LandingNavigation do
           </div>
 
           <div class="hidden md:flex items-center space-x-8">
-            <a href="#features" class="text-gray-300 hover:text-white transition-colors">Features</a>
-            <a href="#pricing" class="text-gray-300 hover:text-white transition-colors">Pricing</a>
-            <a href="#about" class="text-gray-300 hover:text-white transition-colors">About</a>
+            <.link navigate="#features" class="text-gray-300 hover:text-white transition-colors">
+              Features
+            </.link>
+            <.link navigate="#pricing" class="text-gray-300 hover:text-white transition-colors">
+              Pricing
+            </.link>
+            <.link navigate="#about" class="text-gray-300 hover:text-white transition-colors">
+              About
+            </.link>
 
             <%= if @current_user do %>
-              <a
-                href="/dashboard"
+              <.link
+                navigate="/dashboard"
                 class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Dashboard
-              </a>
+              </.link>
             <% else %>
-              <a
-                href="/auth/sign-in"
+              <.link
+                navigate="/auth/sign-in"
                 class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Get Started
-              </a>
+              </.link>
             <% end %>
           </div>
           

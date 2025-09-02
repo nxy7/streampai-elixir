@@ -9,11 +9,19 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   def mount(_params, _session, socket) do
     current_user = socket.assigns.current_user
 
-    if connected?(socket) do
-      schedule_next_event()
-    end
+    # Generate initial event immediately
+    initial_event = FakeAlert.generate_event()
+    display_time = Enum.random(3..8)
+    initial_event_with_time = Map.put(initial_event, :display_time, display_time)
 
-    initial_events = FakeAlert.initial_events()
+    IO.puts(
+      "Initial event: #{initial_event.type} - #{initial_event.username} (ID: #{initial_event.id}) - Display time: #{display_time}s"
+    )
+
+    if connected?(socket) do
+      # Hide initial event 1 second after gap starts (display_time + 1)
+      Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
+    end
 
     {:ok, %{config: initial_config}} =
       Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
@@ -23,25 +31,38 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
 
     {:ok,
      socket
-     |> stream(:events, initial_events)
      |> assign(:widget_config, initial_config)
-     |> assign(:vue_events, initial_events), layout: false}
+     |> assign(:current_event, initial_event_with_time), layout: false}
   end
 
   def handle_info(:generate_event, socket) do
     new_event = FakeAlert.generate_event()
+    # Random display time between 3-8 seconds
+    display_time = Enum.random(3..8)
+    # 2 seconds gap between events
+    gap_time = 2
 
-    socket = socket |> stream_insert(:events, new_event, at: -1)
+    # Add display_time to event
+    event_with_display_time = Map.put(new_event, :display_time, display_time)
 
-    current_vue_events = Map.get(socket.assigns, :vue_events, [])
-    updated_vue_events = [new_event | current_vue_events]
+    # Add some debugging info
+    IO.puts(
+      "Generated new event: #{new_event.type} - #{new_event.username} (ID: #{new_event.id}) - Display time: #{display_time}s"
+    )
 
-    # Keep last 10 events for preview
-    limited_vue_events = Enum.take(updated_vue_events, 10)
+    socket = assign(socket, :current_event, event_with_display_time)
 
-    socket = assign(socket, :vue_events, limited_vue_events)
+    # Set event to nil 1 second after gap starts (display_time + 1)
+    Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
+    {:noreply, socket}
+  end
 
-    schedule_next_event()
+  def handle_info(:hide_event, socket) do
+    IO.puts("Setting event to nil")
+    socket = assign(socket, :current_event, nil)
+
+    # Show next event after remaining 1 second of the gap
+    Process.send_after(self(), :generate_event, 1000)
     {:noreply, socket}
   end
 
@@ -164,7 +185,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
               v-component="AlertboxWidget"
               v-socket={@socket}
               config={@widget_config}
-              events={@vue_events}
+              event={@current_event}
               class="w-full h-full"
               id="preview-alertbox-widget"
             />
@@ -329,6 +350,4 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     </.dashboard_layout>
     """
   end
-
-  defp schedule_next_event, do: Process.send_after(self(), :generate_event, 7000)
 end

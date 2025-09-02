@@ -10,12 +10,18 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
   @impl true
   def mount(%{"user_id" => user_id}, _session, socket) do
-    if connected?(socket) do
-      schedule_next_event()
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
-    end
-
-    initial_events = FakeAlert.initial_events()
+    initial_event =
+      if connected?(socket) do
+        # Generate initial event and start cycle
+        event = FakeAlert.generate_event()
+        display_time = Enum.random(3..8)
+        event_with_time = Map.put(event, :display_time, display_time)
+        Process.send_after(self(), :hide_event, display_time * 1000)
+        Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
+        event_with_time
+      else
+        nil
+      end
 
     {:ok, %{config: config}} =
       Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
@@ -25,27 +31,40 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
     {:ok,
      socket
-     |> stream(:events, initial_events)
      |> assign(:user_id, user_id)
      |> assign(:widget_config, config)
-     |> assign(:vue_events, initial_events), layout: false}
+     |> assign(:current_event, initial_event), layout: false}
   end
 
   @impl true
   def handle_info(:generate_event, socket) do
     new_event = FakeAlert.generate_event()
+    # Random display time between 3-8 seconds
+    display_time = Enum.random(3..8)
+    # 2 seconds gap between events
+    gap_time = 2
 
-    socket = stream_insert(socket, :events, new_event)
+    # Add display_time to event
+    event_with_display_time = Map.put(new_event, :display_time, display_time)
 
-    current_vue_events = Map.get(socket.assigns, :vue_events, [])
-    updated_vue_events = [new_event | current_vue_events]
+    # Add some debugging info
+    IO.puts(
+      "[OBS Widget] Generated new event: #{new_event.type} - #{new_event.username} (ID: #{new_event.id}) - Display time: #{display_time}s"
+    )
 
-    # Keep last 10 events for the widget
-    limited_vue_events = Enum.take(updated_vue_events, 10)
+    socket = assign(socket, :current_event, event_with_display_time)
 
-    socket = assign(socket, :vue_events, limited_vue_events)
+    # Set event to nil 1 second after gap starts (display_time + 1)
+    Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
+    {:noreply, socket}
+  end
 
-    schedule_next_event()
+  def handle_info(:hide_event, socket) do
+    IO.puts("[OBS Widget] Setting event to nil")
+    socket = assign(socket, :current_event, nil)
+
+    # Show next event after remaining 1 second of the gap
+    Process.send_after(self(), :generate_event, 1000)
     {:noreply, socket}
   end
 
@@ -67,7 +86,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
         v-component="AlertboxWidget"
         v-socket={@socket}
         config={@widget_config}
-        events={@vue_events}
+        event={@current_event}
         class="w-full h-full"
         id="live-alertbox-widget"
       />

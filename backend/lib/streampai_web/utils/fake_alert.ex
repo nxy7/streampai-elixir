@@ -75,12 +75,6 @@ defmodule StreampaiWeb.Utils.FakeAlert do
     "Keep up the amazing work!"
   ]
 
-  def initial_events do
-    # Generate 3-5 initial events for preview
-    1..Enum.random(3..5)
-    |> Enum.map(fn _ -> generate_event() end)
-  end
-
   def default_config do
     %{
       animation_type: "fade",
