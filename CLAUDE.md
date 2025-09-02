@@ -121,6 +121,86 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Additional notes
 - we have ./tasks file that holds tasks that need to be done
 
+### Widget Creation Pattern
+
+This codebase uses a consistent pattern for creating interactive widgets that can be embedded in OBS for streaming. The pattern consists of 4 main components:
+
+#### 1. Vue Component (`assets/vue/[Widget]Widget.vue`)
+- Pure Vue component with TypeScript for displaying widget data
+- Handles animations, styling, and real-time data updates
+- Receives configuration and events as props
+- Self-contained with no external dependencies on LiveView state
+
+Example interface structure:
+```typescript
+interface WidgetEvent {
+  id: string
+  type: string
+  username: string
+  timestamp: Date
+  // ... widget-specific fields
+}
+
+interface WidgetConfig {
+  // Configuration options like animation_type, display_duration, etc.
+}
+```
+
+#### 2. Utility Module (`lib/streampai_web/utils/fake_[widget].ex`)
+- Provides `default_config/0` function for widget configuration defaults
+- Generates realistic fake data for preview and testing with `generate_event/0`
+- Contains predefined data pools (usernames, messages, etc.) for realistic demos
+- Used by both settings preview and standalone widget display
+
+#### 3. Settings LiveView (`lib/streampai_web/live/[widget]_widget_settings_live.ex`)
+- Configuration interface with form handling and real-time preview
+- Uses `WidgetConfig` resource to persist user settings
+- Broadcasts configuration changes via PubSub for real-time updates
+- Generates mock events periodically for preview (typically every 7 seconds)
+- Provides OBS browser source URL generation
+
+Key functions:
+- `mount/3` - Load existing config or create with defaults
+- `handle_event("save", ...)` - Save config and broadcast changes
+- `handle_info(:generate_event, ...)` - Generate preview events
+
+#### 4. Display LiveView (`lib/streampai_web/components/[widget]_obs_widget_live.ex`)
+- Standalone widget for OBS browser source embedding
+- Subscribes to configuration updates via PubSub topic
+- Transparent background for overlay functionality
+- Generates demo events on interval (for development/demo)
+- Layout set to `false` for clean embedding
+
+#### Integration Requirements
+
+**Database & Configuration:**
+- Add widget type to `WidgetConfig` validation list
+- Add helper function in `WidgetConfig.get_default_config/1`
+- Upsert configuration with `user_type_unique` identity
+
+**Routing:**
+- Settings route: `live "/widgets/[widget]", [Widget]WidgetSettingsLive`
+- Display route: `live "/widgets/[widget]/display", Components.[Widget]ObsWidgetLive`
+
+**Dashboard Integration:**
+- Add widget link to `widgets_live.ex` dashboard
+- Use appropriate icon and category grouping
+
+#### PubSub Communication Pattern
+- Topic: `"widget_config:#{widget_type}:#{user_id}"`
+- Settings page broadcasts on config save
+- Display page subscribes for real-time config updates
+- Enables instant preview updates without page refresh
+
+#### Development Notes
+- Vue components should be framework-agnostic and reusable
+- Utility modules provide consistent fake data for testing
+- Always test both settings preview and standalone display
+- Ensure transparent backgrounds work correctly in OBS
+- Use realistic timing intervals (5-10 seconds) for demo events
+
+This pattern ensures consistency across all widgets while maintaining clean separation of concerns and enabling real-time configuration updates.
+
 ### Code Style Preferences
 - **Comments**: Only add comments when absolutely necessary for complex business logic or non-obvious code
 - **Self-documenting code**: Prefer clear variable names, function names, and code structure over explanatory comments

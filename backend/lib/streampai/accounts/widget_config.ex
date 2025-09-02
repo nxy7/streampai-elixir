@@ -42,7 +42,8 @@ defmodule Streampai.Accounts.WidgetConfig do
 
       prepare fn query, _context ->
         Ash.Query.after_action(query, fn _query, results ->
-          default_config = StreampaiWeb.Utils.FakeChat.default_config()
+          widget_type = Ash.Query.get_argument(query, :type)
+          default_config = get_default_config(widget_type)
 
           case results do
             [] ->
@@ -91,6 +92,7 @@ defmodule Streampai.Accounts.WidgetConfig do
   validations do
     validate one_of(:type, [
                :chat_widget,
+               :alertbox_widget,
                :donation_widget,
                :follow_widget,
                :subscriber_widget,
@@ -99,7 +101,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget
              ]) do
-      message "Type must be one of: chat_widget, donation_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, donation_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
     end
   end
 
@@ -125,4 +127,9 @@ defmodule Streampai.Accounts.WidgetConfig do
   identities do
     identity :user_type_unique, [:user_id, :type]
   end
+
+  # Helper function to get default config based on widget type
+  defp get_default_config(:chat_widget), do: StreampaiWeb.Utils.FakeChat.default_config()
+  defp get_default_config(:alertbox_widget), do: StreampaiWeb.Utils.FakeAlert.default_config()
+  defp get_default_config(_), do: %{}
 end

@@ -73,10 +73,13 @@ defmodule StreampaiWeb.WidgetsLive do
               </svg>
             </div>
             <div class="space-y-3">
-              <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                <h4 class="font-medium text-sm">Donation Alert</h4>
-                <p class="text-xs text-gray-500">Show donation notifications</p>
-              </div>
+              <.link
+                navigate={~p"/widgets/alertbox"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <h4 class="font-medium text-sm">Alertbox Widget</h4>
+                <p class="text-xs text-gray-500">Show donation, follow & subscription alerts</p>
+              </.link>
               <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Donation Goal</h4>
                 <p class="text-xs text-gray-500">Track donation progress</p>

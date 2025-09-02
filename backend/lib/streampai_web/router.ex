@@ -87,6 +87,7 @@ defmodule StreampaiWeb.Router do
     end
 
     live "/widgets/chat/display", Components.ChatObsWidgetLive
+    live "/widgets/alertbox/display", Components.AlertboxObsWidgetLive
 
     get "/home", PageController, :home
     get "/streaming/connect/:provider", MultiProviderAuth, :request
@@ -105,6 +106,7 @@ defmodule StreampaiWeb.Router do
       live "/dashboard/settings", SettingsLive
       live "/dashboard/admin/users", UsersLive
       live "/widgets/chat", ChatWidgetSettingsLive
+      live "/widgets/alertbox", AlertboxWidgetSettingsLive
     end
 
     get "/impersonation/start/:user_id", ImpersonationController, :start_impersonation
