@@ -115,7 +115,7 @@ config :ueberauth, Ueberauth,
 config :logger, :console,
   level: :info,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :error_id, :user_id, :path, :duration]
 
 config :phoenix, :json_library, Jason
 
