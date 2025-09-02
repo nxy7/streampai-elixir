@@ -28,7 +28,7 @@ services:
       POOL_SIZE: "25"
 
       PHX_SERVER: "true"
-      PHX_HOST: "${PHX_HOST:-localhost}"
+      PHX_HOST: "${PHX_HOST:-streampai.com}"
       PORT: "4000"
       MIX_ENV: "prod"
 
