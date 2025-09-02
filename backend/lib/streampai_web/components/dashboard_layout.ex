@@ -34,14 +34,17 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           <div class="sidebar fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0">
             <!-- Sidebar Header -->
             <div class="flex items-center justify-center p-4 border-b border-gray-700 relative">
-              <a href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <.link
+                navigate="/"
+                class="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              >
                 <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
                   </svg>
                 </div>
                 <span class="sidebar-text text-xl font-bold">Streampai</span>
-              </a>
+              </.link>
               <button
                 id="sidebar-toggle"
                 class="hidden md:block absolute right-2 p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
@@ -74,8 +77,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </h3>
                 <div class="space-y-2">
                   <!-- Dashboard -->
-                  <a
-                    href="/dashboard"
+                  <.link
+                    navigate="/dashboard"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "dashboard", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Dashboard"
                   >
@@ -99,11 +102,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Dashboard</span>
-                  </a>
+                  </.link>
                   
     <!-- Analytics -->
-                  <a
-                    href="/dashboard/analytics"
+                  <.link
+                    navigate="/dashboard/analytics"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "analytics", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Analytics"
                   >
@@ -121,7 +124,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Analytics</span>
-                  </a>
+                  </.link>
                 </div>
               </div>
               
@@ -132,8 +135,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </h3>
                 <div class="space-y-2">
                   <!-- Stream -->
-                  <a
-                    href="/dashboard/stream"
+                  <.link
+                    navigate="/dashboard/stream"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "stream", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Stream"
                   >
@@ -151,11 +154,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Stream</span>
-                  </a>
+                  </.link>
                   
     <!-- Chat History -->
-                  <a
-                    href="/dashboard/chat-history"
+                  <.link
+                    navigate="/dashboard/chat-history"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "chat-history", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Chat History"
                   >
@@ -173,11 +176,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Chat History</span>
-                  </a>
+                  </.link>
                   
     <!-- Widgets -->
-                  <a
-                    href="/dashboard/widgets"
+                  <.link
+                    navigate="/dashboard/widgets"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "widgets", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Widgets"
                   >
@@ -195,7 +198,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Widgets</span>
-                  </a>
+                  </.link>
                 </div>
               </div>
               
@@ -207,8 +210,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </h3>
                   <div class="space-y-2">
                     <!-- User Management -->
-                    <a
-                      href="/dashboard/admin/users"
+                    <.link
+                      navigate="/dashboard/admin/users"
                       class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "users", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                       title="Users"
                     >
@@ -226,7 +229,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         />
                       </svg>
                       <span class="sidebar-text ml-3">Users</span>
-                    </a>
+                    </.link>
                   </div>
                 </div>
               <% end %>
@@ -238,8 +241,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </h3>
                 <div class="space-y-2">
                   <!-- Settings -->
-                  <a
-                    href="/dashboard/settings"
+                  <.link
+                    navigate="/dashboard/settings"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "settings", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
                     title="Settings"
                   >
@@ -263,7 +266,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       />
                     </svg>
                     <span class="sidebar-text ml-3">Settings</span>
-                  </a>
+                  </.link>
                 </div>
               </div>
             </nav>
