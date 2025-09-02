@@ -32,8 +32,7 @@ defmodule StreampaiWeb.DashboardLive do
       )
       |> assign(
         display_name: get_display_name(socket),
-        greeting_text: greeting_text,
-        show_debug: @dev_env
+        greeting_text: greeting_text
       )
 
     {:ok, socket, layout: false}
@@ -142,19 +141,7 @@ defmodule StreampaiWeb.DashboardLive do
         </div>
         
     <!-- Debug Info (for development) -->
-        <%= if @show_debug do %>
-          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-yellow-800 mb-2">Debug Info (Development Only)</h3>
-            <details>
-              <summary class="cursor-pointer text-xs text-yellow-700">Current User Data</summary>
-              <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(@current_user, pretty: true, limit: :infinity) %></pre>
-            </details>
-            <details class="mt-2">
-              <summary class="cursor-pointer text-xs text-yellow-700">Dashboard Data</summary>
-              <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(@dashboard_data, pretty: true, limit: :infinity) %></pre>
-            </details>
-          </div>
-        <% end %>
+        <%= debug_section(assigns) %>
       </div>
     </.dashboard_layout>
     """
@@ -169,5 +156,26 @@ defmodule StreampaiWeb.DashboardLive do
     else
       "Welcome back, #{display_name}!"
     end
+  end
+
+  # Compile-time conditional debug section
+  if Application.compile_env(:streampai, :env) == :dev do
+    defp debug_section(assigns) do
+      ~H"""
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 class="text-sm font-medium text-yellow-800 mb-2">Debug Info (Development Only)</h3>
+        <details>
+          <summary class="cursor-pointer text-xs text-yellow-700">Current User Data</summary>
+          <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(@current_user, pretty: true, limit: :infinity) %></pre>
+        </details>
+        <details class="mt-2">
+          <summary class="cursor-pointer text-xs text-yellow-700">Dashboard Data</summary>
+          <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(@dashboard_data, pretty: true, limit: :infinity) %></pre>
+        </details>
+      </div>
+      """
+    end
+  else
+    defp debug_section(_assigns), do: ""
   end
 end
