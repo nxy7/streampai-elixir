@@ -1,5 +1,20 @@
 # Short Term
-- fix alertbox progress bar which after disappearing flashes for 0,5sec again
+- move cloudflare client from LivestreamManager domain as it doesn't have to belong there and could potentially be used outside of it
+- does ecto sandbox work with elixir ash
+- make code compile
+- help me review the code and understand structure you've created
+
+
+
+- start creating livestream manager, it is system of elixir actors that
+  - manage livestream (collect livestream messages, change titles, thumbnails, statistics)
+  - manage cloudflare (using live inputs and outputs, user streams into live input and streampai
+    manages to which platforms the trafic goes by handling cloudflare live outputs)
+  - it allows to send chat messages to some or all running livestreams
+  - it observes running platforms and collects donations/raids/other stream events to broadcast them
+    in alertbox
+
+
 
 # Long Term
 - when logging in redirect to page user tried to access
@@ -8,6 +23,8 @@
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
 to stdout, I'll want to confirm that multiple invocations don't print out multiple times. Macro should be configurable as in it should take in cache duration. Or maybe some library
 like cachex already supports something like that?
+
+- thumbnail generator (user can provide some of his photos or other materials that he wants in a thumbnail, we use it and plug it into stream settings)
 
 - Streampai Donations
 1. We need some way to accept donations, it would probably require some integration with payment platform
