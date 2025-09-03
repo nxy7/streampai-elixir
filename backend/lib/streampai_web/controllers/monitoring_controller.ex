@@ -17,10 +17,13 @@ defmodule StreampaiWeb.MonitoringController do
   end
 
   def health_check(conn, _params) do
+    uptime_ms = :erlang.statistics(:wall_clock) |> elem(0)
+    
     health_status = %{
       status: "ok",
       timestamp: DateTime.utc_now(),
-      uptime: :erlang.statistics(:wall_clock) |> elem(0),
+      uptime: uptime_ms,
+      uptime_human: format_uptime(uptime_ms),
       node: Node.self(),
       version: Application.spec(:streampai, :vsn) |> to_string(),
       git_sha: System.get_env("GIT_SHA", "unknown")
@@ -161,5 +164,23 @@ defmodule StreampaiWeb.MonitoringController do
       error_types: Enum.frequencies_by(recent_errors, & &1.type),
       status_codes: Enum.frequencies_by(recent_errors, & &1[:status])
     }
+  end
+
+  defp format_uptime(uptime_ms) do
+    seconds = div(uptime_ms, 1000)
+    minutes = div(seconds, 60)
+    hours = div(minutes, 60)
+    days = div(hours, 24)
+
+    remaining_hours = rem(hours, 24)
+    remaining_minutes = rem(minutes, 60)
+    remaining_seconds = rem(seconds, 60)
+
+    cond do
+      days > 0 -> "#{days}d #{remaining_hours}h #{remaining_minutes}m"
+      hours > 0 -> "#{hours}h #{remaining_minutes}m"
+      minutes > 0 -> "#{minutes}m #{remaining_seconds}s"
+      true -> "#{seconds}s"
+    end
   end
 end
