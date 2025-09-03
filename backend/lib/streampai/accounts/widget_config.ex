@@ -81,11 +81,13 @@ defmodule Streampai.Accounts.WidgetConfig do
   policies do
     # Users can only manage their own widget configs
     policy action_type(:read) do
-      authorize_if always()
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:role) == :admin)
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if always()
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:role) == :admin)
     end
   end
 

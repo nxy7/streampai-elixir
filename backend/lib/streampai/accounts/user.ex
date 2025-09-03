@@ -65,7 +65,18 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
+      prepare fn query, _context ->
+        Ash.Query.after_action(query, fn _query, [user] ->
+          # Reload the user with themselves as the actor for proper relationship loading
+          updated_user =
+            Streampai.Accounts.User
+            |> Ash.Query.for_read(:get, %{}, actor: %{id: user.id})
+            |> Ash.Query.load([:tier, :connected_platforms, :role, :streaming_accounts])
+            |> Ash.read_one!()
+
+          {:ok, [updated_user]}
+        end)
+      end
 
       filter expr(id == ^arg(:id))
     end
@@ -76,8 +87,20 @@ defmodule Streampai.Accounts.User do
 
       get? true
 
-      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
       prepare AshAuthentication.Preparations.FilterBySubject
+
+      prepare fn query, _context ->
+        Ash.Query.after_action(query, fn _query, [user] ->
+          # Reload the user with themselves as the actor for proper relationship loading
+          updated_user =
+            Streampai.Accounts.User
+            |> Ash.Query.for_read(:get, %{}, actor: %{id: user.id})
+            |> Ash.Query.load([:tier, :connected_platforms, :role, :streaming_accounts])
+            |> Ash.read_one!()
+
+          {:ok, [updated_user]}
+        end)
+      end
     end
 
     create :register_with_google do
