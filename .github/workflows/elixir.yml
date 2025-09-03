@@ -129,18 +129,14 @@ jobs:
           echo "Image will be: ghcr.io/${{ github.repository }}:latest"
           
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
           platforms: linux/amd64
-          cache-from: |
-            type=gha,scope=buildkit
-            type=registry,ref=ghcr.io/${{ github.repository }}:cache
-          cache-to: |
-            type=gha,scope=buildkit,mode=max
-            type=registry,ref=ghcr.io/${{ github.repository }}:cache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             GIT_SHA=${{ github.sha }}
           tags: |
@@ -163,8 +159,6 @@ jobs:
             cd streampai-elixir
             git pull
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            echo "Checking if image exists..."
-            docker manifest inspect ghcr.io/${{ github.repository }}:latest || echo "Image not found in registry"
-            echo "Attempting to pull image..."
-            docker compose -f docker-compose.prod.yml pull streampai
+            echo "Pulling specific platform image..."
+            docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
             docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps streampai
