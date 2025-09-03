@@ -1,4 +1,4 @@
-name: Elixir CI
+name: Test
 
 on:
   push:
@@ -8,11 +8,10 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   test:
-    name: Build and test
+    name: Test
     runs-on: ubuntu-latest
 
     services:
@@ -75,12 +74,6 @@ jobs:
           cd backend
           mix format --check-formatted
 
-      # Disabled credo because it returns non-zero code even for warnings
-      # - name: Run Credo
-      #   run: |
-      #     cd backend
-      #     mix credo --strict
-
       - name: Compile
         run: |
           cd backend
@@ -101,46 +94,3 @@ jobs:
           DURATION=$((END_TIME - START_TIME))
           echo "Test completed in: ${DURATION} seconds" >> test_timing.log
           echo "::notice title=Test Duration::Tests completed in ${DURATION} seconds"
-
-  docker:
-    name: Build and push Docker image
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-
-  deploy:
-    name: Deploy to production
-    runs-on: ubuntu-latest
-    needs: [test, docker]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    
-    steps:
-      - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: static.245.61.108.65.clients.your-server.de
-          username: root
-          script: |
-            cd streampai-elixir
-            git pull
-            docker compose -f docker-compose.prod.yml up -d
