@@ -127,11 +127,6 @@ const startProgressBar = (displayTime: number) => {
   progressWidth.value = 100
   eventVisible.value = true
   
-  // Hide event after exactly displayTime seconds (perfect sync with progress bar)
-  hideTimeout.value = setTimeout(() => {
-    eventVisible.value = false
-  }, displayTime * 1000)
-  
   // Update progress every 50ms
   const updateFrequency = 50
   const totalUpdates = (displayTime * 1000) / updateFrequency
@@ -144,6 +139,8 @@ const startProgressBar = (displayTime: number) => {
     if (currentUpdate >= totalUpdates) {
       clearInterval(progressInterval.value!)
       progressInterval.value = null
+      // Hide immediately when progress completes to prevent flash
+      eventVisible.value = false
     }
   }, updateFrequency)
 }
@@ -157,6 +154,7 @@ const stopProgressBar = () => {
     clearTimeout(hideTimeout.value)
     hideTimeout.value = null
   }
+  // Reset progress immediately to prevent flash
   progressWidth.value = 0
   eventVisible.value = false
 }
@@ -259,7 +257,10 @@ watch(() => props.event, (newEvent, oldEvent) => {
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-lg overflow-hidden">
           <div 
             class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-75 ease-linear"
-            :style="{ width: `${progressWidth}%` }"
+            :style="{ 
+              width: `${progressWidth}%`,
+              opacity: progressWidth > 0 ? 1 : 0
+            }"
           ></div>
         </div>
       </div>

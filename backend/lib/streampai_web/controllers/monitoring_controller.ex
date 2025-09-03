@@ -4,9 +4,6 @@ defmodule StreampaiWeb.MonitoringController do
   """
   use StreampaiWeb, :controller
 
-  # @allowed_ips ["127.0.0.1", "::1"]
-
-  # plug :check_ip_access
 
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
@@ -73,28 +70,6 @@ defmodule StreampaiWeb.MonitoringController do
     end
   end
 
-  defp check_ip_access(conn, _opts) do
-    client_ip = get_client_ip(conn)
-
-    if client_ip in @allowed_ips do
-      conn
-    else
-      conn
-      |> put_status(:forbidden)
-      |> json(%{error: "Access denied", ip: client_ip})
-      |> halt()
-    end
-  end
-
-  defp get_client_ip(conn) do
-    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] ->
-        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-
-      [] ->
-        conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
-  end
 
   defp collect_system_metrics do
     memory = :erlang.memory()

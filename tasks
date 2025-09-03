@@ -1,7 +1,5 @@
 # Short Term
-- can we split CI in 3 workflows, test -> build -> deploy? This way I'll be able to track their
-  execution time
-
+- fix alertbox progress bar which after disappearing flashes for 0,5sec again
 
 # Long Term
 - when logging in redirect to page user tried to access
@@ -18,7 +16,6 @@ that doesn't have high fees
 input donor name, custom message, pick lector voice - question is how do we match top donors, by username?
 - figure out how caching and singleflight could work
 
-- fix user policy (not it has authorize_if always())
 - allow users to be moderators (it's like limited impersonation where user can access someones account and can do few things
 like moderate chat, create/edit widgets but doesn't have access to things like account balance or settings)
 - what if we had some way to use AI to measure audience stream enthusiasm, maybe make summary of chat messages - things like that
