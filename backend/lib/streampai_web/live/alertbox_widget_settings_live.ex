@@ -19,8 +19,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     )
 
     if connected?(socket) do
-      # Hide initial event 1 second after gap starts (display_time + 1)
-      Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
+      Process.send_after(self(), :generate_event, (display_time + 2) * 1000)
     end
 
     {:ok, %{config: initial_config}} =
@@ -53,16 +52,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     socket = assign(socket, :current_event, event_with_display_time)
 
     # Set event to nil 1 second after gap starts (display_time + 1)
-    Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
-    {:noreply, socket}
-  end
-
-  def handle_info(:hide_event, socket) do
-    IO.puts("Setting event to nil")
-    socket = assign(socket, :current_event, nil)
-
-    # Show next event after remaining 1 second of the gap
-    Process.send_after(self(), :generate_event, 1000)
+    Process.send_after(self(), :generate_event, (display_time + 2) * 1000)
     {:noreply, socket}
   end
 
@@ -175,7 +165,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
               </button>
             </div>
           </div>
-          
+
     <!-- Alertbox Widget Display -->
           <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden relative">
             <div class="text-xs text-gray-400 mb-2">
@@ -191,7 +181,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             />
           </div>
         </div>
-        
+
     <!-- Configuration Options -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
@@ -235,7 +225,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
                 </div>
               </form>
             </div>
-            
+
     <!-- Alert Settings -->
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Alert Settings</h4>
@@ -328,7 +318,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Usage Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>

@@ -55,13 +55,34 @@ const positionClass = computed(() => {
 })
 
 const animationClass = computed(() => {
-  if (!props.event) return 'opacity-0 scale-75'
-  
-  switch (props.config.animation_type) {
-    case 'slide': return 'animate-slide-in'
-    case 'bounce': return 'animate-bounce-in'
-    default: return 'animate-fade-in'
+  if (animationPhase.value === 'hidden') {
+    console.log('Vue: Animation class - hidden state')
+    return 'opacity-0 scale-75 pointer-events-none'
   }
+  
+  const baseAnimation = (() => {
+    switch (props.config.animation_type) {
+      case 'slide': return 'slide'
+      case 'bounce': return 'bounce'
+      default: return 'fade'
+    }
+  })()
+  
+  const result = (() => {
+    switch (animationPhase.value) {
+      case 'in':
+        return `animate-${baseAnimation}-in`
+      case 'visible':
+        return 'opacity-100 scale-100'
+      case 'out':
+        return `animate-${baseAnimation}-out`
+      default:
+        return 'opacity-0 scale-75 pointer-events-none'
+    }
+  })()
+  
+  console.log(`Vue: Animation class - phase: ${animationPhase.value}, class: ${result}`)
+  return result
 })
 
 
@@ -110,8 +131,9 @@ const formatAmount = (amount?: number, currency?: string) => {
   return `${currency || '$'}${amount.toFixed(2)}`
 }
 
-const eventVisible = ref(true)
+const eventVisible = ref(false)
 const hideTimeout = ref<number | null>(null)
+const animationPhase = ref<'in' | 'visible' | 'out' | 'hidden'>('hidden')
 
 // Handle progress bar animation and event hiding
 const startProgressBar = (displayTime: number) => {
@@ -123,45 +145,85 @@ const startProgressBar = (displayTime: number) => {
     clearTimeout(hideTimeout.value)
   }
   
-  // Reset progress and show event
-  progressWidth.value = 100
+  // Start with entrance animation
+  console.log('Vue: Starting entrance animation')
+  animationPhase.value = 'in'
   eventVisible.value = true
+  progressWidth.value = 100
   
-  // Add visual padding: 300ms at 100%, 300ms at 0%
-  const visualPaddingMs = 300
-  const totalVisualTime = displayTime * 1000 + (visualPaddingMs * 2)
-  const actualProgressTime = displayTime * 1000
+  // Animation durations (in ms) - match CSS durations
+  const animationInDuration = (() => {
+    switch (props.config.animation_type) {
+      case 'slide': return 700
+      case 'bounce': return 1000
+      default: return 800 // fade
+    }
+  })()
   
-  // Update progress every 50ms
-  const updateFrequency = 50
-  const totalUpdates = totalVisualTime / updateFrequency
-  const paddingUpdates = visualPaddingMs / updateFrequency
-  const progressUpdates = actualProgressTime / updateFrequency
+  const animationOutDuration = (() => {
+    switch (props.config.animation_type) {
+      case 'slide': return 500
+      case 'bounce': return 800
+      default: return 600 // fade
+    }
+  })()
   
-  let currentUpdate = 0
-  
-  progressInterval.value = setInterval(() => {
-    currentUpdate++
+  // Wait for entrance animation to complete, then start progress
+  setTimeout(() => {
+    console.log('Vue: Entrance animation complete, starting progress')
+    animationPhase.value = 'visible'
     
-    if (currentUpdate <= paddingUpdates) {
-      // First 300ms: stay at 100%
-      progressWidth.value = 100
-    } else if (currentUpdate <= paddingUpdates + progressUpdates) {
-      // Progress phase: animate from 100% to 0%
-      const progressPhaseUpdate = currentUpdate - paddingUpdates
-      progressWidth.value = ((progressUpdates - progressPhaseUpdate) / progressUpdates) * 100
-    } else {
-      // Last 300ms: stay at 0%
-      progressWidth.value = 0
+    // Use smooth easing instead of linear with hard padding
+    const totalProgressTime = displayTime * 1000
+    
+    // Update progress every 16ms for smooth 60fps animation
+    const updateFrequency = 16
+    const totalUpdates = totalProgressTime / updateFrequency
+    
+    let currentUpdate = 0
+    
+    // Ease-in-out cubic function for smooth acceleration/deceleration
+    const easeInOutCubic = (t: number): number => {
+      if (t < 0.5) {
+        return 4 * t * t * t
+      } else {
+        return 1 - Math.pow(-2 * t + 2, 3) / 2
+      }
     }
     
-    if (currentUpdate >= totalUpdates) {
-      clearInterval(progressInterval.value!)
-      progressInterval.value = null
-      // Hide immediately when progress completes to prevent flash
-      eventVisible.value = false
-    }
-  }, updateFrequency)
+    progressInterval.value = setInterval(() => {
+      currentUpdate++
+      
+      // Calculate progress from 0 to 1
+      const rawProgress = currentUpdate / totalUpdates
+      
+      if (rawProgress >= 1) {
+        // Progress complete
+        clearInterval(progressInterval.value!)
+        progressInterval.value = null
+        
+        console.log('Vue: Progress complete with easing')
+        progressWidth.value = 0
+        
+        // Start exit animation after brief moment
+        setTimeout(() => {
+          console.log('Vue: Starting exit animation')
+          animationPhase.value = 'out'
+          
+          // Hide after exit animation completes
+          setTimeout(() => {
+            console.log('Vue: Exit animation complete, hiding')
+            animationPhase.value = 'hidden'
+            eventVisible.value = false
+          }, animationOutDuration)
+        }, 100)
+      } else {
+        // Apply easing to create smooth start/end
+        const easedProgress = easeInOutCubic(rawProgress)
+        progressWidth.value = Math.max(0, (1 - easedProgress) * 100)
+      }
+    }, updateFrequency)
+  }, animationInDuration)
 }
 
 const stopProgressBar = () => {
@@ -176,6 +238,7 @@ const stopProgressBar = () => {
   // Reset progress immediately to prevent flash
   progressWidth.value = 0
   eventVisible.value = false
+  animationPhase.value = 'hidden'
 }
 
 // Watch for event changes and manage progress bar
@@ -184,7 +247,7 @@ watch(() => props.event, (newEvent, oldEvent) => {
   const rawNewEvent = newEvent ? toRaw(newEvent) : null
   const rawOldEvent = oldEvent ? toRaw(oldEvent) : null
   
-  console.log("new",newEvent, rawNewEvent)
+  console.log("Vue: Event change - new:", rawNewEvent?.id, "old:", rawOldEvent?.id)
   
   // Skip if it's the same event (by ID comparison)
   if (rawNewEvent?.id && rawOldEvent?.id && rawNewEvent.id === rawOldEvent.id) {
@@ -192,14 +255,23 @@ watch(() => props.event, (newEvent, oldEvent) => {
     return
   }
   
+  // Start animation for new events
   if (rawNewEvent && rawNewEvent.display_time) {
-    console.log('Vue: Starting progress bar for event:', rawNewEvent.id)
+    console.log('Vue: Starting animation cycle for new event:', rawNewEvent.id)
     startProgressBar(rawNewEvent.display_time)
-  } else {
-    console.log('Vue: Stopping progress bar, event is null or has no display_time')
-    stopProgressBar()
   }
+  
+  // Note: We no longer stop animations when event becomes null
+  // The animation cycle will complete naturally via internal timing
 }, {immediate: true})
+
+// Initialize animation state
+onMounted(() => {
+  if (!props.event) {
+    animationPhase.value = 'hidden'
+    eventVisible.value = false
+  }
+})
 </script>
 
 <template>
@@ -208,12 +280,12 @@ watch(() => props.event, (newEvent, oldEvent) => {
     <div
       ref="alertContainer"
       :id="`alert-container-${widgetId}`"
-      :class="`absolute inset-0 flex justify-center ${positionClass} transition-all duration-500 ease-out ${animationClass}`"
+      :class="`absolute inset-0 flex justify-center ${positionClass}`"
     >
       <!-- Alert Card with constant width -->
       <div
-        v-if="props.event && eventVisible"
-        :class="`alert-card relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass}`"
+        v-if="animationPhase !== 'hidden'"
+        :class="`alert-card relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass} ${animationClass}`"
       >
         <!-- Glowing border effect -->
         <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
@@ -347,6 +419,55 @@ watch(() => props.event, (newEvent, oldEvent) => {
   }
 }
 
+/* Exit animations (reverse of entrance animations) */
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.85) translateY(-20px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.8) rotateX(15deg);
+    filter: blur(4px);
+  }
+}
+
+@keyframes bounce-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateZ(0deg);
+    filter: blur(0px);
+  }
+  25% {
+    transform: scale(1.05) translateY(-5px) rotateZ(1deg);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.95) translateY(10px) rotateZ(-2deg);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) translateY(100px) rotateZ(5deg);
+    filter: blur(4px);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -357,6 +478,18 @@ watch(() => props.event, (newEvent, oldEvent) => {
 
 .animate-bounce-in {
   animation: bounce-in 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-out {
+  animation: fade-out 0.6s cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+
+.animate-slide-out {
+  animation: slide-out 0.5s cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+
+.animate-bounce-out {
+  animation: bounce-out 0.8s cubic-bezier(0.3, 0, 0.8, 0.15);
 }
 
 /* Enhanced glow effects */
