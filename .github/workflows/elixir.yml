@@ -123,6 +123,11 @@ jobs:
       - name: Inspect builder
         run: docker buildx inspect --bootstrap
 
+      - name: Debug repository info
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Image will be: ghcr.io/${{ github.repository }}:latest"
+          
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -158,5 +163,8 @@ jobs:
             cd streampai-elixir
             git pull
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "Checking if image exists..."
+            docker manifest inspect ghcr.io/${{ github.repository }}:latest || echo "Image not found in registry"
+            echo "Attempting to pull image..."
             docker compose -f docker-compose.prod.yml pull streampai
             docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps streampai
