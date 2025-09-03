@@ -134,9 +134,10 @@ const formatAmount = (amount?: number, currency?: string) => {
 const eventVisible = ref(false)
 const hideTimeout = ref<number | null>(null)
 const animationPhase = ref<'in' | 'visible' | 'out' | 'hidden'>('hidden')
+const currentEventId = ref<string | null>(null)
 
 // Handle progress bar animation and event hiding
-const startProgressBar = (displayTime: number) => {
+const startProgressBar = (displayTime: number, eventId?: string) => {
   // Clear any existing interval/timeout
   if (progressInterval.value) {
     clearInterval(progressInterval.value)
@@ -145,8 +146,13 @@ const startProgressBar = (displayTime: number) => {
     clearTimeout(hideTimeout.value)
   }
   
+  // Track the current event
+  if (eventId) {
+    currentEventId.value = eventId
+  }
+  
   // Start with entrance animation
-  console.log('Vue: Starting entrance animation')
+  console.log('Vue: Starting entrance animation for event:', eventId || currentEventId.value)
   animationPhase.value = 'in'
   eventVisible.value = true
   progressWidth.value = 100
@@ -215,6 +221,7 @@ const startProgressBar = (displayTime: number) => {
             console.log('Vue: Exit animation complete, hiding')
             animationPhase.value = 'hidden'
             eventVisible.value = false
+            currentEventId.value = null // Clear current event tracking
           }, animationOutDuration)
         }, 100)
       } else {
@@ -239,30 +246,66 @@ const stopProgressBar = () => {
   progressWidth.value = 0
   eventVisible.value = false
   animationPhase.value = 'hidden'
+  currentEventId.value = null // Clear current event tracking
 }
 
-// Watch for event changes and manage progress bar
+// Watch for event changes with deep reactivity
 watch(() => props.event, (newEvent, oldEvent) => {
   // Convert proxy objects to raw objects for proper comparison and access
   const rawNewEvent = newEvent ? toRaw(newEvent) : null
   const rawOldEvent = oldEvent ? toRaw(oldEvent) : null
   
-  console.log("Vue: Event change - new:", rawNewEvent?.id, "old:", rawOldEvent?.id)
+  console.log("Vue: Event watcher triggered")
+  console.log("Vue: Event change - new:", rawNewEvent, "old:", rawOldEvent)
+  console.log("Vue: Event IDs - new:", rawNewEvent?.id, "old:", rawOldEvent?.id)
+  console.log("Vue: Current animation phase:", animationPhase.value)
   
-  // Skip if it's the same event (by ID comparison)
-  if (rawNewEvent?.id && rawOldEvent?.id && rawNewEvent.id === rawOldEvent.id) {
-    console.log('Vue: Same event ID, skipping')
-    return
-  }
-  
-  // Start animation for new events
+  // Start new animation if we have a new event with display_time
   if (rawNewEvent && rawNewEvent.display_time) {
-    console.log('Vue: Starting animation cycle for new event:', rawNewEvent.id)
-    startProgressBar(rawNewEvent.display_time)
+    const isDifferentEvent = !rawOldEvent || rawNewEvent.id !== rawOldEvent.id
+    const isNotCurrentEvent = rawNewEvent.id !== currentEventId.value
+    const isReadyForNew = animationPhase.value === 'hidden'
+    const shouldInterrupt = isDifferentEvent && isNotCurrentEvent && animationPhase.value !== 'hidden'
+    
+    if (isDifferentEvent && isNotCurrentEvent && (isReadyForNew || shouldInterrupt)) {
+      if (shouldInterrupt) {
+        console.log('Vue: Interrupting current animation for new event:', rawNewEvent.id)
+        stopProgressBar() // Clean up current animation
+      } else {
+        console.log('Vue: Starting animation cycle for event:', rawNewEvent.id)
+      }
+      startProgressBar(rawNewEvent.display_time, rawNewEvent.id)
+    } else if (!isDifferentEvent || !isNotCurrentEvent) {
+      console.log('Vue: Skipping - same event ID or currently animating this event')
+    } else {
+      console.log('Vue: Skipping - animation in progress')
+    }
   }
   
   // Note: We no longer stop animations when event becomes null
   // The animation cycle will complete naturally via internal timing
+}, {immediate: true, deep: true})
+
+// Also watch the event ID specifically for more reliable change detection
+watch(() => props.event?.id, (newId, oldId) => {
+  console.log('Vue: Event ID watcher triggered - newId:', newId, 'oldId:', oldId, 'currentEventId:', currentEventId.value)
+  
+  if (newId && newId !== oldId && newId !== currentEventId.value && props.event?.display_time) {
+    console.log('Vue: ID change detected, checking if we should start animation')
+    
+    const isReadyForNew = animationPhase.value === 'hidden'
+    const shouldInterrupt = animationPhase.value !== 'hidden'
+    
+    if (isReadyForNew || shouldInterrupt) {
+      if (shouldInterrupt) {
+        console.log('Vue: ID watcher interrupting current animation for new event:', newId)
+        stopProgressBar()
+      } else {
+        console.log('Vue: ID watcher starting animation for event:', newId)
+      }
+      startProgressBar(props.event.display_time, newId)
+    }
+  }
 }, {immediate: true})
 
 // Initialize animation state
