@@ -127,14 +127,33 @@ const startProgressBar = (displayTime: number) => {
   progressWidth.value = 100
   eventVisible.value = true
   
+  // Add visual padding: 300ms at 100%, 300ms at 0%
+  const visualPaddingMs = 300
+  const totalVisualTime = displayTime * 1000 + (visualPaddingMs * 2)
+  const actualProgressTime = displayTime * 1000
+  
   // Update progress every 50ms
   const updateFrequency = 50
-  const totalUpdates = (displayTime * 1000) / updateFrequency
+  const totalUpdates = totalVisualTime / updateFrequency
+  const paddingUpdates = visualPaddingMs / updateFrequency
+  const progressUpdates = actualProgressTime / updateFrequency
+  
   let currentUpdate = 0
   
   progressInterval.value = setInterval(() => {
     currentUpdate++
-    progressWidth.value = ((totalUpdates - currentUpdate) / totalUpdates) * 100
+    
+    if (currentUpdate <= paddingUpdates) {
+      // First 300ms: stay at 100%
+      progressWidth.value = 100
+    } else if (currentUpdate <= paddingUpdates + progressUpdates) {
+      // Progress phase: animate from 100% to 0%
+      const progressPhaseUpdate = currentUpdate - paddingUpdates
+      progressWidth.value = ((progressUpdates - progressPhaseUpdate) / progressUpdates) * 100
+    } else {
+      // Last 300ms: stay at 0%
+      progressWidth.value = 0
+    }
     
     if (currentUpdate >= totalUpdates) {
       clearInterval(progressInterval.value!)
