@@ -23,10 +23,34 @@ si:
 	cd backend
 	iex -S mix phx.server
 
-# Build and run in production mode
+# Setup and run in production mode locally (for benchmarking)
 prod:
-	cd backend; MIX_ENV=prod mix do assets.deploy, compile
-	cd backend; ECTO_IPV6=false DATABASE_URL=ecto://postgres:postgres@localhost/postgres SECRET_KEY_BASE=$(mix phx.gen.secret) GOOGLE_CLIENT_ID=dummy GOOGLE_CLIENT_SECRET=dummy GOOGLE_REDIRECT_URI=http://localhost:4000 TWITCH_CLIENT_ID=dummy TWITCH_CLIENT_SECRET=dummy PHX_HOST=localhost PORT=4000 MIX_ENV=prod mix phx.server
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	cd backend
+	export MIX_ENV=prod
+	export SECRET_KEY_BASE=$(mix phx.gen.secret)
+	export TOKEN_SIGNING_SECRET=$(openssl rand -base64 32)
+	export GOOGLE_CLIENT_ID=dummy
+	export GOOGLE_CLIENT_SECRET=dummy
+	export GOOGLE_REDIRECT_URI=http://localhost:4000
+	export TWITCH_CLIENT_ID=dummy
+	export TWITCH_CLIENT_SECRET=dummy
+	export PHX_HOST=localhost
+	export PORT=4000
+	export ECTO_IPV6=false
+	echo "Installing prod dependencies..."
+	mix deps.get --only prod
+	echo "Compiling..."
+	mix compile
+	echo "Building assets..."
+	mix assets.deploy
+	echo "Creating/migrating database..."
+	mix ecto.create --quiet || true
+	mix ecto.migrate
+	echo "Starting production server at http://localhost:4000"
+	mix phx.server
 
 # Build production release
 build-prod:

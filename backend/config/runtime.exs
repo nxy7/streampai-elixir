@@ -66,6 +66,7 @@ if config_env() == :prod do
     check_origin: [
       "https://streampai.com",
       "http://streampai.com",
+      "http://localhost:4000",
       "https://#{host}",
       "http://#{host}"
     ]

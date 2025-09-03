@@ -16,5 +16,10 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Configure logger to handle more load and reduce sync/drop mode switching
+config :logger, :default,
+  level: :info,
+  max_buffer_size: 10000
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
