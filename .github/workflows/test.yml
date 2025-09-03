@@ -32,6 +32,7 @@ jobs:
     env:
       MIX_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/streampai_test
+      TOKEN_SIGNING_SECRET: test_jwt_secret_for_ci_only
 
     steps:
       - name: Set up Git repository
