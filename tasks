@@ -1,4 +1,6 @@
 # Short Term
+- can we split CI in 3 workflows, test -> build -> deploy? This way I'll be able to track their
+  execution time
 
 
 # Long Term
