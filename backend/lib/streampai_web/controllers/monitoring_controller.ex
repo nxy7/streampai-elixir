@@ -18,7 +18,7 @@ defmodule StreampaiWeb.MonitoringController do
 
   def health_check(conn, _params) do
     uptime_ms = :erlang.statistics(:wall_clock) |> elem(0)
-    
+
     health_status = %{
       status: "ok",
       timestamp: DateTime.utc_now(),
