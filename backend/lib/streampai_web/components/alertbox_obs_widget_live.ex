@@ -42,7 +42,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     # Random display time between 3-8 seconds
     display_time = Enum.random(3..8)
     # 2 seconds gap between events
-    gap_time = 2
+    _gap_time = 2
 
     # Add display_time to event
     event_with_display_time = Map.put(new_event, :display_time, display_time)
@@ -96,9 +96,9 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
   # Helper functions
 
-  defp schedule_next_event do
-    # 7 seconds between alerts for demo
-    delay = 7000
-    Process.send_after(self(), :generate_event, delay)
-  end
+  # defp _schedule_next_event do
+  #   # 7 seconds between alerts for demo
+  #   delay = 7000
+  #   Process.send_after(self(), :generate_event, delay)
+  # end
 end

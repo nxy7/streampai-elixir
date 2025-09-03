@@ -40,7 +40,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     # Random display time between 3-8 seconds
     display_time = Enum.random(3..8)
     # 2 seconds gap between events
-    gap_time = 2
+    _gap_time = 2
 
     # Add display_time to event
     event_with_display_time = Map.put(new_event, :display_time, display_time)
