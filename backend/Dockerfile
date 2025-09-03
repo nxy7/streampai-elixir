@@ -20,10 +20,6 @@ ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-# Accept build arg for git SHA
-ARG GIT_SHA
-ENV GIT_SHA=${GIT_SHA}
-
 # install build dependencies
 RUN apt-get update \
   && apt-get install -y --no-install-recommends build-essential git curl \
@@ -97,10 +93,6 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
-
-# Pass GIT_SHA to the final image
-ARG GIT_SHA
-ENV GIT_SHA=${GIT_SHA}
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/streampai ./

@@ -44,6 +44,7 @@ services:
       TWITCH_REDIRECT_URI: https://streampai.com/streaming/connect/twitch/callback
 
       TOKEN_SIGNING_SECRET: jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF
+      GIT_SHA: ${GIT_SHA:-unknown}
 
       CLOUDFLARE_API_KEY: gNzXsYUOpikbbkESSBeD42gbhWQBPvCh_6hrVnrf
       CLOUDFLARE_AUTH_EMAIL: lolnoxy@gmail.com

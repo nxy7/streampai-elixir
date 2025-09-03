@@ -137,8 +137,6 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository }}:latest
 
@@ -161,4 +159,5 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             echo "Pulling specific platform image..."
             docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
+            export GIT_SHA=${{ github.sha }}
             docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps streampai
