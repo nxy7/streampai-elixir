@@ -4,9 +4,9 @@ defmodule StreampaiWeb.MonitoringController do
   """
   use StreampaiWeb, :controller
 
-  @allowed_ips ["127.0.0.1", "::1"]
+  # @allowed_ips ["127.0.0.1", "::1"]
 
-  plug :check_ip_access
+  # plug :check_ip_access
 
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
@@ -22,7 +22,8 @@ defmodule StreampaiWeb.MonitoringController do
       timestamp: DateTime.utc_now(),
       uptime: :erlang.statistics(:wall_clock) |> elem(0),
       node: Node.self(),
-      version: Application.spec(:streampai, :vsn) |> to_string()
+      version: Application.spec(:streampai, :vsn) |> to_string(),
+      git_sha: System.get_env("GIT_SHA", "unknown")
     }
 
     conn

@@ -152,6 +152,13 @@ defmodule StreampaiWeb.Router do
     # Echo with configurable delay
     match :*, "/delay", EchoController, :echo_with_delay
     match :*, "/delay/:delay", EchoController, :echo_with_delay
+    
+    # Monitoring endpoints (IP-restricted)
+    get "/health", MonitoringController, :health_check
+    get "/metrics", MonitoringController, :metrics
+    get "/system", MonitoringController, :system_info
+    get "/errors", MonitoringController, :errors
+    get "/errors/:id", MonitoringController, :error_detail
   end
 
   # High-performance endpoint with minimal middleware
@@ -163,14 +170,4 @@ defmodule StreampaiWeb.Router do
     # get "/plug", StreampaiWeb.Plugs.FastResponse, []
   end
 
-  # Monitoring endpoints (IP-restricted)
-  scope "/monitoring", StreampaiWeb do
-    pipe_through :api
-
-    get "/health", MonitoringController, :health_check
-    get "/metrics", MonitoringController, :metrics
-    get "/system", MonitoringController, :system_info
-    get "/errors", MonitoringController, :errors
-    get "/errors/:id", MonitoringController, :error_detail
-  end
 end

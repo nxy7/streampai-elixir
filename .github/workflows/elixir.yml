@@ -123,6 +123,8 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository }}:latest
 
