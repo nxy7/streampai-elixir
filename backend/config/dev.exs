@@ -1,9 +1,5 @@
 import Config
 
-# Load environment variables from project root .env file
-env_path = Path.expand("../.env", __DIR__)
-if File.exists?(env_path), do: Dotenvy.load(env_path)
-
 secret_key_base = "jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF"
 
 config :ash, policies: [show_policy_breakdowns?: true]

@@ -1,7 +1,9 @@
 defmodule StreampaiWeb.Components.LandingHero do
   use StreampaiWeb, :html
 
-  attr(:newsletter_success, :boolean, default: false)
+  attr(:newsletter_message, :string, default: nil)
+  attr(:newsletter_error, :string, default: nil)
+  attr(:newsletter_loading, :boolean, default: false)
 
   def landing_hero(assigns) do
     ~H"""
@@ -52,16 +54,53 @@ defmodule StreampaiWeb.Components.LandingHero do
               />
               <button
                 type="submit"
-                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
+                disabled={@newsletter_loading}
+                class={[
+                  "px-6 py-3 rounded-lg font-semibold transition-all shadow-xl",
+                  if(@newsletter_loading,
+                    do: "bg-gray-500 text-gray-300 cursor-not-allowed",
+                    else:
+                      "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transform hover:scale-105"
+                  )
+                ]}
               >
-                Notify Me
+                <%= if @newsletter_loading do %>
+                  <svg class="animate-spin h-4 w-4 inline mr-2" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    >
+                    </circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    >
+                    </path>
+                  </svg>
+                  Saving...
+                <% else %>
+                  Notify Me
+                <% end %>
               </button>
             </form>
 
-            <%= if @newsletter_success do %>
+            <%= if @newsletter_message do %>
               <div class="mt-3 text-center">
                 <p class="text-green-400 text-sm font-medium">
-                  ✓ Your email has been added to our newsletter
+                  ✓ {@newsletter_message}
+                </p>
+              </div>
+            <% end %>
+
+            <%= if @newsletter_error do %>
+              <div class="mt-3 text-center">
+                <p class="text-red-400 text-sm font-medium">
+                  ✗ {@newsletter_error}
                 </p>
               </div>
             <% end %>

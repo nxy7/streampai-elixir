@@ -12,5 +12,6 @@ defmodule Streampai.Accounts do
     resource Streampai.Accounts.UserPremiumGrant
     resource Streampai.Accounts.StreamingAccount
     resource Streampai.Accounts.WidgetConfig
+    resource Streampai.Accounts.NewsletterEmail
   end
 end

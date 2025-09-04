@@ -10,21 +10,101 @@ defmodule StreampaiWeb.LandingLive do
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")
 
-    {:ok, assign(socket, csrf_token: csrf_token, newsletter_success: false), layout: false}
+    {:ok,
+     assign(socket,
+       csrf_token: csrf_token,
+       newsletter_message: nil,
+       newsletter_error: nil,
+       newsletter_loading: false
+     ), layout: false}
   end
 
-  def handle_event("newsletter_signup", %{"email" => _email}, socket) do
-    # TODO: Store email in newsletter list when backend is ready
-    # Show flash message that will disappear after 4 seconds and persistent success message
+  def handle_event("newsletter_signup", %{"email" => email}, socket) do
+    # Set loading state and return immediately so UI can update
     socket =
-      socket
-      |> assign(newsletter_success: true)
-      |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
+      assign(socket, newsletter_loading: true, newsletter_message: nil, newsletter_error: nil)
 
-    # Clear flash after 4 seconds
-    Process.send_after(self(), :clear_flash, 4000)
+    # Process the email in a separate message to allow UI to update first
+    send(self(), {:save_newsletter_email, email})
 
     {:noreply, socket}
+  end
+
+  def handle_info({:save_newsletter_email, email}, socket) do
+    case Streampai.Accounts.NewsletterEmail
+         |> Ash.Changeset.for_create(:create, %{email: email})
+         |> Ash.create() do
+      {:ok, _newsletter_email} ->
+        socket =
+          socket
+          |> assign(
+            newsletter_message: "Your email has been added to our newsletter",
+            newsletter_loading: false
+          )
+          |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
+
+        # Clear flash after 4 seconds
+        Process.send_after(self(), :clear_flash, 4000)
+
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        # Debug: Let's see what the error structure looks like
+        IO.inspect(changeset, label: "Changeset error")
+        IO.inspect(changeset.errors, label: "Changeset errors")
+        
+        # Check for duplicate email (unique constraint violation)
+        # Since email is the primary key, Ash will return "has already been taken" for duplicates
+        is_duplicate_email = 
+          changeset.errors
+          |> Enum.any?(fn error ->
+            case error do
+              %{field: :email, message: message} when is_binary(message) ->
+                # Check for common duplicate/uniqueness error messages
+                message_lower = String.downcase(message)
+                String.contains?(message_lower, "has already been taken") ||
+                String.contains?(message_lower, "already been taken") ||
+                String.contains?(message_lower, "already exists") ||
+                String.contains?(message_lower, "unique") ||
+                String.contains?(message_lower, "constraint") ||
+                String.contains?(message_lower, "duplicate")
+              %{field: :email} ->
+                # Only consider this a duplicate if we can't determine from the message
+                false
+              _ ->
+                false
+            end
+          end)
+        
+        if is_duplicate_email do
+          socket =
+            socket
+            |> assign(
+              newsletter_message: "You're already subscribed to our newsletter!",
+              newsletter_loading: false
+            )
+            |> put_flash(:info, "You're already subscribed to our newsletter!")
+
+          # Clear flash after 4 seconds
+          Process.send_after(self(), :clear_flash, 4000)
+
+          {:noreply, socket}
+        else
+          # Handle other validation errors (like invalid email format)
+          error_message =
+            case changeset.errors do
+              [%{field: :email, message: message} | _] -> message
+              _ -> "Please enter a valid email address."
+            end
+
+          socket =
+            socket
+            |> assign(newsletter_error: error_message, newsletter_loading: false)
+            |> put_flash(:error, error_message)
+
+          {:noreply, socket}
+        end
+    end
   end
 
   def handle_info(:clear_flash, socket) do
@@ -49,7 +129,11 @@ defmodule StreampaiWeb.LandingLive do
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
           <.flash_group flash={@flash} />
           <.landing_navigation current_user={@current_user} />
-          <.landing_hero newsletter_success={@newsletter_success} />
+          <.landing_hero
+            newsletter_message={@newsletter_message}
+            newsletter_error={@newsletter_error}
+            newsletter_loading={@newsletter_loading}
+          />
           <.landing_features />
           <!-- HIDDEN: Pricing section will be restored later -->
           <div class="hidden">

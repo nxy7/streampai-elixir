@@ -1,6 +1,20 @@
 import Config
 
 if config_env() == :dev do
+  env_path = Path.expand("../../.env", __DIR__)
+
+  if File.exists?(env_path) do
+    IO.puts("Loading env from #{env_path}")
+    env_vars = Dotenvy.source!([env_path])
+
+    # Explicitly set environment variables
+    Enum.each(env_vars, fn {key, value} ->
+      System.put_env(key, value)
+    end)
+
+    IO.puts("Set DATABASE_URL: #{System.get_env("DATABASE_URL")}")
+  end
+
   config :tidewave, :root, File.cwd!()
 end
 
