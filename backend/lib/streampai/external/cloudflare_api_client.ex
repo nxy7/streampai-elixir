@@ -16,13 +16,15 @@ defmodule Streampai.External.CloudflareAPIClient do
   ]
 
   def start_link(opts \\ []) do
-    name_opts = if Application.get_env(:streampai, :test_mode, false) do
-      # In test mode, allow unnamed processes to avoid conflicts
-      opts
-    else
-      # In non-test mode, use global name
-      Keyword.put_new(opts, :name, __MODULE__)
-    end
+    name_opts =
+      if Application.get_env(:streampai, :test_mode, false) do
+        # In test mode, allow unnamed processes to avoid conflicts
+        opts
+      else
+        # In non-test mode, use global name
+        Keyword.put_new(opts, :name, __MODULE__)
+      end
+
     GenServer.start_link(__MODULE__, :ok, name_opts)
   end
 
@@ -50,9 +52,11 @@ defmodule Streampai.External.CloudflareAPIClient do
   Creates a new live input for streaming.
   """
   def create_live_input(name, opts \\ %{})
+
   def create_live_input(name, opts) when is_binary(name) do
     create_live_input(__MODULE__, name, opts)
   end
+
   def create_live_input(server, name, opts) do
     GenServer.call(server, {:create_live_input, name, opts}, 10_000)
   end
@@ -63,6 +67,7 @@ defmodule Streampai.External.CloudflareAPIClient do
   def delete_live_input(input_id) when is_binary(input_id) do
     delete_live_input(__MODULE__, input_id)
   end
+
   def delete_live_input(server, input_id) do
     GenServer.call(server, {:delete_live_input, input_id}, 10_000)
   end
@@ -73,6 +78,7 @@ defmodule Streampai.External.CloudflareAPIClient do
   def create_live_output(input_id, output_config) when is_binary(input_id) do
     create_live_output(__MODULE__, input_id, output_config)
   end
+
   def create_live_output(server, input_id, output_config) do
     GenServer.call(server, {:create_live_output, input_id, output_config}, 10_000)
   end
@@ -83,6 +89,7 @@ defmodule Streampai.External.CloudflareAPIClient do
   def update_live_output(output_id, config) when is_binary(output_id) do
     update_live_output(__MODULE__, output_id, config)
   end
+
   def update_live_output(server, output_id, config) do
     GenServer.call(server, {:update_live_output, output_id, config}, 10_000)
   end
@@ -93,6 +100,7 @@ defmodule Streampai.External.CloudflareAPIClient do
   def toggle_live_output(output_id, enabled) when is_binary(output_id) do
     toggle_live_output(__MODULE__, output_id, enabled)
   end
+
   def toggle_live_output(server, output_id, enabled) do
     GenServer.call(server, {:toggle_live_output, output_id, enabled}, 10_000)
   end

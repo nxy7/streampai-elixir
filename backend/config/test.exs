@@ -1,7 +1,11 @@
 import Config
 
 # Set required environment variables for tests
-System.put_env("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}")
+System.put_env(
+  "DATABASE_URL",
+  "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}"
+)
+
 System.put_env("CLOUDFLARE_API_TOKEN", "test_token")
 System.put_env("CLOUDFLARE_ACCOUNT_ID", "test_account")
 System.put_env("TOKEN_SIGNING_SECRET", "h4cu7OR38wead3kXqon6ReLmG2o4SH0u")

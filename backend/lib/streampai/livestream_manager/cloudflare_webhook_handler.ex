@@ -7,13 +7,15 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
   require Logger
 
   def start_link(opts \\ []) do
-    name_opts = if Application.get_env(:streampai, :test_mode, false) do
-      # In test mode, allow unnamed processes to avoid conflicts
-      opts
-    else
-      # In non-test mode, use global name
-      Keyword.put_new(opts, :name, __MODULE__)
-    end
+    name_opts =
+      if Application.get_env(:streampai, :test_mode, false) do
+        # In test mode, allow unnamed processes to avoid conflicts
+        opts
+      else
+        # In non-test mode, use global name
+        Keyword.put_new(opts, :name, __MODULE__)
+      end
+
     GenServer.start_link(__MODULE__, :ok, name_opts)
   end
 
@@ -31,7 +33,7 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
   def handle_webhook(event_data) do
     handle_webhook(__MODULE__, event_data)
   end
-  
+
   def handle_webhook(server, event_data) do
     GenServer.cast(server, {:handle_webhook, event_data})
   end
