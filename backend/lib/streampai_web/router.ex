@@ -19,6 +19,19 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.RedirectAfterAuth)
   end
 
+  pipeline :admin do
+    plug(:accepts, ["html"])
+    plug(:require_admin_access)
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(:load_from_session)
+    plug(StreampaiWeb.Plugs.ErrorTracker)
+    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
     plug(:load_from_bearer)
@@ -26,12 +39,7 @@ defmodule StreampaiWeb.Router do
   end
 
   scope "/admin" do
-    if Application.compile_env(:streampai, :env) == :prod do
-      pipe_through(:browser)
-      plug(:check_monitoring_access)
-    else
-      pipe_through(:browser)
-    end
+    pipe_through(:admin)
 
     ash_admin("/ash")
     oban_dashboard("/oban")
@@ -115,7 +123,7 @@ defmodule StreampaiWeb.Router do
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
 
-  def check_monitoring_access(conn, _opts) do
+  def require_admin_access(conn, _opts) do
     client_ip = get_client_ip(conn)
     admin_token = Plug.Conn.get_req_header(conn, "x-admin-token") |> List.first()
     allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
