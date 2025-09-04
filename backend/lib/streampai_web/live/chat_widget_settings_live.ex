@@ -16,10 +16,13 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     initial_messages = FakeChat.initial_messages()
 
     {:ok, %{config: initial_config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
-        user_id: current_user.id,
-        type: :chat_widget
-      })
+      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+        %{
+          user_id: current_user.id,
+          type: :chat_widget
+        },
+        actor: current_user
+      )
 
     {:ok,
      socket
@@ -164,7 +167,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
               </button>
             </div>
           </div>
-          
+
     <!-- Chat Widget Display -->
           <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden">
             <div class="text-xs text-gray-400 mb-2">Preview (actual widget is transparent)</div>
@@ -178,7 +181,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
             />
           </div>
         </div>
-        
+
     <!-- Configuration Options -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
@@ -242,7 +245,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
                 </div>
               </form>
             </div>
-            
+
     <!-- Message Settings -->
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Message Settings</h4>
@@ -305,7 +308,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Usage Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>

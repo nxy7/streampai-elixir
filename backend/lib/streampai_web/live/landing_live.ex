@@ -118,7 +118,7 @@ defmodule StreampaiWeb.LandingLive do
   def render(assigns) do
     ~H"""
     <!DOCTYPE html>
-    <html lang="en" class="h-full">
+    <html lang="en" class="h-full scroll-smooth">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -128,8 +128,18 @@ defmodule StreampaiWeb.LandingLive do
           name="description"
           content="Stream to Twitch, YouTube, Kick, Facebook simultaneously. Unified chat, analytics, and AI moderation for content creators."
         />
+        <style>
+          html {
+            scroll-behavior: smooth;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            html {
+              scroll-behavior: auto;
+            }
+          }
+        </style>
       </head>
-      <body class="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <body class="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 scroll-smooth">
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
           <.flash_group flash={@flash} />
           <.landing_navigation current_user={@current_user} />

@@ -165,6 +165,67 @@ defmodule StreampaiWeb.LiveHelpers do
     end
   end
 
+  @doc """
+  Handles platform disconnection with consistent patterns.
+  """
+  def handle_platform_disconnect(socket, platform) do
+    current_user = socket.assigns.current_user
+
+    case Streampai.Accounts.StreamingAccount.destroy(
+           %{user_id: current_user.id, platform: platform},
+           actor: current_user
+         ) do
+      :ok ->
+        # Refresh platform connections and usage data
+        platform_connections = Streampai.Dashboard.get_platform_connections(current_user)
+        user_data = Streampai.Dashboard.get_dashboard_data(current_user)
+
+        {:noreply,
+         socket
+         |> assign(:platform_connections, platform_connections)
+         |> assign(:usage, user_data.usage)
+         |> show_success("Successfully disconnected #{String.capitalize(platform)} account")}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> handle_error(reason, "Failed to disconnect account")}
+    end
+  end
+
+  @doc """
+  Handles toggle form submissions (checkboxes).
+  Extracts the common pattern from settings forms.
+  """
+  def handle_toggle_form(socket, params, field_map, update_fn) do
+    updated_values =
+      field_map
+      |> Enum.map(fn {field, key} ->
+        {key, Map.get(params, field) == "on"}
+      end)
+      |> Map.new()
+
+    update_fn.(socket, updated_values)
+  end
+
+  @doc """
+  Common pattern for config updates with PubSub broadcasting.
+  """
+  def broadcast_and_save_config(user_id, config_type, config_data, topic_suffix \\ nil) do
+    topic =
+      if topic_suffix do
+        "widget_config:#{config_type}:#{user_id}"
+      else
+        "widget_config:#{user_id}"
+      end
+
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      topic,
+      %{config: config_data}
+    )
+  end
+
   # Private helpers
 
   defp format_changeset_errors(%Ecto.Changeset{errors: errors}) do

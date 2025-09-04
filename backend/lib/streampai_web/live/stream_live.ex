@@ -1,8 +1,8 @@
 defmodule StreampaiWeb.StreamLive do
   use StreampaiWeb.BaseLive
+  import StreampaiWeb.LiveHelpers, only: [handle_platform_disconnect: 2]
 
   alias Streampai.Dashboard
-  alias Streampai.Accounts.StreamingAccount
 
   def mount_page(socket, _params, _session) do
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
@@ -15,30 +15,7 @@ defmodule StreampaiWeb.StreamLive do
   end
 
   def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
-    user = socket.assigns.current_user
-
-    case StreamingAccount.destroy(%{user_id: user.id, platform: platform_str}, actor: user) do
-      :ok ->
-        # Refresh platform connections after successful disconnect
-        platform_connections = Dashboard.get_platform_connections(user)
-
-        socket =
-          socket
-          |> assign(:platform_connections, platform_connections)
-          |> put_flash(
-            :info,
-            "Successfully disconnected #{String.capitalize(platform_str)} account"
-          )
-
-        {:noreply, socket}
-
-      {:error, reason} ->
-        socket =
-          socket
-          |> put_flash(:error, "Failed to disconnect account: #{inspect(reason)}")
-
-        {:noreply, socket}
-    end
+    handle_platform_disconnect(socket, platform_str)
   end
 
   def render(assigns) do

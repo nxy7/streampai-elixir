@@ -1,104 +1,13 @@
 defmodule StreampaiWeb.ChatHistoryLive do
   use StreampaiWeb.BaseLive
+  import StreampaiWeb.Utils.PlatformUtils
+  alias StreampaiWeb.Utils.FakeChat
 
   def mount_page(socket, _params, _session) do
-    # Generate sample chat messages using Ash.Seed
-    chat_messages = generate_sample_messages()
-
+    chat_messages = FakeChat.generate_chat_history_messages()
     socket = assign(socket, :chat_messages, chat_messages)
     {:ok, socket, layout: false}
   end
-
-  defp generate_sample_messages do
-    platforms = [:twitch, :youtube]
-
-    usernames = [
-      "viewer123",
-      "YouTubeFan",
-      "generousviewer",
-      "streamer_fan",
-      "chat_lover",
-      "gamer_pro",
-      "support_user",
-      "new_follower",
-      "long_time_viewer",
-      "donation_helper",
-      "mod_user",
-      "subscriber_vip",
-      "casual_watcher",
-      "emote_spammer",
-      "question_asker",
-      "compliment_giver",
-      "stream_regular",
-      "first_timer",
-      "comeback_viewer",
-      "community_member"
-    ]
-
-    messages = [
-      "Great stream! Love the new overlay design 🎉",
-      "Just subscribed! Keep up the amazing content",
-      "Thanks for the entertainment! Here's a little something for coffee ☕",
-      "First time here, really enjoying the stream!",
-      "That was an amazing play! 🔥",
-      "Can you play my song request next?",
-      "Love the new setup! Looks professional",
-      "Been watching for 3 years, still the best content!",
-      "Your stream helped me through tough times, thank you ❤️",
-      "Just followed! When do you usually stream?",
-      "That game looks fun, might buy it myself",
-      "Your commentary is hilarious! 😂",
-      "Stream quality is crystal clear today!",
-      "Can't wait for the next stream!",
-      "This is exactly what I needed after work",
-      "Your community is so welcoming!",
-      "Thanks for answering my question earlier!",
-      "The new intro music is perfect!",
-      "You should totally speedrun this game",
-      "Chat is moving so fast today! Hi everyone! 👋"
-    ]
-
-    # Generate 20 sample messages
-    1..20
-    |> Enum.map(fn i ->
-      platform = Enum.random(platforms)
-      username = Enum.random(usernames)
-      message = Enum.random(messages)
-      # Random between 1-120 minutes
-      minutes_ago = :rand.uniform(120)
-
-      %{
-        id: "msg_#{i}",
-        username: username,
-        message: message,
-        platform: platform,
-        minutes_ago: minutes_ago,
-        # 10% chance of donation
-        is_donation: :rand.uniform(10) == 1,
-        donation_amount:
-          if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]), else: nil)
-      }
-    end)
-    # Sort by time, most recent first
-    |> Enum.sort_by(& &1.minutes_ago)
-  end
-
-  # Helper functions for platform styling
-  defp platform_color(:twitch), do: "bg-purple-500"
-  defp platform_color(:youtube), do: "bg-red-500"
-
-  defp platform_initial(:twitch), do: "T"
-  defp platform_initial(:youtube), do: "Y"
-
-  defp platform_name(:twitch), do: "Twitch"
-  defp platform_name(:youtube), do: "YouTube"
-
-  defp platform_badge_color(:twitch), do: "bg-purple-100 text-purple-800"
-  defp platform_badge_color(:youtube), do: "bg-red-100 text-red-800"
-
-  defp format_time_ago(minutes) when minutes < 1, do: "just now"
-  defp format_time_ago(minutes) when minutes < 60, do: "#{minutes} minutes ago"
-  defp format_time_ago(minutes), do: "#{div(minutes, 60)} hours ago"
 
   def render(assigns) do
     ~H"""

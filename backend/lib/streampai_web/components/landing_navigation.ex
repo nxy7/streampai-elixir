@@ -16,18 +16,18 @@ defmodule StreampaiWeb.Components.LandingNavigation do
           </div>
 
           <div class="hidden md:flex items-center space-x-8">
-            <.link navigate="#features" class="text-gray-300 hover:text-white transition-colors">
+            <a href="#features" class="text-gray-300 hover:text-white transition-colors">
               Features
-            </.link>
+            </a>
             <!-- HIDDEN: Pricing link will be restored later -->
             <div class="hidden">
-              <.link navigate="#pricing" class="text-gray-300 hover:text-white transition-colors">
+              <a href="#pricing" class="text-gray-300 hover:text-white transition-colors">
                 Pricing
-              </.link>
+              </a>
             </div>
-            <.link navigate="#about" class="text-gray-300 hover:text-white transition-colors">
+            <a href="#about" class="text-gray-300 hover:text-white transition-colors">
               About
-            </.link>
+            </a>
 
             {auth_buttons(assigns)}
           </div>

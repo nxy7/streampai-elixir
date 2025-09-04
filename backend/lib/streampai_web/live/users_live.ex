@@ -149,7 +149,7 @@ defmodule StreampaiWeb.UsersLive do
                         <div class="ml-3">
                           <div class="flex items-center space-x-2">
                             <span class="text-sm font-medium text-gray-900">
-                              User {String.slice(user.id, 0..7)}
+                              {user.name}
                             </span>
                             <%= if @current_user.id == user.id do %>
                               <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
