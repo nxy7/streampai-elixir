@@ -86,9 +86,9 @@ defmodule StreampaiWeb.Router do
     end
 
     sign_out_route(AuthController, "/auth/sign-out")
+
     sign_in_route(
       path: "/auth/sign-in",
-      
       register_path: "/auth/register",
       reset_path: "/auth/reset",
       auth_routes_prefix: "/auth",

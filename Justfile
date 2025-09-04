@@ -6,6 +6,9 @@ init-dev:
 	code .
 	docker compose up
 
+format:
+	cd backend; mix format;
+
 test:
 	#!/usr/bin/env bash
 	set -euo pipefail
