@@ -15,56 +15,14 @@ defmodule StreampaiWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:load_from_session)
-    # plug StreampaiWeb.AuthPlug, :load_from_session
     plug(StreampaiWeb.Plugs.ErrorTracker)
+    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
   end
 
   pipeline :api do
     plug(:accepts, ["json"])
     plug(:load_from_bearer)
-    # plug StreampaiWeb.AuthPlug, :load_from_bearer
     plug(StreampaiWeb.Plugs.ErrorTracker)
-  end
-
-  pipeline :auth do
-    plug(:accepts, ["html"])
-    plug(:fetch_session)
-    plug(:fetch_live_flash)
-    plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
-    plug(:protect_from_forgery)
-    plug(:put_secure_browser_headers)
-    plug(:load_from_session)
-    plug(StreampaiWeb.Plugs.ErrorTracker)
-    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
-  end
-
-  @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
-
-  def check_monitoring_access(conn, _opts) do
-    client_ip = get_client_ip(conn)
-    admin_token = Plug.Conn.get_req_header(conn, "X-ADMIN-TOKEN") |> List.first()
-    allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
-
-    if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
-      conn
-    else
-      IO.puts("Denied access to monitoring interface from IP: #{client_ip}")
-
-      conn
-      |> put_status(:forbidden)
-      |> Phoenix.Controller.text("Access denied to monitoring interface")
-      |> halt()
-    end
-  end
-
-  defp get_client_ip(conn) do
-    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] ->
-        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-
-      [] ->
-        conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
   end
 
   scope "/admin" do
@@ -119,20 +77,6 @@ defmodule StreampaiWeb.Router do
       live("/widgets/alertbox", AlertboxWidgetSettingsLive)
     end
 
-    get("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
-    get("/impersonation/stop", ImpersonationController, :stop_impersonation)
-    live("/button/:id", ButtonLive)
-    live("/counter", CounterLive)
-    live("/cursors", SharedCursorLive)
-    live("/w/:uuid", WidgetDisplayLive)
-    sign_out_route(AuthController, "/auth/sign-out")
-  end
-
-  # Authentication routes with redirect handling
-  scope "/", StreampaiWeb do
-    pipe_through(:auth)
-
-    # Remove these if you'd like to use your own authentication views
     sign_in_route(
       path: "/auth/sign-in",
       register_path: "/auth/register",
@@ -144,31 +88,23 @@ defmodule StreampaiWeb.Router do
       ]
     )
 
-    auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
-
-    # Remove this if you do not want to use the reset password feature
     reset_route(auth_routes_prefix: "/auth")
+
+    get("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
+    get("/impersonation/stop", ImpersonationController, :stop_impersonation)
+    live("/button/:id", ButtonLive)
+    live("/counter", CounterLive)
+    live("/cursors", SharedCursorLive)
+    live("/w/:uuid", WidgetDisplayLive)
+
+    auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
+    sign_out_route(AuthController, "/auth/sign-out")
   end
+
 
   # Echo API for benchmarking
   scope "/api", StreampaiWeb do
     pipe_through(:api)
-
-    # Full echo with all request details
-    match(:*, "/echo", EchoController, :echo)
-    match(:*, "/echo/*path", EchoController, :echo)
-
-    # Simple echo for performance testing
-    match(:*, "/simple", EchoController, :simple_echo)
-
-    # Optimized versions for performance testing
-    match(:*, "/ultra", EchoController, :ultra_minimal)
-    match(:*, "/json", EchoController, :simple_json)
-    match(:*, "/static", EchoController, :static_response)
-
-    # Echo with configurable delay
-    match(:*, "/delay", EchoController, :echo_with_delay)
-    match(:*, "/delay/:delay", EchoController, :echo_with_delay)
 
     # Monitoring endpoints (IP-restricted)
     get("/health", MonitoringController, :health_check)
@@ -178,12 +114,33 @@ defmodule StreampaiWeb.Router do
     get("/errors/:id", MonitoringController, :error_detail)
   end
 
-  # High-performance endpoint with minimal middleware
-  scope "/fast", StreampaiWeb do
-    # No middleware stack
-    pipe_through([])
+  @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
 
-    get("/test", EchoController, :ultra_minimal)
-    # get "/plug", StreampaiWeb.Plugs.FastResponse, []
+  def check_monitoring_access(conn, _opts) do
+    client_ip = get_client_ip(conn)
+    admin_token = Plug.Conn.get_req_header(conn, "x-admin-token") |> List.first()
+    allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
+
+    if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
+      conn
+    else
+      IO.puts("Denied access to monitoring interface from IP: #{client_ip}")
+
+      conn
+      |> put_status(:forbidden)
+      |> Phoenix.Controller.text("Access denied to monitoring interface")
+      |> halt()
+    end
   end
+
+  defp get_client_ip(conn) do
+    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
+      [forwarded_ip | _] ->
+        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
+
+      [] ->
+        conn.remote_ip |> :inet.ntoa() |> to_string()
+    end
+  end
+
 end
