@@ -80,7 +80,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         type: :chat_widget,
         config: updated_config
       },
-      actor: current_user.id
+      actor: current_user
     )
 
     {:noreply, assign(socket, :widget_config, updated_config)}

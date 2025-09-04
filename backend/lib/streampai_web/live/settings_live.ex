@@ -9,21 +9,30 @@ defmodule StreampaiWeb.SettingsLive do
   alias Streampai.Accounts.NameValidator
 
   def mount_page(socket, _params, _session) do
-    user_data = Dashboard.get_dashboard_data(socket.assigns.current_user)
-    platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
+    current_user = socket.assigns.current_user
+    user_data = Dashboard.get_dashboard_data(current_user)
+    platform_connections = Dashboard.get_platform_connections(current_user)
 
     # Get current plan from user tier
     current_plan =
-      case Map.get(socket.assigns.current_user, :tier) do
+      case Map.get(current_user, :tier) do
         :pro -> "pro"
         _ -> "free"
       end
+
+    # Get user preferences from DB, use default if no record exists
+
+    {:ok, user_preferences} =
+      Streampai.Accounts.UserPreferences.get_by_user_id(%{
+        user_id: current_user.id
+      }, actor: current_user)
 
     {:ok,
      socket
      |> assign(:current_plan, current_plan)
      |> assign(:usage, user_data.usage)
      |> assign(:platform_connections, platform_connections)
+     |> assign(:user_preferences, user_preferences)
      |> assign(
        :name_form,
        AshPhoenix.Form.for_update(socket.assigns.current_user, :update_name) |> to_form()
@@ -129,7 +138,6 @@ defmodule StreampaiWeb.SettingsLive do
            actor: user
          ) do
       :ok ->
-        # Refresh platform connections after successful disconnect
         platform_connections = Dashboard.get_platform_connections(user)
 
         socket =
@@ -151,6 +159,33 @@ defmodule StreampaiWeb.SettingsLive do
     end
   end
 
+  def handle_event("toggle_email_notifications", _params, socket) do
+    current_preferences = socket.assigns.user_preferences
+    new_value = not current_preferences.email_notifications
+
+    case Streampai.Accounts.UserPreferences.create(
+           %{
+             user_id: socket.assigns.current_user.id,
+             email_notifications: new_value
+           },
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, updated_preferences} ->
+        {:noreply,
+         socket
+         |> assign(:user_preferences, updated_preferences)
+         |> put_flash(
+           :info,
+           if(new_value, do: "Email notifications enabled", else: "Email notifications disabled")
+         )}
+
+      {:error, _error} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to update notification preferences")}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="settings" page_title="Settings">
@@ -161,7 +196,7 @@ defmodule StreampaiWeb.SettingsLive do
           usage={@usage}
           platform_connections={@platform_connections}
         />
-        
+
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Account Settings</h3>
@@ -232,14 +267,14 @@ defmodule StreampaiWeb.SettingsLive do
                     connect_url={connection.connect_url}
                     color={connection.color}
                     current_user={@current_user}
-                    show_disconnect={true}
+                    account_data={connection.account_data}
                   />
                 <% end %>
               </div>
             </div>
           </div>
         </div>
-        
+
     <!-- Notifications Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h3>
@@ -249,18 +284,14 @@ defmodule StreampaiWeb.SettingsLive do
                 <h4 class="text-sm font-medium text-gray-900">Email Notifications</h4>
                 <p class="text-sm text-gray-500">Get notified about important account updates</p>
               </div>
-              <button class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 bg-purple-600">
-                <span class="translate-x-5 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
-                </span>
-              </button>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <h4 class="text-sm font-medium text-gray-900">Stream Alerts</h4>
-                <p class="text-sm text-gray-500">Get alerts when your stream goes live</p>
-              </div>
-              <button class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 bg-gray-200">
-                <span class="translate-x-0 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
+              <button
+                phx-click="toggle_email_notifications"
+                class={"relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 #{if @user_preferences.email_notifications, do: "bg-purple-600", else: "bg-gray-200"}"}
+              >
+                <span
+                  class={"inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out #{if @user_preferences.email_notifications, do: "translate-x-5", else: "translate-x-0"}"}
+                  }
+                >
                 </span>
               </button>
             </div>

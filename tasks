@@ -1,11 +1,4 @@
 # Short Term
-- on landing page we should show info that streampai is under construction and
-let users add their mail into newsletter so they can receive update when website
-releases. We should hide all references to pricing and login for now. Just hide
-them though, because I like how landing page looks and will revert back to them once the
-app is working. Also hide Active Streamers/Messages processed widget (again don't delete it as
-we'll be using it later).
-
 
 # Long Term
 - logo?

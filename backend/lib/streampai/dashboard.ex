@@ -94,15 +94,19 @@ defmodule Streampai.Dashboard do
 
   @doc "Gets platform connections for a user."
   def get_platform_connections(%User{} = user) do
-    connected_platforms = get_connected_platforms(user)
+    streaming_accounts = get_streaming_accounts(user)
+    connected_platforms = Enum.map(streaming_accounts, & &1.platform)
 
     Enum.map(@platform_configs, fn config ->
+      connected_account = Enum.find(streaming_accounts, &(&1.platform == config.platform))
+
       %{
         name: config.name,
         platform: config.platform,
         connected: config.platform in connected_platforms,
         connect_url: config.connect_url,
-        color: config.connect_color
+        color: config.connect_color,
+        account_data: if(connected_account, do: connected_account.extra_data, else: nil)
       }
     end)
   end
@@ -142,13 +146,19 @@ defmodule Streampai.Dashboard do
     end)
   end
 
-  defp get_connected_platforms(%User{} = user) do
+  defp get_streaming_accounts(%User{} = user) do
     query =
       Streampai.Accounts.StreamingAccount
       |> Ash.Query.for_read(:for_user, %{user_id: user.id}, actor: user)
 
     {:ok, streaming_accounts} = Ash.read(query)
-    Enum.map(streaming_accounts, & &1.platform)
+    streaming_accounts
+  end
+
+  defp get_connected_platforms(%User{} = user) do
+    user
+    |> get_streaming_accounts()
+    |> Enum.map(& &1.platform)
   end
 
   defp get_display_name(%User{email: email}) when is_binary(email) do

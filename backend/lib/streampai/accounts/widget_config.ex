@@ -85,7 +85,14 @@ defmodule Streampai.Accounts.WidgetConfig do
       authorize_if expr(^actor(:role) == :admin)
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action_type(:create) do
+      authorize_if expr(^actor(:role) == :admin)
+      # For regular users, the create action will force user_id to actor's id anyway
+      # so we can allow creates - the change function ensures data integrity
+      authorize_if actor_present()
+    end
+
+    policy action_type([:update, :destroy]) do
       authorize_if expr(user_id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
     end

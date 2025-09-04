@@ -208,3 +208,4 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - **Remove existing useless comments**: Clean up verbose, obvious, or outdated comments during any code changes
 - **Always format code**: Run `mix format` after making any code changes before yielding control
 - to memorize "The app name is Streampai not Streampai"
+- memorize "When you're using ash remember to always (unless necessary) to pass correct actor to the action"

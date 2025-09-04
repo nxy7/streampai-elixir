@@ -134,13 +134,12 @@ defmodule StreampaiWeb.DashboardLive do
             </div>
           </.dashboard_card>
           <.dashboard_card
-          :if={delayed_welcome = @delayed_welcome.ok? && @delayed_welcome.result}
-          title={delayed_welcome}
-          class="mb-6"
-        >
-          wazzup
-        </.dashboard_card>
-
+            :if={delayed_welcome = @delayed_welcome.ok? && @delayed_welcome.result}
+            title={delayed_welcome}
+            class="mb-6"
+          >
+            wazzup
+          </.dashboard_card>
         </div>
         {debug_section(assigns)}
       </div>
