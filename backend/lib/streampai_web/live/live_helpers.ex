@@ -4,7 +4,7 @@ defmodule StreampaiWeb.LiveHelpers do
 
   This module provides consistent patterns for:
   - Error handling
-  - Flash message management  
+  - Flash message management
   - Socket state management
   - Common LiveView operations
   """
@@ -166,6 +166,21 @@ defmodule StreampaiWeb.LiveHelpers do
   end
 
   @doc """
+  Standardized mount pattern for dashboard pages.
+  """
+  def reload_current_user(socket) do
+    previous_current_user = socket.assigns.current_user
+
+    socket
+    |> assign(
+      :current_user,
+      Streampai.Accounts.User.get_by_id!(%{id: previous_current_user.id},
+        actor: previous_current_user
+      )
+    )
+  end
+
+  @doc """
   Handles platform disconnection with consistent patterns.
   """
   def handle_platform_disconnect(socket, platform) do
@@ -182,6 +197,7 @@ defmodule StreampaiWeb.LiveHelpers do
 
         {:noreply,
          socket
+         |> reload_current_user()
          |> assign(:platform_connections, platform_connections)
          |> assign(:usage, user_data.usage)
          |> show_success("Successfully disconnected #{String.capitalize(platform)} account")}

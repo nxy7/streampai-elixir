@@ -51,6 +51,10 @@ defmodule Streampai.Accounts.User do
     repo Streampai.Repo
   end
 
+  code_interface do
+    define :get_by_id
+  end
+
   actions do
     defaults [:read]
 
@@ -65,18 +69,7 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare fn query, _context ->
-        Ash.Query.after_action(query, fn _query, [user] ->
-          # Reload the user with themselves as the actor for proper relationship loading
-          updated_user =
-            Streampai.Accounts.User
-            |> Ash.Query.for_read(:get, %{}, actor: %{id: user.id})
-            |> Ash.Query.load([:tier, :connected_platforms, :role, :streaming_accounts])
-            |> Ash.read_one!()
-
-          {:ok, [updated_user]}
-        end)
-      end
+      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
 
       filter expr(id == ^arg(:id))
     end
@@ -91,14 +84,12 @@ defmodule Streampai.Accounts.User do
 
       prepare fn query, _context ->
         Ash.Query.after_action(query, fn _query, [user] ->
-          # Reload the user with themselves as the actor for proper relationship loading
-          updated_user =
+          extended_user =
             Streampai.Accounts.User
-            |> Ash.Query.for_read(:get, %{}, actor: %{id: user.id})
-            |> Ash.Query.load([:tier, :connected_platforms, :role, :streaming_accounts])
+            |> Ash.Query.for_read(:get_by_id, %{id: user.id}, actor: %{id: user.id})
             |> Ash.read_one!()
 
-          {:ok, [updated_user]}
+          {:ok, [extended_user]}
         end)
       end
     end
