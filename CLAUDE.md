@@ -207,3 +207,4 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - **No redundant comments**: Never add comments that simply restate what the code does
 - **Remove existing useless comments**: Clean up verbose, obvious, or outdated comments during any code changes
 - **Always format code**: Run `mix format` after making any code changes before yielding control
+- to memorize "The app name is Streampai not Streampai"

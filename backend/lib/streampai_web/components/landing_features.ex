@@ -186,37 +186,40 @@ defmodule StreampaiWeb.Components.LandingFeatures do
       </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="py-24">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-          <div class="group">
-            <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-              5000+
+    <!-- HIDDEN: Stats Section will be restored later -->
+    <div class="hidden">
+      <!-- Stats Section -->
+      <section class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div class="group">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
+                5000+
+              </div>
+              <div class="text-gray-300">Active Streamers</div>
             </div>
-            <div class="text-gray-300">Active Streamers</div>
-          </div>
-          <div class="group">
-            <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-              50M+
+            <div class="group">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
+                50M+
+              </div>
+              <div class="text-gray-300">Messages Processed</div>
             </div>
-            <div class="text-gray-300">Messages Processed</div>
-          </div>
-          <div class="group">
-            <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-              99.9%
+            <div class="group">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
+                99.9%
+              </div>
+              <div class="text-gray-300">Uptime</div>
             </div>
-            <div class="text-gray-300">Uptime</div>
-          </div>
-          <div class="group">
-            <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-              8
+            <div class="group">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
+                8
+              </div>
+              <div class="text-gray-300">Platforms Supported</div>
             </div>
-            <div class="text-gray-300">Platforms Supported</div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <!-- About Section -->
     <section id="about" class="py-24 bg-black/30">

@@ -110,7 +110,7 @@ config :streampai, :cloudflare,
   account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
   api_base_url: "https://api.cloudflare.com/client/v4",
   default_input_config: %{
-    meta: %{name: "StreamPAI Input"},
+    meta: %{name: "Streampai Input"},
     recording: %{mode: "automatic"}
   }
 ```
@@ -240,7 +240,7 @@ config :streampai, :cloudflare,
   # Default input configuration
   default_input_config: %{
     meta: %{
-      name: "StreamPAI Live Input"
+      name: "Streampai Live Input"
     },
     recording: %{
       mode: "automatic",

@@ -2,7 +2,7 @@
 [![Production](https://img.shields.io/website?url=https%3A%2F%2Fstreampai.com&label=production&logo=vercel)](https://streampai.com)
 
 
-**StreamPAI** is a comprehensive live streaming management platform that helps content creators manage multi-platform streaming, engage with audiences, and grow their communities through intelligent automation and analytics.
+**Streampai** is a comprehensive live streaming management platform that helps content creators manage multi-platform streaming, engage with audiences, and grow their communities through intelligent automation and analytics.
 
 ## Features
 

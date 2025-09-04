@@ -21,28 +21,17 @@ defmodule StreampaiWeb.Components.LandingNavigation do
             <.link navigate="#features" class="text-gray-300 hover:text-white transition-colors">
               Features
             </.link>
-            <.link navigate="#pricing" class="text-gray-300 hover:text-white transition-colors">
-              Pricing
-            </.link>
+            <!-- HIDDEN: Pricing link will be restored later -->
+            <div class="hidden">
+              <.link navigate="#pricing" class="text-gray-300 hover:text-white transition-colors">
+                Pricing
+              </.link>
+            </div>
             <.link navigate="#about" class="text-gray-300 hover:text-white transition-colors">
               About
             </.link>
 
-            <%= if @current_user do %>
-              <.link
-                navigate="/dashboard"
-                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
-              >
-                Dashboard
-              </.link>
-            <% else %>
-              <.link
-                navigate="/auth/sign-in"
-                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
-              >
-                Get Started
-              </.link>
-            <% end %>
+            {auth_buttons(assigns)}
           </div>
           
     <!-- Mobile menu button -->
@@ -62,5 +51,32 @@ defmodule StreampaiWeb.Components.LandingNavigation do
       </div>
     </nav>
     """
+  end
+
+  if Mix.env() != :prod do
+    defp auth_buttons(assigns) do
+      ~H"""
+      <%= if @current_user do %>
+        <.link
+          navigate="/dashboard"
+          class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+        >
+          Dashboard
+        </.link>
+      <% else %>
+        <.link
+          navigate="/auth/sign-in"
+          class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+        >
+          Get Started
+        </.link>
+      <% end %>
+      """
+    end
+  else
+    defp auth_buttons(_assigns) do
+      assigns = %{}
+      ~H""
+    end
   end
 end

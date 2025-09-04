@@ -15,22 +15,54 @@ defmodule StreampaiWeb.Components.LandingHero do
             <br />at Once
           </h1>
 
+          <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg border border-yellow-500/30 rounded-2xl p-6 mb-8 max-w-2xl mx-auto">
+            <div class="flex items-center justify-center mb-4">
+              <svg
+                class="w-8 h-8 text-yellow-400 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              <h2 class="text-2xl font-bold text-yellow-400">Under Construction</h2>
+            </div>
+            <p class="text-white text-lg text-center mb-6">
+              We're building something amazing! Streampai is currently under development.
+              Join our newsletter to be the first to know when we launch.
+            </p>
+
+            <form
+              class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              phx-submit="newsletter_signup"
+            >
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email address"
+                required
+                class="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
+              >
+                Notify Me
+              </button>
+            </form>
+          </div>
+
           <p class="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             Connect all your streaming platforms, unify your audience, and supercharge your content with AI-powered tools.
             Stream to Twitch, YouTube, Kick, Facebook and more simultaneously.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <a
-              href="/auth/sign-in"
-              class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
-            >
-              Start Free Trial
-            </a>
-            <button class="border border-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all">
-              Watch Demo
-            </button>
-          </div>
+          {hero_auth_buttons(assigns)}
           
     <!-- Platform Logos -->
           <div class="flex flex-wrap justify-center items-center gap-8 opacity-70">
@@ -90,5 +122,28 @@ defmodule StreampaiWeb.Components.LandingHero do
       </div>
     </section>
     """
+  end
+
+  if false do
+    defp hero_auth_buttons(assigns) do
+      ~H"""
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+        <a
+          href="/auth/sign-in"
+          class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
+        >
+          Start Free Trial
+        </a>
+        <button class="border border-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all">
+          Watch Demo
+        </button>
+      </div>
+      """
+    end
+  else
+    defp hero_auth_buttons(_assigns) do
+      assigns = %{}
+      ~H""
+    end
   end
 end

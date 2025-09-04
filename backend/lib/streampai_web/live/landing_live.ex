@@ -13,6 +13,12 @@ defmodule StreampaiWeb.LandingLive do
     {:ok, assign(socket, csrf_token: csrf_token), layout: false}
   end
 
+  def handle_event("newsletter_signup", %{"email" => email}, socket) do
+    # TODO: Store email in newsletter list when backend is ready
+    # For now, just show a success message
+    {:noreply, put_flash(socket, :info, "Thanks! We'll notify you when Streampai launches.")}
+  end
+
   def render(assigns) do
     ~H"""
     <!DOCTYPE html>
@@ -29,10 +35,14 @@ defmodule StreampaiWeb.LandingLive do
       </head>
       <body class="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <.flash_group flash={@flash} />
           <.landing_navigation current_user={@current_user} />
           <.landing_hero />
           <.landing_features />
-          <.landing_pricing current_user={@current_user} />
+          <!-- HIDDEN: Pricing section will be restored later -->
+          <div class="hidden">
+            <.landing_pricing current_user={@current_user} />
+          </div>
           <.landing_cta />
           <.landing_footer />
         </div>

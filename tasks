@@ -1,5 +1,4 @@
 # Short Term
-- can we add .git hook that will run 'cd backend; mix format' before each commit
 - on landing page we should show info that streampai is under construction and
 let users add their mail into newsletter so they can receive update when website
 releases. We should hide all references to pricing and login for now. Just hide
