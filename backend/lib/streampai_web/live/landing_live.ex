@@ -34,7 +34,7 @@ defmodule StreampaiWeb.LandingLive do
           |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
 
         # Clear flash after 4 seconds
-        Process.send_after(self(), :clear_flash, 4000)
+        Process.send_after(self(), :clear_flash, 7000)
 
         end_time = System.monotonic_time(:millisecond)
 
