@@ -38,18 +38,18 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.RedirectAfterAuth)
   end
 
-  pipeline :check_monitoring_ip do
-    plug(:check_monitoring_access)
-  end
+  @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
 
-  @monitoring_allowed_ips ["127.0.0.1", "::1"]
-
-  defp check_monitoring_access(conn, _opts) do
+  def check_monitoring_access(conn, _opts) do
     client_ip = get_client_ip(conn)
+    admin_token = Plug.Conn.get_req_header(conn, "X-ADMIN-TOKEN") |> List.first()
+    allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
 
-    if client_ip in @monitoring_allowed_ips do
+    if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
       conn
     else
+      IO.puts("Denied access to monitoring interface from IP: #{client_ip}")
+
       conn
       |> put_status(:forbidden)
       |> Phoenix.Controller.text("Access denied to monitoring interface")
@@ -67,21 +67,15 @@ defmodule StreampaiWeb.Router do
     end
   end
 
-  scope "/" do
-    pipe_through(:browser)
-    ash_admin("/admin/ash")
-  end
-
-  scope "/admin", StreampaiWeb do
+  scope "/admin" do
     if Application.compile_env(:streampai, :env) == :prod do
-      pipe_through([
-        :browser
-        # :check_monitoring_ip
-      ])
+      pipe_through(:browser)
+      plug(:check_monitoring_access)
     else
       pipe_through(:browser)
     end
 
+    ash_admin("/ash")
     oban_dashboard("/oban")
 
     live_dashboard("/dashboard",

@@ -27,6 +27,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
       ECTO_IPV6: "false"
       POOL_SIZE: "25"
+      ADMIN_TOKEN: "w2aacPKKpbnsncWW4lPztDv49wOsTcwe"
 
       PHX_SERVER: "true"
       PHX_HOST: "${PHX_HOST:-streampai.com}"
