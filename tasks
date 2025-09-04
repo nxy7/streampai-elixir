@@ -1,4 +1,5 @@
 # Short Term
+- add dotenvy as dev dependency and load env variables from .env (IN DEV ONLY)
 - move cloudflare client from LivestreamManager domain as it doesn't have to belong there and could potentially be used outside of it
 - does ecto sandbox work with elixir ash
 - make code compile

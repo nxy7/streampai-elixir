@@ -8,14 +8,18 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   defstruct [
     :user_id,
-    :status,          # :offline, :starting, :live, :ending
+    # :offline, :starting, :live, :ending
+    :status,
     :title,
     :thumbnail_url,
     :started_at,
     :ended_at,
-    :platforms,       # %{twitch: %{status: :connected, stream_key: "..."}, ...}
-    :statistics,      # %{total_viewers: 0, chat_messages: 0, ...}
-    :cloudflare_input # %{input_id: "...", rtmp_url: "...", stream_key: "..."}
+    # %{twitch: %{status: :connected, stream_key: "..."}, ...}
+    :platforms,
+    # %{total_viewers: 0, chat_messages: 0, ...}
+    :statistics,
+    # %{input_id: "...", rtmp_url: "...", stream_key: "..."}
+    :cloudflare_input
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -26,7 +30,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   def init(user_id) do
     # Load user's connected platforms from database
     platforms = load_user_platforms(user_id)
-    
+
     state = %__MODULE__{
       user_id: user_id,
       status: :offline,
@@ -81,12 +85,13 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   @impl true
   def handle_cast({:update_status, new_status}, state) do
     state = %{state | status: new_status}
-    
-    state = case new_status do
-      :live -> %{state | started_at: DateTime.utc_now()}
-      :offline -> %{state | ended_at: DateTime.utc_now()}
-      _ -> state
-    end
+
+    state =
+      case new_status do
+        :live -> %{state | started_at: DateTime.utc_now()}
+        :offline -> %{state | ended_at: DateTime.utc_now()}
+        _ -> state
+      end
 
     broadcast_state_change(state)
     {:noreply, state}
@@ -94,8 +99,9 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:update_metadata, metadata}, state) do
-    state = state
-    |> Map.merge(Map.take(metadata, [:title, :thumbnail_url]))
+    state =
+      state
+      |> Map.merge(Map.take(metadata, [:title, :thumbnail_url]))
 
     broadcast_state_change(state)
     {:noreply, state}
@@ -103,9 +109,10 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:update_platform_status, platform, status_update}, state) do
-    platforms = Map.update(state.platforms, platform, status_update, fn existing ->
-      Map.merge(existing, status_update)
-    end)
+    platforms =
+      Map.update(state.platforms, platform, status_update, fn existing ->
+        Map.merge(existing, status_update)
+      end)
 
     state = %{state | platforms: platforms}
     broadcast_state_change(state)
@@ -114,12 +121,13 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:update_statistics, stats_update}, state) do
-    statistics = Map.merge(state.statistics, stats_update, fn _k, v1, v2 ->
-      if is_number(v1) and is_number(v2), do: v2, else: v2
-    end)
+    statistics =
+      Map.merge(state.statistics, stats_update, fn _k, v1, v2 ->
+        if is_number(v1) and is_number(v2), do: v2, else: v2
+      end)
 
     state = %{state | statistics: statistics}
-    
+
     # Broadcast statistics update (less frequently than full state)
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
@@ -140,7 +148,17 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   # Helper functions
 
   defp via_tuple(user_id) do
-    {:via, Registry, {Streampai.LivestreamManager.Registry, {:stream_state, user_id}}}
+    registry_name = if Application.get_env(:streampai, :test_mode, false) do
+      # In test mode, check if there's a process dictionary with the registry name
+      case Process.get(:test_registry_name) do
+        nil -> Streampai.LivestreamManager.Registry
+        test_registry -> test_registry
+      end
+    else
+      Streampai.LivestreamManager.Registry
+    end
+    
+    {:via, Registry, {registry_name, {:stream_state, user_id}}}
   end
 
   defp load_user_platforms(user_id) do
@@ -150,12 +168,13 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
       {:ok, accounts} ->
         accounts
         |> Enum.into(%{}, fn account ->
-          {account.platform, %{
-            status: :disconnected,
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.access_token_expires_at
-          }}
+          {account.platform,
+           %{
+             status: :disconnected,
+             access_token: account.access_token,
+             refresh_token: account.refresh_token,
+             expires_at: account.access_token_expires_at
+           }}
         end)
 
       {:error, _} ->

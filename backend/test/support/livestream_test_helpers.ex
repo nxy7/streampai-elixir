@@ -15,15 +15,13 @@ defmodule StreampaiTest.LivestreamTestHelpers do
     suffix = test_name || :erlang.unique_integer([:positive])
     registry_name = :"TestLivestreamRegistry_#{suffix}"
     pubsub_name = :"TestPubSub_#{suffix}"
-    
-    # Start test-specific PubSub
-    {:ok, _} = Phoenix.PubSub.start_link(name: pubsub_name)
-    
+
     # Override application environment for tests
     original_pubsub = Application.get_env(:streampai, :pubsub_name, Streampai.PubSub)
     Application.put_env(:streampai, :pubsub_name, pubsub_name)
-    
+
     children = [
+      Phoenix.PubSub.child_spec(name: pubsub_name),
       {Registry, keys: :unique, name: registry_name},
       {DynamicSupervisor, strategy: :one_for_one, name: :"TestUserSupervisor_#{suffix}"},
       {LivestreamManager.EventBroadcaster, name: :"TestEventBroadcaster_#{suffix}"},
@@ -32,7 +30,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
     ]
 
     {:ok, supervisor_pid} = Supervisor.start_link(children, strategy: :one_for_one)
-    
+
     test_config = %{
       supervisor_pid: supervisor_pid,
       registry_name: registry_name,
@@ -41,14 +39,14 @@ defmodule StreampaiTest.LivestreamTestHelpers do
       user_supervisor: :"TestUserSupervisor_#{suffix}",
       event_broadcaster: :"TestEventBroadcaster_#{suffix}"
     }
-    
+
     # Return cleanup function along with config
     cleanup_fn = fn ->
       Supervisor.stop(supervisor_pid, :normal)
       Application.put_env(:streampai, :pubsub_name, original_pubsub)
       Phoenix.PubSub.stop(pubsub_name)
     end
-    
+
     {test_config, cleanup_fn}
   end
 
@@ -57,7 +55,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   """
   def create_test_user(user_id \\ nil) do
     user_id = user_id || "test_user_#{:erlang.unique_integer([:positive])}"
-    
+
     # Mock streaming accounts
     streaming_accounts = [
       %{
@@ -69,13 +67,13 @@ defmodule StreampaiTest.LivestreamTestHelpers do
       },
       %{
         platform: :youtube,
-        access_token: "mock_youtube_token", 
+        access_token: "mock_youtube_token",
         refresh_token: "mock_youtube_refresh",
         access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600),
         extra_data: %{"channel_id" => "test_channel_123"}
       }
     ]
-    
+
     %{
       user_id: user_id,
       streaming_accounts: streaming_accounts
@@ -88,7 +86,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   def start_test_user_stream(test_config, user_id) do
     # Mock the StreamingAccount.for_user call
     mock_accounts_response = create_test_user(user_id).streaming_accounts
-    
+
     # Start user stream with mocked dependencies
     child_spec = %{
       id: {:user_stream_manager, user_id},
@@ -109,7 +107,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   """
   def wait_for_event(pubsub_name, topic, timeout \\ 1000) do
     Phoenix.PubSub.subscribe(pubsub_name, topic)
-    
+
     receive do
       event -> {:ok, event}
     after
@@ -125,7 +123,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
       {:ok, event} ->
         assert event == expected_event
         :ok
-      
+
       {:timeout, _} ->
         flunk("Expected event #{inspect(expected_event)} not received on topic #{topic}")
     end
@@ -171,13 +169,13 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   def capture_events(pubsub_name, topics, test_fn) when is_list(topics) do
     # Subscribe to all topics
     Enum.each(topics, &Phoenix.PubSub.subscribe(pubsub_name, &1))
-    
+
     # Execute test
     result = test_fn.()
-    
+
     # Collect events
     events = collect_events([])
-    
+
     {result, events}
   end
 

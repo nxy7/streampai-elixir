@@ -15,7 +15,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   def init(user_id) do
     # Start platform managers for user's connected platforms
     spawn(fn -> initialize_user_platforms(user_id) end)
-    
+
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
@@ -24,11 +24,12 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   @doc """
   Starts a platform manager for a specific platform.
   """
-  def start_platform_manager(user_id, platform, config) when platform in [:twitch, :youtube, :facebook, :kick] do
+  def start_platform_manager(user_id, platform, config)
+      when platform in [:twitch, :youtube, :facebook, :kick] do
     supervisor_pid = via_tuple(user_id)
-    
+
     child_spec = get_platform_manager_spec(user_id, platform, config)
-    
+
     case DynamicSupervisor.start_child(supervisor_pid, child_spec) do
       {:ok, pid} -> {:ok, pid}
       {:error, {:already_started, pid}} -> {:ok, pid}
@@ -40,11 +41,14 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Stops a platform manager.
   """
   def stop_platform_manager(user_id, platform) do
-    case Registry.lookup(Streampai.LivestreamManager.Registry, {:platform_manager, user_id, platform}) do
+    case Registry.lookup(
+           Streampai.LivestreamManager.Registry,
+           {:platform_manager, user_id, platform}
+         ) do
       [{pid, _}] ->
         supervisor_pid = via_tuple(user_id)
         DynamicSupervisor.terminate_child(supervisor_pid, pid)
-      
+
       [] ->
         {:error, :not_found}
     end
@@ -54,20 +58,25 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Broadcasts a chat message to specified platforms or all platforms.
   """
   def broadcast_message(user_id, message, platforms \\ :all) do
-    target_platforms = case platforms do
-      :all -> get_active_platforms(user_id)
-      platforms when is_list(platforms) -> platforms
-      platform when is_atom(platform) -> [platform]
-    end
+    target_platforms =
+      case platforms do
+        :all -> get_active_platforms(user_id)
+        platforms when is_list(platforms) -> platforms
+        platform when is_atom(platform) -> [platform]
+      end
 
     Enum.each(target_platforms, fn platform ->
-      case Registry.lookup(Streampai.LivestreamManager.Registry, {:platform_manager, user_id, platform}) do
+      case Registry.lookup(
+             Streampai.LivestreamManager.Registry,
+             {:platform_manager, user_id, platform}
+           ) do
         [{pid, _}] ->
           platform_module = get_platform_module(platform)
           platform_module.send_chat_message(pid, message)
-        
+
         [] ->
-          :ok  # Platform not connected, skip
+          # Platform not connected, skip
+          :ok
       end
     end)
   end
@@ -76,20 +85,25 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Updates stream metadata on specified platforms.
   """
   def update_metadata(user_id, metadata, platforms \\ :all) do
-    target_platforms = case platforms do
-      :all -> get_active_platforms(user_id)
-      platforms when is_list(platforms) -> platforms
-      platform when is_atom(platform) -> [platform]
-    end
+    target_platforms =
+      case platforms do
+        :all -> get_active_platforms(user_id)
+        platforms when is_list(platforms) -> platforms
+        platform when is_atom(platform) -> [platform]
+      end
 
     Enum.each(target_platforms, fn platform ->
-      case Registry.lookup(Streampai.LivestreamManager.Registry, {:platform_manager, user_id, platform}) do
+      case Registry.lookup(
+             Streampai.LivestreamManager.Registry,
+             {:platform_manager, user_id, platform}
+           ) do
         [{pid, _}] ->
           platform_module = get_platform_module(platform)
           platform_module.update_stream_metadata(pid, metadata)
-        
+
         [] ->
-          :ok  # Platform not connected, skip
+          # Platform not connected, skip
+          :ok
       end
     end)
   end
@@ -103,7 +117,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   defp initialize_user_platforms(user_id) do
     # Small delay to ensure supervisor is fully initialized
     Process.sleep(100)
-    
+
     # Load user's platforms and start managers
     case Streampai.Accounts.StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->
@@ -114,18 +128,19 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
             expires_at: account.access_token_expires_at,
             extra_data: account.extra_data
           }
-          
+
           start_platform_manager(user_id, account.platform, platform_config)
         end)
 
       {:error, _} ->
-        :ok  # No connected platforms
+        # No connected platforms
+        :ok
     end
   end
 
   defp get_platform_manager_spec(user_id, platform, config) do
     platform_module = get_platform_module(platform)
-    
+
     %{
       id: {:platform_manager, user_id, platform},
       start: {platform_module, :start_link, [user_id, config]},
@@ -135,7 +150,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   end
 
   defp get_platform_module(:twitch), do: Platforms.TwitchManager
-  defp get_platform_module(:youtube), do: Platforms.YouTubeManager  
+  defp get_platform_module(:youtube), do: Platforms.YouTubeManager
   defp get_platform_module(:facebook), do: Platforms.FacebookManager
   defp get_platform_module(:kick), do: Platforms.KickManager
 

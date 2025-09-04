@@ -29,7 +29,7 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
 
     # Schedule periodic metrics collection
     schedule_metrics_update()
-    
+
     Logger.info("MetricsCollector started")
     {:ok, state}
   end
@@ -46,7 +46,7 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   def handle_info(:update_metrics, state) do
     metrics = collect_current_metrics(state)
     state = %{state | metrics: metrics}
-    
+
     schedule_metrics_update()
     {:noreply, state}
   end
@@ -76,29 +76,36 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
 
   defp get_total_events do
     case GenServer.whereis(Streampai.LivestreamManager.EventBroadcaster) do
-      nil -> 0
-      pid -> 
+      nil ->
+        0
+
+      _pid ->
         case Streampai.LivestreamManager.EventBroadcaster.get_event_stats() do
-          stats when is_map(stats) -> 
+          stats when is_map(stats) ->
             stats.event_counters |> Map.values() |> Enum.sum()
-          _ -> 0
+
+          _ ->
+            0
         end
     end
   end
 
   defp count_platform_connections do
     platforms = [:twitch, :youtube, :facebook, :kick]
-    
+
     Enum.into(platforms, %{}, fn platform ->
-      count = Registry.select(Streampai.LivestreamManager.Registry, [
-        {{{:platform_manager, :_, platform}, :_, :_}, [], [true]}
-      ]) |> length()
-      
+      count =
+        Registry.select(Streampai.LivestreamManager.Registry, [
+          {{{:platform_manager, :_, platform}, :_, :_}, [], [true]}
+        ])
+        |> length()
+
       {platform, count}
     end)
   end
 
   defp schedule_metrics_update do
-    Process.send_after(self(), :update_metrics, 60_000)  # Every minute
+    # Every minute
+    Process.send_after(self(), :update_metrics, 60_000)
   end
 end

@@ -7,7 +7,14 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
   require Logger
 
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, :ok, Keyword.put_new(opts, :name, __MODULE__))
+    name_opts = if Application.get_env(:streampai, :test_mode, false) do
+      # In test mode, allow unnamed processes to avoid conflicts
+      opts
+    else
+      # In non-test mode, use global name
+      Keyword.put_new(opts, :name, __MODULE__)
+    end
+    GenServer.start_link(__MODULE__, :ok, name_opts)
   end
 
   @impl true
@@ -22,7 +29,11 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
   Processes a webhook event from Cloudflare.
   """
   def handle_webhook(event_data) do
-    GenServer.cast(__MODULE__, {:handle_webhook, event_data})
+    handle_webhook(__MODULE__, event_data)
+  end
+  
+  def handle_webhook(server, event_data) do
+    GenServer.cast(server, {:handle_webhook, event_data})
   end
 
   # Server callbacks
@@ -37,7 +48,7 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
 
   defp process_webhook_event(%{"type" => "live_input.connected", "data" => data}) do
     Logger.info("Live input connected: #{inspect(data)}")
-    
+
     # Find user by input ID and update stream state
     if input_id = data["uid"] do
       broadcast_stream_status_change(input_id, :connected)
@@ -46,7 +57,7 @@ defmodule Streampai.LivestreamManager.CloudflareWebhookHandler do
 
   defp process_webhook_event(%{"type" => "live_input.disconnected", "data" => data}) do
     Logger.info("Live input disconnected: #{inspect(data)}")
-    
+
     if input_id = data["uid"] do
       broadcast_stream_status_change(input_id, :disconnected)
     end

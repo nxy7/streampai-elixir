@@ -21,8 +21,11 @@ end
 ExUnit.configure(
   timeout: 10_000,
   exclude: [
-    :load_test,     # Exclude load tests by default
-    :performance,   # Exclude performance tests by default
-    :slow          # Exclude slow tests by default
+    # Exclude load tests by default
+    :load_test,
+    # Exclude performance tests by default
+    :performance,
+    # Exclude slow tests by default
+    :slow
   ]
 )

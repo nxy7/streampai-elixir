@@ -16,6 +16,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     define :create
     define :destroy
     define :read
+    define :for_user, action: :for_user, args: [:user_id]
   end
 
   actions do

@@ -4,7 +4,6 @@ defmodule StreampaiWeb.MonitoringController do
   """
   use StreampaiWeb, :controller
 
-
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
 
@@ -69,7 +68,6 @@ defmodule StreampaiWeb.MonitoringController do
         |> json(error_data)
     end
   end
-
 
   defp collect_system_metrics do
     memory = :erlang.memory()

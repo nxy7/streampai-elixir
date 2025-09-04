@@ -16,7 +16,8 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     :channel_id,
     :username,
     :websocket_pid,
-    :connection_status,  # :connecting, :connected, :disconnected, :error
+    # :connecting, :connected, :disconnected, :error
+    :connection_status,
     :last_viewer_count,
     :chat_enabled
   ]
@@ -39,7 +40,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
     # Start connection process
     send(self(), :connect)
-    
+
     Logger.info("TwitchManager started for user #{user_id}")
     {:ok, state}
   end
@@ -76,13 +77,13 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         # Start periodic tasks
         schedule_viewer_count_check()
         schedule_token_refresh()
-        
+
         Logger.info("Connected to Twitch for user #{state.user_id}")
         {:noreply, new_state}
 
       {:error, reason} ->
         Logger.error("Failed to connect to Twitch for user #{state.user_id}: #{inspect(reason)}")
-        
+
         # Retry connection after delay
         Process.send_after(self(), :connect, 30_000)
         {:noreply, %{state | connection_status: :error}}
@@ -102,13 +103,13 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
             count: stream_info.viewer_count,
             previous_count: state.last_viewer_count
           }
-          
+
           EventBroadcaster.broadcast_event(event)
-          
+
           # Update stream state
           update_platform_status(state, %{viewer_count: stream_info.viewer_count})
         end
-        
+
         schedule_viewer_count_check()
         {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
 
@@ -127,7 +128,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         {:noreply, new_state}
 
       {:error, reason} ->
-        Logger.error("Failed to refresh Twitch token for user #{state.user_id}: #{inspect(reason)}")
+        Logger.error(
+          "Failed to refresh Twitch token for user #{state.user_id}: #{inspect(reason)}"
+        )
+
         schedule_token_refresh()
         {:noreply, state}
     end
@@ -145,12 +149,14 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       case send_twitch_chat_message(state, message) do
         :ok ->
           Logger.debug("Sent chat message to Twitch for user #{state.user_id}")
-        
+
         {:error, reason} ->
-          Logger.error("Failed to send chat message for user #{state.user_id}: #{inspect(reason)}")
+          Logger.error(
+            "Failed to send chat message for user #{state.user_id}: #{inspect(reason)}"
+          )
       end
     end
-    
+
     {:noreply, state}
   end
 
@@ -159,17 +165,19 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     case update_twitch_stream_info(state, metadata) do
       :ok ->
         Logger.info("Updated Twitch stream metadata for user #{state.user_id}")
-        
+
         # Update local stream state
         update_platform_status(state, %{
           title: metadata[:title],
           category: metadata[:category]
         })
-      
+
       {:error, reason} ->
-        Logger.error("Failed to update stream metadata for user #{state.user_id}: #{inspect(reason)}")
+        Logger.error(
+          "Failed to update stream metadata for user #{state.user_id}: #{inspect(reason)}"
+        )
     end
-    
+
     {:noreply, state}
   end
 
@@ -183,39 +191,42 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       last_viewer_count: state.last_viewer_count,
       chat_enabled: state.chat_enabled
     }
-    
+
     {:reply, status, state}
   end
 
   # Helper functions
 
   defp via_tuple(user_id) do
-    {:via, Registry, {Streampai.LivestreamManager.Registry, {:platform_manager, user_id, :twitch}}}
+    {:via, Registry,
+     {Streampai.LivestreamManager.Registry, {:platform_manager, user_id, :twitch}}}
   end
 
   defp authenticate_and_connect(state) do
     # TODO: Implement actual Twitch authentication and WebSocket connection
     # For now, return mock success
-    new_state = %{state |
-      connection_status: :connected,
-      username: "mock_user_#{String.slice(state.user_id, 0, 8)}",
-      channel_id: "123456789"
+    new_state = %{
+      state
+      | connection_status: :connected,
+        username: "mock_user_#{String.slice(state.user_id, 0, 8)}",
+        channel_id: "123456789"
     }
-    
+
     update_platform_status(new_state, %{status: :connected})
-    
+
     {:ok, new_state}
   end
 
   defp get_stream_info(state) do
     # TODO: Implement actual Twitch API call to get stream info
     # For now, return mock data with random viewer count
-    {:ok, %{
-      viewer_count: :rand.uniform(1000),
-      title: "Mock Stream Title",
-      category: "Just Chatting",
-      started_at: DateTime.utc_now()
-    }}
+    {:ok,
+     %{
+       viewer_count: :rand.uniform(1000),
+       title: "Mock Stream Title",
+       category: "Just Chatting",
+       started_at: DateTime.utc_now()
+     }}
   end
 
   defp refresh_access_token(state) do
@@ -245,6 +256,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           platform: :twitch,
           username: username
         }
+
         EventBroadcaster.broadcast_event(follow_event)
 
       %{type: "subscription", user_name: username, tier: tier} ->
@@ -255,6 +267,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           username: username,
           tier: tier
         }
+
         EventBroadcaster.broadcast_event(sub_event)
 
       %{type: "raid", from_broadcaster_user_name: username, viewers: viewers} ->
@@ -265,6 +278,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           username: username,
           viewer_count: viewers
         }
+
         EventBroadcaster.broadcast_event(raid_event)
 
       _ ->
@@ -283,10 +297,12 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   defp schedule_viewer_count_check do
-    Process.send_after(self(), :check_viewer_count, 30_000)  # Every 30 seconds
+    # Every 30 seconds
+    Process.send_after(self(), :check_viewer_count, 30_000)
   end
 
   defp schedule_token_refresh do
-    Process.send_after(self(), :refresh_token, 3_600_000)  # Every hour
+    # Every hour
+    Process.send_after(self(), :refresh_token, 3_600_000)
   end
 end

@@ -81,7 +81,7 @@ defmodule Streampai.MixProject do
       {:ssl_verify_fun, "~> 1.1"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
-      {:dotenvy, "~> 0.9.0"},
+      {:dotenvy, "~> 0.9.0", only: [:dev, :test]},
       {:postgrex, ">= 0.0.0"},
       {:floki, ">= 0.30.0"},
       {:rewrite, "~> 1.1", override: true},

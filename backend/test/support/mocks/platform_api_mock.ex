@@ -19,6 +19,7 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
       call_log: [],
       delays: %{}
     }
+
     {:ok, state}
   end
 
@@ -94,20 +95,23 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
       params: params,
       timestamp: DateTime.utc_now()
     }
+
     call_log = [call_entry | state.call_log]
-    
+
     # Apply delay if configured
     key = {platform, method}
+
     if delay = state.delays[key] do
       Process.sleep(delay)
     end
-    
+
     # Return configured response or default
-    response = case state.responses[key] do
-      nil -> default_response(platform, method, params)
-      response -> response
-    end
-    
+    response =
+      case state.responses[key] do
+        nil -> default_response(platform, method, params)
+        response -> response
+      end
+
     {:reply, response, %{state | call_log: call_log}}
   end
 
@@ -117,19 +121,21 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
   end
 
   defp default_response(:twitch, :get_stream_info, _params) do
-    {:ok, %{
-      viewer_count: :rand.uniform(1000),
-      title: "Mock Stream Title",
-      game_name: "Software Development",
-      started_at: DateTime.utc_now() |> DateTime.add(-3600)
-    }}
+    {:ok,
+     %{
+       viewer_count: :rand.uniform(1000),
+       title: "Mock Stream Title",
+       game_name: "Software Development",
+       started_at: DateTime.utc_now() |> DateTime.add(-3600)
+     }}
   end
 
   defp default_response(:twitch, :update_stream_info, params) do
-    {:ok, %{
-      title: params[:title] || "Updated Title",
-      game_name: params[:game_name] || "Just Chatting"
-    }}
+    {:ok,
+     %{
+       title: params[:title] || "Updated Title",
+       game_name: params[:game_name] || "Just Chatting"
+     }}
   end
 
   defp default_response(:youtube, :send_chat, _params) do
@@ -137,10 +143,11 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
   end
 
   defp default_response(:youtube, :get_stream_info, _params) do
-    {:ok, %{
-      concurrent_viewers: :rand.uniform(500),
-      title: "YouTube Mock Stream"
-    }}
+    {:ok,
+     %{
+       concurrent_viewers: :rand.uniform(500),
+       title: "YouTube Mock Stream"
+     }}
   end
 
   defp default_response(platform, method, _params) do

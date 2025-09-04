@@ -13,16 +13,17 @@ defmodule Streampai.LivestreamManager.Supervisor do
     children = [
       # Registry for process discovery
       {Registry, keys: :unique, name: Streampai.LivestreamManager.Registry},
-      
+
       # Dynamic supervisor for user-specific process trees
-      {DynamicSupervisor, strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
-      
+      {DynamicSupervisor,
+       strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
+
       # Event broadcasting system
       Streampai.LivestreamManager.EventBroadcaster,
-      
+
       # System-wide metrics collection
       Streampai.LivestreamManager.MetricsCollector,
-      
+
       # Cloudflare API management
       Streampai.LivestreamManager.CloudflareSupervisor
     ]

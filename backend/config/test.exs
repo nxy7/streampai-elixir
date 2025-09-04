@@ -1,4 +1,14 @@
 import Config
+
+# Set required environment variables for tests
+System.put_env("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}")
+System.put_env("CLOUDFLARE_API_TOKEN", "test_token")
+System.put_env("CLOUDFLARE_ACCOUNT_ID", "test_account")
+System.put_env("TOKEN_SIGNING_SECRET", "h4cu7OR38wead3kXqon6ReLmG2o4SH0u")
+
+env_path = Path.expand("../.env", __DIR__)
+if File.exists?(env_path), do: Dotenvy.load(env_path)
+
 config :streampai, Oban, testing: :manual
 config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"
 config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]

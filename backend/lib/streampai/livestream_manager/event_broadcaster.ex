@@ -19,8 +19,10 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
   ]
 
   defstruct [
-    :event_history,    # Recent events for replay/debugging
-    :event_counters    # Counters for different event types
+    # Recent events for replay/debugging
+    :event_history,
+    # Counters for different event types
+    :event_counters
   ]
 
   def start_link(opts \\ []) do
@@ -33,7 +35,7 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
       event_history: :queue.new(),
       event_counters: Map.new(@event_types, &{&1, 0})
     }
-    
+
     Logger.info("EventBroadcaster started")
     {:ok, state}
   end
@@ -70,15 +72,16 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
       :ok ->
         # Add timestamp if not present
         event = Map.put_new(event, :timestamp, DateTime.utc_now())
-        
+
         # Update state
-        state = state
-        |> add_to_history(event)
-        |> increment_counter(event.type)
-        
+        state =
+          state
+          |> add_to_history(event)
+          |> increment_counter(event.type)
+
         # Broadcast to different channels based on event type
         broadcast_to_channels(event)
-        
+
         {:noreply, state}
 
       {:error, reason} ->
@@ -89,11 +92,12 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
 
   @impl true
   def handle_call({:get_event_history, limit}, _from, state) do
-    history = state.event_history
-    |> :queue.to_list()
-    |> Enum.take(-limit)
-    |> Enum.reverse()
-    
+    history =
+      state.event_history
+      |> :queue.to_list()
+      |> Enum.take(-limit)
+      |> Enum.reverse()
+
     {:reply, history, state}
   end
 
@@ -104,34 +108,41 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
       history_size: :queue.len(state.event_history),
       uptime: :erlang.statistics(:wall_clock) |> elem(0)
     }
-    
+
     {:reply, stats, state}
   end
 
   # Helper functions
 
-  defp validate_event(%{type: type, user_id: user_id} = event) 
-    when type in @event_types and is_binary(user_id) do
-    
+  defp validate_event(%{type: type, user_id: user_id} = event)
+       when type in @event_types and is_binary(user_id) do
     case type do
       :donation ->
-        if Map.has_key?(event, :amount) and Map.has_key?(event, :currency), do: :ok, else: {:error, :missing_amount_or_currency}
-      
+        if Map.has_key?(event, :amount) and Map.has_key?(event, :currency),
+          do: :ok,
+          else: {:error, :missing_amount_or_currency}
+
       :follow ->
         if Map.has_key?(event, :username), do: :ok, else: {:error, :missing_username}
-      
+
       :subscription ->
-        if Map.has_key?(event, :username) and Map.has_key?(event, :tier), do: :ok, else: {:error, :missing_subscription_data}
-      
+        if Map.has_key?(event, :username) and Map.has_key?(event, :tier),
+          do: :ok,
+          else: {:error, :missing_subscription_data}
+
       :raid ->
-        if Map.has_key?(event, :username) and Map.has_key?(event, :viewer_count), do: :ok, else: {:error, :missing_raid_data}
-      
+        if Map.has_key?(event, :username) and Map.has_key?(event, :viewer_count),
+          do: :ok,
+          else: {:error, :missing_raid_data}
+
       :chat_message ->
-        if Map.has_key?(event, :username) and Map.has_key?(event, :message), do: :ok, else: {:error, :missing_chat_data}
-      
+        if Map.has_key?(event, :username) and Map.has_key?(event, :message),
+          do: :ok,
+          else: {:error, :missing_chat_data}
+
       :viewer_count_update ->
         if Map.has_key?(event, :count), do: :ok, else: {:error, :missing_count}
-      
+
       _ ->
         :ok
     end
@@ -143,13 +154,14 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
     # Keep last 1000 events in memory
     max_history = 1000
     history = :queue.in(event, state.event_history)
-    
-    history = if :queue.len(history) > max_history do
-      :queue.drop(history)
-    else
-      history
-    end
-    
+
+    history =
+      if :queue.len(history) > max_history do
+        :queue.drop(history)
+      else
+        history
+      end
+
     %{state | event_history: history}
   end
 
@@ -160,34 +172,34 @@ defmodule Streampai.LivestreamManager.EventBroadcaster do
 
   defp broadcast_to_channels(event) do
     user_id = event.user_id
-    
+
     # Broadcast to user-specific channels
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
       "user_stream:#{user_id}:events",
       {:stream_event, event}
     )
-    
+
     # Broadcast to alertbox (for donation/follow/sub/raid events)
     if event.type in [:donation, :follow, :subscription, :raid] do
       # Add display_time based on event type
       display_time = get_display_time(event.type)
       alertbox_event = Map.put(event, :display_time, display_time)
-      
+
       Phoenix.PubSub.broadcast(
         Streampai.PubSub,
         "widget_events:#{user_id}:alertbox",
         {:widget_event, alertbox_event}
       )
     end
-    
+
     # Broadcast to dashboard for real-time updates
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
       "dashboard:#{user_id}:stream",
       {:dashboard_event, event}
     )
-    
+
     # Broadcast to system-wide event stream (for analytics)
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,

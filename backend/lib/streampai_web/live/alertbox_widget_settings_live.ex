@@ -165,7 +165,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
               </button>
             </div>
           </div>
-
+          
     <!-- Alertbox Widget Display -->
           <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden relative">
             <div class="text-xs text-gray-400 mb-2">
@@ -181,7 +181,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             />
           </div>
         </div>
-
+        
     <!-- Configuration Options -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
@@ -225,7 +225,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
                 </div>
               </form>
             </div>
-
+            
     <!-- Alert Settings -->
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Alert Settings</h4>
@@ -318,7 +318,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             </div>
           </div>
         </div>
-
+        
     <!-- Usage Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>

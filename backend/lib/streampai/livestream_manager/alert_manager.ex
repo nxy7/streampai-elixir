@@ -8,9 +8,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   defstruct [
     :user_id,
-    :alert_queue,       # Queue of pending alerts
-    :current_alert,     # Currently displayed alert
-    :alert_settings     # User's alert configuration
+    # Queue of pending alerts
+    :alert_queue,
+    # Currently displayed alert
+    :current_alert,
+    # User's alert configuration
+    :alert_settings
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -21,14 +24,14 @@ defmodule Streampai.LivestreamManager.AlertManager do
   def init(user_id) do
     # Subscribe to events for this user
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
-    
+
     state = %__MODULE__{
       user_id: user_id,
       alert_queue: :queue.new(),
       current_alert: nil,
       alert_settings: load_alert_settings(user_id)
     }
-    
+
     Logger.info("AlertManager started for user #{user_id}")
     {:ok, state}
   end
@@ -64,12 +67,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
     if should_create_alert?(event, state.alert_settings) do
       alert = create_alert_from_event(event, state.alert_settings)
       state = enqueue_alert(state, alert)
-      
+
       # If no alert is currently displayed, process immediately
       if state.current_alert == nil do
         state = process_next_alert(state)
       end
-      
+
       {:noreply, state}
     else
       {:noreply, state}
@@ -100,11 +103,11 @@ defmodule Streampai.LivestreamManager.AlertManager do
   def handle_cast({:trigger_test_alert, alert_type}, state) do
     test_alert = create_test_alert(alert_type, state.user_id)
     state = enqueue_alert(state, test_alert)
-    
+
     if state.current_alert == nil do
       state = process_next_alert(state)
     end
-    
+
     {:noreply, state}
   end
 
@@ -131,8 +134,8 @@ defmodule Streampai.LivestreamManager.AlertManager do
   defp should_create_alert?(event, settings) do
     case event.type do
       :donation ->
-        settings.donations_enabled and 
-        event.amount >= settings.donations_min_amount
+        settings.donations_enabled and
+          event.amount >= settings.donations_min_amount
 
       :follow ->
         settings.follows_enabled
@@ -142,7 +145,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
       :raid ->
         settings.raids_enabled and
-        event.viewer_count >= settings.raids_min_viewers
+          event.viewer_count >= settings.raids_min_viewers
 
       _ ->
         false
@@ -251,7 +254,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
         )
 
         # Schedule alert finish
-        Process.send_after(self(), :alert_finished, (alert.display_time * 1000))
+        Process.send_after(self(), :alert_finished, alert.display_time * 1000)
 
         %{state | current_alert: alert, alert_queue: remaining_queue}
 

@@ -10,11 +10,16 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   defstruct [
     :user_id,
-    :account_id,      # Cloudflare account ID  
-    :api_token,       # Cloudflare API token
-    :live_input,      # Current live input configuration
-    :live_outputs,    # Map of platform => output configuration
-    :stream_status    # :inactive, :ready, :live, :error
+    # Cloudflare account ID  
+    :account_id,
+    # Cloudflare API token
+    :api_token,
+    # Current live input configuration
+    :live_input,
+    # Map of platform => output configuration
+    :live_outputs,
+    # :inactive, :ready, :live, :error
+    :stream_status
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -25,7 +30,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   def init(user_id) do
     # Load Cloudflare configuration from environment/database
     config = load_cloudflare_config()
-    
+
     state = %__MODULE__{
       user_id: user_id,
       account_id: config.account_id,
@@ -36,7 +41,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
     # Initialize live input for this user
     send(self(), :initialize_live_input)
-    
+
     Logger.info("CloudflareManager started for user #{user_id}")
     {:ok, state}
   end
@@ -79,16 +84,16 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     case create_live_input(state) do
       {:ok, live_input} ->
         state = %{state | live_input: live_input, stream_status: :ready}
-        
+
         # Update stream state with Cloudflare input info
         update_stream_state(state)
-        
+
         Logger.info("Live input created for user #{state.user_id}: #{live_input.input_id}")
         {:noreply, state}
 
       {:error, reason} ->
         Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
-        
+
         # Retry after delay
         Process.send_after(self(), :initialize_live_input, 30_000)
         {:noreply, %{state | stream_status: :error}}
@@ -104,7 +109,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       rtmp_url: get_rtmp_url(state),
       stream_key: get_stream_key(state)
     }
-    
+
     {:reply, config, state}
   end
 
@@ -113,8 +118,11 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     case update_live_outputs(state, platform_configs) do
       {:ok, new_outputs} ->
         state = %{state | live_outputs: new_outputs}
-        
-        Logger.info("Updated live outputs for user #{state.user_id}: #{inspect(Map.keys(new_outputs))}")
+
+        Logger.info(
+          "Updated live outputs for user #{state.user_id}: #{inspect(Map.keys(new_outputs))}"
+        )
+
         {:reply, :ok, state}
 
       {:error, reason} ->
@@ -130,7 +138,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         :ok ->
           state = %{state | stream_status: :live}
           update_stream_state(state)
-          
+
           Logger.info("Started streaming for user #{state.user_id}")
           {:reply, :ok, state}
 
@@ -149,7 +157,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       :ok ->
         state = %{state | stream_status: :ready}
         update_stream_state(state)
-        
+
         Logger.info("Stopped streaming for user #{state.user_id}")
         {:reply, :ok, state}
 
@@ -175,34 +183,38 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   defp create_live_input(state) do
     # TODO: Implement actual Cloudflare API calls
     # For now, return mock data
-    {:ok, %{
-      input_id: "live_input_#{state.user_id}_#{:rand.uniform(1000)}",
-      rtmp_url: "rtmp://live.cloudflare.com/live",
-      rtmp_playback_url: "https://customer-#{:rand.uniform(1000)}.cloudflarestream.com/live.m3u8",
-      srt_url: "srt://live.cloudflare.com:778",
-      webrtc_url: "https://webrtc.live.cloudflare.com",
-      stream_key: generate_stream_key(state.user_id)
-    }}
+    {:ok,
+     %{
+       input_id: "live_input_#{state.user_id}_#{:rand.uniform(1000)}",
+       rtmp_url: "rtmp://live.cloudflare.com/live",
+       rtmp_playback_url:
+         "https://customer-#{:rand.uniform(1000)}.cloudflarestream.com/live.m3u8",
+       srt_url: "srt://live.cloudflare.com:778",
+       webrtc_url: "https://webrtc.live.cloudflare.com",
+       stream_key: generate_stream_key(state.user_id)
+     }}
   end
 
   defp update_live_outputs(state, platform_configs) do
     # TODO: Implement actual Cloudflare Live Output API calls
     # For now, return mock configuration
-    outputs = Enum.into(platform_configs, %{}, fn {platform, config} ->
-      if config.enabled do
-        output_config = %{
-          output_id: "output_#{platform}_#{:rand.uniform(1000)}",
-          platform: platform,
-          stream_key: config.stream_key,
-          rtmp_url: get_platform_rtmp_url(platform),
-          enabled: true
-        }
-        {platform, output_config}
-      else
-        {platform, %{enabled: false}}
-      end
-    end)
-    
+    outputs =
+      Enum.into(platform_configs, %{}, fn {platform, config} ->
+        if config.enabled do
+          output_config = %{
+            output_id: "output_#{platform}_#{:rand.uniform(1000)}",
+            platform: platform,
+            stream_key: config.stream_key,
+            rtmp_url: get_platform_rtmp_url(platform),
+            enabled: true
+          }
+
+          {platform, output_config}
+        else
+          {platform, %{enabled: false}}
+        end
+      end)
+
     {:ok, outputs}
   end
 
@@ -242,6 +254,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
           stream_key: get_stream_key(state),
           status: state.stream_status
         }
+
         StreamStateServer.set_cloudflare_input(pid, cloudflare_config)
 
       [] ->

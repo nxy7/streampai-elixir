@@ -39,7 +39,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   def get_state(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
-    StreamStateServer.get_state({:via, Registry, {Streampai.LivestreamManager.Registry, {:stream_state, user_id}}})
+
+    StreamStateServer.get_state(
+      {:via, Registry, {Streampai.LivestreamManager.Registry, {:stream_state, user_id}}}
+    )
   end
 
   def send_chat_message(pid, message, platforms) when is_pid(pid) do
@@ -54,7 +57,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   def configure_stream_outputs(pid, platform_configs) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
-    CloudflareManager.configure_outputs({:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}}, platform_configs)
+
+    CloudflareManager.configure_outputs(
+      {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}},
+      platform_configs
+    )
   end
 
   # Helper functions
