@@ -32,6 +32,10 @@ defmodule StreampaiWeb.DashboardLive do
         display_name: get_display_name(socket),
         greeting_text: greeting_text
       )
+      |> assign_async(:delayed_welcome, fn ->
+        :timer.sleep(2000)
+        {:ok, %{delayed_welcome: "sup mate"}}
+      end)
 
     {:ok, socket, layout: false}
   end
@@ -129,6 +133,14 @@ defmodule StreampaiWeb.DashboardLive do
               <% end %>
             </div>
           </.dashboard_card>
+          <.dashboard_card
+          :if={delayed_welcome = @delayed_welcome.ok? && @delayed_welcome.result}
+          title={delayed_welcome}
+          class="mb-6"
+        >
+          wazzup
+        </.dashboard_card>
+
         </div>
         {debug_section(assigns)}
       </div>
