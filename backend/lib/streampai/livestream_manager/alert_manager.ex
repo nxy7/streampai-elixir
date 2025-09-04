@@ -69,11 +69,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
       state = enqueue_alert(state, alert)
 
       # If no alert is currently displayed, process immediately
-      new_state = if state.current_alert == nil do
-        process_next_alert(state)
-      else
-        state
-      end
+      new_state =
+        if state.current_alert == nil do
+          process_next_alert(state)
+        else
+          state
+        end
 
       {:noreply, new_state}
     else
@@ -106,11 +107,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
     test_alert = create_test_alert(alert_type, state.user_id)
     state = enqueue_alert(state, test_alert)
 
-    new_state = if state.current_alert == nil do
-      process_next_alert(state)
-    else
-      state
-    end
+    new_state =
+      if state.current_alert == nil do
+        process_next_alert(state)
+      else
+        state
+      end
 
     {:noreply, new_state}
   end

@@ -44,6 +44,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
     cleanup_fn = fn ->
       Supervisor.stop(supervisor_pid, :normal)
       Application.put_env(:streampai, :pubsub_name, original_pubsub)
+
       if Process.alive?(Process.whereis(pubsub_name)) do
         Supervisor.stop(pubsub_name, :normal)
       end
