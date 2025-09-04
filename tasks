@@ -1,20 +1,4 @@
 # Short Term
-- add dotenvy as dev dependency and load env variables from .env (IN DEV ONLY)
-- move cloudflare client from LivestreamManager domain as it doesn't have to belong there and could potentially be used outside of it
-- does ecto sandbox work with elixir ash
-- make code compile
-- help me review the code and understand structure you've created
-
-
-
-- start creating livestream manager, it is system of elixir actors that
-  - manage livestream (collect livestream messages, change titles, thumbnails, statistics)
-  - manage cloudflare (using live inputs and outputs, user streams into live input and streampai
-    manages to which platforms the trafic goes by handling cloudflare live outputs)
-  - it allows to send chat messages to some or all running livestreams
-  - it observes running platforms and collects donations/raids/other stream events to broadcast them
-    in alertbox
-
 
 
 # Long Term

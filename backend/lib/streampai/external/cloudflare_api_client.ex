@@ -163,13 +163,13 @@ defmodule Streampai.External.CloudflareAPIClient do
   end
 
   @impl true
-  def handle_call({:update_live_output, output_id, config}, _from, state) do
+  def handle_call({:update_live_output, _output_id, _config}, _from, state) do
     # TODO: Implement output update
     {:reply, {:error, :not_implemented}, state}
   end
 
   @impl true
-  def handle_call({:toggle_live_output, output_id, enabled}, _from, state) do
+  def handle_call({:toggle_live_output, _output_id, _enabled}, _from, state) do
     # TODO: Implement output toggle
     {:reply, {:error, :not_implemented}, state}
   end

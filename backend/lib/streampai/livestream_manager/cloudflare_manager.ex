@@ -91,12 +91,11 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         Logger.info("Live input created for user #{state.user_id}: #{live_input.input_id}")
         {:noreply, state}
 
-      {:error, reason} ->
-        Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
-
-        # Retry after delay
-        Process.send_after(self(), :initialize_live_input, 30_000)
-        {:noreply, %{state | stream_status: :error}}
+      # TODO: Handle errors when real Cloudflare API is implemented
+      # {:error, reason} ->
+      #   Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
+      #   Process.send_after(self(), :initialize_live_input, 30_000)
+      #   {:noreply, %{state | stream_status: :error}}
     end
   end
 
@@ -125,9 +124,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
         {:reply, :ok, state}
 
-      {:error, reason} ->
-        Logger.error("Failed to configure outputs for user #{state.user_id}: #{inspect(reason)}")
-        {:reply, {:error, reason}, state}
+      # TODO: Handle errors when real Cloudflare API is implemented
+      # {:error, reason} ->
+      #   Logger.error("Failed to configure outputs for user #{state.user_id}: #{inspect(reason)}")
+      #   {:reply, {:error, reason}, state}
     end
   end
 
@@ -142,9 +142,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
           Logger.info("Started streaming for user #{state.user_id}")
           {:reply, :ok, state}
 
-        {:error, reason} ->
-          Logger.error("Failed to start streaming for user #{state.user_id}: #{inspect(reason)}")
-          {:reply, {:error, reason}, state}
+        # TODO: Handle errors when real Cloudflare API is implemented
+        # {:error, reason} ->
+        #   Logger.error("Failed to start streaming for user #{state.user_id}: #{inspect(reason)}")
+        #   {:reply, {:error, reason}, state}
       end
     else
       {:reply, {:error, :not_ready}, state}
@@ -161,9 +162,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         Logger.info("Stopped streaming for user #{state.user_id}")
         {:reply, :ok, state}
 
-      {:error, reason} ->
-        Logger.error("Failed to stop streaming for user #{state.user_id}: #{inspect(reason)}")
-        {:reply, {:error, reason}, state}
+      # TODO: Handle errors when real Cloudflare API is implemented
+      # {:error, reason} ->
+      #   Logger.error("Failed to stop streaming for user #{state.user_id}: #{inspect(reason)}")
+      #   {:reply, {:error, reason}, state}
     end
   end
 
@@ -195,7 +197,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
      }}
   end
 
-  defp update_live_outputs(state, platform_configs) do
+  defp update_live_outputs(_state, platform_configs) do
     # TODO: Implement actual Cloudflare Live Output API calls
     # For now, return mock configuration
     outputs =
@@ -218,12 +220,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     {:ok, outputs}
   end
 
-  defp enable_live_outputs(state) do
+  defp enable_live_outputs(_state) do
     # TODO: Enable all configured live outputs via Cloudflare API
     :ok
   end
 
-  defp disable_live_outputs(state) do
+  defp disable_live_outputs(_state) do
     # TODO: Disable all live outputs via Cloudflare API
     :ok
   end

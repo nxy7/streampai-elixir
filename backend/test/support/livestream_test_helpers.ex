@@ -44,7 +44,9 @@ defmodule StreampaiTest.LivestreamTestHelpers do
     cleanup_fn = fn ->
       Supervisor.stop(supervisor_pid, :normal)
       Application.put_env(:streampai, :pubsub_name, original_pubsub)
-      Phoenix.PubSub.stop(pubsub_name)
+      if Process.alive?(Process.whereis(pubsub_name)) do
+        Supervisor.stop(pubsub_name, :normal)
+      end
     end
 
     {test_config, cleanup_fn}
@@ -85,7 +87,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   """
   def start_test_user_stream(test_config, user_id) do
     # Mock the StreamingAccount.for_user call
-    mock_accounts_response = create_test_user(user_id).streaming_accounts
+    _mock_accounts_response = create_test_user(user_id).streaming_accounts
 
     # Start user stream with mocked dependencies
     child_spec = %{

@@ -69,11 +69,13 @@ defmodule Streampai.LivestreamManager.AlertManager do
       state = enqueue_alert(state, alert)
 
       # If no alert is currently displayed, process immediately
-      if state.current_alert == nil do
-        state = process_next_alert(state)
+      new_state = if state.current_alert == nil do
+        process_next_alert(state)
+      else
+        state
       end
 
-      {:noreply, state}
+      {:noreply, new_state}
     else
       {:noreply, state}
     end
@@ -104,11 +106,13 @@ defmodule Streampai.LivestreamManager.AlertManager do
     test_alert = create_test_alert(alert_type, state.user_id)
     state = enqueue_alert(state, test_alert)
 
-    if state.current_alert == nil do
-      state = process_next_alert(state)
+    new_state = if state.current_alert == nil do
+      process_next_alert(state)
+    else
+      state
     end
 
-    {:noreply, state}
+    {:noreply, new_state}
   end
 
   # Helper functions
@@ -117,7 +121,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
     {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_manager, user_id}}}
   end
 
-  defp load_alert_settings(user_id) do
+  defp load_alert_settings(_user_id) do
     # TODO: Load from WidgetConfig for alertbox_widget
     # For now, return default settings
     %{
@@ -190,7 +194,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
     end
   end
 
-  defp create_test_alert(alert_type, user_id) do
+  defp create_test_alert(alert_type, _user_id) do
     base_alert = %{
       id: generate_alert_id(),
       type: alert_type,

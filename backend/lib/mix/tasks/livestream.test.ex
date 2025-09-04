@@ -65,7 +65,7 @@ defmodule Mix.Tasks.Livestream.Test do
     end
   end
 
-  defp run_all_tests(opts) do
+  defp run_all_tests(_opts) do
     Mix.shell().info("Running all livestream manager tests...")
 
     # Unit tests

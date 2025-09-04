@@ -221,7 +221,7 @@ defmodule StreampaiTest.LoadTestFramework do
     start_streaming_simulation(test_config, user_id, session_duration_ms, session_metrics)
   end
 
-  defp start_streaming_simulation(test_config, user_id, duration_ms, metrics) do
+  defp start_streaming_simulation(_test_config, user_id, duration_ms, metrics) do
     start_time = System.monotonic_time(:millisecond)
 
     # Set stream to live
@@ -297,7 +297,7 @@ defmodule StreampaiTest.LoadTestFramework do
 
     if current_time - start_time < duration_ms do
       receive do
-        {:stream_event, %{type: :donation} = event} ->
+        {:stream_event, %{type: :donation} = _event} ->
           updated_metrics = %{
             metrics
             | total_events: metrics.total_events + 1,
@@ -306,7 +306,7 @@ defmodule StreampaiTest.LoadTestFramework do
 
           monitor_events_loop(start_time, duration_ms, updated_metrics)
 
-        {:stream_event, %{type: :follow} = event} ->
+        {:stream_event, %{type: :follow} = _event} ->
           updated_metrics = %{
             metrics
             | total_events: metrics.total_events + 1,
@@ -315,7 +315,7 @@ defmodule StreampaiTest.LoadTestFramework do
 
           monitor_events_loop(start_time, duration_ms, updated_metrics)
 
-        {:stream_event, event} ->
+        {:stream_event, _event} ->
           updated_metrics = %{metrics | total_events: metrics.total_events + 1}
           monitor_events_loop(start_time, duration_ms, updated_metrics)
       after
@@ -454,7 +454,7 @@ defmodule StreampaiTest.LoadTestFramework do
     |> Enum.sum()
   end
 
-  defp compile_load_test_results(config, user_results, event_results, monitoring_results) do
+  defp compile_load_test_results(config, user_results, _event_results, monitoring_results) do
     total_events =
       Enum.reduce(user_results, 0, fn
         %{events_processed: count}, acc -> acc + count
