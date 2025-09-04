@@ -14,79 +14,77 @@ defmodule StreampaiWeb.LandingLive do
      assign(socket,
        csrf_token: csrf_token,
        newsletter_message: nil,
-       newsletter_error: nil,
-       newsletter_loading: false
+       newsletter_error: nil
      ), layout: false}
   end
 
   def handle_event("newsletter_signup", %{"email" => email}, socket) do
-    # Set loading state and return immediately so UI can update
-    socket =
-      assign(socket, newsletter_loading: true, newsletter_message: nil, newsletter_error: nil)
+    start_time = System.monotonic_time(:millisecond)
+    IO.puts("Newsletter signup started at #{start_time}")
 
-    # Process the email in a separate message to allow UI to update first
-    send(self(), {:save_newsletter_email, email})
+    socket = assign(socket, newsletter_message: nil, newsletter_error: nil)
 
-    {:noreply, socket}
-  end
-
-  def handle_info({:save_newsletter_email, email}, socket) do
     case Streampai.Accounts.NewsletterEmail
          |> Ash.Changeset.for_create(:create, %{email: email})
          |> Ash.create() do
       {:ok, _newsletter_email} ->
         socket =
           socket
-          |> assign(
-            newsletter_message: "Your email has been added to our newsletter",
-            newsletter_loading: false
-          )
+          |> assign(newsletter_message: "Your email has been added to our newsletter")
           |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
 
         # Clear flash after 4 seconds
         Process.send_after(self(), :clear_flash, 4000)
 
+        end_time = System.monotonic_time(:millisecond)
+
+        IO.puts(
+          "Newsletter signup SUCCESS completed at #{end_time}, took #{end_time - start_time}ms"
+        )
+
         {:noreply, socket}
 
       {:error, changeset} ->
-        # Debug: Let's see what the error structure looks like
-        IO.inspect(changeset, label: "Changeset error")
-        IO.inspect(changeset.errors, label: "Changeset errors")
-        
         # Check for duplicate email (unique constraint violation)
         # Since email is the primary key, Ash will return "has already been taken" for duplicates
-        is_duplicate_email = 
+        is_duplicate_email =
           changeset.errors
           |> Enum.any?(fn error ->
             case error do
               %{field: :email, message: message} when is_binary(message) ->
                 # Check for common duplicate/uniqueness error messages
                 message_lower = String.downcase(message)
+
                 String.contains?(message_lower, "has already been taken") ||
-                String.contains?(message_lower, "already been taken") ||
-                String.contains?(message_lower, "already exists") ||
-                String.contains?(message_lower, "unique") ||
-                String.contains?(message_lower, "constraint") ||
-                String.contains?(message_lower, "duplicate")
+                  String.contains?(message_lower, "already been taken") ||
+                  String.contains?(message_lower, "already exists") ||
+                  String.contains?(message_lower, "unique") ||
+                  String.contains?(message_lower, "constraint") ||
+                  String.contains?(message_lower, "duplicate")
+
               %{field: :email} ->
                 # Only consider this a duplicate if we can't determine from the message
                 false
+
               _ ->
                 false
             end
           end)
-        
+
         if is_duplicate_email do
           socket =
             socket
-            |> assign(
-              newsletter_message: "You're already subscribed to our newsletter!",
-              newsletter_loading: false
-            )
+            |> assign(newsletter_message: "You're already subscribed to our newsletter!")
             |> put_flash(:info, "You're already subscribed to our newsletter!")
 
           # Clear flash after 4 seconds
           Process.send_after(self(), :clear_flash, 4000)
+
+          end_time = System.monotonic_time(:millisecond)
+
+          IO.puts(
+            "Newsletter signup DUPLICATE completed at #{end_time}, took #{end_time - start_time}ms"
+          )
 
           {:noreply, socket}
         else
@@ -99,8 +97,14 @@ defmodule StreampaiWeb.LandingLive do
 
           socket =
             socket
-            |> assign(newsletter_error: error_message, newsletter_loading: false)
+            |> assign(newsletter_error: error_message)
             |> put_flash(:error, error_message)
+
+          end_time = System.monotonic_time(:millisecond)
+
+          IO.puts(
+            "Newsletter signup ERROR completed at #{end_time}, took #{end_time - start_time}ms"
+          )
 
           {:noreply, socket}
         end
@@ -132,7 +136,6 @@ defmodule StreampaiWeb.LandingLive do
           <.landing_hero
             newsletter_message={@newsletter_message}
             newsletter_error={@newsletter_error}
-            newsletter_loading={@newsletter_loading}
           />
           <.landing_features />
           <!-- HIDDEN: Pricing section will be restored later -->

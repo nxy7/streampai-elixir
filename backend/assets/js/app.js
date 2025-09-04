@@ -12,6 +12,7 @@ import liveVueApp from "../vue";
 // Import collocated hooks
 import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_live.js";
 import { CursorTracker } from "../../lib/streampai_web/live/shared_cursor_live.js";
+import { NewsletterForm } from "../../lib/streampai_web/live/landing_live.js";
 
 // Hooks for various functionality
 
@@ -93,10 +94,12 @@ const CopyToClipboard = {
   },
 };
 
+
 let Hooks = {
   NameAvailabilityChecker,
   CursorTracker,
   CopyToClipboard,
+  NewsletterForm,
   ...getHooks(liveVueApp),
 };
 

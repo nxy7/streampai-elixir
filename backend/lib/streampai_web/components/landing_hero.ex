@@ -3,7 +3,6 @@ defmodule StreampaiWeb.Components.LandingHero do
 
   attr(:newsletter_message, :string, default: nil)
   attr(:newsletter_error, :string, default: nil)
-  attr(:newsletter_loading, :boolean, default: false)
 
   def landing_hero(assigns) do
     ~H"""
@@ -44,6 +43,8 @@ defmodule StreampaiWeb.Components.LandingHero do
             <form
               class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
               phx-submit="newsletter_signup"
+              phx-hook="NewsletterForm"
+              id="newsletter-form"
             >
               <input
                 type="email"
@@ -54,38 +55,27 @@ defmodule StreampaiWeb.Components.LandingHero do
               />
               <button
                 type="submit"
-                disabled={@newsletter_loading}
-                class={[
-                  "px-6 py-3 rounded-lg font-semibold transition-all shadow-xl",
-                  if(@newsletter_loading,
-                    do: "bg-gray-500 text-gray-300 cursor-not-allowed",
-                    else:
-                      "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transform hover:scale-105"
-                  )
-                ]}
+                id="newsletter-submit"
+                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl"
               >
-                <%= if @newsletter_loading do %>
-                  <svg class="animate-spin h-4 w-4 inline mr-2" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    >
-                    </circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    >
-                    </path>
-                  </svg>
-                  Saving...
-                <% else %>
-                  Notify Me
-                <% end %>
+                <span class="button-text">Notify Me</span>
+                <svg class="animate-spin h-4 w-4 inline ml-2 hidden" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  >
+                  </circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  >
+                  </path>
+                </svg>
               </button>
             </form>
 
