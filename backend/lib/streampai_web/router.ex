@@ -26,6 +26,18 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.ErrorTracker)
   end
 
+  pipeline :auth do
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(:load_from_session)
+    plug(StreampaiWeb.Plugs.ErrorTracker)
+    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
+  end
+
   pipeline :check_monitoring_ip do
     plug(:check_monitoring_access)
   end
@@ -120,6 +132,12 @@ defmodule StreampaiWeb.Router do
     live("/cursors", SharedCursorLive)
     live("/w/:uuid", WidgetDisplayLive)
     sign_out_route(AuthController, "/auth/sign-out")
+
+  end
+
+  # Authentication routes with redirect handling
+  scope "/", StreampaiWeb do
+    pipe_through(:auth)
 
     # Remove these if you'd like to use your own authentication views
     sign_in_route(

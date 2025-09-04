@@ -4,9 +4,15 @@ defmodule StreampaiWeb.AuthController do
   use AshAuthentication.Phoenix.Controller
 
   def success(conn, _activity, user, _token) do
-    return_to = get_session(conn, :return_to) || ~p"/dashboard"
+    # Check for stored redirect URL from either password auth or OAuth
+    return_to = 
+      get_session(conn, :return_to) || 
+      get_session(conn, :oauth_redirect_to) || 
+      ~p"/dashboard"
 
     conn
+    |> delete_session(:return_to)      # Clean up password auth redirect
+    |> delete_session(:oauth_redirect_to)  # Clean up OAuth redirect
     |> store_in_session(user)
     |> assign(:current_user, user)
     |> redirect(to: return_to)

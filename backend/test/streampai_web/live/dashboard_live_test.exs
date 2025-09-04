@@ -6,7 +6,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
   describe "Dashboard LiveView" do
     test "redirects to sign-in when not authenticated", %{conn: conn} do
       # Without proper authentication, should redirect to sign-in
-      assert {:error, {:redirect, %{to: "/auth/sign-in"}}} = live(conn, "/dashboard")
+      assert {:error, {:redirect, %{to: "/auth/sign-in?redirect_to=%2Fdashboard"}}} = live(conn, "/dashboard")
     end
 
     test "renders dashboard welcome message", %{conn: conn} do
