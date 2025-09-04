@@ -101,7 +101,6 @@ defmodule StreampaiWeb.Router do
     sign_out_route(AuthController, "/auth/sign-out")
   end
 
-
   # Echo API for benchmarking
   scope "/api", StreampaiWeb do
     pipe_through(:api)
@@ -142,5 +141,4 @@ defmodule StreampaiWeb.Router do
         conn.remote_ip |> :inet.ntoa() |> to_string()
     end
   end
-
 end
