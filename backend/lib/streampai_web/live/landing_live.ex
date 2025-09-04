@@ -10,13 +10,25 @@ defmodule StreampaiWeb.LandingLive do
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")
 
-    {:ok, assign(socket, csrf_token: csrf_token), layout: false}
+    {:ok, assign(socket, csrf_token: csrf_token, newsletter_success: false), layout: false}
   end
 
-  def handle_event("newsletter_signup", %{"email" => email}, socket) do
+  def handle_event("newsletter_signup", %{"email" => _email}, socket) do
     # TODO: Store email in newsletter list when backend is ready
-    # For now, just show a success message
-    {:noreply, put_flash(socket, :info, "Thanks! We'll notify you when Streampai launches.")}
+    # Show flash message that will disappear after 4 seconds and persistent success message
+    socket =
+      socket
+      |> assign(newsletter_success: true)
+      |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
+
+    # Clear flash after 4 seconds
+    Process.send_after(self(), :clear_flash, 4000)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:clear_flash, socket) do
+    {:noreply, clear_flash(socket)}
   end
 
   def render(assigns) do
@@ -37,7 +49,7 @@ defmodule StreampaiWeb.LandingLive do
         <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
           <.flash_group flash={@flash} />
           <.landing_navigation current_user={@current_user} />
-          <.landing_hero />
+          <.landing_hero newsletter_success={@newsletter_success} />
           <.landing_features />
           <!-- HIDDEN: Pricing section will be restored later -->
           <div class="hidden">

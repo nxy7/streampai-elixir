@@ -1,6 +1,8 @@
 defmodule StreampaiWeb.Components.LandingHero do
   use StreampaiWeb, :html
 
+  attr(:newsletter_success, :boolean, default: false)
+
   def landing_hero(assigns) do
     ~H"""
     <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -55,6 +57,14 @@ defmodule StreampaiWeb.Components.LandingHero do
                 Notify Me
               </button>
             </form>
+
+            <%= if @newsletter_success do %>
+              <div class="mt-3 text-center">
+                <p class="text-green-400 text-sm font-medium">
+                  ✓ Your email has been added to our newsletter
+                </p>
+              </div>
+            <% end %>
           </div>
 
           <p class="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">

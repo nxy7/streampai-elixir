@@ -116,7 +116,7 @@ defmodule StreampaiWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}
       role="alert"
       class={[
-        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-50 rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
+        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-[60] rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
         @kind == :info &&
           "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
         @kind == :error &&
