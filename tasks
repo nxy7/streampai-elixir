@@ -1,8 +1,15 @@
 # Short Term
+- can we add .git hook that will run 'cd backend; mix format' before each commit
+- on landing page we should show info that streampai is under construction and
+let users add their mail into newsletter so they can receive update when website
+releases. We should hide all references to pricing and login for now. Just hide
+them though, because I like how landing page looks and will revert back to them once the
+app is working. Also hide Active Streamers/Messages processed widget (again don't delete it as
+we'll be using it later).
 
 
 # Long Term
-- when logging in redirect to page user tried to access
+- logo?
 - ai chat helper that can point user to how to make some things (like can point him to correct)
  link to create widgets etc etc
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints

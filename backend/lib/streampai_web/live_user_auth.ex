@@ -37,14 +37,16 @@ defmodule StreampaiWeb.LiveUserAuth do
     else
       # Store the current path for redirect after login
       # Get current request path from the socket
-      current_path = 
+      current_path =
         Phoenix.LiveView.get_connect_info(socket, :uri)
         |> case do
           %URI{path: path} when is_binary(path) -> path
-          _ -> "/dashboard"  # Safe fallback
+          # Safe fallback
+          _ -> "/dashboard"
         end
-      
-      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in?#{[redirect_to: current_path]}")}
+
+      {:halt,
+       Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in?#{[redirect_to: current_path]}")}
     end
   end
 

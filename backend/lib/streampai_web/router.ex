@@ -132,7 +132,6 @@ defmodule StreampaiWeb.Router do
     live("/cursors", SharedCursorLive)
     live("/w/:uuid", WidgetDisplayLive)
     sign_out_route(AuthController, "/auth/sign-out")
-
   end
 
   # Authentication routes with redirect handling
