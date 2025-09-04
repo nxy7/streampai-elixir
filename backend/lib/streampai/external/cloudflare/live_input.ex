@@ -2,9 +2,13 @@ defmodule Streampai.Cloudflare.LiveInput do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Cloudflare,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    data_layer: AshPostgres.DataLayer
 
-  # data_layer: AshPostgres.DataLayer
+  postgres do
+    table "cloudflare_live_inputs"
+    repo Streampai.Repo
+  end
 
   require Ash.Query
 
