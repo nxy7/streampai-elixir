@@ -23,9 +23,12 @@ defmodule StreampaiWeb.SettingsLive do
     # Get user preferences from DB, use default if no record exists
 
     {:ok, user_preferences} =
-      Streampai.Accounts.UserPreferences.get_by_user_id(%{
-        user_id: current_user.id
-      }, actor: current_user)
+      Streampai.Accounts.UserPreferences.get_by_user_id(
+        %{
+          user_id: current_user.id
+        },
+        actor: current_user
+      )
 
     {:ok,
      socket
@@ -196,7 +199,7 @@ defmodule StreampaiWeb.SettingsLive do
           usage={@usage}
           platform_connections={@platform_connections}
         />
-
+        
     <!-- Account Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Account Settings</h3>
@@ -274,7 +277,7 @@ defmodule StreampaiWeb.SettingsLive do
             </div>
           </div>
         </div>
-
+        
     <!-- Notifications Settings -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h3>

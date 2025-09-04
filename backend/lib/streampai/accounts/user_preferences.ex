@@ -37,8 +37,9 @@ defmodule Streampai.Accounts.UserPreferences do
             [] ->
               default_record = %__MODULE__{
                 user_id: Ash.Query.get_argument(query, :user_id),
-                email_notifications: true,
+                email_notifications: true
               }
+
               {:ok, [default_record]}
 
             [result] ->
@@ -46,7 +47,6 @@ defmodule Streampai.Accounts.UserPreferences do
           end
         end)
       end
-
     end
   end
 
