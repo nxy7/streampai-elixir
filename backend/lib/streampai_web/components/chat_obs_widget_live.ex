@@ -18,10 +18,13 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     initial_messages = FakeChat.initial_messages()
 
     {:ok, %{config: config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
-        user_id: user_id,
-        type: :chat_widget
-      })
+      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+        %{
+          user_id: user_id,
+          type: :chat_widget
+        },
+        authorize?: false
+      )
 
     {:ok,
      socket

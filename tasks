@@ -1,4 +1,7 @@
 # Short Term
+- I think we need some standards for page naming, maybe have elixir module name always reflect
+url path, so /dashboard/admin/users should be 'dashboard_admin_users_live', make all pages follow
+that standard 
 
 # Long Term
 - logo?

@@ -23,10 +23,13 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     end
 
     {:ok, %{config: initial_config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
-        user_id: current_user.id,
-        type: :alertbox_widget
-      })
+      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+        %{
+          user_id: current_user.id,
+          type: :alertbox_widget
+        },
+        authorize?: false
+      )
 
     {:ok,
      socket
