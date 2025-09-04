@@ -10,7 +10,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
       |> assign_new(:action_button_class, fn -> "" end)
       |> assign_new(:show_action_button, fn -> false end)
       |> assign_new(:action_button_text, fn -> "Action" end)
-      |> assign_new(:sidebar_expanded, fn -> true end)
       |> assign_new(:impersonator, fn -> nil end)
 
     ~H"""
@@ -29,7 +28,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"
           >
           </div>
-          
+
     <!-- Sidebar -->
           <div class="sidebar fixed inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out bg-gray-900 text-white w-64 flex flex-col -translate-x-full md:translate-x-0 overflow-y-auto">
             <!-- Sidebar Header -->
@@ -38,12 +37,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 navigate="/"
                 class="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
-                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                  </svg>
-                </div>
-                <span class="sidebar-text text-xl font-bold">Streampai</span>
+            <div class="flex items-center space-x-2 mb-4 md:mb-0">
+              <img src="/images/logo-white.png" alt="Streampai Logo" class="w-8 h-8" />
+              <span class="text-xl font-bold text-white streampai-text">Streampai</span>
+            </div>
               </.link>
               <button
                 id="sidebar-toggle"
@@ -67,7 +64,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </svg>
               </button>
             </div>
-            
+
     <!-- Main Navigation (flex-1 to take up remaining space) -->
             <nav class="flex-1 mt-6">
               <!-- Primary Section -->
@@ -103,7 +100,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Dashboard</span>
                   </.link>
-                  
+
     <!-- Analytics -->
                   <.link
                     navigate="/dashboard/analytics"
@@ -127,7 +124,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </.link>
                 </div>
               </div>
-              
+
     <!-- Streaming Section -->
               <div class="px-4 mb-8">
                 <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -155,7 +152,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Stream</span>
                   </.link>
-                  
+
     <!-- Chat History -->
                   <.link
                     navigate="/dashboard/chat-history"
@@ -177,7 +174,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Chat History</span>
                   </.link>
-                  
+
     <!-- Widgets -->
                   <.link
                     navigate="/dashboard/widgets"
@@ -201,7 +198,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </.link>
                 </div>
               </div>
-              
+
     <!-- Admin Section -->
               <%= if @current_user && UserPolicy.admin?(@current_user) do %>
                 <div class="px-4 mb-8">
@@ -233,7 +230,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   </div>
                 </div>
               <% end %>
-              
+
     <!-- Settings Section -->
               <div class="px-4">
                 <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -270,7 +267,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
               </div>
             </nav>
-            
+
     <!-- Bottom Logout Section -->
             <div class="p-4 border-t border-gray-700">
               <a
@@ -290,7 +287,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               </a>
             </div>
           </div>
-          
+
     <!-- Main Content -->
           <div id="main-content" class="flex-1 flex flex-col overflow-hidden ml-0 md:ml-64">
             <!-- Top Bar -->
@@ -355,14 +352,14 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 </div>
               </div>
             </header>
-            
+
     <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
               {render_slot(@inner_block)}
             </main>
           </div>
         </div>
-        
+
     <!-- Floating Impersonation Notification -->
         <%= if @impersonator do %>
           <div class="fixed top-4 right-4 bg-amber-100 border-l-4 border-amber-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
@@ -406,7 +403,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             </div>
           </div>
         <% end %>
-        
+
     <!-- Flash Messages -->
         <.flash_group flash={assigns[:flash] || %{}} />
 
@@ -431,6 +428,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           // Sidebar toggle functionality
           document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
+            const streampaiText = document.querySelector('.streampai-text');
             const sidebarToggle = document.getElementById('sidebar-toggle');
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
             const backdrop = document.getElementById('mobile-sidebar-backdrop');
@@ -454,6 +452,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 expandIcon.classList.add('hidden');
                 mainContent.classList.remove('md:ml-20');
                 mainContent.classList.add('md:ml-64');
+                streampaiText.classList.remove('hidden');
               } else {
                 sidebar.classList.remove('w-64');
                 sidebar.classList.add('w-20');
@@ -462,6 +461,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                 expandIcon.classList.remove('hidden');
                 mainContent.classList.remove('md:ml-64');
                 mainContent.classList.add('md:ml-20');
+                streampaiText.classList.add('hidden');
               }
             }
 

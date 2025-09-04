@@ -61,7 +61,7 @@ config :spark,
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
-  ash_domains: [Streampai.Stream, Streampai.Accounts],
+  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),
   session_options: [

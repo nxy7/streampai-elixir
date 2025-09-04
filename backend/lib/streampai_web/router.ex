@@ -85,8 +85,10 @@ defmodule StreampaiWeb.Router do
       live("/widgets/alertbox", AlertboxWidgetSettingsLive)
     end
 
+    sign_out_route(AuthController, "/auth/sign-out")
     sign_in_route(
       path: "/auth/sign-in",
+      
       register_path: "/auth/register",
       reset_path: "/auth/reset",
       auth_routes_prefix: "/auth",
@@ -106,7 +108,6 @@ defmodule StreampaiWeb.Router do
     live("/w/:uuid", WidgetDisplayLive)
 
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
-    sign_out_route(AuthController, "/auth/sign-out")
   end
 
   # Echo API for benchmarking
@@ -135,7 +136,7 @@ defmodule StreampaiWeb.Router do
 
       conn
       |> put_status(:forbidden)
-      |> Phoenix.Controller.text("Access denied to monitoring interface")
+      |> Phoenix.Controller.text("Access denied")
       |> halt()
     end
   end

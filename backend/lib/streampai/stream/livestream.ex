@@ -5,7 +5,7 @@ defmodule Streampai.Stream.Livestream do
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "livestream"
+    table "livestreams"
     repo Streampai.Repo
   end
 
