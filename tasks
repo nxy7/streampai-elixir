@@ -2,6 +2,9 @@
 - I think we need some standards for page naming, maybe have elixir module name always reflect
 url path, so /dashboard/admin/users should be 'dashboard_admin_users_live', make all pages follow
 that standard 
+- when user signs in with google/twitch I'd like to save theire platform data in extra_data
+column (so we can use their platform data as fallback username/avatar if they don't have any
+specified yet)
 
 # Long Term
 - logo?
