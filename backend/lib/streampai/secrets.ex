@@ -60,5 +60,5 @@ defmodule Streampai.Secrets do
         _opts,
         _context
       ),
-      do: Application.fetch_env(:streampai, :twitch_redirect_uri)
+      do: Application.fetch_env(:streampai, :twitch_redirect_uri) |> dbg
 end
