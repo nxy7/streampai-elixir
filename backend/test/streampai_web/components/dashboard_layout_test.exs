@@ -7,7 +7,11 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
   describe "dashboard_layout/1" do
     test "renders basic dashboard layout" do
       assigns = %{
-        current_user: %{id: "123", email: "test@example.com"},
+        current_user: %{
+          id: "123",
+          email: "test@example.com",
+          avatar: "http://example.com/avatar.png"
+        },
         current_page: "dashboard",
         page_title: "Test Dashboard",
         inner_block: []
@@ -20,7 +24,11 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
     test "renders dashboard layout with action button" do
       assigns = %{
-        current_user: %{id: "123", email: "test@example.com"},
+        current_user: %{
+          id: "123",
+          email: "test@example.com",
+          avatar: "http://example.com/avatar.png"
+        },
         current_page: "stream",
         page_title: "Stream Management",
         show_action_button: true,
@@ -36,8 +44,16 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
     test "renders dashboard layout with impersonation notification" do
       assigns = %{
-        current_user: %{id: "456", email: "user@example.com"},
-        impersonator: %{id: "123", email: "lolnoxy@gmail.com"},
+        current_user: %{
+          id: "456",
+          email: "user@example.com",
+          avatar: "http://example.com/avatar.png"
+        },
+        impersonator: %{
+          id: "123",
+          email: "lolnoxy@gmail.com",
+          avatar: "http://example.com/avatar.png"
+        },
         current_page: "users",
         page_title: "User Management",
         inner_block: []
@@ -50,7 +66,12 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
     test "renders admin-only users menu for admin user" do
       assigns = %{
-        current_user: %{id: "123", email: "lolnoxy@gmail.com", role: :admin},
+        current_user: %{
+          id: "123",
+          email: "lolnoxy@gmail.com",
+          role: :admin,
+          avatar: "http://example.com/avatar.png"
+        },
         current_page: "users",
         page_title: "User Management",
         inner_block: []
@@ -67,7 +88,11 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
 
     test "does not render users menu for regular user" do
       assigns = %{
-        current_user: %{id: "456", email: "regular@example.com"},
+        current_user: %{
+          id: "456",
+          email: "regular@example.com",
+          avatar: "http://example.com/avatar.png"
+        },
         current_page: "dashboard",
         page_title: "Dashboard",
         inner_block: []

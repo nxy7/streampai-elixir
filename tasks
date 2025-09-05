@@ -1,7 +1,9 @@
 # Short Term
+- fix twitch login
+- start working on stream management
+  - make cloudflare resources functional
 
 # Long Term
-- logo?
 - ai chat helper that can point user to how to make some things (like can point him to correct)
  link to create widgets etc etc
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
