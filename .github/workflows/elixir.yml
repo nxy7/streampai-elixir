@@ -160,12 +160,10 @@ jobs:
 
       - name: Copy docker-compose and deploy
         run: |
-          # Copy the compose file to temp location
+          ssh -i ~/.ssh/deploy_key root@static.245.61.108.65.clients.your-server.de "mkdir -p /tmp/streampai-elixir"
           scp -i ~/.ssh/deploy_key docker-compose.prod.yml root@static.245.61.108.65.clients.your-server.de:/tmp/streampai-elixir/docker-compose.yml
 
-          # Deploy with environment variables
           ssh -i ~/.ssh/deploy_key root@static.245.61.108.65.clients.your-server.de << 'EOF'
-            # Set environment variables
             export GIT_SHA=${{ github.sha }}
             export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
             export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
@@ -181,11 +179,9 @@ jobs:
             export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
             export PHX_HOST="streampai.com"
 
-            # Login and pull latest image
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
 
-            # Deploy using temp compose file to avoid git conflicts
             cd /tmp/streampai-elixir
             docker compose -f /tmp/streampai-elixir/docker-compose.yml up -d --remove-orphans
           EOF
