@@ -169,11 +169,15 @@ jobs:
             export ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}"
             export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
             export PHX_HOST="streampai.com"
+            export GIT_SHA=${{ github.sha }}
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
 
             cd streampai-elixir
             git pull
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            echo "Pulling specific platform image..."
-            docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
-            export GIT_SHA=${{ github.sha }}
-            docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps streampai
+
+            # for some reason we need to remove container to apply
+            # new env variables
+            docker compose -f docker-compose.prod.yml rm -sf streampai
+            docker compose -f docker-compose.prod.yml up -d --force-recreate streampai
