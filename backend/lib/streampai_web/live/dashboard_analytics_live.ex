@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.AnalyticsLive do
+defmodule StreampaiWeb.DashboardAnalyticsLive do
   @moduledoc """
   Analytics LiveView displaying streaming metrics and performance data.
   """

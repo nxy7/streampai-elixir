@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.ChatHistoryLive do
+defmodule StreampaiWeb.DashboardChatHistoryLive do
   use StreampaiWeb.BaseLive
   import StreampaiWeb.Utils.PlatformUtils
   alias StreampaiWeb.Utils.FakeChat

@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.UsersLive do
+defmodule StreampaiWeb.DashboardAdminUsersLive do
   @moduledoc """
   LiveView for managing users and impersonation.
 

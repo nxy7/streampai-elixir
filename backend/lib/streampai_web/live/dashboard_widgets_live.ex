@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.WidgetsLive do
+defmodule StreampaiWeb.DashboardWidgetsLive do
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do

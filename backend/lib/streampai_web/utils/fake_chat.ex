@@ -35,7 +35,7 @@ defmodule StreampaiWeb.Utils.FakeChat do
   end
 
   @doc """
-  Generates chat history messages in the format used by ChatHistoryLive.
+  Generates chat history messages in the format used by DashboardChatHistoryLive.
   """
   def generate_chat_history_messages(count \\ 20) do
     1..count

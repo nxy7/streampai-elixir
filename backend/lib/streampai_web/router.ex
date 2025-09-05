@@ -75,12 +75,12 @@ defmodule StreampaiWeb.Router do
         {StreampaiWeb.LiveUserAuth, :dashboard_presence}
       ] do
       live("/dashboard", DashboardLive)
-      live("/dashboard/stream", StreamLive)
-      live("/dashboard/chat-history", ChatHistoryLive)
-      live("/dashboard/widgets", WidgetsLive)
-      live("/dashboard/analytics", AnalyticsLive)
-      live("/dashboard/settings", SettingsLive)
-      live("/dashboard/admin/users", UsersLive)
+      live("/dashboard/stream", DashboardStreamLive)
+      live("/dashboard/chat-history", DashboardChatHistoryLive)
+      live("/dashboard/widgets", DashboardWidgetsLive)
+      live("/dashboard/analytics", DashboardAnalyticsLive)
+      live("/dashboard/settings", DashboardSettingsLive)
+      live("/dashboard/admin/users", DashboardAdminUsersLive)
       live("/widgets/chat", ChatWidgetSettingsLive)
       live("/widgets/alertbox", AlertboxWidgetSettingsLive)
     end

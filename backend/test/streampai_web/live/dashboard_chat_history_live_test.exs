@@ -1,8 +1,8 @@
-defmodule StreampaiWeb.ChatHistoryLiveTest do
+defmodule StreampaiWeb.DashboardChatHistoryLiveTest do
   use StreampaiWeb.ConnCase
   import Phoenix.LiveViewTest
 
-  describe "ChatHistoryLive" do
+  describe "DashboardChatHistoryLive" do
     test "renders chat history page with generated messages", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 

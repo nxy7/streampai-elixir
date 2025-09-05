@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.SettingsLive do
+defmodule StreampaiWeb.DashboardSettingsLive do
   @moduledoc """
   Settings LiveView for managing user account settings and platform connections.
   """

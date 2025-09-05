@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.StreamLive do
+defmodule StreampaiWeb.DashboardStreamLive do
   use StreampaiWeb.BaseLive
   import StreampaiWeb.LiveHelpers, only: [handle_platform_disconnect: 2]
 
