@@ -177,4 +177,5 @@ jobs:
             cd streampai-elixir
             git pull
 
+            docker compose -f docker-compose.prod.yml down --remove-orphans
             docker compose -f docker-compose.prod.yml up -d --pull always
