@@ -148,13 +148,24 @@ jobs:
     environment:
       name: prod
     steps:
-      - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: static.245.61.108.65.clients.your-server.de
-          username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H static.245.61.108.65.clients.your-server.de >> ~/.ssh/known_hosts
+
+      - name: Copy docker-compose and deploy
+        run: |
+          # Copy the compose file to temp location
+          scp -i ~/.ssh/deploy_key docker-compose.prod.yml root@static.245.61.108.65.clients.your-server.de:/tmp/streampai-elixir/docker-compose.yml
+
+          # Deploy with environment variables
+          ssh -i ~/.ssh/deploy_key root@static.245.61.108.65.clients.your-server.de << 'EOF'
+            # Set environment variables
             export GIT_SHA=${{ github.sha }}
             export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
             export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
@@ -169,13 +180,12 @@ jobs:
             export ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}"
             export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
             export PHX_HOST="streampai.com"
-            export GIT_SHA=${{ github.sha }}
 
+            # Login and pull latest image
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull --platform linux/amd64 ghcr.io/${{ github.repository }}:latest
 
-            cd streampai-elixir
-            git pull
-
-            docker compose -f docker-compose.prod.yml down --remove-orphans
-            docker compose -f docker-compose.prod.yml up -d --pull always
+            # Deploy using temp compose file to avoid git conflicts
+            cd /tmp/streampai-elixir
+            docker compose -f /tmp/streampai-elixir/docker-compose.yml up -d --remove-orphans
+          EOF
