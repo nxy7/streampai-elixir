@@ -42,7 +42,7 @@ services:
 
       TWITCH_CLIENT_ID: 19bbrmyqid8xl91qv23gkafvdxfx68
       TWITCH_CLIENT_SECRET: gbg0ys1brcrb4t8q4z6ao4r4jx4vbo
-      TWITCH_REDIRECT_URI: https://streampai.com/streaming/connect/twitch/callback
+      TWITCH_REDIRECT_URI: https://streampai.com/auth/user/twitch/callback
 
       TOKEN_SIGNING_SECRET: jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF
       GIT_SHA: ${GIT_SHA:-unknown}
