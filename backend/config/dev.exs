@@ -13,9 +13,6 @@ config :streampai, Streampai.Repo,
   pool_size: 30,
   show_sensitive_data_on_connection_error: true
 
-config :phoenix_live_view,
-  debug_heex_annotations: true,
-  debug_tags_location: true
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

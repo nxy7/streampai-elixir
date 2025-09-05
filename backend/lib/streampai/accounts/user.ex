@@ -90,7 +90,7 @@ defmodule Streampai.Accounts.User do
 
   # Private function to save platform data from OAuth/OIDC
   defp save_platform_data(changeset, platform_name) do
-    user_info = Ash.Changeset.get_argument(changeset, :user_info) |> dbg
+    user_info = Ash.Changeset.get_argument(changeset, :user_info)
     platform_data = Map.put(user_info, "platform", platform_name)
 
     attrs = %{} |> Map.put(:email, user_info["email"])
@@ -108,7 +108,7 @@ defmodule Streampai.Accounts.User do
   end
 
   actions do
-    defaults [:read]
+    defaults [:read, :destroy]
 
     read :get do
       prepare build(load: [:tier, :connected_platforms])
@@ -154,7 +154,6 @@ defmodule Streampai.Accounts.User do
 
       change AshAuthentication.GenerateTokenChange
 
-      # Required if you have the `identity_resource` configuration enabled.
       change AshAuthentication.Strategy.OAuth2.IdentityChange
 
       change fn changeset, _ ->
@@ -163,7 +162,6 @@ defmodule Streampai.Accounts.User do
 
       change Streampai.Accounts.DefaultUsername
 
-      # Required if you're using the password & confirmation strategies
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
 
@@ -183,7 +181,6 @@ defmodule Streampai.Accounts.User do
 
       change AshAuthentication.GenerateTokenChange
 
-      # Required if you have the `identity_resource` configuration enabled.
       change AshAuthentication.Strategy.OAuth2.IdentityChange
 
       change fn changeset, _ ->
@@ -192,7 +189,6 @@ defmodule Streampai.Accounts.User do
 
       change Streampai.Accounts.DefaultUsername
 
-      # Required if you're using the password & confirmation strategies
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
 
@@ -228,14 +224,6 @@ defmodule Streampai.Accounts.User do
     end
 
     read :sign_in_with_token do
-      # In the generated sign in components, we validate the
-      # email and password directly in the LiveView
-      # and generate a short-lived token that can be used to sign in over
-      # a standard controller action, exchanging it for a standard token.
-      # This action performs that exchange. If you do not use the generated
-      # liveviews, you may remove this action, and set
-      # `sign_in_tokens_enabled? false` in the password strategy.
-
       description "Attempt to sign in using a short-lived sign in token."
       get? true
 
@@ -245,7 +233,6 @@ defmodule Streampai.Accounts.User do
         sensitive? true
       end
 
-      # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
 
       metadata :token, :string do
@@ -271,15 +258,12 @@ defmodule Streampai.Accounts.User do
         sensitive? true
       end
 
-      # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
 
-      # Generates an authentication token for the user
       change AshAuthentication.GenerateTokenChange
 
       change Streampai.Accounts.DefaultUsername
 
-      # validates that the password matches the confirmation
       validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
 
       metadata :token, :string do
@@ -295,7 +279,6 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      # creates a reset token and invokes the relevant senders
       run {AshAuthentication.Strategy.Password.RequestPasswordReset, action: :get_by_email}
     end
 
@@ -329,16 +312,9 @@ defmodule Streampai.Accounts.User do
         sensitive? true
       end
 
-      # validates the provided reset token
       validate AshAuthentication.Strategy.Password.ResetTokenValidation
-
-      # validates that the password matches the confirmation
       validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
-
-      # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
-
-      # Generates an authentication token for the user
       change AshAuthentication.GenerateTokenChange
     end
 
@@ -353,7 +329,6 @@ defmodule Streampai.Accounts.User do
         name = Ash.Changeset.get_attribute(changeset, :name)
 
         if name do
-          # Validate format
           cond do
             String.length(name) < Streampai.Constants.username_min_length() ->
               Ash.Changeset.add_error(
@@ -379,7 +354,6 @@ defmodule Streampai.Accounts.User do
             true ->
               import Ash.Query
 
-              # Check if the name is already taken by another user (optimized)
               case Streampai.Accounts.User
                    |> filter(name == ^name and id != ^changeset.data.id)
                    |> for_read(:get)
@@ -420,18 +394,15 @@ defmodule Streampai.Accounts.User do
       authorize_if expr(^actor(:role) == :admin)
     end
 
-    # Allow user registration and authentication creates (no actor required)
     policy action_type(:create) do
       authorize_if always()
     end
 
-    # Only allow users to update themselves or admins to update anyone
     policy action_type(:update) do
       authorize_if expr(id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
     end
 
-    # Only admins can delete users
     policy action_type(:destroy) do
       authorize_if expr(^actor(:role) == :admin)
     end
