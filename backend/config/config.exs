@@ -104,12 +104,12 @@ config :ueberauth, Ueberauth,
          include_granted_scopes: true,
          default_scope:
            "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
-       ]},
-    twitch:
-      {Ueberauth.Strategy.Twitch,
-       [
-         default_scope: "user:read:email channel:read:subscriptions"
        ]}
+    # twitch:
+    #   {Ueberauth.Strategy.Twitch,
+    #    [
+    #      default_scope: "user:read:email channel:read:subscriptions"
+    #    ]}
   ]
 
 config :logger, :console,
