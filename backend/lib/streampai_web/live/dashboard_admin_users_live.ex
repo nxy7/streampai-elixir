@@ -33,7 +33,7 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
     actor = socket.assigns[:impersonator] || socket.assigns.current_user
 
     case Streampai.Accounts.User
-         |> Ash.Query.for_read(:get, %{}, load: [:role], actor: actor)
+         |> Ash.Query.for_read(:get, %{}, load: [:role, :avatar], actor: actor)
          |> Ash.read() do
       {:ok, users} ->
         IO.puts("users: " <> inspect(users))
@@ -142,9 +142,17 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                          <span class="text-white font-medium text-sm">
-                            {String.first(user.email) |> String.upcase()}
-                          </span>
+                          <%= if user.avatar do %>
+                            <img
+                              class="w-10 h-10 rounded-full"
+                              src={user.avatar}
+                              alt={user.name || user.email}
+                            />
+                          <% else %>
+                            <span class="text-white font-medium text-sm">
+                              {String.first(user.email) |> String.upcase()}
+                            </span>
+                          <% end %>
                         </div>
                         <div class="ml-3">
                           <div class="flex items-center space-x-2">

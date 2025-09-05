@@ -26,6 +26,21 @@ defmodule Streampai.Accounts.User do
         redirect_uri Streampai.Secrets
       end
 
+      oauth2 :twitch do
+        client_id Streampai.Secrets
+        client_secret Streampai.Secrets
+        redirect_uri Streampai.Secrets
+        base_url "https://id.twitch.tv"
+        authorize_url "https://id.twitch.tv/oauth2/authorize"
+        token_url "https://id.twitch.tv/oauth2/token"
+        user_url "https://id.twitch.tv/oauth2/userinfo"
+        authorization_params scope: "user:read:email"
+        auth_method :client_secret_post
+        icon :twitch
+
+        # user_url_request_headers [{"Client-ID", {Streampai.Secrets, :secret_for, [[:authentication, :strategies, :twitch, :client_id]]}}]
+      end
+
       password :password do
         identity_field :email
 
@@ -55,6 +70,17 @@ defmodule Streampai.Accounts.User do
     define :get_by_id
   end
 
+  # Private function to save platform data from OAuth
+  defp save_platform_data(changeset, platform_name) do
+    user_info = Ash.Changeset.get_argument(changeset, :user_info)
+
+    platform_data = Map.put(user_info, "platform", platform_name)
+
+    changeset
+    |> Ash.Changeset.change_attributes(Map.take(user_info, ["email"]))
+    |> Ash.Changeset.change_attribute(:extra_data, platform_data)
+  end
+
   actions do
     defaults [:read]
 
@@ -69,7 +95,7 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts])
+      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts, :avatar])
 
       filter expr(id == ^arg(:id))
     end
@@ -106,15 +132,42 @@ defmodule Streampai.Accounts.User do
       change AshAuthentication.Strategy.OAuth2.IdentityChange
 
       change fn changeset, _ ->
-        user_info = Ash.Changeset.get_argument(changeset, :user_info)
-
-        Ash.Changeset.change_attributes(changeset, Map.take(user_info, ["email"]))
+        save_platform_data(changeset, "google")
       end
 
       change Streampai.Accounts.DefaultUsername
 
       # Required if you're using the password & confirmation strategies
-      upsert_fields []
+      upsert_fields [:extra_data]
+      change set_attribute(:confirmed_at, &DateTime.utc_now/0)
+
+      change after_action(fn _changeset, user, _context ->
+               case user.confirmed_at do
+                 nil -> {:error, "Unconfirmed user exists already"}
+                 _ -> {:ok, user}
+               end
+             end)
+    end
+
+    create :register_with_twitch do
+      argument :user_info, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false
+      upsert? true
+      upsert_identity :unique_email
+
+      change AshAuthentication.GenerateTokenChange
+
+      # Required if you have the `identity_resource` configuration enabled.
+      change AshAuthentication.Strategy.OAuth2.IdentityChange
+
+      change fn changeset, _ ->
+        save_platform_data(changeset, "twitch")
+      end
+
+      change Streampai.Accounts.DefaultUsername
+
+      # Required if you're using the password & confirmation strategies
+      upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
 
       change after_action(fn _changeset, user, _context ->
@@ -375,6 +428,12 @@ defmodule Streampai.Accounts.User do
       allow_nil? true
       sensitive? true
     end
+
+    attribute :extra_data, :map do
+      public? true
+      allow_nil? true
+      default %{}
+    end
   end
 
   relationships do
@@ -390,6 +449,7 @@ defmodule Streampai.Accounts.User do
   calculations do
     calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
     calculate :role, :atom, expr(if email == "lolnoxy@gmail.com", do: :admin, else: :regular)
+    calculate :avatar, :string, expr(extra_data["picture"])
   end
 
   aggregates do

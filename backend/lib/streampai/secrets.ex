@@ -37,4 +37,28 @@ defmodule Streampai.Secrets do
         _context
       ),
       do: Application.fetch_env(:streampai, :google_redirect_uri)
+
+  def secret_for(
+        [:authentication, :strategies, :twitch, :client_id],
+        Streampai.Accounts.User,
+        _opts,
+        _context
+      ),
+      do: Application.fetch_env(:streampai, :twitch_client_id) |> dbg
+
+  def secret_for(
+        [:authentication, :strategies, :twitch, :client_secret],
+        Streampai.Accounts.User,
+        _opts,
+        _context
+      ),
+      do: Application.fetch_env(:streampai, :twitch_client_secret)
+
+  def secret_for(
+        [:authentication, :strategies, :twitch, :redirect_uri],
+        Streampai.Accounts.User,
+        _opts,
+        _context
+      ),
+      do: Application.fetch_env(:streampai, :twitch_redirect_uri)
 end

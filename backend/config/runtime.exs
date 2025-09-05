@@ -30,6 +30,9 @@ config :streampai,
   google_client_id: System.get_env("GOOGLE_CLIENT_ID"),
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
   google_redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
+  twitch_client_id: System.get_env("TWITCH_CLIENT_ID"),
+  twitch_client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
+  twitch_redirect_uri: System.get_env("TWITCH_REDIRECT_URI"),
   token_signing_secret: System.get_env("TOKEN_SIGNING_SECRET")
 
 config :streampai, :strategies,

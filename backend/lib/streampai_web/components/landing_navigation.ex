@@ -56,14 +56,14 @@ defmodule StreampaiWeb.Components.LandingNavigation do
       ~H"""
       <%= if @current_user do %>
         <.link
-          navigate="/dashboard"
+          href="/dashboard"
           class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
         >
           Dashboard
         </.link>
       <% else %>
         <.link
-          navigate="/auth/sign-in"
+          href="/auth/sign-in"
           class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
         >
           Get Started

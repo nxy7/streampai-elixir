@@ -325,14 +325,22 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </button>
                   <% end %>
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                      <span class="text-white font-medium text-sm">
-                        <%= if @current_user && @current_user.email do %>
-                          {String.first(@current_user.email) |> String.upcase()}
-                        <% else %>
-                          U
-                        <% end %>
-                      </span>
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
+                      <%= if @current_user && @current_user.avatar do %>
+                        <img
+                          src={@current_user.avatar}
+                          alt="User Avatar"
+                          class="w-full h-full object-cover"
+                        />
+                      <% else %>
+                        <span class="text-white font-medium text-sm">
+                          <%= if @current_user && @current_user.email do %>
+                            {String.first(@current_user.email) |> String.upcase()}
+                          <% else %>
+                            U
+                          <% end %>
+                        </span>
+                      <% end %>
                     </div>
                     <div class="hidden md:block">
                       <p class="text-sm font-medium text-gray-900">
