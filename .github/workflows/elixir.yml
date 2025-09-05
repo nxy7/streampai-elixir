@@ -177,7 +177,4 @@ jobs:
             cd streampai-elixir
             git pull
 
-            # for some reason we need to remove container to apply
-            # new env variables
-            docker compose -f docker-compose.prod.yml rm -sf streampai
-            docker compose -f docker-compose.prod.yml up -d --force-recreate streampai
+            docker compose -f docker-compose.prod.yml up -d --pull always
