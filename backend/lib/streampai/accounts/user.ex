@@ -26,19 +26,37 @@ defmodule Streampai.Accounts.User do
         redirect_uri Streampai.Secrets
       end
 
-      oauth2 :twitch do
+      oidc :twitch do
         client_id Streampai.Secrets
         client_secret Streampai.Secrets
         redirect_uri Streampai.Secrets
         base_url "https://id.twitch.tv"
-        authorize_url "https://id.twitch.tv/oauth2/authorize"
-        token_url "https://id.twitch.tv/oauth2/token"
-        user_url "https://id.twitch.tv/oauth2/userinfo"
-        authorization_params scope: "user:read:email"
-        auth_method :client_secret_post
+        client_authentication_method "client_secret_post"
+
+        authorization_params scope: "openid user:read:email",
+                             claims:
+                               ~s/{"id_token":{"email":null,"email_verified":null,"preferred_username":null,"picture":null},"userinfo":{"email":null,"email_verified":null,"preferred_username":null,"picture":null}}/
+
         icon :twitch
 
-        # user_url_request_headers [{"Client-ID", {Streampai.Secrets, :secret_for, [[:authentication, :strategies, :twitch, :client_id]]}}]
+        openid_configuration %{
+          "issuer" => "https://id.twitch.tv/oauth2",
+          "authorization_endpoint" => "https://id.twitch.tv/oauth2/authorize",
+          "token_endpoint" => "https://id.twitch.tv/oauth2/token",
+          "userinfo_endpoint" => "https://id.twitch.tv/oauth2/userinfo",
+          "jwks_uri" => "https://id.twitch.tv/oauth2/keys",
+          "response_types_supported" => ["code"],
+          "subject_types_supported" => ["public"],
+          "id_token_signing_alg_values_supported" => ["RS256"],
+          "scopes_supported" => ["openid", "user:read:email", "user:read:subscriptions"],
+          "claims_supported" => [
+            "sub",
+            "email",
+            "email_verified",
+            "preferred_username",
+            "picture"
+          ]
+        }
       end
 
       password :password do
@@ -70,14 +88,22 @@ defmodule Streampai.Accounts.User do
     define :get_by_id
   end
 
-  # Private function to save platform data from OAuth
+  # Private function to save platform data from OAuth/OIDC
   defp save_platform_data(changeset, platform_name) do
-    user_info = Ash.Changeset.get_argument(changeset, :user_info)
-
+    user_info = Ash.Changeset.get_argument(changeset, :user_info) |> dbg
     platform_data = Map.put(user_info, "platform", platform_name)
 
+    attrs = %{} |> Map.put(:email, user_info["email"])
+
+    attrs =
+      if user_info["preferred_username"] do
+        Map.put(attrs, :name, user_info["preferred_username"])
+      else
+        attrs
+      end
+
     changeset
-    |> Ash.Changeset.change_attributes(Map.take(user_info, ["email"]))
+    |> Ash.Changeset.change_attributes(attrs)
     |> Ash.Changeset.change_attribute(:extra_data, platform_data)
   end
 

@@ -5,9 +5,16 @@ defmodule Streampai.Accounts.DefaultUsername do
   use Ash.Resource.Change
 
   def change(changeset, _opts, _) do
-    case Ash.Changeset.get_attribute(changeset, :email) do
-      nil -> changeset
-      email -> set_username_from_email(changeset, email)
+    # Only generate username if name is not already set
+    case Ash.Changeset.get_attribute(changeset, :name) do
+      nil ->
+        case Ash.Changeset.get_attribute(changeset, :email) do
+          nil -> changeset
+          email -> set_username_from_email(changeset, email)
+        end
+
+      _existing_name ->
+        changeset
     end
   end
 
@@ -21,8 +28,10 @@ defmodule Streampai.Accounts.DefaultUsername do
       {:error, error} ->
         Ash.Changeset.add_error(
           changeset,
-          "Failed to generate username: #{inspect(error)}",
-          field: :name
+          %Ash.Error.Changes.InvalidAttribute{
+            field: :name,
+            message: "Failed to generate username: #{inspect(error)}"
+          }
         )
     end
   end
