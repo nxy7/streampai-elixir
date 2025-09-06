@@ -14,7 +14,7 @@ test:
 	set -euo pipefail
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 	cd backend
-	mix test --max-failures 3
+	mix test --max-failures 3 --exclude external
 
 start:
 	cd backend; mix start
