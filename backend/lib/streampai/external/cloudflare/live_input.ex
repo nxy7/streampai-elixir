@@ -66,7 +66,7 @@ defmodule Streampai.Cloudflare.LiveInput do
     end
   end
 
-  # identities do
-  #   identity :unique_user_platform, [:user_id, :platform]
-  # end
+  identities do
+    identity :one_live_input_per_user, [:user_id]
+  end
 end
