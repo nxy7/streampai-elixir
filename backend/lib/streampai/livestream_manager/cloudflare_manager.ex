@@ -10,7 +10,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   defstruct [
     :user_id,
-    # Cloudflare account ID  
+    # Cloudflare account ID
     :account_id,
     # Cloudflare API token
     :api_token,

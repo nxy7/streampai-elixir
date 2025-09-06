@@ -6,10 +6,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   use Supervisor
 
   alias Streampai.LivestreamManager.{
-    StreamStateServer,
-    PlatformSupervisor,
+    AlertManager,
     CloudflareManager,
-    AlertManager
+    PlatformSupervisor,
+    StreamStateServer
   }
 
   def start_link(user_id) when is_binary(user_id) do

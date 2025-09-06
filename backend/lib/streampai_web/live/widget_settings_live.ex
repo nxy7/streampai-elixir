@@ -63,7 +63,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
       end
 
       # Override points for specific widgets
-      defp schedule_initial_data_generation(), do: :ok
+      defp schedule_initial_data_generation, do: :ok
       defp setup_initial_data(socket), do: socket
 
       # This must be implemented by each widget

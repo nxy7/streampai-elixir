@@ -6,8 +6,8 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   import StreampaiWeb.Components.SubscriptionWidget
   import StreampaiWeb.Live.Helpers.NotificationPreferences
 
-  alias Streampai.Dashboard
   alias Streampai.Accounts.NameValidator
+  alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
     current_user = socket.assigns.current_user

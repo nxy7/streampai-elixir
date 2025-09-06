@@ -6,7 +6,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   use GenServer
   require Logger
 
-  alias Streampai.LivestreamManager.{StreamStateServer}
+  alias Streampai.LivestreamManager.StreamStateServer
 
   defstruct [
     :user_id,

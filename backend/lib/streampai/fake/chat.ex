@@ -43,7 +43,7 @@ defmodule Streampai.Fake.Chat do
       platform = Enum.random([:twitch, :youtube])
       username = Enum.random(usernames())
       message = Enum.random(messages())
-      # Random between 1-120 minutes  
+      # Random between 1-120 minutes
       minutes_ago = :rand.uniform(120)
 
       %{
@@ -182,7 +182,7 @@ defmodule Streampai.Fake.Chat do
     [
       # Subscriber
       "bg-purple-500 text-white",
-      # Moderator  
+      # Moderator
       "bg-green-500 text-white",
       # VIP
       "bg-yellow-500 text-black",

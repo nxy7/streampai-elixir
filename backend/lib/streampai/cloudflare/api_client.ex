@@ -6,7 +6,7 @@ defmodule Streampai.Cloudflare.APIClient do
   require Logger
 
   # URL builders for live inputs and outputs
-  defp live_input_url(), do: "/accounts/#{account_id()}/stream/live_inputs"
+  defp live_input_url, do: "/accounts/#{account_id()}/stream/live_inputs"
 
   defp live_input_url(input_id) when is_binary(input_id),
     do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}"
@@ -194,9 +194,7 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   defp get_error_message(%{"errors" => errors}) when is_list(errors) do
-    errors
-    |> Enum.map(fn error -> error["message"] || "Unknown error" end)
-    |> Enum.join(", ")
+    Enum.map_join(errors, ", ", fn error -> error["message"] || "Unknown error" end)
   end
 
   defp get_error_message(%{"errors" => error}) when is_map(error) do

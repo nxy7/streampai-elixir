@@ -6,8 +6,8 @@ defmodule Streampai.Examples.StreamEventsExample do
   and query them chronologically or by type.
   """
 
-  alias Streampai.Stream.StreamEvent
   alias Streampai.Fake.StreamEvent, as: FakeStreamEvent
+  alias Streampai.Stream.StreamEvent
 
   @doc """
   Creates sample events to demonstrate the unified approach.

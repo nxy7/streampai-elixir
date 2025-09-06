@@ -9,8 +9,8 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
   """
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
-  alias StreampaiWeb.Presence
   alias Streampai.Accounts.UserPolicy
+  alias StreampaiWeb.Presence
 
   def mount(_params, _session, socket) do
     if connected?(socket) do

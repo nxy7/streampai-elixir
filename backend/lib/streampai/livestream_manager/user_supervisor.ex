@@ -16,36 +16,37 @@ defmodule Streampai.LivestreamManager.UserSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  # TODO we need get_user_stream function that would
-  # get existing actor and if it doesn't exist then it would create it
-
   @doc """
-  Starts a complete livestream management tree for a user.
+  Gets the existing user stream manager or creates it if it doesn't exist.
+  Returns the PID of the UserStreamManager process.
   """
-  def start_user_stream(user_id) when is_binary(user_id) do
-    # Check if already exists
+  def get_user_stream(user_id) when is_binary(user_id) do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:user_stream_manager, user_id}) do
-      [{_pid, _}] ->
-        {:error, :already_exists}
+      [{pid, _}] ->
+        {:ok, pid}
 
       [] ->
-        child_spec = %{
-          id: {:user_stream_manager, user_id},
-          start: {UserStreamManager, :start_link, [user_id]},
-          restart: :permanent,
-          type: :supervisor
-        }
+        start_user_stream(user_id)
+    end
+  end
 
-        case DynamicSupervisor.start_child(__MODULE__, child_spec) do
-          {:ok, pid} ->
-            {:ok, pid}
+  defp start_user_stream(user_id) when is_binary(user_id) do
+    child_spec = %{
+      id: {:user_stream_manager, user_id},
+      start: {UserStreamManager, :start_link, [user_id]},
+      restart: :permanent,
+      type: :supervisor
+    }
 
-          {:error, {:already_started, pid}} ->
-            {:ok, pid}
+    case DynamicSupervisor.start_child(__MODULE__, child_spec) do
+      {:ok, pid} ->
+        {:ok, pid}
 
-          error ->
-            error
-        end
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+
+      error ->
+        error
     end
   end
 
