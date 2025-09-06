@@ -34,7 +34,7 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
     case live_input.data do
       %{"uid" => cloudflare_id} ->
         # We have a Cloudflare ID, try to get updated data
-        case Streampai.External.CloudflareAPIClient.get_live_input(cloudflare_id) do
+        case Streampai.Cloudflare.APIClient.get_live_input(cloudflare_id) do
           {:ok, fresh_data} ->
             live_input
             |> Ash.Changeset.for_update(:update, %{data: fresh_data})
@@ -52,7 +52,7 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
   end
 
   defp create_from_api(user_id) do
-    case Streampai.External.CloudflareAPIClient.create_live_input(user_id) do
+    case Streampai.Cloudflare.APIClient.create_live_input(user_id) do
       {:ok, cloudflare_data} ->
         Ash.Changeset.for_create(Streampai.Cloudflare.LiveInput, :create, %{
           user_id: user_id,

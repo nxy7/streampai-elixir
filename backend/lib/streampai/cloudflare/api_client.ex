@@ -1,4 +1,4 @@
-defmodule Streampai.External.CloudflareAPIClient do
+defmodule Streampai.Cloudflare.APIClient do
   @moduledoc """
   Global Cloudflare API client with rate limiting and connection pooling.
   Handles all Cloudflare API requests for the livestream system.
@@ -18,11 +18,9 @@ defmodule Streampai.External.CloudflareAPIClient do
   def start_link(opts \\ []) do
     name_opts =
       if Application.get_env(:streampai, :test_mode, false) do
-        # In test mode, allow unnamed processes to avoid conflicts
         opts
       else
-        # In non-test mode, use global name
-        Keyword.put_new(opts, :name, __MODULE__)
+        opts |> Keyword.put_new(:name, __MODULE__)
       end
 
     GenServer.start_link(__MODULE__, :ok, name_opts)
