@@ -43,9 +43,7 @@ defmodule Streampai.Repo.Migrations.GetRidOfChannelId do
 
   def down do
     drop constraint(:stream_events, "stream_events_livestream_id_fkey")
-
     drop constraint(:stream_events, "stream_events_user_id_fkey")
-
     drop table(:stream_events)
   end
 end
