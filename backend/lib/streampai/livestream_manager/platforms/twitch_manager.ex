@@ -6,7 +6,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   use GenServer
   require Logger
 
-  alias Streampai.LivestreamManager.{EventBroadcaster, StreamStateServer}
+  alias Streampai.LivestreamManager.{StreamStateServer}
 
   defstruct [
     :user_id,
@@ -95,7 +95,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       {:ok, stream_info} ->
         if stream_info.viewer_count != state.last_viewer_count do
           # Broadcast viewer count update
-          event = %{
+          _event = %{
             type: :viewer_count_update,
             user_id: state.user_id,
             platform: :twitch,
@@ -103,7 +103,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
             previous_count: state.last_viewer_count
           }
 
-          EventBroadcaster.broadcast_event(event)
+          # EventBroadcaster.broadcast_event(event)
 
           # Update stream state
           update_platform_status(state, %{viewer_count: stream_info.viewer_count})
@@ -246,17 +246,17 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     # TODO: Process different Twitch events (follows, donations, raids, etc.)
     case event do
       %{type: "follow", user_name: username} ->
-        follow_event = %{
+        _follow_event = %{
           type: :follow,
           user_id: state.user_id,
           platform: :twitch,
           username: username
         }
 
-        EventBroadcaster.broadcast_event(follow_event)
+      # EventBroadcaster.broadcast_event(follow_event)
 
       %{type: "subscription", user_name: username, tier: tier} ->
-        sub_event = %{
+        _sub_event = %{
           type: :subscription,
           user_id: state.user_id,
           platform: :twitch,
@@ -264,10 +264,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           tier: tier
         }
 
-        EventBroadcaster.broadcast_event(sub_event)
+      # EventBroadcaster.broadcast_event(sub_event)
 
       %{type: "raid", from_broadcaster_user_name: username, viewers: viewers} ->
-        raid_event = %{
+        _raid_event = %{
           type: :raid,
           user_id: state.user_id,
           platform: :twitch,
@@ -275,7 +275,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           viewer_count: viewers
         }
 
-        EventBroadcaster.broadcast_event(raid_event)
+      # EventBroadcaster.broadcast_event(raid_event)
 
       _ ->
         :ok

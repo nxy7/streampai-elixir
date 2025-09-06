@@ -83,7 +83,10 @@ config :streampai, StreampaiWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: Beacon.Web.ErrorHTML, json: StreampaiWeb.ErrorJSON],
+    formats: [
+      # html: Beacon.Web.ErrorHTML,
+      json: StreampaiWeb.ErrorJSON
+    ],
     layout: false
   ],
   pubsub_server: Streampai.PubSub,
@@ -119,9 +122,9 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 # Configure Tailwind version
-config :tailwind, :version, "4.0.9"
+# config :tailwind, :version, "4.0.9"
 
 # Configure esbuild version (even though we're using Vite)
-config :esbuild, :version, "0.25.0"
+# config :esbuild, :version, "0.25.0"
 
 import_config "#{config_env()}.exs"

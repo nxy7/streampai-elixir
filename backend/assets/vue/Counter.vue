@@ -7,7 +7,7 @@
 
 <template>
   Current count
-  <div class="text-2xl text-bold">{{ props.count }}</div>
+  <div class="text-2xl text-bold bg-red-500">{{ props.count }}</div>
   <label class="block mt-8">Diff: </label>
   <input v-model="diff" class="mt-4" type="range" min="1" max="10">
 

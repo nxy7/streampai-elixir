@@ -1,7 +1,5 @@
 [
   import_deps: [
-    :beacon_live_admin,
-    :beacon,
     :ash_ai,
     :ash_events,
     :ash_state_machine,

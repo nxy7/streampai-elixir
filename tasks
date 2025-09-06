@@ -11,6 +11,8 @@
 - add viewers tab (it contains all interactions with specific real person (not account))
 - add stream history tab (it contains list of past livestreams)
 
+- how can we find unused dependencies?
+
 # Long Term
 - ai chat helper that can point user to how to make some things (like can point him to correct)
  link to create widgets etc etc

@@ -46,8 +46,6 @@ defmodule Streampai.MixProject do
       {:usage_rules, "~> 0.1"},
       {:sourceror, "~> 1.8"},
       {:oban, "~> 2.0"},
-      {:beacon_live_admin, "~> 0.4"},
-      {:beacon, "~> 0.5"},
       {:ash_money, "~> 0.2"},
       {:ash_ai, "~> 0.2"},
       {:tidewave, "~> 0.4", only: [:dev]},

@@ -36,9 +36,7 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
 
   # Client API
 
-  def get_metrics do
-    GenServer.call(__MODULE__, :get_metrics)
-  end
+  def get_metrics, do: GenServer.call(__MODULE__, :get_metrics)
 
   # Server callbacks
 
@@ -75,19 +73,20 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   end
 
   defp get_total_events do
-    case GenServer.whereis(Streampai.LivestreamManager.EventBroadcaster) do
-      nil ->
-        0
+    0
+    # case GenServer.whereis(Streampai.LivestreamManager.EventBroadcaster) do
+    #   nil ->
+    #     0
 
-      _pid ->
-        case Streampai.LivestreamManager.EventBroadcaster.get_event_stats() do
-          stats when is_map(stats) ->
-            stats.event_counters |> Map.values() |> Enum.sum()
+    #   _pid ->
+    #     case Streampai.LivestreamManager.EventBroadcaster.get_event_stats() do
+    #       stats when is_map(stats) ->
+    #         stats.event_counters |> Map.values() |> Enum.sum()
 
-          _ ->
-            0
-        end
-    end
+    #       _ ->
+    #         0
+    #     end
+    # end
   end
 
   defp count_platform_connections do
