@@ -1,5 +1,5 @@
 defmodule Streampai.Accounts.StreamingAccountTest do
-  use Streampai.DataCase
+  use Streampai.DataCase, async: true
   use Mneme
   alias Streampai.Accounts.{User, StreamingAccount, UserPremiumGrant}
 

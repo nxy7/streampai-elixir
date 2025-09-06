@@ -95,7 +95,7 @@ jobs:
           echo "Test started at: $(date)" > test_timing.log
           START_TIME=$(date +%s)
 
-          CI=true mix test --max-failures 3 --exclude integration
+          CI=true mix test --max-failures 3 
 
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))

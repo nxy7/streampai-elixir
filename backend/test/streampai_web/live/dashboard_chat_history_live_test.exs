@@ -1,5 +1,5 @@
 defmodule StreampaiWeb.DashboardChatHistoryLiveTest do
-  use StreampaiWeb.ConnCase
+  use StreampaiWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
 
   describe "DashboardChatHistoryLive" do

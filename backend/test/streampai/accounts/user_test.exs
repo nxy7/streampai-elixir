@@ -1,5 +1,6 @@
 defmodule Streampai.Accounts.UserTest do
-  use Streampai.DataCase
+  use ExUnit.Case, async: true
+  use Streampai.DataCase, async: true
   use Mneme
   alias Streampai.Accounts.User
 

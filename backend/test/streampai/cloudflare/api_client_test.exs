@@ -2,15 +2,10 @@ defmodule Streampai.Cloudflare.APIClientTest do
   use ExUnit.Case, async: true
   use Mneme
 
-  @moduletag :integration
+  @moduletag :external
+  @moduletag :cloudflare
 
   alias Streampai.Cloudflare.APIClient
-
-  setup _context do
-    # Start APIClient process - in async tests, each gets its own supervision tree
-    start_supervised({APIClient, []})
-    :ok
-  end
 
   describe "live input operations" do
     test "create live input" do

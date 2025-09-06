@@ -1,110 +1,117 @@
 defmodule Streampai.Cloudflare.APIClient do
   @moduledoc """
-  Global Cloudflare API client with rate limiting and connection pooling.
-  Handles all Cloudflare API requests for the livestream system.
+  Stateless Cloudflare API client for livestream system.
+  Handles all Cloudflare API requests.
   """
-  use GenServer
   require Logger
 
-  defstruct [
-    :api_token,
-    :account_id,
-    :base_url
-  ]
+  # URL builders for live inputs and outputs
+  defp live_input_url(), do: "/accounts/#{account_id()}/stream/live_inputs"
 
-  def start_link(opts \\ []) do
-    name_opts =
-      if Application.get_env(:streampai, :test_mode, false) do
-        opts
-      else
-        opts |> Keyword.put_new(:name, __MODULE__)
-      end
+  defp live_input_url(input_id) when is_binary(input_id),
+    do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}"
 
-    GenServer.start_link(__MODULE__, :ok, name_opts)
-  end
+  defp live_output_url(input_id) when is_binary(input_id),
+    do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}/outputs"
 
-  @impl true
-  def init(:ok) do
-    config = load_config()
+  defp live_output_url(input_id, output_id) when is_binary(input_id) and is_binary(output_id),
+    do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}/outputs/#{output_id}"
 
-    state = %__MODULE__{
-      api_token: config.api_token,
-      account_id: config.account_id,
-      base_url: "https://api.cloudflare.com/client/v4"
-    }
+  defp api_token, do: Application.get_env(:streampai, :cloudflare_api_token)
+  defp account_id, do: Application.get_env(:streampai, :cloudflare_account_id)
+  defp base_url, do: "https://api.cloudflare.com/client/v4"
 
-    # Logger.info("CloudflareAPIClient started")
-    {:ok, state}
-  end
-
-  # Client API
+  defp env, do: Application.get_env(:streampai, :env)
 
   @doc """
   Creates a new live input for streaming.
   """
-  def create_live_input(user_id, opts \\ %{})
+  def create_live_input(user_id, opts \\ %{}) when is_binary(user_id) do
+    payload = %{
+      "meta" =>
+        Map.merge(
+          %{
+            "user_id" => user_id,
+            "name" => create_live_input_name(user_id),
+            "env" => env()
+          },
+          opts[:meta] || %{}
+        ),
+      "recording" => Map.merge(%{"mode" => "off"}, opts[:recording] || %{})
+    }
 
-  def create_live_input(user_id, opts) when is_binary(user_id) do
-    create_live_input(__MODULE__, user_id, opts)
-  end
+    path = live_input_url()
 
-  def create_live_input(server, user_id, opts) do
-    GenServer.call(server, {:create_live_input, user_id, opts}, 10_000)
+    case make_api_request(:post, path, payload) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Gets a live input by ID.
   """
   def get_live_input(input_id) when is_binary(input_id) do
-    get_live_input(__MODULE__, input_id)
-  end
+    path = live_input_url(input_id)
 
-  def get_live_input(server, input_id) do
-    GenServer.call(server, {:get_live_input, input_id}, 10_000)
+    case make_api_request(:get, path) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Deletes a live input.
   """
   def delete_live_input(input_id) when is_binary(input_id) do
-    delete_live_input(__MODULE__, input_id)
-  end
+    path = live_input_url(input_id)
 
-  def delete_live_input(server, input_id) do
-    GenServer.call(server, {:delete_live_input, input_id}, 10_000)
+    case make_api_request(:delete, path) do
+      {:ok, _response} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Creates a live output for a platform.
   """
   def create_live_output(input_id, output_config) when is_binary(input_id) do
-    create_live_output(__MODULE__, input_id, output_config)
-  end
+    payload = %{
+      "url" => output_config.rtmp_url,
+      "streamKey" => output_config.stream_key,
+      "enabled" => output_config.enabled
+    }
 
-  def create_live_output(server, input_id, output_config) do
-    GenServer.call(server, {:create_live_output, input_id, output_config}, 10_000)
+    path = live_output_url(input_id)
+
+    case make_api_request(:post, path, payload) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Gets a live output by ID.
   """
   def get_live_output(input_uid, output_id) when is_binary(input_uid) and is_binary(output_id) do
-    get_live_output(__MODULE__, input_uid, output_id)
-  end
+    path = live_output_url(input_uid, output_id)
 
-  def get_live_output(server, input_uid, output_id) do
-    GenServer.call(server, {:get_live_output, input_uid, output_id}, 10_000)
+    case make_api_request(:get, path) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Lists all live outputs for a given input.
   """
   def list_live_outputs(input_uid) when is_binary(input_uid) do
-    list_live_outputs(__MODULE__, input_uid)
-  end
+    path = live_output_url(input_uid)
 
-  def list_live_outputs(server, input_uid) do
-    GenServer.call(server, {:list_live_outputs, input_uid}, 10_000)
+    case make_api_request(:get, path) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -113,11 +120,13 @@ defmodule Streampai.Cloudflare.APIClient do
   """
   def toggle_live_output(input_uid, output_id, enabled)
       when is_binary(input_uid) and is_binary(output_id) and is_boolean(enabled) do
-    toggle_live_output(__MODULE__, input_uid, output_id, enabled)
-  end
+    payload = %{"enabled" => enabled}
+    path = live_output_url(input_uid, output_id)
 
-  def toggle_live_output(server, input_uid, output_id, enabled) do
-    GenServer.call(server, {:toggle_live_output, input_uid, output_id, enabled}, 10_000)
+    case make_api_request(:put, path, payload) do
+      {:ok, response} -> {:ok, response["result"]}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -125,187 +134,29 @@ defmodule Streampai.Cloudflare.APIClient do
   """
   def delete_live_output(input_uid, output_id)
       when is_binary(input_uid) and is_binary(output_id) do
-    delete_live_output(__MODULE__, input_uid, output_id)
-  end
+    path = live_output_url(input_uid, output_id)
 
-  def delete_live_output(server, input_uid, output_id) do
-    GenServer.call(server, {:delete_live_output, input_uid, output_id}, 10_000)
+    case make_api_request(:delete, path) do
+      {:ok, _response} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Creates the display name for a live input based on environment and user ID.
   """
   def create_live_input_name(user_id) do
-    env = Application.get_env(:streampai, :env)
-    "#{env}##{user_id}"
+    "#{env()}##{user_id}"
   end
 
-  @impl true
-  def handle_call({:create_live_input, user_id, opts}, _from, state) do
-    env = Application.get_env(:streampai, :env)
-
-    payload = %{
-      "meta" =>
-        Map.merge(
-          %{
-            "user_id" => user_id,
-            "name" => create_live_input_name(user_id),
-            "env" => env
-          },
-          opts[:meta] || %{}
-        ),
-      "recording" => Map.merge(%{"mode" => "off"}, opts[:recording] || %{})
-    }
-
-    case make_api_request(
-           state,
-           :post,
-           "/accounts/#{state.account_id}/stream/live_inputs",
-           payload
-         ) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:get_live_input, input_id}, _from, state) do
-    case make_api_request(
-           state,
-           :get,
-           "/accounts/#{state.account_id}/stream/live_inputs/#{input_id}"
-         ) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:delete_live_input, input_id}, _from, state) do
-    case make_api_request(
-           state,
-           :delete,
-           "/accounts/#{state.account_id}/stream/live_inputs/#{input_id}"
-         ) do
-      {:ok, _response, new_state} ->
-        {:reply, :ok, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:create_live_output, input_id, output_config}, _from, state) do
-    payload = %{
-      "url" => output_config.rtmp_url,
-      "streamKey" => output_config.stream_key,
-      "enabled" => output_config.enabled
-    }
-
-    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_id}/outputs"
-
-    case make_api_request(state, :post, path, payload) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:get_live_output, input_uid, output_id}, _from, state) do
-    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
-
-    case make_api_request(state, :get, path) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:list_live_outputs, input_uid}, _from, state) do
-    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs"
-
-    case make_api_request(state, :get, path) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:toggle_live_output, input_uid, output_id, enabled}, _from, state) do
-    payload = %{
-      "enabled" => enabled
-    }
-
-    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
-
-    case make_api_request(state, :put, path, payload) do
-      {:ok, response, new_state} ->
-        {:reply, {:ok, response["result"]}, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  @impl true
-  def handle_call({:delete_live_output, input_uid, output_id}, _from, state) do
-    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
-
-    case make_api_request(state, :delete, path) do
-      {:ok, _response, new_state} ->
-        {:reply, :ok, new_state}
-
-      {:error, reason, new_state} ->
-        {:reply, {:error, reason}, new_state}
-    end
-  end
-
-  # Helper functions
-
-  defp load_config do
-    api_token = Application.fetch_env!(:streampai, :cloudflare_api_token)
-    account_id = Application.fetch_env!(:streampai, :cloudflare_account_id)
-
-    %{
-      api_token: api_token,
-      account_id: account_id
-    }
-  end
-
-  defp make_api_request(state, method, path, payload \\ nil) do
-    case make_http_request(state, method, path, payload) do
-      {:ok, response} ->
-        {:ok, response, state}
-
-      {:error, reason} ->
-        {:error, reason, state}
-    end
-  end
-
-  defp make_http_request(state, method, path, payload) do
-    if is_nil(state.api_token) or is_nil(state.account_id) do
+  defp make_api_request(method, path, payload \\ nil) do
+    if is_nil(api_token()) or is_nil(account_id()) do
       {:error, :missing_credentials}
     else
-      url = state.base_url <> path
+      url = base_url() <> path
 
       headers = [
-        {"Authorization", "Bearer #{state.api_token}"},
+        {"Authorization", "Bearer #{api_token()}"},
         {"Content-Type", "application/json"}
       ]
 
@@ -317,7 +168,6 @@ defmodule Streampai.Cloudflare.APIClient do
       ]
 
       req_opts = if payload, do: Keyword.put(req_opts, :json, payload), else: req_opts
-
       make_request(req_opts)
     end
   end

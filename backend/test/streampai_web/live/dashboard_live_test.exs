@@ -1,5 +1,5 @@
 defmodule StreampaiWeb.DashboardLiveTest do
-  use StreampaiWeb.ConnCase
+  use StreampaiWeb.ConnCase, async: true
   use Mneme
   import Phoenix.LiveViewTest
 

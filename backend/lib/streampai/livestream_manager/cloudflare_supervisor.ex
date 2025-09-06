@@ -12,9 +12,6 @@ defmodule Streampai.LivestreamManager.CloudflareSupervisor do
   @impl true
   def init(:ok) do
     children = [
-      # Global Cloudflare API client with rate limiting
-      Streampai.Cloudflare.APIClient,
-
       # Cloudflare webhook handler for live stream events
       Streampai.LivestreamManager.CloudflareWebhookHandler
     ]
