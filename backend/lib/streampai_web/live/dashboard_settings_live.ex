@@ -223,6 +223,58 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             </div>
           </div>
         </div>
+        
+    <!-- Donation Page Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-6">Donation Page</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Public Donation URL</label>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={url(~p"/u/#{@current_user.name}")}
+                  class="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50"
+                  readonly
+                />
+                <button
+                  id="copy-donation-url-button"
+                  class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                  phx-hook="CopyToClipboard"
+                  data-clipboard-text={url(~p"/u/#{@current_user.name}")}
+                  data-clipboard-message="Donation page URL copied!"
+                >
+                  Copy URL
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                Share this link with your viewers so they can support you with donations
+              </p>
+            </div>
+            
+    <!-- Quick Preview -->
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <span class="text-white font-bold">
+                    {@current_user.name |> String.first() |> String.upcase()}
+                  </span>
+                </div>
+                <div>
+                  <h4 class="font-medium text-gray-900">Support {@current_user.name}</h4>
+                  <p class="text-sm text-gray-600">Public donation page</p>
+                </div>
+              </div>
+              <.link
+                navigate={~p"/u/#{@current_user.name}"}
+                target="_blank"
+                class="text-purple-600 hover:text-purple-700 font-medium text-sm"
+              >
+                Preview →
+              </.link>
+            </div>
+          </div>
+        </div>
 
         {render_notification_preferences(assigns)}
       </div>

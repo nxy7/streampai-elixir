@@ -60,6 +60,7 @@ defmodule StreampaiWeb.Router do
       live("/terms", TermsLive)
       live("/support", SupportLive)
       live("/contact", ContactLive)
+      live("/u/:username", DonationLive)
     end
 
     live("/widgets/chat/display", Components.ChatObsWidgetLive)
