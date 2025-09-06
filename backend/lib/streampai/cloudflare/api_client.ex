@@ -9,10 +9,7 @@ defmodule Streampai.Cloudflare.APIClient do
   defstruct [
     :api_token,
     :account_id,
-    :base_url,
-    :rate_limit_remaining,
-    :rate_limit_reset,
-    :request_queue
+    :base_url
   ]
 
   def start_link(opts \\ []) do
@@ -33,11 +30,7 @@ defmodule Streampai.Cloudflare.APIClient do
     state = %__MODULE__{
       api_token: config.api_token,
       account_id: config.account_id,
-      base_url: "https://api.cloudflare.com/client/v4",
-      # Cloudflare default
-      rate_limit_remaining: 1200,
-      rate_limit_reset: System.system_time(:second) + 300,
-      request_queue: :queue.new()
+      base_url: "https://api.cloudflare.com/client/v4"
     }
 
     Logger.info("CloudflareAPIClient started")
@@ -201,129 +194,84 @@ defmodule Streampai.Cloudflare.APIClient do
   # Helper functions
 
   defp load_config do
+    api_token = System.get_env("CLOUDFLARE_API_TOKEN")
+    account_id = System.get_env("CLOUDFLARE_ACCOUNT_ID")
+
+    if is_nil(api_token) or is_nil(account_id) do
+      Logger.warning(
+        "Cloudflare API credentials not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID environment variables."
+      )
+    end
+
     %{
-      api_token: System.get_env("CLOUDFLARE_API_TOKEN") || "mock_token",
-      account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID") || "mock_account"
+      api_token: api_token,
+      account_id: account_id
     }
   end
 
   defp make_api_request(state, method, path, payload \\ nil) do
-    if state.rate_limit_remaining > 0 or System.system_time(:second) > state.rate_limit_reset do
-      # For now, return mock responses
-      mock_api_response(state, method, path, payload)
-    else
-      Logger.warning("Cloudflare API rate limit exceeded, queueing request")
-      {:error, :rate_limited, state}
+    case make_http_request(state, method, path, payload) do
+      {:ok, response} ->
+        {:ok, response, state}
+
+      {:error, reason} ->
+        {:error, reason, state}
     end
   end
 
-  # Mock API responses for development
-  defp mock_api_response(state, :post, path, payload) do
-    cond do
-      String.contains?(path, "live_inputs") and not String.contains?(path, "outputs") ->
-        # Creating live input
-        response = %{
-          "result" => %{
-            "uid" =>
-              "live_input_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)),
-            "rtmps" => %{
-              "url" => "rtmps://live.cloudflare.com:443/live",
-              "streamKey" => generate_stream_key()
-            },
-            "rtmp" => %{
-              "url" => "rtmp://live.cloudflare.com/live",
-              "streamKey" => generate_stream_key()
-            },
-            "srt" => %{
-              "url" => "srt://live.cloudflare.com:778",
-              "streamId" => generate_stream_key()
-            },
-            "webRTC" => %{
-              "url" => "https://webrtc.live.cloudflare.com"
-            },
-            "status" => %{"current" => "connected"},
-            "meta" => payload["meta"],
-            "created" => DateTime.utc_now() |> DateTime.to_iso8601()
-          },
-          "success" => true
-        }
+  defp make_http_request(state, method, path, payload) do
+    url = state.base_url <> path
 
-        {:ok, response, update_rate_limits(state)}
+    headers = [
+      {"Authorization", "Bearer #{state.api_token}"},
+      {"Content-Type", "application/json"}
+    ]
 
-      String.contains?(path, "outputs") ->
-        # Creating live output
-        response = %{
-          "result" => %{
-            "uid" => "output_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)),
-            "url" => payload["url"],
-            "streamKey" => payload["streamKey"],
-            "enabled" => payload["enabled"],
-            "created" => DateTime.utc_now() |> DateTime.to_iso8601()
-          },
-          "success" => true
-        }
+    req_opts = [
+      method: method,
+      url: url,
+      headers: headers,
+      retry: false
+    ]
 
-        {:ok, response, update_rate_limits(state)}
+    req_opts = if payload, do: Keyword.put(req_opts, :json, payload), else: req_opts
 
-      true ->
-        {:error, :unknown_endpoint, state}
+    case Req.request(req_opts) do
+      {:ok, %{status: status, body: body}} when status in 200..299 ->
+        case Jason.decode(body) do
+          {:ok, decoded_body} ->
+            if decoded_body["success"] do
+              {:ok, decoded_body}
+            else
+              error_msg = get_error_message(decoded_body)
+              Logger.error("Cloudflare API error: #{error_msg}")
+              {:error, {:api_error, error_msg}}
+            end
+
+          {:error, _} ->
+            Logger.error("Failed to decode Cloudflare API response: #{inspect(body)}")
+            {:error, :decode_error}
+        end
+
+      {:ok, %{status: status, body: body}} ->
+        Logger.error("Cloudflare API HTTP error #{status}: #{inspect(body)}")
+        {:error, {:http_error, status, body}}
+
+      {:error, reason} ->
+        Logger.error("Cloudflare API request failed: #{inspect(reason)}")
+        {:error, {:request_failed, reason}}
     end
   end
 
-  defp mock_api_response(state, :get, path, _payload) do
-    if String.contains?(path, "live_inputs") do
-      # Getting live input
-      input_id = Path.basename(path)
-
-      response = %{
-        "result" => %{
-          "uid" => input_id,
-          "rtmps" => %{
-            "url" => "rtmps://live.cloudflare.com:443/live",
-            "streamKey" => generate_stream_key()
-          },
-          "rtmp" => %{
-            "url" => "rtmp://live.cloudflare.com/live",
-            "streamKey" => generate_stream_key()
-          },
-          "srt" => %{
-            "url" => "srt://live.cloudflare.com:778",
-            "streamId" => generate_stream_key()
-          },
-          "webRTC" => %{
-            "url" => "https://webrtc.live.cloudflare.com"
-          },
-          "status" => %{"current" => "connected"},
-          "meta" => %{"name" => "User Live Input"},
-          "created" => DateTime.utc_now() |> DateTime.to_iso8601()
-        },
-        "success" => true
-      }
-
-      {:ok, response, update_rate_limits(state)}
-    else
-      {:error, :unknown_endpoint, state}
-    end
+  defp get_error_message(%{"errors" => errors}) when is_list(errors) do
+    errors
+    |> Enum.map(fn error -> error["message"] || "Unknown error" end)
+    |> Enum.join(", ")
   end
 
-  defp mock_api_response(state, :delete, _path, _payload) do
-    response = %{"result" => nil, "success" => true}
-    {:ok, response, update_rate_limits(state)}
+  defp get_error_message(%{"errors" => error}) when is_map(error) do
+    error["message"] || "Unknown error"
   end
 
-  defp update_rate_limits(state) do
-    %{
-      state
-      | rate_limit_remaining: max(0, state.rate_limit_remaining - 1),
-        rate_limit_reset:
-          if(state.rate_limit_remaining <= 1,
-            do: System.system_time(:second) + 300,
-            else: state.rate_limit_reset
-          )
-    }
-  end
-
-  defp generate_stream_key do
-    :crypto.strong_rand_bytes(32) |> Base.encode64() |> String.slice(0, 32)
-  end
+  defp get_error_message(_), do: "Unknown error"
 end
