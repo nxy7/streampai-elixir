@@ -15,16 +15,9 @@ defmodule Streampai.LivestreamManager do
   end
 
   @doc """
-  Stops livestream management for a user.
-  """
-  def stop_user_stream(user_id) when is_binary(user_id) do
-    Streampai.LivestreamManager.UserSupervisor.stop_user_stream(user_id)
-  end
-
-  @doc """
   Gets the current stream state for a user.
   """
-  def get_stream_state(user_id) do
+  def get_stream_state(user_id) when is_binary(user_id) do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:user_stream_manager, user_id}) do
       [{pid, _}] -> UserStreamManager.get_state(pid)
       [] -> {:error, :not_found}

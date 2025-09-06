@@ -16,6 +16,9 @@ defmodule Streampai.LivestreamManager.UserSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
+  # TODO we need get_user_stream function that would
+  # get existing actor and if it doesn't exist then it would create it
+
   @doc """
   Starts a complete livestream management tree for a user.
   """
