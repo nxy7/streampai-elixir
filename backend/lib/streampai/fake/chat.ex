@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.Utils.FakeChat do
+defmodule Streampai.Fake.Chat do
   @moduledoc """
   Utilities for generating fake chat messages for demo and testing purposes.
   """

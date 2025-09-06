@@ -6,14 +6,14 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   Manages its own event state and subscribes to configuration changes.
   """
   use StreampaiWeb, :live_view
-  alias StreampaiWeb.Utils.FakeAlert
+  alias Streampai.Fake.Alert
 
   @impl true
   def mount(%{"user_id" => user_id}, _session, socket) do
     initial_event =
       if connected?(socket) do
         # Generate initial event and start cycle
-        event = FakeAlert.generate_event()
+        event = Alert.generate_event()
         display_time = Enum.random(3..8)
         event_with_time = Map.put(event, :display_time, display_time)
         Process.send_after(self(), :hide_event, display_time * 1000)
@@ -38,7 +38,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
   @impl true
   def handle_info(:generate_event, socket) do
-    new_event = FakeAlert.generate_event()
+    new_event = Alert.generate_event()
     # Random display time between 3-8 seconds
     display_time = Enum.random(3..8)
     # 2 seconds gap between events

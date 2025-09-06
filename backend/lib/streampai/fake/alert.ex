@@ -1,4 +1,4 @@
-defmodule StreampaiWeb.Utils.FakeAlert do
+defmodule Streampai.Fake.Alert do
   @moduledoc """
   Utility module for generating fake alert events for testing and demonstration purposes.
   Similar to FakeChat but for donation/alert widgets.

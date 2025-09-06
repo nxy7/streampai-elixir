@@ -4,13 +4,13 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   """
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
-  alias StreampaiWeb.Utils.FakeAlert
+  alias Streampai.Fake.Alert
 
   def mount(_params, _session, socket) do
     current_user = socket.assigns.current_user
 
     # Generate initial event immediately
-    initial_event = FakeAlert.generate_event()
+    initial_event = Alert.generate_event()
     display_time = Enum.random(3..8)
     initial_event_with_time = Map.put(initial_event, :display_time, display_time)
 
@@ -38,7 +38,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   end
 
   def handle_info(:generate_event, socket) do
-    new_event = FakeAlert.generate_event()
+    new_event = Alert.generate_event()
     # Random display time between 3-8 seconds
     display_time = Enum.random(3..8)
     # 2 seconds gap between events

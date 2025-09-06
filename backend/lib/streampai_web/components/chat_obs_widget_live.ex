@@ -6,7 +6,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   Manages its own message state and subscribes to configuration changes.
   """
   use StreampaiWeb, :live_view
-  alias StreampaiWeb.Utils.FakeChat
+  alias Streampai.Fake.Chat
 
   @impl true
   def mount(%{"user_id" => user_id}, _session, socket) do
@@ -15,7 +15,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
       Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
     end
 
-    initial_messages = FakeChat.initial_messages()
+    initial_messages = Chat.initial_messages()
 
     {:ok, %{config: config}} =
       Streampai.Accounts.WidgetConfig.get_by_user_and_type(
@@ -36,7 +36,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
 
   @impl true
   def handle_info(:generate_message, socket) do
-    new_message = FakeChat.generate_message()
+    new_message = Chat.generate_message()
     _max_messages = socket.assigns.widget_config.max_messages
 
     # Add new message to stream and let stream handle limiting

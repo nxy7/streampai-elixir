@@ -62,19 +62,31 @@ defmodule Streampai.Accounts.UserHelpersTest do
 
   describe "get_fallback_avatar/1" do
     test "returns google picture URL from extra_data" do
-      user = %{extra_data: %{"platform" => "google", "picture" => "https://example.com/avatar.jpg"}}
+      user = %{
+        extra_data: %{"platform" => "google", "picture" => "https://example.com/avatar.jpg"}
+      }
+
       result = UserHelpers.get_fallback_avatar(user)
       auto_assert "https://example.com/avatar.jpg" <- result
     end
 
     test "returns twitch profile_image_url from extra_data" do
-      user = %{extra_data: %{"platform" => "twitch", "profile_image_url" => "https://twitch.example.com/avatar.png"}}
+      user = %{
+        extra_data: %{
+          "platform" => "twitch",
+          "profile_image_url" => "https://twitch.example.com/avatar.png"
+        }
+      }
+
       result = UserHelpers.get_fallback_avatar(user)
       auto_assert "https://twitch.example.com/avatar.png" <- result
     end
 
     test "returns nil for unknown platform" do
-      user = %{extra_data: %{"platform" => "unknown", "some_image" => "https://example.com/img.jpg"}}
+      user = %{
+        extra_data: %{"platform" => "unknown", "some_image" => "https://example.com/img.jpg"}
+      }
+
       result = UserHelpers.get_fallback_avatar(user)
       auto_assert nil <- result
     end
@@ -109,53 +121,53 @@ defmodule Streampai.Accounts.UserHelpersTest do
       extra_data = %{"platform" => "google", "name" => "John Doe", "email" => "john@example.com"}
       user = %{extra_data: extra_data}
       result = UserHelpers.get_platform_info(user)
-      
+
       auto_assert %{
-        platform: "google",
-        user_info: ^extra_data
-      } <- result
+                    platform: "google",
+                    user_info: ^extra_data
+                  } <- result
     end
 
     test "returns platform info for twitch user" do
       extra_data = %{"platform" => "twitch", "display_name" => "StreamerName", "id" => "12345"}
       user = %{extra_data: extra_data}
       result = UserHelpers.get_platform_info(user)
-      
+
       auto_assert %{
-        platform: "twitch",
-        user_info: ^extra_data
-      } <- result
+                    platform: "twitch",
+                    user_info: ^extra_data
+                  } <- result
     end
 
     test "returns nil platform info when extra_data is nil" do
       user = %{extra_data: nil}
       result = UserHelpers.get_platform_info(user)
-      
+
       auto_assert %{
-        platform: nil,
-        user_info: nil
-      } <- result
+                    platform: nil,
+                    user_info: nil
+                  } <- result
     end
 
     test "returns nil platform info when no extra_data key" do
       user = %{name: "test"}
       result = UserHelpers.get_platform_info(user)
-      
+
       auto_assert %{
-        platform: nil,
-        user_info: nil
-      } <- result
+                    platform: nil,
+                    user_info: nil
+                  } <- result
     end
 
     test "returns platform info even when platform key is missing" do
       extra_data = %{"name" => "John Doe", "email" => "john@example.com"}
       user = %{extra_data: extra_data}
       result = UserHelpers.get_platform_info(user)
-      
+
       auto_assert %{
-        platform: nil,
-        user_info: ^extra_data
-      } <- result
+                    platform: nil,
+                    user_info: ^extra_data
+                  } <- result
     end
   end
 
@@ -173,13 +185,25 @@ defmodule Streampai.Accounts.UserHelpersTest do
     end
 
     test "google platform with both name and given_name prefers name" do
-      user = %{name: nil, extra_data: %{"platform" => "google", "name" => "Full Name", "given_name" => "First"}}
+      user = %{
+        name: nil,
+        extra_data: %{"platform" => "google", "name" => "Full Name", "given_name" => "First"}
+      }
+
       result = UserHelpers.get_fallback_username(user)
       auto_assert "Full Name" <- result
     end
 
     test "twitch platform with both display_name and login prefers display_name" do
-      user = %{name: "", extra_data: %{"platform" => "twitch", "display_name" => "DisplayName", "login" => "loginname"}}
+      user = %{
+        name: "",
+        extra_data: %{
+          "platform" => "twitch",
+          "display_name" => "DisplayName",
+          "login" => "loginname"
+        }
+      }
+
       result = UserHelpers.get_fallback_username(user)
       auto_assert "DisplayName" <- result
     end

@@ -1,10 +1,10 @@
 defmodule StreampaiWeb.DashboardChatHistoryLive do
   use StreampaiWeb.BaseLive
   import StreampaiWeb.Utils.PlatformUtils
-  alias StreampaiWeb.Utils.FakeChat
+  alias Streampai.Fake.Chat
 
   def mount_page(socket, _params, _session) do
-    chat_messages = FakeChat.generate_chat_history_messages()
+    chat_messages = Chat.generate_chat_history_messages()
     socket = assign(socket, :chat_messages, chat_messages)
     {:ok, socket, layout: false}
   end

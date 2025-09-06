@@ -35,7 +35,7 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
   end
 
   # Helper functions for default config based on widget type
-  defp get_default_config(:chat_widget), do: StreampaiWeb.Utils.FakeChat.default_config()
-  defp get_default_config(:alertbox_widget), do: StreampaiWeb.Utils.FakeAlert.default_config()
+  defp get_default_config(:chat_widget), do: Streampai.Fake.Chat.default_config()
+  defp get_default_config(:alertbox_widget), do: Streampai.Fake.Alert.default_config()
   defp get_default_config(_), do: %{}
 end

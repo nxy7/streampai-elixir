@@ -4,7 +4,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   """
   use StreampaiWeb, :live_view
   import StreampaiWeb.Components.DashboardLayout
-  alias StreampaiWeb.Utils.FakeChat
+  alias Streampai.Fake.Chat
 
   def mount(_params, _session, socket) do
     current_user = socket.assigns.current_user
@@ -13,7 +13,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       schedule_next_message()
     end
 
-    initial_messages = FakeChat.initial_messages()
+    initial_messages = Chat.initial_messages()
 
     {:ok, %{config: initial_config}} =
       Streampai.Accounts.WidgetConfig.get_by_user_and_type(
@@ -32,7 +32,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   end
 
   def handle_info(:generate_message, socket) do
-    new_message = FakeChat.generate_message()
+    new_message = Chat.generate_message()
 
     # Add new message to stream and let stream handle limiting
     socket = socket |> stream_insert(:messages, new_message, at: -1)
