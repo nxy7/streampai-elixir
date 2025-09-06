@@ -6,9 +6,10 @@ System.put_env(
   "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}"
 )
 
-System.put_env("CLOUDFLARE_API_TOKEN", "test_token")
-System.put_env("CLOUDFLARE_ACCOUNT_ID", "test_account")
 System.put_env("TOKEN_SIGNING_SECRET", "h4cu7OR38wead3kXqon6ReLmG2o4SH0u")
+
+config :streampai,
+  env: :test
 
 config :streampai, Oban, testing: :manual
 config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"

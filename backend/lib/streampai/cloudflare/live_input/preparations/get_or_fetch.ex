@@ -8,7 +8,7 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
     Ash.Query.after_action(query, fn _query, _results ->
       user_id = Ash.Query.get_argument(query, :user_id)
 
-      case Streampai.Cloudflare.LiveInput.get_by_user(user_id) do
+      case Streampai.Cloudflare.LiveInput.get_or_fetch_for_user(user_id) do
         {:ok, [live_input]} ->
           six_hours_ago = DateTime.utc_now() |> DateTime.add(-6, :hour)
 

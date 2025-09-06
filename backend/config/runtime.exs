@@ -1,6 +1,8 @@
 import Config
 
-if config_env() == :dev do
+env = config_env()
+
+if env != :prod do
   env_path = Path.expand("../../.env", __DIR__)
 
   if File.exists?(env_path) do
@@ -15,7 +17,9 @@ if config_env() == :dev do
     IO.puts("Set DATABASE_URL: #{System.get_env("DATABASE_URL")}")
   end
 
-  config :tidewave, :root, File.cwd!()
+  if env == :dev do
+    config :tidewave, :root, File.cwd!()
+  end
 end
 
 if System.get_env("PHX_SERVER") do
@@ -33,7 +37,9 @@ config :streampai,
   twitch_client_id: System.get_env("TWITCH_CLIENT_ID"),
   twitch_client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
   twitch_redirect_uri: System.get_env("TWITCH_REDIRECT_URI"),
-  token_signing_secret: System.get_env("TOKEN_SIGNING_SECRET")
+  token_signing_secret: System.get_env("TOKEN_SIGNING_SECRET"),
+  cloudflare_api_token: System.get_env("CLOUDFLARE_API_KEY"),
+  cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID")
 
 config :streampai, :strategies,
   google: [

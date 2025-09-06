@@ -33,7 +33,7 @@ defmodule Streampai.Cloudflare.APIClient do
       base_url: "https://api.cloudflare.com/client/v4"
     }
 
-    Logger.info("CloudflareAPIClient started")
+    # Logger.info("CloudflareAPIClient started")
     {:ok, state}
   end
 
@@ -42,14 +42,14 @@ defmodule Streampai.Cloudflare.APIClient do
   @doc """
   Creates a new live input for streaming.
   """
-  def create_live_input(name, opts \\ %{})
+  def create_live_input(user_id, opts \\ %{})
 
-  def create_live_input(name, opts) when is_binary(name) do
-    create_live_input(__MODULE__, name, opts)
+  def create_live_input(user_id, opts) when is_binary(user_id) do
+    create_live_input(__MODULE__, user_id, opts)
   end
 
-  def create_live_input(server, name, opts) do
-    GenServer.call(server, {:create_live_input, name, opts}, 10_000)
+  def create_live_input(server, user_id, opts) do
+    GenServer.call(server, {:create_live_input, user_id, opts}, 10_000)
   end
 
   @doc """
@@ -107,12 +107,28 @@ defmodule Streampai.Cloudflare.APIClient do
     GenServer.call(server, {:toggle_live_output, output_id, enabled}, 10_000)
   end
 
-  # Server callbacks
+  @doc """
+  Creates the display name for a live input based on environment and user ID.
+  """
+  def create_live_input_name(user_id) do
+    env = Application.get_env(:streampai, :env)
+    "#{env}##{user_id}"
+  end
 
   @impl true
-  def handle_call({:create_live_input, name, opts}, _from, state) do
+  def handle_call({:create_live_input, user_id, opts}, _from, state) do
+    env = Application.get_env(:streampai, :env)
+    
     payload = %{
-      "meta" => Map.merge(%{"name" => name}, opts[:meta] || %{}),
+      "meta" =>
+        Map.merge(
+          %{
+            "user_id" => user_id,
+            "name" => create_live_input_name(user_id),
+            "env" => env
+          },
+          opts[:meta] || %{}
+        ),
       "recording" => Map.merge(%{"mode" => "off"}, opts[:recording] || %{})
     }
 
@@ -194,14 +210,8 @@ defmodule Streampai.Cloudflare.APIClient do
   # Helper functions
 
   defp load_config do
-    api_token = System.get_env("CLOUDFLARE_API_TOKEN")
-    account_id = System.get_env("CLOUDFLARE_ACCOUNT_ID")
-
-    if is_nil(api_token) or is_nil(account_id) do
-      Logger.warning(
-        "Cloudflare API credentials not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID environment variables."
-      )
-    end
+    api_token = Application.fetch_env!(:streampai, :cloudflare_api_token)
+    account_id = Application.fetch_env!(:streampai, :cloudflare_account_id)
 
     %{
       api_token: api_token,
@@ -220,37 +230,38 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   defp make_http_request(state, method, path, payload) do
-    url = state.base_url <> path
+    if is_nil(state.api_token) or is_nil(state.account_id) do
+      {:error, :missing_credentials}
+    else
+      url = state.base_url <> path
 
-    headers = [
-      {"Authorization", "Bearer #{state.api_token}"},
-      {"Content-Type", "application/json"}
-    ]
+      headers = [
+        {"Authorization", "Bearer #{state.api_token}"},
+        {"Content-Type", "application/json"}
+      ]
 
-    req_opts = [
-      method: method,
-      url: url,
-      headers: headers,
-      retry: false
-    ]
+      req_opts = [
+        method: method,
+        url: url,
+        headers: headers,
+        retry: false
+      ]
 
-    req_opts = if payload, do: Keyword.put(req_opts, :json, payload), else: req_opts
+      req_opts = if payload, do: Keyword.put(req_opts, :json, payload), else: req_opts
 
+      make_request(req_opts)
+    end
+  end
+
+  defp make_request(req_opts) do
     case Req.request(req_opts) do
       {:ok, %{status: status, body: body}} when status in 200..299 ->
-        case Jason.decode(body) do
-          {:ok, decoded_body} ->
-            if decoded_body["success"] do
-              {:ok, decoded_body}
-            else
-              error_msg = get_error_message(decoded_body)
-              Logger.error("Cloudflare API error: #{error_msg}")
-              {:error, {:api_error, error_msg}}
-            end
-
-          {:error, _} ->
-            Logger.error("Failed to decode Cloudflare API response: #{inspect(body)}")
-            {:error, :decode_error}
+        if body["success"] do
+          {:ok, body}
+        else
+          error_msg = get_error_message(body)
+          Logger.error("Cloudflare API error: #{error_msg}")
+          {:error, {:api_error, error_msg}}
         end
 
       {:ok, %{status: status, body: body}} ->

@@ -104,10 +104,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Test support files in `test/support/`
 - Ash setup runs before tests
 - Both unit and integration testing supported
-- **Snapshot Testing** with Snapshy for regression testing and component validation
+- **Snapshot Testing** with Mneme for regression testing and component validation
   - Run `mix test` for normal testing
   - Run `SNAPSHY_OVERRIDE=true mix test` to update snapshots
   - See `SNAPSHOT_TESTING.md` for detailed guide
+
+#### External API Testing Pattern
+For all external API tests, follow this established pattern used in `test/streampai/cloudflare/api_client_test.exs`:
+
+**Structure:**
+- Tag with `@moduletag :integration` for periodic execution (1-3 times per day)
+- Use unified setup with conditional skipping for credential-dependent tests
+- Test real API endpoints, not mocks
+
+**Response Verification Pattern:**
+```elixir
+# Extract known values into variables
+input_name = "test-input-#{:rand.uniform(1000)}"
+{:ok, response} = APIClient.create_live_input(input_name)
+
+# Use pattern matching with pinned variables and wildcards
+auto_assert %{
+  "created" => _,                           # Dynamic timestamps
+  "uid" => _,                              # Dynamic IDs  
+  "meta" => %{"id" => ^input_name},        # Pin known values
+  "recording" => %{                        # Static configuration
+    "mode" => "off",
+    "requireSignedURLs" => false
+  },
+  "streamKey" => _,                        # Dynamic secrets
+  "url" => "rtmps://expected-url.com"      # Static endpoints
+} <- response
+```
+
+**Key Principles:**
+- **Pin operator (`^`)** for values you control/expect
+- **Wildcards (`_`)** for dynamic values (IDs, timestamps, secrets, tokens)
+- **Literal values** for static API contract elements (URLs, config defaults)
+- **Full structure matching** to catch API contract changes
+- **No response sanitization** - match the raw API response structure
+- **Mneme snapshots** automatically detect and highlight API changes
+
+**Error Testing:**
+```elixir
+case APIClient.get_invalid_resource("bad-id") do
+  {:error, {:http_error, 404, body}} ->
+    auto_assert %{
+      "errors" => [%{"code" => 10003, "message" => _}],
+      "success" => false
+    } <- body
+    
+  other ->
+    flunk("Expected 404 error, got: #{inspect(other)}")
+end
+```
+
+This pattern ensures robust external API testing while maintaining flexibility for dynamic values and providing clear contract change detection.
 
 ### When working with this codebase:
 - All dashboard pages should use the shared `DashboardLayout` component to avoid code duplication

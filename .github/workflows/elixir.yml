@@ -94,7 +94,9 @@ jobs:
           cd backend
           echo "Test started at: $(date)" > test_timing.log
           START_TIME=$(date +%s)
-          CI=true mix test --max-failures 10
+
+          CI=true mix test --max-failures 3 --exclude integration
+
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "Test completed in: ${DURATION} seconds" >> test_timing.log
