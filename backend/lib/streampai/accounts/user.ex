@@ -32,12 +32,11 @@ defmodule Streampai.Accounts.User do
         redirect_uri Streampai.Secrets
         base_url "https://id.twitch.tv"
         client_authentication_method "client_secret_post"
+        icon :twitch
 
         authorization_params scope: "openid user:read:email",
                              claims:
                                ~s/{"id_token":{"email":null,"email_verified":null,"preferred_username":null,"picture":null},"userinfo":{"email":null,"email_verified":null,"preferred_username":null,"picture":null}}/
-
-        icon :twitch
 
         openid_configuration %{
           "issuer" => "https://id.twitch.tv/oauth2",

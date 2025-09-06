@@ -52,7 +52,7 @@ defmodule Streampai.Secrets do
         _opts,
         _context
       ),
-      do: Application.fetch_env(:streampai, :twitch_client_secret) |> dbg
+      do: Application.fetch_env(:streampai, :twitch_client_secret)
 
   def secret_for(
         [:authentication, :strategies, :twitch, :redirect_uri],
