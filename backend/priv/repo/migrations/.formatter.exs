@@ -1,4 +1,5 @@
 [
-  import_deps: [:ecto_sql],
+  import_deps: [:ecto_sql, :ash],
+  plugins: [Spark.Formatter],
   inputs: ["*.exs"]
 ]

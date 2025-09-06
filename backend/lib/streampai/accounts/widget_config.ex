@@ -17,20 +17,12 @@ defmodule Streampai.Accounts.WidgetConfig do
   end
 
   actions do
-    # Default actions
     defaults [:read, :destroy]
 
     create :create do
       accept [:user_id, :type, :config]
       upsert? true
       upsert_identity :user_type_unique
-
-      change fn changeset, _context ->
-        case changeset.context[:actor] do
-          %{id: user_id} -> Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
-          _ -> changeset
-        end
-      end
     end
 
     read :get_by_user_and_type do
@@ -40,35 +32,7 @@ defmodule Streampai.Accounts.WidgetConfig do
 
       filter expr(user_id == ^arg(:user_id) and type == ^arg(:type))
 
-      prepare fn query, _context ->
-        Ash.Query.after_action(query, fn _query, results ->
-          widget_type = Ash.Query.get_argument(query, :type)
-          default_config = get_default_config(widget_type)
-
-          case results do
-            [] ->
-              IO.puts("no config, creating default")
-
-              default_record = %__MODULE__{
-                user_id: Ash.Query.get_argument(query, :user_id),
-                type: Ash.Query.get_argument(query, :type),
-                config: default_config
-              }
-
-              {:ok, [default_record]}
-
-            [result] ->
-              IO.puts("found res" <> inspect(result))
-
-              merged_config =
-                Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
-
-              updated_result = %{result | config: merged_config}
-
-              {:ok, [updated_result]}
-          end
-        end)
-      end
+      prepare Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults
     end
 
     read :for_user do
@@ -136,9 +100,4 @@ defmodule Streampai.Accounts.WidgetConfig do
   identities do
     identity :user_type_unique, [:user_id, :type]
   end
-
-  # Helper function to get default config based on widget type
-  defp get_default_config(:chat_widget), do: StreampaiWeb.Utils.FakeChat.default_config()
-  defp get_default_config(:alertbox_widget), do: StreampaiWeb.Utils.FakeAlert.default_config()
-  defp get_default_config(_), do: %{}
 end

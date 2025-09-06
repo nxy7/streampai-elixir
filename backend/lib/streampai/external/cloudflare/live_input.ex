@@ -10,10 +10,40 @@ defmodule Streampai.Cloudflare.LiveInput do
     repo Streampai.Repo
   end
 
-  require Ash.Query
+  code_interface do
+    define :get_or_fetch_for_user, args: [:user_id]
+  end
 
   actions do
-    # defaults [:read, :destroy, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      accept [:user_id, :data]
+    end
+
+    read :get_or_fetch_for_user do
+      argument :user_id, :uuid, allow_nil?: false
+
+      prepare Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch
+    end
+  end
+
+  policies do
+    policy action_type(:read) do
+      authorize_if expr(user_id == ^actor(:id))
+    end
+
+    policy action_type(:create) do
+      authorize_if actor_present()
+    end
+
+    policy action_type(:update) do
+      authorize_if expr(user_id == ^actor(:id))
+    end
+
+    policy action_type(:destroy) do
+      authorize_if expr(user_id == ^actor(:id))
+    end
   end
 
   attributes do

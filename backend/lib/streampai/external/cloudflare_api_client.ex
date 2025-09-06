@@ -62,6 +62,17 @@ defmodule Streampai.External.CloudflareAPIClient do
   end
 
   @doc """
+  Gets a live input by ID.
+  """
+  def get_live_input(input_id) when is_binary(input_id) do
+    get_live_input(__MODULE__, input_id)
+  end
+
+  def get_live_input(server, input_id) do
+    GenServer.call(server, {:get_live_input, input_id}, 10_000)
+  end
+
+  @doc """
   Deletes a live input.
   """
   def delete_live_input(input_id) when is_binary(input_id) do
@@ -119,6 +130,21 @@ defmodule Streampai.External.CloudflareAPIClient do
            :post,
            "/accounts/#{state.account_id}/stream/live_inputs",
            payload
+         ) do
+      {:ok, response, new_state} ->
+        {:reply, {:ok, response["result"]}, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
+  end
+
+  @impl true
+  def handle_call({:get_live_input, input_id}, _from, state) do
+    case make_api_request(
+           state,
+           :get,
+           "/accounts/#{state.account_id}/stream/live_inputs/#{input_id}"
          ) do
       {:ok, response, new_state} ->
         {:reply, {:ok, response["result"]}, new_state}
@@ -243,6 +269,42 @@ defmodule Streampai.External.CloudflareAPIClient do
 
       true ->
         {:error, :unknown_endpoint, state}
+    end
+  end
+
+  defp mock_api_response(state, :get, path, _payload) do
+    if String.contains?(path, "live_inputs") do
+      # Getting live input
+      input_id = Path.basename(path)
+
+      response = %{
+        "result" => %{
+          "uid" => input_id,
+          "rtmps" => %{
+            "url" => "rtmps://live.cloudflare.com:443/live",
+            "streamKey" => generate_stream_key()
+          },
+          "rtmp" => %{
+            "url" => "rtmp://live.cloudflare.com/live",
+            "streamKey" => generate_stream_key()
+          },
+          "srt" => %{
+            "url" => "srt://live.cloudflare.com:778",
+            "streamId" => generate_stream_key()
+          },
+          "webRTC" => %{
+            "url" => "https://webrtc.live.cloudflare.com"
+          },
+          "status" => %{"current" => "connected"},
+          "meta" => %{"name" => "User Live Input"},
+          "created" => DateTime.utc_now() |> DateTime.to_iso8601()
+        },
+        "success" => true
+      }
+
+      {:ok, response, update_rate_limits(state)}
+    else
+      {:error, :unknown_endpoint, state}
     end
   end
 
