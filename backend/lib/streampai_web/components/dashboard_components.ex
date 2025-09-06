@@ -344,6 +344,96 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     """
   end
 
+  def icon(%{name: "currency-dollar"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "users"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "play"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+      />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "eye"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "chat-bubble-left"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "heart"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+      />
+    </svg>
+    """
+  end
+
   # Fallback for unknown icons
   def icon(assigns) do
     ~H"""
@@ -357,6 +447,108 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     </svg>
     """
   end
+
+  @doc """
+  Renders a metric card with value, change indicator, and description.
+
+  ## Examples
+
+      <.metric_card
+        title="Donations This Month"
+        value="$1,234.56"
+        change="+12%"
+        change_type={:positive}
+        icon="currency-dollar"
+        description="Total donations received in 2024-01"
+      />
+  """
+  attr :title, :string, required: true, doc: "Metric title"
+  attr :value, :any, required: true, doc: "Metric value (can be string or number)"
+  attr :change, :string, default: nil, doc: "Change percentage"
+  attr :change_type, :atom, default: :neutral, doc: "Change type: :positive, :negative, :neutral"
+  attr :icon, :string, required: true, doc: "Icon name for the metric"
+  attr :description, :string, default: nil, doc: "Optional description"
+  attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  def metric_card(assigns) do
+    ~H"""
+    <div class={"bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 #{@class}"}>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-purple-100 rounded-lg">
+            <.icon name={@icon} class="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 font-medium">{@title}</p>
+          </div>
+        </div>
+        <%= if @change do %>
+          <div class={"flex items-center text-sm font-medium #{change_color(@change_type)}"}>
+            <.change_icon change_type={@change_type} class="w-4 h-4 mr-1" />
+            {@change}
+          </div>
+        <% end %>
+      </div>
+
+      <div class="mt-4">
+        <p class="text-3xl font-bold text-gray-900">{@value}</p>
+        <%= if @description do %>
+          <p class="text-xs text-gray-500 mt-1">{@description}</p>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a change indicator icon based on change type.
+  """
+  attr :change_type, :atom, required: true
+  attr :class, :string, default: "w-4 h-4"
+
+  def change_icon(%{change_type: :positive} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M7 11l5-5m0 0l5 5m-5-5v12"
+      />
+    </svg>
+    """
+  end
+
+  def change_icon(%{change_type: :negative} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M17 13l-5 5m0 0l-5-5m5 5V6"
+      />
+    </svg>
+    """
+  end
+
+  def change_icon(assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M20 12H4"
+      />
+    </svg>
+    """
+  end
+
+  # Helper function to get change color based on type
+  defp change_color(:positive), do: "text-green-600"
+  defp change_color(:negative), do: "text-red-600"
+  defp change_color(_), do: "text-gray-500"
 
   # Helper function to check if a user can connect a platform using Ash policies
   defp can_connect_platform?(user, platform) when not is_nil(user) do

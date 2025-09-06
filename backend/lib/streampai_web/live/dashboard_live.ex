@@ -3,6 +3,7 @@ defmodule StreampaiWeb.DashboardLive do
   Main dashboard LiveView providing overview of user's streaming status and quick actions.
   """
   use StreampaiWeb.BaseLive
+  import StreampaiWeb.Components.DashboardComponents
 
   # @dev_env Application.compile_env(:streampai, :env) == :dev
 
@@ -48,7 +49,25 @@ defmodule StreampaiWeb.DashboardLive do
     "User"
   end
 
+  defp get_joined_date(%{user_info: %{joined_at: joined_at}}) when not is_nil(joined_at) do
+    DateTime.to_date(joined_at)
+  end
+
+  defp get_joined_date(_), do: Date.utc_today()
+
   def render(assigns) do
+    # Provide fallback data if dashboard_data is nil
+    dashboard_data =
+      assigns[:dashboard_data] ||
+        %{
+          user_info: %{joined_at: DateTime.utc_now()},
+          metrics: [],
+          usage: %{hours_used: 0, hours_limit: 0},
+          quick_actions: []
+        }
+
+    assigns = assign(assigns, :dashboard_data, dashboard_data)
+
     ~H"""
     <.dashboard_layout {assigns} current_page="dashboard" page_title="Dashboard">
       <div class="max-w-7xl mx-auto">
@@ -57,7 +76,7 @@ defmodule StreampaiWeb.DashboardLive do
           title={
             get_welcome_message(
               @display_name,
-              DateTime.to_date(@dashboard_data.user_info.joined_at)
+              get_joined_date(@dashboard_data)
             )
           }
           class="mb-6"
@@ -72,6 +91,23 @@ defmodule StreampaiWeb.DashboardLive do
             {@greeting_text}
           </p>
         </.dashboard_card>
+        <!-- Metrics Cards -->
+        <div
+          :if={@dashboard_data.metrics && length(@dashboard_data.metrics) > 0}
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
+        >
+          <%= for metric <- @dashboard_data.metrics do %>
+            <.metric_card
+              title={metric.title}
+              value={metric.value}
+              change={metric.change}
+              change_type={metric.change_type}
+              icon={metric.icon}
+              description={metric.description}
+            />
+          <% end %>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <.dashboard_card title="Account Info" icon="user">
             <div class="space-y-3">
@@ -100,14 +136,18 @@ defmodule StreampaiWeb.DashboardLive do
               </div>
               <.info_row
                 label="Connected Platforms"
-                value={to_string(@current_user.connected_platforms)}
+                value={to_string(Map.get(@current_user || %{}, :connected_platforms, 0))}
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">
-                  {@dashboard_data.usage.hours_used} / {case Map.get(@current_user, :tier) do
+                  {Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_used, 0)} / {case Map.get(
+                                                                                               @current_user ||
+                                                                                                 %{},
+                                                                                               :tier
+                                                                                             ) do
                     :pro -> "∞"
-                    :free -> @dashboard_data.usage.hours_limit
-                    _ -> @dashboard_data.usage.hours_limit
+                    :free -> Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_limit, 0)
+                    _ -> Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_limit, 0)
                   end}
                 </span>
               </.info_row>
@@ -115,7 +155,7 @@ defmodule StreampaiWeb.DashboardLive do
           </.dashboard_card>
           <.dashboard_card title="Quick Actions" icon="lightning">
             <div class="space-y-3">
-              <%= for action <- @dashboard_data.quick_actions do %>
+              <%= for action <- Map.get(@dashboard_data, :quick_actions, []) do %>
                 <a
                   href={action.url}
                   class="block w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
