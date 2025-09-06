@@ -5,31 +5,16 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do
-    # TODO: Load actual analytics data when available
-    {:ok, socket |> assign(:count, 2), layout: false}
-  end
-
-  def handle_event("inc", %{"value" => value}, socket) do
-    {:noreply, socket |> assign(:count, (socket.assigns.count || 0) + value)}
+    {:ok, socket, layout: false}
   end
 
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="analytics" page_title="Analytics">
-      <div class="max-w-7xl mx-auto">
-        <.vue
-          count={@count}
-          v-component="Counter"
-          v-socket={@socket}
-          v-on:inc={JS.push("inc")}
-        />
-
-        <.empty_state
-          icon="chart-bar"
-          title="Analytics Dashboard"
-          message="Stream analytics and insights will appear here once you start streaming."
-        />
-      </div>
+      <.coming_soon_placeholder
+        title="Advanced Analytics"
+        description="Detailed streaming analytics, performance metrics, audience insights, and revenue tracking across all your connected platforms."
+      />
     </.dashboard_layout>
     """
   end

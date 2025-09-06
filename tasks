@@ -1,17 +1,6 @@
 # Short Term
-- make some mock cards on dashboard, they should include
-  - donations this month
-  - patreons this month
-  - livestreams this month
-  - (do you have ideas what can be useful on dashboard in context of our app?)
-- start working on stream management
-  - make cloudflare resources functional
-
-- add patreons tab (that helps managing patreons from many platforms)
-- add viewers tab (it contains all interactions with specific real person (not account))
-- add stream history tab (it contains list of past livestreams)
-
 - how can we find unused dependencies?
+- add oban
 
 # Long Term
 - ai chat helper that can point user to how to make some things (like can point him to correct)

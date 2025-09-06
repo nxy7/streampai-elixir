@@ -588,6 +588,38 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     end
   end
 
+  @doc """
+  Renders a coming soon placeholder for dashboard features.
+
+  ## Examples
+
+      <.coming_soon_placeholder 
+        title="Analytics Dashboard" 
+        description="Detailed analytics and insights coming soon!" />
+  """
+  attr :title, :string, required: true, doc: "Feature title"
+  attr :description, :string, required: true, doc: "Feature description"
+  attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  def coming_soon_placeholder(assigns) do
+    ~H"""
+    <div class={"max-w-7xl mx-auto #{@class}"}>
+      <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-12 text-center">
+        <div class="max-w-md mx-auto">
+          <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <.icon name="clock" class="w-8 h-8 text-purple-600" />
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">{@title}</h2>
+          <p class="text-gray-600 mb-8">{@description}</p>
+          <div class="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            <.icon name="lightning" class="w-4 h-4 mr-2" /> Coming Soon
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   # Helper function to get display name from account data
   defp get_display_name(account_data) when is_map(account_data) do
     account_data["nickname"] || account_data["name"] || "Connected User"
