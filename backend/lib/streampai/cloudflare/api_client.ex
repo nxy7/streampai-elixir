@@ -86,25 +86,50 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   @doc """
-  Updates live output configuration.
+  Gets a live output by ID.
   """
-  def update_live_output(output_id, config) when is_binary(output_id) do
-    update_live_output(__MODULE__, output_id, config)
+  def get_live_output(input_uid, output_id) when is_binary(input_uid) and is_binary(output_id) do
+    get_live_output(__MODULE__, input_uid, output_id)
   end
 
-  def update_live_output(server, output_id, config) do
-    GenServer.call(server, {:update_live_output, output_id, config}, 10_000)
+  def get_live_output(server, input_uid, output_id) do
+    GenServer.call(server, {:get_live_output, input_uid, output_id}, 10_000)
   end
 
   @doc """
-  Enables/disables a live output.
+  Lists all live outputs for a given input.
   """
-  def toggle_live_output(output_id, enabled) when is_binary(output_id) do
-    toggle_live_output(__MODULE__, output_id, enabled)
+  def list_live_outputs(input_uid) when is_binary(input_uid) do
+    list_live_outputs(__MODULE__, input_uid)
   end
 
-  def toggle_live_output(server, output_id, enabled) do
-    GenServer.call(server, {:toggle_live_output, output_id, enabled}, 10_000)
+  def list_live_outputs(server, input_uid) do
+    GenServer.call(server, {:list_live_outputs, input_uid}, 10_000)
+  end
+
+  @doc """
+  Toggles live output enabled/disabled state.
+  Cloudflare API only supports updating the 'enabled' field.
+  """
+  def toggle_live_output(input_uid, output_id, enabled)
+      when is_binary(input_uid) and is_binary(output_id) and is_boolean(enabled) do
+    toggle_live_output(__MODULE__, input_uid, output_id, enabled)
+  end
+
+  def toggle_live_output(server, input_uid, output_id, enabled) do
+    GenServer.call(server, {:toggle_live_output, input_uid, output_id, enabled}, 10_000)
+  end
+
+  @doc """
+  Deletes a live output.
+  """
+  def delete_live_output(input_uid, output_id)
+      when is_binary(input_uid) and is_binary(output_id) do
+    delete_live_output(__MODULE__, input_uid, output_id)
+  end
+
+  def delete_live_output(server, input_uid, output_id) do
+    GenServer.call(server, {:delete_live_output, input_uid, output_id}, 10_000)
   end
 
   @doc """
@@ -118,7 +143,7 @@ defmodule Streampai.Cloudflare.APIClient do
   @impl true
   def handle_call({:create_live_input, user_id, opts}, _from, state) do
     env = Application.get_env(:streampai, :env)
-    
+
     payload = %{
       "meta" =>
         Map.merge(
@@ -196,15 +221,59 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   @impl true
-  def handle_call({:update_live_output, _output_id, _config}, _from, state) do
-    # TODO: Implement output update
-    {:reply, {:error, :not_implemented}, state}
+  def handle_call({:get_live_output, input_uid, output_id}, _from, state) do
+    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
+
+    case make_api_request(state, :get, path) do
+      {:ok, response, new_state} ->
+        {:reply, {:ok, response["result"]}, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
   end
 
   @impl true
-  def handle_call({:toggle_live_output, _output_id, _enabled}, _from, state) do
-    # TODO: Implement output toggle
-    {:reply, {:error, :not_implemented}, state}
+  def handle_call({:list_live_outputs, input_uid}, _from, state) do
+    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs"
+
+    case make_api_request(state, :get, path) do
+      {:ok, response, new_state} ->
+        {:reply, {:ok, response["result"]}, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
+  end
+
+  @impl true
+  def handle_call({:toggle_live_output, input_uid, output_id, enabled}, _from, state) do
+    payload = %{
+      "enabled" => enabled
+    }
+
+    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
+
+    case make_api_request(state, :put, path, payload) do
+      {:ok, response, new_state} ->
+        {:reply, {:ok, response["result"]}, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
+  end
+
+  @impl true
+  def handle_call({:delete_live_output, input_uid, output_id}, _from, state) do
+    path = "/accounts/#{state.account_id}/stream/live_inputs/#{input_uid}/outputs/#{output_id}"
+
+    case make_api_request(state, :delete, path) do
+      {:ok, _response, new_state} ->
+        {:reply, :ok, new_state}
+
+      {:error, reason, new_state} ->
+        {:reply, {:error, reason}, new_state}
+    end
   end
 
   # Helper functions
