@@ -11,5 +11,6 @@ defmodule Streampai.Stream do
     resource Streampai.Stream.StreamEvent
     resource Streampai.Stream.LivestreamMetric
     resource Streampai.Stream.Livestream
+    resource Streampai.Stream.StreamSettings
   end
 end
