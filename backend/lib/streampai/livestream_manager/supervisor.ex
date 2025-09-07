@@ -14,8 +14,19 @@ defmodule Streampai.LivestreamManager.Supervisor do
       {Registry, keys: :unique, name: Streampai.LivestreamManager.Registry},
       {DynamicSupervisor,
        strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
-      Streampai.LivestreamManager.MetricsCollector
+      Streampai.LivestreamManager.DynamicSupervisor
     ]
+
+    children =
+      children ++
+        if Application.get_env(:streampai, :env) != :test do
+          [
+            Streampai.LivestreamManager.PresenceManager,
+            Streampai.LivestreamManager.MetricsCollector
+          ]
+        else
+          []
+        end
 
     Supervisor.init(children, strategy: :one_for_one)
   end

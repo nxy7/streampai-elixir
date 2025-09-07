@@ -6,8 +6,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   use Supervisor
 
   alias Streampai.LivestreamManager.{
-    AlertManager,
     CloudflareManager,
+    ConsoleLogger,
     PlatformSupervisor,
     StreamStateServer
   }
@@ -19,17 +19,20 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   @impl true
   def init(user_id) do
     children = [
-      # Core stream state management
-      {StreamStateServer, user_id},
+      # Console logger for testing purposes
+      {ConsoleLogger, user_id}
 
-      # Platform-specific managers (dynamic supervisor)
-      {PlatformSupervisor, user_id},
+      # # Core stream state management
+      # {StreamStateServer, user_id},
 
-      # Cloudflare live input/output management
-      {CloudflareManager, user_id},
+      # # Platform-specific managers (dynamic supervisor)
+      # {PlatformSupervisor, user_id},
 
-      # Alert processing and broadcasting
-      {AlertManager, user_id}
+      # # Cloudflare live input/output management
+      # {CloudflareManager, user_id},
+
+      # # Alert processing and broadcasting
+      # {AlertManager, user_id}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
