@@ -298,9 +298,17 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
               <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span class="text-white font-bold">
-                    {@current_user.name |> String.first() |> String.upcase()}
-                  </span>
+                  <%= if @current_user.avatar do %>
+                    <img
+                      src={@current_user.avatar}
+                      alt="Avatar"
+                      class="w-10 h-10 rounded-full object-cover"
+                    />
+                  <% else %>
+                    <span class="text-white font-bold">
+                      {@current_user.name |> String.first() |> String.upcase()}
+                    </span>
+                  <% end %>
                 </div>
                 <div>
                   <h4 class="font-medium text-gray-900">Support {@current_user.name}</h4>
