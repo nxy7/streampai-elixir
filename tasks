@@ -1,4 +1,6 @@
 # Short Term
+- user should be able to set minimum-maximum donation amounts and currency (we try to infer
+good default)
 
 # Long Term
 - ai chat helper that can point user to how to make some things (like can point him to correct)

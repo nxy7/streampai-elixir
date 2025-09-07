@@ -17,17 +17,19 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:top_donors, get_top_donors_placeholder())
          |> assign(:voice_options, get_voice_options())
          |> assign(:donation_form, get_initial_form())
-         |> assign(:page_title, "Support #{user.name}")
+         |> assign(:page_title, "Donate to #{user.name}")
          |> assign(:meta_description, "Support #{user.name} with a donation")
          |> assign(:selected_amount, nil)
          |> assign(:custom_amount, "")
          |> assign(:processing, false), layout: false}
 
       {:error, :not_found} ->
-        {:ok,
-         socket
-         |> put_flash(:error, "User not found")
-         |> redirect(to: "/")}
+        {
+          :ok,
+          socket
+          |> put_flash(:error, "User not found")
+          #  |> redirect(to: "/")
+        }
     end
   end
 
@@ -38,7 +40,7 @@ defmodule StreampaiWeb.DonationLive do
      |> assign(:custom_amount, "")}
   end
 
-  def handle_event("custom_amount_changed", %{"amount" => amount}, socket) do
+  def handle_event("custom_amount_changed", %{"custom_amount" => amount}, socket) do
     {:noreply,
      socket
      |> assign(:custom_amount, amount)
@@ -102,7 +104,7 @@ defmodule StreampaiWeb.DonationLive do
     import Ash.Query
 
     # TODO load avatar too
-    query = User |> for_read(:get) |> filter(name == ^username)
+    query = User |> for_read(:get, %{}, load: [:avatar]) |> filter(name == ^username)
 
     case Ash.read_one(query, authorize?: false) do
       {:ok, user} when not is_nil(user) -> {:ok, user}
@@ -171,10 +173,18 @@ defmodule StreampaiWeb.DonationLive do
       <div class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Header -->
         <div class="text-center mb-12">
-          <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center">
-            <span class="text-3xl font-bold text-white">
-              {@user.name |> String.first() |> String.upcase()}
-            </span>
+          <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden">
+            <%= if @user.avatar do %>
+              <img
+                src={@user.avatar}
+                alt={@user.name}
+                class="w-full h-full object-cover"
+              />
+            <% else %>
+              <span class="text-3xl font-bold text-white">
+                {@user.name |> String.first() |> String.upcase()}
+              </span>
+            <% end %>
           </div>
           <h1 class="text-4xl font-bold text-white mb-4">
             Support {@user.name}
