@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   use Supervisor
 
   alias Streampai.LivestreamManager.{
+    CloudflareLiveInputMonitor,
     CloudflareManager,
     ConsoleLogger,
     PlatformSupervisor,
@@ -20,7 +21,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   def init(user_id) do
     children = [
       # Console logger for testing purposes
-      {ConsoleLogger, user_id}
+      {ConsoleLogger, user_id},
+
+      # Cloudflare live input monitoring (watches stream status)
+      {CloudflareLiveInputMonitor, user_id}
 
       # # Core stream state management
       # {StreamStateServer, user_id},
@@ -65,6 +69,16 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}},
       platform_configs
     )
+  end
+
+  def get_stream_status(pid) when is_pid(pid) do
+    user_id = get_user_id_from_supervisor(pid)
+    CloudflareLiveInputMonitor.get_status(user_id)
+  end
+
+  def set_live_input_id(pid, input_id) when is_pid(pid) and is_binary(input_id) do
+    user_id = get_user_id_from_supervisor(pid)
+    CloudflareLiveInputMonitor.set_live_input_id(user_id, input_id)
   end
 
   # Helper functions

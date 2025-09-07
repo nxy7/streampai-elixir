@@ -1,6 +1,4 @@
 # Short Term
-- add ability for user to set desired stream state (title, description, thumbnail, tags, visibility settings, enabled platforms?)
-- add process that's watching cloudflare live input to see if user started streaming (do they have webooks? Maybe we can use that for better experience)
 - add ability to start stream (it's basically changing some inner state in our app and creating live outputs)
   - starting stream also spawns processess observing the livestreams collecting metrics, events, metadata (like descriptions)
 - when stream ends we want to delete live outputs to be sure that they won't be accidentally reused
