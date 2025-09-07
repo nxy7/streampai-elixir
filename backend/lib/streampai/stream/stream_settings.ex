@@ -13,7 +13,6 @@ defmodule Streampai.Stream.StreamSettings do
   code_interface do
     define :create
     define :read
-    define :update
     define :destroy
     define :get_for_user, action: :get_for_user, args: [:user_id]
   end
@@ -32,19 +31,10 @@ defmodule Streampai.Stream.StreamSettings do
         :enabled_platforms
       ]
 
+      change set_attribute(:user_id, actor(:id))
+
       upsert? true
       upsert_identity :unique_user_settings
-    end
-
-    update :update do
-      accept [
-        :title,
-        :description,
-        :thumbnail_url,
-        :tags,
-        :visibility,
-        :enabled_platforms
-      ]
     end
 
     read :get_for_user do
@@ -59,22 +49,26 @@ defmodule Streampai.Stream.StreamSettings do
       authorize_if expr(^actor(:role) == :admin)
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action_type([:create]) do
+      authorize_if expr(^actor(:role) == :admin)
+      authorize_if actor_present()
+    end
+
+    policy action_type([:update, :destroy]) do
       authorize_if expr(user_id == ^actor(:id))
       authorize_if expr(^actor(:role) == :admin)
     end
   end
 
   attributes do
-    uuid_primary_key :id
-
     attribute :user_id, :uuid do
       allow_nil? false
+      primary_key? true
     end
 
     attribute :title, :string do
       allow_nil? true
-      constraints max_length: 500
+      constraints max_length: 500, min_length: 3
     end
 
     attribute :description, :string do
@@ -96,7 +90,7 @@ defmodule Streampai.Stream.StreamSettings do
     attribute :visibility, :atom do
       allow_nil? false
       default :public
-      constraints one_of: [:public, :private, :unlisted, :subscriber_only]
+      constraints one_of: [:public, :unlisted]
     end
 
     attribute :enabled_platforms, {:array, Streampai.Stream.Platform} do

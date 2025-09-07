@@ -1,6 +1,16 @@
 # Short Term
+- add ability for user to set desired stream state (title, description, thumbnail, tags, visibility settings, enabled platforms?)
+- add process that's watching cloudflare live input to see if user started streaming (do they have webooks? Maybe we can use that for better experience)
+- add ability to start stream (it's basically changing some inner state in our app and creating live outputs)
+  - starting stream also spawns processess observing the livestreams collecting metrics, events, metadata (like descriptions)
+- when stream ends we want to delete live outputs to be sure that they won't be accidentally reused
+- how do we guarantee alerts being show? Do we even try to guarantee that (I guess that's problem for later)?
 
 # Long Term
+- tell me if it's possible to monkey patch modules in elixir, it worked in DEV but `mix release` didn't allow it
+- what happens if our stream manager or some platform crashes? Like do we go back to valid state?
+- how do we handle user disconnecting? I think that we can wait for some predefined time like 15minutes and disable live outputs and then disable live input. 
+- how do we test presence manager system
 - ai chat helper that can point user to how to make some things (like can point him to correct)
  link to create widgets etc etc
 - make cache macro that uses function name and arguments to cache result in ETS, write genserver that holds counter, returns counter value (incremented by one) and prints
