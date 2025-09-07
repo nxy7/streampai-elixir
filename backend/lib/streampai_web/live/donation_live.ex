@@ -58,18 +58,18 @@ defmodule StreampaiWeb.DonationLive do
 
   def handle_event("update_form", %{"donation" => params}, socket) do
     current_form = socket.assigns.donation_form
-    
+
     # Debug what we receive
     IO.inspect(params, label: "Form params received")
     IO.inspect(current_form, label: "Current form state")
-    
+
     updated_form = %{
       donor_name: params["donor_name"] || current_form.donor_name,
       donor_email: params["donor_email"] || current_form.donor_email,
       message: params["message"] || current_form.message,
       voice: params["voice"] || current_form.voice
     }
-    
+
     IO.inspect(updated_form, label: "Updated form")
 
     {:noreply, assign(socket, :donation_form, updated_form)}
@@ -429,7 +429,7 @@ defmodule StreampaiWeb.DonationLive do
                           class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
-                      
+
                       <div>
                         <label class="block text-sm font-medium text-white mb-2">
                           Your Email (optional)
@@ -447,7 +447,6 @@ defmodule StreampaiWeb.DonationLive do
                       </div>
                     </div>
 
-                    
                     <div>
                       <label class="block text-sm font-medium text-white mb-2">
                         Voice for Message

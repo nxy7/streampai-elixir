@@ -28,7 +28,6 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
      |> assign(:current_event, nil), layout: false}
   end
 
-
   # Handle real donation events from PubSub
   @impl true
   def handle_info({:new_alert, donation_event}, socket) do

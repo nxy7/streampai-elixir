@@ -28,11 +28,12 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 streampai-*.tar
 
-# Ignore assets that are produced by build tools.
+# Ignore generated assets (build artifacts)
 /priv/static/assets/
 
-# Ignore digested assets cache.
+# Ignore digested assets cache and manifest files
 /priv/static/cache_manifest.json
+
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
@@ -44,3 +45,42 @@ npm-debug.log
 
 # Ignore ssr build for svelte.
 /priv/svelte/
+
+# Vue build artifacts
+/priv/vue/
+
+# Package lockfiles - typically generated, but some teams track them
+# Uncomment the next line if you don't want to track package-lock.json
+# /assets/package-lock.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+.atom/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
