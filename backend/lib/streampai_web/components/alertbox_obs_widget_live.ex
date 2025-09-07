@@ -81,14 +81,17 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
       amount: donation_event.amount,
       currency: donation_event.currency,
       timestamp: donation_event.timestamp,
-      display_time: 5  # Fixed 5 seconds for real donations
+      # Fixed 5 seconds for real donations
+      display_time: 5
     }
-    
-    IO.puts("[OBS Widget] Real donation received: #{donation_event.donor_name} - #{donation_event.currency} #{donation_event.amount}")
-    
+
+    IO.puts(
+      "[OBS Widget] Real donation received: #{donation_event.donor_name} - #{donation_event.currency} #{donation_event.amount}"
+    )
+
     # Clear any current event and show the donation immediately
     socket = assign(socket, :current_event, alert_event)
-    
+
     # Hide event after display time
     Process.send_after(self(), :hide_event, alert_event.display_time * 1000)
     {:noreply, socket}
