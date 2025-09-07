@@ -230,7 +230,6 @@ defmodule StreampaiWeb.DonationLive do
   end
 
   defp find_similar_usernames(username) do
-    import Ash.Query
     import Ecto.Query
 
     # Use pg_trgm similarity to find similar usernames
