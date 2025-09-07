@@ -99,10 +99,6 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
         new_state = %{state | live_input_id: input_id}
         poll_stream_status(new_state)
 
-      {:error, :not_found} ->
-        Logger.debug("[CloudflareLiveInputMonitor:#{state.user_id}] No live input found for user")
-        %{state | poll_count: state.poll_count + 1}
-
       {:error, reason} ->
         Logger.warning(
           "[CloudflareLiveInputMonitor:#{state.user_id}] Error finding live input: #{inspect(reason)}"

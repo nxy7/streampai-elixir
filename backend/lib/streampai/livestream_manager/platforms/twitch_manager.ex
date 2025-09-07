@@ -242,44 +242,56 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     :ok
   end
 
-  defp process_twitch_event(event, state) do
-    # TODO: Process different Twitch events (follows, donations, raids, etc.)
-    case event do
-      %{type: "follow", user_name: username} ->
-        _follow_event = %{
-          type: :follow,
-          user_id: state.user_id,
-          platform: :twitch,
-          username: username
-        }
+  defp process_twitch_event(%{type: "follow", user_name: username}, state) do
+    process_follow_event(username, state)
+  end
 
-      # EventBroadcaster.broadcast_event(follow_event)
+  defp process_twitch_event(%{type: "subscription", user_name: username, tier: tier}, state) do
+    process_subscription_event(username, tier, state)
+  end
 
-      %{type: "subscription", user_name: username, tier: tier} ->
-        _sub_event = %{
-          type: :subscription,
-          user_id: state.user_id,
-          platform: :twitch,
-          username: username,
-          tier: tier
-        }
+  defp process_twitch_event(
+         %{type: "raid", from_broadcaster_user_name: username, viewers: viewers},
+         state
+       ) do
+    process_raid_event(username, viewers, state)
+  end
 
-      # EventBroadcaster.broadcast_event(sub_event)
+  defp process_twitch_event(_event, _state), do: :ok
 
-      %{type: "raid", from_broadcaster_user_name: username, viewers: viewers} ->
-        _raid_event = %{
-          type: :raid,
-          user_id: state.user_id,
-          platform: :twitch,
-          username: username,
-          viewer_count: viewers
-        }
+  defp process_follow_event(username, state) do
+    _follow_event = %{
+      type: :follow,
+      user_id: state.user_id,
+      platform: :twitch,
+      username: username
+    }
 
-      # EventBroadcaster.broadcast_event(raid_event)
+    # EventBroadcaster.broadcast_event(follow_event)
+  end
 
-      _ ->
-        :ok
-    end
+  defp process_subscription_event(username, tier, state) do
+    _sub_event = %{
+      type: :subscription,
+      user_id: state.user_id,
+      platform: :twitch,
+      username: username,
+      tier: tier
+    }
+
+    # EventBroadcaster.broadcast_event(sub_event)
+  end
+
+  defp process_raid_event(username, viewers, state) do
+    _raid_event = %{
+      type: :raid,
+      user_id: state.user_id,
+      platform: :twitch,
+      username: username,
+      viewer_count: viewers
+    }
+
+    # EventBroadcaster.broadcast_event(raid_event)
   end
 
   defp update_platform_status(state, status_update) do

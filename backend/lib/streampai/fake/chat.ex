@@ -3,6 +3,7 @@ defmodule Streampai.Fake.Chat do
   Utilities for generating fake chat messages for demo and testing purposes.
   """
   alias StreampaiWeb.Utils.ColorUtils
+  alias StreampaiWeb.Utils.PlatformUtils
 
   @doc """
   Generates a list of initial fake messages.
@@ -19,7 +20,13 @@ defmodule Streampai.Fake.Chat do
   """
   def generate_message do
     username = Enum.random(usernames())
-    platform = Enum.random(platforms())
+    platform_name = Enum.random([:twitch, :youtube, :facebook, :kick])
+
+    platform = %{
+      name: PlatformUtils.platform_name(platform_name),
+      color: PlatformUtils.platform_color(platform_name),
+      icon: Atom.to_string(platform_name)
+    }
 
     %{
       id: System.unique_integer([:positive]),
@@ -196,15 +203,6 @@ defmodule Streampai.Fake.Chat do
       "bg-orange-500 text-white",
       # Supporter
       "bg-indigo-500 text-white"
-    ]
-  end
-
-  defp platforms do
-    [
-      %{name: "Twitch", color: "bg-purple-500", icon: "twitch"},
-      %{name: "YouTube", color: "bg-red-500", icon: "youtube"},
-      %{name: "Facebook", color: "bg-blue-600", icon: "facebook"},
-      %{name: "Kick", color: "bg-green-500", icon: "kick"}
     ]
   end
 

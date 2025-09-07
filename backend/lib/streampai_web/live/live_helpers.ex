@@ -245,9 +245,7 @@ defmodule StreampaiWeb.LiveHelpers do
   # Private helpers
 
   defp format_changeset_errors(%Ecto.Changeset{errors: errors}) do
-    errors
-    |> Enum.map_join(", ", fn {field, {message, _}} -> "#{field}: #{message}" end)
-    |> case do
+    case Enum.map_join(errors, ", ", fn {field, {message, _}} -> "#{field}: #{message}" end) do
       "" -> "Invalid data provided"
       formatted -> formatted
     end

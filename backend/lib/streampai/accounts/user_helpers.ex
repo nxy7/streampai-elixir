@@ -8,12 +8,12 @@ defmodule Streampai.Accounts.UserHelpers do
 
   Returns the platform username if the user hasn't set a custom name yet.
   """
-  def get_fallback_username(%{extra_data: extra_data, name: name}) when not is_nil(extra_data) do
-    case name do
-      nil -> extract_platform_name(extra_data)
-      "" -> extract_platform_name(extra_data)
-      _ -> name
-    end
+  def get_fallback_username(%{extra_data: extra_data, name: nil}) when not is_nil(extra_data) do
+    extract_platform_name(extra_data)
+  end
+
+  def get_fallback_username(%{extra_data: extra_data, name: ""}) when not is_nil(extra_data) do
+    extract_platform_name(extra_data)
   end
 
   def get_fallback_username(%{name: name}), do: name

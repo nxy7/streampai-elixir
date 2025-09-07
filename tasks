@@ -1,3 +1,13 @@
+# Code Quality Improvements (High Priority)
+- Consolidate platform utility functions (remove duplication between PlatformUtils and scattered platform code)
+- Convert case statements to function heads (UserHelpers.get_fallback_username/1, LiveView error handling)
+- Split large functions (process_twitch_event/2, error handlers, make_api_request/3)
+- Standardize error handling patterns ({:ok, result} vs exceptions across modules) - prefer pattern matching
+- Extract platform color/styling logic to single PlatformUtils module
+- Add missing documentation to public functions
+- Use proper types for numeric data (Decimal for money, integers for counts)
+- Optimize Enum operations (use map_join instead of map + join)
+
 # Short Term
 - add ability to start stream (it's basically changing some inner state in our app and creating live outputs)
   - starting stream also spawns processess observing the livestreams collecting metrics, events, metadata (like descriptions)

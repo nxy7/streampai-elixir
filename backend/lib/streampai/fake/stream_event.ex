@@ -123,7 +123,7 @@ defmodule Streampai.Fake.StreamEvent do
   """
   def generate_donation(livestream_id) do
     donor_name = Enum.random(@usernames)
-    amount = Enum.random(["1.00", "5.00", "10.00", "25.00", "50.00", "100.00"])
+    amount = Enum.random([1.00, 5.00, 10.00, 25.00, 50.00, 100.00])
     message = if :rand.uniform(3) == 1, do: Enum.random(@donation_messages), else: nil
 
     %{

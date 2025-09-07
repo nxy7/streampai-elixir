@@ -4,13 +4,10 @@ defmodule Streampai.Fake.Alert do
   Similar to FakeChat but for donation/alert widgets.
   """
 
+  alias StreampaiWeb.Utils.PlatformUtils
+
   @alert_types [:donation, :follow, :subscription, :raid]
-  @platforms [
-    %{icon: "twitch", color: "bg-purple-600"},
-    %{icon: "youtube", color: "bg-red-600"},
-    %{icon: "facebook", color: "bg-blue-600"},
-    %{icon: "kick", color: "bg-green-600"}
-  ]
+  @platform_names [:twitch, :youtube, :facebook, :kick]
 
   @usernames [
     "StreamFan2024",
@@ -90,8 +87,14 @@ defmodule Streampai.Fake.Alert do
 
   def generate_event do
     type = Enum.random(@alert_types)
-    platform = Enum.random(@platforms)
+    platform_name = Enum.random(@platform_names)
     username = Enum.random(@usernames)
+
+    platform = %{
+      name: PlatformUtils.platform_name(platform_name),
+      icon: PlatformUtils.platform_initial(platform_name) |> String.downcase(),
+      color: PlatformUtils.platform_color(platform_name)
+    }
 
     base_event = %{
       id: generate_id(),
