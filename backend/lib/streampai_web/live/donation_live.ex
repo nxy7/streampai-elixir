@@ -57,13 +57,22 @@ defmodule StreampaiWeb.DonationLive do
   end
 
   def handle_event("update_form", %{"donation" => params}, socket) do
-    form = %{
-      donor_name: params["donor_name"] || "",
-      message: params["message"] || "",
-      voice: params["voice"] || "default"
+    current_form = socket.assigns.donation_form
+    
+    # Debug what we receive
+    IO.inspect(params, label: "Form params received")
+    IO.inspect(current_form, label: "Current form state")
+    
+    updated_form = %{
+      donor_name: params["donor_name"] || current_form.donor_name,
+      donor_email: params["donor_email"] || current_form.donor_email,
+      message: params["message"] || current_form.message,
+      voice: params["voice"] || current_form.voice
     }
+    
+    IO.inspect(updated_form, label: "Updated form")
 
-    {:noreply, assign(socket, :donation_form, form)}
+    {:noreply, assign(socket, :donation_form, updated_form)}
   end
 
   def handle_event("submit_donation", %{"donation" => params}, socket) do
@@ -192,6 +201,7 @@ defmodule StreampaiWeb.DonationLive do
   defp get_initial_form do
     %{
       donor_name: "",
+      donor_email: "",
       message: "",
       voice: "default"
     }
@@ -402,20 +412,42 @@ defmodule StreampaiWeb.DonationLive do
                   </div>
                   
     <!-- Donor Information -->
-                  <div class="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <label class="block text-sm font-medium text-white mb-2">
-                        Your Name (optional)
-                      </label>
-                      <input
-                        type="text"
-                        name="donation[donor_name]"
-                        value={@donation_form.donor_name}
-                        placeholder="Anonymous"
-                        class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
+                  <div class="space-y-4 mb-6">
+                    <div class="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-white mb-2">
+                          Your Name (optional)
+                        </label>
+                        <input
+                          type="text"
+                          name="donation[donor_name]"
+                          value={@donation_form.donor_name}
+                          placeholder="Anonymous"
+                          id="donor-name-input"
+                          phx-hook="LocalStorage"
+                          data-storage-key="donation_name"
+                          class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-medium text-white mb-2">
+                          Your Email (optional)
+                        </label>
+                        <input
+                          type="email"
+                          name="donation[donor_email]"
+                          value={@donation_form.donor_email}
+                          placeholder="your@email.com"
+                          id="donor-email-input"
+                          phx-hook="LocalStorage"
+                          data-storage-key="donation_email"
+                          class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
 
+                    
                     <div>
                       <label class="block text-sm font-medium text-white mb-2">
                         Voice for Message
@@ -444,10 +476,9 @@ defmodule StreampaiWeb.DonationLive do
                     <textarea
                       name="donation[message]"
                       rows="4"
-                      value={@donation_form.message}
                       placeholder="Leave a nice message..."
                       class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                    ></textarea>
+                    >{@donation_form.message}</textarea>
                     <p class="text-sm text-gray-400 mt-1">
                       Your message will be read aloud with the selected voice
                     </p>

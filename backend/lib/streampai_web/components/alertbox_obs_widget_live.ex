@@ -6,24 +6,14 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   Manages its own event state and subscribes to configuration changes.
   """
   use StreampaiWeb, :live_view
-  alias Streampai.Fake.Alert
 
   @impl true
   def mount(%{"user_id" => user_id}, _session, socket) do
-    initial_event =
-      if connected?(socket) do
-        # Generate initial event and start cycle
-        event = Alert.generate_event()
-        display_time = Enum.random(3..8)
-        event_with_time = Map.put(event, :display_time, display_time)
-        Process.send_after(self(), :hide_event, display_time * 1000)
-        Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
-        # Subscribe to alertbox events for real donations
-        Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
-        event_with_time
-      else
-        nil
-      end
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
+      # Subscribe to alertbox events for real donations
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
+    end
 
     {:ok, %{config: config}} =
       Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
@@ -35,72 +25,35 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
      socket
      |> assign(:user_id, user_id)
      |> assign(:widget_config, config)
-     |> assign(:current_event, initial_event), layout: false}
+     |> assign(:current_event, nil), layout: false}
   end
 
-  @impl true
-  def handle_info(:generate_event, socket) do
-    # new_event = Alert.generate_event()
-    # # Random display time between 3-8 seconds
-    # display_time = Enum.random(3..8)
-    # # 2 seconds gap between events
-    # _gap_time = 2
-
-    # # Add display_time to event
-    # event_with_display_time = Map.put(new_event, :display_time, display_time)
-
-    # # Add some debugging info
-    # IO.puts(
-    #   "[OBS Widget] Generated new event: #{new_event.type} - #{new_event.username} (ID: #{new_event.id}) - Display time: #{display_time}s"
-    # )
-
-    # socket = assign(socket, :current_event, event_with_display_time)
-
-    # # Set event to nil 1 second after gap starts (display_time + 1)
-    # Process.send_after(self(), :hide_event, (display_time + 1) * 1000)
-    {:noreply, socket}
-  end
-
-  def handle_info(:hide_event, socket) do
-    IO.puts("[OBS Widget] Setting event to nil")
-    socket = assign(socket, :current_event, nil)
-
-    # Show next event after remaining 1 second of the gap
-    Process.send_after(self(), :generate_event, 1000)
-    {:noreply, socket}
-  end
 
   # Handle real donation events from PubSub
+  @impl true
   def handle_info({:new_alert, donation_event}, socket) do
     # Convert donation event to alertbox format
-    alert_event =
-      %{
-        id: :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase(),
-        type: String.to_existing_atom(donation_event.type),
-        username: donation_event.donor_name,
-        message: donation_event.message,
-        amount: donation_event.amount,
-        currency: donation_event.currency,
-        timestamp: donation_event.timestamp,
-        # Add required platform object with default values
-        platform: %{
-          icon: "twitch",
-          color: "bg-purple-600"
-        },
-        # Fixed 5 seconds for real donations
-        display_time: 5
-      }
-      |> dbg
+    alert_event = %{
+      id: :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase(),
+      type: String.to_existing_atom(donation_event.type),
+      username: donation_event.donor_name,
+      message: donation_event.message,
+      amount: donation_event.amount,
+      currency: donation_event.currency,
+      timestamp: donation_event.timestamp,
+      platform: %{
+        icon: "twitch",
+        color: "bg-purple-600"
+      },
+      display_time: 5
+    }
 
     IO.puts(
       "[OBS Widget] Real donation received: #{donation_event.donor_name} - #{donation_event.currency} #{donation_event.amount}"
     )
 
-    # Clear any current event and show the donation immediately
+    # Just set the current event - frontend will handle display timing
     socket = assign(socket, :current_event, alert_event)
-
-    # Hide event after display time
-    Process.send_after(self(), :hide_event, alert_event.display_time * 1000)
     {:noreply, socket}
   end
 
@@ -129,12 +82,4 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     </div>
     """
   end
-
-  # Helper functions
-
-  # defp _schedule_next_event do
-  #   # 7 seconds between alerts for demo
-  #   delay = 7000
-  #   Process.send_after(self(), :generate_event, delay)
-  # end
 end
