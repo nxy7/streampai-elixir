@@ -70,7 +70,6 @@ RUN mix assets.deploy
 COPY config/runtime.exs config/
 
 COPY rel rel
-ENV ERL_COMPILER_OPTIONS=nowarn_export_all
 RUN mix release
 
 # start a new build stage so that the final image will only contain
