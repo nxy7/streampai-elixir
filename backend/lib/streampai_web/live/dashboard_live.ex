@@ -31,7 +31,8 @@ defmodule StreampaiWeb.DashboardLive do
       )
       |> assign(
         display_name: get_display_name(socket),
-        greeting_text: greeting_text
+        greeting_text: greeting_text,
+        page_title: "Dashboard"
       )
 
     {:ok, socket, layout: false}

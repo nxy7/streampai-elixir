@@ -31,9 +31,12 @@ defmodule StreampaiWeb.WidgetSettingsLive do
             type: @widget_type
           })
 
+        widget_title = "#{String.capitalize(Atom.to_string(@widget_type))} Settings"
+
         socket =
           socket
           |> assign(:widget_config, initial_config)
+          |> assign(:page_title, widget_title)
           |> setup_initial_data()
 
         {:ok, socket, layout: false}

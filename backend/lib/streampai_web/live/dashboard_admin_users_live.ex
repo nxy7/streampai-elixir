@@ -23,7 +23,8 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
      |> assign(
        users: [],
        can_impersonate: UserPolicy.can_impersonate?(socket.assigns.current_user),
-       online_users: %{}
+       online_users: %{},
+       page_title: "User Management"
      )
      |> load_users()
      |> load_presence(), layout: false}

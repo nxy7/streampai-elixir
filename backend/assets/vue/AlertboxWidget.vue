@@ -327,7 +327,7 @@ onMounted(() => {
     >
       <!-- Alert Card with constant width -->
       <div
-        v-if="animationPhase !== 'hidden'"
+        v-if="animationPhase !== 'hidden' && props.event"
         :class="`alert-card relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass} ${animationClass}`"
       >
         <!-- Glowing border effect -->

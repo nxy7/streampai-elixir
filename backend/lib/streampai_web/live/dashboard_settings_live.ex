@@ -35,7 +35,8 @@ defmodule StreampaiWeb.DashboardSettingsLive do
      )
      |> assign(:name_error, nil)
      |> assign(:name_success, nil)
-     |> assign(:name_available, nil), layout: false}
+     |> assign(:name_available, nil)
+     |> assign(:page_title, "Settings"), layout: false}
   end
 
   def handle_event("upgrade_to_pro", _params, socket) do

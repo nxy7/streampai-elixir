@@ -7,8 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <link rel="icon" type="image/png" href="/favicon-32x32.png" />
-    <.live_title>
-      {assigns[:page_title] || "Streampai"}
+    <.live_title
+      prefix={
+        if assigns[:page_title] && assigns[:page_title] != "Streampai",
+          do: "Streampai > ",
+          else: ""
+      }
+      default="Streampai"
+    >
+      {if assigns[:page_title] && assigns[:page_title] != "Streampai",
+        do: assigns[:page_title],
+        else: "Streampai"}
     </.live_title>
     <LiveVue.Reload.vite_assets assets={["/js/app.js", "/css/app.css"]}>
       <link phx-track-static rel="stylesheet" href="/assets/app.css" />

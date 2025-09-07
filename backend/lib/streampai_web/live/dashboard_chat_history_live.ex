@@ -5,7 +5,12 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
 
   def mount_page(socket, _params, _session) do
     chat_messages = Chat.generate_chat_history_messages()
-    socket = assign(socket, :chat_messages, chat_messages)
+
+    socket =
+      socket
+      |> assign(:chat_messages, chat_messages)
+      |> assign(:page_title, "Chat History")
+
     {:ok, socket, layout: false}
   end
 

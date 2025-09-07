@@ -18,7 +18,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{@page_title} - Streampai</title>
       </head>
       <body class="h-full bg-gray-50">
         <div class="flex h-screen" id="dashboard-layout">

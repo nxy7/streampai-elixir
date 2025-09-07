@@ -28,7 +28,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
      socket
      |> stream(:messages, initial_messages)
      |> assign(:widget_config, initial_config)
-     |> assign(:vue_messages, initial_messages), layout: false}
+     |> assign(:vue_messages, initial_messages)
+     |> assign(:page_title, "Live Chat Widget"), layout: false}
   end
 
   def handle_info(:generate_message, socket) do

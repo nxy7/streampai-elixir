@@ -34,7 +34,8 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     {:ok,
      socket
      |> assign(:widget_config, initial_config)
-     |> assign(:current_event, initial_event_with_time), layout: false}
+     |> assign(:current_event, initial_event_with_time)
+     |> assign(:page_title, "Alertbox Widget"), layout: false}
   end
 
   def handle_info(:generate_event, socket) do

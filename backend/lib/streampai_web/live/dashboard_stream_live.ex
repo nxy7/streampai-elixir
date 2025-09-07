@@ -10,6 +10,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
     socket =
       socket
       |> assign(:platform_connections, platform_connections)
+      |> assign(:page_title, "Stream")
 
     {:ok, socket, layout: false}
   end

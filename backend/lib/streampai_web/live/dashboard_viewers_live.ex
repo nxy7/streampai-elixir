@@ -2,7 +2,7 @@ defmodule StreampaiWeb.DashboardViewersLive do
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do
-    {:ok, socket, layout: false}
+    {:ok, socket |> assign(:page_title, "Viewers"), layout: false}
   end
 
   def render(assigns) do
