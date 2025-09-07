@@ -391,7 +391,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </button>
                   <% end %>
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
+                    <.link
+                      navigate="/dashboard/settings"
+                      class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden hover:bg-purple-600 transition-colors cursor-pointer"
+                      title="Go to Settings"
+                    >
                       <%= if @current_user && @current_user.avatar do %>
                         <img
                           src={@current_user.avatar}
@@ -407,7 +411,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                           <% end %>
                         </span>
                       <% end %>
-                    </div>
+                    </.link>
                     <div class="hidden md:block">
                       <p class="text-sm font-medium text-gray-900">
                         {if @current_user && @current_user.email,
