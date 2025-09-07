@@ -29,9 +29,14 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:processing, false), layout: false}
 
       {:error, :not_found} ->
+        # Find similar usernames using pg_trgm
+        similar_users = find_similar_usernames(username)
+
         {:ok,
          socket
          |> assign(:user_not_found, true)
+         |> assign(:searched_username, username)
+         |> assign(:similar_users, similar_users)
          |> assign(:page_title, "User Not Found")
          |> assign(:meta_description, "User not found"), layout: false}
     end
@@ -224,6 +229,28 @@ defmodule StreampaiWeb.DonationLive do
     end)
   end
 
+  defp find_similar_usernames(username) do
+    import Ash.Query
+    import Ecto.Query
+
+    # Use pg_trgm similarity to find similar usernames
+    # Similarity threshold of 0.3 (30%) is generally good for usernames
+    query =
+      from(u in User,
+        where: fragment("similarity(?, ?) > 0.3", u.name, ^username),
+        order_by: [desc: fragment("similarity(?, ?)", u.name, ^username)],
+        limit: 5,
+        select: %{name: u.name, similarity: fragment("similarity(?, ?)", u.name, ^username)}
+      )
+
+    case Streampai.Repo.all(query) do
+      [] -> []
+      results -> results
+    end
+  rescue
+    _ -> []
+  end
+
   def render(assigns) do
     ~H"""
     <%= if assigns[:user_not_found] do %>
@@ -238,12 +265,28 @@ defmodule StreampaiWeb.DonationLive do
           </h1>
 
           <p class="text-xl text-purple-200 mb-6">
-            The user you're looking for doesn't exist or their donation page isn't available.
+            The user "<span class="font-mono bg-purple-800/50 px-2 py-1 rounded">{@searched_username}</span>" doesn't exist or their donation page isn't available.
           </p>
 
-          <p class="text-purple-300 mb-8">
-            Double-check the username in the URL or ask the streamer for their correct donation link.
-          </p>
+          <%= if length(@similar_users) > 0 do %>
+            <div class="mb-8">
+              <p class="text-purple-300 mb-4">Did you mean one of these?</p>
+              <div class="space-y-2">
+                <%= for user <- @similar_users do %>
+                  <.link
+                    navigate={~p"/u/#{user.name}"}
+                    class="block p-3 bg-purple-800/30 hover:bg-purple-700/50 rounded-lg border border-purple-500/30 transition-all text-center"
+                  >
+                    <span class="text-white font-medium hover:text-purple-200">{user.name}</span>
+                  </.link>
+                <% end %>
+              </div>
+            </div>
+          <% else %>
+            <p class="text-purple-300 mb-8">
+              Double-check the username in the URL or ask the streamer for their correct donation link.
+            </p>
+          <% end %>
 
           <.link
             navigate={~p"/"}
