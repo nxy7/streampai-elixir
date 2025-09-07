@@ -82,17 +82,33 @@ defmodule StreampaiWeb.DonationLive do
   end
 
   defp process_donation(socket, params, amount) do
-    # Simulate processing
+    user = socket.assigns.user
+    preferences = socket.assigns.preferences
+    
+    # Create donation event data
+    donation_event = %{
+      type: "donation",
+      amount: amount,
+      currency: preferences.donation_currency || "USD",
+      donor_name: params["donor_name"] || "Anonymous",
+      message: params["message"] || "",
+      voice: params["voice"] || "default",
+      timestamp: DateTime.utc_now()
+    }
+    
+    # Broadcast to user's alertbox channel
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "alertbox:#{user.id}",
+      {:new_alert, donation_event}
+    )
+    
+    # Simulate processing success
     {:noreply,
      socket
-     |> assign(:processing, true)
-     |> put_flash(:info, "Processing donation of $#{amount}...")
-     |> push_event("donation_submitted", %{
-       amount: amount,
-       donor: params["donor_name"] || "Anonymous",
-       message: params["message"] || "",
-       voice: params["voice"] || "default"
-     })}
+     |> assign(:processing, false)
+     |> put_flash(:info, "Thank you for your donation of #{preferences.donation_currency || "USD"} #{amount}!")
+     |> push_event("donation_submitted", donation_event)}
   end
 
   defp get_donation_amount(assigns) do

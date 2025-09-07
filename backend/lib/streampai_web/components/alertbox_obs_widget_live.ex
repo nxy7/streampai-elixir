@@ -18,6 +18,8 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
         event_with_time = Map.put(event, :display_time, display_time)
         Process.send_after(self(), :hide_event, display_time * 1000)
         Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
+        # Subscribe to alertbox events for real donations
+        Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
         event_with_time
       else
         nil
@@ -65,6 +67,30 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
     # Show next event after remaining 1 second of the gap
     Process.send_after(self(), :generate_event, 1000)
+    {:noreply, socket}
+  end
+
+  # Handle real donation events from PubSub
+  def handle_info({:new_alert, donation_event}, socket) do
+    # Convert donation event to alertbox format
+    alert_event = %{
+      id: :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase(),
+      type: donation_event.type,
+      username: donation_event.donor_name,
+      message: donation_event.message,
+      amount: donation_event.amount,
+      currency: donation_event.currency,
+      timestamp: donation_event.timestamp,
+      display_time: 5  # Fixed 5 seconds for real donations
+    }
+    
+    IO.puts("[OBS Widget] Real donation received: #{donation_event.donor_name} - #{donation_event.currency} #{donation_event.amount}")
+    
+    # Clear any current event and show the donation immediately
+    socket = assign(socket, :current_event, alert_event)
+    
+    # Hide event after display time
+    Process.send_after(self(), :hide_event, alert_event.display_time * 1000)
     {:noreply, socket}
   end
 
