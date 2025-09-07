@@ -135,6 +135,48 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     handle_notification_toggle(socket)
   end
 
+  def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
+    current_user = socket.assigns.current_user
+
+    # Parse and validate amounts
+    min_amount = parse_amount(params["min_donation_amount"])
+    max_amount = parse_amount(params["max_donation_amount"])
+    currency = params["donation_currency"] || "USD"
+
+    preferences_params = %{
+      user_id: current_user.id,
+      min_donation_amount: min_amount,
+      max_donation_amount: max_amount,
+      donation_currency: currency
+    }
+
+    case Streampai.Accounts.UserPreferences.create(preferences_params, actor: current_user) do
+      {:ok, _preferences} ->
+        {:noreply,
+         socket
+         |> load_user_preferences()
+         |> put_flash(:info, "Donation preferences updated successfully!")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to update donation preferences. Please check your values.")}
+    end
+  end
+
+  defp parse_amount(""), do: nil
+  defp parse_amount(nil), do: nil
+
+  defp parse_amount(amount) when is_binary(amount) do
+    case Integer.parse(amount) do
+      {num, ""} when num > 0 -> num
+      _ -> nil
+    end
+  end
+
+  defp parse_amount(amount) when is_integer(amount) and amount > 0, do: amount
+  defp parse_amount(_), do: nil
+
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="settings" page_title="Settings">
@@ -274,6 +316,103 @@ defmodule StreampaiWeb.DashboardSettingsLive do
               </.link>
             </div>
           </div>
+        </div>
+        
+    <!-- Donation Preferences -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-6">Donation Settings</h3>
+
+          <form phx-submit="update_donation_preferences">
+            <div class="space-y-4">
+              <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Amount
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span class="text-gray-500 text-sm">{@user_preferences.donation_currency}</span>
+                    </div>
+                    <input
+                      type="number"
+                      name="preferences[min_donation_amount]"
+                      value={@user_preferences.min_donation_amount}
+                      min="1"
+                      max="1000"
+                      placeholder="No minimum"
+                      class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Leave empty for no minimum</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Amount
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span class="text-gray-500 text-sm">{@user_preferences.donation_currency}</span>
+                    </div>
+                    <input
+                      type="number"
+                      name="preferences[max_donation_amount]"
+                      value={@user_preferences.max_donation_amount}
+                      min="1"
+                      max="10000"
+                      placeholder="No maximum"
+                      class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Leave empty for no maximum</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Currency
+                  </label>
+                  <select
+                    name="preferences[donation_currency]"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <%= for currency <- ["USD", "EUR", "GBP", "CAD", "AUD"] do %>
+                      <option
+                        value={currency}
+                        selected={@user_preferences.donation_currency == currency}
+                      >
+                        {currency}
+                      </option>
+                    <% end %>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                <StreampaiWeb.CoreComponents.icon
+                  name="hero-information-circle"
+                  class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                />
+                <div class="text-sm text-blue-800">
+                  <p class="font-medium mb-1">How donation limits work:</p>
+                  <ul class="space-y-1 text-blue-700">
+                    <li>• Set limits to control the donation amounts your viewers can send</li>
+                    <li>• Both fields are optional - leave empty to allow any amount</li>
+                    <li>• Preset buttons and custom input will be filtered based on your limits</li>
+                    <li>• Changes apply immediately to your donation page</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                >
+                  Save Donation Settings
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
 
         {render_notification_preferences(assigns)}

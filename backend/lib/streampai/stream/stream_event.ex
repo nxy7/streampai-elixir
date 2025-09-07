@@ -57,11 +57,9 @@ defmodule Streampai.Stream.StreamEvent do
   attributes do
     uuid_primary_key :id
 
-    attribute :type, :atom do
+    attribute :type, Streampai.Stream.EventType do
       public? true
       allow_nil? false
-      # TODO extract to separate enum like Streampai.Stream.Platform
-      constraints one_of: [:chat_message, :donation, :follow, :raid, :subscription]
     end
 
     attribute :data, :map do
