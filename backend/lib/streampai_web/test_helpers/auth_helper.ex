@@ -84,7 +84,7 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   """
   def admin_fixture(attrs \\ %{}) do
     # From User policies
-    admin_attrs = Map.put(attrs, :email, "lolnoxy@gmail.com")
+    admin_attrs = Map.put(attrs, :email, Streampai.Constants.admin_email())
     user_fixture(admin_attrs)
   end
 

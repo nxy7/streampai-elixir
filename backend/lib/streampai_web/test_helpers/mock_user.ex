@@ -46,7 +46,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
     final_email =
       if admin and email == "mock@example.com" do
         # This email is recognized as admin in Dashboard.admin?/1
-        "lolnoxy@gmail.com"
+        Streampai.Constants.admin_email()
       else
         email
       end

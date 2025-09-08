@@ -44,7 +44,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:post, path, payload) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :create_live_input)
     end
   end
 
@@ -56,7 +56,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:get, path) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :get_live_input)
     end
   end
 
@@ -68,7 +68,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:delete, path) do
       {:ok, _response} -> :ok
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :delete_live_input)
     end
   end
 
@@ -86,7 +86,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:post, path, payload) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :create_live_output)
     end
   end
 
@@ -98,7 +98,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:get, path) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :get_live_output)
     end
   end
 
@@ -110,7 +110,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:get, path) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :list_live_outputs)
     end
   end
 
@@ -125,7 +125,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:put, path, payload) do
       {:ok, response} -> {:ok, response["result"]}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :toggle_live_output)
     end
   end
 
@@ -138,14 +138,14 @@ defmodule Streampai.Cloudflare.APIClient do
 
     case make_api_request(:delete, path) do
       {:ok, _response} -> :ok
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> handle_api_error(reason, :delete_live_output)
     end
   end
 
   @doc """
   Creates the display name for a live input based on environment and user ID.
   """
-  def create_live_input_name(user_id) do
+  def create_live_input_name(user_id) when is_binary(user_id) do
     "#{env()}##{user_id}"
   end
 
@@ -202,4 +202,23 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   defp get_error_message(_), do: "Unknown error"
+
+  defp handle_api_error(reason, operation) do
+    case reason do
+      :missing_credentials ->
+        {:error, :missing_credentials, "Cloudflare API credentials not configured"}
+
+      {:api_error, message} ->
+        {:error, :api_error, "Cloudflare API returned error for #{operation}: #{message}"}
+
+      {:http_error, status, _body} ->
+        {:error, :http_error, "HTTP #{status} error during #{operation}"}
+
+      {:request_failed, reason} ->
+        {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
+
+      unknown ->
+        {:error, :unknown_error, "Unknown error during #{operation}: #{inspect(unknown)}"}
+    end
+  end
 end

@@ -133,22 +133,13 @@ defmodule Streampai.Accounts.User do
       upsert_identity :unique_email
 
       change AshAuthentication.GenerateTokenChange
-
       change AshAuthentication.Strategy.OAuth2.IdentityChange
-
       change {Streampai.Accounts.User.Changes.SavePlatformData, platform_name: "google"}
-
       change Streampai.Accounts.DefaultUsername
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
-
-      change after_action(fn _changeset, user, _context ->
-               case user.confirmed_at do
-                 nil -> {:error, "Unconfirmed user exists already"}
-                 _ -> {:ok, user}
-               end
-             end)
+      change after_action(&oauth_confirmation_validation/3)
     end
 
     create :register_with_twitch do
@@ -158,22 +149,13 @@ defmodule Streampai.Accounts.User do
       upsert_identity :unique_email
 
       change AshAuthentication.GenerateTokenChange
-
       change AshAuthentication.Strategy.OAuth2.IdentityChange
-
       change {Streampai.Accounts.User.Changes.SavePlatformData, platform_name: "twitch"}
-
       change Streampai.Accounts.DefaultUsername
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
-
-      change after_action(fn _changeset, user, _context ->
-               case user.confirmed_at do
-                 nil -> {:error, "Unconfirmed user exists already"}
-                 _ -> {:ok, user}
-               end
-             end)
+      change after_action(&oauth_confirmation_validation/3)
     end
 
     read :sign_in_with_password do
@@ -421,7 +403,7 @@ defmodule Streampai.Accounts.User do
 
   calculations do
     calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
-    calculate :role, :atom, expr(if email == "lolnoxy@gmail.com", do: :admin, else: :regular)
+    calculate :role, :atom, expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
     calculate :avatar, :string, expr(extra_data["picture"])
   end
 
@@ -432,5 +414,13 @@ defmodule Streampai.Accounts.User do
   identities do
     identity :unique_email, [:email]
     identity :unique_name, [:name]
+  end
+
+  # Private helper function for OAuth registration validation
+  defp oauth_confirmation_validation(_changeset, user, _context) do
+    case user.confirmed_at do
+      nil -> {:error, "Unconfirmed user exists already"}
+      _ -> {:ok, user}
+    end
   end
 end
