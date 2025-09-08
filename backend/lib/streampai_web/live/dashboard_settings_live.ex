@@ -128,10 +128,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     end
   end
 
-  def handle_event("disconnect_platform", %{"platform" => platform}, socket) do
-    handle_platform_disconnect(socket, platform)
-  end
-
   def handle_event("toggle_email_notifications", _params, socket) do
     handle_notification_toggle(socket)
   end

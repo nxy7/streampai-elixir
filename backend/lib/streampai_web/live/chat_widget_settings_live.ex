@@ -2,38 +2,59 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   @moduledoc """
   LiveView for configuring chat widget settings and OBS browser source URL generation.
   """
-  use StreampaiWeb, :live_view
-  import StreampaiWeb.Components.DashboardLayout
-  alias Streampai.Fake.Chat
+  use StreampaiWeb.WidgetBehaviour,
+    type: :settings,
+    widget_type: :chat_widget,
+    fake_module: Streampai.Fake.Chat
 
-  def mount(_params, _session, socket) do
-    current_user = socket.assigns.current_user
+  # Widget-specific implementations
 
-    if connected?(socket) do
-      schedule_next_message()
-    end
+  defp widget_title, do: "Live Chat Widget"
 
-    initial_messages = Chat.initial_messages()
+  defp initialize_widget_specific_assigns(socket) do
+    initial_messages = @fake_module.initial_messages()
 
-    {:ok, %{config: initial_config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
-        %{
-          user_id: current_user.id,
-          type: :chat_widget
-        },
-        actor: current_user
-      )
-
-    {:ok,
-     socket
-     |> stream(:messages, initial_messages)
-     |> assign(:widget_config, initial_config)
-     |> assign(:vue_messages, initial_messages)
-     |> assign(:page_title, "Live Chat Widget"), layout: false}
+    socket
+    |> stream(:messages, initial_messages)
+    |> assign(:vue_messages, initial_messages)
   end
 
-  def handle_info(:generate_message, socket) do
-    new_message = Chat.generate_message()
+  defp update_widget_settings(config, params) do
+    # Handle boolean settings (checkboxes that send "on" when checked)
+    boolean_fields = [:show_badges, :show_emotes, :hide_bots, :show_timestamps, :show_platform]
+
+    config_with_booleans =
+      StreampaiWeb.Utils.WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
+
+    # Handle other settings (numbers, selects, etc.)
+    Enum.reduce(params, config_with_booleans, fn {key, value}, acc ->
+      case key do
+        key
+        when key in [
+               "show_badges",
+               "show_emotes",
+               "hide_bots",
+               "show_timestamps",
+               "show_platform"
+             ] ->
+          # Already handled above
+          acc
+
+        _ ->
+          try do
+            atom_key = String.to_existing_atom(key)
+            converted_value = convert_setting_value(atom_key, value)
+            Map.put(acc, atom_key, converted_value)
+          rescue
+            # Skip invalid field names
+            ArgumentError -> acc
+          end
+      end
+    end)
+  end
+
+  defp generate_and_assign_demo_data(socket) do
+    new_message = @fake_module.generate_message()
 
     # Add new message to stream and let stream handle limiting
     socket = socket |> stream_insert(:messages, new_message, at: -1)
@@ -45,12 +66,12 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     limited_vue_messages =
       Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
 
-    socket = assign(socket, :vue_messages, limited_vue_messages)
-
-    schedule_next_message()
-    {:noreply, socket}
+    assign(socket, :vue_messages, limited_vue_messages)
   end
 
+  defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 1000)
+
+  # Handle presence updates (inherited from BaseLive)
   def handle_info(
         %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
         socket
@@ -58,91 +79,30 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_setting", params, socket) do
-    current_config = socket.assigns.widget_config
-
-    updated_config = %{
-      current_config
-      | show_badges: Map.get(params, "show_badges") == "on",
-        show_emotes: Map.get(params, "show_emotes") == "on",
-        hide_bots: Map.get(params, "hide_bots") == "on",
-        show_timestamps: Map.get(params, "show_timestamps") == "on",
-        show_platform: Map.get(params, "show_platform") == "on"
-    }
-
-    current_user = socket.assigns.current_user
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "widget_config:#{current_user.id}",
-      %{config: updated_config}
-    )
-
-    Streampai.Accounts.WidgetConfig.create(
-      %{
-        user_id: current_user.id,
-        type: :chat_widget,
-        config: updated_config
-      },
-      actor: current_user
-    )
-
-    {:noreply, assign(socket, :widget_config, updated_config)}
+  # Let WidgetBehaviour handle other messages
+  def handle_info(msg, socket) do
+    super(msg, socket)
   end
 
-  def handle_event("update_setting", params, socket) do
-    current_config = socket.assigns.widget_config
+  defp convert_setting_value(setting, value) do
+    case setting do
+      :max_messages ->
+        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 1, max: 100)
 
-    {setting, value} =
-      case params do
-        %{"setting" => setting, "value" => value} ->
-          {setting, value}
+      :message_fade_time ->
+        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
 
-        %{"_target" => [field]} = p when is_map_key(p, field) ->
-          {field, Map.get(p, field)}
+      :font_size ->
+        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+          :font_size,
+          value,
+          ["small", "medium", "large"],
+          "medium"
+        )
 
-        _other ->
-          {"max_messages", "25"}
-      end
-
-    atom_setting = String.to_existing_atom(setting)
-
-    converted_value =
-      case atom_setting do
-        :max_messages ->
-          num = String.to_integer(value)
-          max(1, min(100, num))
-
-        :message_fade_time ->
-          String.to_integer(value)
-
-        :font_size ->
-          value
-
-        _ ->
-          value
-      end
-
-    updated_config = Map.put(current_config, atom_setting, converted_value)
-
-    current_user = socket.assigns.current_user
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "widget_config:#{current_user.id}",
-      %{config: updated_config}
-    )
-
-    Streampai.Accounts.WidgetConfig.create(
-      %{
-        user_id: current_user.id,
-        type: :chat_widget,
-        config: updated_config
-      },
-      actor: current_user
-    )
-
-    {:noreply, assign(socket, :widget_config, updated_config)}
+      _ ->
+        value
+    end
   end
 
   def render(assigns) do
@@ -187,12 +147,12 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Display Options -->
-            <div class="space-y-4">
-              <h4 class="font-medium text-gray-700">Display Options</h4>
+          <form phx-change="update_settings">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Display Options -->
+              <div class="space-y-4">
+                <h4 class="font-medium text-gray-700">Display Options</h4>
 
-              <form phx-change="toggle_setting">
                 <div class="space-y-3">
                   <label class="flex items-center">
                     <input
@@ -244,14 +204,12 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
                     <span class="ml-2 text-sm text-gray-700">Show platform badges</span>
                   </label>
                 </div>
-              </form>
-            </div>
-            
+              </div>
+              
     <!-- Message Settings -->
-            <div class="space-y-4">
-              <h4 class="font-medium text-gray-700">Message Settings</h4>
+              <div class="space-y-4">
+                <h4 class="font-medium text-gray-700">Message Settings</h4>
 
-              <form phx-change="update_setting">
                 <div class="space-y-3">
                   <div>
                     <label class="block text-sm text-gray-700 mb-1">Max messages displayed</label>
@@ -305,9 +263,9 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
                     </select>
                   </div>
                 </div>
-              </form>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
         
     <!-- Usage Instructions -->
@@ -330,6 +288,4 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     </.dashboard_layout>
     """
   end
-
-  defp schedule_next_message, do: Process.send_after(self(), :generate_message, 1000)
 end

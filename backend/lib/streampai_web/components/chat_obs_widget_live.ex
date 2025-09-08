@@ -5,45 +5,38 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   This is the public endpoint that OBS will embed as a browser source.
   Manages its own message state and subscribes to configuration changes.
   """
-  use StreampaiWeb, :live_view
+  use StreampaiWeb.WidgetBehaviour,
+    type: :display,
+    widget_type: :chat_widget
+
   alias Streampai.Fake.Chat
 
-  @impl true
-  def mount(%{"user_id" => user_id}, _session, socket) do
-    if connected?(socket) do
-      schedule_next_message()
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "widget_config:#{user_id}")
-    end
-
+  defp initialize_display_assigns(socket) do
     initial_messages = Chat.initial_messages()
 
-    {:ok, %{config: config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
-        %{
-          user_id: user_id,
-          type: :chat_widget
-        },
-        authorize?: false
-      )
-
-    {:ok,
-     socket
-     |> stream(:messages, initial_messages)
-     |> assign(:user_id, nil)
-     |> assign(:widget_config, config)
-     |> assign(:vue_messages, initial_messages), layout: false}
+    socket
+    |> stream(:messages, initial_messages)
+    |> assign(:vue_messages, initial_messages)
   end
 
-  @impl true
-  def handle_info(:generate_message, socket) do
+  defp subscribe_to_real_events(_user_id) do
+    # For chat widget, we generate demo messages for now
+    # In production, this would subscribe to real chat events
+    schedule_demo_message()
+  end
+
+  defp handle_real_event(socket, _event_data) do
+    # Handle real chat events here
+    {:noreply, socket}
+  end
+
+  defp handle_demo_message_generation(socket) do
     new_message = Chat.generate_message()
-    _max_messages = socket.assigns.widget_config.max_messages
 
     # Add new message to stream and let stream handle limiting
     socket = stream_insert(socket, :messages, new_message)
 
     # Keep track of messages for Vue component in a separate assign
-    # Use prepend (O(1)) - Vue component will handle ordering for display
     current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
     updated_vue_messages = [new_message | current_vue_messages]
 
@@ -54,19 +47,11 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     socket = assign(socket, :vue_messages, limited_vue_messages)
 
     # Schedule the next message
-    schedule_next_message()
+    schedule_demo_message()
 
     {:noreply, socket}
   end
 
-  # Handle widget config updates from PubSub
-  def handle_info(%{config: new_config}, socket) do
-    # For now, just update the config. Stream limiting is complex without being able to enumerate streams
-    # In a real implementation, you might track message count separately or reset the stream
-    {:noreply, assign(socket, :widget_config, new_config)}
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="h-screen w-screen">
@@ -84,9 +69,8 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
 
   # Helper functions
 
-  defp schedule_next_message do
-    # 500ms = twice per second
+  defp schedule_demo_message do
     delay = 1000
-    Process.send_after(self(), :generate_message, delay)
+    Process.send_after(self(), :generate_demo_message, delay)
   end
 end

@@ -2,64 +2,63 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   @moduledoc """
   LiveView for configuring alertbox widget settings and OBS browser source URL generation.
   """
-  use StreampaiWeb, :live_view
-  import StreampaiWeb.Components.DashboardLayout
-  alias Streampai.Fake.Alert
+  use StreampaiWeb.WidgetBehaviour,
+    type: :settings,
+    widget_type: :alertbox_widget,
+    fake_module: Streampai.Fake.Alert
 
-  def mount(_params, _session, socket) do
-    current_user = socket.assigns.current_user
+  # Widget-specific implementations
 
-    # Generate initial event immediately
-    initial_event = Alert.generate_event()
+  defp widget_title, do: "Alertbox Widget"
+
+  defp initialize_widget_specific_assigns(socket) do
+    # Generate initial event for preview
+    initial_event = @fake_module.generate_event()
     display_time = Enum.random(3..8)
     initial_event_with_time = Map.put(initial_event, :display_time, display_time)
 
-    IO.puts(
-      "Initial event: #{initial_event.type} - #{initial_event.username} (ID: #{initial_event.id}) - Display time: #{display_time}s"
-    )
-
-    if connected?(socket) do
-      Process.send_after(self(), :generate_event, (display_time + 2) * 1000)
-    end
-
-    {:ok, %{config: initial_config}} =
-      Streampai.Accounts.WidgetConfig.get_by_user_and_type(
-        %{
-          user_id: current_user.id,
-          type: :alertbox_widget
-        },
-        authorize?: false
-      )
-
-    {:ok,
-     socket
-     |> assign(:widget_config, initial_config)
-     |> assign(:current_event, initial_event_with_time)
-     |> assign(:page_title, "Alertbox Widget"), layout: false}
+    socket
+    |> assign(:current_event, initial_event_with_time)
   end
 
-  def handle_info(:generate_event, socket) do
-    new_event = Alert.generate_event()
-    # Random display time between 3-8 seconds
-    display_time = Enum.random(3..8)
-    # 2 seconds gap between events
-    _gap_time = 2
+  defp update_widget_settings(config, params) do
+    # Handle boolean settings (checkboxes that send "on" when checked)
+    boolean_fields = [:sound_enabled, :show_message, :show_amount]
 
-    # Add display_time to event
+    config_with_booleans =
+      StreampaiWeb.Utils.WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
+
+    # Handle other settings (numbers, selects, etc.)
+    Enum.reduce(params, config_with_booleans, fn {key, value}, acc ->
+      case key do
+        key when key in ["sound_enabled", "show_message", "show_amount"] ->
+          # Already handled above
+          acc
+
+        _ ->
+          try do
+            atom_key = String.to_existing_atom(key)
+            converted_value = convert_setting_value(atom_key, value)
+            Map.put(acc, atom_key, converted_value)
+          rescue
+            # Skip invalid field names
+            ArgumentError -> acc
+          end
+      end
+    end)
+  end
+
+  defp generate_and_assign_demo_data(socket) do
+    new_event = @fake_module.generate_event()
+    display_time = Enum.random(3..8)
     event_with_display_time = Map.put(new_event, :display_time, display_time)
 
-    # Add some debugging info
-    IO.puts(
-      "Generated new event: #{new_event.type} - #{new_event.username} (ID: #{new_event.id}) - Display time: #{display_time}s"
-    )
-
-    socket = assign(socket, :current_event, event_with_display_time)
-
-    # Set event to nil 1 second after gap starts (display_time + 1)
-    Process.send_after(self(), :generate_event, (display_time + 2) * 1000)
-    {:noreply, socket}
+    assign(socket, :current_event, event_with_display_time)
   end
 
+  defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 7000)
+
+  # Handle presence updates (inherited from BaseLive)
   def handle_info(
         %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
         socket
@@ -67,83 +66,46 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_setting", params, socket) do
-    current_config = socket.assigns.widget_config
-
-    updated_config = %{
-      current_config
-      | sound_enabled: Map.get(params, "sound_enabled") == "on",
-        show_message: Map.get(params, "show_message") == "on",
-        show_amount: Map.get(params, "show_amount") == "on"
-    }
-
-    broadcast_and_save_config(socket, updated_config)
-    {:noreply, assign(socket, :widget_config, updated_config)}
+  # Let WidgetBehaviour handle other messages
+  def handle_info(msg, socket) do
+    super(msg, socket)
   end
 
-  def handle_event("update_setting", params, socket) do
-    current_config = socket.assigns.widget_config
+  defp convert_setting_value(setting, value) do
+    case setting do
+      :display_duration ->
+        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 1, max: 30)
 
-    {setting, value} =
-      case params do
-        %{"setting" => setting, "value" => value} ->
-          {setting, value}
+      :sound_volume ->
+        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
 
-        %{"_target" => [field]} = p when is_map_key(p, field) ->
-          {field, Map.get(p, field)}
+      :animation_type ->
+        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+          :animation_type,
+          value,
+          ["fade", "slide", "bounce"],
+          "fade"
+        )
 
-        _other ->
-          {"display_duration", "5"}
-      end
+      :alert_position ->
+        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+          :alert_position,
+          value,
+          ["top", "center", "bottom"],
+          "center"
+        )
 
-    atom_setting = String.to_existing_atom(setting)
+      :font_size ->
+        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+          :font_size,
+          value,
+          ["small", "medium", "large"],
+          "medium"
+        )
 
-    converted_value =
-      case atom_setting do
-        :display_duration ->
-          num = String.to_integer(value)
-          max(1, min(30, num))
-
-        :sound_volume ->
-          num = String.to_integer(value)
-          max(0, min(100, num))
-
-        :animation_type ->
-          value
-
-        :alert_position ->
-          value
-
-        :font_size ->
-          value
-
-        _ ->
-          value
-      end
-
-    updated_config = Map.put(current_config, atom_setting, converted_value)
-
-    broadcast_and_save_config(socket, updated_config)
-    {:noreply, assign(socket, :widget_config, updated_config)}
-  end
-
-  defp broadcast_and_save_config(socket, config) do
-    current_user = socket.assigns.current_user
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "widget_config:#{current_user.id}",
-      %{config: config, type: :alertbox_widget}
-    )
-
-    Streampai.Accounts.WidgetConfig.create(
-      %{
-        user_id: current_user.id,
-        type: :alertbox_widget,
-        config: config
-      },
-      actor: current_user
-    )
+      _ ->
+        value
+    end
   end
 
   def render(assigns) do
@@ -195,7 +157,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Display Options</h4>
 
-              <form phx-change="toggle_setting">
+              <form phx-change="update_settings">
                 <div class="space-y-3">
                   <label class="flex items-center">
                     <input
@@ -234,7 +196,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
             <div class="space-y-4">
               <h4 class="font-medium text-gray-700">Alert Settings</h4>
 
-              <form phx-change="update_setting">
+              <form phx-change="update_settings">
                 <div class="space-y-3">
                   <div>
                     <label class="block text-sm text-gray-700 mb-1">Display duration (seconds)</label>

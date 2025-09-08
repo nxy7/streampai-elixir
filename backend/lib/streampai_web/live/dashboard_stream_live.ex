@@ -1,6 +1,5 @@
 defmodule StreampaiWeb.DashboardStreamLive do
   use StreampaiWeb.BaseLive
-  import StreampaiWeb.LiveHelpers, only: [handle_platform_disconnect: 2]
 
   alias Streampai.Dashboard
 
@@ -13,10 +12,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:page_title, "Stream")
 
     {:ok, socket, layout: false}
-  end
-
-  def handle_event("disconnect_platform", %{"platform" => platform_str}, socket) do
-    handle_platform_disconnect(socket, platform_str)
   end
 
   def render(assigns) do
