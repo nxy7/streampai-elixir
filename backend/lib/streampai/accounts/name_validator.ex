@@ -24,7 +24,8 @@ defmodule Streampai.Accounts.NameValidator do
   - {:ok, :current_name, message} if it's the user's current name
   - {:error, reason, message} if name is invalid or taken
   """
-  def validate_availability(name, current_user) when is_binary(name) and not is_nil(current_user) do
+  def validate_availability(name, current_user)
+      when is_binary(name) and not is_nil(current_user) do
     with :ok <- validate_format(name),
          :ok <- validate_length(name),
          :ok <- validate_uniqueness(name, current_user) do

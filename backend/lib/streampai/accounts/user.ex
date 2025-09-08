@@ -32,7 +32,6 @@ defmodule Streampai.Accounts.User do
         redirect_uri Streampai.Secrets
         base_url "https://id.twitch.tv"
         client_authentication_method "client_secret_post"
-        icon :twitch
 
         authorization_params scope: "openid user:read:email",
                              claims:
@@ -403,7 +402,11 @@ defmodule Streampai.Accounts.User do
 
   calculations do
     calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
-    calculate :role, :atom, expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
+
+    calculate :role,
+              :atom,
+              expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
+
     calculate :avatar, :string, expr(extra_data["picture"])
   end
 

@@ -163,7 +163,8 @@ defmodule Mix.Tasks.DevUser do
     users =
       Enum.filter(all_users, fn user ->
         String.contains?(user.email, "@example.com") or
-          (String.contains?(user.email, "test") and user.email != Streampai.Constants.admin_email())
+          (String.contains?(user.email, "test") and
+             user.email != Streampai.Constants.admin_email())
       end)
 
     for user <- users do

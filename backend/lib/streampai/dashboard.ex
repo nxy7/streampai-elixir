@@ -122,6 +122,7 @@ defmodule Streampai.Dashboard do
   def admin?(%User{email: email}) do
     email == Streampai.Constants.admin_email()
   end
+
   def admin?(_), do: false
 
   defp build_connected_actions(connected_platforms) do
