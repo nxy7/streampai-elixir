@@ -118,7 +118,7 @@ defmodule Mix.Tasks.DevUser do
         desc: "Unconfirmed User"
       },
       %{
-        email: "lolnoxy@gmail.com",
+        email: Streampai.Constants.admin_email(),
         admin: true,
         plan: :pro,
         desc: "Super Admin (recognized by email)"
@@ -163,7 +163,8 @@ defmodule Mix.Tasks.DevUser do
     users =
       Enum.filter(all_users, fn user ->
         String.contains?(user.email, "@example.com") or
-          (String.contains?(user.email, "test") and user.email != "lolnoxy@gmail.com")
+          (String.contains?(user.email, "test") and
+             user.email != Streampai.Constants.admin_email())
       end)
 
     for user <- users do
@@ -258,7 +259,7 @@ defmodule Mix.Tasks.DevUser do
       - admin@example.com (admin user)
       - pro@example.com (pro plan user)
       - unconfirmed@example.com (unconfirmed user)
-      - lolnoxy@gmail.com (super admin)
+      - #{Streampai.Constants.admin_email()} (super admin)
 
     All test users have password: password123
     """)

@@ -6,14 +6,14 @@ defmodule Streampai.Accounts.UserPolicy do
   previously scattered across different LiveViews and contexts.
   """
 
-  @admin_emails ["lolnoxy@gmail.com"]
+  @admin_emails [Streampai.Constants.admin_email()]
 
   @doc """
   Checks if a user is an administrator.
 
   ## Examples
 
-      iex> user = %User{email: "lolnoxy@gmail.com"}
+      iex> user = %User{email: Streampai.Constants.admin_email()}
       iex> UserPolicy.admin?(user)
       true
 
