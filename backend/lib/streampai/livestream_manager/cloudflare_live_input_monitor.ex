@@ -8,7 +8,6 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   use GenServer
   require Logger
 
-  alias Streampai.Cloudflare
   alias Streampai.Cloudflare.APIClient
   alias Phoenix.PubSub
 
@@ -203,11 +202,20 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   end
 
   defp find_live_input_for_user(user_id) do
-    Cloudflare.APIClient.get_live_input(user_id)
-    # This would require listing all live inputs and finding the one for this user
-    # For now, return not_found - in practice, the live input ID should be set
-    # when it's created via CloudflareManager
-    # {:error, :not_found}
+    case Streampai.Cloudflare.LiveInput.get_or_fetch_for_user(user_id) do
+      {:ok, [live_input]} ->
+        # Extract the Cloudflare input ID from the stored data
+        case live_input.data do
+          %{"uid" => cloudflare_id} -> {:ok, cloudflare_id}
+          _ -> {:error, :no_cloudflare_id, "Live input exists but has no Cloudflare ID"}
+        end
+
+      {:ok, []} ->
+        {:error, :not_found, "No live input found for user"}
+
+      error ->
+        error
+    end
   end
 
   defp broadcast_status_change(user_id, is_streaming, input_data) do
