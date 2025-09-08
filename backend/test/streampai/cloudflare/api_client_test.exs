@@ -116,21 +116,9 @@ defmodule Streampai.Cloudflare.APIClientTest do
       assert :ok = result
 
       # Success - verify input is gone by trying to get it
-      # Pattern match on the expected error response (404 not found)
-      {:error, {:http_error, 404, body}} = APIClient.get_live_input(input_uid)
-
-      auto_assert %{
-                    "errors" => [
-                      %{
-                        "code" => 10003,
-                        "message" =>
-                          "Not Found: The requested resource or operation was not found."
-                      }
-                    ],
-                    "messages" => nil,
-                    "result" => nil,
-                    "success" => false
-                  } <- body
+      # Should get HTTP error when trying to access deleted input
+      {:error, :http_error, message} = APIClient.get_live_input(input_uid)
+      assert message =~ "HTTP 404 error during get_live_input"
     end
   end
 
@@ -178,7 +166,8 @@ defmodule Streampai.Cloudflare.APIClientTest do
       output_uid = output_response["uid"]
 
       # Cloudflare API doesn't support getting individual outputs, only listing all
-      {:error, {:http_error, 405, _}} = APIClient.get_live_output(input_uid, output_uid)
+      {:error, :http_error, message} = APIClient.get_live_output(input_uid, output_uid)
+      assert message =~ "HTTP 405 error during get_live_output" or message =~ "Method Not Allowed"
     end
 
     test "list live outputs" do
@@ -281,21 +270,10 @@ defmodule Streampai.Cloudflare.APIClientTest do
   describe "error handling" do
     @tag capture_log: true
     test "handles invalid input ID" do
-      {:error, {:http_error, 404, body}} = APIClient.get_live_input("invalid-input-id")
+      {:error, :http_error, message} = APIClient.get_live_input("invalid-input-id")
 
-      # Expected error for invalid input ID
-      auto_assert %{
-                    "errors" => [
-                      %{
-                        "code" => 10003,
-                        "message" =>
-                          "Not Found: The requested resource or operation was not found."
-                      }
-                    ],
-                    "messages" => nil,
-                    "result" => nil,
-                    "success" => false
-                  } <- body
+      # Should get an HTTP 404 error message
+      assert message =~ "HTTP 404 error during get_live_input"
     end
   end
 end
