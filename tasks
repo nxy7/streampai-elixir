@@ -2,7 +2,6 @@
 
 ## Test Coverage & Quality (Critical - only 10% test coverage)
 - Increase test coverage - Currently only 15 test files for 146 source files
-- Add unit tests for core modules: Streampai.Accounts.*, Streampai.Stream.*, LiveView components
 - Add integration tests for external APIs beyond Cloudflare (follow pattern in api_client_test.exs)
 - Add property-based testing for complex business logic using StreamData
 - Add LiveView testing for dashboard components and widget functionality
@@ -10,7 +9,6 @@
 ## Code Organization & Structure
 - Extract shared LiveView patterns - Many dashboard LiveViews (54 total) have similar mount/handle_event patterns
 - Consolidate widget patterns - Standardize the widget creation pattern across alertbox/chat widgets
-- Resolve duplicate 'stream_event' module names found in codebase
 - Break down large files: core_components.ex (730 lines), dashboard_layout.ex (605 lines), donation_live.ex (564 lines)
 - Extract business logic from LiveViews into domain contexts
 - Reduce coupling between web layer and domain logic
