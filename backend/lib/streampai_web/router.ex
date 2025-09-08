@@ -38,6 +38,14 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.ErrorTracker)
   end
 
+  pipeline :rate_limited_auth do
+    plug(:accepts, ["html", "json"])
+    plug(:fetch_session)
+    plug(StreampaiWeb.Plugs.RegistrationLogger)
+    plug(StreampaiWeb.Plugs.RateLimiter, limit: 3, window: 300_000)  # 3 attempts per 5 minutes
+    plug(StreampaiWeb.Plugs.EmailDomainFilter)
+  end
+
   scope "/admin" do
     pipe_through(:admin)
 
@@ -111,6 +119,12 @@ defmodule StreampaiWeb.Router do
     live("/cursors", SharedCursorLive)
     live("/w/:uuid", WidgetDisplayLive)
 
+  end
+
+  # Rate-limited authentication routes to prevent bot registrations
+  scope "/" do
+    pipe_through(:rate_limited_auth)
+    
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
