@@ -1,3 +1,61 @@
+# Code Maintenance & Quality Improvements
+
+## Test Coverage & Quality (Critical - only 10% test coverage)
+- Increase test coverage - Currently only 15 test files for 146 source files
+- Add unit tests for core modules: Streampai.Accounts.*, Streampai.Stream.*, LiveView components
+- Add integration tests for external APIs beyond Cloudflare (follow pattern in api_client_test.exs)
+- Add property-based testing for complex business logic using StreamData
+- Add LiveView testing for dashboard components and widget functionality
+
+## Code Organization & Structure
+- Extract shared LiveView patterns - Many dashboard LiveViews (54 total) have similar mount/handle_event patterns
+- Consolidate widget patterns - Standardize the widget creation pattern across alertbox/chat widgets
+- Resolve duplicate 'stream_event' module names found in codebase
+- Break down large files: core_components.ex (730 lines), dashboard_layout.ex (605 lines), donation_live.ex (564 lines)
+- Extract business logic from LiveViews into domain contexts
+- Reduce coupling between web layer and domain logic
+
+## Documentation & Developer Experience
+- Create architecture decision records (ADRs) for key architectural choices
+- Improve development setup guide with step-by-step setup
+- Document the 4-component widget pattern thoroughly
+- Update existing MD files that seem outdated or incomplete
+
+## Error Handling & Monitoring
+- Standardize error handling across LiveViews and domain modules
+- Add structured logging with proper metadata for debugging
+- Implement health checks for external integrations (Cloudflare, OAuth providers)
+- Add dead letter queue for failed background jobs
+- Implement circuit breaker pattern for external API calls
+
+## Performance & Scalability
+- Database query optimization - Add indexes, review N+1 queries
+- Implement caching strategy - Phoenix cache, ETS, or Redis for frequently accessed data
+- Optimize LiveView updates - Use stream/3 for large lists, minimize unnecessary re-renders
+- Background job optimization - Review Oban job processing patterns
+- Asset optimization - Bundle analysis, code splitting for large components
+
+## Configuration & Environment Management
+- Add environment-specific configs validation at startup
+- Improve secret management beyond current Streampai.Secrets
+- Add feature flags system for gradual rollouts
+- Add runtime configuration validation
+
+## Code Quality & Standards
+- Configure Credo rules consistently
+- Regular dependency updates and security scanning
+
+## Security & Compliance
+- Standardize input validation across forms
+- Add rate limiting for API endpoints
+- Verify CSRF protection across application
+- Add dependency security scanning
+
+## Monitoring & Observability
+- Add application metrics - Response times, error rates, user engagement
+- Add business metrics tracking - Stream events, widget usage, user growth
+- Implement alerting strategy for critical failures
+- Add performance profiling tools integration
 
 # Short Term
 - add ability to start stream (it's basically changing some inner state in our app and creating live outputs)
