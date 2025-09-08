@@ -57,14 +57,13 @@ defmodule Streampai.Accounts.User do
         }
       end
 
-      # Password registration disabled due to bot attacks
-      # password :password do
-      #   identity_field :email
-      #
-      #   resettable do
-      #     sender Streampai.Accounts.User.Senders.SendPasswordResetEmail
-      #   end
-      # end
+      password :password do
+        identity_field :email
+
+        resettable do
+          sender Streampai.Accounts.User.Senders.SendPasswordResetEmail
+        end
+      end
     end
 
     add_ons do
@@ -158,29 +157,28 @@ defmodule Streampai.Accounts.User do
       change after_action(&oauth_confirmation_validation/3)
     end
 
-    # Password sign-in disabled due to bot attacks
-    # read :sign_in_with_password do
-    #   description "Attempt to sign in using a email and password."
-    #   get? true
+    read :sign_in_with_password do
+      description "Attempt to sign in using a email and password."
+      get? true
 
-    #   argument :email, :string do
-    #     description "The email to use for retrieving the user."
-    #     allow_nil? false
-    #   end
+      argument :email, :string do
+        description "The email to use for retrieving the user."
+        allow_nil? false
+      end
 
-    #   argument :password, :string do
-    #     description "The password to check for the matching user."
-    #     allow_nil? false
-    #     sensitive? true
-    #   end
+      argument :password, :string do
+        description "The password to check for the matching user."
+        allow_nil? false
+        sensitive? true
+      end
 
-    #   prepare AshAuthentication.Strategy.Password.SignInPreparation
+      prepare AshAuthentication.Strategy.Password.SignInPreparation
 
-    #   metadata :token, :string do
-    #     description "A JWT that can be used to authenticate the user."
-    #     allow_nil? false
-    #   end
-    # end
+      metadata :token, :string do
+        description "A JWT that can be used to authenticate the user."
+        allow_nil? false
+      end
+    end
 
     read :sign_in_with_token do
       description "Attempt to sign in using a short-lived sign in token."

@@ -142,7 +142,7 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
                   <tr class={"#{if @current_user.id == user.id, do: "bg-purple-50", else: "hover:bg-gray-50"}"}>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
-                        <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                        <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
                           <%= if user.avatar do %>
                             <img
                               class="w-10 h-10 rounded-full"
@@ -169,7 +169,7 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
                         </div>
                       </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                       {user.email}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">

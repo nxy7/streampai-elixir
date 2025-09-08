@@ -20,10 +20,13 @@ defmodule StreampaiWeb.Plugs.EmailDomainFilter do
     case conn.path_info do
       ["auth", "user", "password", "register"] ->
         check_email_domain(conn)
+
       ["auth", "user", "google", "callback"] ->
         check_oauth_email(conn)
+
       ["auth", "user", "twitch", "callback"] ->
         check_oauth_email(conn)
+
       _ ->
         conn
     end
@@ -50,7 +53,7 @@ defmodule StreampaiWeb.Plugs.EmailDomainFilter do
 
   defp validate_email_domain(conn, email) do
     domain = email |> String.split("@") |> List.last() |> String.downcase()
-    
+
     if domain in @suspicious_domains do
       conn
       |> put_status(:forbidden)
