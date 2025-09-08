@@ -99,9 +99,9 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
         new_state = %{state | live_input_id: input_id}
         poll_stream_status(new_state)
 
-      {:error, reason} ->
+      {:error, _error_type, message} ->
         Logger.warning(
-          "[CloudflareLiveInputMonitor:#{state.user_id}] Error finding live input: #{inspect(reason)}"
+          "[CloudflareLiveInputMonitor:#{state.user_id}] Error finding live input: #{inspect(message)}"
         )
 
         handle_poll_failure(state)
@@ -114,22 +114,32 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
         new_streaming_status = extract_streaming_status(input_data)
         handle_status_change(state, new_streaming_status, input_data)
 
-      {:error, {:http_error, 404, _}} ->
-        Logger.warning(
-          "[CloudflareLiveInputMonitor:#{state.user_id}] Live input #{input_id} not found, clearing ID"
-        )
+      {:error, :http_error, message} ->
+        case message do
+          "HTTP 404 error during get_live_input" ->
+            Logger.warning(
+              "[CloudflareLiveInputMonitor:#{state.user_id}] Live input #{input_id} not found, clearing ID"
+            )
 
-        %{
-          state
-          | live_input_id: nil,
-            is_streaming: false,
-            consecutive_failures: 0,
-            poll_count: state.poll_count + 1
-        }
+            %{
+              state
+              | live_input_id: nil,
+                is_streaming: false,
+                consecutive_failures: 0,
+                poll_count: state.poll_count + 1
+            }
 
-      {:error, reason} ->
+          _ ->
+            Logger.warning(
+              "[CloudflareLiveInputMonitor:#{state.user_id}] Failed to get live input status: #{inspect(message)}"
+            )
+
+            handle_poll_failure(state)
+        end
+
+      {:error, _error_type, message} ->
         Logger.warning(
-          "[CloudflareLiveInputMonitor:#{state.user_id}] Failed to get live input status: #{inspect(reason)}"
+          "[CloudflareLiveInputMonitor:#{state.user_id}] Failed to get live input status: #{inspect(message)}"
         )
 
         handle_poll_failure(state)

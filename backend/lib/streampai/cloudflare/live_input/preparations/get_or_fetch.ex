@@ -40,7 +40,7 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
             |> Ash.Changeset.for_update(:update, %{data: fresh_data})
             |> Ash.update()
 
-          {:error, _reason} ->
+          {:error, _error_type, _message} ->
             # If get fails, create a new one
             create_from_api(user_id)
         end
