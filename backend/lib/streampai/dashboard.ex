@@ -251,7 +251,7 @@ defmodule Streampai.Dashboard do
       },
       %{
         title: "Chat Messages",
-        value: format_large_number(generate_count(500, 15000, rand_state)),
+        value: format_large_number(generate_count(500, 15_000, rand_state)),
         change: generate_percentage_change(rand_state),
         change_type: :positive,
         icon: "chat-bubble-left",

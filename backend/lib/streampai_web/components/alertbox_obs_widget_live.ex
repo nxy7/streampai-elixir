@@ -140,22 +140,44 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     end
   end
 
-  # Determine display duration based on event type and priority
   defp get_display_duration(event) do
-    case {event.type, Map.get(event, :amount), Map.get(event, :viewer_count),
-          Map.get(event, :bits)} do
-      {:donation, amount, _, _} when is_number(amount) and amount >= 50 -> 8
-      {:donation, amount, _, _} when is_number(amount) and amount >= 10 -> 6
-      {:donation, _, _, _} -> 4
-      {:raid, _, viewer_count, _} when is_number(viewer_count) and viewer_count >= 10 -> 6
-      {:raid, _, _, _} -> 4
-      {:cheer, _, _, bits} when is_number(bits) and bits >= 100 -> 4
-      {:cheer, _, _, _} -> 3
-      {:subscription, _, _, _} -> 5
-      {:follow, _, _, _} -> 3
-      {:chat_message, _, _, _} -> 2
-      # Default duration
+    case event.type do
+      :donation -> get_donation_duration(event)
+      :raid -> get_raid_duration(event)
+      :cheer -> get_cheer_duration(event)
+      :subscription -> 5
+      :follow -> 3
       _ -> 4
+    end
+  end
+
+  defp get_donation_duration(event) do
+    amount = Map.get(event, :amount)
+
+    cond do
+      is_number(amount) and amount >= 50 -> 8
+      is_number(amount) and amount >= 10 -> 6
+      true -> 4
+    end
+  end
+
+  defp get_raid_duration(event) do
+    viewer_count = Map.get(event, :viewer_count)
+
+    if is_number(viewer_count) and viewer_count >= 10 do
+      6
+    else
+      4
+    end
+  end
+
+  defp get_cheer_duration(event) do
+    bits = Map.get(event, :bits)
+
+    if is_number(bits) and bits >= 100 do
+      4
+    else
+      3
     end
   end
 
