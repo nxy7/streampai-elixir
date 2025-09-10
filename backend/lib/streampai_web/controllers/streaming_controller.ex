@@ -56,32 +56,9 @@ defmodule StreampaiWeb.MultiProviderAuth do
   end
 
   defp create_or_update_streaming_account(user, auth, provider) do
-    # Map OAuth providers to our platform enum values
-    platform =
-      case provider do
-        "google" -> :youtube
-        "twitch" -> :twitch
-        _ -> raise "Unsupported provider"
-      end
-
-    extra_data = %{
-      email:
-        auth.info.email || extract_from_raw_info(auth, "email") ||
-          extract_from_jwt(auth, "email"),
-      name:
-        auth.info.name || auth.info.first_name || extract_from_raw_info(auth, "name") ||
-          extract_from_raw_info(auth, "given_name") || extract_from_jwt(auth, "name") ||
-          extract_from_jwt(auth, "given_name"),
-      nickname:
-        auth.info.nickname || auth.info.name || extract_from_raw_info(auth, "given_name") ||
-          extract_from_raw_info(auth, "name") || extract_from_jwt(auth, "given_name") ||
-          extract_from_jwt(auth, "name"),
-      image:
-        auth.info.image || extract_from_raw_info(auth, "picture") ||
-          extract_from_jwt(auth, "picture"),
-      uid: auth.uid
-    }
-
+    platform = map_provider_to_platform(provider)
+    extra_data = extract_user_data(auth)
+    
     account_params = %{
       user_id: user.id,
       platform: platform,
@@ -92,6 +69,62 @@ defmodule StreampaiWeb.MultiProviderAuth do
     }
 
     Streampai.Accounts.StreamingAccount.create(account_params, upsert?: true, actor: user)
+  end
+
+  defp map_provider_to_platform("google"), do: :youtube
+  defp map_provider_to_platform("twitch"), do: :twitch
+  defp map_provider_to_platform(_), do: raise("Unsupported provider")
+
+  defp extract_user_data(auth) do
+    %{
+      email: extract_email(auth),
+      name: extract_name(auth),
+      nickname: extract_nickname(auth),
+      image: extract_image(auth),
+      uid: auth.uid
+    }
+  end
+
+  defp extract_email(auth) do
+    find_first_non_nil([
+      auth.info.email,
+      extract_from_raw_info(auth, "email"),
+      extract_from_jwt(auth, "email")
+    ])
+  end
+
+  defp extract_name(auth) do
+    find_first_non_nil([
+      auth.info.name,
+      auth.info.first_name,
+      extract_from_raw_info(auth, "name"),
+      extract_from_raw_info(auth, "given_name"),
+      extract_from_jwt(auth, "name"),
+      extract_from_jwt(auth, "given_name")
+    ])
+  end
+
+  defp extract_nickname(auth) do
+    find_first_non_nil([
+      auth.info.nickname,
+      auth.info.name,
+      extract_from_raw_info(auth, "given_name"),
+      extract_from_raw_info(auth, "name"),
+      extract_from_jwt(auth, "given_name"),
+      extract_from_jwt(auth, "name")
+    ])
+  end
+
+  defp extract_image(auth) do
+    find_first_non_nil([
+      auth.info.image,
+      extract_from_raw_info(auth, "picture"),
+      extract_from_jwt(auth, "picture")
+    ])
+  end
+
+  defp find_first_non_nil(values) do
+    Enum.find(values, &(&1 != nil))
   end
 
   defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}})
