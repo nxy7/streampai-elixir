@@ -270,7 +270,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     # Running managers
     IO.puts("\n⚡ Running UserStreamManagers:")
 
-    if length(managed) == 0 do
+    if Enum.empty?(managed) do
       IO.puts("  None")
     else
       Enum.each(managed, fn user_id ->

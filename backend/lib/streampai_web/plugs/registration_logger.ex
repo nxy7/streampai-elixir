@@ -34,13 +34,13 @@ defmodule StreampaiWeb.Plugs.RegistrationLogger do
         _ -> "oauth_flow"
       end
 
-    Logger.info("Registration attempt",
+    Logger.info("Registration attempt", %{
       method: method,
       email: email,
       ip: client_ip,
       user_agent: user_agent,
       timestamp: DateTime.utc_now()
-    )
+    })
 
     conn
   end

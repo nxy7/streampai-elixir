@@ -36,13 +36,7 @@ defmodule StreampaiWeb.WidgetDisplayLive do
   end
 
   def handle_info({:timer_tick, count}, socket) do
-    IO.puts(
-      "LiveView received timer tick: #{count}, current timer_count: #{socket.assigns[:timer_count]}"
-    )
-
-    new_socket = assign(socket, timer_count: count)
-    IO.puts("Updated timer_count to: #{new_socket.assigns.timer_count}")
-    {:noreply, new_socket}
+    {:noreply, assign(socket, timer_count: count)}
   end
 
   def terminate(_reason, socket) do
@@ -113,10 +107,6 @@ defmodule StreampaiWeb.WidgetDisplayLive do
 
   defp maybe_start_timer_server(socket, %{type: "timer"} = widget) do
     if socket.assigns[:timer_pid] && Process.alive?(socket.assigns.timer_pid) do
-      IO.puts(
-        "Timer already running for widget #{widget.id}, PID: #{inspect(socket.assigns.timer_pid)}"
-      )
-
       socket
     else
       start_timer_server(socket, widget)
@@ -126,16 +116,12 @@ defmodule StreampaiWeb.WidgetDisplayLive do
   defp maybe_start_timer_server(socket, _widget), do: socket
 
   defp start_timer_server(socket, widget) do
-    IO.puts("Starting timer server for widget #{widget.id}, LiveView PID: #{inspect(self())}")
-
     case Streampai.Widgets.TimerServer.start_timer(widget.id, self()) do
       {:ok, pid} ->
-        IO.puts("Timer server started successfully: #{inspect(pid)}")
         Process.link(pid)
         assign(socket, timer_count: 0, timer_pid: pid)
 
-      {:error, reason} ->
-        IO.puts("Failed to start timer server: #{inspect(reason)}")
+      {:error, _reason} ->
         assign(socket, timer_count: 0, timer_pid: nil)
     end
   end
