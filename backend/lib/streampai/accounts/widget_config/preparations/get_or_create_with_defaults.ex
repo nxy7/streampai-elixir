@@ -20,7 +20,6 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
           {:ok, [default_record]}
 
         [result] ->
-
           merged_config =
             Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
 
