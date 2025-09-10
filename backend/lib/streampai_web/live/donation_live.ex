@@ -7,6 +7,7 @@ defmodule StreampaiWeb.DonationLive do
 
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPreferences
+  alias Streampai.Jobs.DonationTtsJob
 
   require Logger
 
@@ -98,31 +99,32 @@ defmodule StreampaiWeb.DonationLive do
 
     # Create donation event data
     donation_event = %{
-      type: "donation",
-      amount: amount,
-      currency: preferences.donation_currency || "USD",
-      donor_name: params["donor_name"] || "Anonymous",
-      message: params["message"] || "",
-      voice: params["voice"] || "default",
-      timestamp: DateTime.utc_now()
+      "type" => "donation",
+      "amount" => amount,
+      "currency" => preferences.donation_currency || "USD",
+      "donor_name" => params["donor_name"] || "Anonymous",
+      "message" => params["message"] || "",
+      "voice" => params["voice"] || "default",
+      "timestamp" => DateTime.to_iso8601(DateTime.utc_now())
     }
 
-    Logger.info("Broadcasting donation event to PubSub", %{
+    Logger.info("Scheduling donation TTS job", %{
       user_id: user.id,
-      channel: "donations:#{user.id}",
-      donation_event: donation_event
+      donor_name: donation_event["donor_name"],
+      amount: amount
     })
 
-    # Broadcast to user's donation channel - AlertQueue will pick this up
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "donations:#{user.id}",
-      {:new_donation, donation_event}
-    )
+    # Schedule Oban job to process TTS and broadcast alert event
+    case DonationTtsJob.schedule_donation_tts(user.id, donation_event) do
+      {:ok, _job} ->
+        Logger.info("Donation TTS job scheduled successfully", %{user_id: user.id})
 
-    Logger.info("Donation event broadcast completed", %{
-      user_id: user.id
-    })
+      {:error, reason} ->
+        Logger.error("Failed to schedule donation TTS job", %{
+          user_id: user.id,
+          reason: inspect(reason)
+        })
+    end
 
     # Simulate processing success
     {:noreply,
