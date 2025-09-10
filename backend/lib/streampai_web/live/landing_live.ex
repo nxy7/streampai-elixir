@@ -19,95 +19,81 @@ defmodule StreampaiWeb.LandingLive do
   end
 
   def handle_event("newsletter_signup", %{"email" => email}, socket) do
-    start_time = System.monotonic_time(:millisecond)
-    IO.puts("Newsletter signup started at #{start_time}")
-
     socket = assign(socket, newsletter_message: nil, newsletter_error: nil)
 
-    case Streampai.Accounts.NewsletterEmail
-         |> Ash.Changeset.for_create(:create, %{email: email})
-         |> Ash.create() do
+    case create_newsletter_email(email) do
       {:ok, _newsletter_email} ->
-        socket =
-          socket
-          |> assign(newsletter_message: "Your email has been added to our newsletter")
-          |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
-
-        # Clear flash after 4 seconds
-        Process.send_after(self(), :clear_flash, 7000)
-
-        end_time = System.monotonic_time(:millisecond)
-
-        IO.puts(
-          "Newsletter signup SUCCESS completed at #{end_time}, took #{end_time - start_time}ms"
-        )
-
-        {:noreply, socket}
+        handle_newsletter_success(socket)
 
       {:error, changeset} ->
-        # Check for duplicate email (unique constraint violation)
-        # Since email is the primary key, Ash will return "has already been taken" for duplicates
-        is_duplicate_email =
-          changeset.errors
-          |> Enum.any?(fn error ->
-            case error do
-              %{field: :email, message: message} when is_binary(message) ->
-                # Check for common duplicate/uniqueness error messages
-                message_lower = String.downcase(message)
+        handle_newsletter_error(socket, changeset)
+    end
+  end
 
-                String.contains?(message_lower, "has already been taken") ||
-                  String.contains?(message_lower, "already been taken") ||
-                  String.contains?(message_lower, "already exists") ||
-                  String.contains?(message_lower, "unique") ||
-                  String.contains?(message_lower, "constraint") ||
-                  String.contains?(message_lower, "duplicate")
+  defp create_newsletter_email(email) do
+    Streampai.Accounts.NewsletterEmail
+    |> Ash.Changeset.for_create(:create, %{email: email})
+    |> Ash.create()
+  end
 
-              %{field: :email} ->
-                # Only consider this a duplicate if we can't determine from the message
-                false
+  defp handle_newsletter_success(socket) do
+    socket =
+      socket
+      |> assign(newsletter_message: "Your email has been added to our newsletter")
+      |> put_flash(:info, "Thanks! We'll notify you when Streampai launches.")
 
-              _ ->
-                false
-            end
-          end)
+    Process.send_after(self(), :clear_flash, 7000)
+    {:noreply, socket}
+  end
 
-        if is_duplicate_email do
-          socket =
-            socket
-            |> assign(newsletter_message: "You're already subscribed to our newsletter!")
-            |> put_flash(:info, "You're already subscribed to our newsletter!")
+  defp handle_newsletter_error(socket, changeset) do
+    if is_duplicate_email?(changeset) do
+      handle_duplicate_email(socket)
+    else
+      handle_validation_error(socket, changeset)
+    end
+  end
 
-          # Clear flash after 4 seconds
-          Process.send_after(self(), :clear_flash, 4000)
+  defp handle_duplicate_email(socket) do
+    socket =
+      socket
+      |> assign(newsletter_message: "You're already subscribed to our newsletter!")
+      |> put_flash(:info, "You're already subscribed to our newsletter!")
 
-          end_time = System.monotonic_time(:millisecond)
+    Process.send_after(self(), :clear_flash, 4000)
+    {:noreply, socket}
+  end
 
-          IO.puts(
-            "Newsletter signup DUPLICATE completed at #{end_time}, took #{end_time - start_time}ms"
-          )
+  defp handle_validation_error(socket, changeset) do
+    error_message = extract_error_message(changeset)
+    
+    socket =
+      socket
+      |> assign(newsletter_error: error_message)
+      |> put_flash(:error, error_message)
 
-          {:noreply, socket}
-        else
-          # Handle other validation errors (like invalid email format)
-          error_message =
-            case changeset.errors do
-              [%{field: :email, message: message} | _] -> message
-              _ -> "Please enter a valid email address."
-            end
+    {:noreply, socket}
+  end
 
-          socket =
-            socket
-            |> assign(newsletter_error: error_message)
-            |> put_flash(:error, error_message)
+  defp is_duplicate_email?(changeset) do
+    Enum.any?(changeset.errors, &is_duplicate_error?/1)
+  end
 
-          end_time = System.monotonic_time(:millisecond)
+  defp is_duplicate_error?(%{field: :email, message: message}) when is_binary(message) do
+    message_lower = String.downcase(message)
+    duplicate_keywords = [
+      "has already been taken", "already been taken", "already exists",
+      "unique", "constraint", "duplicate"
+    ]
+    Enum.any?(duplicate_keywords, &String.contains?(message_lower, &1))
+  end
 
-          IO.puts(
-            "Newsletter signup ERROR completed at #{end_time}, took #{end_time - start_time}ms"
-          )
+  defp is_duplicate_error?(_), do: false
 
-          {:noreply, socket}
-        end
+  defp extract_error_message(changeset) do
+    case changeset.errors do
+      [%{field: :email, message: message} | _] -> message
+      _ -> "Please enter a valid email address."
     end
   end
 
