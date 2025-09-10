@@ -11,8 +11,6 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
 
       case results do
         [] ->
-          IO.puts("no config, creating default")
-
           default_record = %Streampai.Accounts.WidgetConfig{
             user_id: Ash.Query.get_argument(query, :user_id),
             type: Ash.Query.get_argument(query, :type),
@@ -22,7 +20,6 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
           {:ok, [default_record]}
 
         [result] ->
-          IO.puts("found res" <> inspect(result))
 
           merged_config =
             Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
