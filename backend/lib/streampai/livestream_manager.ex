@@ -4,14 +4,14 @@ defmodule Streampai.LivestreamManager do
   Provides public API for managing user livestreams.
   """
 
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.{UserStreamManager, UserSupervisor}
 
   @doc """
   Gets the existing user stream manager or creates it if it doesn't exist.
   Returns the PID of the UserStreamManager process.
   """
   def start_user_stream(user_id) when is_binary(user_id) do
-    Streampai.LivestreamManager.UserSupervisor.get_user_stream(user_id)
+    UserSupervisor.get_user_stream(user_id)
   end
 
   @doc """
@@ -55,7 +55,7 @@ defmodule Streampai.LivestreamManager do
   end
 
   defp get_user_stream_pid(user_id) do
-    Streampai.LivestreamManager.UserSupervisor.get_user_stream(user_id)
+    UserSupervisor.get_user_stream(user_id)
   end
 
   @doc """

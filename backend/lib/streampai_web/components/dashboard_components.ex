@@ -7,6 +7,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   """
   use Phoenix.Component
 
+  alias Streampai.Accounts.StreamingAccount
+
   @doc """
   Renders a dashboard card with consistent styling.
 
@@ -447,7 +449,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   # Helper function to check if a user can connect a platform using Ash policies
   defp can_connect_platform?(user, platform) when not is_nil(user) do
-    Streampai.Accounts.StreamingAccount.can_create?(user, %{platform: platform})
+    StreamingAccount.can_create?(user, %{platform: platform})
   end
 
   defp can_connect_platform?(_user, _platform), do: false

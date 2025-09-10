@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   use DynamicSupervisor
 
   alias Streampai.LivestreamManager.Platforms
+  alias Streampai.Accounts.StreamingAccount
 
   def start_link(user_id) when is_binary(user_id) do
     DynamicSupervisor.start_link(__MODULE__, user_id, name: via_tuple(user_id))
@@ -119,7 +120,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
     Process.sleep(100)
 
     # Load user's platforms and start managers
-    case Streampai.Accounts.StreamingAccount.for_user(user_id) do
+    case StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->
         Enum.each(accounts, fn account ->
           platform_config = %{

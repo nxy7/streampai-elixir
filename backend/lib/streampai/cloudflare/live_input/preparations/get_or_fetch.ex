@@ -1,40 +1,43 @@
-defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
+defmodule LiveInput.Preparations.GetOrFetch do
   @moduledoc """
   Preparation for getting or fetching live input with 6-hour refresh logic.
   """
   use Ash.Resource.Preparation
 
+  alias Streampai.Cloudflare.{APIClient, LiveInput}
+
   def prepare(query, _opts, _context) do
     Ash.Query.after_action(query, fn _query, _results ->
       user_id = Ash.Query.get_argument(query, :user_id)
-
-      case Streampai.Cloudflare.LiveInput.get_or_fetch_for_user(user_id) do
-        {:ok, [live_input]} ->
-          six_hours_ago = DateTime.utc_now() |> DateTime.add(-6, :hour)
-
-          if DateTime.compare(live_input.updated_at, six_hours_ago) == :gt do
-            # Data is fresh
-            {:ok, live_input}
-          else
-            # Data is stale, refresh from API
-            refresh_from_api(live_input, user_id)
-          end
-
-        {:ok, []} ->
-          # No existing record, create new
-          create_from_api(user_id)
-
-        error ->
-          error
-      end
+      handle_live_input_for_user(user_id)
     end)
+  end
+
+  defp handle_live_input_for_user(user_id) do
+    case LiveInput.get_or_fetch_for_user(user_id) do
+      {:ok, [live_input]} -> handle_existing_live_input(live_input, user_id)
+      {:ok, []} -> create_from_api(user_id)
+      error -> error
+    end
+  end
+
+  defp handle_existing_live_input(live_input, user_id) do
+    six_hours_ago = DateTime.utc_now() |> DateTime.add(-6, :hour)
+
+    if DateTime.compare(live_input.updated_at, six_hours_ago) == :gt do
+      # Data is fresh
+      {:ok, live_input}
+    else
+      # Data is stale, refresh from API
+      refresh_from_api(live_input, user_id)
+    end
   end
 
   defp refresh_from_api(live_input, user_id) do
     case live_input.data do
       %{"uid" => cloudflare_id} ->
         # We have a Cloudflare ID, try to get updated data
-        case Streampai.Cloudflare.APIClient.get_live_input(cloudflare_id) do
+        case APIClient.get_live_input(cloudflare_id) do
           {:ok, fresh_data} ->
             live_input
             |> Ash.Changeset.for_update(:update, %{data: fresh_data})
@@ -52,9 +55,9 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
   end
 
   defp create_from_api(user_id) do
-    case Streampai.Cloudflare.APIClient.create_live_input(user_id) do
+    case APIClient.create_live_input(user_id) do
       {:ok, cloudflare_data} ->
-        Ash.Changeset.for_create(Streampai.Cloudflare.LiveInput, :create, %{
+        Ash.Changeset.for_create(LiveInput, :create, %{
           user_id: user_id,
           data: cloudflare_data
         })

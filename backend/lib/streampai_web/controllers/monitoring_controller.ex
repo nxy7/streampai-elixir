@@ -4,6 +4,8 @@ defmodule StreampaiWeb.MonitoringController do
   """
   use StreampaiWeb, :controller
 
+  alias StreampaiWeb.Plugs.ErrorTracker
+
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
 
@@ -45,18 +47,18 @@ defmodule StreampaiWeb.MonitoringController do
 
   def errors(conn, params) do
     limit = String.to_integer(params["limit"] || "50")
-    errors = StreampaiWeb.Plugs.ErrorTracker.list_errors(limit)
+    errors = ErrorTracker.list_errors(limit)
 
     conn
     |> put_resp_content_type("application/json")
     |> json(%{
       errors: errors,
-      total_count: StreampaiWeb.Plugs.ErrorTracker.error_count()
+      total_count: ErrorTracker.error_count()
     })
   end
 
   def error_detail(conn, %{"id" => error_id}) do
-    case StreampaiWeb.Plugs.ErrorTracker.get_error(error_id) do
+    case ErrorTracker.get_error(error_id) do
       nil ->
         conn
         |> put_status(:not_found)
@@ -111,20 +113,18 @@ defmodule StreampaiWeb.MonitoringController do
   end
 
   defp collect_database_metrics do
-    try do
-      pool_size = Streampai.Repo.config()[:pool_size] || 0
+    pool_size = Streampai.Repo.config()[:pool_size] || 0
 
-      %{
-        pool_size: pool_size,
-        status: "connected"
-      }
-    rescue
-      _ -> %{status: "unavailable"}
-    end
+    %{
+      pool_size: pool_size,
+      status: "connected"
+    }
+  rescue
+    _ -> %{status: "unavailable"}
   end
 
   defp collect_error_metrics do
-    errors = StreampaiWeb.Plugs.ErrorTracker.list_errors(100)
+    errors = ErrorTracker.list_errors(100)
 
     recent_errors =
       Enum.filter(errors, fn error ->
@@ -132,7 +132,7 @@ defmodule StreampaiWeb.MonitoringController do
       end)
 
     %{
-      total_errors: StreampaiWeb.Plugs.ErrorTracker.error_count(),
+      total_errors: ErrorTracker.error_count(),
       recent_errors_1h: length(recent_errors),
       error_types: Enum.frequencies_by(recent_errors, & &1.type),
       status_codes: Enum.frequencies_by(recent_errors, & &1[:status])

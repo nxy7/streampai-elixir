@@ -7,6 +7,8 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     widget_type: :alertbox_widget,
     fake_module: Streampai.Fake.Alert
 
+  alias StreampaiWeb.Utils.WidgetHelpers
+
   # Widget-specific implementations
 
   defp widget_title, do: "Alertbox Widget"
@@ -26,7 +28,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     boolean_fields = [:sound_enabled, :show_message, :show_amount]
 
     config_with_booleans =
-      StreampaiWeb.Utils.WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
+      WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
 
     # Handle other settings (numbers, selects, etc.)
     Enum.reduce(params, config_with_booleans, fn {key, value}, acc ->
@@ -74,13 +76,13 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :display_duration ->
-        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 1, max: 30)
+        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 30)
 
       :sound_volume ->
-        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
+        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
 
       :animation_type ->
-        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+        WidgetHelpers.validate_config_value(
           :animation_type,
           value,
           ["fade", "slide", "bounce"],
@@ -88,7 +90,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
         )
 
       :alert_position ->
-        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+        WidgetHelpers.validate_config_value(
           :alert_position,
           value,
           ["top", "center", "bottom"],
@@ -96,7 +98,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
         )
 
       :font_size ->
-        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+        WidgetHelpers.validate_config_value(
           :font_size,
           value,
           ["small", "medium", "large"],

@@ -47,7 +47,7 @@ defmodule StreampaiWeb.LandingLive do
   end
 
   defp handle_newsletter_error(socket, changeset) do
-    if is_duplicate_email?(changeset) do
+    if duplicate_email?(changeset) do
       handle_duplicate_email(socket)
     else
       handle_validation_error(socket, changeset)
@@ -75,11 +75,11 @@ defmodule StreampaiWeb.LandingLive do
     {:noreply, socket}
   end
 
-  defp is_duplicate_email?(changeset) do
-    Enum.any?(changeset.errors, &is_duplicate_error?/1)
+  defp duplicate_email?(changeset) do
+    Enum.any?(changeset.errors, &duplicate_error?/1)
   end
 
-  defp is_duplicate_error?(%{field: :email, message: message}) when is_binary(message) do
+  defp duplicate_error?(%{field: :email, message: message}) when is_binary(message) do
     message_lower = String.downcase(message)
 
     duplicate_keywords = [
@@ -94,7 +94,7 @@ defmodule StreampaiWeb.LandingLive do
     Enum.any?(duplicate_keywords, &String.contains?(message_lower, &1))
   end
 
-  defp is_duplicate_error?(_), do: false
+  defp duplicate_error?(_), do: false
 
   defp extract_error_message(changeset) do
     case changeset.errors do

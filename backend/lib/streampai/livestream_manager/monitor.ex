@@ -224,47 +224,41 @@ defmodule Streampai.LivestreamManager.Monitor do
   end
 
   defp get_user_status(pid) do
-    try do
-      stream_state = UserStreamManager.get_state(pid)
-      queue_status = UserStreamManager.get_alert_queue_status(pid)
+    stream_state = UserStreamManager.get_state(pid)
+    queue_status = UserStreamManager.get_alert_queue_status(pid)
 
-      %{
-        stream_status: stream_state.status,
-        queue_length: queue_status.queue_length,
-        queue_state: queue_status.queue_state
-      }
-    rescue
-      _ -> %{stream_status: :error, queue_length: 0, queue_state: :error}
-    end
+    %{
+      stream_status: stream_state.status,
+      queue_length: queue_status.queue_length,
+      queue_state: queue_status.queue_state
+    }
+  rescue
+    _ -> %{stream_status: :error, queue_length: 0, queue_state: :error}
   end
 
   defp get_process_uptime(pid) do
-    try do
-      # Get process start time from process info
-      case Process.info(pid, :start_time) do
-        {:start_time, start_time} ->
-          now = System.monotonic_time(:microsecond)
-          # Convert to milliseconds
-          (now - start_time) |> div(1000)
+    # Get process start time from process info
+    case Process.info(pid, :start_time) do
+      {:start_time, start_time} ->
+        now = System.monotonic_time(:microsecond)
+        # Convert to milliseconds
+        (now - start_time) |> div(1000)
 
-        nil ->
-          0
-      end
-    rescue
-      _ -> 0
+      nil ->
+        0
     end
+  rescue
+    _ -> 0
   end
 
   defp get_child_processes(supervisor_pid) do
-    try do
-      Supervisor.which_children(supervisor_pid)
-      |> Enum.map(fn {name, pid, _type, _modules} ->
-        status = if Process.alive?(pid), do: :alive, else: :dead
-        {name, pid, status}
-      end)
-    rescue
-      _ -> []
-    end
+    Supervisor.which_children(supervisor_pid)
+    |> Enum.map(fn {name, pid, _type, _modules} ->
+      status = if Process.alive?(pid), do: :alive, else: :dead
+      {name, pid, status}
+    end)
+  rescue
+    _ -> []
   end
 
   defp format_uptime(uptime_ms) when is_integer(uptime_ms) do

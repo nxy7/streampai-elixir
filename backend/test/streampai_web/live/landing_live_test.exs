@@ -33,7 +33,7 @@ defmodule StreampaiWeb.LandingLiveTest do
       # Verify email was actually saved to database using Ash
       result =
         NewsletterEmail
-        |> Ash.Query.filter(email == email)
+        |> Ash.Query.filter(email == "test@example.com")
         |> Ash.read()
 
       auto_assert {:ok, [%NewsletterEmail{email: "test@example.com"}]} <- result
