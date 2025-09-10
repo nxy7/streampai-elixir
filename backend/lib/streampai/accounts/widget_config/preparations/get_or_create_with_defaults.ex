@@ -4,6 +4,10 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
   """
   use Ash.Resource.Preparation
 
+  alias Streampai.Accounts.WidgetConfig
+  alias Streampai.Fake
+  alias StreampaiWeb.Utils.MapUtils
+
   def prepare(query, _opts, _context) do
     Ash.Query.after_action(query, fn _query, results ->
       widget_type = Ash.Query.get_argument(query, :type)
@@ -11,7 +15,7 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
 
       case results do
         [] ->
-          default_record = %Streampai.Accounts.WidgetConfig{
+          default_record = %WidgetConfig{
             user_id: Ash.Query.get_argument(query, :user_id),
             type: Ash.Query.get_argument(query, :type),
             config: default_config
@@ -21,7 +25,7 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
 
         [result] ->
           merged_config =
-            Map.merge(default_config, StreampaiWeb.Utils.MapUtils.to_atom_keys(result.config))
+            Map.merge(default_config, MapUtils.to_atom_keys(result.config))
 
           updated_result = %{result | config: merged_config}
 
@@ -31,7 +35,7 @@ defmodule Streampai.Accounts.WidgetConfig.Preparations.GetOrCreateWithDefaults d
   end
 
   # Helper functions for default config based on widget type
-  defp get_default_config(:chat_widget), do: Streampai.Fake.Chat.default_config()
-  defp get_default_config(:alertbox_widget), do: Streampai.Fake.Alert.default_config()
+  defp get_default_config(:chat_widget), do: Fake.Chat.default_config()
+  defp get_default_config(:alertbox_widget), do: Fake.Alert.default_config()
   defp get_default_config(_), do: %{}
 end

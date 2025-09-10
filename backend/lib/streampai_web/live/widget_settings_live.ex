@@ -4,6 +4,8 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   Provides common patterns for widget configuration, PubSub, and OBS browser source URL generation.
   """
 
+  alias Streampai.Accounts.WidgetConfig
+
   defmacro __using__(opts) do
     widget_type = Keyword.fetch!(opts, :widget_type)
     fake_data_module = Keyword.fetch!(opts, :fake_data_module)
@@ -26,7 +28,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
 
         # Load widget configuration
         {:ok, %{config: initial_config}} =
-          Streampai.Accounts.WidgetConfig.get_by_user_and_type(%{
+          WidgetConfig.get_by_user_and_type(%{
             user_id: current_user.id,
             type: @widget_type
           })
@@ -102,7 +104,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
     updated_config = Map.put(current_config, String.to_existing_atom(field), value)
     current_user = socket.assigns.current_user
 
-    case Streampai.Accounts.WidgetConfig.create(
+    case WidgetConfig.create(
            %{
              user_id: current_user.id,
              type: widget_type,

@@ -40,6 +40,7 @@ defmodule Streampai.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:styler, "~> 1.8", only: [:dev, :test], runtime: false},
       {:live_vue, "~> 0.7"},
       {:stripity_stripe, "~> 3.2"},
       {:ex_money_sql, "~> 1.0"},

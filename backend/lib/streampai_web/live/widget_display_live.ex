@@ -3,6 +3,8 @@ defmodule StreampaiWeb.WidgetDisplayLive do
 
   import StreampaiWeb.Components.WidgetComponents
 
+  alias Streampai.Widgets.TimerServer
+
   def mount(%{"uuid" => widget_uuid}, _session, socket) do
     case lookup_widget(widget_uuid) do
       {:ok, widget} ->
@@ -42,7 +44,7 @@ defmodule StreampaiWeb.WidgetDisplayLive do
   def terminate(_reason, socket) do
     # Clean up timer server if it exists
     if socket.assigns[:timer_pid] do
-      Streampai.Widgets.TimerServer.stop_timer(socket.assigns.timer_pid)
+      TimerServer.stop_timer(socket.assigns.timer_pid)
     end
 
     :ok
@@ -116,7 +118,7 @@ defmodule StreampaiWeb.WidgetDisplayLive do
   defp maybe_start_timer_server(socket, _widget), do: socket
 
   defp start_timer_server(socket, widget) do
-    case Streampai.Widgets.TimerServer.start_timer(widget.id, self()) do
+    case TimerServer.start_timer(widget.id, self()) do
       {:ok, pid} ->
         Process.link(pid)
         assign(socket, timer_count: 0, timer_pid: pid)
@@ -127,19 +129,17 @@ defmodule StreampaiWeb.WidgetDisplayLive do
   end
 
   defp valid_uuid?(uuid) do
-    try do
-      case UUID.info(uuid) do
-        {:ok, _} -> true
-        {:error, _} -> false
-      end
-    rescue
-      _ ->
-        # Simple regex check if UUID module is not available
-        Regex.match?(
-          ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-          uuid
-        )
+    case UUID.info(uuid) do
+      {:ok, _} -> true
+      {:error, _} -> false
     end
+  rescue
+    _ ->
+      # Simple regex check if UUID module is not available
+      Regex.match?(
+        ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        uuid
+      )
   end
 
   def render(assigns) do

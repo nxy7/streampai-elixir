@@ -12,6 +12,8 @@ defmodule StreampaiWeb.LiveHelpers do
   import Phoenix.LiveView
   import Phoenix.Component, only: [assign: 3]
 
+  alias Streampai.Accounts.{StreamingAccount, User}
+
   @doc """
   Handles errors consistently across LiveViews with user-friendly messages.
 
@@ -174,7 +176,7 @@ defmodule StreampaiWeb.LiveHelpers do
     socket
     |> assign(
       :current_user,
-      Streampai.Accounts.User.get_by_id!(%{id: previous_current_user.id},
+      User.get_by_id!(%{id: previous_current_user.id},
         actor: previous_current_user
       )
     )
@@ -186,7 +188,7 @@ defmodule StreampaiWeb.LiveHelpers do
   def handle_platform_disconnect(socket, platform) do
     current_user = socket.assigns.current_user
 
-    case Streampai.Accounts.StreamingAccount.destroy(
+    case StreamingAccount.destroy(
            %{user_id: current_user.id, platform: platform},
            actor: current_user
          ) do

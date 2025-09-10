@@ -2,6 +2,7 @@ defmodule Streampai.Accounts.UserTest do
   use Streampai.DataCase, async: true
   use Mneme
   alias Streampai.Accounts.User
+  alias Ash.Resource.Info
 
   describe "User resource" do
     setup do
@@ -69,7 +70,7 @@ defmodule Streampai.Accounts.UserTest do
 
     test "user resource attributes structure" do
       # Test the resource schema structure - using Ash.Resource.Info
-      attributes = Ash.Resource.Info.attributes(User)
+      attributes = Info.attributes(User)
 
       attribute_info =
         attributes
@@ -88,7 +89,7 @@ defmodule Streampai.Accounts.UserTest do
 
     test "user resource actions structure" do
       # Test the available actions using Ash.Resource.Info
-      actions = Ash.Resource.Info.actions(User)
+      actions = Info.actions(User)
 
       action_info =
         actions
@@ -108,9 +109,9 @@ defmodule Streampai.Accounts.UserTest do
       # Test basic resource information
       resource_info = %{
         resource_name: User,
-        has_attributes: length(Ash.Resource.Info.attributes(User)) > 0,
-        has_actions: length(Ash.Resource.Info.actions(User)) > 0,
-        primary_key: Ash.Resource.Info.primary_key(User)
+        has_attributes: length(Info.attributes(User)) > 0,
+        has_actions: length(Info.actions(User)) > 0,
+        primary_key: Info.primary_key(User)
       }
 
       auto_assert(^resource_info <- resource_info)

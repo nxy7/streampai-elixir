@@ -5,8 +5,8 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   """
   use GenServer
 
-  alias Streampai.LivestreamManager.UserStreamManager
   alias Phoenix.PubSub
+  alias Streampai.LivestreamManager.UserStreamManager
 
   # 5 seconds
   @cleanup_timeout 5_000
@@ -71,17 +71,17 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   @impl true
   def handle_info({:cleanup_user, user_id}, state) do
     # Only cleanup if user is still not active
-    if not MapSet.member?(state.active_users, user_id) do
+    if MapSet.member?(state.active_users, user_id) do
+      IO.puts("[PresenceManager] User #{user_id} is active again, skipping cleanup")
+      cleanup_timers = Map.delete(state.cleanup_timers, user_id)
+      {:noreply, %{state | cleanup_timers: cleanup_timers}}
+    else
       IO.puts("[PresenceManager] Cleaning up UserStreamManager for user #{user_id}")
 
       managers = stop_manager(state.managers, user_id)
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
 
       {:noreply, %{state | managers: managers, cleanup_timers: cleanup_timers}}
-    else
-      IO.puts("[PresenceManager] User #{user_id} is active again, skipping cleanup")
-      cleanup_timers = Map.delete(state.cleanup_timers, user_id)
-      {:noreply, %{state | cleanup_timers: cleanup_timers}}
     end
   end
 
@@ -273,18 +273,20 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     if Enum.empty?(managed) do
       IO.puts("  None")
     else
-      Enum.each(managed, fn user_id ->
-        case Registry.lookup(
-               Streampai.LivestreamManager.Registry,
-               {:user_stream_manager, user_id}
-             ) do
-          [{pid, _}] -> IO.puts("  #{user_id}: #{inspect(pid)} (alive: #{Process.alive?(pid)})")
-          [] -> IO.puts("  #{user_id}: NOT FOUND in registry")
-        end
-      end)
+      Enum.each(managed, &print_manager_status/1)
     end
 
     :ok
+  end
+
+  defp print_manager_status(user_id) do
+    case Registry.lookup(
+           Streampai.LivestreamManager.Registry,
+           {:user_stream_manager, user_id}
+         ) do
+      [{pid, _}] -> IO.puts("  #{user_id}: #{inspect(pid)} (alive: #{Process.alive?(pid)})")
+      [] -> IO.puts("  #{user_id}: NOT FOUND in registry")
+    end
   end
 
   @impl true
@@ -457,16 +459,14 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   end
 
   defp count_manager_processes(user_id) do
-    try do
-      # Count all processes registered under this user's UserStreamManager
-      registry_entries =
-        Registry.select(Streampai.LivestreamManager.Registry, [
-          {{{:_, user_id}, :_, :_}, [], [true]}
-        ])
+    # Count all processes registered under this user's UserStreamManager
+    registry_entries =
+      Registry.select(Streampai.LivestreamManager.Registry, [
+        {{{:_, user_id}, :_, :_}, [], [true]}
+      ])
 
-      length(registry_entries)
-    rescue
-      _ -> 0
-    end
+    length(registry_entries)
+  rescue
+    _ -> 0
   end
 end

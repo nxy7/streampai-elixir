@@ -7,8 +7,9 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     widget_type: :chat_widget,
     fake_module: Streampai.Fake.Chat
 
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetHelpers
 
+  # Widget-specific implementations
   defp widget_title, do: "Live Chat Widget"
 
   defp initialize_widget_specific_assigns(socket) do
@@ -24,7 +25,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     boolean_fields = [:show_badges, :show_emotes, :hide_bots, :show_timestamps, :show_platform]
 
     config_with_booleans =
-      StreampaiWeb.Utils.WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
+      WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
 
     # Handle other settings (numbers, selects, etc.)
     Enum.reduce(params, config_with_booleans, fn {key, value}, acc ->
@@ -87,13 +88,13 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :max_messages ->
-        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 1, max: 100)
+        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 100)
 
       :message_fade_time ->
-        StreampaiWeb.Utils.WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
+        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
 
       :font_size ->
-        StreampaiWeb.Utils.WidgetHelpers.validate_config_value(
+        WidgetHelpers.validate_config_value(
           :font_size,
           value,
           ["small", "medium", "large"],

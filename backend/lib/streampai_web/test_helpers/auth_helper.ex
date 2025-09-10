@@ -7,6 +7,7 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   """
 
   alias Streampai.Accounts.User
+  alias AshAuthentication.Plug.Helpers
 
   @doc """
   Registers and logs in a user for testing.
@@ -75,7 +76,7 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   def log_in_user(conn, user) do
     conn
     |> Phoenix.ConnTest.init_test_session(%{})
-    |> AshAuthentication.Plug.Helpers.store_in_session(user)
+    |> Helpers.store_in_session(user)
   end
 
   @doc """

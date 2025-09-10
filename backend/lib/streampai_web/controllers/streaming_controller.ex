@@ -5,6 +5,8 @@ defmodule StreampaiWeb.MultiProviderAuth do
   use StreampaiWeb, :controller
   plug Ueberauth
 
+  alias Streampai.Accounts.StreamingAccount
+
   @redirect_url "/dashboard/settings"
 
   def request(conn, _params) do
@@ -68,7 +70,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
       extra_data: extra_data
     }
 
-    Streampai.Accounts.StreamingAccount.create(account_params, upsert?: true, actor: user)
+    StreamingAccount.create(account_params, upsert?: true, actor: user)
   end
 
   defp map_provider_to_platform("google"), do: :youtube
@@ -155,33 +157,16 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
   # Helper function to extract fields from JWT id_token
   defp extract_from_jwt(auth, field_name) do
-    try do
-      case auth.extra.raw_info do
-        %{token: %OAuth2.AccessToken{other_params: %{"id_token" => id_token}}} ->
-          # Simple JWT payload extraction (without signature verification)
-          # Format: header.payload.signature
-          case String.split(id_token, ".") do
-            [_header, payload, _signature] ->
-              case Base.url_decode64(payload, padding: false) do
-                {:ok, decoded_payload} ->
-                  case Jason.decode(decoded_payload) do
-                    {:ok, jwt_data} -> Map.get(jwt_data, field_name)
-                    _ -> nil
-                  end
-
-                _ ->
-                  nil
-              end
-
-            _ ->
-              nil
-          end
-
-        _ ->
-          nil
-      end
-    rescue
+    with %{token: %OAuth2.AccessToken{other_params: %{"id_token" => id_token}}} <-
+           auth.extra.raw_info,
+         [_header, payload, _signature] <- String.split(id_token, "."),
+         {:ok, decoded_payload} <- Base.url_decode64(payload, padding: false),
+         {:ok, jwt_data} <- Jason.decode(decoded_payload) do
+      Map.get(jwt_data, field_name)
+    else
       _ -> nil
     end
+  rescue
+    _ -> nil
   end
 end

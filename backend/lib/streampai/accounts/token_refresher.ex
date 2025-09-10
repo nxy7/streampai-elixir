@@ -15,27 +15,31 @@ defmodule Streampai.Accounts.TokenRefresher do
   def refresh_expired_tokens do
     case Ash.read(Streampai.Accounts.StreamingAccount, action: :expired_tokens) do
       {:ok, expired_accounts} ->
-        Logger.info("Found #{length(expired_accounts)} expired tokens to refresh")
-
-        Enum.each(expired_accounts, fn account ->
-          case refresh_account_token(account) do
-            {:ok, _updated_account} ->
-              Logger.info(
-                "Successfully refreshed token for user #{account.user_id} on #{account.platform}"
-              )
-
-            {:error, error} ->
-              Logger.error(
-                "Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}"
-              )
-          end
-        end)
-
-        {:ok, length(expired_accounts)}
+        process_expired_accounts(expired_accounts)
 
       {:error, error} ->
         Logger.error("Failed to fetch expired tokens: #{inspect(error)}")
         {:error, error}
+    end
+  end
+
+  defp process_expired_accounts(expired_accounts) do
+    Logger.info("Found #{length(expired_accounts)} expired tokens to refresh")
+    Enum.each(expired_accounts, &refresh_and_log_account/1)
+    {:ok, length(expired_accounts)}
+  end
+
+  defp refresh_and_log_account(account) do
+    case refresh_account_token(account) do
+      {:ok, _updated_account} ->
+        Logger.info(
+          "Successfully refreshed token for user #{account.user_id} on #{account.platform}"
+        )
+
+      {:error, error} ->
+        Logger.error(
+          "Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}"
+        )
     end
   end
 

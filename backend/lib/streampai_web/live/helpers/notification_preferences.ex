@@ -7,6 +7,8 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
   import Phoenix.LiveView, only: [put_flash: 3]
   import Phoenix.Component, only: [assign: 3, sigil_H: 2]
 
+  alias Streampai.Accounts.UserPreferences
+
   @doc """
   Loads user preferences and assigns them to the socket.
   """
@@ -14,7 +16,7 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
     current_user = socket.assigns.current_user
 
     user_preferences =
-      case Streampai.Accounts.UserPreferences.get_by_user_id(
+      case UserPreferences.get_by_user_id(
              %{user_id: current_user.id},
              actor: current_user
            ) do
@@ -39,7 +41,7 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
     current_user = socket.assigns.current_user
     new_value = not current_preferences.email_notifications
 
-    case Streampai.Accounts.UserPreferences.create(
+    case UserPreferences.create(
            %{
              user_id: current_user.id,
              email_notifications: new_value

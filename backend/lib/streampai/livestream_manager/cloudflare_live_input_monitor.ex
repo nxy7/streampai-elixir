@@ -8,8 +8,9 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   use GenServer
   require Logger
 
-  alias Streampai.Cloudflare.APIClient
   alias Phoenix.PubSub
+  alias Streampai.Cloudflare.APIClient
+  alias Streampai.Cloudflare.LiveInput
 
   # Poll interval in milliseconds (30 seconds)
   @poll_interval 30_000
@@ -202,7 +203,7 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   end
 
   defp find_live_input_for_user(user_id) do
-    case Streampai.Cloudflare.LiveInput.get_or_fetch_for_user(user_id) do
+    case LiveInput.get_or_fetch_for_user(user_id) do
       {:ok, [live_input]} ->
         # Extract the Cloudflare input ID from the stored data
         case live_input.data do

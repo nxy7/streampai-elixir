@@ -338,23 +338,28 @@ defmodule Streampai.LivestreamManager.AlertQueue do
 
   defp determine_event_priority(event) do
     case event.type do
-      # High priority events
-      :donation when event.amount >= 10.00 -> @high_priority
-      :raid when event.viewer_count >= 10 -> @high_priority
-      :follow when event.is_verified or event.follower_count >= 1000 -> @high_priority
-      # Medium priority events
-      :donation -> @medium_priority
+      :donation -> donation_priority(event)
+      :raid -> raid_priority(event)
+      :follow -> follow_priority(event)
       :subscription -> @medium_priority
-      :cheer when event.bits >= 100 -> @medium_priority
-      :follow -> @medium_priority
-      :raid -> @medium_priority
-      # Low priority events
+      :cheer -> cheer_priority(event)
       :chat_message -> @low_priority
-      :cheer -> @low_priority
-      # Default to medium priority
       _ -> @medium_priority
     end
   end
+
+  defp donation_priority(%{amount: amount}) when amount >= 10.00, do: @high_priority
+  defp donation_priority(_), do: @medium_priority
+
+  defp raid_priority(%{viewer_count: viewer_count}) when viewer_count >= 10, do: @high_priority
+  defp raid_priority(_), do: @medium_priority
+
+  defp follow_priority(%{is_verified: true}), do: @high_priority
+  defp follow_priority(%{follower_count: count}) when count >= 1000, do: @high_priority
+  defp follow_priority(_), do: @medium_priority
+
+  defp cheer_priority(%{bits: bits}) when bits >= 100, do: @medium_priority
+  defp cheer_priority(_), do: @low_priority
 
   defp add_to_queue(state, item) do
     # Check if queue is at capacity
@@ -418,24 +423,25 @@ defmodule Streampai.LivestreamManager.AlertQueue do
     case :queue.out(state.event_queue) do
       {{:value, item}, new_queue} ->
         state = %{state | event_queue: new_queue}
-
-        case item.type do
-          :control ->
-            handle_control_command(state, item.command)
-
-          :event ->
-            if state.queue_state == :playing do
-              process_event(state, item)
-            else
-              # Queue is paused, put event back
-              new_queue = :queue.in_r(item, state.event_queue)
-              state = %{state | event_queue: new_queue}
-              {:paused, state}
-            end
-        end
+        handle_queue_item(state, item)
 
       {:empty, _} ->
         {:empty_queue, state}
+    end
+  end
+
+  defp handle_queue_item(state, %{type: :control, command: command}) do
+    handle_control_command(state, command)
+  end
+
+  defp handle_queue_item(state, %{type: :event} = item) do
+    if state.queue_state == :playing do
+      process_event(state, item)
+    else
+      # Queue is paused, put event back
+      new_queue = :queue.in_r(item, state.event_queue)
+      state = %{state | event_queue: new_queue}
+      {:paused, state}
     end
   end
 

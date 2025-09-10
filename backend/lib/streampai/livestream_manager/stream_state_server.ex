@@ -6,6 +6,8 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   use GenServer
   require Logger
 
+  alias Streampai.Accounts.StreamingAccount
+
   defstruct [
     :user_id,
     # :offline, :starting, :live, :ending
@@ -165,7 +167,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   defp load_user_platforms(user_id) do
     # Load from database - for now return empty map
     # TODO: Query StreamingAccount table for user's connected platforms
-    case Streampai.Accounts.StreamingAccount.for_user(user_id) do
+    case StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->
         accounts
         |> Enum.into(%{}, fn account ->

@@ -7,6 +7,9 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   """
   use StreampaiWeb, :live_view
 
+  alias Streampai.Accounts.WidgetConfig
+  alias StreampaiWeb.Utils.WidgetHelpers
+
   def mount(params, _session, socket) do
     user_id = params["user_id"] || Map.get(socket.assigns, :live_action_params, %{})["user_id"]
 
@@ -17,7 +20,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(
         Streampai.PubSub,
-        StreampaiWeb.Utils.WidgetHelpers.widget_config_topic(:alertbox_widget, user_id)
+        WidgetHelpers.widget_config_topic(:alertbox_widget, user_id)
       )
 
       subscribe_to_real_events(user_id)
@@ -25,7 +28,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
 
     # Load widget configuration with default fallback
     config =
-      case Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+      case WidgetConfig.get_by_user_and_type(
              %{
                user_id: user_id,
                type: :alertbox_widget

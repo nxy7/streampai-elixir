@@ -6,7 +6,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   import StreampaiWeb.Components.SubscriptionWidget
   import StreampaiWeb.Live.Helpers.NotificationPreferences
 
-  alias Streampai.Accounts.NameValidator
+  alias Streampai.Accounts.{NameValidator, UserPreferences}
   alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
@@ -147,7 +147,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
       donation_currency: currency
     }
 
-    case Streampai.Accounts.UserPreferences.create(preferences_params, actor: current_user) do
+    case UserPreferences.create(preferences_params, actor: current_user) do
       {:ok, _preferences} ->
         {:noreply,
          socket
