@@ -1,7 +1,7 @@
 .direnv
 node_modules
 .env
-.env
+glossary
 
 .lexical
 .elixir_ls
