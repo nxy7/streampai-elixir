@@ -2,8 +2,9 @@ defmodule StreampaiWeb.Plugs.RegistrationLogger do
   @moduledoc """
   Logs user registration attempts for monitoring and security analysis.
   """
-  require Logger
   import Plug.Conn
+
+  require Logger
 
   def init(opts), do: opts
 
@@ -26,7 +27,7 @@ defmodule StreampaiWeb.Plugs.RegistrationLogger do
 
   defp log_registration_attempt(conn, method) do
     client_ip = get_client_ip(conn)
-    user_agent = get_req_header(conn, "user-agent") |> List.first() || "unknown"
+    user_agent = conn |> get_req_header("user-agent") |> List.first() || "unknown"
 
     email =
       case method do

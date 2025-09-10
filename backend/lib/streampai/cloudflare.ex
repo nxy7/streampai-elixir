@@ -1,4 +1,5 @@
 defmodule Streampai.Cloudflare do
+  @moduledoc false
   use Ash.Domain,
     extensions: [AshAdmin.Domain]
 

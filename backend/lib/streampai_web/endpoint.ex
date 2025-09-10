@@ -1,5 +1,6 @@
 defmodule StreampaiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :streampai
+
   @session_options Application.compile_env!(:streampai, :session_options)
 
   # Serve at "/" the static files from "priv/static" directory.

@@ -6,20 +6,12 @@ defmodule StreampaiWeb.AuthPlug do
   that automatically load the :tier calculation for users and handle impersonation.
   """
   use AshAuthentication.Plug, otp_app: :streampai
+
   import Plug.Conn
 
   def handle_success(conn, _activity, user, token) do
     if api_request?(conn) do
-      conn
-      |> send_resp(
-        200,
-        Jason.encode!(%{
-          authentication: %{
-            success: true,
-            token: token
-          }
-        })
-      )
+      send_resp(conn, 200, Jason.encode!(%{authentication: %{success: true, token: token}}))
     else
       conn
       |> store_in_session(user)
@@ -37,18 +29,9 @@ defmodule StreampaiWeb.AuthPlug do
 
   def handle_failure(conn, _activity, _reason) do
     if api_request?(conn) do
-      conn
-      |> send_resp(
-        401,
-        Jason.encode!(%{
-          authentication: %{
-            success: false
-          }
-        })
-      )
+      send_resp(conn, 401, Jason.encode!(%{authentication: %{success: false}}))
     else
-      conn
-      |> send_resp(401, "<h2>Incorrect email or password</h2>")
+      send_resp(conn, 401, "<h2>Incorrect email or password</h2>")
     end
   end
 

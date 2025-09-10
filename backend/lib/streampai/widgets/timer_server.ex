@@ -1,11 +1,12 @@
 defmodule Streampai.Widgets.TimerServer do
-  use GenServer
-  require Logger
-
   @moduledoc """
   A GenServer that manages timer state for timer widgets.
   Can be started from widget components and sends updates to LiveView processes.
   """
+
+  use GenServer
+
+  require Logger
 
   defstruct [:widget_id, :liveview_pid, :count, :interval]
 
@@ -57,9 +58,7 @@ defmodule Streampai.Widgets.TimerServer do
   # GenServer callbacks
 
   def init({widget_id, liveview_pid, opts}) do
-    Logger.info(
-      "Starting timer server for widget #{widget_id}, LiveView PID: #{inspect(liveview_pid)}"
-    )
+    Logger.info("Starting timer server for widget #{widget_id}, LiveView PID: #{inspect(liveview_pid)}")
 
     # Monitor the LiveView process so we can clean up when it dies
     Process.monitor(liveview_pid)

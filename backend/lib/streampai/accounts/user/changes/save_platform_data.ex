@@ -9,7 +9,7 @@ defmodule Streampai.Accounts.User.Changes.SavePlatformData do
     user_info = Ash.Changeset.get_argument(changeset, :user_info)
     platform_data = Map.put(user_info, "platform", platform_name)
 
-    attrs = %{} |> Map.put(:email, user_info["email"])
+    attrs = Map.put(%{}, :email, user_info["email"])
 
     attrs =
       if user_info["preferred_username"] do

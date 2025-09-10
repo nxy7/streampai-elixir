@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.AuthOverrides do
+  @moduledoc false
   use AshAuthentication.Phoenix.Overrides
 
   override AshAuthentication.Phoenix.Components.Banner do

@@ -9,10 +9,11 @@ defmodule StreampaiWeb.LiveHelpers do
   - Common LiveView operations
   """
 
-  import Phoenix.LiveView
   import Phoenix.Component, only: [assign: 3]
+  import Phoenix.LiveView
 
-  alias Streampai.Accounts.{StreamingAccount, User}
+  alias Streampai.Accounts.StreamingAccount
+  alias Streampai.Accounts.User
 
   @doc """
   Handles errors consistently across LiveViews with user-friendly messages.
@@ -81,7 +82,8 @@ defmodule StreampaiWeb.LiveHelpers do
         assign(socket, assign_key, data)
 
       {:error, reason} ->
-        handle_error(socket, reason, error_message)
+        socket
+        |> handle_error(reason, error_message)
         |> assign(assign_key, nil)
 
       data when not is_tuple(data) ->
@@ -103,11 +105,7 @@ defmodule StreampaiWeb.LiveHelpers do
 
       handle_form_submit(socket, fn -> create_user(params) end, "User created successfully!")
   """
-  def handle_form_submit(
-        socket,
-        submit_fn,
-        success_message \\ "Operation completed successfully!"
-      ) do
+  def handle_form_submit(socket, submit_fn, success_message \\ "Operation completed successfully!") do
     case submit_fn.() do
       {:ok, _result} ->
         socket
@@ -140,9 +138,7 @@ defmodule StreampaiWeb.LiveHelpers do
       validate_assigns(socket, [:current_user, :dashboard_data])
   """
   def validate_assigns(socket, required_assigns) do
-    missing =
-      required_assigns
-      |> Enum.reject(&Map.has_key?(socket.assigns, &1))
+    missing = Enum.reject(required_assigns, &Map.has_key?(socket.assigns, &1))
 
     case missing do
       [] ->
@@ -158,10 +154,11 @@ defmodule StreampaiWeb.LiveHelpers do
   Standardized mount pattern for dashboard pages.
   """
   def mount_dashboard_page(socket, load_data_fn) do
-    with {:ok, socket} <- validate_assigns(socket, [:current_user]),
-         socket <- safe_load(socket, load_data_fn, :page_data) do
-      {:ok, socket, layout: false}
-    else
+    case validate_assigns(socket, [:current_user]) do
+      {:ok, socket} ->
+        socket = safe_load(socket, load_data_fn, :page_data)
+        {:ok, socket, layout: false}
+
       {:error, socket} ->
         {:ok, socket, layout: false}
     end
@@ -173,12 +170,10 @@ defmodule StreampaiWeb.LiveHelpers do
   def reload_current_user(socket) do
     previous_current_user = socket.assigns.current_user
 
-    socket
-    |> assign(
+    assign(
+      socket,
       :current_user,
-      User.get_by_id!(%{id: previous_current_user.id},
-        actor: previous_current_user
-      )
+      User.get_by_id!(%{id: previous_current_user.id}, actor: previous_current_user)
     )
   end
 
@@ -205,9 +200,7 @@ defmodule StreampaiWeb.LiveHelpers do
          |> show_success("Successfully disconnected #{String.capitalize(platform)} account")}
 
       {:error, reason} ->
-        {:noreply,
-         socket
-         |> handle_error(reason, "Failed to disconnect account")}
+        {:noreply, handle_error(socket, reason, "Failed to disconnect account")}
     end
   end
 
@@ -217,11 +210,9 @@ defmodule StreampaiWeb.LiveHelpers do
   """
   def handle_toggle_form(socket, params, field_map, update_fn) do
     updated_values =
-      field_map
-      |> Enum.map(fn {field, key} ->
+      Map.new(field_map, fn {field, key} ->
         {key, Map.get(params, field) == "on"}
       end)
-      |> Map.new()
 
     update_fn.(socket, updated_values)
   end

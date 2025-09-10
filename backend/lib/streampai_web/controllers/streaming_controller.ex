@@ -3,9 +3,10 @@ defmodule StreampaiWeb.MultiProviderAuth do
   Handles OAuth authentication with multiple streaming platforms (Google, Twitch, etc.).
   """
   use StreampaiWeb, :controller
-  plug Ueberauth
 
   alias Streampai.Accounts.StreamingAccount
+
+  plug Ueberauth
 
   @redirect_url "/dashboard/settings"
 
@@ -30,9 +31,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
     |> redirect(to: @redirect_url)
   end
 
-  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{
-        "provider" => provider
-      }) do
+  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{"provider" => provider}) do
     current_user = conn.assigns.current_user
 
     if current_user do
@@ -129,13 +128,11 @@ defmodule StreampaiWeb.MultiProviderAuth do
     Enum.find(values, &(&1 != nil))
   end
 
-  defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}})
-       when is_integer(expires_at) do
+  defp expires_at_from_auth(%{credentials: %{expires_at: expires_at}}) when is_integer(expires_at) do
     DateTime.from_unix!(expires_at)
   end
 
-  defp expires_at_from_auth(%{credentials: %{expires_in: expires_in}})
-       when is_integer(expires_in) do
+  defp expires_at_from_auth(%{credentials: %{expires_in: expires_in}}) when is_integer(expires_in) do
     DateTime.add(DateTime.utc_now(), expires_in, :second)
   end
 

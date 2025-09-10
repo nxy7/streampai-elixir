@@ -5,8 +5,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   """
   use DynamicSupervisor
 
-  alias Streampai.LivestreamManager.Platforms
   alias Streampai.Accounts.StreamingAccount
+  alias Streampai.LivestreamManager.Platforms
 
   def start_link(user_id) when is_binary(user_id) do
     DynamicSupervisor.start_link(__MODULE__, user_id, name: via_tuple(user_id))
@@ -25,8 +25,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   @doc """
   Starts a platform manager for a specific platform.
   """
-  def start_platform_manager(user_id, platform, config)
-      when platform in [:twitch, :youtube, :facebook, :kick] do
+  def start_platform_manager(user_id, platform, config) when platform in [:twitch, :youtube, :facebook, :kick] do
     supervisor_pid = via_tuple(user_id)
 
     child_spec = get_platform_manager_spec(user_id, platform, config)

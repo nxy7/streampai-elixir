@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingCTA do
+  @moduledoc false
   use StreampaiWeb, :html
 
   def landing_cta(assigns) do

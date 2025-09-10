@@ -5,9 +5,10 @@ defmodule StreampaiWeb.DonationLive do
   """
   use StreampaiWeb, :live_view
 
-  require Logger
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPreferences
+
+  require Logger
 
   def mount(%{"username" => username}, _session, socket) do
     # Find user by username
@@ -79,9 +80,7 @@ defmodule StreampaiWeb.DonationLive do
         process_donation(socket, params, validated_amount)
 
       {:error, message} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, message)}
+        {:noreply, put_flash(socket, :error, message)}
     end
   end
 
@@ -266,8 +265,7 @@ defmodule StreampaiWeb.DonationLive do
     min_amount = preferences.min_donation_amount
     max_amount = preferences.max_donation_amount
 
-    base_amounts
-    |> Enum.filter(fn amount ->
+    Enum.filter(base_amounts, fn amount ->
       (is_nil(min_amount) || amount >= min_amount) &&
         (is_nil(max_amount) || amount <= max_amount)
     end)

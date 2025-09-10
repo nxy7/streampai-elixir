@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.StaticPageLayout do
+  @moduledoc false
   use StreampaiWeb, :html
 
   attr :title, :string, required: true

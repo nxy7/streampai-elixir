@@ -3,6 +3,7 @@ defmodule Streampai.ButtonServer do
   GenServer for handling button interactions and tracking presence.
   """
   use GenServer
+
   alias StreampaiWeb.Presence
 
   def start_link(_) do
@@ -44,7 +45,8 @@ defmodule Streampai.ButtonServer do
 
   defp handle_leaves(topic, state) do
     viewers_amount =
-      Presence.list(topic)
+      topic
+      |> Presence.list()
       |> map_size()
 
     if viewers_amount == 0 do

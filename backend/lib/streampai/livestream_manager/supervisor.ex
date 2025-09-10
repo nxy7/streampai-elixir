@@ -12,20 +12,19 @@ defmodule Streampai.LivestreamManager.Supervisor do
   def init(:ok) do
     children = [
       {Registry, keys: :unique, name: Streampai.LivestreamManager.Registry},
-      {DynamicSupervisor,
-       strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
+      {DynamicSupervisor, strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
       Streampai.LivestreamManager.DynamicSupervisor
     ]
 
     children =
       children ++
-        if Application.get_env(:streampai, :env) != :test do
+        if Application.get_env(:streampai, :env) == :test do
+          []
+        else
           [
             Streampai.LivestreamManager.PresenceManager,
             Streampai.LivestreamManager.MetricsCollector
           ]
-        else
-          []
         end
 
     Supervisor.init(children, strategy: :one_for_one)

@@ -37,6 +37,8 @@ defmodule StreampaiWeb.WidgetBehaviour do
         quote do
           use StreampaiWeb.BaseLive
 
+          alias Streampai.Accounts.WidgetConfig
+
           @widget_type unquote(widget_type)
           @fake_module unquote(fake_module)
 
@@ -49,7 +51,7 @@ defmodule StreampaiWeb.WidgetBehaviour do
             end
 
             {:ok, %{config: initial_config}} =
-              Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+              WidgetConfig.get_by_user_and_type(
                 %{
                   user_id: current_user.id,
                   type: @widget_type
@@ -99,11 +101,12 @@ defmodule StreampaiWeb.WidgetBehaviour do
 
             Phoenix.PubSub.broadcast(
               Streampai.PubSub,
+              # credo:disable-for-next-line Credo.Check.Design.AliasUsage
               StreampaiWeb.Utils.WidgetHelpers.widget_config_topic(@widget_type, current_user.id),
               %{config: config, type: @widget_type}
             )
 
-            Streampai.Accounts.WidgetConfig.create(
+            WidgetConfig.create(
               %{
                 user_id: current_user.id,
                 type: @widget_type,
@@ -130,12 +133,14 @@ defmodule StreampaiWeb.WidgetBehaviour do
             if connected?(socket) do
               Phoenix.PubSub.subscribe(
                 Streampai.PubSub,
+                # credo:disable-for-next-line Credo.Check.Design.AliasUsage
                 StreampaiWeb.Utils.WidgetHelpers.widget_config_topic(@widget_type, user_id)
               )
 
               subscribe_to_real_events(user_id)
             end
 
+            # credo:disable-for-next-line Credo.Check.Design.AliasUsage
             {:ok, %{config: config}} =
               Streampai.Accounts.WidgetConfig.get_by_user_and_type(
                 %{

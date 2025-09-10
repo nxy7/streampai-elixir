@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingFeatures do
+  @moduledoc false
   use StreampaiWeb, :html
 
   def landing_features(assigns) do

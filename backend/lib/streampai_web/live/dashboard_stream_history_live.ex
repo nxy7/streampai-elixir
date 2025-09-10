@@ -1,8 +1,9 @@
 defmodule StreampaiWeb.DashboardStreamHistoryLive do
+  @moduledoc false
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do
-    {:ok, socket |> assign(:page_title, "Stream History"), layout: false}
+    {:ok, assign(socket, :page_title, "Stream History"), layout: false}
   end
 
   def render(assigns) do

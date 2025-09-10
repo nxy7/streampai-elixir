@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Plugs.FastResponse do
+  @moduledoc false
   @behaviour Plug
 
   def init(opts), do: opts

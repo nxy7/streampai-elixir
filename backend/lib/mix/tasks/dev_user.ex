@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.DevUser do
+  @shortdoc "Manage development users for testing different scenarios"
+
   @moduledoc """
   Development task to create and manage mock users for testing different scenarios.
 
@@ -31,7 +33,7 @@ defmodule Mix.Tasks.DevUser do
 
   use Mix.Task
 
-  @shortdoc "Manage development users for testing different scenarios"
+  alias Streampai.Accounts.User
 
   def run(args) do
     Mix.Task.run("app.start")
@@ -80,7 +82,7 @@ defmodule Mix.Tasks.DevUser do
   end
 
   defp list_users do
-    all_users = Streampai.Accounts.User |> Ash.read!()
+    all_users = Ash.read!(User)
 
     users =
       Enum.filter(all_users, fn user ->
@@ -99,9 +101,7 @@ defmodule Mix.Tasks.DevUser do
     end
 
     if Enum.empty?(users) do
-      Mix.shell().info(
-        "No development users found. Run 'mix dev_user scenarios' to create test users."
-      )
+      Mix.shell().info("No development users found. Run 'mix dev_user scenarios' to create test users.")
     end
   end
 
@@ -132,8 +132,7 @@ defmodule Mix.Tasks.DevUser do
         {:ok, _user} ->
           Mix.shell().info("✅ #{scenario.desc}: #{scenario.email}")
 
-        {:error,
-         %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{message: message}]}} ->
+        {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{message: message}]}} ->
           if String.contains?(message, "already taken") do
             Mix.shell().info("⚠️  #{scenario.desc}: #{scenario.email} (already exists)")
           else
@@ -147,9 +146,7 @@ defmodule Mix.Tasks.DevUser do
 
     Mix.shell().info("\n🔧 Usage:")
 
-    Mix.shell().info(
-      "- Visit http://localhost:4000/dashboard after signing in as any of these users"
-    )
+    Mix.shell().info("- Visit http://localhost:4000/dashboard after signing in as any of these users")
 
     Mix.shell().info("- Password for all test users: 'password123'")
     Mix.shell().info("- Use admin users to test impersonation")
@@ -158,7 +155,7 @@ defmodule Mix.Tasks.DevUser do
   defp cleanup_users do
     Mix.shell().info("🧹 Cleaning up development users...")
 
-    all_users = Streampai.Accounts.User |> Ash.read!()
+    all_users = Ash.read!(User)
 
     users =
       Enum.filter(all_users, fn user ->
@@ -189,9 +186,7 @@ defmodule Mix.Tasks.DevUser do
       password_confirmation: "password123"
     }
 
-    changeset =
-      Streampai.Accounts.User
-      |> Ash.Changeset.for_create(:register_with_password, user_attrs)
+    changeset = Ash.Changeset.for_create(User, :register_with_password, user_attrs)
 
     changeset =
       if confirmed do

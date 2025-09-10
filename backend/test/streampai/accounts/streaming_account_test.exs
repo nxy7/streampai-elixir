@@ -1,7 +1,10 @@
 defmodule Streampai.Accounts.StreamingAccountTest do
   use Streampai.DataCase, async: true
   use Mneme
-  alias Streampai.Accounts.{StreamingAccount, User, UserPremiumGrant}
+
+  alias Streampai.Accounts.StreamingAccount
+  alias Streampai.Accounts.User
+  alias Streampai.Accounts.UserPremiumGrant
 
   describe "StreamingAccount tier checks" do
     setup do

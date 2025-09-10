@@ -1,4 +1,5 @@
 defmodule Streampai.Stream do
+  @moduledoc false
   use Ash.Domain,
     extensions: [AshAdmin.Domain]
 

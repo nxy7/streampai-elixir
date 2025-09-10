@@ -1,8 +1,9 @@
 defmodule StreampaiWeb.DashboardWidgetsLive do
+  @moduledoc false
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do
-    {:ok, socket |> assign(:page_title, "Widgets"), layout: false}
+    {:ok, assign(socket, :page_title, "Widgets"), layout: false}
   end
 
   def render(assigns) do

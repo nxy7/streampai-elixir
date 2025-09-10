@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingFooter do
+  @moduledoc false
   use StreampaiWeb, :html
 
   def landing_footer(assigns) do

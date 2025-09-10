@@ -1,10 +1,12 @@
 defmodule StreampaiWeb.LandingLiveTest do
   use StreampaiWeb.ConnCase, async: true
   use Mneme
+
   import Phoenix.LiveViewTest
-  require Ash.Query
 
   alias Streampai.Accounts.NewsletterEmail
+
+  require Ash.Query
 
   describe "landing page" do
     test "renders landing page", %{conn: conn} do

@@ -11,8 +11,7 @@ defmodule Streampai.Fake.Chat do
   def initial_messages(count \\ nil) do
     message_count = count || Enum.random(10..15)
 
-    1..message_count
-    |> Enum.map(fn _ -> generate_message() end)
+    Enum.map(1..message_count, fn _ -> generate_message() end)
   end
 
   @doc """
@@ -61,8 +60,7 @@ defmodule Streampai.Fake.Chat do
         minutes_ago: minutes_ago,
         # 10% chance of donation
         is_donation: :rand.uniform(10) == 1,
-        donation_amount:
-          if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]), else: nil)
+        donation_amount: if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]))
       }
     end)
     # Sort by time, most recent first

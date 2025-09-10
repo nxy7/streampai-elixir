@@ -219,36 +219,31 @@ defmodule StreampaiWeb.Components.CarouselWidget do
   defp default_images do
     [
       %{
-        url:
-          "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop&crop=center",
+        url: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop&crop=center",
         alt: "Gaming Setup",
         title: "Epic Gaming Station",
         description: "Professional streaming setup"
       },
       %{
-        url:
-          "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop&crop=center",
+        url: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop&crop=center",
         alt: "Esports Tournament",
         title: "Esports Championship",
         description: "Competitive gaming at its finest"
       },
       %{
-        url:
-          "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&h=300&fit=crop&crop=center",
+        url: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&h=300&fit=crop&crop=center",
         alt: "Streaming Equipment",
         title: "Pro Streaming Gear",
         description: "High-quality broadcasting equipment"
       },
       %{
-        url:
-          "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=300&fit=crop&crop=center",
+        url: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=300&fit=crop&crop=center",
         alt: "Gaming Community",
         title: "Gaming Community",
         description: "Building connections through gaming"
       },
       %{
-        url:
-          "https://images.unsplash.com/photo-1556438064-2d7646166914?w=400&h=300&fit=crop&crop=center",
+        url: "https://images.unsplash.com/photo-1556438064-2d7646166914?w=400&h=300&fit=crop&crop=center",
         alt: "Retro Gaming",
         title: "Retro Gaming Night",
         description: "Classic games, timeless fun"

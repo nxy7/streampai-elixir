@@ -1,16 +1,8 @@
 import Config
 
+alias AshMoney.Types.Money
+
 signing_salt = "WVzcyVtA"
-
-config :ex_cldr, default_backend: Streampai.Cldr
-config :ash_oban, pro?: false
-
-config :streampai, Oban,
-  engine: Oban.Engines.Basic,
-  notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10],
-  repo: Streampai.Repo,
-  plugins: [{Oban.Plugins.Cron, []}]
 
 config :ash,
   include_embedded_source_by_default?: false,
@@ -19,7 +11,7 @@ config :ash,
   custom_types: [
     ticket_status: Streampai.Support.Ticket.Types.Status,
     event_type: Streampai.Stream.StreamEvent.Type,
-    money: AshMoney.Types.Money
+    money: Money
   ],
   allow_forbidden_field_for_relationships_by_default?: true,
   show_keysets_for_all_actions?: false,
@@ -27,7 +19,18 @@ config :ash,
   default_actions_require_atomic?: true,
   read_action_after_action_hooks_in_order?: true,
   bulk_actions_default_to_errors?: true,
-  known_types: [AshMoney.Types.Money]
+  known_types: [Money]
+
+config :ash_oban, pro?: false
+
+config :ex_cldr, default_backend: Streampai.Cldr
+
+config :logger, :console,
+  level: :info,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id, :error_id, :user_id, :path, :duration]
+
+config :phoenix, :json_library, Jason
 
 config :spark,
   formatter: [
@@ -59,17 +62,14 @@ config :spark,
     ]
   ]
 
-config :streampai,
-  ecto_repos: [Streampai.Repo],
-  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare],
-  generators: [timestamp_type: :utc_datetime],
-  env: Mix.env(),
-  session_options: [
-    store: :cookie,
-    key: "_streampai_key",
-    signing_salt: "streampai_session_salt",
-    same_site: "Lax"
-  ]
+config :streampai, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: Streampai.Repo,
+  plugins: [{Oban.Plugins.Cron, []}]
+
+config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Local
 
 config :streampai, Streampai.Repo,
   stacktrace: true,
@@ -92,7 +92,17 @@ config :streampai, StreampaiWeb.Endpoint,
   pubsub_server: Streampai.PubSub,
   live_view: [signing_salt: signing_salt]
 
-config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Local
+config :streampai,
+  ecto_repos: [Streampai.Repo],
+  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare],
+  generators: [timestamp_type: :utc_datetime],
+  env: Mix.env(),
+  session_options: [
+    store: :cookie,
+    key: "_streampai_key",
+    signing_salt: "streampai_session_salt",
+    same_site: "Lax"
+  ]
 
 config :ueberauth, Ueberauth,
   base_path: "/streaming/connect",
@@ -110,19 +120,11 @@ config :ueberauth, Ueberauth,
     twitch:
       {Ueberauth.Strategy.Twitch,
        [
+         # Configure Tailwind version
+         # config :tailwind, :version, "4.0.9"
          default_scope: "user:read:email channel:read:subscriptions"
        ]}
   ]
-
-config :logger, :console,
-  level: :info,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id, :error_id, :user_id, :path, :duration]
-
-config :phoenix, :json_library, Jason
-
-# Configure Tailwind version
-# config :tailwind, :version, "4.0.9"
 
 # Configure esbuild version (even though we're using Vite)
 # config :esbuild, :version, "0.25.0"

@@ -2,9 +2,9 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   @moduledoc """
   Plug for tracking and logging errors in ETS.
   """
-  require Logger
-
   @behaviour Plug
+
+  require Logger
 
   def init(opts), do: opts
 
@@ -109,7 +109,8 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
     if current_count >= 1000 do
       oldest_keys =
-        :ets.tab2list(:streampai_errors)
+        :streampai_errors
+        |> :ets.tab2list()
         |> Enum.sort_by(fn {_id, data} -> data.timestamp end)
         |> Enum.take(100)
         |> Enum.map(fn {id, _data} -> id end)
@@ -121,7 +122,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp generate_error_id do
-    :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase()
+    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
 
   defp get_header(conn, header_name) do
@@ -140,7 +141,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
 
   defp get_session_id(conn) do
     Plug.Conn.get_session(conn, "_csrf_token") ||
-      Plug.Conn.get_session(conn, "phoenix_flash") |> then(&inspect(&1)) |> String.slice(0, 16)
+      conn |> Plug.Conn.get_session("phoenix_flash") |> inspect() |> String.slice(0, 16)
   end
 
   defp get_client_ip(conn) do
@@ -162,8 +163,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
       conn.body_params
       |> inspect()
       |> String.slice(0, 500)
-    else
-      nil
     end
   end
 
@@ -173,7 +172,8 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
         []
 
       _ ->
-        :ets.tab2list(:streampai_errors)
+        :streampai_errors
+        |> :ets.tab2list()
         |> Enum.map(fn {_id, error} -> error end)
         |> Enum.sort_by(& &1.timestamp, {:desc, DateTime})
         |> Enum.take(limit)

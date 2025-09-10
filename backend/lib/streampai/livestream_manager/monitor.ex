@@ -18,7 +18,8 @@ defmodule Streampai.LivestreamManager.Monitor do
   def list_active_users do
     registry_name = get_registry_name()
 
-    Registry.select(registry_name, [
+    registry_name
+    |> Registry.select([
       {{{:user_stream_manager, :"$1"}, :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}
     ])
     |> Enum.map(fn {user_id, pid} ->
@@ -196,12 +197,12 @@ defmodule Streampai.LivestreamManager.Monitor do
     stream_status_counts =
       users
       |> Enum.group_by(fn user -> user.status.stream_status end)
-      |> Enum.into(%{}, fn {status, list} -> {status, length(list)} end)
+      |> Map.new(fn {status, list} -> {status, length(list)} end)
 
     queue_state_counts =
       users
       |> Enum.group_by(fn user -> user.status.queue_state end)
-      |> Enum.into(%{}, fn {state, list} -> {state, length(list)} end)
+      |> Map.new(fn {state, list} -> {state, length(list)} end)
 
     %{
       total: length(users),
@@ -242,7 +243,7 @@ defmodule Streampai.LivestreamManager.Monitor do
       {:start_time, start_time} ->
         now = System.monotonic_time(:microsecond)
         # Convert to milliseconds
-        (now - start_time) |> div(1000)
+        div(now - start_time, 1000)
 
       nil ->
         0
@@ -252,7 +253,8 @@ defmodule Streampai.LivestreamManager.Monitor do
   end
 
   defp get_child_processes(supervisor_pid) do
-    Supervisor.which_children(supervisor_pid)
+    supervisor_pid
+    |> Supervisor.which_children()
     |> Enum.map(fn {name, pid, _type, _modules} ->
       status = if Process.alive?(pid), do: :alive, else: :dead
       {name, pid, status}

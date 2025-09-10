@@ -4,9 +4,10 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   Tracks stream status, metadata, statistics, and platform connections.
   """
   use GenServer
-  require Logger
 
   alias Streampai.Accounts.StreamingAccount
+
+  require Logger
 
   defstruct [
     :user_id,
@@ -101,9 +102,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:update_metadata, metadata}, state) do
-    state =
-      state
-      |> Map.merge(Map.take(metadata, [:title, :thumbnail_url]))
+    state = Map.merge(state, Map.take(metadata, [:title, :thumbnail_url]))
 
     broadcast_state_change(state)
     {:noreply, state}
@@ -169,8 +168,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
     # TODO: Query StreamingAccount table for user's connected platforms
     case StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->
-        accounts
-        |> Enum.into(%{}, fn account ->
+        Map.new(accounts, fn account ->
           {account.platform,
            %{
              status: :disconnected,

@@ -8,7 +8,9 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
   - Stop impersonation and return to original user
   """
   use StreampaiWeb, :live_view
+
   import StreampaiWeb.Components.DashboardLayout
+
   alias Streampai.Accounts.UserPolicy
   alias StreampaiWeb.Presence
 
@@ -53,8 +55,9 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
     topic = "users_presence"
 
     online_users =
-      Presence.list(topic)
-      |> Enum.into(%{}, fn {user_id, %{metas: [meta | _]}} ->
+      topic
+      |> Presence.list()
+      |> Map.new(fn {user_id, %{metas: [meta | _]}} ->
         {user_id, meta}
       end)
 

@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingNavigation do
+  @moduledoc false
   use StreampaiWeb, :html
 
   attr(:current_user, :any, default: nil)
@@ -51,7 +52,12 @@ defmodule StreampaiWeb.Components.LandingNavigation do
     """
   end
 
-  if Mix.env() != :prod do
+  if Mix.env() == :prod do
+    defp auth_buttons(_assigns) do
+      assigns = %{}
+      ~H""
+    end
+  else
     defp auth_buttons(assigns) do
       ~H"""
       <%= if @current_user do %>
@@ -70,11 +76,6 @@ defmodule StreampaiWeb.Components.LandingNavigation do
         </.link>
       <% end %>
       """
-    end
-  else
-    defp auth_buttons(_assigns) do
-      assigns = %{}
-      ~H""
     end
   end
 end

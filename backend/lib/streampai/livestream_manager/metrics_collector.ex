@@ -4,6 +4,7 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   Tracks performance, usage statistics, and system health.
   """
   use GenServer
+
   require Logger
 
   defstruct [
@@ -66,7 +67,8 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   end
 
   defp count_active_users do
-    Registry.select(Streampai.LivestreamManager.Registry, [
+    Streampai.LivestreamManager.Registry
+    |> Registry.select([
       {{{:user_stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
     ])
     |> length()
@@ -92,9 +94,10 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   defp count_platform_connections do
     platforms = [:twitch, :youtube, :facebook, :kick]
 
-    Enum.into(platforms, %{}, fn platform ->
+    Map.new(platforms, fn platform ->
       count =
-        Registry.select(Streampai.LivestreamManager.Registry, [
+        Streampai.LivestreamManager.Registry
+        |> Registry.select([
           {{{:platform_manager, :_, platform}, :_, :_}, [], [true]}
         ])
         |> length()

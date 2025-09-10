@@ -1,4 +1,5 @@
 defmodule Streampai.Accounts.UserPreferences do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Accounts,
@@ -91,8 +92,7 @@ defmodule Streampai.Accounts.UserPreferences do
           :ok
 
         min_amount >= max_amount ->
-          {:error,
-           field: :min_donation_amount, message: "must be less than maximum donation amount"}
+          {:error, field: :min_donation_amount, message: "must be less than maximum donation amount"}
 
         min_amount < 1 ->
           {:error, field: :min_donation_amount, message: "must be at least $1"}

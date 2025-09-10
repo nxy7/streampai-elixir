@@ -6,6 +6,8 @@ defmodule Streampai.Accounts.TokenRefresher do
   stored in the database. Each platform may have different refresh flows.
   """
 
+  alias Streampai.Accounts.StreamingAccount
+
   require Logger
 
   @doc """
@@ -13,7 +15,7 @@ defmodule Streampai.Accounts.TokenRefresher do
   This could be called by a background job.
   """
   def refresh_expired_tokens do
-    case Ash.read(Streampai.Accounts.StreamingAccount, action: :expired_tokens) do
+    case Ash.read(StreamingAccount, action: :expired_tokens) do
       {:ok, expired_accounts} ->
         process_expired_accounts(expired_accounts)
 
@@ -32,25 +34,21 @@ defmodule Streampai.Accounts.TokenRefresher do
   defp refresh_and_log_account(account) do
     case refresh_account_token(account) do
       {:ok, _updated_account} ->
-        Logger.info(
-          "Successfully refreshed token for user #{account.user_id} on #{account.platform}"
-        )
+        Logger.info("Successfully refreshed token for user #{account.user_id} on #{account.platform}")
 
       {:error, error} ->
-        Logger.error(
-          "Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}"
-        )
+        Logger.error("Failed to refresh token for user #{account.user_id} on #{account.platform}: #{inspect(error)}")
     end
   end
 
   @doc """
   Refresh token for a specific streaming account.
   """
-  def refresh_account_token(%Streampai.Accounts.StreamingAccount{platform: :google} = account) do
+  def refresh_account_token(%StreamingAccount{platform: :google} = account) do
     refresh_google_token(account)
   end
 
-  def refresh_account_token(%Streampai.Accounts.StreamingAccount{platform: :twitch} = account) do
+  def refresh_account_token(%StreamingAccount{platform: :twitch} = account) do
     refresh_twitch_token(account)
   end
 
@@ -58,7 +56,7 @@ defmodule Streampai.Accounts.TokenRefresher do
     # Google OAuth2 token refresh
     # This would make an HTTP request to Google's token endpoint
     # For now, just simulate a successful refresh
-    new_token = "refreshed_google_token_#{:rand.uniform(10000)}"
+    new_token = "refreshed_google_token_#{:rand.uniform(10_000)}"
     new_expires_at = DateTime.add(DateTime.utc_now(), 3600, :second)
 
     account
@@ -73,7 +71,7 @@ defmodule Streampai.Accounts.TokenRefresher do
     # Twitch OAuth2 token refresh
     # This would make an HTTP request to Twitch's token endpoint
     # For now, just simulate a successful refresh
-    new_token = "refreshed_twitch_token_#{:rand.uniform(10000)}"
+    new_token = "refreshed_twitch_token_#{:rand.uniform(10_000)}"
     new_expires_at = DateTime.add(DateTime.utc_now(), 3600, :second)
 
     account
@@ -88,17 +86,14 @@ defmodule Streampai.Accounts.TokenRefresher do
   Get streaming accounts for a specific user.
   """
   def get_user_accounts(user_id) do
-    Ash.read(Streampai.Accounts.StreamingAccount, action: :for_user, user_id: user_id)
+    Ash.read(StreamingAccount, action: :for_user, user_id: user_id)
   end
 
   @doc """
   Check if a streaming account's token is expired or will expire soon.
   """
-  def token_expires_soon?(
-        %Streampai.Accounts.StreamingAccount{access_token_expires_at: expires_at},
-        minutes \\ 10
-      ) do
+  def token_expires_soon?(%StreamingAccount{access_token_expires_at: expires_at}, minutes \\ 10) do
     threshold = DateTime.add(DateTime.utc_now(), minutes * 60, :second)
-    DateTime.compare(expires_at, threshold) == :lt
+    DateTime.before?(expires_at, threshold)
   end
 end

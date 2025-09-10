@@ -15,7 +15,7 @@ defmodule StreampaiWeb.MonitoringController do
   end
 
   def health_check(conn, _params) do
-    uptime_ms = :erlang.statistics(:wall_clock) |> elem(0)
+    uptime_ms = :wall_clock |> :erlang.statistics() |> elem(0)
 
     health_status = %{
       status: "ok",
@@ -23,7 +23,7 @@ defmodule StreampaiWeb.MonitoringController do
       uptime: uptime_ms,
       uptime_human: format_uptime(uptime_ms),
       node: Node.self(),
-      version: Application.spec(:streampai, :vsn) |> to_string(),
+      version: :streampai |> Application.spec(:vsn) |> to_string(),
       git_sha: System.get_env("GIT_SHA", "unknown")
     }
 

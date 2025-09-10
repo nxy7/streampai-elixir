@@ -1,5 +1,7 @@
 defmodule StreampaiWeb.PrivacyLive do
+  @moduledoc false
   use StreampaiWeb, :live_view
+
   import StreampaiWeb.Components.StaticPageLayout
 
   def mount(_params, _session, socket) do

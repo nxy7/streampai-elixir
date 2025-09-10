@@ -1,5 +1,7 @@
 defmodule StreampaiWeb.ButtonLive do
+  @moduledoc false
   use Phoenix.LiveView
+
   alias Streampai.ButtonServer
   alias StreampaiWeb.Presence
 
@@ -7,8 +9,7 @@ defmodule StreampaiWeb.ButtonLive do
   def mount(%{"id" => id}, _session, socket) do
     if connected?(socket) do
       topic = "button:#{id}"
-      Streampai.PubSub |> Phoenix.PubSub.subscribe(topic)
-
+      Phoenix.PubSub.subscribe(Streampai.PubSub, topic)
       Phoenix.PubSub.subscribe(Streampai.PubSub, topic)
 
       Presence.track(
@@ -24,8 +25,7 @@ defmodule StreampaiWeb.ButtonLive do
     count = ButtonServer.get_count(id)
     dmg = Streampai.Double.value()
 
-    {:ok,
-     assign(socket, count: count, amnt: get_presence_count("presence_diff") + 1, id: id, dmg: dmg)}
+    {:ok, assign(socket, count: count, amnt: get_presence_count("presence_diff") + 1, id: id, dmg: dmg)}
   end
 
   @impl true
@@ -72,7 +72,8 @@ defmodule StreampaiWeb.ButtonLive do
   end
 
   defp get_presence_count(topic) do
-    Presence.list(topic)
+    topic
+    |> Presence.list()
     |> map_size()
   end
 end

@@ -1,7 +1,8 @@
 defmodule StreampaiWeb.AuthController do
-  require Logger
   use StreampaiWeb, :controller
   use AshAuthentication.Phoenix.Controller
+
+  require Logger
 
   def success(conn, _activity, user, _token) do
     # Check for stored redirect URL from either password auth or OAuth

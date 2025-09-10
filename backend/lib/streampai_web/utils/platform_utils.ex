@@ -29,8 +29,7 @@ defmodule StreampaiWeb.Utils.PlatformUtils do
   def platform_name(:facebook), do: "Facebook"
   def platform_name(:kick), do: "Kick"
 
-  def platform_name(platform) when is_atom(platform),
-    do: platform |> to_string() |> String.capitalize()
+  def platform_name(platform) when is_atom(platform), do: platform |> to_string() |> String.capitalize()
 
   def platform_name(platform) when is_binary(platform), do: String.capitalize(platform)
 

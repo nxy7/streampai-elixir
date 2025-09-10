@@ -1,4 +1,5 @@
 defmodule Streampai.Cloudflare.LiveOutput do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Cloudflare,

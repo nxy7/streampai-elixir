@@ -1,4 +1,5 @@
 defmodule Streampai.Accounts.WidgetConfig do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Accounts,

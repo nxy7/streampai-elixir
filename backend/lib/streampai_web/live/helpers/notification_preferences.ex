@@ -4,8 +4,8 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
   This is a simpler alternative to the macro approach.
   """
 
-  import Phoenix.LiveView, only: [put_flash: 3]
   import Phoenix.Component, only: [assign: 3, sigil_H: 2]
+  import Phoenix.LiveView, only: [put_flash: 3]
 
   alias Streampai.Accounts.UserPreferences
 
@@ -58,9 +58,7 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
          )}
 
       {:error, _error} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to update notification preferences")}
+        {:noreply, put_flash(socket, :error, "Failed to update notification preferences")}
     end
   end
 

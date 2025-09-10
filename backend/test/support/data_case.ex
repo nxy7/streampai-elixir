@@ -20,12 +20,12 @@ defmodule Streampai.DataCase do
 
   using do
     quote do
-      alias Streampai.Repo
-
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
       import Streampai.DataCase
+
+      alias Streampai.Repo
     end
   end
 

@@ -2,8 +2,8 @@ defmodule StreampaiWeb.Plugs.RateLimiter do
   @moduledoc """
   Simple rate limiting plug for authentication routes to prevent bot registrations.
   """
-  import Plug.Conn
   import Phoenix.Controller
+  import Plug.Conn
 
   def init(opts), do: opts
 

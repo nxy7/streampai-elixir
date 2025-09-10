@@ -19,8 +19,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     display_time = Enum.random(3..8)
     initial_event_with_time = Map.put(initial_event, :display_time, display_time)
 
-    socket
-    |> assign(:current_event, initial_event_with_time)
+    assign(socket, :current_event, initial_event_with_time)
   end
 
   defp update_widget_settings(config, params) do
@@ -61,10 +60,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 7000)
 
   # Handle presence updates (inherited from BaseLive)
-  def handle_info(
-        %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
-        socket
-      ) do
+  def handle_info(%Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"}, socket) do
     {:noreply, socket}
   end
 

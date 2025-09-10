@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.DashboardStreamLive do
+  @moduledoc false
   use StreampaiWeb.BaseLive
 
   alias Streampai.Dashboard

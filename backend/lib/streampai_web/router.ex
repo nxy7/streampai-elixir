@@ -1,11 +1,13 @@
 defmodule StreampaiWeb.Router do
   use StreampaiWeb, :router
-
-  import Oban.Web.Router
   use AshAuthentication.Phoenix.Router
-  import Phoenix.LiveDashboard.Router
 
   import AshAdmin.Router
+  import Oban.Web.Router
+  import Phoenix.LiveDashboard.Router
+
+  alias StreampaiWeb.Plugs.ErrorTracker
+  alias StreampaiWeb.Plugs.RedirectAfterAuth
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -15,8 +17,8 @@ defmodule StreampaiWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:load_from_session)
-    plug(StreampaiWeb.Plugs.ErrorTracker)
-    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
+    plug(ErrorTracker)
+    plug(RedirectAfterAuth)
   end
 
   pipeline :admin do
@@ -28,14 +30,14 @@ defmodule StreampaiWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:load_from_session)
-    plug(StreampaiWeb.Plugs.ErrorTracker)
-    plug(StreampaiWeb.Plugs.RedirectAfterAuth)
+    plug(ErrorTracker)
+    plug(RedirectAfterAuth)
   end
 
   pipeline :api do
     plug(:accepts, ["json"])
     plug(:load_from_bearer)
-    plug(StreampaiWeb.Plugs.ErrorTracker)
+    plug(ErrorTracker)
   end
 
   pipeline :rate_limited_auth do
@@ -143,7 +145,7 @@ defmodule StreampaiWeb.Router do
 
   def require_admin_access(conn, _opts) do
     client_ip = get_client_ip(conn)
-    admin_token = Plug.Conn.get_req_header(conn, "x-admin-token") |> List.first()
+    admin_token = conn |> Plug.Conn.get_req_header("x-admin-token") |> List.first()
     allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
 
     if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
