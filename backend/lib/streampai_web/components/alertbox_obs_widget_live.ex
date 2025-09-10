@@ -115,7 +115,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   # Transform AlertQueue event to widget display format
   defp transform_alert_event(event) do
     %{
-      id: 8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase(),
+      id: Map.get(event, :id, generate_event_id()),
       type: event.type,
       username: Map.get(event, :username, "Unknown"),
       message: Map.get(event, :message, ""),
@@ -125,10 +125,24 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
       months: Map.get(event, :months),
       tier: Map.get(event, :tier),
       viewer_count: Map.get(event, :viewer_count),
+      voice: Map.get(event, :voice, "default"),
+      tts_path: Map.get(event, :tts_path),
+      tts_url: get_tts_url(event),
       timestamp: Map.get(event, :timestamp, DateTime.utc_now()),
       platform: get_platform_info(event),
       display_time: get_display_duration(event)
     }
+  end
+
+  defp generate_event_id do
+    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
+  end
+
+  defp get_tts_url(event) do
+    case Map.get(event, :tts_path) do
+      nil -> nil
+      path -> Streampai.TtsService.get_tts_public_url(path)
+    end
   end
 
   # Get platform-specific display information
