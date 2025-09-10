@@ -66,7 +66,7 @@ defmodule StreampaiWeb.LandingLive do
 
   defp handle_validation_error(socket, changeset) do
     error_message = extract_error_message(changeset)
-    
+
     socket =
       socket
       |> assign(newsletter_error: error_message)
@@ -81,10 +81,16 @@ defmodule StreampaiWeb.LandingLive do
 
   defp is_duplicate_error?(%{field: :email, message: message}) when is_binary(message) do
     message_lower = String.downcase(message)
+
     duplicate_keywords = [
-      "has already been taken", "already been taken", "already exists",
-      "unique", "constraint", "duplicate"
+      "has already been taken",
+      "already been taken",
+      "already exists",
+      "unique",
+      "constraint",
+      "duplicate"
     ]
+
     Enum.any?(duplicate_keywords, &String.contains?(message_lower, &1))
   end
 

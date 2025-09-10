@@ -58,7 +58,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
   defp create_or_update_streaming_account(user, auth, provider) do
     platform = map_provider_to_platform(provider)
     extra_data = extract_user_data(auth)
-    
+
     account_params = %{
       user_id: user.id,
       platform: platform,
