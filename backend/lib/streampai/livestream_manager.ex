@@ -4,7 +4,8 @@ defmodule Streampai.LivestreamManager do
   Provides public API for managing user livestreams.
   """
 
-  alias Streampai.LivestreamManager.{UserStreamManager, UserSupervisor}
+  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.UserSupervisor
 
   @doc """
   Gets the existing user stream manager or creates it if it doesn't exist.

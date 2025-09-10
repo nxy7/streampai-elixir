@@ -4,6 +4,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
   Receives events from EventBroadcaster and formats them for alertbox widgets.
   """
   use GenServer
+
   require Logger
 
   defstruct [
@@ -270,6 +271,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
   end
 
   defp generate_alert_id do
-    :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+    8 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)
   end
 end

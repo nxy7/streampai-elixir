@@ -4,6 +4,19 @@ secret_key_base = "jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR
 
 config :ash, policies: [show_policy_breakdowns?: true]
 
+config :live_vue, vite_host: "http://localhost:5173", ssr: false
+
+# Logging and debugging
+config :logger, :console, format: "[$level] $message\n"
+
+config :phoenix, :plug_init_mode, :runtime
+config :phoenix, :stacktrace_depth, 20
+
+# LiveView development settings
+config :phoenix_live_view,
+  debug_heex_annotations: true,
+  enable_expensive_runtime_checks: true
+
 # Database configuration
 config :streampai, Streampai.Repo,
   username: "postgres",
@@ -44,16 +57,5 @@ config :streampai,
   dev_routes: true,
   token_signing_secret: "4Yc5enena8OiT95MV+wgXk7L14cROxd1"
 
-# Logging and debugging
-config :logger, :console, format: "[$level] $message\n"
-config :phoenix, :stacktrace_depth, 20
-config :phoenix, :plug_init_mode, :runtime
-
-# LiveView development settings
-config :phoenix_live_view,
-  debug_heex_annotations: true,
-  enable_expensive_runtime_checks: true
-
 # External services (disabled in dev)
 config :swoosh, :api_client, false
-config :live_vue, vite_host: "http://localhost:5173", ssr: false

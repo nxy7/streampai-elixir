@@ -2,10 +2,10 @@ defmodule Streampai.Cloudflare.APIClientTest do
   use ExUnit.Case, async: true
   use Mneme
 
+  alias Streampai.Cloudflare.APIClient
+
   @moduletag :external
   @moduletag :cloudflare
-
-  alias Streampai.Cloudflare.APIClient
 
   describe "live input operations" do
     test "create live input" do

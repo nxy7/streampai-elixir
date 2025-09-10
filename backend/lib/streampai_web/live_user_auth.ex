@@ -3,13 +3,16 @@ defmodule StreampaiWeb.LiveUserAuth do
   Helpers for authenticating users in LiveViews.
   """
 
-  import Phoenix.Component
   use StreampaiWeb, :verified_routes
+
+  import Phoenix.Component
+
+  alias Streampai.Accounts.User
   alias StreampaiWeb.Presence
 
   def on_mount(:handle_impersonation, _params, session, socket) do
     if socket.assigns.current_user do
-      {:cont, socket |> handle_impersonation(session)}
+      {:cont, handle_impersonation(socket, session)}
     else
       {:cont, assign(socket, :current_user, nil)}
     end
@@ -38,15 +41,15 @@ defmodule StreampaiWeb.LiveUserAuth do
       # Store the current path for redirect after login
       # Get current request path from the socket
       current_path =
-        Phoenix.LiveView.get_connect_info(socket, :uri)
+        socket
+        |> Phoenix.LiveView.get_connect_info(:uri)
         |> case do
           %URI{path: path} when is_binary(path) -> path
           # Safe fallback
           _ -> "/dashboard"
         end
 
-      {:halt,
-       Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in?#{[redirect_to: current_path]}")}
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/sign-in?#{[redirect_to: current_path]}")}
     end
   end
 
@@ -63,7 +66,7 @@ defmodule StreampaiWeb.LiveUserAuth do
         |> assign(:impersonator, impersonator_user)
 
       _ ->
-        socket |> assign(:impersonator, nil)
+        assign(socket, :impersonator, nil)
     end
   end
 
@@ -71,7 +74,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     import Ash.Query
 
     {:ok, [user]} =
-      Streampai.Accounts.User
+      User
       |> for_read(:get_by_id, %{id: user_id}, actor: actor)
       |> Ash.read()
 
@@ -86,7 +89,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     import Ash.Query
 
     {:ok, [user]} =
-      Streampai.Accounts.User
+      User
       |> for_read(:get_by_id, %{id: user_id}, authorize?: false)
       |> Ash.read()
 

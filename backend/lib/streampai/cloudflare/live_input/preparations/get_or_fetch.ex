@@ -4,7 +4,8 @@ defmodule LiveInput.Preparations.GetOrFetch do
   """
   use Ash.Resource.Preparation
 
-  alias Streampai.Cloudflare.{APIClient, LiveInput}
+  alias Streampai.Cloudflare.APIClient
+  alias Streampai.Cloudflare.LiveInput
 
   def prepare(query, _opts, _context) do
     Ash.Query.after_action(query, fn _query, _results ->
@@ -22,9 +23,9 @@ defmodule LiveInput.Preparations.GetOrFetch do
   end
 
   defp handle_existing_live_input(live_input, user_id) do
-    six_hours_ago = DateTime.utc_now() |> DateTime.add(-6, :hour)
+    six_hours_ago = DateTime.add(DateTime.utc_now(), -6, :hour)
 
-    if DateTime.compare(live_input.updated_at, six_hours_ago) == :gt do
+    if DateTime.after?(live_input.updated_at, six_hours_ago) do
       # Data is fresh
       {:ok, live_input}
     else
@@ -57,7 +58,8 @@ defmodule LiveInput.Preparations.GetOrFetch do
   defp create_from_api(user_id) do
     case APIClient.create_live_input(user_id) do
       {:ok, cloudflare_data} ->
-        Ash.Changeset.for_create(LiveInput, :create, %{
+        LiveInput
+        |> Ash.Changeset.for_create(:create, %{
           user_id: user_id,
           data: cloudflare_data
         })

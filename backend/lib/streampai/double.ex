@@ -1,4 +1,5 @@
 defmodule Streampai.Double do
+  @moduledoc false
   use Agent
 
   def start_link(_initial_values) do

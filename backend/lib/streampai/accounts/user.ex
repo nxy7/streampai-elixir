@@ -1,10 +1,18 @@
 defmodule Streampai.Accounts.User do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication, AshAdmin.Resource],
     data_layer: AshPostgres.DataLayer
+
+  alias AshAuthentication.Strategy.OAuth2.IdentityChange
+  alias AshAuthentication.Strategy.Password.HashPasswordChange
+  alias AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+  alias Streampai.Accounts.DefaultUsername
+  alias Streampai.Accounts.User
+  alias Streampai.Accounts.User.Changes.SavePlatformData
 
   admin do
     actor? true
@@ -116,7 +124,7 @@ defmodule Streampai.Accounts.User do
       prepare fn query, _context ->
         Ash.Query.after_action(query, fn _query, [user] ->
           extended_user =
-            Streampai.Accounts.User
+            User
             |> Ash.Query.for_read(:get_by_id, %{id: user.id}, actor: %{id: user.id})
             |> Ash.read_one!()
 
@@ -132,9 +140,9 @@ defmodule Streampai.Accounts.User do
       upsert_identity :unique_email
 
       change AshAuthentication.GenerateTokenChange
-      change AshAuthentication.Strategy.OAuth2.IdentityChange
-      change {Streampai.Accounts.User.Changes.SavePlatformData, platform_name: "google"}
-      change Streampai.Accounts.DefaultUsername
+      change IdentityChange
+      change {SavePlatformData, platform_name: "google"}
+      change DefaultUsername
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
@@ -148,9 +156,9 @@ defmodule Streampai.Accounts.User do
       upsert_identity :unique_email
 
       change AshAuthentication.GenerateTokenChange
-      change AshAuthentication.Strategy.OAuth2.IdentityChange
-      change {Streampai.Accounts.User.Changes.SavePlatformData, platform_name: "twitch"}
-      change Streampai.Accounts.DefaultUsername
+      change IdentityChange
+      change {SavePlatformData, platform_name: "twitch"}
+      change DefaultUsername
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
@@ -215,13 +223,13 @@ defmodule Streampai.Accounts.User do
         sensitive? true
       end
 
-      change AshAuthentication.Strategy.Password.HashPasswordChange
+      change HashPasswordChange
 
       change AshAuthentication.GenerateTokenChange
 
-      change Streampai.Accounts.DefaultUsername
+      change DefaultUsername
 
-      validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+      validate PasswordConfirmationValidation
 
       metadata :token, :string do
         description "A JWT that can be used to authenticate the user."
@@ -270,8 +278,8 @@ defmodule Streampai.Accounts.User do
       end
 
       validate AshAuthentication.Strategy.Password.ResetTokenValidation
-      validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
-      change AshAuthentication.Strategy.Password.HashPasswordChange
+      validate PasswordConfirmationValidation
+      change HashPasswordChange
       change AshAuthentication.GenerateTokenChange
     end
 
@@ -311,7 +319,7 @@ defmodule Streampai.Accounts.User do
             true ->
               import Ash.Query
 
-              case Streampai.Accounts.User
+              case User
                    |> filter(name == ^name and id != ^changeset.data.id)
                    |> for_read(:get)
                    |> select([:id])

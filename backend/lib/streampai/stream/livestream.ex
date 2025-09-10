@@ -1,4 +1,5 @@
 defmodule Streampai.Stream.Livestream do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,

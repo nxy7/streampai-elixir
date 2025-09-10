@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   Supports control commands like pause, skip, and clear.
   """
   use GenServer
+
   require Logger
 
   defstruct [
@@ -391,8 +392,9 @@ defmodule Streampai.LivestreamManager.AlertQueue do
       end)
 
     # Rebuild queue with new item inserted
-    (before ++ [new_item] ++ remaining)
-    |> Enum.reduce(:queue.new(), fn item, acc -> :queue.in(item, acc) end)
+    Enum.reduce(before ++ [new_item] ++ remaining, :queue.new(), fn item, acc ->
+      :queue.in(item, acc)
+    end)
   end
 
   defp drop_low_priority_events(state) do
@@ -566,7 +568,7 @@ defmodule Streampai.LivestreamManager.AlertQueue do
     }
 
     # Keep last 50 entries
-    new_history = [history_entry | state.event_history] |> Enum.take(50)
+    new_history = Enum.take([history_entry | state.event_history], 50)
 
     %{state | event_history: new_history}
   end
@@ -648,6 +650,6 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   end
 
   defp generate_event_id do
-    "alert_#{:crypto.strong_rand_bytes(8) |> Base.encode64() |> String.slice(0, 12)}"
+    "alert_#{8 |> :crypto.strong_rand_bytes() |> Base.encode64() |> String.slice(0, 12)}"
   end
 end

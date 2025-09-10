@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.SupportLive do
+  @moduledoc false
   use StreampaiWeb, :live_view
 
   def mount(_params, _session, socket) do

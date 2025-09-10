@@ -111,8 +111,7 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
   def update_unified_settings(config, params, opts \\ []) do
     # Extract boolean fields (those with "on" values indicating checkboxes)
     {boolean_params, other_params} =
-      params
-      |> Enum.split_with(fn {_key, value} -> value == "on" end)
+      Enum.split_with(params, fn {_key, value} -> value == "on" end)
 
     # Process boolean settings
     config_with_booleans =
@@ -190,8 +189,7 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
   """
   def validate_config_value(setting, value, allowed_values, default \\ nil)
 
-  def validate_config_value(_setting, value, allowed_values, default)
-      when is_list(allowed_values) do
+  def validate_config_value(_setting, value, allowed_values, default) when is_list(allowed_values) do
     if value in allowed_values do
       value
     else
@@ -248,9 +246,7 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
   Converts widget configuration to JSON-safe format for frontend consumption.
   """
   def config_to_json_safe(config) when is_map(config) do
-    config
-    |> Enum.map(fn {key, value} -> {to_string(key), value} end)
-    |> Map.new()
+    Map.new(config, fn {key, value} -> {to_string(key), value} end)
   end
 
   def config_to_json_safe(config), do: config

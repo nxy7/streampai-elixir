@@ -24,8 +24,7 @@ defmodule Streampai.Accounts.NameValidator do
   - {:ok, :current_name, message} if it's the user's current name
   - {:error, reason, message} if name is invalid or taken
   """
-  def validate_availability(name, current_user)
-      when is_binary(name) and not is_nil(current_user) do
+  def validate_availability(name, current_user) when is_binary(name) and not is_nil(current_user) do
     with :ok <- validate_format(name),
          :ok <- validate_length(name),
          :ok <- validate_uniqueness(name, current_user) do
@@ -89,6 +88,7 @@ defmodule Streampai.Accounts.NameValidator do
 
   defp validate_uniqueness(name, current_user) do
     import Ash.Query
+
     query = User |> for_read(:get) |> filter(name == ^name)
 
     case Ash.read(query) do
@@ -112,8 +112,7 @@ defmodule Streampai.Accounts.NameValidator do
   defp format_error_message(:too_short), do: "Name must be at least #{@min_length} characters"
   defp format_error_message(:too_long), do: "Name must be no more than #{@max_length} characters"
 
-  defp format_error_message(:invalid_format),
-    do: "Name can only contain letters, numbers, and underscores"
+  defp format_error_message(:invalid_format), do: "Name can only contain letters, numbers, and underscores"
 
   defp format_error_message(:name_taken), do: "This name is already taken"
   defp format_error_message(:validation_error), do: "Error checking name availability"

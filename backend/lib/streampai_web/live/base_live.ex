@@ -20,8 +20,9 @@ defmodule StreampaiWeb.BaseLive do
   defmacro __using__(opts \\ []) do
     quote do
       use StreampaiWeb, :live_view
-      import StreampaiWeb.Components.DashboardLayout
+
       import StreampaiWeb.Components.DashboardComponents
+      import StreampaiWeb.Components.DashboardLayout
       import StreampaiWeb.LiveHelpers
 
       @impl true
@@ -64,10 +65,7 @@ defmodule StreampaiWeb.BaseLive do
       end
 
       # Handle presence updates (for global presence tracking)
-      def handle_info(
-            %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
-            socket
-          ) do
+      def handle_info(%Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"}, socket) do
         {:noreply, socket}
       end
 

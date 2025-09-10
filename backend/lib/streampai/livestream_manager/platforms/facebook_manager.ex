@@ -4,6 +4,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   Currently a stub implementation - to be implemented in the future.
   """
   use GenServer
+
   require Logger
 
   def start_link(opts) do

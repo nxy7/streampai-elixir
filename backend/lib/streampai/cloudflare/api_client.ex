@@ -8,8 +8,7 @@ defmodule Streampai.Cloudflare.APIClient do
   # URL builders for live inputs and outputs
   defp live_input_url, do: "/accounts/#{account_id()}/stream/live_inputs"
 
-  defp live_input_url(input_id) when is_binary(input_id),
-    do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}"
+  defp live_input_url(input_id) when is_binary(input_id), do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}"
 
   defp live_output_url(input_id) when is_binary(input_id),
     do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}/outputs"
@@ -132,8 +131,7 @@ defmodule Streampai.Cloudflare.APIClient do
   @doc """
   Deletes a live output.
   """
-  def delete_live_output(input_uid, output_id)
-      when is_binary(input_uid) and is_binary(output_id) do
+  def delete_live_output(input_uid, output_id) when is_binary(input_uid) and is_binary(output_id) do
     path = live_output_url(input_uid, output_id)
 
     case make_api_request(:delete, path) do

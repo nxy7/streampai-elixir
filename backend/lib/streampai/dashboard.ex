@@ -113,14 +113,14 @@ defmodule Streampai.Dashboard do
         connected: config.platform in connected_platforms,
         connect_url: config.connect_url,
         color: config.connect_color,
-        account_data: if(connected_account, do: connected_account.extra_data, else: nil)
+        account_data: if(connected_account, do: connected_account.extra_data)
       }
     end)
   end
 
   @doc "Checks if user has admin privileges."
   def admin?(%User{email: email}) do
-    email == Streampai.Constants.admin_email()
+    email == Constants.admin_email()
   end
 
   def admin?(_), do: false
@@ -147,9 +147,8 @@ defmodule Streampai.Dashboard do
     |> Enum.map(fn config ->
       %{
         name: config.connect_name,
-        description:
-          if(connectable, do: config.description, else: "Upgrade to Pro to connect more accounts"),
-        url: if(connectable, do: config.connect_url, else: nil),
+        description: if(connectable, do: config.description, else: "Upgrade to Pro to connect more accounts"),
+        url: if(connectable, do: config.connect_url),
         icon: config.icon,
         color: config.connect_color
       }
@@ -158,8 +157,7 @@ defmodule Streampai.Dashboard do
 
   defp get_streaming_accounts(%User{} = user) do
     query =
-      Streampai.Accounts.StreamingAccount
-      |> Ash.Query.for_read(:for_user, %{user_id: user.id}, actor: user)
+      Ash.Query.for_read(Streampai.Accounts.StreamingAccount, :for_user, %{user_id: user.id}, actor: user)
 
     {:ok, streaming_accounts} = Ash.read(query)
     streaming_accounts
@@ -199,7 +197,7 @@ defmodule Streampai.Dashboard do
 
   @doc "Gets metrics cards for dashboard display with mock data."
   def get_metrics_cards(%User{} = user) do
-    current_month = Date.utc_today() |> Date.beginning_of_month()
+    current_month = Date.beginning_of_month(Date.utc_today())
 
     # Generate consistent mock data based on user ID for demonstration
     seed = :erlang.phash2(user.id, 1000)
@@ -212,8 +210,7 @@ defmodule Streampai.Dashboard do
         change: generate_percentage_change(rand_state),
         change_type: :positive,
         icon: "currency-dollar",
-        description:
-          "Total donations received in #{Date.to_string(current_month) |> String.slice(0, 7)}"
+        description: "Total donations received in #{current_month |> Date.to_string() |> String.slice(0, 7)}"
       },
       %{
         title: "New Subscribers",
@@ -227,8 +224,7 @@ defmodule Streampai.Dashboard do
         title: "Live Streams",
         value: generate_count(3, 25, rand_state),
         change: generate_percentage_change(rand_state),
-        change_type:
-          if(elem(:rand.uniform_s(rand_state), 0) > 0.7, do: :negative, else: :positive),
+        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.7, do: :negative, else: :positive),
         icon: "play",
         description: "Streams completed this month"
       },
@@ -236,8 +232,7 @@ defmodule Streampai.Dashboard do
         title: "Average Viewers",
         value: generate_count(12, 500, rand_state),
         change: generate_percentage_change(rand_state),
-        change_type:
-          if(elem(:rand.uniform_s(rand_state), 0) > 0.6, do: :negative, else: :positive),
+        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.6, do: :negative, else: :positive),
         icon: "eye",
         description: "Per stream this month"
       },
@@ -261,8 +256,7 @@ defmodule Streampai.Dashboard do
         title: "Patreon Supporters",
         value: generate_count(8, 200, rand_state),
         change: generate_percentage_change(rand_state),
-        change_type:
-          if(elem(:rand.uniform_s(rand_state), 0) > 0.8, do: :negative, else: :positive),
+        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.8, do: :negative, else: :positive),
         icon: "heart",
         description: "Active monthly supporters"
       },

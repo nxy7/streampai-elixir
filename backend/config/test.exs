@@ -8,12 +8,22 @@ System.put_env(
 
 System.put_env("TOKEN_SIGNING_SECRET", "h4cu7OR38wead3kXqon6ReLmG2o4SH0u")
 
-config :streampai,
-  env: :test
+config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]
+
+# Print only warnings and errors during test
+config :logger, level: :warning
+
+# Initialize plugs at runtime for faster test compilation
+config :phoenix, :plug_init_mode, :runtime
+
+# Enable helpful, but potentially expensive runtime checks
+config :phoenix_live_view,
+  enable_expensive_runtime_checks: true
 
 config :streampai, Oban, testing: :manual
-config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"
-config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]
+
+# In test we don't send emails
+config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Test
 
 # Configure your database
 #
@@ -35,18 +45,10 @@ config :streampai, StreampaiWeb.Endpoint,
   secret_key_base: "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/dlt9ArOMnBFIoS",
   server: false
 
-# In test we don't send emails
-config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Test
+config :streampai,
+  env: :test
+
+config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
-
-# Print only warnings and errors during test
-config :logger, level: :warning
-
-# Initialize plugs at runtime for faster test compilation
-config :phoenix, :plug_init_mode, :runtime
-
-# Enable helpful, but potentially expensive runtime checks
-config :phoenix_live_view,
-  enable_expensive_runtime_checks: true

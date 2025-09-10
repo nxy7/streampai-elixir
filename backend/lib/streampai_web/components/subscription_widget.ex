@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.SubscriptionWidget do
+  @moduledoc false
   use StreampaiWeb, :html
 
   def subscription_widget(assigns) do

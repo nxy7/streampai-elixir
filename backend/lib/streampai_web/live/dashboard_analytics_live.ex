@@ -5,7 +5,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   use StreampaiWeb.BaseLive
 
   def mount_page(socket, _params, _session) do
-    {:ok, socket |> assign(:page_title, "Analytics"), layout: false}
+    {:ok, assign(socket, :page_title, "Analytics"), layout: false}
   end
 
   def render(assigns) do

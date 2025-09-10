@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingPricing do
+  @moduledoc false
   use StreampaiWeb, :html
 
   attr :current_user, :any, default: nil

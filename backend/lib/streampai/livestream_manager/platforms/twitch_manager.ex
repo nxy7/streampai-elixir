@@ -4,9 +4,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   Handles chat, events, API calls, and WebSocket connections.
   """
   use GenServer
-  require Logger
 
   alias Streampai.LivestreamManager.StreamStateServer
+
+  require Logger
 
   defstruct [
     :user_id,
@@ -72,67 +73,62 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def handle_info(:connect, state) do
-    case authenticate_and_connect(state) do
-      {:ok, new_state} ->
-        # Start periodic tasks
-        schedule_viewer_count_check()
-        schedule_token_refresh()
+    {:ok, new_state} = authenticate_and_connect(state)
+    # Start periodic tasks
+    schedule_viewer_count_check()
+    schedule_token_refresh()
 
-        Logger.info("Connected to Twitch for user #{state.user_id}")
-        {:noreply, new_state}
+    Logger.info("Connected to Twitch for user #{state.user_id}")
+    {:noreply, new_state}
 
-        # TODO: Handle authentication errors when real Twitch API is implemented
-        # {:error, reason} ->
-        #   Logger.error("Failed to connect to Twitch for user #{state.user_id}: #{inspect(reason)}")
-        #   Process.send_after(self(), :connect, 30_000)
-        #   {:noreply, %{state | connection_status: :error}}
-    end
+    # TODO: Handle authentication errors when real Twitch API is implemented
+    # {:error, reason} ->
+    #   Logger.error("Failed to connect to Twitch for user #{state.user_id}: #{inspect(reason)}")
+    #   Process.send_after(self(), :connect, 30_000)
+    #   {:noreply, %{state | connection_status: :error}}
   end
 
   @impl true
   def handle_info(:check_viewer_count, state) do
-    case get_stream_info(state) do
-      {:ok, stream_info} ->
-        if stream_info.viewer_count != state.last_viewer_count do
-          # Broadcast viewer count update
-          _event = %{
-            type: :viewer_count_update,
-            user_id: state.user_id,
-            platform: :twitch,
-            count: stream_info.viewer_count,
-            previous_count: state.last_viewer_count
-          }
+    {:ok, stream_info} = get_stream_info(state)
 
-          # EventBroadcaster.broadcast_event(event)
+    if stream_info.viewer_count != state.last_viewer_count do
+      # Broadcast viewer count update
+      _event = %{
+        type: :viewer_count_update,
+        user_id: state.user_id,
+        platform: :twitch,
+        count: stream_info.viewer_count,
+        previous_count: state.last_viewer_count
+      }
 
-          # Update stream state
-          update_platform_status(state, %{viewer_count: stream_info.viewer_count})
-        end
+      # EventBroadcaster.broadcast_event(event)
 
-        schedule_viewer_count_check()
-        {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
-
-        # TODO: Handle stream info errors when real Twitch API is implemented
-        # {:error, _reason} ->
-        #   schedule_viewer_count_check()
-        #   {:noreply, state}
+      # Update stream state
+      update_platform_status(state, %{viewer_count: stream_info.viewer_count})
     end
+
+    schedule_viewer_count_check()
+    {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
+
+    # TODO: Handle stream info errors when real Twitch API is implemented
+    # {:error, _reason} ->
+    #   schedule_viewer_count_check()
+    #   {:noreply, state}
   end
 
   @impl true
   def handle_info(:refresh_token, state) do
-    case refresh_access_token(state) do
-      {:ok, new_state} ->
-        Logger.info("Refreshed Twitch token for user #{state.user_id}")
-        schedule_token_refresh()
-        {:noreply, new_state}
+    {:ok, new_state} = refresh_access_token(state)
+    Logger.info("Refreshed Twitch token for user #{state.user_id}")
+    schedule_token_refresh()
+    {:noreply, new_state}
 
-        # TODO: Handle token refresh errors when real Twitch API is implemented
-        # {:error, reason} ->
-        #   Logger.error("Failed to refresh Twitch token for user #{state.user_id}: #{inspect(reason)}")
-        #   schedule_token_refresh()
-        #   {:noreply, state}
-    end
+    # TODO: Handle token refresh errors when real Twitch API is implemented
+    # {:error, reason} ->
+    #   Logger.error("Failed to refresh Twitch token for user #{state.user_id}: #{inspect(reason)}")
+    #   schedule_token_refresh()
+    #   {:noreply, state}
   end
 
   @impl true
@@ -144,14 +140,12 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   @impl true
   def handle_cast({:send_chat_message, message}, state) do
     if state.connection_status == :connected and state.chat_enabled do
-      case send_twitch_chat_message(state, message) do
-        :ok ->
-          Logger.debug("Sent chat message to Twitch for user #{state.user_id}")
+      :ok = send_twitch_chat_message(state, message)
+      Logger.debug("Sent chat message to Twitch for user #{state.user_id}")
 
-          # TODO: Handle chat message errors when real Twitch API is implemented
-          # {:error, reason} ->
-          #   Logger.error("Failed to send chat message for user #{state.user_id}: #{inspect(reason)}")
-      end
+      # TODO: Handle chat message errors when real Twitch API is implemented
+      # {:error, reason} ->
+      #   Logger.error("Failed to send chat message for user #{state.user_id}: #{inspect(reason)}")
     end
 
     {:noreply, state}
@@ -159,21 +153,18 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def handle_cast({:update_stream_metadata, metadata}, state) do
-    case update_twitch_stream_info(state, metadata) do
-      :ok ->
-        Logger.info("Updated Twitch stream metadata for user #{state.user_id}")
+    :ok = update_twitch_stream_info(state, metadata)
+    Logger.info("Updated Twitch stream metadata for user #{state.user_id}")
 
-        # Update local stream state
-        update_platform_status(state, %{
-          title: metadata[:title],
-          category: metadata[:category]
-        })
+    # Update local stream state
+    update_platform_status(state, %{
+      title: metadata[:title],
+      category: metadata[:category]
+    })
 
-        # TODO: Handle metadata update errors when real Twitch API is implemented
-        # {:error, reason} ->
-        #   Logger.error("Failed to update stream metadata for user #{state.user_id}: #{inspect(reason)}")
-    end
-
+    # TODO: Handle metadata update errors when real Twitch API is implemented
+    # {:error, reason} ->
+    #   Logger.error("Failed to update stream metadata for user #{state.user_id}: #{inspect(reason)}")
     {:noreply, state}
   end
 
@@ -194,8 +185,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   # Helper functions
 
   defp via_tuple(user_id) do
-    {:via, Registry,
-     {Streampai.LivestreamManager.Registry, {:platform_manager, user_id, :twitch}}}
+    {:via, Registry, {Streampai.LivestreamManager.Registry, {:platform_manager, user_id, :twitch}}}
   end
 
   defp authenticate_and_connect(state) do
@@ -250,10 +240,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     process_subscription_event(username, tier, state)
   end
 
-  defp process_twitch_event(
-         %{type: "raid", from_broadcaster_user_name: username, viewers: viewers},
-         state
-       ) do
+  defp process_twitch_event(%{type: "raid", from_broadcaster_user_name: username, viewers: viewers}, state) do
     process_raid_event(username, viewers, state)
   end
 

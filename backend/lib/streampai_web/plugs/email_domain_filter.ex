@@ -2,8 +2,8 @@ defmodule StreampaiWeb.Plugs.EmailDomainFilter do
   @moduledoc """
   Plug to filter out suspicious email domains commonly used by bots.
   """
-  import Plug.Conn
   import Phoenix.Controller
+  import Plug.Conn
 
   # Common disposable email domains used by bots
   @suspicious_domains [

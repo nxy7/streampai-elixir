@@ -1,6 +1,7 @@
 defmodule StreampaiWeb.Components.DashboardLayoutTest do
   use StreampaiWeb.ConnCase, async: true
   use Mneme
+
   import Phoenix.LiveViewTest
   import StreampaiWeb.Components.DashboardLayout
 

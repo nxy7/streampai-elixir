@@ -1,11 +1,13 @@
 defmodule StreampaiWeb.LandingLive do
+  @moduledoc false
   use StreampaiWeb, :live_view
-  import StreampaiWeb.Components.LandingNavigation
-  import StreampaiWeb.Components.LandingHero
-  import StreampaiWeb.Components.LandingFeatures
-  import StreampaiWeb.Components.LandingPricing
+
   import StreampaiWeb.Components.LandingCTA
+  import StreampaiWeb.Components.LandingFeatures
   import StreampaiWeb.Components.LandingFooter
+  import StreampaiWeb.Components.LandingHero
+  import StreampaiWeb.Components.LandingNavigation
+  import StreampaiWeb.Components.LandingPricing
 
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")

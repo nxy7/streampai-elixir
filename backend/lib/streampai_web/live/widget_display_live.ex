@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.WidgetDisplayLive do
+  @moduledoc false
   use StreampaiWeb, :live_view
 
   import StreampaiWeb.Components.WidgetComponents

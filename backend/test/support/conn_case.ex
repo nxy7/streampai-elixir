@@ -24,9 +24,10 @@ defmodule StreampaiWeb.ConnCase do
 
       use StreampaiWeb, :verified_routes
 
+      import Phoenix.ConnTest
+
       # Import conveniences for testing with connections
       import Plug.Conn
-      import Phoenix.ConnTest
       import StreampaiWeb.ConnCase
 
       # Import authentication helpers for testing

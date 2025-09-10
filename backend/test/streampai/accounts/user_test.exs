@@ -1,8 +1,9 @@
 defmodule Streampai.Accounts.UserTest do
   use Streampai.DataCase, async: true
   use Mneme
-  alias Streampai.Accounts.User
+
   alias Ash.Resource.Info
+  alias Streampai.Accounts.User
 
   describe "User resource" do
     setup do

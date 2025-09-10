@@ -92,7 +92,7 @@ defmodule Streampai.Fake.Alert do
 
     platform = %{
       name: PlatformUtils.platform_name(platform_name),
-      icon: PlatformUtils.platform_initial(platform_name) |> String.downcase(),
+      icon: platform_name |> PlatformUtils.platform_initial() |> String.downcase(),
       color: PlatformUtils.platform_color(platform_name)
     }
 
@@ -111,45 +111,44 @@ defmodule Streampai.Fake.Alert do
         Map.merge(base_event, %{
           amount: amount,
           currency: "$",
-          message: if(Enum.random([true, false]), do: Enum.random(@donation_messages), else: nil)
+          message: if(Enum.random([true, false]), do: Enum.random(@donation_messages))
         })
 
       :subscription ->
-        Map.merge(base_event, %{
-          message:
-            if(Enum.random([true, false]), do: Enum.random(@subscription_messages), else: nil)
-        })
+        Map.put(
+          base_event,
+          :message,
+          if(Enum.random([true, false]), do: Enum.random(@subscription_messages))
+        )
 
       :follow ->
-        Map.merge(base_event, %{
-          message: if(Enum.random(1..10) == 1, do: "Thanks for the follow!", else: nil)
-        })
+        Map.put(base_event, :message, if(Enum.random(1..10) == 1, do: "Thanks for the follow!"))
 
       :raid ->
         viewers = Enum.random(5..500)
 
-        Map.merge(base_event, %{
-          message: "Raiding with #{viewers} viewers!"
-        })
+        Map.put(base_event, :message, "Raiding with #{viewers} viewers!")
     end
   end
 
   defp generate_donation_amount do
     # Generate realistic donation amounts with weighted distribution
-    case Enum.random(1..100) do
-      # $1-6
-      n when n <= 50 -> Enum.random([1, 2, 3, 5]) + :rand.uniform()
-      # $5-21
-      n when n <= 80 -> Enum.random([5, 10, 15, 20]) + :rand.uniform()
-      # $25-101
-      n when n <= 95 -> Enum.random([25, 50, 75, 100]) + :rand.uniform()
-      # $100-1001
-      _ -> Enum.random([100, 200, 500, 1000]) + :rand.uniform()
-    end
-    |> Float.round(2)
+    case_result =
+      case Enum.random(1..100) do
+        # $1-6
+        n when n <= 50 -> Enum.random([1, 2, 3, 5]) + :rand.uniform()
+        # $5-21
+        n when n <= 80 -> Enum.random([5, 10, 15, 20]) + :rand.uniform()
+        # $25-101
+        n when n <= 95 -> Enum.random([25, 50, 75, 100]) + :rand.uniform()
+        # $100-1001
+        _ -> Enum.random([100, 200, 500, 1000]) + :rand.uniform()
+      end
+
+    Float.round(case_result, 2)
   end
 
   defp generate_id do
-    :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase()
+    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
 end

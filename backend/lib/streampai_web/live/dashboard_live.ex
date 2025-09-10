@@ -3,6 +3,7 @@ defmodule StreampaiWeb.DashboardLive do
   Main dashboard LiveView providing overview of user's streaming status and quick actions.
   """
   use StreampaiWeb.BaseLive
+
   import StreampaiWeb.Components.DashboardComponents
 
   # @dev_env Application.compile_env(:streampai, :env) == :dev
@@ -38,9 +39,7 @@ defmodule StreampaiWeb.DashboardLive do
     {:ok, socket, layout: false}
   end
 
-  defp get_display_name(%{assigns: %{dashboard_data: %{user_info: %{display_name: name}}}})
-       when is_binary(name),
-       do: name
+  defp get_display_name(%{assigns: %{dashboard_data: %{user_info: %{display_name: name}}}}) when is_binary(name), do: name
 
   defp get_display_name(_s) do
     "User"
@@ -188,7 +187,9 @@ defmodule StreampaiWeb.DashboardLive do
     end
   end
 
-  if Application.compile_env(:streampai, :env) != :prod do
+  if Application.compile_env(:streampai, :env) == :prod do
+    defp debug_section(_assigns), do: ""
+  else
     defp debug_section(assigns) do
       ~H"""
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -204,7 +205,5 @@ defmodule StreampaiWeb.DashboardLive do
       </div>
       """
     end
-  else
-    defp debug_section(_assigns), do: ""
   end
 end

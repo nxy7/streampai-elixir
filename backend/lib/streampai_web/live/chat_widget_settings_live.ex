@@ -58,7 +58,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     new_message = @fake_module.generate_message()
 
     # Add new message to stream and let stream handle limiting
-    socket = socket |> stream_insert(:messages, new_message, at: -1)
+    socket = stream_insert(socket, :messages, new_message, at: -1)
 
     current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
     updated_vue_messages = [new_message | current_vue_messages]
@@ -73,10 +73,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 1000)
 
   # Handle presence updates (inherited from BaseLive)
-  def handle_info(
-        %Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"},
-        socket
-      ) do
+  def handle_info(%Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"}, socket) do
     {:noreply, socket}
   end
 

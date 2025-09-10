@@ -5,6 +5,7 @@ defmodule StreampaiTest.LivestreamTestHelpers do
   """
 
   import ExUnit.Assertions
+
   alias Streampai.LivestreamManager
 
   @doc """

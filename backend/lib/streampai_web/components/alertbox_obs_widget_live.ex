@@ -58,8 +58,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   end
 
   defp initialize_display_assigns(socket) do
-    socket
-    |> assign(:current_event, nil)
+    assign(socket, :current_event, nil)
   end
 
   defp subscribe_to_real_events(user_id) do
@@ -116,7 +115,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   # Transform AlertQueue event to widget display format
   defp transform_alert_event(event) do
     %{
-      id: :crypto.strong_rand_bytes(8) |> Base.encode16() |> String.downcase(),
+      id: 8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase(),
       type: event.type,
       username: Map.get(event, :username, "Unknown"),
       message: Map.get(event, :message, ""),

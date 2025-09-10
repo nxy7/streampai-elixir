@@ -6,11 +6,12 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   via Phoenix.PubSub for real-time updates.
   """
   use GenServer
-  require Logger
 
   alias Phoenix.PubSub
   alias Streampai.Cloudflare.APIClient
   alias Streampai.Cloudflare.LiveInput
+
+  require Logger
 
   # Poll interval in milliseconds (30 seconds)
   @poll_interval 30_000
@@ -100,9 +101,7 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
         poll_stream_status(new_state)
 
       {:error, _error_type, message} ->
-        Logger.warning(
-          "[CloudflareLiveInputMonitor:#{state.user_id}] Error finding live input: #{inspect(message)}"
-        )
+        Logger.warning("[CloudflareLiveInputMonitor:#{state.user_id}] Error finding live input: #{inspect(message)}")
 
         handle_poll_failure(state)
     end
@@ -117,9 +116,7 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
       {:error, :http_error, message} ->
         case message do
           "HTTP 404 error during get_live_input" ->
-            Logger.warning(
-              "[CloudflareLiveInputMonitor:#{state.user_id}] Live input #{input_id} not found, clearing ID"
-            )
+            Logger.warning("[CloudflareLiveInputMonitor:#{state.user_id}] Live input #{input_id} not found, clearing ID")
 
             %{
               state
@@ -172,9 +169,7 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
     poll_count = state.poll_count + 1
 
     if consecutive_failures >= @max_consecutive_failures and state.is_streaming do
-      Logger.warning(
-        "[CloudflareLiveInputMonitor:#{state.user_id}] Too many failures, marking as not streaming"
-      )
+      Logger.warning("[CloudflareLiveInputMonitor:#{state.user_id}] Too many failures, marking as not streaming")
 
       broadcast_status_change(state.user_id, false, %{"reason" => "consecutive_failures"})
 
@@ -195,9 +190,7 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   end
 
   defp extract_streaming_status(input_data) do
-    Logger.debug(
-      "[CloudflareLiveInputMonitor] No status.current in input data: #{inspect(input_data)}"
-    )
+    Logger.debug("[CloudflareLiveInputMonitor] No status.current in input data: #{inspect(input_data)}")
 
     false
   end
@@ -246,7 +239,6 @@ defmodule Streampai.LivestreamManager.CloudflareLiveInputMonitor do
   end
 
   defp via_tuple(user_id) do
-    {:via, Registry,
-     {Streampai.LivestreamManager.Registry, {:cloudflare_live_input_monitor, user_id}}}
+    {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_live_input_monitor, user_id}}}
   end
 end

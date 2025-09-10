@@ -117,7 +117,7 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
 
   # Default responses for different platforms/methods
   defp default_response(:twitch, :send_chat, _params) do
-    {:ok, %{message_id: "msg_#{:rand.uniform(10000)}"}}
+    {:ok, %{message_id: "msg_#{:rand.uniform(10_000)}"}}
   end
 
   defp default_response(:twitch, :get_stream_info, _params) do
@@ -126,7 +126,7 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
        viewer_count: :rand.uniform(1000),
        title: "Mock Stream Title",
        game_name: "Software Development",
-       started_at: DateTime.utc_now() |> DateTime.add(-3600)
+       started_at: DateTime.add(DateTime.utc_now(), -3600)
      }}
   end
 
@@ -139,7 +139,7 @@ defmodule StreampaiTest.Mocks.PlatformAPIMock do
   end
 
   defp default_response(:youtube, :send_chat, _params) do
-    {:ok, %{message_id: "yt_msg_#{:rand.uniform(10000)}"}}
+    {:ok, %{message_id: "yt_msg_#{:rand.uniform(10_000)}"}}
   end
 
   defp default_response(:youtube, :get_stream_info, _params) do

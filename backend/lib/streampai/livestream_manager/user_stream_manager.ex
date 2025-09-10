@@ -5,13 +5,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   """
   use Supervisor
 
-  alias Streampai.LivestreamManager.{
-    AlertQueue,
-    CloudflareLiveInputMonitor,
-    CloudflareManager,
-    PlatformSupervisor,
-    StreamStateServer
-  }
+  alias Streampai.LivestreamManager.AlertQueue
+  alias Streampai.LivestreamManager.CloudflareLiveInputMonitor
+  alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.PlatformSupervisor
+  alias Streampai.LivestreamManager.StreamStateServer
 
   def start_link(user_id) when is_binary(user_id) do
     Supervisor.start_link(__MODULE__, user_id, name: via_tuple(user_id))
@@ -44,9 +42,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   def get_state(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    StreamStateServer.get_state(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:stream_state, user_id}}}
-    )
+    StreamStateServer.get_state({:via, Registry, {Streampai.LivestreamManager.Registry, {:stream_state, user_id}}})
   end
 
   def send_chat_message(pid, message, platforms) when is_pid(pid) do
@@ -92,41 +88,31 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   def pause_alerts(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    AlertQueue.pause_queue(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}}
-    )
+    AlertQueue.pause_queue({:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}})
   end
 
   def resume_alerts(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    AlertQueue.resume_queue(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}}
-    )
+    AlertQueue.resume_queue({:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}})
   end
 
   def skip_alert(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    AlertQueue.skip_event(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}}
-    )
+    AlertQueue.skip_event({:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}})
   end
 
   def clear_alert_queue(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    AlertQueue.clear_queue(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}}
-    )
+    AlertQueue.clear_queue({:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}})
   end
 
   def get_alert_queue_status(pid) when is_pid(pid) do
     user_id = get_user_id_from_supervisor(pid)
 
-    AlertQueue.get_queue_status(
-      {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}}
-    )
+    AlertQueue.get_queue_status({:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_queue, user_id}}})
   end
 
   # Helper functions

@@ -3,10 +3,12 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   Settings LiveView for managing user account settings and platform connections.
   """
   use StreampaiWeb.BaseLive
+
   import StreampaiWeb.Components.SubscriptionWidget
   import StreampaiWeb.Live.Helpers.NotificationPreferences
 
-  alias Streampai.Accounts.{NameValidator, UserPreferences}
+  alias Streampai.Accounts.NameValidator
+  alias Streampai.Accounts.UserPreferences
   alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
@@ -31,7 +33,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
      |> load_user_preferences()
      |> assign(
        :name_form,
-       AshPhoenix.Form.for_update(socket.assigns.current_user, :update_name) |> to_form()
+       socket.assigns.current_user |> AshPhoenix.Form.for_update(:update_name) |> to_form()
      )
      |> assign(:name_error, nil)
      |> assign(:name_success, nil)
@@ -64,7 +66,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
   def handle_event("validate_name", %{"form" => form_params}, socket) do
     form =
-      AshPhoenix.Form.validate(socket.assigns.name_form, form_params, errors: true) |> to_form()
+      socket.assigns.name_form |> AshPhoenix.Form.validate(form_params, errors: true) |> to_form()
 
     # Reset availability when input changes, but keep success message until next submission
     socket =
@@ -99,9 +101,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
     # Don't submit if name is not available
     if socket.assigns.name_available == false do
-      {:noreply,
-       socket
-       |> assign(:name_error, "Cannot update to an invalid or taken name")}
+      {:noreply, assign(socket, :name_error, "Cannot update to an invalid or taken name")}
     else
       case AshPhoenix.Form.submit(socket.assigns.name_form,
              params: form_params,
@@ -112,7 +112,8 @@ defmodule StreampaiWeb.DashboardSettingsLive do
            socket
            |> assign(
              :name_form,
-             AshPhoenix.Form.for_update(user, :update_name, actor: actor)
+             user
+             |> AshPhoenix.Form.for_update(:update_name, actor: actor)
              |> to_form()
            )
            |> assign(:name_success, "Name updated successfully!")
@@ -122,7 +123,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
         {:error, form} ->
           {:noreply,
            socket
-           |> assign(:name_form, form |> to_form())
+           |> assign(:name_form, to_form(form))
            |> assign(:name_error, "Failed to update name")}
       end
     end
@@ -156,8 +157,11 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
       {:error, _changeset} ->
         {:noreply,
-         socket
-         |> put_flash(:error, "Failed to update donation preferences. Please check your values.")}
+         put_flash(
+           socket,
+           :error,
+           "Failed to update donation preferences. Please check your values."
+         )}
     end
   end
 

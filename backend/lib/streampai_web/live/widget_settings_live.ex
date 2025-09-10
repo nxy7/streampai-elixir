@@ -4,6 +4,8 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   Provides common patterns for widget configuration, PubSub, and OBS browser source URL generation.
   """
 
+  import Phoenix.LiveView, only: [put_flash: 3]
+
   alias Streampai.Accounts.WidgetConfig
 
   defmacro __using__(opts) do
@@ -12,7 +14,9 @@ defmodule StreampaiWeb.WidgetSettingsLive do
 
     quote do
       use StreampaiWeb, :live_view
+
       import StreampaiWeb.Components.DashboardLayout
+
       alias unquote(fake_data_module)
 
       @widget_type unquote(widget_type)
@@ -81,7 +85,6 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   end
 
   # Import LiveView functions for the module functions
-  import Phoenix.LiveView, only: [put_flash: 3]
 
   # Shared event handling logic
   def handle_toggle_setting(socket, field, widget_type) do
@@ -123,9 +126,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
         {:noreply, Phoenix.Component.assign(socket, :widget_config, updated_config)}
 
       {:error, _error} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to save #{String.replace(field, "_", " ")} setting")}
+        {:noreply, put_flash(socket, :error, "Failed to save #{String.replace(field, "_", " ")} setting")}
     end
   end
 

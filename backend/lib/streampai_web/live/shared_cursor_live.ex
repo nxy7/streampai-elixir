@@ -1,5 +1,7 @@
 defmodule StreampaiWeb.SharedCursorLive do
+  @moduledoc false
   use StreampaiWeb, :live_view
+
   alias Phoenix.PubSub
 
   @cursor_topic "cursor_positions"
@@ -64,7 +66,9 @@ defmodule StreampaiWeb.SharedCursorLive do
 
   def handle_info({:cursor_update, user_id, x, y}, socket) do
     # Don't update our own cursor position
-    if user_id != socket.assigns.user_id do
+    if user_id == socket.assigns.user_id do
+      {:noreply, socket}
+    else
       IO.puts("Received cursor update from #{user_id}: #{x}, #{y}")
 
       cursors =
@@ -75,8 +79,6 @@ defmodule StreampaiWeb.SharedCursorLive do
         })
 
       {:noreply, assign(socket, cursors: cursors)}
-    else
-      {:noreply, socket}
     end
   end
 
@@ -120,14 +122,14 @@ defmodule StreampaiWeb.SharedCursorLive do
 
   def handle_info({:user_count_response, responding_user_id, their_user_list}, socket) do
     # Merge their user list with ours to get accurate count
-    if responding_user_id != socket.assigns.user_id do
+    if responding_user_id == socket.assigns.user_id do
+      {:noreply, socket}
+    else
       their_users = MapSet.new(their_user_list)
       combined_users = MapSet.union(socket.assigns.connected_users, their_users)
       online_users = MapSet.size(combined_users)
       IO.puts("Updated user count from #{responding_user_id}: #{online_users}")
       {:noreply, assign(socket, connected_users: combined_users, online_users: online_users)}
-    else
-      {:noreply, socket}
     end
   end
 
@@ -150,7 +152,7 @@ defmodule StreampaiWeb.SharedCursorLive do
   end
 
   defp generate_user_id do
-    :crypto.strong_rand_bytes(8) |> Base.encode64() |> String.slice(0, 8)
+    8 |> :crypto.strong_rand_bytes() |> Base.encode64() |> String.slice(0, 8)
   end
 
   def render(assigns) do

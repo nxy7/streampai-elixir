@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.LandingHero do
+  @moduledoc false
   use StreampaiWeb, :html
 
   attr(:newsletter_message, :string, default: nil)

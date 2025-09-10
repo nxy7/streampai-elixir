@@ -1,6 +1,7 @@
 defmodule StreampaiWeb.DashboardLiveTest do
   use StreampaiWeb.ConnCase, async: true
   use Mneme
+
   import Phoenix.LiveViewTest
 
   describe "Dashboard LiveView" do
@@ -13,9 +14,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
     test "renders dashboard welcome message", %{conn: conn} do
       {conn, user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       # For inline snapshot testing, we'll snapshot key content
       content_snippets = %{
@@ -29,9 +28,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
     test "renders account info card with user details", %{conn: conn} do
       {conn, user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       account_info = %{
         shows_email: html =~ user.email,
@@ -39,17 +36,13 @@ defmodule StreampaiWeb.DashboardLiveTest do
         has_account_section: html =~ "Account Info"
       }
 
-      auto_assert(
-        %{has_account_section: true, shows_email: true, shows_user_id: true} <- account_info
-      )
+      auto_assert(%{has_account_section: true, shows_email: true, shows_user_id: true} <- account_info)
     end
 
     test "renders streaming status as offline by default", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       assert html =~ "Offline"
       assert html =~ "Connected Platforms"
@@ -61,17 +54,13 @@ defmodule StreampaiWeb.DashboardLiveTest do
         platform_count: html =~ "0"
       }
 
-      auto_assert(
-        %{is_offline: true, platform_count: true, shows_platforms: true} <- streaming_status
-      )
+      auto_assert(%{is_offline: true, platform_count: true, shows_platforms: true} <- streaming_status)
     end
 
     test "renders quick actions for platform connections", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       assert html =~ "Connect Twitch"
       assert html =~ "Connect YouTube"
@@ -94,9 +83,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
     test "renders dashboard with debug info", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       # Debug section should not be present anymore
       assert html =~ "Debug Info"
@@ -111,9 +98,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
     test "renders dashboard for admin user", %{conn: conn} do
       {conn, admin} = register_and_log_in_admin(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       # Should show welcome message with fallback display name
       assert html =~ "Welcome"
@@ -125,9 +110,7 @@ defmodule StreampaiWeb.DashboardLiveTest do
       # TODO: Implement proper impersonation testing with new auth system
       {conn, user} = register_and_log_in_user(conn)
 
-      {:ok, _index_live, html} =
-        conn
-        |> live("/dashboard")
+      {:ok, _index_live, html} = live(conn, "/dashboard")
 
       assert html =~ "Welcome"
       assert html =~ user.email

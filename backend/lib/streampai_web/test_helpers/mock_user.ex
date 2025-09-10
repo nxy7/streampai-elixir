@@ -40,7 +40,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
     admin = Keyword.get(opts, :admin, false)
     plan = Keyword.get(opts, :plan, :free)
 
-    confirmed_at = if confirmed, do: DateTime.utc_now(), else: nil
+    confirmed_at = if confirmed, do: DateTime.utc_now()
 
     # Adjust email for admin users
     final_email =
@@ -51,13 +51,15 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
         email
       end
 
-    %Streampai.Accounts.User{
-      id: id,
-      email: final_email,
-      confirmed_at: confirmed_at,
-      __meta__: %Ecto.Schema.Metadata{state: :loaded, source: "users"}
-    }
-    |> maybe_add_plan_data(plan)
+    maybe_add_plan_data(
+      %Streampai.Accounts.User{
+        id: id,
+        email: final_email,
+        confirmed_at: confirmed_at,
+        __meta__: %Ecto.Schema.Metadata{state: :loaded, source: "users"}
+      },
+      plan
+    )
   end
 
   @doc """
@@ -82,7 +84,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
     impersonator_opts = Keyword.get(opts, :impersonator_opts, nil)
 
     user = create_mock_user(user_opts)
-    impersonator = if impersonator_opts, do: create_mock_user(impersonator_opts), else: nil
+    impersonator = if impersonator_opts, do: create_mock_user(impersonator_opts)
 
     conn
     |> Plug.Test.init_test_session(%{})
@@ -117,6 +119,7 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
       import Phoenix.LiveViewTest
 
       unquote(conn)
+      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
       |> StreampaiWeb.TestHelpers.MockUser.mock_user_conn(unquote(opts))
       |> live(unquote(path))
     end

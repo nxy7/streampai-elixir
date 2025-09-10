@@ -6,8 +6,8 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   following the official Ash Authentication testing guide.
   """
 
-  alias Streampai.Accounts.User
   alias AshAuthentication.Plug.Helpers
+  alias Streampai.Accounts.User
 
   @doc """
   Registers and logs in a user for testing.
@@ -102,12 +102,12 @@ defmodule StreampaiWeb.TestHelpers.AuthHelper do
   defp confirm_user(user) do
     # For tests, manually set confirmed_at using direct database update
     # In production this would go through the confirmation flow
-    confirmed_at = DateTime.utc_now()
-
     import Ecto.Query
 
+    confirmed_at = DateTime.utc_now()
+
     case Streampai.Repo.update_all(
-           from(u in Streampai.Accounts.User, where: u.id == ^user.id),
+           from(u in User, where: u.id == ^user.id),
            set: [confirmed_at: confirmed_at]
          ) do
       {1, _} -> %{user | confirmed_at: confirmed_at}

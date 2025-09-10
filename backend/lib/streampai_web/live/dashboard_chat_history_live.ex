@@ -1,6 +1,9 @@
 defmodule StreampaiWeb.DashboardChatHistoryLive do
+  @moduledoc false
   use StreampaiWeb.BaseLive
+
   import StreampaiWeb.Utils.PlatformUtils
+
   alias Streampai.Fake.Chat
 
   def mount_page(socket, _params, _session) do

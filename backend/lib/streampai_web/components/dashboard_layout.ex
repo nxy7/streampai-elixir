@@ -1,4 +1,5 @@
 defmodule StreampaiWeb.Components.DashboardLayout do
+  @moduledoc false
   use StreampaiWeb, :html
 
   alias Streampai.Accounts.UserPolicy
