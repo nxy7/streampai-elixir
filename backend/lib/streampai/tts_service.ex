@@ -14,11 +14,9 @@ defmodule Streampai.TtsService do
   Returns {:ok, file_path} or {:error, reason}
   """
   def get_or_generate_tts(message, voice) when is_binary(message) and is_binary(voice) do
-    # Check for empty message first
     if String.trim(message) == "" do
       {:error, :empty_message}
     else
-      # Create a hash of the message and voice combination
       content_hash = generate_content_hash(message, voice)
 
       Logger.info("Mock TTS generation", %{message: message, voice: voice, hash: content_hash})

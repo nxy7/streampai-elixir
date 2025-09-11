@@ -62,7 +62,6 @@ defmodule Streampai.Jobs.DonationTtsJob do
         end
       end
 
-    # Create the alert event with TTS information
     alert_event = %{
       id: generate_event_id(),
       type: :donation,

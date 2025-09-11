@@ -24,11 +24,9 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
       case assigns.config.font_size do
         "small" -> "text-xs"
         "large" -> "text-lg"
-        # medium
         _ -> "text-sm"
       end
 
-    # For streams, messages are already limited by the LiveView
     messages = assigns.messages
 
     assigns =
@@ -90,7 +88,6 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
     """
   end
 
-  # Platform icon component
   defp platform_icon(%{platform: %{icon: "twitch"}} = assigns) do
     ~H"""
     <div class={"w-5 h-5 rounded flex items-center justify-center #{@platform.color}"}>
@@ -131,7 +128,6 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
     """
   end
 
-  # Fallback for unknown platforms
   defp platform_icon(%{platform: _platform} = assigns) do
     ~H"""
     <div class={"w-5 h-5 rounded flex items-center justify-center #{@platform.color}"}>

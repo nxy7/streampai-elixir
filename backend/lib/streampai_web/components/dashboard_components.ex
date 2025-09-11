@@ -356,7 +356,6 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :name, :string, required: true, doc: "Icon name"
   attr :class, :string, default: "w-5 h-5", doc: "Icon CSS classes"
 
-  # Icon paths map - centralized icon data
   @icon_paths %{
     "user" => "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
     "activity" =>
@@ -377,7 +376,6 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
   }
 
-  # Multi-path icons (icons that have multiple <path> elements)
   @multi_path_icons %{
     "play" => [
       "M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z",
@@ -385,7 +383,6 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     ]
   }
 
-  # Default icon path for unknown icons
   @default_icon_path "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 
   def icon(assigns) do
@@ -517,19 +514,16 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     """
   end
 
-  # Helper function to get change color based on type
   defp change_color(:positive), do: "text-green-600"
   defp change_color(:negative), do: "text-red-600"
   defp change_color(_), do: "text-gray-500"
 
-  # Helper function to check if a user can connect a platform using Ash policies
   defp can_connect_platform?(user, platform) when not is_nil(user) do
     StreamingAccount.can_create?(user, %{platform: platform})
   end
 
   defp can_connect_platform?(_user, _platform), do: false
 
-  # Helper function to render platform icon
   defp render_platform_icon(assigns) do
     assigns =
       assign(
@@ -613,14 +607,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     """
   end
 
-  # Helper function to get display name from account data
   defp get_display_name(account_data) when is_map(account_data) do
     account_data["nickname"] || account_data["name"] || "Connected User"
   end
 
   defp get_display_name(_), do: "Connected User"
 
-  # Helper functions for platform-specific styling
   defp get_background_style(color) do
     case color do
       "red" -> "background-color: rgb(254 242 242);"

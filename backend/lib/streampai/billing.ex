@@ -156,7 +156,6 @@ defmodule Streampai.Billing do
       # Self-granted through payment
       granted_by_user_id: user.id,
       stripe_subscription_id: subscription.id,
-      # Set to subscription period end
       expires_at: DateTime.from_unix!(subscription.current_period_end),
       granted_at: DateTime.utc_now(),
       grant_reason: "stripe_subscription",

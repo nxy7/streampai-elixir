@@ -42,7 +42,6 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     # Cancel any existing cleanup timer
     state = cancel_cleanup_timer(state, user_id)
 
-    # Add to active users
     active_users = MapSet.put(state.active_users, user_id)
 
     # Start UserStreamManager if not already running
@@ -55,7 +54,6 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info({:user_left, user_id}, state) do
     IO.puts("[PresenceManager] User #{user_id} left - scheduling cleanup in #{@cleanup_timeout}ms")
 
-    # Remove from active users
     active_users = MapSet.delete(state.active_users, user_id)
 
     # Cancel any existing timer and schedule new cleanup
@@ -87,9 +85,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info(:initialize_existing_presence, state) do
     IO.puts("[PresenceManager] Initializing UserStreamManagers for existing presence...")
 
-    # Get existing presence from StreampaiWeb.Presence
     try do
-      # Check for users in the actual presence topic used by the app
       existing_users = "users_presence" |> StreampaiWeb.Presence.list() |> Map.keys()
 
       IO.puts("[PresenceManager] Found #{length(existing_users)} existing users: #{inspect(existing_users)}")
@@ -114,7 +110,6 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", payload: %{joins: joins, leaves: leaves}}, state) do
     IO.puts("[PresenceManager] Received presence_diff - joins: #{map_size(joins)}, leaves: #{map_size(leaves)}")
 
-    # Handle users joining
     {active_users, managers, cleanup_timers} =
       Enum.reduce(joins, {state.active_users, state.managers, state.cleanup_timers}, fn {user_id, _meta},
                                                                                         {users_acc, managers_acc,
@@ -129,10 +124,8 @@ defmodule Streampai.LivestreamManager.PresenceManager do
         {users_acc, managers_acc, timers_acc}
       end)
 
-    # Handle users leaving - but check if they still have other sessions
     {active_users, cleanup_timers} =
       Enum.reduce(leaves, {active_users, cleanup_timers}, fn {user_id, _meta}, {users_acc, timers_acc} ->
-        # Check if user still has other active sessions
         current_presence = StreampaiWeb.Presence.list("users_presence")
         user_still_present = Map.has_key?(current_presence, user_id)
 
@@ -160,7 +153,6 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
-    # Remove crashed manager from state
     managers =
       state.managers
       |> Enum.reject(fn {_user_id, manager_pid} -> manager_pid == pid end)
@@ -286,7 +278,6 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_call(:get_metrics, _from, state) do
     managers = Map.keys(state.managers)
 
-    # Get detailed metrics for each manager
     manager_metrics =
       managers
       |> Enum.map(fn user_id ->

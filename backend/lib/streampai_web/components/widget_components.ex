@@ -53,9 +53,6 @@ defmodule StreampaiWeb.Components.WidgetComponents do
   end
 
   def widget(%{widget: %{type: "timer"}} = assigns) do
-    # Don't override timer_count if it already exists
-    # Just use whatever value is passed in from LiveView
-
     ~H"""
     <div class="w-full h-screen bg-gray-900 text-white flex items-center justify-center">
       <div class="text-center">
