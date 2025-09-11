@@ -409,7 +409,17 @@ defmodule Streampai.Accounts.User do
   end
 
   calculations do
-    calculate :tier, :atom, expr(if count(user_premium_grants) > 0, do: :pro, else: :free)
+    calculate :tier,
+              :atom,
+              expr(
+                if count(user_premium_grants,
+                     query: [
+                       filter: expr(is_nil(revoked_at) and expires_at > ^DateTime.utc_now())
+                     ]
+                   ) > 0,
+                   do: :pro,
+                   else: :free
+              )
 
     calculate :role,
               :atom,

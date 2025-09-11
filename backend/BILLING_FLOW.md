@@ -109,14 +109,15 @@ calculate :tier, :atom, expr(
 
 ### Active Subscription
 - `UserPremiumGrant` exists with `stripe_subscription_id`
-- `expires_at` is null (indicates active)
+- `expires_at` contains subscription period end date
 - `revoked_at` is null
 - User.tier returns `:pro`
 
 ### Cancelled Subscription
-- Original `UserPremiumGrant` deleted
-- User.tier returns `:free`
-- User loses pro features immediately
+- `UserPremiumGrant` still exists but `revoked_at` is set to cancellation time
+- `expires_at` still contains original subscription period end date
+- User retains `:pro` access until `expires_at` is reached
+- User.tier returns `:free` only after `expires_at` passes
 
 ### Failed Payment
 - Stripe automatically retries based on settings
@@ -189,9 +190,11 @@ Subscription continues normally
 ```
 User cancels in Stripe Portal → subscription.deleted webhook
     ↓
-UserPremiumGrant removed
+UserPremiumGrant.revoked_at set to current timestamp
     ↓
-User.tier = :free (immediate loss of access)
+User retains :pro access until expires_at is reached
+    ↓
+User.tier = :free only after expires_at passes
 ```
 
 ### Payment Failure
@@ -203,7 +206,7 @@ Subscription enters past_due
 Stripe retries payment automatically
     ↓
 Either: Payment succeeds → back to normal
-    Or: Final failure → subscription.deleted → access removed
+    Or: Final failure → subscription.deleted → revoked_at set → access continues until expires_at
 ```
 
 ## Configuration

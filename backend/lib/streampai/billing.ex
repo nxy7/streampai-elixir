@@ -80,7 +80,7 @@ defmodule Streampai.Billing do
     if user_id do
       case User.get_by_id(user_id, actor: :system) do
         {:ok, user} ->
-          remove_premium_grants(user, subscription.id)
+          revoke_premium_grants(user, subscription.id)
 
         {:error, _} ->
           {:error, "User not found"}
@@ -151,7 +151,7 @@ defmodule Streampai.Billing do
     |> Ash.create()
   end
 
-  defp remove_premium_grants(user, subscription_id) do
+  defp revoke_premium_grants(user, subscription_id) do
     import Ash.Query
 
     grants =
@@ -161,8 +161,8 @@ defmodule Streampai.Billing do
 
     Enum.each(grants, fn grant ->
       grant
-      |> Ash.Changeset.for_destroy(:destroy, %{}, actor: :system)
-      |> Ash.destroy()
+      |> Ash.Changeset.for_update(:revoke, %{revoked_at: DateTime.utc_now()}, actor: :system)
+      |> Ash.update()
     end)
   end
 
