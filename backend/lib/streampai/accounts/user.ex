@@ -137,16 +137,7 @@ defmodule Streampai.Accounts.User do
 
       prepare AshAuthentication.Preparations.FilterBySubject
 
-      prepare fn query, _context ->
-        Ash.Query.after_action(query, fn _query, [user] ->
-          extended_user =
-            User
-            |> Ash.Query.for_read(:get_by_id, %{id: user.id}, actor: %{id: user.id})
-            |> Ash.read_one!()
-
-          {:ok, [extended_user]}
-        end)
-      end
+      prepare Streampai.Accounts.User.Preparations.ExtendUserData
     end
 
     create :register_with_google do
