@@ -36,14 +36,14 @@ defmodule Streampai.Accounts.StreamingAccountTest do
 
       # Add premium grant to make user pro
       {:ok, _grant} =
-        UserPremiumGrant
-        |> Ash.Changeset.for_create(:grant_premium, %{
-          user_id: pro_user.id,
-          lock_in_amount: 0,
-          type: :grant,
-          granted_until: Date.add(Date.utc_today(), 30)
-        })
-        |> Ash.create()
+        UserPremiumGrant.create_grant(
+          pro_user.id,
+          pro_user.id,
+          DateTime.add(DateTime.utc_now(), 30, :day),
+          DateTime.utc_now(),
+          "test_grant",
+          actor: :system
+        )
 
       %{free_user: free_user, pro_user: pro_user}
     end

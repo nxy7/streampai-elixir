@@ -18,6 +18,10 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     define :grant_premium,
       action: :grant_premium,
       args: [:user_id, :lock_in_amount, :type, :granted_until]
+
+    define :create_grant,
+      action: :create_grant,
+      args: [:user_id, :granted_by_user_id, :expires_at, :granted_at, :grant_reason]
   end
 
   actions do
@@ -35,8 +39,25 @@ defmodule Streampai.Accounts.UserPremiumGrant do
         :expires_at,
         :granted_at,
         :grant_reason,
-        :metadata
+        :metadata,
+        :type
       ]
+    end
+
+    create :create_grant do
+      accept [
+        :user_id,
+        :granted_by_user_id,
+        :expires_at,
+        :granted_at,
+        :grant_reason,
+        :metadata,
+        :type
+      ]
+    end
+
+    update :revoke do
+      accept [:revoked_at]
     end
   end
 
