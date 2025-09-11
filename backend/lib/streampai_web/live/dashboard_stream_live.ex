@@ -136,6 +136,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
                   connect_url={connection.connect_url}
                   color={connection.color}
                   current_user={@current_user}
+                  account_data={connection.account_data}
                   show_disconnect={true}
                 />
               <% end %>

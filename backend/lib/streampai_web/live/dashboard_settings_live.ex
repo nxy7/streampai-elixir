@@ -133,6 +133,10 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     handle_notification_toggle(socket)
   end
 
+  def handle_event("disconnect_platform", %{"platform" => platform_str} = _params, socket) do
+    handle_platform_disconnect(socket, platform_str)
+  end
+
   def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
     current_user = socket.assigns.current_user
 
@@ -260,6 +264,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                     color={connection.color}
                     current_user={@current_user}
                     account_data={connection.account_data}
+                    show_disconnect={true}
                   />
                 <% end %>
               </div>
