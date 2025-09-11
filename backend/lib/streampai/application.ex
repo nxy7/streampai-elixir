@@ -15,21 +15,22 @@ defmodule Streampai.Application do
       run_migrations()
     end
 
+    # styler:sort
     children = [
-      StreampaiWeb.Telemetry,
+      Streampai.ButtonServer,
+      Streampai.Double,
       Streampai.Repo,
+      StreampaiWeb.Endpoint,
+      StreampaiWeb.Presence,
+      StreampaiWeb.Telemetry,
+      {AshAuthentication.Supervisor, [otp_app: :streampai]},
+      {Finch, name: Streampai.Finch},
       {Oban,
        AshOban.config(
          Application.fetch_env!(:streampai, :ash_domains),
          Application.fetch_env!(:streampai, Oban)
        )},
       {Phoenix.PubSub, name: Streampai.PubSub},
-      Streampai.ButtonServer,
-      Streampai.Double,
-      StreampaiWeb.Presence,
-      {Finch, name: Streampai.Finch},
-      StreampaiWeb.Endpoint,
-      {AshAuthentication.Supervisor, [otp_app: :streampai]},
       {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]}
     ]
 
