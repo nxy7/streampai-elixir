@@ -8,14 +8,32 @@ defmodule Streampai.Repo.Migrations.MarkFieldsNotNulls do
   use Ecto.Migration
 
   def up do
-    alter table(:user_premium_grants) do
-      modify :grant_reason, :text, null: false
-      modify :expires_at, :utc_datetime, null: false
-      modify :granted_by_user_id, :text, null: false
+    # First, update NULL values with defaults
+    execute(
+      "UPDATE user_premium_grants SET granted_at = (now() AT TIME ZONE 'utc') WHERE granted_at IS NULL"
+    )
 
+    execute(
+      "UPDATE user_premium_grants SET expires_at = (now() AT TIME ZONE 'utc') + INTERVAL '30 days' WHERE expires_at IS NULL"
+    )
+
+    execute(
+      "UPDATE user_premium_grants SET grant_reason = 'legacy_grant' WHERE grant_reason IS NULL"
+    )
+
+    execute(
+      "UPDATE user_premium_grants SET granted_by_user_id = user_id WHERE granted_by_user_id IS NULL"
+    )
+
+    # Then apply NOT NULL constraints
+    alter table(:user_premium_grants) do
       modify :granted_at, :utc_datetime,
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
+
+      modify :expires_at, :utc_datetime, null: false
+      modify :grant_reason, :text, null: false
+      modify :granted_by_user_id, :text, null: false
     end
   end
 

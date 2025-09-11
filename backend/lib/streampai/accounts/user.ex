@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.User do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication, AshAdmin.Resource],
+    extensions: [AshAuthentication, AshAdmin.Resource, AshOban],
     data_layer: AshPostgres.DataLayer
 
   alias AshAuthentication.Strategy.OAuth2.IdentityChange
@@ -13,6 +13,7 @@ defmodule Streampai.Accounts.User do
   alias Streampai.Accounts.DefaultUsername
   alias Streampai.Accounts.User
   alias Streampai.Accounts.User.Changes.SavePlatformData
+  alias Streampai.Accounts.User.Changes.ValidateOAuthConfirmation
 
   admin do
     actor? true
@@ -90,6 +91,21 @@ defmodule Streampai.Accounts.User do
     repo Streampai.Repo
   end
 
+  oban do
+    triggers do
+      trigger :reconcile_subscriptions do
+        action :reconcile_subscription
+
+        scheduler_cron "@daily"
+        max_attempts 3
+
+        queue :default
+        worker_module_name User.AshOban.Worker.ReconcileSubscriptions
+        scheduler_module_name User.AshOban.Scheduler.ReconcileSubscriptions
+      end
+    end
+  end
+
   code_interface do
     define :get_by_id
   end
@@ -146,7 +162,7 @@ defmodule Streampai.Accounts.User do
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
-      change after_action(&oauth_confirmation_validation/3)
+      change ValidateOAuthConfirmation
     end
 
     create :register_with_twitch do
@@ -162,7 +178,7 @@ defmodule Streampai.Accounts.User do
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
-      change after_action(&oauth_confirmation_validation/3)
+      change ValidateOAuthConfirmation
     end
 
     read :sign_in_with_password do
@@ -290,66 +306,21 @@ defmodule Streampai.Accounts.User do
 
       validate present(:name)
 
-      change fn changeset, _context ->
-        name = Ash.Changeset.get_attribute(changeset, :name)
+      change Streampai.Accounts.User.Changes.ValidateAndCheckNameUniqueness
+    end
 
-        if name do
-          cond do
-            String.length(name) < Streampai.Constants.username_min_length() ->
-              Ash.Changeset.add_error(
-                changeset,
-                :name,
-                "Name must be at least #{Streampai.Constants.username_min_length()} characters"
-              )
+    action :reconcile_subscription do
+      description "Reconcile user's subscription state with Stripe"
 
-            String.length(name) > Streampai.Constants.username_max_length() ->
-              Ash.Changeset.add_error(
-                changeset,
-                :name,
-                "Name must be no more than #{Streampai.Constants.username_max_length()} characters"
-              )
-
-            !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
-              Ash.Changeset.add_error(
-                changeset,
-                :name,
-                "Name can only contain letters, numbers, and underscores"
-              )
-
-            true ->
-              import Ash.Query
-
-              case User
-                   |> filter(name == ^name and id != ^changeset.data.id)
-                   |> for_read(:get)
-                   |> select([:id])
-                   |> limit(1)
-                   |> Ash.read() do
-                {:ok, []} ->
-                  changeset
-
-                {:ok, [_user]} ->
-                  Ash.Changeset.add_error(changeset, :name, "This name is already taken")
-
-                {:ok, _users} ->
-                  Ash.Changeset.add_error(changeset, :name, "This name is already taken")
-
-                {:error, error} ->
-                  Ash.Changeset.add_error(
-                    changeset,
-                    :name,
-                    "Failed to validate name availability: #{inspect(error)}"
-                  )
-              end
-          end
-        else
-          changeset
-        end
-      end
+      run Streampai.Accounts.User.Actions.ReconcileSubscription
     end
   end
 
   policies do
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
     end
@@ -435,13 +406,5 @@ defmodule Streampai.Accounts.User do
   identities do
     identity :unique_email, [:email]
     identity :unique_name, [:name]
-  end
-
-  # Private helper function for OAuth registration validation
-  defp oauth_confirmation_validation(_changeset, user, _context) do
-    case user.confirmed_at do
-      nil -> {:error, "Unconfirmed user exists already"}
-      _ -> {:ok, user}
-    end
   end
 end

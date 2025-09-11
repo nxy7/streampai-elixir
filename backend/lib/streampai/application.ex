@@ -18,7 +18,11 @@ defmodule Streampai.Application do
     children = [
       StreampaiWeb.Telemetry,
       Streampai.Repo,
-      {Oban, Application.fetch_env!(:streampai, Oban)},
+      {Oban,
+       AshOban.config(
+         Application.fetch_env!(:streampai, :ash_domains),
+         Application.fetch_env!(:streampai, Oban)
+       )},
       {Phoenix.PubSub, name: Streampai.PubSub},
       Streampai.ButtonServer,
       Streampai.Double,
