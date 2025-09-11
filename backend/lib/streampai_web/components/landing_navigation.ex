@@ -6,7 +6,7 @@ defmodule StreampaiWeb.Components.LandingNavigation do
 
   def landing_navigation(assigns) do
     ~H"""
-    <nav class="relative z-50 bg-black/20 backdrop-blur-lg border-b border-white/10">
+    <nav id="mobile-navigation" class="relative z-50 bg-black/20 backdrop-blur-lg border-b border-white/10" phx-hook="MobileNavigation">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-4">
           <div class="flex items-center space-x-2">
@@ -35,7 +35,11 @@ defmodule StreampaiWeb.Components.LandingNavigation do
           
     <!-- Mobile menu button -->
           <div class="md:hidden">
-            <button type="button" class="text-gray-300 hover:text-white">
+            <button 
+              type="button" 
+              class="text-gray-300 hover:text-white"
+              data-mobile-toggle
+            >
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
@@ -45,6 +49,21 @@ defmodule StreampaiWeb.Components.LandingNavigation do
                 />
               </svg>
             </button>
+          </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="absolute top-full left-0 right-0 md:hidden opacity-0 scale-95 hidden z-50 transition-all duration-300 ease-in-out">
+          <div class="mx-4 mt-2 px-4 py-4 space-y-4 bg-gray-900/90 rounded-lg shadow-xl">
+            <a href="#features" class="block text-gray-300 hover:text-white transition-colors py-2">
+              Features
+            </a>
+            <a href="#about" class="block text-gray-300 hover:text-white transition-colors py-2">
+              About
+            </a>
+            <div class="pt-2">
+              {auth_buttons(assigns)}
+            </div>
           </div>
         </div>
       </div>
