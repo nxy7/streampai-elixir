@@ -9,6 +9,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
   alias Streampai.Accounts.NameValidator
   alias Streampai.Accounts.UserPreferences
+  alias Streampai.Billing
   alias Streampai.Dashboard
 
   def mount_page(socket, _params, _session) do
@@ -42,18 +43,15 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   end
 
   def handle_event("upgrade_to_pro", _params, socket) do
-    # TODO: Integrate with payment processor
-    updated_usage =
-      Map.merge(socket.assigns.usage, %{
-        hours_limit: :unlimited,
-        platforms_limit: :unlimited
-      })
+    current_user = socket.assigns.current_user
 
-    {:noreply,
-     socket
-     |> assign(:current_plan, "pro")
-     |> assign(:usage, updated_usage)
-     |> put_flash(:info, "Successfully upgraded to Pro plan!")}
+    case Billing.create_checkout_session(current_user) do
+      {:ok, session} ->
+        {:noreply, redirect(socket, external: session.url)}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to start upgrade process: #{reason}")}
+    end
   end
 
   def handle_event("downgrade_to_free", _params, socket) do

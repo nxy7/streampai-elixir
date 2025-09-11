@@ -21,10 +21,22 @@ defmodule Streampai.Accounts.UserPremiumGrant do
   end
 
   actions do
-    defaults [:read, create: :*]
+    defaults [:read, :destroy, create: :*]
 
     create :grant_premium do
       accept [:user_id, :lock_in_amount, :type, :granted_until]
+    end
+
+    create :create_stripe_grant do
+      accept [
+        :user_id,
+        :granted_by_user_id,
+        :stripe_subscription_id,
+        :expires_at,
+        :granted_at,
+        :grant_reason,
+        :metadata
+      ]
     end
   end
 
@@ -58,6 +70,30 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     attribute :revoked_at, :datetime do
       allow_nil? true
     end
+
+    # Stripe-specific fields
+    attribute :stripe_subscription_id, :string do
+      allow_nil? true
+    end
+
+    attribute :granted_by_user_id, :string do
+      allow_nil? true
+    end
+
+    attribute :expires_at, :datetime do
+      allow_nil? true
+    end
+
+    attribute :grant_reason, :string do
+      allow_nil? true
+    end
+
+    attribute :metadata, :map do
+      allow_nil? true
+      default %{}
+    end
+
+    timestamps()
   end
 
   relationships do
