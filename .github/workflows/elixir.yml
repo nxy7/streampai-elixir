@@ -34,7 +34,7 @@ jobs:
     env:
       MIX_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/streampai_test
-      TOKEN_SIGNING_SECRET: test_jwt_secret_for_ci_only
+      SECRET_KEY: test-only-secret-key
 
     steps:
       - name: Set up Git repository
@@ -150,7 +150,7 @@ jobs:
           ssh-keyscan -H $ORACLE_IP >> ~/.ssh/known_hosts
 
       - name: Copy docker-compose and deploy
-        run: |         
+        run: |
           ssh -i ~/.ssh/deploy_key ubuntu@$ORACLE_IP "mkdir -p /tmp/streampai-elixir"
           scp -i ~/.ssh/deploy_key docker-compose.prod.yml ubuntu@$ORACLE_IP:/tmp/streampai-elixir/docker-compose.yml
 
@@ -162,12 +162,11 @@ jobs:
             export TWITCH_CLIENT_ID="${{ secrets.TWITCH_CLIENT_ID }}"
             export TWITCH_CLIENT_SECRET="${{ secrets.TWITCH_CLIENT_SECRET }}"
             export TWITCH_REDIRECT_URI="${{ vars.TWITCH_REDIRECT_URI }}"
-            export TOKEN_SIGNING_SECRET="${{ secrets.TOKEN_SIGNING_SECRET }}"
             export CLOUDFLARE_API_KEY="${{ secrets.CLOUDFLARE_API_KEY }}"
             export CLOUDFLARE_AUTH_EMAIL="${{ secrets.CLOUDFLARE_AUTH_EMAIL }}"
             export CLOUDFLARE_ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
             export ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}"
-            export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
+            export SECRET_KEY="${{ secrets.SECRET_KEY }}"
             export PHX_HOST="streampai.com"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
