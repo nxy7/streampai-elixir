@@ -26,6 +26,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           <div
             id="mobile-sidebar-backdrop"
             class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"
+            phx-click={
+              JS.add_class("-translate-x-full", to: ".sidebar")
+              |> JS.remove_class("translate-x-0", to: ".sidebar")
+              |> JS.add_class("hidden", to: "#mobile-sidebar-backdrop")
+            }
           >
           </div>
           
@@ -361,7 +366,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               <div class="flex items-center justify-between px-6 py-4">
                 <div class="flex items-center space-x-4">
                   <button
-                    id="mobile-sidebar-toggle"
+                    phx-click={
+                      JS.remove_class("-translate-x-full", to: ".sidebar")
+                      |> JS.add_class("translate-x-0", to: ".sidebar")
+                      |> JS.remove_class("hidden", to: "#mobile-sidebar-backdrop")
+                    }
                     class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,19 +512,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
         </style>
 
         <script>
-          // Sidebar toggle functionality
+          // Desktop sidebar toggle functionality only
           document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const streampaiText = document.querySelector('.streampai-text');
             const sidebarToggle = document.getElementById('sidebar-toggle');
-            const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const backdrop = document.getElementById('mobile-sidebar-backdrop');
             const sidebarTexts = document.querySelectorAll('.sidebar-text');
             const collapseIcon = document.querySelector('.collapse-icon');
             const expandIcon = document.querySelector('.expand-icon');
 
             let isExpanded = true;
-            let isMobileOpen = false;
 
             // Desktop sidebar toggle
             function toggleDesktopSidebar() {
@@ -543,60 +549,10 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               }
             }
 
-            // Mobile sidebar toggle
-            function toggleMobileSidebar() {
-              isMobileOpen = !isMobileOpen;
-
-              if (isMobileOpen) {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                // Ensure mobile sidebar is always full width
-                sidebar.classList.remove('w-20');
-                sidebar.classList.add('w-64');
-                // Show all text on mobile
-                sidebarTexts.forEach(text => text.classList.remove('hidden'));
-                backdrop.classList.remove('hidden');
-              } else {
-                sidebar.classList.remove('translate-x-0');
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-              }
-            }
-
-            // Close mobile sidebar
-            function closeMobileSidebar() {
-              if (isMobileOpen) {
-                isMobileOpen = false;
-                sidebar.classList.remove('translate-x-0');
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-              }
-            }
-
             // Desktop toggle event
             if (sidebarToggle) {
               sidebarToggle.addEventListener('click', toggleDesktopSidebar);
             }
-
-            // Mobile toggle event
-            if (mobileSidebarToggle) {
-              mobileSidebarToggle.addEventListener('click', toggleMobileSidebar);
-            }
-
-            // Backdrop click to close mobile sidebar
-            if (backdrop) {
-              backdrop.addEventListener('click', closeMobileSidebar);
-            }
-
-            // Close mobile sidebar when clicking on menu items (optional)
-            const mobileMediaQuery = window.matchMedia('(max-width: 768px)');
-            document.querySelectorAll('.sidebar a').forEach(link => {
-              link.addEventListener('click', () => {
-                if (mobileMediaQuery.matches && isMobileOpen) {
-                  closeMobileSidebar();
-                }
-              });
-            });
           });
         </script>
       </body>
