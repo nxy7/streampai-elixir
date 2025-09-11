@@ -39,25 +39,7 @@ defmodule Streampai.Accounts.UserPreferences do
 
       filter expr(user_id == ^arg(:user_id))
 
-      prepare fn query, _context ->
-        Ash.Query.after_action(query, fn _query, results ->
-          case results do
-            [] ->
-              default_record = %__MODULE__{
-                user_id: Ash.Query.get_argument(query, :user_id),
-                email_notifications: true,
-                min_donation_amount: nil,
-                max_donation_amount: nil,
-                donation_currency: "USD"
-              }
-
-              {:ok, [default_record]}
-
-            [result] ->
-              {:ok, [result]}
-          end
-        end)
-      end
+      prepare Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault
     end
   end
 
@@ -83,27 +65,7 @@ defmodule Streampai.Accounts.UserPreferences do
     validate present(:user_id)
     validate present(:donation_currency)
 
-    validate fn changeset, _context ->
-      min_amount = Ash.Changeset.get_attribute(changeset, :min_donation_amount)
-      max_amount = Ash.Changeset.get_attribute(changeset, :max_donation_amount)
-
-      cond do
-        is_nil(min_amount) or is_nil(max_amount) ->
-          :ok
-
-        min_amount >= max_amount ->
-          {:error, field: :min_donation_amount, message: "must be less than maximum donation amount"}
-
-        min_amount < 1 ->
-          {:error, field: :min_donation_amount, message: "must be at least $1"}
-
-        max_amount < 1 ->
-          {:error, field: :max_donation_amount, message: "must be at least $1"}
-
-        true ->
-          :ok
-      end
-    end
+    validate Streampai.Accounts.UserPreferences.Validations.DonationAmountRange
   end
 
   attributes do

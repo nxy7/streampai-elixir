@@ -50,11 +50,7 @@ defmodule Streampai.Accounts.StreamingAccount do
       accept [:access_token, :refresh_token, :access_token_expires_at]
       require_atomic? false
 
-      change fn changeset, _context ->
-        # This would be called by a background job or API call
-        # For now, just update the timestamps
-        Ash.Changeset.change_attribute(changeset, :updated_at, DateTime.utc_now())
-      end
+      change Streampai.Accounts.StreamingAccount.Changes.UpdateRefreshTimestamp
     end
   end
 
