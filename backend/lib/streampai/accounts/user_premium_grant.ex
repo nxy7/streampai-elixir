@@ -60,7 +60,8 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     end
 
     attribute :granted_at, :datetime do
-      allow_nil? true
+      allow_nil? false
+      default &DateTime.utc_now/0
     end
 
     attribute :granted_until, :date do
@@ -77,15 +78,15 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     end
 
     attribute :granted_by_user_id, :string do
-      allow_nil? true
+      allow_nil? false
     end
 
     attribute :expires_at, :datetime do
-      allow_nil? true
+      allow_nil? false
     end
 
     attribute :grant_reason, :string do
-      allow_nil? true
+      allow_nil? false
     end
 
     attribute :metadata, :map do
