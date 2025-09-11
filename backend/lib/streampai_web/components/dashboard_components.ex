@@ -168,76 +168,157 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   def platform_connection(assigns) do
     ~H"""
-    <div class={"flex items-center justify-between p-3 border rounded-lg #{if @connected, do: "border-#{@color}-200 bg-#{@color}-50", else: "border-gray-200"}"}>
-      <div class="flex items-center space-x-3">
-        <%= if @connected and @account_data && @account_data["image"] do %>
-          <!-- User Avatar for connected accounts -->
-          <img
-            src={@account_data["image"]}
-            alt={@account_data["nickname"] || @account_data["name"] || "User avatar"}
-            class="w-8 h-8 rounded-lg object-cover"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-          />
-          <!-- Fallback platform icon (hidden by default, shown if image fails) -->
-          <div
-            class={"w-8 h-8 rounded-lg flex items-center justify-center bg-#{@color}-500"}
-            style="display: none;"
-          >
-            {render_platform_icon(assigns)}
+    <div
+      class={
+        "relative overflow-hidden rounded-xl transition-all duration-200 hover:shadow-md #{
+          if @connected,
+            do: "shadow-sm",
+            else: "border border-gray-300 bg-transparent hover:border-gray-400 hover:bg-gray-50"
+        }"
+      }
+      style={if @connected, do: get_background_style(@color), else: nil}
+    >
+      <div class="relative flex items-center justify-between p-4">
+        <div class="flex items-center space-x-4">
+          <!-- Avatar/Icon Section -->
+          <div class="relative">
+            <%= if @connected and @account_data && @account_data["image"] do %>
+              <!-- User Avatar for connected accounts with border -->
+              <div class="relative">
+                <img
+                  src={@account_data["image"]}
+                  alt={@account_data["nickname"] || @account_data["name"] || "User avatar"}
+                  class="w-12 h-12 rounded-xl object-cover ring-2 ring-white shadow-sm"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                />
+              </div>
+              <!-- Fallback platform icon (hidden by default, shown if image fails) -->
+              <div
+                class={"w-12 h-12 rounded-xl flex items-center justify-center #{get_icon_background_class(@color)} shadow-lg"}
+                style="display: none;"
+              >
+                {render_platform_icon(assigns)}
+              </div>
+            <% else %>
+              <!-- Platform icon for disconnected accounts or when no avatar -->
+              <div class={
+                "w-12 h-12 rounded-xl flex items-center justify-center shadow-sm #{
+                  if @connected,
+                    do: get_icon_background_class(@color),
+                    else: "bg-gray-100 border border-gray-200"
+                }"
+              }>
+                {render_platform_icon(assigns)}
+              </div>
+            <% end %>
           </div>
-        <% else %>
-          <!-- Platform icon for disconnected accounts or when no avatar -->
-          <div class={"w-8 h-8 rounded-lg flex items-center justify-center #{if @connected, do: "bg-#{@color}-500", else: "bg-gray-400"}"}>
-            {render_platform_icon(assigns)}
+          
+    <!-- Content Section -->
+          <div class="flex flex-col">
+            <%= if @connected and @account_data do %>
+              <!-- Connected: Show nickname and platform name -->
+              <div class="flex items-center space-x-2">
+                <span class="text-base font-semibold text-gray-900">
+                  {get_display_name(@account_data)}
+                </span>
+                <div
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  style={get_small_badge_style(@color)}
+                >
+                  <span class="mr-1">✓</span> Connected
+                </div>
+              </div>
+              <span class="text-sm text-gray-500 mt-0.5">
+                {@name}
+              </span>
+            <% else %>
+              <!-- Not connected: Show platform name and status -->
+              <div class="flex items-center space-x-2">
+                <span class="text-base font-semibold text-gray-900">
+                  {@name}
+                </span>
+              </div>
+              <span class="text-sm text-gray-500 mt-0.5">
+                Not connected
+              </span>
+            <% end %>
           </div>
-        <% end %>
-
-        <div class="flex flex-col">
-          <%= if @connected and @account_data do %>
-            <!-- Connected: Show nickname and platform name -->
-            <span class={"text-sm font-medium #{if @connected, do: "text-#{@color}-800", else: "text-gray-600"}"}>
-              {get_display_name(@account_data)}
-            </span>
-            <span class={"text-xs #{if @connected, do: "text-#{@color}-600", else: "text-gray-500"}"}>
-              {@name} • Connected
-            </span>
+        </div>
+        
+    <!-- Action Section -->
+        <div class="flex items-center">
+          <%= if not @connected do %>
+            <%= if can_connect_platform?(@current_user, @platform) do %>
+              <a
+                href={@connect_url}
+                class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+                Connect
+              </a>
+            <% else %>
+              <div class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg border border-gray-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Pro Required
+              </div>
+            <% end %>
           <% else %>
-            <!-- Not connected: Show platform name and status -->
-            <span class={"text-sm #{if @connected, do: "text-#{@color}-800 font-medium", else: "text-gray-600"}"}>
-              {@name}: {if @connected, do: "Connected", else: "Not connected"}
-            </span>
+            <div class="relative group">
+              <!-- Default Connected State -->
+              <div class="group-hover:opacity-0 transition-opacity duration-200">
+                <div
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg"
+                  style={get_badge_style(@color)}
+                >
+                  <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  Connected
+                </div>
+              </div>
+              <!-- Disconnect Button (shows on hover) -->
+              <button
+                phx-click="disconnect_platform"
+                phx-value-platform={@platform}
+                class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md bg-red-500 hover:bg-red-600 text-white font-medium text-sm"
+              >
+                <svg
+                  class="w-4 h-4 mr-2 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <span class="text-white">Disconnect</span>
+              </button>
+            </div>
           <% end %>
         </div>
       </div>
-      <%= if not @connected do %>
-        <%= if can_connect_platform?(@current_user, @platform) do %>
-          <a href={@connect_url} class="text-gray-600 hover:text-gray-700 text-sm font-medium">
-            Connect
-          </a>
-        <% else %>
-          <span class="text-gray-400 text-sm" title="Upgrade to Pro to connect more platforms">
-            Pro Required
-          </span>
-        <% end %>
-      <% else %>
-        <div class="relative inline-block group">
-          <!-- Default Connected State -->
-          <span class={"group-hover:opacity-0 text-#{@color}-600 text-sm font-medium transition-opacity duration-200 inline-block w-28 text-center flex items-center justify-center h-8"}>
-            <span class="flex items-center">
-              <span class="mr-1">✓</span>
-              <span>Connected</span>
-            </span>
-          </span>
-          <!-- Disconnect Button (shows on hover) -->
-          <button
-            phx-click="disconnect_platform"
-            phx-value-platform={@platform}
-            class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-all duration-200 w-28 h-8 flex items-center justify-center"
-          >
-            Disconnect
-          </button>
-        </div>
-      <% end %>
     </div>
     """
   end
@@ -450,24 +531,45 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   # Helper function to render platform icon
   defp render_platform_icon(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :icon_class,
+        if(assigns.connected, do: "w-6 h-6 text-white", else: "w-6 h-6 text-gray-400")
+      )
+
     case assigns[:platform] || String.downcase(assigns.name) do
       platform when platform in ["twitch", :twitch] ->
         ~H"""
-        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
           <path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M18.86 11.29L16.71 13.43H14.14L12.29 15.29V13.43H8.57V3.71H18.86Z" />
         </svg>
         """
 
       platform when platform in ["youtube", :youtube] ->
         ~H"""
-        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+        </svg>
+        """
+
+      platform when platform in ["facebook", :facebook] ->
+        ~H"""
+        <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        </svg>
+        """
+
+      platform when platform in ["kick", :kick] ->
+        ~H"""
+        <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
         </svg>
         """
 
       _ ->
         ~H"""
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class={@icon_class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -517,4 +619,87 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   end
 
   defp get_display_name(_), do: "Connected User"
+
+  # Helper functions for platform-specific styling
+  defp get_background_style(color) do
+    case color do
+      "red" -> "background-color: rgb(254 242 242);"
+      "purple" -> "background-color: rgb(250 245 255);"
+      "blue" -> "background-color: rgb(239 246 255);"
+      "green" -> "background-color: rgb(240 253 244);"
+      "yellow" -> "background-color: rgb(255 251 235);"
+      "indigo" -> "background-color: rgb(238 242 255);"
+      "pink" -> "background-color: rgb(253 242 248);"
+      _ -> "background-color: rgb(249 250 251);"
+    end
+  end
+
+  defp get_badge_style(color) do
+    case color do
+      "red" ->
+        "background-color: white; color: rgb(185, 28, 28);"
+
+      "purple" ->
+        "background-color: white; color: rgb(124, 58, 237);"
+
+      "blue" ->
+        "background-color: white; color: rgb(37, 99, 235);"
+
+      "green" ->
+        "background-color: white; color: rgb(22, 163, 74);"
+
+      "yellow" ->
+        "background-color: white; color: rgb(217, 119, 6);"
+
+      "indigo" ->
+        "background-color: white; color: rgb(79, 70, 229);"
+
+      "pink" ->
+        "background-color: white; color: rgb(219, 39, 119);"
+
+      _ ->
+        "background-color: white; color: rgb(75, 85, 99);"
+    end
+  end
+
+  defp get_small_badge_style(color) do
+    case color do
+      "red" ->
+        "background-color: white; color: rgb(185, 28, 28);"
+
+      "purple" ->
+        "background-color: white; color: rgb(124, 58, 237);"
+
+      "blue" ->
+        "background-color: white; color: rgb(37, 99, 235);"
+
+      "green" ->
+        "background-color: white; color: rgb(22, 163, 74);"
+
+      "yellow" ->
+        "background-color: white; color: rgb(217, 119, 6);"
+
+      "indigo" ->
+        "background-color: white; color: rgb(79, 70, 229);"
+
+      "pink" ->
+        "background-color: white; color: rgb(219, 39, 119);"
+
+      _ ->
+        "background-color: white; color: rgb(75, 85, 99);"
+    end
+  end
+
+  defp get_icon_background_class(color) do
+    case color do
+      "red" -> "bg-gradient-to-br from-red-500 to-red-600 ring-2 ring-red-200"
+      "purple" -> "bg-gradient-to-br from-purple-500 to-purple-600 ring-2 ring-purple-200"
+      "blue" -> "bg-gradient-to-br from-blue-500 to-blue-600 ring-2 ring-blue-200"
+      "green" -> "bg-gradient-to-br from-green-500 to-green-600 ring-2 ring-green-200"
+      "yellow" -> "bg-gradient-to-br from-yellow-500 to-yellow-600 ring-2 ring-yellow-200"
+      "indigo" -> "bg-gradient-to-br from-indigo-500 to-indigo-600 ring-2 ring-indigo-200"
+      "pink" -> "bg-gradient-to-br from-pink-500 to-pink-600 ring-2 ring-pink-200"
+      _ -> "bg-gradient-to-br from-gray-500 to-gray-600 ring-2 ring-gray-200"
+    end
+  end
 end
