@@ -6,7 +6,7 @@ System.put_env(
   "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}"
 )
 
-System.put_env("TOKEN_SIGNING_SECRET", "h4cu7OR38wead3kXqon6ReLmG2o4SH0u")
+System.put_env("SECRET_KEY", "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/dlt9ArOMnBFIoS")
 
 config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]
 
@@ -42,13 +42,13 @@ config :streampai, Streampai.Repo,
 # you can enable the server option below.
 config :streampai, StreampaiWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/dlt9ArOMnBFIoS",
+  secret_key_base: System.get_env("SECRET_KEY"),
   server: false
 
 config :streampai,
   env: :test
 
-config :streampai, token_signing_secret: "h4cu7OR38wead3kXqon6ReLmG2o4SH0u"
+config :streampai, token_signing_secret: System.get_env("SECRET_KEY")
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

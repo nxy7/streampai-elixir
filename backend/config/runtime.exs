@@ -42,7 +42,7 @@ config :streampai,
   twitch_client_id: System.get_env("TWITCH_CLIENT_ID"),
   twitch_client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
   twitch_redirect_uri: System.get_env("TWITCH_REDIRECT_URI"),
-  token_signing_secret: System.get_env("TOKEN_SIGNING_SECRET"),
+  token_signing_secret: System.get_env("SECRET_KEY"),
   cloudflare_api_token: System.get_env("CLOUDFLARE_API_KEY"),
   cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID")
 
@@ -60,8 +60,8 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
-      raise "SECRET_KEY_BASE environment variable is missing"
+    System.get_env("SECRET_KEY") ||
+      raise "SECRET_KEY environment variable is missing"
 
   host = System.get_env("PHX_HOST") || "streampai.com"
   port = String.to_integer(System.get_env("PORT") || "4000")

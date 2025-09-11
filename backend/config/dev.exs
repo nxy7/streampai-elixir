@@ -1,6 +1,6 @@
 import Config
 
-secret_key_base = "jyPaSv+IVfKjvcKeVDV3mnBW7AKYj45IXmyJuQ3lZVj9gykrnQH9SHCe+LEsR7YF"
+secret_key_base = System.get_env("SECRET_KEY")
 
 config :ash, policies: [show_policy_breakdowns?: true]
 
@@ -55,7 +55,7 @@ config :streampai, StreampaiWeb.Endpoint,
 # Development specific settings
 config :streampai,
   dev_routes: true,
-  token_signing_secret: "4Yc5enena8OiT95MV+wgXk7L14cROxd1"
+  token_signing_secret: System.get_env("SECRET_KEY")
 
 # External services (disabled in dev)
 config :swoosh, :api_client, false
