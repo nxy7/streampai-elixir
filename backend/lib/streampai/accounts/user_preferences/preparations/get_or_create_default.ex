@@ -7,7 +7,7 @@ defmodule Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault do
   use Ash.Resource.Preparation
 
   @impl true
-  def prepare(query, _opts, _context) do
+  def prepare(query, _opts, _context), do:
     Ash.Query.after_action(query, fn _query, results ->
       case results do
         [] ->
@@ -25,5 +25,4 @@ defmodule Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault do
           {:ok, [result]}
       end
     end)
-  end
 end

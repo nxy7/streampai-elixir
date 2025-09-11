@@ -5,6 +5,7 @@ defmodule Streampai.Accounts.User.Preparations.ExtendUserData do
   """
 
   use Ash.Resource.Preparation
+
   alias Streampai.Accounts.User
 
   @impl true
