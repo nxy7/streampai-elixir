@@ -11,18 +11,15 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   alias Streampai.Accounts.UserPreferences
   alias Streampai.Billing
   alias Streampai.Dashboard
+  alias StreampaiWeb.LiveHelpers.FormHelpers
+  alias StreampaiWeb.LiveHelpers.UserHelpers
 
   def mount_page(socket, _params, _session) do
     current_user = socket.assigns.current_user
     user_data = Dashboard.get_dashboard_data(current_user)
     platform_connections = Dashboard.get_platform_connections(current_user)
 
-    # Get current plan from user tier
-    current_plan =
-      case Map.get(current_user, :tier) do
-        :pro -> "pro"
-        _ -> "free"
-      end
+    current_plan = UserHelpers.get_current_plan(current_user)
 
     # Load notification preferences using the shared module
 
@@ -167,18 +164,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     end
   end
 
-  defp parse_amount(""), do: nil
-  defp parse_amount(nil), do: nil
-
-  defp parse_amount(amount) when is_binary(amount) do
-    case Integer.parse(amount) do
-      {num, ""} when num > 0 -> num
-      _ -> nil
-    end
-  end
-
-  defp parse_amount(amount) when is_integer(amount) and amount > 0, do: amount
-  defp parse_amount(_), do: nil
+  defp parse_amount(amount), do: FormHelpers.parse_numeric_setting(amount, min: 1)
 
   def render(assigns) do
     ~H"""

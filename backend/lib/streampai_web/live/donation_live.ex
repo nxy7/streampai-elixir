@@ -5,26 +5,23 @@ defmodule StreampaiWeb.DonationLive do
   """
   use StreampaiWeb, :live_view
 
-  alias Streampai.Accounts.User
-  alias Streampai.Accounts.UserPreferences
-  alias Streampai.Jobs.DonationTtsJob
+  alias StreampaiWeb.LiveHelpers.DonationHelpers
+  alias StreampaiWeb.LiveHelpers.FormHelpers
 
   require Logger
 
   def mount(%{"username" => username}, _session, socket) do
-    # Find user by username
-    case find_user_by_username(username) do
+    case DonationHelpers.find_user_by_username(username) do
       {:ok, user} ->
-        # Load user preferences to get donation limits
-        preferences = get_user_preferences(user.id)
+        preferences = DonationHelpers.get_user_preferences(user.id)
 
         {:ok,
          socket
          |> assign(:user, user)
          |> assign(:preferences, preferences)
-         |> assign(:top_donors, get_top_donors_placeholder())
-         |> assign(:voice_options, get_voice_options())
-         |> assign(:donation_form, get_initial_form())
+         |> assign(:top_donors, DonationHelpers.get_top_donors_placeholder())
+         |> assign(:voice_options, DonationHelpers.get_voice_options())
+         |> assign(:donation_form, DonationHelpers.get_initial_form())
          |> assign(:page_title, "Donate to #{user.name}")
          |> assign(:meta_description, "Support #{user.name} with a donation")
          |> assign(:selected_amount, nil)
@@ -32,8 +29,7 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:processing, false), layout: false}
 
       {:error, :not_found} ->
-        # Find similar usernames using pg_trgm
-        similar_users = find_similar_usernames(username)
+        similar_users = DonationHelpers.find_similar_usernames(username)
 
         {:ok,
          socket
@@ -73,10 +69,10 @@ defmodule StreampaiWeb.DonationLive do
   end
 
   def handle_event("submit_donation", %{"donation" => params}, socket) do
-    amount = get_donation_amount(socket.assigns)
+    amount = FormHelpers.get_donation_amount(socket.assigns)
     preferences = socket.assigns.preferences
 
-    case validate_donation_amount(amount, preferences) do
+    case FormHelpers.validate_donation_amount(amount, preferences) do
       {:ok, validated_amount} ->
         process_donation(socket, params, validated_amount)
 
@@ -89,209 +85,27 @@ defmodule StreampaiWeb.DonationLive do
     user = socket.assigns.user
     preferences = socket.assigns.preferences
 
-    Logger.info("Processing donation", %{
-      user_id: user.id,
-      username: user.name,
-      amount: amount,
-      donor_name: params["donor_name"],
-      message: params["message"]
-    })
+    case DonationHelpers.process_donation(user, params, amount, preferences) do
+      {:ok, donation_event} ->
+        {:noreply,
+         socket
+         |> assign(:processing, false)
+         |> put_flash(
+           :info,
+           "Thank you for your donation of #{preferences.donation_currency || "USD"} #{amount}!"
+         )
+         |> push_event("donation_submitted", donation_event)}
 
-    # Create donation event data
-    donation_event = %{
-      "type" => "donation",
-      "amount" => amount,
-      "currency" => preferences.donation_currency || "USD",
-      "donor_name" => params["donor_name"] || "Anonymous",
-      "message" => params["message"] || "",
-      "voice" => params["voice"] || "default",
-      "timestamp" => DateTime.to_iso8601(DateTime.utc_now())
-    }
-
-    Logger.info("Scheduling donation TTS job", %{
-      user_id: user.id,
-      donor_name: donation_event["donor_name"],
-      amount: amount
-    })
-
-    # Schedule Oban job to process TTS and broadcast alert event
-    case DonationTtsJob.schedule_donation_tts(user.id, donation_event) do
-      {:ok, _job} ->
-        Logger.info("Donation TTS job scheduled successfully", %{user_id: user.id})
-
-      {:error, reason} ->
-        Logger.error("Failed to schedule donation TTS job", %{
-          user_id: user.id,
-          reason: inspect(reason)
-        })
-    end
-
-    # Simulate processing success
-    {:noreply,
-     socket
-     |> assign(:processing, false)
-     |> put_flash(
-       :info,
-       "Thank you for your donation of #{preferences.donation_currency || "USD"} #{amount}!"
-     )
-     |> push_event("donation_submitted", donation_event)}
-  end
-
-  defp get_donation_amount(assigns) do
-    cond do
-      assigns.selected_amount ->
-        assigns.selected_amount
-
-      assigns.custom_amount != "" ->
-        case Float.parse(assigns.custom_amount) do
-          {amount, ""} -> Float.round(amount, 2)
-          # Handle trailing period like "5."
-          {amount, "."} -> Float.round(amount, 2)
-          _ -> nil
-        end
-
-      true ->
-        nil
-    end
-  end
-
-  defp find_user_by_username(username) do
-    import Ash.Query
-
-    # TODO load avatar too
-    query = User |> for_read(:get, %{}, load: [:avatar]) |> filter(name == ^username)
-
-    case Ash.read_one(query, authorize?: false) do
-      {:ok, user} when not is_nil(user) -> {:ok, user}
-      {:ok, nil} -> {:error, :not_found}
-      {:error, _} -> {:error, :not_found}
-    end
-  end
-
-  defp get_top_donors_placeholder do
-    [
-      %{
-        name: "GenerousViewer",
-        amount: 150,
-        message: "Keep up the great content!",
-        timestamp: ~U[2024-01-15 14:30:00Z]
-      },
-      %{
-        name: "SuperFan99",
-        amount: 100,
-        message: "Love the streams! 💜",
-        timestamp: ~U[2024-01-14 19:45:00Z]
-      },
-      %{
-        name: "Anonymous",
-        amount: 75,
-        message: "Thanks for the entertainment",
-        timestamp: ~U[2024-01-13 21:20:00Z]
-      },
-      %{
-        name: "StreamLover",
-        amount: 50,
-        message: "Amazing gameplay today!",
-        timestamp: ~U[2024-01-12 16:15:00Z]
-      },
-      %{
-        name: "CoffeeSupporter",
-        amount: 25,
-        message: "Buy yourself some coffee! ☕",
-        timestamp: ~U[2024-01-11 12:30:00Z]
-      }
-    ]
-  end
-
-  defp get_voice_options do
-    [
-      %{value: "default", label: "Default Voice"},
-      %{value: "robotic", label: "Robotic"},
-      %{value: "cheerful", label: "Cheerful"},
-      %{value: "calm", label: "Calm"},
-      %{value: "excited", label: "Excited"},
-      %{value: "whisper", label: "Whisper"}
-    ]
-  end
-
-  defp get_initial_form do
-    %{
-      donor_name: "",
-      donor_email: "",
-      message: "",
-      voice: "default"
-    }
-  end
-
-  defp get_user_preferences(user_id) do
-    case UserPreferences.get_by_user_id(%{user_id: user_id}, authorize?: false) do
-      {:ok, preferences} ->
-        preferences
-
-      {:error, _} ->
-        %{
-          min_donation_amount: nil,
-          max_donation_amount: nil,
-          donation_currency: "USD"
-        }
-    end
-  end
-
-  defp validate_donation_amount(nil, _preferences) do
-    {:error, "Please select or enter a valid donation amount"}
-  end
-
-  defp validate_donation_amount(amount, _preferences) when amount <= 0 do
-    {:error, "Donation amount must be greater than 0"}
-  end
-
-  defp validate_donation_amount(amount, preferences) do
-    min_amount = preferences.min_donation_amount
-    max_amount = preferences.max_donation_amount
-    currency = preferences.donation_currency || "USD"
-
-    cond do
-      min_amount && amount < min_amount ->
-        {:error, "Minimum donation amount is #{currency} #{min_amount}"}
-
-      max_amount && amount > max_amount ->
-        {:error, "Maximum donation amount is #{currency} #{max_amount}"}
-
-      true ->
-        {:ok, amount}
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> assign(:processing, false)
+         |> put_flash(:error, "There was an issue processing your donation. Please try again.")}
     end
   end
 
   defp get_allowed_preset_amounts(preferences) do
-    base_amounts = [5, 10, 25, 50]
-    min_amount = preferences.min_donation_amount
-    max_amount = preferences.max_donation_amount
-
-    Enum.filter(base_amounts, fn amount ->
-      (is_nil(min_amount) || amount >= min_amount) &&
-        (is_nil(max_amount) || amount <= max_amount)
-    end)
-  end
-
-  defp find_similar_usernames(username) do
-    import Ecto.Query
-
-    # Use pg_trgm similarity to find similar usernames
-    # Similarity threshold of 0.3 (30%) is generally good for usernames
-    query =
-      from(u in User,
-        where: fragment("similarity(?, ?) > 0.3", u.name, ^username),
-        order_by: [desc: fragment("similarity(?, ?)", u.name, ^username)],
-        limit: 5,
-        select: %{name: u.name, similarity: fragment("similarity(?, ?)", u.name, ^username)}
-      )
-
-    case Streampai.Repo.all(query) do
-      [] -> []
-      results -> results
-    end
-  rescue
-    _ -> []
+    FormHelpers.filter_preset_amounts([5, 10, 25, 50], preferences)
   end
 
   def render(assigns) do
@@ -516,7 +330,7 @@ defmodule StreampaiWeb.DonationLive do
                       <%= if @processing do %>
                         Processing...
                       <% else %>
-                        <%= case get_donation_amount(assigns) do %>
+                        <%= case FormHelpers.get_donation_amount(assigns) do %>
                           <% nil -> %>
                             Select Amount to Donate
                           <% amount -> %>

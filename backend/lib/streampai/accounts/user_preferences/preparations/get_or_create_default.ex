@@ -7,22 +7,23 @@ defmodule Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault do
   use Ash.Resource.Preparation
 
   @impl true
-  def prepare(query, _opts, _context), do:
-    Ash.Query.after_action(query, fn _query, results ->
-      case results do
-        [] ->
-          default_record = %Streampai.Accounts.UserPreferences{
-            user_id: Ash.Query.get_argument(query, :user_id),
-            email_notifications: true,
-            min_donation_amount: nil,
-            max_donation_amount: nil,
-            donation_currency: "USD"
-          }
+  def prepare(query, _opts, _context),
+    do:
+      Ash.Query.after_action(query, fn _query, results ->
+        case results do
+          [] ->
+            default_record = %Streampai.Accounts.UserPreferences{
+              user_id: Ash.Query.get_argument(query, :user_id),
+              email_notifications: true,
+              min_donation_amount: nil,
+              max_donation_amount: nil,
+              donation_currency: "USD"
+            }
 
-          {:ok, [default_record]}
+            {:ok, [default_record]}
 
-        [result] ->
-          {:ok, [result]}
-      end
-    end)
+          [result] ->
+            {:ok, [result]}
+        end
+      end)
 end

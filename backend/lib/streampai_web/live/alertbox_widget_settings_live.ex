@@ -23,30 +23,12 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
   end
 
   defp update_widget_settings(config, params) do
-    # Handle boolean settings (checkboxes that send "on" when checked)
     boolean_fields = [:sound_enabled, :show_message, :show_amount]
 
-    config_with_booleans =
-      WidgetHelpers.update_boolean_settings(config, params, boolean_fields)
-
-    # Handle other settings (numbers, selects, etc.)
-    Enum.reduce(params, config_with_booleans, fn {key, value}, acc ->
-      case key do
-        key when key in ["sound_enabled", "show_message", "show_amount"] ->
-          # Already handled above
-          acc
-
-        _ ->
-          try do
-            atom_key = String.to_existing_atom(key)
-            converted_value = convert_setting_value(atom_key, value)
-            Map.put(acc, atom_key, converted_value)
-          rescue
-            # Skip invalid field names
-            ArgumentError -> acc
-          end
-      end
-    end)
+    WidgetHelpers.update_unified_settings(config, params,
+      boolean_fields: boolean_fields,
+      converter: &convert_setting_value/2
+    )
   end
 
   defp generate_and_assign_demo_data(socket) do
