@@ -54,6 +54,7 @@ defmodule Streampai.Billing do
 
   @doc """
   Handle successful subscription creation from Stripe webhook.
+  Uses upsert for idempotency - duplicate webhook deliveries will update existing grants.
   """
   def handle_subscription_created(subscription) do
     user_id = subscription.metadata["user_id"]
@@ -124,6 +125,26 @@ defmodule Streampai.Billing do
 
       {:error, error} ->
         {:error, error}
+    end
+  end
+
+  @doc """
+  Reconcile user subscription state with Stripe.
+  Should be called periodically to ensure consistency.
+  """
+  def reconcile_user_subscription(user) do
+    case get_subscription_status(user) do
+      {:ok, %{status: :active, subscription: stripe_sub}} ->
+        # Upsert will create or update the grant
+        create_premium_grant(user, stripe_sub)
+
+      {:ok, %{status: :inactive}} ->
+        # Revoke any active grants
+        revoke_premium_grants(user, nil)
+        {:ok, :revoked}
+
+      {:error, reason} ->
+        {:error, "Failed to check Stripe status: #{reason}"}
     end
   end
 
