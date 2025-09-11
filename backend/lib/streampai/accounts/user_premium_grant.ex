@@ -42,6 +42,16 @@ defmodule Streampai.Accounts.UserPremiumGrant do
         :metadata,
         :type
       ]
+
+      upsert? true
+      upsert_identity :unique_stripe_subscription
+
+      upsert_fields [
+        :expires_at,
+        :granted_at,
+        :grant_reason,
+        :metadata
+      ]
     end
 
     create :create_grant do
@@ -123,5 +133,9 @@ defmodule Streampai.Accounts.UserPremiumGrant do
       allow_nil? false
       attribute_writable? true
     end
+  end
+
+  identities do
+    identity :unique_stripe_subscription, [:stripe_subscription_id]
   end
 end
