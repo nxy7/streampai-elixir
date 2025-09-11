@@ -9,7 +9,7 @@ defmodule Streampai.Accounts.User.Actions.ReconcileSubscription do
 
   @impl true
   def run(input, _opts, _context) do
-    user_id = input.params["primary_key"]["id"]
+    input.params["primary_key"]["id"]
     # Logger.info("=== Starting subscription reconciliation for user #{user_id} ===")
 
     # Commented out for debugging job scheduling
@@ -18,6 +18,6 @@ defmodule Streampai.Accounts.User.Actions.ReconcileSubscription do
     # end
 
     # Logger.info("=== Subscription reconciliation completed for user #{user_id} ===")
-    {:ok, user_id}
+    :ok
   end
 end
