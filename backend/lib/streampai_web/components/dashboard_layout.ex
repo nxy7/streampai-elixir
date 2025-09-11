@@ -501,7 +501,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             display: none;  /* Safari and Chrome */
           }
         </style>
-
       </body>
     </html>
     """
