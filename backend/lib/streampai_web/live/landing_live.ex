@@ -9,6 +9,8 @@ defmodule StreampaiWeb.LandingLive do
   import StreampaiWeb.Components.LandingNavigation
   import StreampaiWeb.Components.LandingPricing
 
+  alias StreampaiWeb.LiveHelpers.UserHelpers
+
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")
 
@@ -28,7 +30,11 @@ defmodule StreampaiWeb.LandingLive do
         handle_newsletter_success(socket)
 
       {:error, changeset} ->
-        handle_newsletter_error(socket, changeset)
+        if UserHelpers.duplicate_email_error?(changeset) do
+          handle_duplicate_email(socket)
+        else
+          handle_validation_error(socket, changeset)
+        end
     end
   end
 
@@ -48,14 +54,6 @@ defmodule StreampaiWeb.LandingLive do
     {:noreply, socket}
   end
 
-  defp handle_newsletter_error(socket, changeset) do
-    if duplicate_email?(changeset) do
-      handle_duplicate_email(socket)
-    else
-      handle_validation_error(socket, changeset)
-    end
-  end
-
   defp handle_duplicate_email(socket) do
     socket =
       socket
@@ -67,7 +65,7 @@ defmodule StreampaiWeb.LandingLive do
   end
 
   defp handle_validation_error(socket, changeset) do
-    error_message = extract_error_message(changeset)
+    error_message = UserHelpers.extract_error_message(changeset)
 
     socket =
       socket
@@ -75,34 +73,6 @@ defmodule StreampaiWeb.LandingLive do
       |> put_flash(:error, error_message)
 
     {:noreply, socket}
-  end
-
-  defp duplicate_email?(changeset) do
-    Enum.any?(changeset.errors, &duplicate_error?/1)
-  end
-
-  defp duplicate_error?(%{field: :email, message: message}) when is_binary(message) do
-    message_lower = String.downcase(message)
-
-    duplicate_keywords = [
-      "has already been taken",
-      "already been taken",
-      "already exists",
-      "unique",
-      "constraint",
-      "duplicate"
-    ]
-
-    Enum.any?(duplicate_keywords, &String.contains?(message_lower, &1))
-  end
-
-  defp duplicate_error?(_), do: false
-
-  defp extract_error_message(changeset) do
-    case changeset.errors do
-      [%{field: :email, message: message} | _] -> message
-      _ -> "Please enter a valid email address."
-    end
   end
 
   def handle_info(:clear_flash, socket) do

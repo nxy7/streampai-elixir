@@ -6,9 +6,8 @@ defmodule StreampaiWeb.DashboardLive do
 
   import StreampaiWeb.Components.DashboardComponents
 
-  # @dev_env Application.compile_env(:streampai, :env) == :dev
-
   alias Streampai.Dashboard
+  alias StreampaiWeb.LiveHelpers.UserHelpers
 
   def mount_page(socket, _params, _session) do
     greeting_text =
@@ -31,25 +30,13 @@ defmodule StreampaiWeb.DashboardLive do
         "Failed to load dashboard data"
       )
       |> assign(
-        display_name: get_display_name(socket),
+        display_name: UserHelpers.get_display_name(socket.assigns),
         greeting_text: greeting_text,
         page_title: "Dashboard"
       )
 
     {:ok, socket, layout: false}
   end
-
-  defp get_display_name(%{assigns: %{dashboard_data: %{user_info: %{display_name: name}}}}) when is_binary(name), do: name
-
-  defp get_display_name(_s) do
-    "User"
-  end
-
-  defp get_joined_date(%{user_info: %{joined_at: joined_at}}) when not is_nil(joined_at) do
-    DateTime.to_date(joined_at)
-  end
-
-  defp get_joined_date(_), do: Date.utc_today()
 
   def render(assigns) do
     # Provide fallback data if dashboard_data is nil
@@ -70,9 +57,9 @@ defmodule StreampaiWeb.DashboardLive do
         <!-- Welcome Card -->
         <.dashboard_card
           title={
-            get_welcome_message(
+            UserHelpers.get_welcome_message(
               @display_name,
-              get_joined_date(@dashboard_data)
+              UserHelpers.get_joined_date(@dashboard_data)
             )
           }
           class="mb-6"
@@ -115,11 +102,7 @@ defmodule StreampaiWeb.DashboardLive do
               </.info_row>
               <.info_row label="Plan">
                 <.status_badge status="success">
-                  {case Map.get(@current_user, :tier) do
-                    :pro -> "Pro (Unlimited hours/month)"
-                    :free -> "Free (#{Streampai.Constants.free_tier_hour_limit()} hours/month)"
-                    _ -> "Free (#{Streampai.Constants.free_tier_hour_limit()} hours/month)"
-                  end}
+                  {UserHelpers.get_tier_display(Map.get(@current_user, :tier))}
                 </.status_badge>
               </.info_row>
             </div>
@@ -136,15 +119,10 @@ defmodule StreampaiWeb.DashboardLive do
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">
-                  {Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_used, 0)} / {case Map.get(
-                                                                                               @current_user ||
-                                                                                                 %{},
-                                                                                               :tier
-                                                                                             ) do
-                    :pro -> "∞"
-                    :free -> Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_limit, 0)
-                    _ -> Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_limit, 0)
-                  end}
+                  {Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_used, 0)} / {UserHelpers.get_hours_limit(
+                    Map.get(@current_user || %{}, :tier),
+                    Map.get(@dashboard_data, :usage, %{})
+                  )}
                 </span>
               </.info_row>
             </div>
@@ -174,17 +152,6 @@ defmodule StreampaiWeb.DashboardLive do
       </div>
     </.dashboard_layout>
     """
-  end
-
-  defp get_welcome_message(display_name, joined_date) do
-    today = Date.utc_today()
-    same_day = Date.compare(joined_date, today) == :eq
-
-    if same_day do
-      "Welcome, #{display_name}! Great to have you here :-)"
-    else
-      "Welcome back, #{display_name}!"
-    end
   end
 
   if Application.compile_env(:streampai, :env) == :prod do

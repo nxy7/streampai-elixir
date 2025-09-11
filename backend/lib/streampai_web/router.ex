@@ -117,9 +117,6 @@ defmodule StreampaiWeb.Router do
 
     get("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
     get("/impersonation/stop", ImpersonationController, :stop_impersonation)
-    live("/button/:id", ButtonLive)
-    live("/counter", CounterLive)
-    live("/cursors", SharedCursorLive)
     live("/w/:uuid", WidgetDisplayLive)
 
     scope "/" do

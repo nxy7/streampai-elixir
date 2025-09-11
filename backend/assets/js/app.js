@@ -11,7 +11,6 @@ import liveVueApp from "../vue";
 
 // Import collocated hooks
 import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_live.js";
-import { CursorTracker } from "../../lib/streampai_web/live/shared_cursor_live.js";
 import { NewsletterForm } from "../../lib/streampai_web/live/landing_live.js";
 import { MobileNavigation } from "../../lib/streampai_web/components/landing_navigation.js";
 import { DashboardSidebar } from "../../lib/streampai_web/components/dashboard_layout.js";
@@ -24,8 +23,9 @@ const CopyToClipboard = {
   mounted() {
     this.el.addEventListener("click", () => {
       const text = this.el.dataset.clipboardText;
-      const successMessage = this.el.dataset.clipboardMessage || "Copied to clipboard!";
-      
+      const successMessage =
+        this.el.dataset.clipboardMessage || "Copied to clipboard!";
+
       if (navigator.clipboard) {
         navigator.clipboard
           .writeText(text)
@@ -71,20 +71,18 @@ const CopyToClipboard = {
     // Create notification element
     const notification = document.createElement("div");
     notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ${
-      type === "success" 
-        ? "bg-green-500 text-white" 
-        : "bg-red-500 text-white"
+      type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
     }`;
     notification.textContent = message;
     notification.style.transform = "translateX(100%)";
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     requestAnimationFrame(() => {
       notification.style.transform = "translateX(0)";
     });
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
       notification.style.transform = "translateX(100%)";
@@ -97,10 +95,8 @@ const CopyToClipboard = {
   },
 };
 
-
 let Hooks = {
   NameAvailabilityChecker,
-  CursorTracker,
   CopyToClipboard,
   NewsletterForm,
   MobileNavigation,
