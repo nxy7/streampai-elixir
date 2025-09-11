@@ -9,6 +9,14 @@
   animation: fadeIn 0.5s ease-in-out;
 }
 
+.backdrop {
+  position: absolute;
+  inset: 0;
+  height: 200%;
+  backdrop-filter: blur(16px);
+  mask-image: linear-gradient(to bottom, black 0% 50%, transparent 50% 100%);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -29,7 +37,9 @@
 .chat-message {
   contain: layout; /* Contain layout changes to prevent parent reflow */
   will-change: auto; /* Reset will-change to prevent unnecessary compositing */
-  transform: translateZ(0); /* Force hardware acceleration for smoother rendering */
+  transform: translateZ(
+    0
+  ); /* Force hardware acceleration for smoother rendering */
 }
 
 /* Custom scrollbar for chat widget */
@@ -42,7 +52,7 @@
 }
 
 .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
-  background-color: #4B5563;
+  background-color: #4b5563;
   border-radius: 3px;
 }
 
@@ -77,6 +87,11 @@
 }
 
 @keyframes flashPulse {
-  0%, 100% { transform: translateX(0) scale(1); }
-  50% { transform: translateX(0) scale(1.02); }
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(0) scale(1.02);
+  }
 }
