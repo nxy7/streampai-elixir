@@ -14,6 +14,7 @@ import { NameAvailabilityChecker } from "../../lib/streampai_web/live/settings_l
 import { CursorTracker } from "../../lib/streampai_web/live/shared_cursor_live.js";
 import { NewsletterForm } from "../../lib/streampai_web/live/landing_live.js";
 import { MobileNavigation } from "../../lib/streampai_web/components/landing_navigation.js";
+import { DashboardSidebar } from "../../lib/streampai_web/components/dashboard_layout.js";
 import LocalStorage from "./hooks/local_storage_hook.js";
 
 // Hooks for various functionality
@@ -103,6 +104,7 @@ let Hooks = {
   CopyToClipboard,
   NewsletterForm,
   MobileNavigation,
+  DashboardSidebar,
   LocalStorage,
   ...getHooks(liveVueApp),
 };

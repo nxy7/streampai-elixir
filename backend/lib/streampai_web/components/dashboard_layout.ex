@@ -21,16 +21,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body class="h-full bg-gray-50">
-        <div class="flex h-screen" id="dashboard-layout">
+        <div class="flex h-screen" id="dashboard-layout" phx-hook="DashboardSidebar">
           <!-- Mobile sidebar backdrop -->
           <div
             id="mobile-sidebar-backdrop"
-            class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"
-            phx-click={
-              JS.add_class("-translate-x-full", to: ".sidebar")
-              |> JS.remove_class("translate-x-0", to: ".sidebar")
-              |> JS.add_class("hidden", to: "#mobile-sidebar-backdrop")
-            }
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden opacity-0 hidden transition-opacity duration-300"
           >
           </div>
           
@@ -366,11 +361,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
               <div class="flex items-center justify-between px-6 py-4">
                 <div class="flex items-center space-x-4">
                   <button
-                    phx-click={
-                      JS.remove_class("-translate-x-full", to: ".sidebar")
-                      |> JS.add_class("translate-x-0", to: ".sidebar")
-                      |> JS.remove_class("hidden", to: "#mobile-sidebar-backdrop")
-                    }
+                    id="mobile-sidebar-toggle"
                     class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -511,50 +502,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           }
         </style>
 
-        <script>
-          // Desktop sidebar toggle functionality only
-          document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const streampaiText = document.querySelector('.streampai-text');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            const sidebarTexts = document.querySelectorAll('.sidebar-text');
-            const collapseIcon = document.querySelector('.collapse-icon');
-            const expandIcon = document.querySelector('.expand-icon');
-
-            let isExpanded = true;
-
-            // Desktop sidebar toggle
-            function toggleDesktopSidebar() {
-              isExpanded = !isExpanded;
-              const mainContent = document.getElementById('main-content');
-
-              if (isExpanded) {
-                sidebar.classList.remove('w-20');
-                sidebar.classList.add('w-64');
-                sidebarTexts.forEach(text => text.classList.remove('hidden'));
-                collapseIcon.classList.remove('hidden');
-                expandIcon.classList.add('hidden');
-                mainContent.classList.remove('md:ml-20');
-                mainContent.classList.add('md:ml-64');
-                streampaiText.classList.remove('hidden');
-              } else {
-                sidebar.classList.remove('w-64');
-                sidebar.classList.add('w-20');
-                sidebarTexts.forEach(text => text.classList.add('hidden'));
-                collapseIcon.classList.add('hidden');
-                expandIcon.classList.remove('hidden');
-                mainContent.classList.remove('md:ml-64');
-                mainContent.classList.add('md:ml-20');
-                streampaiText.classList.add('hidden');
-              }
-            }
-
-            // Desktop toggle event
-            if (sidebarToggle) {
-              sidebarToggle.addEventListener('click', toggleDesktopSidebar);
-            }
-          });
-        </script>
       </body>
     </html>
     """
