@@ -21,8 +21,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
     current_plan = UserHelpers.get_current_plan(current_user)
 
-    # Load notification preferences using the shared module
-
     {:ok,
      socket
      |> assign(:current_plan, current_plan)
@@ -52,7 +50,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   end
 
   def handle_event("downgrade_to_free", _params, socket) do
-    # TODO: Integrate with payment processor
     {:noreply,
      socket
      |> assign(:current_plan, "free")
@@ -63,7 +60,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     form =
       socket.assigns.name_form |> AshPhoenix.Form.validate(form_params, errors: true) |> to_form()
 
-    # Reset availability when input changes, but keep success message until next submission
     socket =
       socket
       |> assign(:name_form, form)
@@ -94,7 +90,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     socket = socket |> assign(:name_error, nil) |> assign(:name_success, nil)
     actor = socket.assigns.current_user
 
-    # Don't submit if name is not available
     if socket.assigns.name_available == false do
       {:noreply, assign(socket, :name_error, "Cannot update to an invalid or taken name")}
     else
@@ -135,7 +130,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
     current_user = socket.assigns.current_user
 
-    # Parse and validate amounts
     min_amount = parse_amount(params["min_donation_amount"])
     max_amount = parse_amount(params["max_donation_amount"])
     currency = params["donation_currency"] || "USD"

@@ -10,7 +10,6 @@ defmodule StreampaiWeb.Components.CarouselWidget do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      # Start carousel rotation
       schedule_next_slide()
     end
 
@@ -18,7 +17,6 @@ defmodule StreampaiWeb.Components.CarouselWidget do
      socket
      |> assign(:images, default_images())
      |> assign(:current_index, 0)
-     # 5 seconds per slide
      |> assign(:transition_duration, 5000)
      |> assign(:show_indicators, true)
      |> assign(:auto_play, true), layout: false}
@@ -209,10 +207,7 @@ defmodule StreampaiWeb.Components.CarouselWidget do
     """
   end
 
-  # Private functions
-
   defp schedule_next_slide do
-    # Default to 5 second intervals
     Process.send_after(self(), :next_slide, 5000)
   end
 

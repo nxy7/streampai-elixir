@@ -5,7 +5,6 @@ defmodule StreampaiWeb.Components.DashboardLayout do
   alias Streampai.Accounts.UserPolicy
 
   def dashboard_layout(assigns) do
-    # Accept all assigns and only set defaults for what we need
     assigns =
       assigns
       |> assign_new(:action_button_class, fn -> "" end)

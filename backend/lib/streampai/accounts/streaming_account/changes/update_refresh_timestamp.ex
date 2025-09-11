@@ -8,8 +8,6 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.UpdateRefreshTimestamp do
 
   @impl true
   def change(changeset, _opts, _context) do
-    # This would be called by a background job or API call
-    # For now, just update the timestamps
     Ash.Changeset.change_attribute(changeset, :updated_at, DateTime.utc_now())
   end
 end

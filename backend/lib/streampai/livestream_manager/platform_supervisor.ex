@@ -118,7 +118,6 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
     # Small delay to ensure supervisor is fully initialized
     Process.sleep(100)
 
-    # Load user's platforms and start managers
     case StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->
         Enum.each(accounts, fn account ->

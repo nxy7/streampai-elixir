@@ -16,8 +16,6 @@ defmodule StreampaiWeb.ContactLive do
   end
 
   def handle_event("submit_contact", _params, socket) do
-    # In a real app, you'd send the email or store in database
-    # For now, just show a success message
     {:noreply,
      assign(socket,
        form_submitted: true,

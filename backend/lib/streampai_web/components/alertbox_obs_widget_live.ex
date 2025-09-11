@@ -26,7 +26,6 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
       subscribe_to_real_events(user_id)
     end
 
-    # Load widget configuration with default fallback
     config =
       case WidgetConfig.get_by_user_and_type(
              %{
@@ -39,7 +38,6 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
           config
 
         {:error, _} ->
-          # Use default config if none exists
           %{
             animation_type: "slide_in",
             display_duration: 5,
@@ -62,39 +60,31 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   end
 
   defp subscribe_to_real_events(user_id) do
-    # Subscribe to AlertQueue events instead of direct channel events
     Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
   end
 
   defp handle_real_event(socket, {:alert_event, event}) do
-    # Transform AlertQueue event to widget format
     alert_event = transform_alert_event(event)
     {:noreply, assign(socket, :current_event, alert_event)}
   end
 
   defp handle_real_event(socket, _event_data) do
-    # Handle other real events here
     {:noreply, socket}
   end
 
-  # Handle config updates from PubSub
   def handle_info(%{config: new_config, type: type}, socket) when type == :alertbox_widget do
     {:noreply, assign(socket, :widget_config, new_config)}
   end
 
-  # Ignore other widget types
   def handle_info(%{config: _config, type: _other_type}, socket) do
     {:noreply, socket}
   end
 
-  # Handle AlertQueue events from PubSub
   def handle_info({:alert_event, event}, socket) do
     handle_real_event(socket, {:alert_event, event})
   end
 
-  # Legacy support for direct donation events (for backward compatibility)
   def handle_info({:new_alert, donation_event}, socket) do
-    # Transform legacy format to AlertQueue format
     event = %{
       type: :donation,
       username: donation_event.donor_name,
@@ -107,12 +97,10 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     handle_real_event(socket, {:alert_event, event})
   end
 
-  # Handle other messages
   def handle_info(_msg, socket) do
     {:noreply, socket}
   end
 
-  # Transform AlertQueue event to widget display format
   defp transform_alert_event(event) do
     %{
       id: Map.get(event, :id, generate_event_id()),
@@ -145,7 +133,6 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     end
   end
 
-  # Get platform-specific display information
   defp get_platform_info(event) do
     case Map.get(event, :platform, :twitch) do
       :twitch -> %{icon: "twitch", color: "bg-purple-600"}

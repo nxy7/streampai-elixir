@@ -39,7 +39,6 @@ defmodule StreampaiWeb.DashboardLive do
   end
 
   def render(assigns) do
-    # Provide fallback data if dashboard_data is nil
     dashboard_data =
       assigns[:dashboard_data] ||
         %{
