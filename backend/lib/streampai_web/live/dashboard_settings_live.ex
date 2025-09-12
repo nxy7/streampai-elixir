@@ -133,121 +133,58 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   end
 
   def handle_event("accept_role", %{"role_id" => role_id}, socket) do
-    current_user = socket.assigns.current_user
-
-    case find_pending_invitation(socket, role_id) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Role invitation not found")}
-
-      role ->
-        case UserRoleHelpers.accept_role_invitation(role, current_user) do
-          {:ok, _accepted_role} ->
-            {:noreply,
-             socket
-             |> load_role_data()
-             |> put_flash(:info, "Role accepted successfully!")}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to accept role")}
-        end
-    end
+    handle_role_action(
+      socket,
+      role_id,
+      &find_pending_invitation/2,
+      &UserRoleHelpers.accept_role_invitation/2,
+      "Role accepted successfully!",
+      "Role invitation not found",
+      "Failed to accept role"
+    )
   end
 
   def handle_event("decline_role", %{"role_id" => role_id}, socket) do
-    current_user = socket.assigns.current_user
-
-    case find_pending_invitation(socket, role_id) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Role invitation not found")}
-
-      role ->
-        case UserRoleHelpers.decline_role_invitation(role, current_user) do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> load_role_data()
-             |> put_flash(:info, "Role invitation declined")}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to decline role")}
-        end
-    end
+    handle_role_action(
+      socket,
+      role_id,
+      &find_pending_invitation/2,
+      &UserRoleHelpers.decline_role_invitation/2,
+      "Role invitation declined",
+      "Role invitation not found",
+      "Failed to decline role"
+    )
   end
 
   def handle_event("revoke_role", %{"role_id" => role_id}, socket) do
-    current_user = socket.assigns.current_user
-
-    case find_granted_role(socket, role_id) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Role not found")}
-
-      role ->
-        case UserRoleHelpers.revoke_role(role, current_user) do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> load_role_data()
-             |> put_flash(:info, "Role revoked successfully")}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to revoke role")}
-        end
-    end
+    handle_role_action(
+      socket,
+      role_id,
+      &find_granted_role/2,
+      &UserRoleHelpers.revoke_role/2,
+      "Role revoked successfully",
+      "Role not found",
+      "Failed to revoke role"
+    )
   end
 
   def handle_event("revoke_invitation", %{"role_id" => role_id}, socket) do
-    current_user = socket.assigns.current_user
-
-    case find_sent_invitation(socket, role_id) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Invitation not found")}
-
-      invitation ->
-        case UserRoleHelpers.revoke_role(invitation, current_user) do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> load_role_data()
-             |> put_flash(:info, "Invitation revoked successfully")}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to revoke invitation")}
-        end
-    end
+    handle_role_action(
+      socket,
+      role_id,
+      &find_sent_invitation/2,
+      &UserRoleHelpers.revoke_role/2,
+      "Invitation revoked successfully",
+      "Invitation not found",
+      "Failed to revoke invitation"
+    )
   end
 
   def handle_event("invite_user", %{"username" => username, "role_type" => role_type}, socket) do
     current_user = socket.assigns.current_user
-
     socket = socket |> assign(:invite_error, nil) |> assign(:invite_success, nil)
 
-    with {:ok, username} <- validate_username(username),
-         {:ok, role_atom} <- validate_role_type(role_type),
-         {:ok, user} <- UserRoleHelpers.find_user_by_username(username),
-         :ok <- validate_not_self_invite(user, current_user),
-         {:ok, _invitation} <-
-           UserRoleHelpers.invite_role(user.id, current_user.id, role_atom, current_user) do
-      {:noreply,
-       socket
-       |> load_role_data()
-       |> assign(:invite_username, "")
-       |> assign(:invite_success, "Invitation sent to #{username} for #{role_type} role!")}
-    else
-      {:error, :invalid_username} ->
-        {:noreply, assign(socket, :invite_error, "Username cannot be empty")}
-
-      {:error, :invalid_role} ->
-        {:noreply, assign(socket, :invite_error, "Invalid role type selected")}
-
-      {:error, :not_found} ->
-        {:noreply, assign(socket, :invite_error, "User '#{username}' not found")}
-
-      {:error, :self_invite} ->
-        {:noreply, assign(socket, :invite_error, "You cannot invite yourself")}
-
-      {:error, _} ->
-        {:noreply, assign(socket, :invite_error, "Failed to send invitation")}
-    end
+    handle_invitation_request(socket, username, role_type, current_user)
   end
 
   def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
@@ -331,6 +268,203 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     else
       :ok
     end
+  end
+
+  defp handle_role_action(socket, role_id, finder_fn, action_fn, success_msg, not_found_msg, error_msg) do
+    current_user = socket.assigns.current_user
+
+    with role when not is_nil(role) <- finder_fn.(socket, role_id),
+         {:ok, _result} <- action_fn.(role, current_user) do
+      {:noreply, socket |> load_role_data() |> put_flash(:info, success_msg)}
+    else
+      nil -> {:noreply, put_flash(socket, :error, not_found_msg)}
+      {:error, _} -> {:noreply, put_flash(socket, :error, error_msg)}
+    end
+  end
+
+  defp handle_invitation_request(socket, username, role_type, current_user) do
+    with {:ok, username} <- validate_username(username),
+         {:ok, role_atom} <- validate_role_type(role_type),
+         {:ok, user} <- UserRoleHelpers.find_user_by_username(username),
+         :ok <- validate_not_self_invite(user, current_user),
+         {:ok, _invitation} <-
+           UserRoleHelpers.invite_role(user.id, current_user.id, role_atom, current_user) do
+      {:noreply,
+       socket
+       |> load_role_data()
+       |> reset_invite_form()
+       |> set_invite_success(username, role_type)}
+    else
+      {:error, :invalid_username} ->
+        {:noreply, assign(socket, :invite_error, "Username cannot be empty")}
+
+      {:error, :invalid_role} ->
+        {:noreply, assign(socket, :invite_error, "Invalid role type selected")}
+
+      {:error, :not_found} ->
+        {:noreply, assign(socket, :invite_error, "User '#{username}' not found")}
+
+      {:error, :self_invite} ->
+        {:noreply, assign(socket, :invite_error, "You cannot invite yourself")}
+
+      {:error, _} ->
+        {:noreply, assign(socket, :invite_error, "Failed to send invitation")}
+    end
+  end
+
+  defp reset_invite_form(socket), do: assign(socket, :invite_username, "")
+
+  defp set_invite_success(socket, username, role_type),
+    do: assign(socket, :invite_success, "Invitation sent to #{username} for #{role_type} role!")
+
+  defp role_icon_component(assigns) do
+    ~H"""
+    <div class={"w-10 h-10 #{@bg_color} rounded-full flex items-center justify-center"}>
+      <%= case @role_type do %>
+        <% :moderator -> %>
+          <StreampaiWeb.CoreComponents.icon name="hero-shield-check" class={"w-5 h-5 #{@icon_color}"} />
+        <% :manager -> %>
+          <StreampaiWeb.CoreComponents.icon name="hero-cog-6-tooth" class={"w-5 h-5 #{@icon_color}"} />
+      <% end %>
+    </div>
+    """
+  end
+
+  defp role_invitation_card(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+      <div class="flex items-center space-x-3">
+        <.role_icon_component
+          role_type={@invitation.role_type}
+          bg_color="bg-purple-100"
+          icon_color="text-purple-600"
+        />
+        <div>
+          <p class="font-medium text-gray-900">
+            {String.capitalize(to_string(@invitation.role_type))} Role from {if @invitation.granter,
+              do: @invitation.granter.name,
+              else: "Unknown"}
+          </p>
+          <p class="text-sm text-gray-600">
+            Invited on {Calendar.strftime(@invitation.granted_at, "%B %d, %Y")}
+          </p>
+        </div>
+      </div>
+      <div class="flex space-x-2">
+        <button
+          phx-click="accept_role"
+          phx-value-role_id={@invitation.id}
+          class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+        >
+          Accept
+        </button>
+        <button
+          phx-click="decline_role"
+          phx-value-role_id={@invitation.id}
+          class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
+        >
+          Decline
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  defp active_role_card(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+      <div class="flex items-center space-x-3">
+        <.role_icon_component
+          role_type={@role.role_type}
+          bg_color="bg-green-100"
+          icon_color="text-green-600"
+        />
+        <div>
+          <p class="font-medium text-gray-900">
+            {String.capitalize(to_string(@role.role_type))} for {if @role.granter,
+              do: @role.granter.name,
+              else: "Unknown"}
+          </p>
+          <p class="text-sm text-gray-600">
+            Active since {Calendar.strftime(@role.accepted_at, "%B %d, %Y")}
+          </p>
+        </div>
+      </div>
+      <div>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          Active
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  defp granted_role_card(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+      <div class="flex items-center space-x-3">
+        <.role_icon_component
+          role_type={@role.role_type}
+          bg_color="bg-purple-100"
+          icon_color="text-purple-600"
+        />
+        <div>
+          <p class="font-medium text-gray-900">
+            {if @role.user, do: @role.user.name, else: "Unknown"} - {String.capitalize(
+              to_string(@role.role_type)
+            )}
+          </p>
+          <p class="text-sm text-gray-600">
+            Active since {Calendar.strftime(@role.accepted_at, "%B %d, %Y")}
+          </p>
+        </div>
+      </div>
+      <div>
+        <button
+          phx-click="revoke_role"
+          phx-value-role_id={@role.id}
+          class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+          onclick="return confirm('Are you sure you want to revoke this role?')"
+        >
+          Revoke
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  defp pending_invitation_card(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-yellow-50">
+      <div class="flex items-center space-x-3">
+        <.role_icon_component
+          role_type={@invitation.role_type}
+          bg_color="bg-yellow-100"
+          icon_color="text-yellow-600"
+        />
+        <div>
+          <p class="font-medium text-gray-900">
+            {if @invitation.user, do: @invitation.user.name, else: "Unknown"} - {String.capitalize(
+              to_string(@invitation.role_type)
+            )}
+          </p>
+          <p class="text-sm text-gray-600">
+            Invited on {Calendar.strftime(@invitation.granted_at, "%B %d, %Y")}
+          </p>
+        </div>
+      </div>
+      <div>
+        <button
+          phx-click="revoke_invitation"
+          phx-value-role_id={@invitation.id}
+          class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+          onclick="return confirm('Are you sure you want to revoke this invitation?')"
+        >
+          Revoke
+        </button>
+      </div>
+    </div>
+    """
   end
 
   def render(assigns) do
@@ -597,50 +731,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
           <% else %>
             <div class="space-y-3">
               <%= for invitation <- @pending_invitations do %>
-                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <%= case invitation.role_type do %>
-                        <% :moderator -> %>
-                          <StreampaiWeb.CoreComponents.icon
-                            name="hero-shield-check"
-                            class="w-5 h-5 text-purple-600"
-                          />
-                        <% :manager -> %>
-                          <StreampaiWeb.CoreComponents.icon
-                            name="hero-cog-6-tooth"
-                            class="w-5 h-5 text-purple-600"
-                          />
-                      <% end %>
-                    </div>
-                    <div>
-                      <p class="font-medium text-gray-900">
-                        {String.capitalize(to_string(invitation.role_type))} Role from {if invitation.granter,
-                          do: invitation.granter.name,
-                          else: "Unknown"}
-                      </p>
-                      <p class="text-sm text-gray-600">
-                        Invited on {Calendar.strftime(invitation.granted_at, "%B %d, %Y")}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex space-x-2">
-                    <button
-                      phx-click="accept_role"
-                      phx-value-role_id={invitation.id}
-                      class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      phx-click="decline_role"
-                      phx-value-role_id={invitation.id}
-                      class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
+                <.role_invitation_card invitation={invitation} />
               <% end %>
             </div>
           <% end %>
@@ -663,39 +754,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
           <% else %>
             <div class="space-y-3">
               <%= for role <- @user_roles do %>
-                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <%= case role.role_type do %>
-                        <% :moderator -> %>
-                          <StreampaiWeb.CoreComponents.icon
-                            name="hero-shield-check"
-                            class="w-5 h-5 text-green-600"
-                          />
-                        <% :manager -> %>
-                          <StreampaiWeb.CoreComponents.icon
-                            name="hero-cog-6-tooth"
-                            class="w-5 h-5 text-green-600"
-                          />
-                      <% end %>
-                    </div>
-                    <div>
-                      <p class="font-medium text-gray-900">
-                        {String.capitalize(to_string(role.role_type))} for {if role.granter,
-                          do: role.granter.name,
-                          else: "Unknown"}
-                      </p>
-                      <p class="text-sm text-gray-600">
-                        Active since {Calendar.strftime(role.accepted_at, "%B %d, %Y")}
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  </div>
-                </div>
+                <.active_role_card role={role} />
               <% end %>
             </div>
           <% end %>
@@ -794,44 +853,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                 <h4 class="font-medium text-gray-900 mb-3">Active Roles</h4>
                 <div class="space-y-3">
                   <%= for role <- @granted_roles do %>
-                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                          <%= case role.role_type do %>
-                            <% :moderator -> %>
-                              <StreampaiWeb.CoreComponents.icon
-                                name="hero-shield-check"
-                                class="w-5 h-5 text-purple-600"
-                              />
-                            <% :manager -> %>
-                              <StreampaiWeb.CoreComponents.icon
-                                name="hero-cog-6-tooth"
-                                class="w-5 h-5 text-purple-600"
-                              />
-                          <% end %>
-                        </div>
-                        <div>
-                          <p class="font-medium text-gray-900">
-                            {if role.user, do: role.user.name, else: "Unknown"} - {String.capitalize(
-                              to_string(role.role_type)
-                            )}
-                          </p>
-                          <p class="text-sm text-gray-600">
-                            Active since {Calendar.strftime(role.accepted_at, "%B %d, %Y")}
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                        <button
-                          phx-click="revoke_role"
-                          phx-value-role_id={role.id}
-                          class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
-                          onclick="return confirm('Are you sure you want to revoke this role?')"
-                        >
-                          Revoke
-                        </button>
-                      </div>
-                    </div>
+                    <.granted_role_card role={role} />
                   <% end %>
                 </div>
               </div>
@@ -842,44 +864,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                   <h4 class="font-medium text-gray-900 mb-3">Pending Invitations</h4>
                   <div class="space-y-3">
                     <%= for invitation <- Enum.filter(@sent_invitations, &(&1.role_status == :pending)) do %>
-                      <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-yellow-50">
-                        <div class="flex items-center space-x-3">
-                          <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                            <%= case invitation.role_type do %>
-                              <% :moderator -> %>
-                                <StreampaiWeb.CoreComponents.icon
-                                  name="hero-shield-check"
-                                  class="w-5 h-5 text-yellow-600"
-                                />
-                              <% :manager -> %>
-                                <StreampaiWeb.CoreComponents.icon
-                                  name="hero-cog-6-tooth"
-                                  class="w-5 h-5 text-yellow-600"
-                                />
-                            <% end %>
-                          </div>
-                          <div>
-                            <p class="font-medium text-gray-900">
-                              {if invitation.user, do: invitation.user.name, else: "Unknown"} - {String.capitalize(
-                                to_string(invitation.role_type)
-                              )}
-                            </p>
-                            <p class="text-sm text-gray-600">
-                              Invited on {Calendar.strftime(invitation.granted_at, "%B %d, %Y")}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <button
-                            phx-click="revoke_invitation"
-                            phx-value-role_id={invitation.id}
-                            class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
-                            onclick="return confirm('Are you sure you want to revoke this invitation?')"
-                          >
-                            Revoke
-                          </button>
-                        </div>
-                      </div>
+                      <.pending_invitation_card invitation={invitation} />
                     <% end %>
                   </div>
                 </div>
