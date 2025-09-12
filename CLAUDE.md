@@ -271,3 +271,4 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - to memorize "The app name is Streampai not Streampai"
 - memorize "When you're using ash remember to always (unless necessary) to pass correct actor to the action"
 - memorize, for complex logic prefer Module preparations, changes over inline function version
+- memorize "if app PORT is taken, then use another port to launch the app instead of killing currently running app"
