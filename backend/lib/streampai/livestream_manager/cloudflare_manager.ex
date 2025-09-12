@@ -163,6 +163,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         {:error, _reason} ->
           # Handle API errors gracefully - keep current status
           Logger.debug("[CloudflareManager:#{state.user_id}] Ignoring API error during status check")
+
           state
       end
 
@@ -487,10 +488,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
           {:error, :http_error, "HTTP 404 error during get_live_input"} ->
             Logger.warning("[CloudflareManager:#{state.user_id}] Live input #{input_id} not found")
+
             {:ok, :offline}
 
           {:error, _error_type, message} ->
             Logger.warning("[CloudflareManager:#{state.user_id}] Failed to check input status: #{inspect(message)}")
+
             {:error, message}
         end
 
