@@ -15,11 +15,48 @@ defmodule Streampai.Cloudflare.LiveInput do
     define :get_or_fetch_for_user, args: [:user_id]
   end
 
+  # Test mode override for get_or_fetch_for_user
+  def get_or_fetch_for_user_with_test_mode(user_id, opts \\ []) when is_binary(user_id) do
+    if Application.get_env(:streampai, :test_mode, false) do
+      # Return mock data directly in test mode
+      {:ok, create_test_live_input(user_id)}
+    else
+      # Use the normal Ash action
+      get_or_fetch_for_user(user_id, opts)
+    end
+  end
+
+  defp create_test_live_input(user_id) do
+    %{
+      __struct__: __MODULE__,
+      user_id: user_id,
+      data: %{
+        "uid" => "test-input-#{user_id}",
+        "rtmps" => %{
+          "url" => "rtmps://test.cloudflare.com:443/live/",
+          "streamKey" => "test-stream-key-#{user_id}"
+        },
+        "srt" => %{
+          "url" => "srt://test.cloudflare.com:778"
+        },
+        "webRTC" => %{
+          "url" => "https://test.cloudflare.com/webrtc"
+        }
+      },
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now()
+    }
+  end
+
   actions do
-    defaults [:read, :destroy, update: :*]
+    defaults [:read, :destroy]
 
     create :create do
       accept [:user_id, :data]
+    end
+
+    update :update do
+      accept [:data]
     end
 
     read :get_or_fetch_for_user do

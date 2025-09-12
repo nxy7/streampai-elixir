@@ -9,7 +9,7 @@ defmodule Streampai.Cloudflare.APIClientTest do
 
   describe "live input operations" do
     test "create live input" do
-      user_id = "test-user-#{:rand.uniform(1000)}"
+      user_id = Ash.UUID.generate()
 
       {:ok, response} =
         APIClient.create_live_input(user_id, %{
