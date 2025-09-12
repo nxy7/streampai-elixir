@@ -49,17 +49,39 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   # Client API
 
   @doc """
+  Starts streaming with the given stream UUID.
+  """
+  def start_streaming(user_id, stream_uuid) do
+    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
+  end
+
+  @doc """
+  Stops the current stream.
+  """
+  def stop_streaming(user_id) do
+    GenServer.call(via_tuple(user_id), :stop_streaming)
+  end
+
+  @doc """
   Sends a chat message to the Twitch channel.
   """
-  def send_chat_message(server, message) do
-    GenServer.cast(server, {:send_chat_message, message})
+  def send_chat_message(pid, message) when is_pid(pid) do
+    GenServer.cast(pid, {:send_chat_message, message})
+  end
+
+  def send_chat_message(user_id, message) when is_binary(user_id) do
+    GenServer.cast(via_tuple(user_id), {:send_chat_message, message})
   end
 
   @doc """
   Updates stream metadata (title, category, etc.).
   """
-  def update_stream_metadata(server, metadata) do
-    GenServer.cast(server, {:update_stream_metadata, metadata})
+  def update_stream_metadata(pid, metadata) when is_pid(pid) do
+    GenServer.cast(pid, {:update_stream_metadata, metadata})
+  end
+
+  def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
+    GenServer.cast(via_tuple(user_id), {:update_stream_metadata, metadata})
   end
 
   @doc """
@@ -169,6 +191,20 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   @impl true
+  def handle_call({:start_streaming, stream_uuid}, _from, state) do
+    Logger.info("[TwitchManager:#{state.user_id}] Starting stream: #{stream_uuid}")
+    new_state = %{state | stream_uuid: stream_uuid}
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
+  def handle_call(:stop_streaming, _from, state) do
+    Logger.info("[TwitchManager:#{state.user_id}] Stopping stream")
+    new_state = %{state | stream_uuid: nil}
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
   def handle_call(:get_status, _from, state) do
     status = %{
       platform: :twitch,
@@ -176,7 +212,8 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       username: state.username,
       channel_id: state.channel_id,
       last_viewer_count: state.last_viewer_count,
-      chat_enabled: state.chat_enabled
+      chat_enabled: state.chat_enabled,
+      stream_uuid: Map.get(state, :stream_uuid)
     }
 
     {:reply, status, state}

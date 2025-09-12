@@ -5,6 +5,8 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   """
   use GenServer
 
+  alias Streampai.Cloudflare.APIClient
+  alias Streampai.Cloudflare.LiveInput
   alias Streampai.LivestreamManager.StreamStateServer
 
   require Logger
@@ -68,7 +70,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   Gets the current Cloudflare stream configuration.
   """
   def get_stream_config(server) do
-    GenServer.call(server, :get_stream_config)
+    GenServer.call(server, :get_stream_config, 15_000)
   end
 
   @doc """
@@ -109,34 +111,60 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     GenServer.call(server, :can_start_streaming)
   end
 
+  @doc """
+  Gets detailed status information about the Cloudflare streaming setup.
+  Compatible with CloudflareLiveInputMonitor.get_status/1
+  """
+  def get_status(user_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), :get_detailed_status)
+  end
+
+  @doc """
+  Sets the live input ID to monitor.
+  Compatible with CloudflareLiveInputMonitor.set_live_input_id/2
+  """
+  def set_live_input_id(user_id, input_id) when is_binary(user_id) and is_binary(input_id) do
+    GenServer.call(via_tuple(user_id), {:set_live_input_id, input_id})
+  end
+
   # Server callbacks
 
   @impl true
   def handle_info(:initialize_live_input, state) do
-    {:ok, live_input} = create_live_input(state)
-    # Start polling for input status
-    poll_timer = schedule_input_poll(state.poll_interval)
+    case create_live_input(state) do
+      {:ok, live_input} ->
+        # Start polling for input status
+        poll_timer = schedule_input_poll(state.poll_interval)
 
-    state = %{state | live_input: live_input, stream_status: :ready, poll_timer: poll_timer}
+        state = %{state | live_input: live_input, stream_status: :ready, poll_timer: poll_timer}
 
-    # Update stream state with Cloudflare input info
-    update_stream_state(state)
+        # Update stream state with Cloudflare input info
+        update_stream_state(state)
 
-    Logger.info("Live input created for user #{state.user_id}: #{live_input.input_id}")
-    {:noreply, state}
+        Logger.info("Live input ready for user #{state.user_id}: #{live_input.input_id}")
+        {:noreply, state}
 
-    # TODO: Handle errors when real Cloudflare API is implemented
-    # {:error, reason} ->
-    #   Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
-    #   Process.send_after(self(), :initialize_live_input, 30_000)
-    #   {:noreply, %{state | stream_status: :error}}
+      {:error, reason} ->
+        Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
+        # Retry after 30 seconds
+        Process.send_after(self(), :initialize_live_input, 30_000)
+        {:noreply, %{state | stream_status: :error}}
+    end
   end
 
   # Periodic input status polling
   @impl true
   def handle_info(:poll_input_status, state) do
-    {:ok, new_streaming_status} = check_input_streaming_status(state)
-    state = handle_input_status_change(state, new_streaming_status)
+    state =
+      case check_input_streaming_status(state) do
+        {:ok, new_streaming_status} ->
+          handle_input_status_change(state, new_streaming_status)
+
+        {:error, _reason} ->
+          # Handle API errors gracefully - keep current status
+          Logger.debug("[CloudflareManager:#{state.user_id}] Ignoring API error during status check")
+          state
+      end
 
     # Schedule next poll
     poll_timer = schedule_input_poll(state.poll_interval)
@@ -250,6 +278,34 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     #   {:reply, {:error, reason}, state}
   end
 
+  @impl true
+  def handle_call(:get_detailed_status, _from, state) do
+    status = %{
+      user_id: state.user_id,
+      is_streaming: state.input_streaming_status == :live,
+      live_input_id: get_input_id(state.live_input),
+      last_status: state.live_input,
+      # Could track this if needed
+      poll_count: 0
+    }
+
+    {:reply, status, state}
+  end
+
+  @impl true
+  def handle_call({:set_live_input_id, input_id}, _from, state) do
+    # Update the live input with the new ID
+    updated_input =
+      case state.live_input do
+        nil -> %{input_id: input_id}
+        live_input -> Map.put(live_input, :input_id, input_id)
+      end
+
+    new_state = %{state | live_input: updated_input}
+    Logger.info("[CloudflareManager:#{state.user_id}] Live input ID set to: #{input_id}")
+    {:reply, :ok, new_state}
+  end
+
   # Helper functions
 
   defp via_tuple(user_id) do
@@ -265,49 +321,133 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp create_live_input(state) do
-    # TODO: Implement actual Cloudflare API calls
-    # For now, return mock data
-    {:ok,
-     %{
-       input_id: "live_input_#{state.user_id}_#{:rand.uniform(1000)}",
-       rtmp_url: "rtmp://live.cloudflare.com/live",
-       rtmp_playback_url: "https://customer-#{:rand.uniform(1000)}.cloudflarestream.com/live.m3u8",
-       srt_url: "srt://live.cloudflare.com:778",
-       webrtc_url: "https://webrtc.live.cloudflare.com",
-       stream_key: generate_stream_key(state.user_id)
-     }}
+    Logger.info("[CloudflareManager:#{state.user_id}] Starting live input creation...")
+    Logger.info("[CloudflareManager:#{state.user_id}] Calling LiveInput.get_or_fetch_for_user...")
+
+    case LiveInput.get_or_fetch_for_user_with_test_mode(state.user_id,
+           actor: %{id: state.user_id}
+         ) do
+      {:ok, live_input} ->
+        Logger.info("[CloudflareManager:#{state.user_id}] LiveInput.get_or_fetch_for_user result: #{inspect(live_input)}")
+
+        # Extract data from the persisted LiveInput resource
+        case live_input.data do
+          %{
+            "uid" => input_id,
+            "rtmps" => %{"url" => rtmp_url, "streamKey" => stream_key},
+            "srt" => %{"url" => srt_url},
+            "webRTC" => %{"url" => webrtc_url}
+          } ->
+            {:ok,
+             %{
+               input_id: input_id,
+               rtmp_url: rtmp_url,
+               rtmp_playback_url: rtmp_url,
+               srt_url: srt_url,
+               webrtc_url: webrtc_url,
+               stream_key: stream_key
+             }}
+
+          invalid_data ->
+            Logger.error("[CloudflareManager:#{state.user_id}] Invalid live input data: #{inspect(invalid_data)}")
+
+            {:error, "Invalid live input data structure"}
+        end
+
+      {:error, reason} ->
+        Logger.error("[CloudflareManager:#{state.user_id}] Failed to get/fetch live input: #{inspect(reason)}")
+
+        {:error, reason}
+    end
+  rescue
+    error ->
+      Logger.error("[CloudflareManager:#{state.user_id}] Exception during live input creation: #{inspect(error)}")
+
+      {:error, error}
   end
 
-  defp update_live_outputs(_state, platform_configs) do
-    # TODO: Implement actual Cloudflare Live Output API calls
-    # For now, return mock configuration
-    outputs =
-      Map.new(platform_configs, fn {platform, config} ->
-        if config.enabled do
-          output_config = %{
-            output_id: "output_#{platform}_#{:rand.uniform(1000)}",
-            platform: platform,
-            stream_key: config.stream_key,
-            rtmp_url: get_platform_rtmp_url(platform),
-            enabled: true
-          }
+  defp update_live_outputs(state, platform_configs) do
+    input_id = get_input_id(state.live_input)
 
-          {platform, output_config}
-        else
-          {platform, %{enabled: false}}
+    if input_id do
+      outputs =
+        Map.new(platform_configs, fn {platform, config} ->
+          if config.enabled do
+            output_config = %{
+              url: get_platform_rtmp_url(platform),
+              stream_key: config.stream_key,
+              enabled: true
+            }
+
+            case APIClient.create_live_output(input_id, output_config) do
+              {:ok, %{"uid" => output_id}} ->
+                {platform,
+                 %{
+                   output_id: output_id,
+                   platform: platform,
+                   stream_key: config.stream_key,
+                   rtmp_url: output_config.url,
+                   enabled: true
+                 }}
+
+              {:error, _error_type, message} ->
+                Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+
+                {platform, %{enabled: false, error: message}}
+            end
+          else
+            {platform, %{enabled: false}}
+          end
+        end)
+
+      {:ok, outputs}
+    else
+      Logger.error("[CloudflareManager:#{state.user_id}] Cannot create live outputs: no input ID")
+      {:error, "No live input available"}
+    end
+  end
+
+  defp enable_live_outputs(state) do
+    input_id = get_input_id(state.live_input)
+
+    if input_id && state.live_outputs do
+      Enum.each(state.live_outputs, fn {_platform, output_config} ->
+        if output_config[:output_id] do
+          case APIClient.toggle_live_output(input_id, output_config.output_id, true) do
+            {:ok, _} ->
+              Logger.info("[CloudflareManager:#{state.user_id}] Enabled output #{output_config.output_id}")
+
+            {:error, _error_type, message} ->
+              Logger.error(
+                "[CloudflareManager:#{state.user_id}] Failed to enable output #{output_config.output_id}: #{message}"
+              )
+          end
         end
       end)
+    end
 
-    {:ok, outputs}
-  end
-
-  defp enable_live_outputs(_state) do
-    # TODO: Enable all configured live outputs via Cloudflare API
     :ok
   end
 
-  defp disable_live_outputs(_state) do
-    # TODO: Disable all live outputs via Cloudflare API
+  defp disable_live_outputs(state) do
+    input_id = get_input_id(state.live_input)
+
+    if input_id && state.live_outputs do
+      Enum.each(state.live_outputs, fn {_platform, output_config} ->
+        if output_config[:output_id] do
+          case APIClient.toggle_live_output(input_id, output_config.output_id, false) do
+            {:ok, _} ->
+              Logger.info("[CloudflareManager:#{state.user_id}] Disabled output #{output_config.output_id}")
+
+            {:error, _error_type, message} ->
+              Logger.error(
+                "[CloudflareManager:#{state.user_id}] Failed to disable output #{output_config.output_id}: #{message}"
+              )
+          end
+        end
+      end)
+    end
+
     :ok
   end
 
@@ -317,10 +457,6 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   defp get_stream_key(state) do
     state.live_input && state.live_input.stream_key
-  end
-
-  defp generate_stream_key(user_id) do
-    "stream_#{user_id}_#{16 |> :crypto.strong_rand_bytes() |> Base.encode64() |> String.slice(0, 16)}"
   end
 
   defp get_platform_rtmp_url(:twitch), do: "rtmp://ingest.twitch.tv/live"
@@ -334,11 +470,33 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     Process.send_after(self(), :poll_input_status, interval)
   end
 
-  defp check_input_streaming_status(_state) do
-    # TODO: Implement actual Cloudflare API call to check input status
-    # For now, return stable mock status (always offline) to prevent false positives
-    # When real API is implemented, this will check actual input streaming status
-    {:ok, :offline}
+  defp check_input_streaming_status(state) do
+    case state.live_input do
+      nil ->
+        {:ok, :offline}
+
+      %{input_id: nil} ->
+        {:ok, :offline}
+
+      %{input_id: input_id} when is_binary(input_id) ->
+        # Use same API client as CloudflareLiveInputMonitor
+        case APIClient.get_live_input(input_id) do
+          {:ok, input_data} ->
+            streaming_status = extract_streaming_status(input_data)
+            {:ok, if(streaming_status, do: :live, else: :offline)}
+
+          {:error, :http_error, "HTTP 404 error during get_live_input"} ->
+            Logger.warning("[CloudflareManager:#{state.user_id}] Live input #{input_id} not found")
+            {:ok, :offline}
+
+          {:error, _error_type, message} ->
+            Logger.warning("[CloudflareManager:#{state.user_id}] Failed to check input status: #{inspect(message)}")
+            {:error, message}
+        end
+
+      _ ->
+        {:ok, :offline}
+    end
   end
 
   defp handle_input_status_change(state, new_status) do
@@ -404,9 +562,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp can_start_streaming_internal(state) do
-    state.input_streaming_status == :live and
-      not Enum.empty?(state.live_outputs) and
-      state.stream_status != :streaming
+    state.input_streaming_status == :live
   end
 
   defp broadcast_stream_event(state, event, data) do
@@ -421,7 +577,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:stream_state, state.user_id}) do
       [{pid, _}] ->
         cloudflare_config = %{
-          input_id: state.live_input && state.live_input.input_id,
+          input_id: get_input_id(state.live_input),
           rtmp_url: get_rtmp_url(state),
           stream_key: get_stream_key(state),
           status: state.stream_status,
@@ -435,5 +591,19 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       [] ->
         :ok
     end
+  end
+
+  defp get_input_id(nil), do: nil
+  defp get_input_id(%{input_id: input_id}), do: input_id
+  defp get_input_id(_), do: nil
+
+  defp extract_streaming_status(%{"status" => %{"current" => %{"state" => state}}}) do
+    # Cloudflare statuses: "connected", "live", "live_input_disconnected", etc.
+    state in ["connected", "live"]
+  end
+
+  defp extract_streaming_status(input_data) do
+    Logger.debug("[CloudflareManager] No status.current in input data: #{inspect(input_data)}")
+    false
   end
 end
