@@ -9,6 +9,12 @@ config :live_vue, vite_host: "http://localhost:5173", ssr: false
 # Logging and debugging
 config :logger, :console, format: "[$level] $message\n"
 
+# LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
+if System.get_env("DISABLE_LIVE_DEBUGGER") != "true" do
+  config :live_debugger, LiveDebugger.App.Web.Endpoint,
+    http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
+end
+
 config :phoenix, :plug_init_mode, :runtime
 config :phoenix, :stacktrace_depth, 20
 
@@ -34,7 +40,7 @@ config :streampai, Streampai.Repo,
 # to bundle .js and .css sources.
 # Main endpoint configuration
 config :streampai, StreampaiWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

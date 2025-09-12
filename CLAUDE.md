@@ -9,8 +9,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Setup and Development
 - `mix setup` - Install dependencies, setup database, build assets (complete setup)
 - `mix phx.server` - Start Phoenix development server at http://localhost:4000
+- `PORT=4001 mix phx.server` - Start server on custom port (useful for multiple instances)
 - `iex -S mix phx.server` - Start server with interactive Elixir shell
 - `just elixir-start` - Alternative way to start server (uses Justfile)
+
+### Multiple Development Instances
+When running multiple Claude Code instances or development servers simultaneously:
+- Use `PORT=4001 mix phx.server` (or other ports) to avoid main app conflicts
+- To disable LiveDebugger (if conflicting): `DISABLE_LIVE_DEBUGGER=true PORT=4001 mix phx.server`
+- LiveDebugger port can be configured via `LIVE_DEBUGGER_PORT` env var (defaults to 4008)
+- For additional instances: `LIVE_DEBUGGER_PORT=4009 PORT=4001 mix phx.server`
+- This prevents "address already in use" errors when multiple devs work on the same codebase
 
 ### Database Operations
 - `mix ecto.create` - Create database
