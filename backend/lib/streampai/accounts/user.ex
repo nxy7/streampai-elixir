@@ -14,6 +14,7 @@ defmodule Streampai.Accounts.User do
   alias Streampai.Accounts.User
   alias Streampai.Accounts.User.Changes.SavePlatformData
   alias Streampai.Accounts.User.Changes.ValidateOAuthConfirmation
+  alias Streampai.Accounts.UserRole
 
   admin do
     actor? true
@@ -367,6 +368,14 @@ defmodule Streampai.Accounts.User do
 
     has_many :user_premium_grants, Streampai.Accounts.UserPremiumGrant do
       destination_attribute :user_id
+    end
+
+    has_many :granted_roles, UserRole do
+      destination_attribute :user_id
+    end
+
+    has_many :roles_granted_to_others, UserRole do
+      destination_attribute :granter_id
     end
   end
 
