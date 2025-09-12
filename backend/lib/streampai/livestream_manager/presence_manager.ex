@@ -108,13 +108,13 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", payload: %{joins: joins, leaves: leaves}}, state) do
-    IO.puts("[PresenceManager] Received presence_diff - joins: #{map_size(joins)}, leaves: #{map_size(leaves)}")
+    # IO.puts("[PresenceManager] Received presence_diff - joins: #{map_size(joins)}, leaves: #{map_size(leaves)}")
 
     {active_users, managers, cleanup_timers} =
       Enum.reduce(joins, {state.active_users, state.managers, state.cleanup_timers}, fn {user_id, _meta},
                                                                                         {users_acc, managers_acc,
                                                                                          timers_acc} ->
-        IO.puts("[PresenceManager] Phoenix.Presence join: #{user_id}")
+        # IO.puts("[PresenceManager] Phoenix.Presence join: #{user_id}")
         users_acc = MapSet.put(users_acc, user_id)
         managers_acc = ensure_manager_started(managers_acc, user_id)
 
