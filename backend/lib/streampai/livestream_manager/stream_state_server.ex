@@ -78,6 +78,28 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
     GenServer.cast(server, {:set_cloudflare_input, input_config})
   end
 
+  @doc """
+  Starts a new streaming session with the given stream UUID.
+  """
+  def start_stream(server, stream_uuid) do
+    GenServer.cast(server, {:start_stream, stream_uuid})
+  end
+
+  @doc """
+  Stops the current streaming session.
+  """
+  def stop_stream(server) do
+    GenServer.cast(server, :stop_stream)
+  end
+
+  @doc """
+  Updates the input status from CloudflareLiveInputMonitor.
+  """
+  def update_input_status(user_id, status) do
+    server = via_tuple(user_id)
+    GenServer.cast(server, {:update_input_status, status})
+  end
+
   # Server callbacks
 
   @impl true
@@ -143,6 +165,37 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   def handle_cast({:set_cloudflare_input, input_config}, state) do
     state = %{state | cloudflare_input: input_config}
     broadcast_state_change(state)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast({:start_stream, stream_uuid}, state) do
+    Logger.info("[StreamStateServer:#{state.user_id}] Starting stream: #{stream_uuid}")
+
+    state = %{state | status: :starting, started_at: DateTime.utc_now()}
+
+    broadcast_state_change(state)
+    {:noreply, Map.put(state, :stream_uuid, stream_uuid)}
+  end
+
+  @impl true
+  def handle_cast(:stop_stream, state) do
+    Logger.info("[StreamStateServer:#{state.user_id}] Stopping stream")
+
+    state = %{state | status: :offline, ended_at: DateTime.utc_now()}
+
+    broadcast_state_change(state)
+    {:noreply, Map.delete(state, :stream_uuid)}
+  end
+
+  @impl true
+  def handle_cast({:update_input_status, status}, state) do
+    Logger.debug("[StreamStateServer:#{state.user_id}] Input status: #{status}")
+
+    # Update cloudflare input status
+    cloudflare_input = Map.put(state.cloudflare_input || %{}, :input_status, status)
+    state = %{state | cloudflare_input: cloudflare_input}
+
     {:noreply, state}
   end
 

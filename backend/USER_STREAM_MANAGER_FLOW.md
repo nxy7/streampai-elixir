@@ -2,7 +2,7 @@
 
 ## 🎯 Simple Overview
 
-When a user opens your dashboard in their browser, a UserStreamManager process automatically starts for that user. When they close all their browser tabs/sessions, the process stops after 5 seconds.
+When a user opens your dashboard in their browser, a UserStreamManager process automatically starts for that user. The UserStreamManager monitors Cloudflare Live Input for incoming traffic and manages platform-specific streaming processes. When they close all their browser tabs/sessions, the process stops after 5 seconds.
 
 ## 📋 Complete Flow: User → UserStreamManager
 
@@ -75,8 +75,11 @@ DynamicSupervisor.start_child(
 # UserStreamManager starts its children:
 def init(user_id) do
   children = [
-    {ConsoleLogger, user_id}  # Logs every second to show it's running
-    # Other streaming components will be added here later
+    {StreamStateServer, user_id},           # Manages stream state and metadata
+    {CloudflareManager, user_id},           # Manages Cloudflare Live Input
+    {CloudflareLiveInputMonitor, user_id},  # Monitors incoming traffic
+    {PlatformSupervisor, user_id},          # Manages platform processes
+    {AlertQueue, user_id}                   # Handles stream alerts
   ]
 end
 ```
@@ -111,7 +114,77 @@ end
 # If no sessions remain after 5 seconds:
 def handle_info({:cleanup_user, user_id}, state) do
   DynamicSupervisor.terminate_child(Streampai.LivestreamManager.DynamicSupervisor, pid)
-  # UserStreamManager and all its children (ConsoleLogger) stop
+  # UserStreamManager and all its children stop
+end
+```
+## 🎮 Livestream Management Flow
+
+### **11. Monitoring Cloudflare Live Input**
+```elixir
+# CloudflareLiveInputMonitor polls Cloudflare API every 10 seconds:
+def handle_info(:check_input_status, state) do
+  case CloudflareAPI.get_live_input_status(state.input_id) do
+    {:ok, %{"status" => "connected"}} ->
+      # Input is receiving traffic - notify StreamStateServer
+      StreamStateServer.update_input_status(state.user_id, :receiving_traffic)
+    {:ok, %{"status" => "disconnected"}} ->
+      StreamStateServer.update_input_status(state.user_id, :no_traffic)
+    {:error, reason} ->
+      Logger.error("Failed to check input status: #{inspect(reason)}")
+  end
+  
+  Process.send_after(self(), :check_input_status, 10_000)
+end
+```
+
+### **12. User Starts Stream**
+```elixir
+# User clicks "Start Stream" button on dashboard:
+# This calls UserStreamManager.start_stream(user_id)
+
+def start_stream(user_id) do
+  stream_uuid = UUID.uuid4()
+  
+  # Update stream state
+  StreamStateServer.start_stream(user_id, stream_uuid)
+  
+  # Start platform processes for all connected platforms
+  PlatformSupervisor.start_platforms(user_id, stream_uuid)
+end
+```
+
+### **13. Platform Processes Start**
+```elixir
+# PlatformSupervisor starts individual platform workers:
+def start_platforms(user_id, stream_uuid) do
+  connected_platforms = get_user_connected_platforms(user_id)
+  
+  Enum.each(connected_platforms, fn platform ->
+    DynamicSupervisor.start_child(
+      __MODULE__, 
+      {PlatformWorker, {user_id, platform, stream_uuid}}
+    )
+  end)
+end
+
+# Each PlatformWorker logs activity:
+def handle_info(:log_activity, %{user_id: user_id, platform: platform} = state) do
+  Logger.info("[PlatformWorker:#{user_id}:#{platform}] Streaming active - #{DateTime.utc_now()}")
+  Process.send_after(self(), :log_activity, 1000)
+end
+```
+
+### **14. User Stops Stream**
+```elixir
+# User clicks "Stop Stream" button:
+def stop_stream(user_id) do
+  # Stop all platform processes
+  PlatformSupervisor.stop_platforms(user_id)
+  
+  # Update stream state
+  StreamStateServer.stop_stream(user_id)
+  
+  # Platform workers clean up (delete live outputs, mark as offline)
 end
 ```
 
@@ -121,8 +194,13 @@ end
 1. **`router.ex`** - Sets up `dashboard_presence` hook
 2. **`live_user_auth.ex`** - Tracks user in Phoenix.Presence  
 3. **`presence_manager.ex`** - Reacts to presence events, manages UserStreamManagers
-4. **`user_stream_manager.ex`** - Supervisor for user-specific processes
-5. **`console_logger.ex`** - Logs every second to show process is alive
+4. **`user_stream_manager.ex`** - Main supervisor for user-specific processes
+5. **`stream_state_server.ex`** - Manages stream state and metadata
+6. **`cloudflare_manager.ex`** - Manages Cloudflare Live Input creation
+7. **`cloudflare_live_input_monitor.ex`** - Monitors incoming traffic from OBS
+8. **`platform_supervisor.ex`** - Manages platform-specific streaming processes
+9. **`platform_worker.ex`** - Individual platform streaming process
+10. **`alert_queue.ex`** - Handles stream alerts and donations
 
 ### **Automatic Integration:**
 - ✅ **No manual calls needed** - works with existing authentication
@@ -183,11 +261,21 @@ children = [
 
 ## 🎯 Summary
 
-The system is **fully automatic**:
+The system is **fully automatic** with manual stream control:
 1. User visits dashboard → Phoenix.Presence tracks them
 2. PresenceManager sees presence event → starts UserStreamManager  
-3. UserStreamManager runs → ConsoleLogger shows it's alive
-4. User closes all tabs → 5-second cleanup timer starts
-5. No more sessions after 5 seconds → UserStreamManager stops
+3. UserStreamManager runs → CloudflareLiveInputMonitor watches for incoming traffic
+4. User starts streaming in OBS → CloudflareLiveInputMonitor detects traffic
+5. User clicks "Start Stream" → Platform processes start for all connected platforms
+6. Platform workers manage live outputs and stream interactions
+7. User clicks "Stop Stream" → All platform processes stop and clean up
+8. User closes all tabs → 5-second cleanup timer starts
+9. No more sessions after 5 seconds → UserStreamManager stops
 
-**Zero configuration needed** - it works with your existing authentication system!
+**Stream Management Features:**
+- ✅ **Automatic traffic detection** from OBS streaming software
+- ✅ **Manual stream control** via dashboard start/stop buttons  
+- ✅ **Multi-platform streaming** to all connected platforms simultaneously
+- ✅ **Platform isolation** - each platform managed independently
+- ✅ **Automatic cleanup** when user disconnects
+- ✅ **Stream UUID tracking** for analytics and reference
