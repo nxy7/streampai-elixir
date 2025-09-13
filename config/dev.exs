@@ -15,6 +15,11 @@ if System.get_env("DISABLE_LIVE_DEBUGGER") != "true" do
     http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
 end
 
+# Database configuration - worktree-friendly
+# Create database name based on current directory to avoid conflicts between worktrees
+worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_")
+database_name = System.get_env("DATABASE_NAME") || "streampai_#{worktree_name}_dev"
+
 config :phoenix, :plug_init_mode, :runtime
 config :phoenix, :stacktrace_depth, 20
 
@@ -23,12 +28,11 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   enable_expensive_runtime_checks: true
 
-# Database configuration
 config :streampai, Streampai.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "postgres",
+  database: database_name,
   pool_size: 30,
   show_sensitive_data_on_connection_error: true
 
