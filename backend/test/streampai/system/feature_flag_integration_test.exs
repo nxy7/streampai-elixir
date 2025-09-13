@@ -7,6 +7,8 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
   use Streampai.DataCase, async: true
   use Mneme
 
+  alias Ash.Error.Invalid
+  alias Ash.Error.Query.NotFound
   alias Streampai.System.FeatureFlag
 
   @test_feature :test_integration_feature
@@ -24,6 +26,7 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Step 3: Get the feature and enable it using the enable action
       {:ok, feature} = Ash.get(FeatureFlag, @test_feature, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{id: :test_integration_feature, enabled: true}} <-
                     FeatureFlag.enable(feature, actor: actor)
 
@@ -32,6 +35,7 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Step 5: Get the feature and disable it using the disable action
       {:ok, enabled_feature} = Ash.get(FeatureFlag, @test_feature, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{id: :test_integration_feature, enabled: false}} <-
                     FeatureFlag.disable(enabled_feature, actor: actor)
 
@@ -63,8 +67,8 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Try to get non-existing feature should fail
       case Ash.get(FeatureFlag, test_feature, actor: actor) do
-        {:error, %Ash.Error.Query.NotFound{}} -> :ok
-        {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{}]}} -> :ok
+        {:error, %NotFound{}} -> :ok
+        {:error, %Invalid{errors: [%NotFound{}]}} -> :ok
         other -> flunk("Expected not found error, got: #{inspect(other)}")
       end
 
@@ -81,8 +85,8 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Try to get non-existing feature should fail
       case Ash.get(FeatureFlag, test_feature, actor: actor) do
-        {:error, %Ash.Error.Query.NotFound{}} -> :ok
-        {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{}]}} -> :ok
+        {:error, %NotFound{}} -> :ok
+        {:error, %Invalid{errors: [%NotFound{}]}} -> :ok
         other -> flunk("Expected not found error, got: #{inspect(other)}")
       end
 
@@ -100,11 +104,13 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Toggle should disable
       {:ok, feature} = Ash.get(FeatureFlag, test_feature, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{id: :test_toggle_feature, enabled: false}} <-
                     FeatureFlag.toggle(feature, actor: actor)
 
       # Toggle again should enable
       {:ok, disabled_feature} = Ash.get(FeatureFlag, test_feature, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{id: :test_toggle_feature, enabled: true}} <-
                     FeatureFlag.toggle(disabled_feature, actor: actor)
 
@@ -131,10 +137,12 @@ defmodule Streampai.System.FeatureFlagIntegrationTest do
 
       # Flip the states - get features first then update them
       {:ok, feature_a_record} = Ash.get(FeatureFlag, feature_a, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{enabled: false}} <-
                     FeatureFlag.disable(feature_a_record, actor: actor)
 
       {:ok, feature_b_record} = Ash.get(FeatureFlag, feature_b, actor: actor)
+
       auto_assert {:ok, %FeatureFlag{enabled: true}} <-
                     FeatureFlag.enable(feature_b_record, actor: actor)
 
