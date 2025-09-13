@@ -10,7 +10,9 @@ config :live_vue, vite_host: "http://localhost:5173", ssr: false
 config :logger, :console, format: "[$level] $message\n"
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
-if System.get_env("DISABLE_LIVE_DEBUGGER") != "true" do
+if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do
+  config :live_debugger, :disabled?, true
+else
   config :live_debugger, LiveDebugger.App.Web.Endpoint,
     http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
 end
