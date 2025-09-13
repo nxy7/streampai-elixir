@@ -6,6 +6,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
   import StreampaiWeb.Components.SubscriptionWidget
   import StreampaiWeb.Live.Helpers.NotificationPreferences
+  import StreampaiWeb.Live.Helpers.RoleManagementHelpers
 
   alias Streampai.Accounts.NameValidator
   alias Streampai.Accounts.UserPreferences
@@ -28,7 +29,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
      |> assign(:usage, user_data.usage)
      |> assign(:platform_connections, platform_connections)
      |> load_user_preferences()
-     |> load_role_data()
+     |> load_role_data(current_user)
      |> assign(
        :name_form,
        socket.assigns.current_user |> AshPhoenix.Form.for_update(:update_name) |> to_form()
@@ -182,8 +183,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
   def handle_event("invite_user", %{"username" => username, "role_type" => role_type}, socket) do
     current_user = socket.assigns.current_user
-    socket = socket |> assign(:invite_error, nil) |> assign(:invite_success, nil)
-
     handle_invitation_request(socket, username, role_type, current_user)
   end
 
@@ -219,103 +218,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   end
 
   defp parse_amount(amount), do: FormHelpers.parse_numeric_setting(amount, min: 1)
-
-  defp load_role_data(socket) do
-    current_user = socket.assigns.current_user
-
-    pending_invitations = UserRoleHelpers.get_pending_invitations(current_user.id)
-    granted_roles = UserRoleHelpers.get_granted_roles(current_user.id)
-    user_roles = UserRoleHelpers.get_user_roles(current_user.id)
-    sent_invitations = UserRoleHelpers.get_sent_invitations(current_user.id)
-
-    socket
-    |> assign(:pending_invitations, pending_invitations)
-    |> assign(:granted_roles, granted_roles)
-    |> assign(:user_roles, user_roles)
-    |> assign(:sent_invitations, sent_invitations)
-  end
-
-  defp find_pending_invitation(socket, role_id) do
-    Enum.find(socket.assigns.pending_invitations, &(&1.id == role_id))
-  end
-
-  defp find_granted_role(socket, role_id) do
-    Enum.find(socket.assigns.granted_roles, &(&1.id == role_id))
-  end
-
-  defp find_sent_invitation(socket, role_id) do
-    Enum.find(socket.assigns.sent_invitations, &(&1.id == role_id))
-  end
-
-  defp validate_username(username) when is_binary(username) do
-    case String.trim(username) do
-      "" -> {:error, :invalid_username}
-      trimmed -> {:ok, trimmed}
-    end
-  end
-
-  defp validate_username(_), do: {:error, :invalid_username}
-
-  defp validate_role_type(role_type) when role_type in ["moderator", "manager"] do
-    {:ok, String.to_existing_atom(role_type)}
-  end
-
-  defp validate_role_type(_), do: {:error, :invalid_role}
-
-  defp validate_not_self_invite(user, current_user) do
-    if user.id == current_user.id do
-      {:error, :self_invite}
-    else
-      :ok
-    end
-  end
-
-  defp handle_role_action(socket, role_id, finder_fn, action_fn, success_msg, not_found_msg, error_msg) do
-    current_user = socket.assigns.current_user
-
-    with role when not is_nil(role) <- finder_fn.(socket, role_id),
-         {:ok, _result} <- action_fn.(role, current_user) do
-      {:noreply, socket |> load_role_data() |> put_flash(:info, success_msg)}
-    else
-      nil -> {:noreply, put_flash(socket, :error, not_found_msg)}
-      {:error, _} -> {:noreply, put_flash(socket, :error, error_msg)}
-    end
-  end
-
-  defp handle_invitation_request(socket, username, role_type, current_user) do
-    with {:ok, username} <- validate_username(username),
-         {:ok, role_atom} <- validate_role_type(role_type),
-         {:ok, user} <- UserRoleHelpers.find_user_by_username(username),
-         :ok <- validate_not_self_invite(user, current_user),
-         {:ok, _invitation} <-
-           UserRoleHelpers.invite_role(user.id, current_user.id, role_atom, current_user) do
-      {:noreply,
-       socket
-       |> load_role_data()
-       |> reset_invite_form()
-       |> set_invite_success(username, role_type)}
-    else
-      {:error, :invalid_username} ->
-        {:noreply, assign(socket, :invite_error, "Username cannot be empty")}
-
-      {:error, :invalid_role} ->
-        {:noreply, assign(socket, :invite_error, "Invalid role type selected")}
-
-      {:error, :not_found} ->
-        {:noreply, assign(socket, :invite_error, "User '#{username}' not found")}
-
-      {:error, :self_invite} ->
-        {:noreply, assign(socket, :invite_error, "You cannot invite yourself")}
-
-      {:error, _} ->
-        {:noreply, assign(socket, :invite_error, "Failed to send invitation")}
-    end
-  end
-
-  defp reset_invite_form(socket), do: assign(socket, :invite_username, "")
-
-  defp set_invite_success(socket, username, role_type),
-    do: assign(socket, :invite_success, "Invitation sent to #{username} for #{role_type} role!")
 
   defp role_icon_component(assigns) do
     ~H"""
