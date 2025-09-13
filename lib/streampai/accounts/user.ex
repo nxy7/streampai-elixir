@@ -407,4 +407,8 @@ defmodule Streampai.Accounts.User do
     identity :unique_email, [:email]
     identity :unique_name, [:name]
   end
+
+  code_interface do
+    define :register_with_password
+  end
 end

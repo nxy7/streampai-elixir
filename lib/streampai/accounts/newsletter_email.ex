@@ -31,4 +31,8 @@ defmodule Streampai.Accounts.NewsletterEmail do
   identities do
     identity :unique_email, [:email]
   end
+
+  code_interface do
+    define :create
+  end
 end

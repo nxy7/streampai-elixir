@@ -7,6 +7,13 @@ defmodule Streampai.TestHelpers do
 
   import ExUnit.Assertions
 
+  alias Streampai.Accounts.NewsletterEmail
+  alias Streampai.Accounts.User
+  alias Streampai.Accounts.UserPremiumGrant
+  alias Streampai.Accounts.WidgetConfig
+
+  require Ash.Query
+
   @doc """
   Helper for creating unique test identifiers with random suffixes.
   Useful for avoiding conflicts in external API tests and database records.
@@ -179,8 +186,7 @@ defmodule Streampai.TestHelpers do
     base_attrs = %{
       email: test_email(),
       password: "password123",
-      password_confirmation: "password123",
-      confirmed: true
+      password_confirmation: "password123"
     }
 
     Map.merge(base_attrs, attrs)
@@ -306,6 +312,179 @@ defmodule Streampai.TestHelpers do
       :exit, {:timeout, _} ->
         Task.shutdown(task, :brutal_kill)
         flunk("Async operation timed out after #{timeout}ms")
+    end
+  end
+
+  @doc """
+  Creates user with streaming accounts for integration testing.
+  Useful for testing multi-platform features and streaming workflows.
+  """
+  def user_fixture_with_streaming_accounts(platforms) when is_list(platforms) do
+    {:ok, user} =
+      User
+      |> Ash.Changeset.for_create(:register_with_password, factory(:user))
+      |> Ash.create()
+
+    accounts =
+      Enum.map(platforms, fn platform ->
+        create_streaming_account(user, platform)
+      end)
+
+    %{user: user, streaming_accounts: accounts}
+  end
+
+  @doc """
+  Creates a streaming account for a user on the specified platform.
+  """
+  def create_streaming_account(user, platform) do
+    account_params = %{
+      user_id: user.id,
+      platform: platform,
+      access_token: "test_token_#{platform}",
+      refresh_token: "refresh_token_#{platform}",
+      access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
+      extra_data: %{
+        channel_id: "test_channel_#{platform}_#{:rand.uniform(10_000)}",
+        username: "test_user_#{platform}"
+      }
+    }
+
+    {:ok, account} = Streampai.Accounts.StreamingAccount.create(account_params, actor: user)
+
+    account
+  end
+
+  @doc """
+  Simulates platform events for testing streaming workflows.
+  """
+  def simulate_platform_event(user, platform, event_type, data \\ %{}) do
+    base_event = %{
+      platform: platform,
+      user_id: user.id,
+      event_type: event_type,
+      timestamp: DateTime.utc_now(),
+      id: "test_event_#{System.unique_integer([:positive])}"
+    }
+
+    event_data = Map.merge(base_event, data)
+
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "stream_events:#{user.id}",
+      {:platform_event, event_data}
+    )
+
+    event_data
+  end
+
+  @doc """
+  Creates a widget configuration for testing.
+  """
+  def create_widget_config(user, widget_type, config \\ %{}) do
+    base_config = factory(:widget_config, %{type: widget_type, config: config})
+
+    {:ok, widget_config} =
+      WidgetConfig.create(
+        Map.put(base_config, :user_id, user.id),
+        actor: user
+      )
+
+    widget_config
+  end
+
+  @doc """
+  Checks if newsletter email exists without exposing internals.
+  """
+  def newsletter_email_exists?(email) do
+    query = Ash.Query.filter(NewsletterEmail, email == ^email)
+
+    case Ash.read(query) do
+      {:ok, [_]} -> true
+      _ -> false
+    end
+  end
+
+  @doc """
+  Counts newsletter email records for a specific email address.
+  """
+  def newsletter_email_count_for(email) do
+    query = Ash.Query.filter(NewsletterEmail, email == ^email)
+
+    case Ash.read(query) do
+      {:ok, records} -> length(records)
+      _ -> 0
+    end
+  end
+
+  @doc """
+  Creates a user with a specific tier (free/pro/enterprise).
+  """
+  def user_fixture_with_tier(tier) do
+    user_attrs = factory(:user)
+
+    {:ok, user} =
+      User
+      |> Ash.Changeset.for_create(:register_with_password, user_attrs)
+      |> Ash.create()
+
+    case tier do
+      :pro ->
+        {:ok, _grant} =
+          UserPremiumGrant.create_grant(
+            user.id,
+            user.id,
+            DateTime.add(DateTime.utc_now(), 30, :day),
+            DateTime.utc_now(),
+            "test_pro_grant",
+            actor: :system
+          )
+
+      :enterprise ->
+        {:ok, _grant} =
+          UserPremiumGrant.create_grant(
+            user.id,
+            user.id,
+            DateTime.add(DateTime.utc_now(), 365, :day),
+            DateTime.utc_now(),
+            "test_enterprise_grant",
+            actor: :system
+          )
+
+      _ ->
+        nil
+    end
+
+    user
+  end
+
+  @doc """
+  Helper for testing real-time features with proper subscriptions.
+  """
+  def with_live_subscription(topic, fun) do
+    Phoenix.PubSub.subscribe(Streampai.PubSub, topic)
+
+    try do
+      fun.()
+    after
+      Phoenix.PubSub.unsubscribe(Streampai.PubSub, topic)
+    end
+  end
+
+  @doc """
+  Asserts that a stream event was created and stored correctly.
+  """
+  def assert_stream_event_created(user_id, event_type, _timeout \\ 2000) do
+    Process.sleep(100)
+
+    query =
+      Streampai.Stream.StreamEvent
+      |> Ash.Query.filter(user_id == ^user_id and event_type == ^event_type)
+      |> Ash.Query.sort(inserted_at: :desc)
+      |> Ash.Query.limit(1)
+
+    case Ash.read(query) do
+      {:ok, [event]} -> event
+      _ -> flunk("Expected stream event of type #{event_type} for user #{user_id} to be created")
     end
   end
 end
