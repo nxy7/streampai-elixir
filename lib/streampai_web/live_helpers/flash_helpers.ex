@@ -153,37 +153,29 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
     "#{base_message}: #{inspect(error)}"
   end
 
-  defp format_operation_message(operation, resource, :success) do
+  defp format_operation_message(operation, resource, result_type) do
     resource_name = humanize_resource(resource)
 
-    case operation do
-      :create -> "#{resource_name} created successfully"
-      :update -> "#{resource_name} updated successfully"
-      :delete -> "#{resource_name} deleted successfully"
-      :save -> "#{resource_name} saved successfully"
-      :connect -> "#{resource_name} connected successfully"
-      :disconnect -> "#{resource_name} disconnected successfully"
-      :start -> "#{resource_name} started successfully"
-      :stop -> "#{resource_name} stopped successfully"
-      _ -> "Operation completed successfully"
+    case {operation, result_type} do
+      {op, :success} when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
+        "#{resource_name} #{past_tense(op)} successfully"
+      {_op, :success} ->
+        "Operation completed successfully"
+      {op, :error} when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
+        "Failed to #{op} #{resource_name}"
+      {_op, :error} ->
+        "Operation failed"
     end
   end
 
-  defp format_operation_message(operation, resource, :error) do
-    resource_name = humanize_resource(resource)
-
-    case operation do
-      :create -> "Failed to create #{resource_name}"
-      :update -> "Failed to update #{resource_name}"
-      :delete -> "Failed to delete #{resource_name}"
-      :save -> "Failed to save #{resource_name}"
-      :connect -> "Failed to connect #{resource_name}"
-      :disconnect -> "Failed to disconnect #{resource_name}"
-      :start -> "Failed to start #{resource_name}"
-      :stop -> "Failed to stop #{resource_name}"
-      _ -> "Operation failed"
-    end
-  end
+  defp past_tense(:create), do: "created"
+  defp past_tense(:update), do: "updated"
+  defp past_tense(:delete), do: "deleted"
+  defp past_tense(:save), do: "saved"
+  defp past_tense(:connect), do: "connected"
+  defp past_tense(:disconnect), do: "disconnected"
+  defp past_tense(:start), do: "started"
+  defp past_tense(:stop), do: "stopped"
 
   defp format_operation_error(base_message, error) do
     error_details = format_ash_error(error)

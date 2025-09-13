@@ -5,7 +5,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManagerBasicTest do
   alias Streampai.LivestreamManager.Platforms.YouTubeManager
 
   setup do
-    # Set database to shared mode for spawned processes  
+    # Set database to shared mode for spawned processes
     Sandbox.mode(Streampai.Repo, {:shared, self()})
 
     # Create unique test registry to avoid conflicts

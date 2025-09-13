@@ -109,7 +109,7 @@ defmodule Streampai.Accounts.UserRoleTest do
     end
 
     test "can revoke permissions" do
-      # Create test users  
+      # Create test users
       {:ok, streamer} =
         User
         |> Ash.Changeset.for_create(:register_with_password, %{

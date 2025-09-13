@@ -41,7 +41,8 @@
       "Bash(CI=true mix test test/streampai_web/integration/widget_system_integration_test.exs --max-failures 1)",
       "Bash(CI=true mix test test/streampai_web/integration/streaming_workflow_integration_test.exs --max-failures 5)",
       "Bash(CI=true mix test test/streampai_web/integration/streaming_workflow_integration_test.exs)",
-      "Bash(CI=true mix test test/streampai_web/live/dashboard_live_test.exs --max-failures 3)"
+      "Bash(CI=true mix test test/streampai_web/live/dashboard_live_test.exs --max-failures 3)",
+      "Bash(mix credo:*)"
     ],
     "deny": [],
     "ask": []

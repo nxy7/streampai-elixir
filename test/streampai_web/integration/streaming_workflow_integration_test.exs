@@ -165,8 +165,8 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
 
   describe "authentication and authorization" do
     test "streaming workflows require authentication", %{conn: conn} do
-      {:error, {:redirect, %{to: redirectTo}}} = live(conn, ~p"/dashboard/stream")
-      assert redirectTo =~ "/auth/sign-in"
+      {:error, {:redirect, %{to: redirect_to}}} = live(conn, ~p"/dashboard/stream")
+      assert redirect_to =~ "/auth/sign-in"
     end
 
     test "free tier users have limited platform connections" do

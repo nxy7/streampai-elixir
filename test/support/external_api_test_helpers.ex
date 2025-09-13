@@ -242,36 +242,41 @@ defmodule Streampai.ExternalAPITestHelpers do
 
   defp validate_wildcard_type(value, type, key) do
     case type do
-      :timestamp ->
-        assert is_binary(value) and String.match?(value, ~r/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
-               "Expected #{key} to be a timestamp, got #{inspect(value)}"
-
-      :uuid ->
-        # Accept both full UUIDs and shorter hex identifiers (like Cloudflare IDs)
-        assert is_binary(value) and
-                 (String.match?(
-                    value,
-                    ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-                  ) or
-                    String.match?(value, ~r/^[0-9a-f]{24,}$/)),
-               "Expected #{key} to be a UUID or hex identifier, got #{inspect(value)}"
-
-      :secret ->
-        assert is_binary(value) and String.length(value) > 10,
-               "Expected #{key} to be a secret string, got #{inspect(value)}"
-
-      :url ->
-        assert is_binary(value) and String.match?(value, ~r/^https?:\/\//),
-               "Expected #{key} to be a URL, got #{inspect(value)}"
-
-      :any ->
-        # Accept any value for wildcards
-        :ok
-
-      _ ->
-        # Unknown wildcard type - just check value exists
-        assert not is_nil(value), "Expected #{key} to have a value, got nil"
+      :timestamp -> validate_timestamp(value, key)
+      :uuid -> validate_uuid(value, key)
+      :secret -> validate_secret(value, key)
+      :url -> validate_url(value, key)
+      :any -> :ok
+      _ -> validate_not_nil(value, key)
     end
+  end
+
+  defp validate_timestamp(value, key) do
+    assert is_binary(value) and String.match?(value, ~r/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
+           "Expected #{key} to be a timestamp, got #{inspect(value)}"
+  end
+
+  defp validate_uuid(value, key) do
+    # Accept both full UUIDs and shorter hex identifiers (like Cloudflare IDs)
+    valid_uuid = String.match?(value, ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+    valid_hex = String.match?(value, ~r/^[0-9a-f]{24,}$/)
+
+    assert is_binary(value) and (valid_uuid or valid_hex),
+           "Expected #{key} to be a UUID or hex identifier, got #{inspect(value)}"
+  end
+
+  defp validate_secret(value, key) do
+    assert is_binary(value) and String.length(value) > 10,
+           "Expected #{key} to be a secret string, got #{inspect(value)}"
+  end
+
+  defp validate_url(value, key) do
+    assert is_binary(value) and String.match?(value, ~r/^https?:\/\//),
+           "Expected #{key} to be a URL, got #{inspect(value)}"
+  end
+
+  defp validate_not_nil(value, key) do
+    assert not is_nil(value), "Expected #{key} to have a value, got nil"
   end
 
   defp provide_helpful_api_error(actual, expected, original_error) do
