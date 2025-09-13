@@ -246,9 +246,14 @@ defmodule Streampai.Accounts.UserRoleHelpers do
   @doc false
   defp safe_role_query(query_fn, preload_associations) when is_list(preload_associations) do
     case query_fn.() do
-      {:ok, results} when is_list(results) -> safe_load_associations(results, preload_associations)
-      {:ok, result} -> safe_load_associations([result], preload_associations)
-      {:error, _reason} -> []
+      {:ok, results} when is_list(results) ->
+        safe_load_associations(results, preload_associations)
+
+      {:ok, result} ->
+        safe_load_associations([result], preload_associations)
+
+      {:error, _reason} ->
+        []
     end
   rescue
     _exception -> []
