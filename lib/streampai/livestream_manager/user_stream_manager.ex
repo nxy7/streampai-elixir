@@ -275,7 +275,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   defp get_platform_config(user_id, platform) do
     with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
-         {:ok, user_with_accounts} <- Ash.get(User, user_id, actor: user, load: [:streaming_accounts]),
+         {:ok, user_with_accounts} <-
+           Ash.get(User, user_id, actor: user, load: [:streaming_accounts]),
          %{} = account <- find_platform_account(user_with_accounts.streaming_accounts, platform) do
       format_platform_config(account)
     else
@@ -285,6 +286,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   rescue
     e ->
       Logger.error("[UserStreamManager:#{user_id}] Exception getting platform config: #{inspect(e)}")
+
       {:error, e}
   end
 
@@ -293,16 +295,17 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp format_platform_config(%{
-    access_token: token,
-    refresh_token: refresh,
-    access_token_expires_at: expires,
-    extra_data: extra
-  }) do
-    {:ok, %{
-      access_token: token,
-      refresh_token: refresh,
-      expires_at: expires,
-      extra_data: extra
-    }}
+         access_token: token,
+         refresh_token: refresh,
+         access_token_expires_at: expires,
+         extra_data: extra
+       }) do
+    {:ok,
+     %{
+       access_token: token,
+       refresh_token: refresh,
+       expires_at: expires,
+       extra_data: extra
+     }}
   end
 end

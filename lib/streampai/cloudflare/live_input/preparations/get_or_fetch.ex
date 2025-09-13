@@ -66,10 +66,17 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
 
   defp create_or_update_record(user_id, cloudflare_data) do
     case create_new_record(user_id, cloudflare_data) do
-      {:ok, live_input} -> {:ok, live_input}
-      {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{message: "has already been taken"}]}} ->
+      {:ok, live_input} ->
+        {:ok, live_input}
+
+      {:error,
+       %Ash.Error.Invalid{
+         errors: [%Ash.Error.Changes.InvalidAttribute{message: "has already been taken"}]
+       }} ->
         update_existing_record(user_id, cloudflare_data)
-      error -> error
+
+      error ->
+        error
     end
   end
 

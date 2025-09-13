@@ -258,7 +258,9 @@ defmodule Streampai.ExternalAPITestHelpers do
 
   defp validate_uuid(value, key) do
     # Accept both full UUIDs and shorter hex identifiers (like Cloudflare IDs)
-    valid_uuid = String.match?(value, ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+    valid_uuid =
+      String.match?(value, ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+
     valid_hex = String.match?(value, ~r/^[0-9a-f]{24,}$/)
 
     assert is_binary(value) and (valid_uuid or valid_hex),
