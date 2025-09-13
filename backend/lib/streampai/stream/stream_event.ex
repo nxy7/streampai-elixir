@@ -13,6 +13,25 @@ defmodule Streampai.Stream.StreamEvent do
   postgres do
     table "stream_events"
     repo Streampai.Repo
+
+    # Add indexes for common query patterns
+    custom_indexes do
+      # For chronological queries by stream
+      index [:livestream_id, :inserted_at],
+        name: "idx_stream_events_stream_chrono"
+
+      # For type-specific queries
+      index [:livestream_id, :type, :inserted_at],
+        name: "idx_stream_events_type_chrono"
+
+      # For user's events across all streams
+      index [:user_id, :inserted_at],
+        name: "idx_stream_events_user_chrono"
+
+      # For platform-specific queries
+      index [:platform, :inserted_at],
+        name: "idx_stream_events_platform_chrono"
+    end
   end
 
   code_interface do

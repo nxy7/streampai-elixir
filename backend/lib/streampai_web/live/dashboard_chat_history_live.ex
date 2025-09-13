@@ -7,14 +7,83 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   alias Streampai.Fake.Chat
 
   def mount_page(socket, _params, _session) do
-    chat_messages = Chat.generate_chat_history_messages()
+    chat_messages = get_cached_chat_messages()
 
     socket =
       socket
       |> assign(:chat_messages, chat_messages)
       |> assign(:page_title, "Chat History")
+      |> assign(:filters, %{platform: "all", date_range: "7days", message_type: "all", search: ""})
 
     {:ok, socket, layout: false}
+  end
+
+  def handle_event("update_filter", %{"filter" => filter_params}, socket) do
+    filters = Map.merge(socket.assigns.filters, filter_params)
+    chat_messages = apply_filters(get_cached_chat_messages(), filters)
+
+    socket =
+      socket
+      |> assign(:filters, filters)
+      |> assign(:chat_messages, chat_messages)
+
+    {:noreply, socket}
+  end
+
+  defp get_cached_chat_messages do
+    # Cache chat messages for 5 minutes to avoid regenerating on every mount
+    case :ets.lookup(:chat_cache, :messages) do
+      [{:messages, messages, timestamp}] ->
+        if DateTime.diff(DateTime.utc_now(), timestamp, :second) < 300 do
+          # Return only first 20 for initial display
+          Enum.take(messages, 20)
+        else
+          regenerate_and_cache_messages()
+        end
+
+      [] ->
+        regenerate_and_cache_messages()
+    end
+  rescue
+    ArgumentError ->
+      # ETS table doesn't exist, create it and generate messages
+      :ets.new(:chat_cache, [:set, :public, :named_table])
+      regenerate_and_cache_messages()
+  end
+
+  defp regenerate_and_cache_messages do
+    messages = Chat.generate_chat_history_messages(50)
+    :ets.insert(:chat_cache, {:messages, messages, DateTime.utc_now()})
+    # Return only first 20 for initial display
+    Enum.take(messages, 20)
+  end
+
+  defp apply_filters(messages, filters) do
+    messages
+    |> filter_by_platform(filters.platform)
+    |> filter_by_search(filters.search)
+    |> Enum.take(20)
+  end
+
+  defp filter_by_platform(messages, "all"), do: messages
+
+  defp filter_by_platform(messages, platform) when is_binary(platform) do
+    platform_atom = String.to_existing_atom(platform)
+    Enum.filter(messages, &(&1.platform == platform_atom))
+  rescue
+    ArgumentError -> messages
+  end
+
+  defp filter_by_search(messages, ""), do: messages
+  defp filter_by_search(messages, nil), do: messages
+
+  defp filter_by_search(messages, search_term) when is_binary(search_term) do
+    search_lower = String.downcase(search_term)
+
+    Enum.filter(messages, fn message ->
+      String.contains?(String.downcase(message.message), search_lower) ||
+        String.contains?(String.downcase(message.username), search_lower)
+    end)
   end
 
   def render(assigns) do
@@ -27,12 +96,16 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
-              <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option>All Platforms</option>
-                <option>Twitch</option>
-                <option>YouTube</option>
-                <option>Facebook</option>
-                <option>Kick</option>
+              <select
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                phx-change="update_filter"
+                name="filter[platform]"
+              >
+                <option value="all" selected={@filters.platform == "all"}>All Platforms</option>
+                <option value="twitch" selected={@filters.platform == "twitch"}>Twitch</option>
+                <option value="youtube" selected={@filters.platform == "youtube"}>YouTube</option>
+                <option value="facebook" selected={@filters.platform == "facebook"}>Facebook</option>
+                <option value="kick" selected={@filters.platform == "kick"}>Kick</option>
               </select>
             </div>
             <div>
@@ -60,6 +133,10 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
                 type="text"
                 placeholder="Search messages..."
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                phx-change="update_filter"
+                name="filter[search]"
+                value={@filters.search}
+                phx-debounce="300"
               />
             </div>
           </div>

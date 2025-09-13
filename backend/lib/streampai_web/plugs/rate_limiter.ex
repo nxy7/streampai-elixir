@@ -28,11 +28,30 @@ defmodule StreampaiWeb.Plugs.RateLimiter do
   end
 
   defp get_client_ip(conn) do
-    case get_req_header(conn, "x-forwarded-for") do
-      [forwarded | _] ->
-        forwarded |> String.split(",") |> List.first() |> String.trim()
+    # Check multiple headers in order of preference
+    forwarded_for = get_req_header(conn, "x-forwarded-for")
+    real_ip = get_req_header(conn, "x-real-ip")
+    cf_connecting_ip = get_req_header(conn, "cf-connecting-ip")
 
-      [] ->
+    cond do
+      cf_connecting_ip != [] ->
+        # Cloudflare provides the real client IP
+        cf_connecting_ip |> List.first() |> String.trim()
+
+      real_ip != [] ->
+        # Nginx proxy real IP
+        real_ip |> List.first() |> String.trim()
+
+      forwarded_for != [] ->
+        # Standard forwarded header, take the first IP
+        forwarded_for
+        |> List.first()
+        |> String.split(",")
+        |> List.first()
+        |> String.trim()
+
+      true ->
+        # Fallback to remote IP
         conn.remote_ip |> :inet.ntoa() |> to_string()
     end
   end

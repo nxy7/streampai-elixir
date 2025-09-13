@@ -21,13 +21,12 @@ defmodule Streampai.Accounts.WidgetConfig.Validations.ConfigStructure do
     required_keys = [:max_messages, :show_badges, :show_emotes]
     missing_keys = required_keys -- Map.keys(config)
 
-    if missing_keys != [] do
-      {:error, field: :config, message: "Missing required chat widget config keys: #{inspect(missing_keys)}"}
-    else
-      with :ok <- validate_max_messages(config),
-           :ok <- validate_boolean_fields(config, [:show_badges, :show_emotes]) do
-        :ok
+    if missing_keys == [] do
+      with :ok <- validate_max_messages(config) do
+        validate_boolean_fields(config, [:show_badges, :show_emotes])
       end
+    else
+      {:error, field: :config, message: "Missing required chat widget config keys: #{inspect(missing_keys)}"}
     end
   end
 
@@ -35,14 +34,13 @@ defmodule Streampai.Accounts.WidgetConfig.Validations.ConfigStructure do
     required_keys = [:display_duration, :animation_type, :sound_enabled]
     missing_keys = required_keys -- Map.keys(config)
 
-    if missing_keys != [] do
-      {:error, field: :config, message: "Missing required alertbox widget config keys: #{inspect(missing_keys)}"}
-    else
+    if missing_keys == [] do
       with :ok <- validate_display_duration(config),
-           :ok <- validate_animation_type(config),
-           :ok <- validate_sound_enabled(config) do
-        :ok
+           :ok <- validate_animation_type(config) do
+        validate_sound_enabled(config)
       end
+    else
+      {:error, field: :config, message: "Missing required alertbox widget config keys: #{inspect(missing_keys)}"}
     end
   end
 

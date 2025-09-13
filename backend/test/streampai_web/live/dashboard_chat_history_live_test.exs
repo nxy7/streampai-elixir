@@ -26,12 +26,12 @@ defmodule StreampaiWeb.DashboardChatHistoryLiveTest do
       assert html =~ "Showing"
     end
 
-    test "generates exactly 20 chat messages", %{conn: conn} do
+    test "displays exactly 20 chat messages", %{conn: conn} do
       {conn, _user} = register_and_log_in_user(conn)
 
       {:ok, view, _html} = live(conn, "/dashboard/chat-history")
 
-      # Check that we have exactly 20 messages
+      # Check that we display exactly 20 messages (filtered/paginated)
       chat_messages = :sys.get_state(view.pid).socket.assigns.chat_messages
       assert length(chat_messages) == 20
     end
