@@ -7,6 +7,8 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   """
   use GenServer
 
+  alias StreampaiWeb.Utils.PubSubUtils
+
   require Logger
 
   defstruct [
@@ -121,14 +123,22 @@ defmodule Streampai.LivestreamManager.AlertQueue do
     # Subscribe to donation and other alert events for this user
     Logger.info("AlertQueue subscribing to PubSub channels for user #{user_id}")
 
-    :ok = Phoenix.PubSub.subscribe(Streampai.PubSub, "donations:#{user_id}")
-    :ok = Phoenix.PubSub.subscribe(Streampai.PubSub, "follows:#{user_id}")
-    :ok = Phoenix.PubSub.subscribe(Streampai.PubSub, "subscriptions:#{user_id}")
-    :ok = Phoenix.PubSub.subscribe(Streampai.PubSub, "raids:#{user_id}")
-    :ok = Phoenix.PubSub.subscribe(Streampai.PubSub, "cheers:#{user_id}")
+    subscription_results = PubSubUtils.subscribe_to_user_alerts(user_id)
 
-    Logger.info("AlertQueue PubSub subscription results", %{
-      user_id: user_id
+    failed_subscriptions =
+      Enum.filter(subscription_results, fn {_topic, result} -> result != :ok end)
+
+    if failed_subscriptions != [] do
+      Logger.warning("Some AlertQueue PubSub subscriptions failed", %{
+        user_id: user_id,
+        failed: failed_subscriptions
+      })
+    end
+
+    Logger.info("AlertQueue PubSub subscription completed", %{
+      user_id: user_id,
+      total_subscriptions: length(subscription_results),
+      failed_subscriptions: length(failed_subscriptions)
     })
 
     # Start processing timer
@@ -531,11 +541,7 @@ defmodule Streampai.LivestreamManager.AlertQueue do
     })
 
     # Broadcast the event to alertbox subscribers
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "alertbox:#{state.user_id}",
-      {:alert_event, item.event}
-    )
+    PubSubUtils.broadcast_alert_event(state.user_id, item.event)
 
     # Get display time for this event (use event's display_time or default to 8)
     display_time = Map.get(item.event, :display_time, 10)
@@ -623,16 +629,13 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   defp broadcast_queue_update(state) do
     queue_length = :queue.len(state.event_queue)
 
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "alertqueue:#{state.user_id}",
-      {:queue_update,
-       %{
-         queue_state: state.queue_state,
-         queue_length: queue_length,
-         timestamp: DateTime.utc_now()
-       }}
-    )
+    queue_data = %{
+      queue_state: state.queue_state,
+      queue_length: queue_length,
+      timestamp: DateTime.utc_now()
+    }
+
+    PubSubUtils.broadcast_queue_update(state.user_id, queue_data)
   end
 
   defp add_event_to_queue(state, event) do

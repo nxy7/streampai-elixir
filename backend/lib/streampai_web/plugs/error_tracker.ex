@@ -199,4 +199,101 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
       _ -> :ets.info(:streampai_errors, :size)
     end
   end
+
+  @doc """
+  Gets error statistics for monitoring dashboard.
+  """
+  def get_error_stats do
+    errors = list_errors(1000)
+    now = DateTime.utc_now()
+    one_hour_ago = DateTime.add(now, -3600, :second)
+    twenty_four_hours_ago = DateTime.add(now, -86_400, :second)
+
+    %{
+      total_count: length(errors),
+      last_hour_count: count_errors_since(errors, one_hour_ago),
+      last_24h_count: count_errors_since(errors, twenty_four_hours_ago),
+      error_rate_per_hour: calculate_hourly_rate(errors, now),
+      top_error_paths: get_top_error_paths(errors, 10),
+      top_error_types: get_top_error_types(errors, 10),
+      most_affected_users: get_most_affected_users(errors, 10)
+    }
+  end
+
+  @doc """
+  Gets errors for a specific user for debugging.
+  """
+  def get_user_errors(user_id, limit \\ 20) do
+    500
+    |> list_errors()
+    |> Enum.filter(&(&1.user_id == user_id))
+    |> Enum.take(limit)
+  end
+
+  @doc """
+  Clears old errors from ETS table.
+  """
+  def cleanup_old_errors(hours_to_keep \\ 48) do
+    cutoff_time = DateTime.add(DateTime.utc_now(), -hours_to_keep * 3600, :second)
+
+    case :ets.whereis(:streampai_errors) do
+      :undefined ->
+        0
+
+      _ ->
+        errors_to_delete =
+          :streampai_errors
+          |> :ets.tab2list()
+          |> Enum.filter(fn {_id, data} ->
+            DateTime.before?(data.timestamp, cutoff_time)
+          end)
+          |> Enum.map(fn {id, _data} -> id end)
+
+        Enum.each(errors_to_delete, &:ets.delete(:streampai_errors, &1))
+        length(errors_to_delete)
+    end
+  end
+
+  defp count_errors_since(errors, since) do
+    Enum.count(errors, fn error ->
+      DateTime.compare(error.timestamp, since) != :lt
+    end)
+  end
+
+  defp calculate_hourly_rate(errors, now) do
+    one_hour_ago = DateTime.add(now, -3600, :second)
+    recent_errors = count_errors_since(errors, one_hour_ago)
+    Float.round(recent_errors / 1.0, 2)
+  end
+
+  defp get_top_error_paths(errors, limit) do
+    errors
+    |> Enum.group_by(& &1.path)
+    |> Enum.map(fn {path, path_errors} -> {path, length(path_errors)} end)
+    |> Enum.sort_by(fn {_path, count} -> count end, :desc)
+    |> Enum.take(limit)
+  end
+
+  defp get_top_error_types(errors, limit) do
+    errors
+    |> Enum.group_by(fn error ->
+      case error.type do
+        :application_error -> error.exception.module
+        :http_error -> "HTTP #{error.status}"
+        other -> other
+      end
+    end)
+    |> Enum.map(fn {type, type_errors} -> {type, length(type_errors)} end)
+    |> Enum.sort_by(fn {_type, count} -> count end, :desc)
+    |> Enum.take(limit)
+  end
+
+  defp get_most_affected_users(errors, limit) do
+    errors
+    |> Enum.filter(& &1.user_id)
+    |> Enum.group_by(& &1.user_id)
+    |> Enum.map(fn {user_id, user_errors} -> {user_id, length(user_errors)} end)
+    |> Enum.sort_by(fn {_user_id, count} -> count end, :desc)
+    |> Enum.take(limit)
+  end
 end

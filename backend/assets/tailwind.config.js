@@ -9,9 +9,11 @@ module.exports = {
   content: [
     "./js/**/*.js",
     "../lib/streampai_web.ex",
-    "../lib/streampai_web/**/*.*ex",
+    "../lib/streampai_web/**/*.*ex", 
     "./vue/**/*.vue",
     "../lib/**/*.vue",
+    // Include test files for development to avoid purging utilities used in tests
+    ...(process.env.NODE_ENV === "development" ? ["../test/**/*.*ex"] : [])
   ],
   theme: {
     extend: {
