@@ -50,14 +50,6 @@ defmodule Streampai.TestHelpers do
   end
 
   @doc """
-  Pattern for testing LiveView redirects with authentication.
-  """
-  def assert_auth_redirect(conn, path, expected_redirect_path \\ "/auth/sign-in") do
-    assert {:error, {:redirect, %{to: redirect_to}}} = Phoenix.LiveViewTest.live(conn, path)
-    assert String.starts_with?(redirect_to, expected_redirect_path)
-  end
-
-  @doc """
   Pattern for extracting and asserting on HTML content snippets.
   Useful for testing multiple content assertions in a structured way.
 

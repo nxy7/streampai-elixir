@@ -8,10 +8,6 @@ defmodule Streampai.Config do
   """
 
   @doc """
-  Gets configuration values with proper defaults and validation.
-  """
-
-  @doc """
   Streaming configuration values.
   """
   def streaming_config do
