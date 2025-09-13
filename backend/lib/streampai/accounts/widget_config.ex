@@ -97,7 +97,6 @@ defmodule Streampai.Accounts.WidgetConfig do
     validate Streampai.Accounts.WidgetConfig.Validations.ConfigStructure
   end
 
-
   attributes do
     uuid_primary_key :id
 

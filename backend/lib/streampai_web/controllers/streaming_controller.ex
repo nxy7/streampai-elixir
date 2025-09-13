@@ -25,34 +25,66 @@ defmodule StreampaiWeb.MultiProviderAuth do
     end
   end
 
-  def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{} = _err}} = conn, params) do
+  def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{} = failure}} = conn, params) do
+    provider = params["provider"]
+    error_message = format_oauth_error(failure, provider)
+
     conn
-    |> put_flash(:error, "Failed to authenticate with #{params["provider"]}")
+    |> put_flash(:error, error_message)
     |> redirect(to: @redirect_url)
   end
 
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{"provider" => provider}) do
-    current_user = conn.assigns.current_user
+    case conn.assigns.current_user do
+      nil ->
+        handle_unauthenticated_callback(conn)
 
-    if current_user do
-      case create_or_update_streaming_account(current_user, auth, provider) do
-        {:ok, _} ->
-          conn
-          |> put_flash(:info, "Successfully connected #{String.capitalize(provider)} account")
-          |> redirect(to: @redirect_url)
+      user ->
+        handle_authenticated_callback(conn, user, auth, provider)
+    end
+  end
 
-        {:error, error} ->
-          conn
-          |> put_flash(
-            :error,
-            "Failed to save #{String.capitalize(provider)} account: #{inspect(error)}"
-          )
-          |> redirect(to: @redirect_url)
-      end
-    else
-      conn
-      |> put_flash(:error, "You must be logged in to connect streaming accounts")
-      |> redirect(to: "/")
+  defp handle_unauthenticated_callback(conn) do
+    conn
+    |> put_flash(:error, "You must be logged in to connect streaming accounts")
+    |> redirect(to: "/auth/sign-in")
+  end
+
+  defp handle_authenticated_callback(conn, user, auth, provider) do
+    case create_or_update_streaming_account(user, auth, provider) do
+      {:ok, _} ->
+        conn
+        |> put_flash(:info, "Successfully connected #{String.capitalize(provider)} account")
+        |> redirect(to: @redirect_url)
+
+      {:error, error} ->
+        conn
+        |> put_flash(:error, format_connection_error(provider, error))
+        |> redirect(to: @redirect_url)
+    end
+  end
+
+  defp format_oauth_error(%Ueberauth.Failure{errors: errors}, provider) do
+    case errors do
+      [%Ueberauth.Failure.Error{message: message} | _] ->
+        "Failed to authenticate with #{String.capitalize(provider)}: #{message}"
+
+      [] ->
+        "Failed to authenticate with #{String.capitalize(provider)}: Unknown error"
+
+      _ ->
+        "Failed to authenticate with #{String.capitalize(provider)}"
+    end
+  end
+
+  defp format_connection_error(provider, error) do
+    case error do
+      %Ash.Error.Invalid{errors: errors} ->
+        error_msgs = Enum.map(errors, & &1.message)
+        "Failed to connect #{String.capitalize(provider)} account: #{Enum.join(error_msgs, ", ")}"
+
+      _ ->
+        "Failed to connect #{String.capitalize(provider)} account: #{inspect(error)}"
     end
   end
 

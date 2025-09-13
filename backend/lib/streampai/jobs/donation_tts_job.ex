@@ -7,7 +7,11 @@ defmodule Streampai.Jobs.DonationTtsJob do
   2. Generates or retrieves cached TTS for the message + voice combination
   3. Broadcasts the complete alert event with TTS path to the alertbox widget
   """
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker,
+    queue: :donations,
+    max_attempts: 3,
+    tags: ["tts", "donation"],
+    unique: [period: 60, keys: [:user_id, :donation_event]]
 
   alias Phoenix.PubSub
   alias Streampai.TtsService
@@ -15,7 +19,7 @@ defmodule Streampai.Jobs.DonationTtsJob do
   require Logger
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: args}) do
+  def perform(%Oban.Job{args: args, attempt: attempt}) do
     %{
       "user_id" => user_id,
       "donation_event" => donation_event
@@ -24,14 +28,33 @@ defmodule Streampai.Jobs.DonationTtsJob do
     Logger.info("Processing donation TTS job", %{
       user_id: user_id,
       donor_name: donation_event["donor_name"],
-      amount: donation_event["amount"]
+      amount: donation_event["amount"],
+      attempt: attempt
     })
 
-    # Always succeeds since we handle TTS failures gracefully
-    {:ok, alert_event} = process_donation_with_tts(user_id, donation_event)
-    broadcast_alert_event(user_id, alert_event)
-    Logger.info("Successfully processed donation TTS", %{user_id: user_id})
-    :ok
+    try do
+      {:ok, alert_event} = process_donation_with_tts(user_id, donation_event)
+      broadcast_alert_event(user_id, alert_event)
+      Logger.info("Successfully processed donation TTS", %{user_id: user_id, attempt: attempt})
+      :ok
+    rescue
+      error ->
+        Logger.error("Failed to process donation TTS", %{
+          user_id: user_id,
+          error: inspect(error),
+          attempt: attempt
+        })
+
+        if attempt >= 3 do
+          # Final attempt failed, broadcast without TTS
+          fallback_event = create_fallback_alert_event(donation_event)
+          broadcast_alert_event(user_id, fallback_event)
+          Logger.warning("Sent fallback donation alert without TTS", %{user_id: user_id})
+          :ok
+        else
+          {:error, error}
+        end
+    end
   end
 
   @doc """
@@ -110,4 +133,20 @@ defmodule Streampai.Jobs.DonationTtsJob do
   end
 
   defp parse_timestamp(_), do: DateTime.utc_now()
+
+  defp create_fallback_alert_event(donation_event) do
+    %{
+      id: generate_event_id(),
+      type: :donation,
+      message: donation_event["message"] || "",
+      donor_name: donation_event["donor_name"] || "Anonymous",
+      amount: donation_event["amount"],
+      currency: donation_event["currency"] || "USD",
+      voice: nil,
+      tts_path: nil,
+      tts_url: nil,
+      timestamp: parse_timestamp(donation_event["timestamp"]),
+      platform: :twitch
+    }
+  end
 end

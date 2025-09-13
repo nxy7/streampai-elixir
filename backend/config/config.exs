@@ -65,9 +65,13 @@ config :spark,
 config :streampai, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10],
+  queues: [default: 10, donations: 5, media: 3],
   repo: Streampai.Repo,
-  plugins: [{Oban.Plugins.Cron, []}]
+  plugins: [
+    {Oban.Plugins.Cron, []},
+    {Oban.Plugins.Pruner, max_age: 300},
+    {Oban.Plugins.Lifeline, rescue_after: to_timeout(minute: 30)}
+  ]
 
 config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Local
 
