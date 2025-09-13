@@ -107,7 +107,7 @@ config :streampai, StreampaiWeb.Endpoint,
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
-  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare],
+  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare, Streampai.System],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),
   session_options: [
