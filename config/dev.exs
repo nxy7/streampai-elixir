@@ -15,10 +15,8 @@ if System.get_env("DISABLE_LIVE_DEBUGGER") != "true" do
     http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
 end
 
-# Database configuration - worktree-friendly
-# Create database name based on current directory to avoid conflicts between worktrees
-worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_")
-database_name = System.get_env("DATABASE_NAME") || "streampai_#{worktree_name}_dev"
+# Database configuration - configurable for worktree-friendly development
+database_name = System.get_env("DATABASE_NAME") || "postgres"
 
 config :phoenix, :plug_init_mode, :runtime
 config :phoenix, :stacktrace_depth, 20
