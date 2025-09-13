@@ -31,10 +31,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    # TODO use separate environment for tests
+    environment:
+      name: prod
     env:
       MIX_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/streampai_test
       SECRET_KEY: test-only-secret-key
+      CLOUDFLARE_API_KEY: "${{ secrets.CLOUDFLARE_API_KEY }}"
+      CLOUDFLARE_AUTH_EMAIL: "${{ secrets.CLOUDFLARE_AUTH_EMAIL }}"
+      CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
 
     steps:
       - name: Set up Git repository

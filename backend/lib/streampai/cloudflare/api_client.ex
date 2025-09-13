@@ -214,9 +214,6 @@ defmodule Streampai.Cloudflare.APIClient do
 
       {:request_failed, reason} ->
         {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
-
-      unknown ->
-        {:error, :unknown_error, "Unknown error during #{operation}: #{inspect(unknown)}"}
     end
   end
 end
