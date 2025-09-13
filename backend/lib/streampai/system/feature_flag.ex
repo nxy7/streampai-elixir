@@ -39,14 +39,14 @@ defmodule Streampai.System.FeatureFlag do
     update :enable do
       argument :id, :string, allow_nil?: false
 
-      change filter(expr(id == ^arg(:id)))
+      change filter expr(id == ^arg(:id))
       change set_attribute(:enabled, true)
     end
 
     update :disable do
       argument :id, :string, allow_nil?: false
 
-      change filter(expr(id == ^arg(:id)))
+      change filter expr(id == ^arg(:id))
       change set_attribute(:enabled, false)
     end
 
