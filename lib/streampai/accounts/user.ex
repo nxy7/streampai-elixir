@@ -111,6 +111,10 @@ defmodule Streampai.Accounts.User do
     define :get_by_id
   end
 
+  code_interface do
+    define :register_with_password
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -406,9 +410,5 @@ defmodule Streampai.Accounts.User do
   identities do
     identity :unique_email, [:email]
     identity :unique_name, [:name]
-  end
-
-  code_interface do
-    define :register_with_password
   end
 end

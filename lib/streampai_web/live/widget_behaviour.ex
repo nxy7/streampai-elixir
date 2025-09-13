@@ -156,7 +156,7 @@ defmodule StreampaiWeb.WidgetBehaviour do
               |> assign(:widget_config, config)
               |> initialize_display_assigns()
 
-            {:ok, socket, layout: false}
+            {:ok, socket, layout: {StreampaiWeb.Layouts, :widget}}
           end
 
           # Handle config updates from PubSub
