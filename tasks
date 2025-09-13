@@ -1,6 +1,0 @@
-- move the app to the root level of the repository
-- start collecting stream messages/metrics/events
-- when user donates we should schedule oban job that will check if we have generated
-TTS message and if not we should use some TTS provider to get it (probably we
-should save them using message+TTS option hash so we can look up the hash)
-and then broadcast alertbox event with necessary event details and TTS path
