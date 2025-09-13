@@ -11,6 +11,17 @@ defmodule Streampai.Accounts.StreamingAccount do
   postgres do
     table "streaming_account"
     repo Streampai.Repo
+
+    # Add indexes for common query patterns
+    custom_indexes do
+      index [:access_token_expires_at],
+        name: "idx_streaming_account_token_expiry",
+        where: "access_token_expires_at < NOW()"
+
+      index [:user_id, :platform],
+        name: "idx_streaming_account_user_platform",
+        unique: true
+    end
   end
 
   code_interface do
@@ -35,22 +46,74 @@ defmodule Streampai.Accounts.StreamingAccount do
 
       upsert? true
       upsert_identity :unique_user_platform
+
+      validate present([:user_id])
+      validate present([:platform])
+      validate present([:access_token])
+      validate present([:refresh_token])
+      validate present([:access_token_expires_at])
+
     end
 
     read :for_user do
       argument :user_id, :uuid, allow_nil?: false
       filter expr(user_id == ^arg(:user_id))
+
+      # Preload user for common use cases
+      prepare build(load: [:user])
     end
 
     read :expired_tokens do
       filter expr(access_token_expires_at < now())
+
+      # Order by expiry date for processing
+      prepare build(sort: [access_token_expires_at: :asc])
+    end
+
+    read :expiring_soon do
+      argument :minutes_ahead, :integer, default: 60
+
+      filter expr(access_token_expires_at < datetime_add(now(), ^arg(:minutes_ahead), "minute"))
+      prepare build(sort: [access_token_expires_at: :asc])
     end
 
     update :refresh_token do
       accept [:access_token, :refresh_token, :access_token_expires_at]
       require_atomic? false
 
+      validate present([:access_token])
+
+
       change Streampai.Accounts.StreamingAccount.Changes.UpdateRefreshTimestamp
+    end
+  end
+
+  # Custom validation functions
+
+  def validate_token_not_expired(changeset) do
+    case Ash.Changeset.get_attribute(changeset, :access_token_expires_at) do
+      # Will be caught by presence validation
+      nil ->
+        changeset
+
+      expires_at ->
+        if DateTime.after?(expires_at, DateTime.utc_now()) do
+          changeset
+        else
+          Ash.Changeset.add_error(
+            changeset,
+            :access_token_expires_at,
+            "Access token expiry must be in the future"
+          )
+        end
+    end
+  end
+
+  def validate_extra_data_structure(changeset) do
+    case Ash.Changeset.get_attribute(changeset, :extra_data) do
+      nil -> changeset
+      data when is_map(data) -> changeset
+      _ -> Ash.Changeset.add_error(changeset, :extra_data, "Extra data must be a map")
     end
   end
 

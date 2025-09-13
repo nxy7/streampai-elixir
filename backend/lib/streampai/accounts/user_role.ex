@@ -18,6 +18,21 @@ defmodule Streampai.Accounts.UserRole do
     repo Streampai.Repo
 
     identity_wheres_to_sql unique_active_role: "revoked_at IS NULL AND role_status = 'accepted'"
+
+    # Add indexes for common queries
+    custom_indexes do
+      index [:user_id, :role_status, :revoked_at],
+        name: "idx_user_roles_user_active",
+        where: "role_status = 'accepted' AND revoked_at IS NULL"
+
+      index [:granter_id, :role_status, :revoked_at],
+        name: "idx_user_roles_granter_active",
+        where: "role_status = 'accepted' AND revoked_at IS NULL"
+
+      index [:user_id, :role_status],
+        name: "idx_user_roles_user_pending",
+        where: "role_status = 'pending' AND revoked_at IS NULL"
+    end
   end
 
   code_interface do
@@ -38,18 +53,28 @@ defmodule Streampai.Accounts.UserRole do
       argument :granter_id, :uuid, allow_nil?: false
 
       filter expr(granter_id == ^arg(:granter_id) and role_status == :accepted and is_nil(revoked_at))
+
+      # Optimize for common preloading patterns
+      prepare build(load: [:user])
     end
 
     read :get_user_roles_for_user do
       argument :user_id, :uuid, allow_nil?: false
 
       filter expr(user_id == ^arg(:user_id) and role_status == :accepted and is_nil(revoked_at))
+
+      # Optimize for common preloading patterns
+      prepare build(load: [:granter])
     end
 
     read :get_pending_invitations do
       argument :user_id, :uuid, allow_nil?: false
 
       filter expr(user_id == ^arg(:user_id) and role_status == :pending and is_nil(revoked_at))
+
+      # Order by granted_at to show newest invitations first
+      prepare build(sort: [granted_at: :desc])
+      prepare build(load: [:granter])
     end
 
     read :check_permission do
@@ -64,6 +89,20 @@ defmodule Streampai.Accounts.UserRole do
                  role_status == :accepted and
                  is_nil(revoked_at)
              )
+
+    end
+
+    read :active_roles do
+      filter expr(role_status == :accepted and is_nil(revoked_at))
+
+      prepare build(load: [:user, :granter])
+    end
+
+    read :expiring_soon do
+      argument :days_ahead, :integer, default: 30
+
+      # For future use if roles have expiration dates
+      filter expr(role_status == :accepted and is_nil(revoked_at))
     end
 
     create :invite do
@@ -78,18 +117,24 @@ defmodule Streampai.Accounts.UserRole do
       change set_attribute(:granted_at, &DateTime.utc_now/0)
 
       validate attribute_does_not_equal(:user_id, :granter_id)
+      validate present([:user_id])
+      validate present([:granter_id])
+      validate present([:role_type])
     end
 
     update :accept do
+      # Can only accept pending invitations  
       change set_attribute(:role_status, :accepted)
       change set_attribute(:accepted_at, &DateTime.utc_now/0)
     end
 
     update :decline do
+      # Can only decline pending invitations
       change set_attribute(:role_status, :declined)
     end
 
     update :revoke do
+      # Can only revoke accepted roles that haven't been revoked
       change set_attribute(:revoked_at, &DateTime.utc_now/0)
     end
   end
