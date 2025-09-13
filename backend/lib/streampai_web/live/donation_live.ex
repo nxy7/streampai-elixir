@@ -7,10 +7,19 @@ defmodule StreampaiWeb.DonationLive do
 
   alias StreampaiWeb.LiveHelpers.DonationHelpers
   alias StreampaiWeb.LiveHelpers.FormHelpers
+  alias Streampai.FeatureFlags
 
   require Logger
 
   def mount(%{"username" => username}, _session, socket) do
+    # Check if donation module is enabled
+    unless FeatureFlags.enabled?(:donation_module) do
+      {:ok,
+       socket
+       |> assign(:feature_disabled, true)
+       |> assign(:page_title, "Feature Unavailable")
+       |> assign(:meta_description, "This feature is currently unavailable"), layout: false}
+    else
     case DonationHelpers.find_user_by_username(username) do
       {:ok, user} ->
         preferences = DonationHelpers.get_user_preferences(user.id)
@@ -38,6 +47,7 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:similar_users, similar_users)
          |> assign(:page_title, "User Not Found")
          |> assign(:meta_description, "User not found"), layout: false}
+    end
     end
   end
 
@@ -110,7 +120,31 @@ defmodule StreampaiWeb.DonationLive do
 
   def render(assigns) do
     ~H"""
-    <%= if assigns[:user_not_found] do %>
+    <%= if assigns[:feature_disabled] do %>
+      <div class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
+        <div class="text-center max-w-md mx-auto px-6">
+          <div class="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <StreampaiWeb.CoreComponents.icon name="hero-exclamation-triangle" class="w-12 h-12 text-yellow-400" />
+          </div>
+
+          <h1 class="text-4xl font-bold text-white mb-4">
+            Feature Unavailable
+          </h1>
+
+          <p class="text-xl text-purple-200 mb-6">
+            The donation system is currently disabled. Please check back later.
+          </p>
+
+          <.link
+            navigate={~p"/"}
+            class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            Go to Homepage
+          </.link>
+        </div>
+      </div>
+    <% else %>
+      <%= if assigns[:user_not_found] do %>
       <div class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
         <div class="text-center max-w-md mx-auto px-6">
           <div class="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center">
@@ -388,6 +422,7 @@ defmodule StreampaiWeb.DonationLive do
           </div>
         </div>
       </div>
+      <% end %>
     <% end %>
     """
   end
