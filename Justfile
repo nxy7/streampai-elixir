@@ -56,6 +56,41 @@ prod:
 build-prod:
 	MIX_ENV=prod mix do deps.get, assets.deploy, compile, phx.digest
 
+# Create a new git worktree with environment configuration
+worktree name:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	echo "Creating worktree: {{name}}"
+
+	# Create the worktree
+	git worktree add "../{{name}}" -b "{{name}}"
+
+	# Copy .env file
+	cp .env "../{{name}}/"
+
+	# Update environment variables for the new worktree
+	cd "../{{name}}"
+
+	# Generate database name from worktree name (replace hyphens with underscores)
+	DB_NAME="streampai_$(echo "{{name}}" | tr '-' '_')_dev"
+
+	mix deps.get
+	mix assets.setup
+	mix assets.build
+
+	mix ash.setup # this sets up db and runs seeds
+
+	# Append worktree-specific configuration to .env
+	echo "" >> .env
+	echo "# Worktree-specific configuration for: {{name}}" >> .env
+	echo "DATABASE_NAME=$DB_NAME" >> .env
+
+	echo "Worktree created at: ../{{name}}"
+	echo "Database: $DB_NAME"
+	echo ""
+	echo "Next steps:"
+	echo "  cd ../{{name}}"
+
 tasks:
 	hx ./tasks
 

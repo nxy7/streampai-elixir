@@ -1,11 +1,9 @@
 import Config
 
 # Set required environment variables for tests - worktree-friendly
-worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_")
+worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_") |> String.downcase()
 
-test_db_name =
-  System.get_env("TEST_DATABASE_NAME") ||
-    "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
+test_db_name = "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
 
 System.put_env(
   "DATABASE_URL",
