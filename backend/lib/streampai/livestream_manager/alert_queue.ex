@@ -599,6 +599,20 @@ defmodule Streampai.LivestreamManager.AlertQueue do
     %{state | processing_timer: timer}
   end
 
+  @doc """
+  Calculates the optimal delay before processing the next alert event.
+
+  This function implements intelligent spacing between alerts to prevent
+  overwhelming viewers. It considers:
+
+  1. The display time of the last processed event (how long it was shown)
+  2. A buffer period to ensure alerts don't overlap
+  3. Minimum processing intervals to maintain performance
+
+  The algorithm ensures that if an alert was displayed for 5 seconds,
+  the next alert won't show until at least 8 seconds have passed
+  (5 seconds display + 3 seconds buffer).
+  """
   defp calculate_processing_delay(state) do
     case state.last_processed_at do
       nil ->
@@ -607,9 +621,9 @@ defmodule Streampai.LivestreamManager.AlertQueue do
 
       last_processed ->
         # Use the last processed event's display_time to determine when next event can start
-        # Default to 8 seconds
+        # Default to 8 seconds if not specified
         last_display_time = state.last_event_display_time || 8
-        # Add 3 second buffer, convert to ms
+        # Add 3 second buffer to prevent overlap, convert to milliseconds
         required_delay = (last_display_time + 3) * 1000
 
         time_since_last = DateTime.diff(DateTime.utc_now(), last_processed, :millisecond)
@@ -620,7 +634,7 @@ defmodule Streampai.LivestreamManager.AlertQueue do
         else
           # Not enough time, wait for the remaining delay
           remaining_delay = required_delay - time_since_last
-          # At least 100ms delay
+          # Ensure minimum 100ms delay for system responsiveness
           max(remaining_delay, 100)
         end
     end
