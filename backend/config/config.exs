@@ -1,6 +1,7 @@
 import Config
 
 alias AshMoney.Types.Money
+alias Streampai.Jobs.CleanupJob
 
 signing_salt = "WVzcyVtA"
 
@@ -65,10 +66,18 @@ config :spark,
 config :streampai, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10, donations: 5, media: 3],
+  queues: [default: 10, donations: 5, media: 3, maintenance: 1],
   repo: Streampai.Repo,
   plugins: [
-    {Oban.Plugins.Cron, []},
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Clean up errors every 4 hours
+       {"0 */4 * * *", CleanupJob, %{"cleanup_type" => "errors"}},
+       # Clean up cache data every day at 2 AM
+       {"0 2 * * *", CleanupJob, %{"cleanup_type" => "cache"}},
+       # Full cleanup weekly on Sunday at 3 AM
+       {"0 3 * * 0", CleanupJob, %{"cleanup_type" => "all"}}
+     ]},
     {Oban.Plugins.Pruner, max_age: 300},
     {Oban.Plugins.Lifeline, rescue_after: to_timeout(minute: 30)}
   ]
