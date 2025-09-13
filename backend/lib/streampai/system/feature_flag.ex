@@ -38,13 +38,18 @@ defmodule Streampai.System.FeatureFlag do
     define :update
     define :destroy
     define :enabled?, action: :enabled?, args: [:name]
-    define :enable, action: :enable, args: [:name]
-    define :disable, action: :disable, args: [:name]
-    define :toggle, action: :toggle, args: [:name]
+    define :enable, action: :enable
+    define :disable, action: :disable
+    define :toggle, action: :toggle
   end
 
   actions do
-    defaults [:read, :update, :destroy]
+    defaults [:read, :destroy]
+
+    update :update do
+      accept [:enabled]
+      primary? true
+    end
 
     create :create do
       accept [:id, :enabled]
@@ -52,58 +57,22 @@ defmodule Streampai.System.FeatureFlag do
       upsert_identity :unique_id
     end
 
-    read :enabled? do
+    action :enabled?, :boolean do
       argument :name, :atom, allow_nil?: false
-      get? true
-      filter expr(id == ^arg(:name) and enabled == true)
+
+      run &__MODULE__.check_enabled?/2
     end
 
     update :enable do
-      argument :name, :atom, allow_nil?: false
-      require_atomic? false
-
-      manual fn changeset, _context ->
-        name = Ash.Changeset.get_argument(changeset, :name)
-
-        case __MODULE__.create(%{id: name, enabled: true}) do
-          {:ok, record} ->
-            {:ok, record}
-
-          {:error, _} ->
-            case Ash.get(__MODULE__, name) do
-              {:ok, existing} -> Ash.update(existing, %{enabled: true})
-              {:error, _} -> {:error, :not_found}
-            end
-        end
-      end
+      change set_attribute(:enabled, true)
     end
 
     update :disable do
-      argument :name, :atom, allow_nil?: false
-      require_atomic? false
-
-      manual fn changeset, _context ->
-        name = Ash.Changeset.get_argument(changeset, :name)
-
-        case Ash.get(__MODULE__, name) do
-          {:ok, record} -> Ash.update(record, %{enabled: false})
-          {:error, _} -> {:ok, nil}
-        end
-      end
+      change set_attribute(:enabled, false)
     end
 
     update :toggle do
-      argument :name, :atom, allow_nil?: false
-      require_atomic? false
-
-      manual fn changeset, _context ->
-        name = Ash.Changeset.get_argument(changeset, :name)
-
-        case Ash.get(__MODULE__, name) do
-          {:ok, record} -> Ash.update(record, %{enabled: not record.enabled})
-          {:error, _} -> __MODULE__.create(%{id: name, enabled: true})
-        end
-      end
+      change atomic_update(:enabled, expr(not enabled))
     end
   end
 
@@ -123,5 +92,21 @@ defmodule Streampai.System.FeatureFlag do
 
   identities do
     identity :unique_id, [:id]
+  end
+
+  @doc """
+  Checks if a feature flag with the given name exists and is enabled.
+
+  Returns true if the feature exists and is enabled, false otherwise.
+  """
+  def check_enabled?(input, context) do
+    require Ash.Query
+    name = input.arguments.name
+
+    __MODULE__
+    |> Ash.Query.new()
+    |> Ash.Query.filter(id == ^name and enabled == true)
+    |> Ash.Query.for_read(:read, %{}, Ash.Context.to_opts(context))
+    |> Ash.exists()
   end
 end
