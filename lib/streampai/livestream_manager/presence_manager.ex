@@ -130,7 +130,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
         user_still_present = Map.has_key?(current_presence, user_id)
 
         if user_still_present do
-          IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - but still has other sessions, keeping active")
+          # IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - but still has other sessions, keeping active")
 
           # User still has other sessions, don't schedule cleanup
           {users_acc, timers_acc}
