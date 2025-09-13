@@ -320,10 +320,8 @@ defmodule Streampai.TestHelpers do
   Useful for testing multi-platform features and streaming workflows.
   """
   def user_fixture_with_streaming_accounts(platforms) when is_list(platforms) do
-    {:ok, user} =
-      User
-      |> Ash.Changeset.for_create(:register_with_password, factory(:user))
-      |> Ash.create()
+    # Create a pro tier user since multiple platforms require pro tier
+    user = user_fixture_with_tier(:pro)
 
     accounts =
       Enum.map(platforms, fn platform ->
@@ -349,9 +347,10 @@ defmodule Streampai.TestHelpers do
       }
     }
 
-    {:ok, account} = Streampai.Accounts.StreamingAccount.create(account_params, actor: user)
-
-    account
+    case Streampai.Accounts.StreamingAccount.create(account_params, actor: user) do
+      {:ok, account} -> account
+      {:error, error} -> raise error
+    end
   end
 
   @doc """
@@ -381,13 +380,14 @@ defmodule Streampai.TestHelpers do
   Creates a widget configuration for testing.
   """
   def create_widget_config(user, widget_type, config \\ %{}) do
-    base_config = factory(:widget_config, %{type: widget_type, config: config})
+    base_factory = factory(:widget_config, %{type: widget_type})
+
+    # Properly merge configs - merge the provided config with the factory's default config
+    merged_config = Map.merge(base_factory.config, config)
+    final_attrs = Map.merge(base_factory, %{config: merged_config, user_id: user.id})
 
     {:ok, widget_config} =
-      WidgetConfig.create(
-        Map.put(base_config, :user_id, user.id),
-        actor: user
-      )
+      WidgetConfig.create(final_attrs, actor: user)
 
     widget_config
   end
