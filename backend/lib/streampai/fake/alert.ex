@@ -4,37 +4,9 @@ defmodule Streampai.Fake.Alert do
   Similar to FakeChat but for donation/alert widgets.
   """
 
-  alias StreampaiWeb.Utils.PlatformUtils
+  alias Streampai.Fake.Base
 
   @alert_types [:donation, :follow, :subscription, :raid]
-  @platform_names [:twitch, :youtube, :facebook, :kick]
-
-  @usernames [
-    "StreamFan2024",
-    "GamerGirl97",
-    "ProPlayer123",
-    "ChatMaster",
-    "NightOwl88",
-    "PixelWarrior",
-    "RetroGaming",
-    "StreamSniper",
-    "LootHunter",
-    "BossRaider",
-    "EpicViewer",
-    "ControllerKing",
-    "KeyboardNinja",
-    "MouseWizard",
-    "HeadsetHero",
-    "CameraMan",
-    "MicrophoneMaster",
-    "StreamlabsPro",
-    "OBSExpert",
-    "TwitchPrime",
-    "YouTubeGaming",
-    "FacebookGaming",
-    "DiscordMod",
-    "RedditUser"
-  ]
 
   @donation_messages [
     "Great stream! Keep it up!",
@@ -87,17 +59,11 @@ defmodule Streampai.Fake.Alert do
 
   def generate_event do
     type = Enum.random(@alert_types)
-    platform_name = Enum.random(@platform_names)
-    username = Enum.random(@usernames)
-
-    platform = %{
-      name: PlatformUtils.platform_name(platform_name),
-      icon: platform_name |> PlatformUtils.platform_initial() |> String.downcase(),
-      color: PlatformUtils.platform_color(platform_name)
-    }
+    username = Base.generate_username()
+    platform = Base.generate_platform()
 
     base_event = %{
-      id: generate_id(),
+      id: Base.generate_hex_id(),
       type: type,
       username: username,
       timestamp: DateTime.utc_now(),
@@ -106,49 +72,23 @@ defmodule Streampai.Fake.Alert do
 
     case type do
       :donation ->
-        amount = generate_donation_amount()
+        amount = Base.generate_donation_amount()
 
         Map.merge(base_event, %{
           amount: amount,
           currency: "$",
-          message: if(Enum.random([true, false]), do: Enum.random(@donation_messages))
+          message: Base.maybe_random(@donation_messages)
         })
 
       :subscription ->
-        Map.put(
-          base_event,
-          :message,
-          if(Enum.random([true, false]), do: Enum.random(@subscription_messages))
-        )
+        Map.put(base_event, :message, Base.maybe_random(@subscription_messages))
 
       :follow ->
-        Map.put(base_event, :message, if(Enum.random(1..10) == 1, do: "Thanks for the follow!"))
+        Map.put(base_event, :message, if(Base.random_boolean(0.1), do: "Thanks for the follow!"))
 
       :raid ->
         viewers = Enum.random(5..500)
-
         Map.put(base_event, :message, "Raiding with #{viewers} viewers!")
     end
-  end
-
-  defp generate_donation_amount do
-    # Generate realistic donation amounts with weighted distribution
-    case_result =
-      case Enum.random(1..100) do
-        # $1-6
-        n when n <= 50 -> Enum.random([1, 2, 3, 5]) + :rand.uniform()
-        # $5-21
-        n when n <= 80 -> Enum.random([5, 10, 15, 20]) + :rand.uniform()
-        # $25-101
-        n when n <= 95 -> Enum.random([25, 50, 75, 100]) + :rand.uniform()
-        # $100-1001
-        _ -> Enum.random([100, 200, 500, 1000]) + :rand.uniform()
-      end
-
-    Float.round(case_result, 2)
-  end
-
-  defp generate_id do
-    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
 end
