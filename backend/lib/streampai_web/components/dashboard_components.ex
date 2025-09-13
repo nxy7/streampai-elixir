@@ -694,4 +694,422 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       _ -> "bg-gradient-to-br from-gray-500 to-gray-600 ring-2 ring-gray-200"
     end
   end
+
+  @doc """
+  Stream status cards showing live status, active platforms, and viewer count.
+  """
+  attr :stream_status, :map, required: true
+  attr :current_user, :map, required: true
+
+  def stream_status_cards(assigns) do
+    ~H"""
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <.stream_status_card
+        title="Live Status"
+        icon="play"
+        status={@stream_status.status}
+        color="red"
+      />
+      <.stream_status_card
+        title="Active Platforms"
+        icon="globe"
+        value={"#{@current_user.connected_platforms}/#{if @current_user.tier == :free, do: 1, else: 99}"}
+        color="blue"
+      />
+      <.stream_status_card
+        title="Total Viewers"
+        icon="eye"
+        value="0"
+        color="green"
+      />
+    </div>
+    """
+  end
+
+  @doc """
+  Individual stream status card component.
+  """
+  attr :title, :string, required: true
+  attr :icon, :string, required: true
+  attr :status, :atom, default: nil
+  attr :value, :string, default: nil
+  attr :color, :string, required: true
+
+  def stream_status_card(assigns) do
+    ~H"""
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class={[
+            "w-8 h-8 rounded-full flex items-center justify-center",
+            get_status_card_bg_class(@color)
+          ]}>
+            <.stream_status_icon name={@icon} class={["w-5 h-5", get_status_card_icon_class(@color)]} />
+          </div>
+        </div>
+        <div class="ml-5 w-0 flex-1">
+          <dl>
+            <dt class="text-sm font-medium text-gray-500 truncate">{@title}</dt>
+            <dd class="text-lg font-medium text-gray-900">
+              <%= if @status do %>
+                <.stream_status_text status={@status} />
+              <% else %>
+                {@value}
+              <% end %>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Stream status text with emoji indicators.
+  """
+  attr :status, :atom, required: true
+
+  def stream_status_text(assigns) do
+    ~H"""
+    <%= case @status do %>
+      <% :streaming -> %>
+        <span class="text-green-600">🔴 LIVE</span>
+      <% :ready -> %>
+        <span class="text-yellow-600">⚡ Ready</span>
+      <% _ -> %>
+        <span class="text-gray-600">⏸️ Offline</span>
+    <% end %>
+    """
+  end
+
+  @doc """
+  Stream controls section with GO LIVE/STOP button and RTMP details.
+  """
+  attr :stream_status, :map, required: true
+  attr :loading, :boolean, required: true
+  attr :show_stream_key, :boolean, required: true
+
+  def stream_controls(assigns) do
+    ~H"""
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Stream Controls</h3>
+      </div>
+      <div class="p-6">
+        <%= if @stream_status.manager_available do %>
+          <div class="flex flex-col space-y-4">
+            <.stream_input_status status={@stream_status.input_streaming_status} />
+            <.stream_action_button stream_status={@stream_status} loading={@loading} />
+            <%= if @stream_status.rtmp_url && @stream_status.stream_key do %>
+              <.rtmp_connection_details
+                rtmp_url={@stream_status.rtmp_url}
+                stream_key={@stream_status.stream_key}
+                show_stream_key={@show_stream_key}
+              />
+            <% end %>
+            <%= if @stream_status.input_streaming_status != :live do %>
+              <.stream_status_message />
+            <% end %>
+          </div>
+        <% else %>
+          <.stream_service_unavailable />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Input streaming status indicator.
+  """
+  attr :status, :atom, required: true
+
+  def stream_input_status(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-3">
+        <div class={[
+          "w-3 h-3 rounded-full",
+          if(@status == :live, do: "bg-green-500", else: "bg-gray-300")
+        ]}>
+        </div>
+        <span class="text-sm font-medium text-gray-700">
+          Input Stream: {if @status == :live, do: "LIVE", else: "Offline"}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  GO LIVE/STOP streaming action button.
+  """
+  attr :stream_status, :map, required: true
+  attr :loading, :boolean, required: true
+
+  def stream_action_button(assigns) do
+    ~H"""
+    <div class="flex items-center justify-center mb-4">
+      <%= if @stream_status.status == :streaming do %>
+        <button
+          phx-click="stop_streaming"
+          disabled={@loading}
+          class="px-8 py-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg text-lg shadow-lg transition-colors duration-200"
+        >
+          {if @loading, do: "Stopping...", else: "🔴 STOP STREAM"}
+        </button>
+      <% else %>
+        <button
+          phx-click="start_streaming"
+          disabled={@loading || !@stream_status.can_start_streaming}
+          class={[
+            "px-8 py-4 font-semibold rounded-lg text-lg shadow-lg transition-colors duration-200",
+            if(@stream_status.can_start_streaming && !@loading,
+              do: "bg-green-600 hover:bg-green-700 text-white",
+              else: "bg-gray-300 text-gray-500 cursor-not-allowed"
+            )
+          ]}
+        >
+          <%= cond do %>
+            <% @loading -> %>
+              "Starting..."
+            <% @stream_status.input_streaming_status != :live -> %>
+              ⚡ Waiting for Input...
+            <% !@stream_status.can_start_streaming -> %>
+              🚫 Configure Platforms
+            <% true -> %>
+              🚀 GO LIVE
+          <% end %>
+        </button>
+      <% end %>
+    </div>
+    """
+  end
+
+  @doc """
+  RTMP connection details with copy functionality.
+  """
+  attr :rtmp_url, :string, required: true
+  attr :stream_key, :string, required: true
+  attr :show_stream_key, :boolean, required: true
+
+  def rtmp_connection_details(assigns) do
+    ~H"""
+    <div class="mb-4">
+      <.copy_field label="RTMP URL" value={@rtmp_url} />
+      <.copy_field
+        label="Stream Key"
+        value={@stream_key}
+        hidden={!@show_stream_key}
+        toggle_event="toggle_stream_key_visibility"
+      />
+    </div>
+    """
+  end
+
+  @doc """
+  Copyable field with optional visibility toggle.
+  """
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :hidden, :boolean, default: false
+  attr :toggle_event, :string, default: nil
+
+  def copy_field(assigns) do
+    display_value =
+      if assigns.hidden,
+        do: String.duplicate("•", String.length(assigns.value)),
+        else: assigns.value
+
+    assigns = assign(assigns, :display_value, display_value)
+
+    ~H"""
+    <div class="mb-3 relative">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{@label}</label>
+      <div class="relative">
+        <div
+          class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm font-mono cursor-pointer hover:bg-gray-100 select-none transition-colors"
+          onclick={"navigator.clipboard.writeText('#{@value}'); this.classList.add('bg-green-100'); this.classList.add('border-green-300'); const popup = this.#{if @toggle_event, do: "parentElement.", else: ""}nextElementSibling; popup.classList.remove('opacity-0'); popup.classList.add('opacity-100'); setTimeout(() => { this.classList.remove('bg-green-100'); this.classList.remove('border-green-300'); popup.classList.remove('opacity-100'); popup.classList.add('opacity-0'); }, 1500);"}
+          title="Click to copy"
+        >
+          {@display_value}
+        </div>
+        <%= if @toggle_event do %>
+          <button
+            type="button"
+            phx-click={@toggle_event}
+            class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+            title={
+              if @hidden,
+                do: "Show #{String.downcase(@label)}",
+                else: "Hide #{String.downcase(@label)}"
+            }
+          >
+            <.visibility_toggle_icon hidden={@hidden} />
+          </button>
+        <% end %>
+      </div>
+      <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity duration-300 pointer-events-none z-10">
+        {String.capitalize(@label)} copied!
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Visibility toggle icon (eye/eye-slash).
+  """
+  attr :hidden, :boolean, required: true
+
+  def visibility_toggle_icon(assigns) do
+    if assigns.hidden do
+      ~H"""
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+        />
+      </svg>
+      """
+    else
+      ~H"""
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+        />
+      </svg>
+      """
+    end
+  end
+
+  @doc """
+  Status message for when input stream is not live.
+  """
+  def stream_status_message(assigns) do
+    ~H"""
+    <div class="text-center text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+      📺 Start streaming to your RTMP URL in OBS to enable the GO LIVE button
+    </div>
+    """
+  end
+
+  @doc """
+  Streaming services unavailable placeholder.
+  """
+  def stream_service_unavailable(assigns) do
+    ~H"""
+    <div class="text-center py-8">
+      <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <.icon name="clock" class="w-8 h-8 text-yellow-600" />
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Streaming Services Starting Up</h3>
+      <p class="text-sm text-gray-600 mb-4">
+        We're initializing your streaming infrastructure. This usually takes a few moments.
+      </p>
+      <div class="flex items-center justify-center space-x-2">
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        <span class="text-sm text-blue-600">Setting up CloudflareManager...</span>
+      </div>
+      <p class="text-xs text-gray-500 mt-4">
+        ℹ️ Streaming services start automatically when you're detected as online
+      </p>
+    </div>
+    """
+  end
+
+  @doc """
+  Platform connections section.
+  """
+  attr :platform_connections, :list, required: true
+  attr :current_user, :map, required: true
+
+  def platform_connections_section(assigns) do
+    ~H"""
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Platform Connections</h3>
+      </div>
+      <div class="p-6">
+        <div class="space-y-3">
+          <.platform_connection
+            :for={connection <- @platform_connections}
+            name={connection.name}
+            platform={connection.platform}
+            connected={connection.connected}
+            connect_url={connection.connect_url}
+            color={connection.color}
+            current_user={@current_user}
+            account_data={connection.account_data}
+            show_disconnect={true}
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp stream_status_icon(%{name: "play"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fill-rule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    """
+  end
+
+  defp stream_status_icon(%{name: "globe"} = assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"
+      />
+    </svg>
+    """
+  end
+
+  defp stream_status_icon(assigns) do
+    ~H"""
+    <svg class={@class} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+      />
+    </svg>
+    """
+  end
+
+  defp get_status_card_bg_class("red"), do: "bg-red-100"
+  defp get_status_card_bg_class("blue"), do: "bg-blue-100"
+  defp get_status_card_bg_class("green"), do: "bg-green-100"
+  defp get_status_card_bg_class(_), do: "bg-gray-100"
+
+  defp get_status_card_icon_class("red"), do: "text-red-600"
+  defp get_status_card_icon_class("blue"), do: "text-blue-600"
+  defp get_status_card_icon_class("green"), do: "text-green-600"
+  defp get_status_card_icon_class(_), do: "text-gray-600"
 end
