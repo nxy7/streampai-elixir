@@ -9,6 +9,8 @@ defmodule Streampai.Accounts.UserRoleHelpers do
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserRole
 
+  require Logger
+
   @doc """
   Invites a user to accept a role (step 1 of 2-step process).
 
@@ -16,8 +18,8 @@ defmodule Streampai.Accounts.UserRoleHelpers do
 
       # Invite user to be a moderator
       {:ok, invitation} = invite_role(moderator_user_id, streamer_user_id, :moderator, streamer_user)
-      
-      # Invite user to be a manager  
+
+      # Invite user to be a manager
       {:ok, invitation} = invite_role(manager_user_id, streamer_user_id, :manager, streamer_user)
   """
   def invite_role(user_id, granter_id, role_type, actor) do
@@ -252,11 +254,14 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       {:ok, result} ->
         safe_load_associations([result], preload_associations)
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error("Role query failed: #{inspect(reason)}")
         []
     end
   rescue
-    _exception -> []
+    exception ->
+      Logger.error("Role query failed: #{inspect(exception)}")
+      []
   end
 
   @doc false
@@ -265,17 +270,27 @@ defmodule Streampai.Accounts.UserRoleHelpers do
   defp safe_load_associations(results, associations) when is_list(results) and is_list(associations) do
     Ash.load!(results, associations, authorize?: false)
   rescue
-    _exception -> results
+    exception ->
+      Logger.error("Failed to load associations: #{inspect(exception)}")
+      results
   end
 
   @doc false
   defp safe_permission_check(check_fn) do
     case check_fn.() do
-      {:ok, [_role | _]} -> true
-      {:ok, []} -> false
-      {:error, _reason} -> false
+      {:ok, [_role | _]} ->
+        true
+
+      {:ok, []} ->
+        false
+
+      {:error, reason} ->
+        Logger.error("Permission check failed: #{inspect(reason)}")
+        false
     end
   rescue
-    _exception -> false
+    exception ->
+      Logger.error("Permission check failed: #{inspect(exception)}")
+      false
   end
 end

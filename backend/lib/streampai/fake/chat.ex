@@ -2,8 +2,8 @@ defmodule Streampai.Fake.Chat do
   @moduledoc """
   Utilities for generating fake chat messages for demo and testing purposes.
   """
+  alias Streampai.Fake.Base
   alias StreampaiWeb.Utils.ColorUtils
-  alias StreampaiWeb.Utils.PlatformUtils
 
   @doc """
   Generates a list of initial fake messages.
@@ -18,24 +18,18 @@ defmodule Streampai.Fake.Chat do
   Generates a single fake chat message.
   """
   def generate_message do
-    username = Enum.random(usernames())
-    platform_name = Enum.random([:twitch, :youtube, :facebook, :kick])
-
-    platform = %{
-      name: PlatformUtils.platform_name(platform_name),
-      color: PlatformUtils.platform_color(platform_name),
-      icon: Atom.to_string(platform_name)
-    }
+    username = Base.generate_username()
+    platform = Base.generate_platform()
 
     %{
-      id: System.unique_integer([:positive]),
+      id: Base.generate_id(),
       username: username,
       content: Enum.random(messages()),
       badge: Enum.random(badges()),
       badge_color: Enum.random(badge_colors()),
       username_color: ColorUtils.username_color(username),
       platform: platform,
-      emotes: Enum.take_random(emotes(), Enum.random(0..2)),
+      emotes: Enum.take_random(Base.emotes(), Enum.random(0..2)),
       timestamp: DateTime.utc_now()
     }
   end
@@ -47,9 +41,8 @@ defmodule Streampai.Fake.Chat do
     1..count
     |> Enum.map(fn i ->
       platform = Enum.random([:twitch, :youtube])
-      username = Enum.random(usernames())
+      username = Base.generate_username()
       message = Enum.random(messages())
-      # Random between 1-120 minutes
       minutes_ago = :rand.uniform(120)
 
       %{
@@ -58,12 +51,10 @@ defmodule Streampai.Fake.Chat do
         message: message,
         platform: platform,
         minutes_ago: minutes_ago,
-        # 10% chance of donation
-        is_donation: :rand.uniform(10) == 1,
-        donation_amount: if(:rand.uniform(10) == 1, do: Enum.random([5.00, 10.00, 25.00, 50.00]))
+        is_donation: Base.random_boolean(0.1),
+        donation_amount: if(Base.random_boolean(0.1), do: Base.generate_donation_amount())
       }
     end)
-    # Sort by time, most recent first
     |> Enum.sort_by(& &1.minutes_ago)
   end
 
@@ -84,31 +75,6 @@ defmodule Streampai.Fake.Chat do
   end
 
   # Private data pools
-
-  defp usernames do
-    [
-      "viewer123",
-      "YouTubeFan",
-      "generousviewer",
-      "streamer_fan",
-      "chat_lover",
-      "gamer_pro",
-      "support_user",
-      "new_follower",
-      "long_time_viewer",
-      "donation_helper",
-      "mod_user",
-      "subscriber_vip",
-      "casual_watcher",
-      "emote_spammer",
-      "question_asker",
-      "compliment_giver",
-      "stream_regular",
-      "first_timer",
-      "comeback_viewer",
-      "community_member"
-    ]
-  end
 
   defp messages do
     [
@@ -202,9 +168,5 @@ defmodule Streampai.Fake.Chat do
       # Supporter
       "bg-indigo-500 text-white"
     ]
-  end
-
-  defp emotes do
-    ["😂", "❤️", "🔥", "💯", "👏", "🎉", "😮", "🤩", "💪", "🙌", "👑", "⚡", "🚀", "💎", "🎮"]
   end
 end
