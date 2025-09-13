@@ -135,7 +135,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
           # User still has other sessions, don't schedule cleanup
           {users_acc, timers_acc}
         else
-          IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - no more sessions, scheduling cleanup")
+          # IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - no more sessions, scheduling cleanup")
 
           users_acc = MapSet.delete(users_acc, user_id)
 
