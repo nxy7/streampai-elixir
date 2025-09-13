@@ -58,12 +58,20 @@ defmodule StreampaiWeb.LiveUserAuth do
     case {session["impersonated_user_id"], session["impersonator_user_id"]} do
       {impersonated_id, impersonator_id}
       when not is_nil(impersonated_id) and not is_nil(impersonator_id) ->
-        impersonator_user = load_user_by_id_administrative(impersonator_id)
-        impersonated_user = load_user_by_id(impersonated_id, impersonator_user)
-
-        socket
-        |> assign(:current_user, impersonated_user)
-        |> assign(:impersonator, impersonator_user)
+        with impersonator_user when not is_tuple(impersonator_user) <-
+               load_user_by_id_administrative(impersonator_id),
+             impersonated_user when not is_tuple(impersonated_user) <-
+               load_user_by_id(impersonated_id, impersonator_user) do
+          socket
+          |> assign(:current_user, impersonated_user)
+          |> assign(:impersonator, impersonator_user)
+        else
+          {:error, _reason} ->
+            # Clear invalid impersonation session
+            socket
+            |> assign(:current_user, socket.assigns.current_user)
+            |> assign(:impersonator, nil)
+        end
 
       _ ->
         assign(socket, :impersonator, nil)
@@ -73,12 +81,13 @@ defmodule StreampaiWeb.LiveUserAuth do
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
     import Ash.Query
 
-    {:ok, [user]} =
-      User
-      |> for_read(:get_by_id, %{id: user_id}, actor: actor)
-      |> Ash.read()
-
-    user
+    case User
+         |> for_read(:get_by_id, %{id: user_id}, actor: actor)
+         |> Ash.read() do
+      {:ok, [user]} -> user
+      {:ok, []} -> {:error, :user_not_found}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp load_user_by_id(_, _), do: {:error, :invalid_id}
@@ -88,12 +97,13 @@ defmodule StreampaiWeb.LiveUserAuth do
   defp load_user_by_id_administrative(user_id) when is_binary(user_id) do
     import Ash.Query
 
-    {:ok, [user]} =
-      User
-      |> for_read(:get_by_id, %{id: user_id}, authorize?: false)
-      |> Ash.read()
-
-    user
+    case User
+         |> for_read(:get_by_id, %{id: user_id}, authorize?: false)
+         |> Ash.read() do
+      {:ok, [user]} -> user
+      {:ok, []} -> {:error, :user_not_found}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp load_user_by_id_administrative(_), do: {:error, :invalid_id}
