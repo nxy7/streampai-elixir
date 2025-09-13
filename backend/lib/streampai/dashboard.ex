@@ -156,11 +156,10 @@ defmodule Streampai.Dashboard do
   end
 
   defp get_streaming_accounts(%User{} = user) do
-    query =
-      Ash.Query.for_read(Streampai.Accounts.StreamingAccount, :for_user, %{user_id: user.id}, actor: user)
-
-    {:ok, streaming_accounts} = Ash.read(query)
-    streaming_accounts
+    case Streampai.Accounts.StreamingAccount.for_user(user.id, actor: user) do
+      {:ok, streaming_accounts} -> streaming_accounts
+      {:error, _} -> []
+    end
   end
 
   defp get_connected_platforms(%User{} = user) do

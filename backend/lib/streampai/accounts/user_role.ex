@@ -89,7 +89,6 @@ defmodule Streampai.Accounts.UserRole do
                  role_status == :accepted and
                  is_nil(revoked_at)
              )
-
     end
 
     read :active_roles do

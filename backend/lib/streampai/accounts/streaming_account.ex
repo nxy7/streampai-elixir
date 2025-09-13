@@ -52,7 +52,6 @@ defmodule Streampai.Accounts.StreamingAccount do
       validate present([:access_token])
       validate present([:refresh_token])
       validate present([:access_token_expires_at])
-
     end
 
     read :for_user do
@@ -82,7 +81,6 @@ defmodule Streampai.Accounts.StreamingAccount do
       require_atomic? false
 
       validate present([:access_token])
-
 
       change Streampai.Accounts.StreamingAccount.Changes.UpdateRefreshTimestamp
     end
