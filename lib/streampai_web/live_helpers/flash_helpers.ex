@@ -157,12 +157,17 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
     resource_name = humanize_resource(resource)
 
     case {operation, result_type} do
-      {op, :success} when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
+      {op, :success}
+      when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
         "#{resource_name} #{past_tense(op)} successfully"
+
       {_op, :success} ->
         "Operation completed successfully"
-      {op, :error} when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
+
+      {op, :error}
+      when op in [:create, :update, :delete, :save, :connect, :disconnect, :start, :stop] ->
         "Failed to #{op} #{resource_name}"
+
       {_op, :error} ->
         "Operation failed"
     end

@@ -377,9 +377,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp create_platform_outputs(state, input_id, platform_configs) do
-    outputs = Map.new(platform_configs, fn {platform, config} ->
-      create_single_output(state, input_id, platform, config)
-    end)
+    outputs =
+      Map.new(platform_configs, fn {platform, config} ->
+        create_single_output(state, input_id, platform, config)
+      end)
 
     {:ok, outputs}
   end
@@ -393,16 +394,18 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
     case APIClient.create_live_output(input_id, output_config) do
       {:ok, %{"uid" => output_id}} ->
-        {platform, %{
-          output_id: output_id,
-          platform: platform,
-          stream_key: config.stream_key,
-          rtmp_url: output_config.url,
-          enabled: true
-        }}
+        {platform,
+         %{
+           output_id: output_id,
+           platform: platform,
+           stream_key: config.stream_key,
+           rtmp_url: output_config.url,
+           enabled: true
+         }}
 
       {:error, _error_type, message} ->
         Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+
         {platform, %{enabled: false, error: message}}
     end
   end
@@ -433,6 +436,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         toggle_single_output(state, input_id, output_config.output_id, enabled)
       end
     end)
+
     :ok
   end
 
@@ -445,9 +449,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         Logger.info("[CloudflareManager:#{state.user_id}] #{past_action} output #{output_id}")
 
       {:error, _error_type, message} ->
-        Logger.error(
-          "[CloudflareManager:#{state.user_id}] Failed to #{action} output #{output_id}: #{message}"
-        )
+        Logger.error("[CloudflareManager:#{state.user_id}] Failed to #{action} output #{output_id}: #{message}")
     end
   end
 
