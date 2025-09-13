@@ -6,7 +6,6 @@ defmodule Streampai.ExternalAPITestHelpers do
   """
 
   import ExUnit.Assertions
-  import Streampai.TestHelpers
 
   @doc """
   Standard setup for external API integration tests.
@@ -24,17 +23,17 @@ defmodule Streampai.ExternalAPITestHelpers do
   """
   def setup_external_api_test(opts) do
     env_vars = Keyword.get(opts, :env_vars, [])
-    service = Keyword.get(opts, :service, "External API")
+    _service = Keyword.get(opts, :service, "External API")
     tags = Keyword.get(opts, :tags, [:integration])
 
     missing_vars = Enum.filter(env_vars, &(System.get_env(&1) in [nil, ""]))
 
-    # Configure ExUnit to skip integration tests
     if missing_vars == [] do
       :ok
     else
+      # Return :ok and let individual tests handle skipping
       ExUnit.configure(exclude: tags)
-      {:skip, "#{service} credentials not available: #{Enum.join(missing_vars, ", ")}"}
+      :ok
     end
   end
 
@@ -60,7 +59,7 @@ defmodule Streampai.ExternalAPITestHelpers do
       # Use auto_assert for snapshot-style testing if available
       if function_exported?(ExUnit.Assertions, :auto_assert, 1) do
         # This would work with Mneme
-        assert actual_response = processed_pattern
+        assert ^actual_response = processed_pattern
       else
         # Fallback to manual pattern matching
         validate_response_structure(actual_response, expected_pattern)
@@ -91,7 +90,7 @@ defmodule Streampai.ExternalAPITestHelpers do
     body
   end
 
-  def assert_api_error({:error, {:http_error, status, body}}, expected_status, expected_operation) do
+  def assert_api_error({:error, {:http_error, status, body}}, expected_status, _expected_operation) do
     assert status == expected_status
 
     # Validate error body structure for common API patterns
@@ -248,12 +247,14 @@ defmodule Streampai.ExternalAPITestHelpers do
                "Expected #{key} to be a timestamp, got #{inspect(value)}"
 
       :uuid ->
+        # Accept both full UUIDs and shorter hex identifiers (like Cloudflare IDs)
         assert is_binary(value) and
-                 String.match?(
-                   value,
-                   ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-                 ),
-               "Expected #{key} to be a UUID, got #{inspect(value)}"
+                 (String.match?(
+                    value,
+                    ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+                  ) or
+                    String.match?(value, ~r/^[0-9a-f]{24,}$/)),
+               "Expected #{key} to be a UUID or hex identifier, got #{inspect(value)}"
 
       :secret ->
         assert is_binary(value) and String.length(value) > 10,
