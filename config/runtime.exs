@@ -3,7 +3,7 @@ import Config
 env = config_env()
 
 if env != :prod do
-  env_path = Path.expand("../../.env", __DIR__)
+  env_path = Path.expand("./.env", __DIR__)
 
   if File.exists?(env_path) do
     env_vars = Dotenvy.source!([env_path])

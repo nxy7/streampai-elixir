@@ -7,23 +7,21 @@ init-dev:
 	docker compose up
 
 format:
-	cd backend; mix format;
+	mix format;
 
 test:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
-	cd backend
 	mix test --max-failures 3 --exclude external
 
 start:
-	cd backend; mix start
+	mix start
 	
 si:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
-	cd backend
 	iex -S mix phx.server
 
 # Setup and run in production mode locally (for benchmarking)
@@ -31,7 +29,6 @@ prod:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
-	cd backend
 	export MIX_ENV=prod
 	export SECRET_KEY_BASE=$(mix phx.gen.secret)
 	export TOKEN_SIGNING_SECRET=$(openssl rand -base64 32)
@@ -57,7 +54,7 @@ prod:
 
 # Build production release
 build-prod:
-	cd backend; MIX_ENV=prod mix do deps.get, assets.deploy, compile, phx.digest
+	MIX_ENV=prod mix do deps.get, assets.deploy, compile, phx.digest
 
 tasks:
 	hx ./tasks

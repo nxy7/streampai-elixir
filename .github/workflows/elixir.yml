@@ -59,36 +59,33 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            backend/deps
-            backend/_build
-          key: ${{ runner.os }}-${{ runner.arch }}-mix-${{ hashFiles('backend/mix.lock') }}-${{ hashFiles('backend/lib/**/*.ex') }}-${{ hashFiles('backend/test/**/*.exs') }}
+            deps
+            _build
+          key: ${{ runner.os }}-${{ runner.arch }}-mix-${{ hashFiles('mix.lock') }}-${{ hashFiles('lib/**/*.ex') }}-${{ hashFiles('test/**/*.exs') }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-mix-${{ hashFiles('backend/mix.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-mix-${{ hashFiles('mix.lock') }}-
             ${{ runner.os }}-${{ runner.arch }}-mix-
 
       - name: Cache PLT files
         uses: actions/cache@v4
         with:
           path: |
-            backend/priv/plts
-          key: ${{ runner.os }}-${{ runner.arch }}-plt-${{ hashFiles('backend/mix.lock') }}-27.0-1.18.4
+            priv/plts
+          key: ${{ runner.os }}-${{ runner.arch }}-plt-${{ hashFiles('mix.lock') }}-27.0-1.18.4
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-plt-${{ hashFiles('backend/mix.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-plt-${{ hashFiles('mix.lock') }}-
             ${{ runner.os }}-${{ runner.arch }}-plt-
 
       - name: Install dependencies
         run: |
-          cd backend
           mix deps.get
 
       - name: Check Formatting
         run: |
-          cd backend
           mix format --check-formatted
 
       - name: Compile
         run: |
-          cd backend
           echo "Compile started at: $(date)"
           START_TIME=$(date +%s)
           mix compile
@@ -98,7 +95,6 @@ jobs:
 
       - name: Run tests
         run: |
-          cd backend
           echo "Test started at: $(date)" > test_timing.log
           START_TIME=$(date +%s)
 
@@ -132,8 +128,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest

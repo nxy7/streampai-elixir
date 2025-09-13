@@ -1,5 +1,5 @@
 # CLAUDE.md
-ALWAYS SEE backend/AGENTS.md with USAGE RULES BEFORE IMPLEMENTING ANYTHING.
+ALWAYS SEE AGENTS.md with USAGE RULES BEFORE IMPLEMENTING ANYTHING.
 After implementing changes make sure the app compliles.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -273,4 +273,3 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - memorize "When you're using ash remember to always (unless necessary) to pass correct actor to the action"
 - memorize, for complex logic prefer Module preparations, changes over inline function version
 - memorize "if app PORT is taken, then use another port to launch the app instead of killing currently running app"
-- memorize "elixir app lives in /backend" folder, so before running mix commands make sure you're in "/backend" directory"

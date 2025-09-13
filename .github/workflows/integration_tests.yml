@@ -53,17 +53,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd backend
           mix deps.get
 
       - name: Setup database
         run: |
-          cd backend
           mix ash.setup --quiet
 
       - name: Run integration tests
         run: |
-          cd backend
           mix test --only integration --max-failures 10
 
       - name: Notify on failure

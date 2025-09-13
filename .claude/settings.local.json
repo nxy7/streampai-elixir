@@ -3,7 +3,13 @@
     "allow": [
       "Bash(CI=true mix test test/streampai_web/integration/application_startup_test.exs:\"test application can start with all dependencies\" --max-failures 1)",
       "Bash(CI=true mix test test/streampai_web/integration/application_startup_test.exs:\"test application startup application can start with all dependencies\" --max-failures 1)",
-      "Bash(CI=true mix test test/streampai_web/integration/application_startup_test.exs -k \"application can start\" --max-failures 1)"
+      "Bash(CI=true mix test test/streampai_web/integration/application_startup_test.exs -k \"application can start\" --max-failures 1)",
+      "Bash(git log:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --env-filter '\nif [ \"\"$GIT_COMMITTER_NAME\"\" = \"\"Claude\"\" ]; then\n    export GIT_COMMITTER_NAME=\"\"Dawid Danieluk\"\"\n    export GIT_COMMITTER_EMAIL=\"\"danielukd@gmail.com\"\"\nfi\nif [ \"\"$GIT_AUTHOR_NAME\"\" = \"\"Claude\"\" ]; then\n    export GIT_AUTHOR_NAME=\"\"Dawid Danieluk\"\"\n    export GIT_AUTHOR_EMAIL=\"\"danielukd@gmail.com\"\"\nfi\n' --tag-name-filter cat -- --branches --tags)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git shortlog:*)"
     ],
     "deny": [],
     "ask": []
