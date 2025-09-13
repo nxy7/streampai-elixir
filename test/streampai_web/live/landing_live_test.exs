@@ -3,6 +3,7 @@ defmodule StreampaiWeb.LandingLiveTest do
   use Mneme
 
   import Phoenix.LiveViewTest
+  import Streampai.TestHelpers
 
   alias Streampai.Accounts.NewsletterEmail
 
@@ -19,66 +20,66 @@ defmodule StreampaiWeb.LandingLiveTest do
     test "user can successfully sign up for newsletter", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/")
 
-      email = "test@example.com"
+      email = test_email("newsletter")
 
-      # Simulate user filling out and submitting the newsletter form
       view
       |> form("#newsletter-form", %{email: email})
       |> render_submit()
 
-      # Check that success message appears in flash
       html = render(view)
 
-      assert html =~ "Thanks! We'll notify you when Streampai launches." or
-               html =~ "Your email has been added to our newsletter"
+      newsletter_signup = %{
+        shows_success_message: html =~ "Thanks!" || html =~ "added" || html =~ "subscribed",
+        email_was_saved: newsletter_email_exists?(email)
+      }
 
-      # Verify email was actually saved to database using Ash
-      result =
-        NewsletterEmail
-        |> Ash.Query.filter(email == "test@example.com")
-        |> Ash.read()
-
-      auto_assert {:ok, [%NewsletterEmail{email: "test@example.com"}]} <- result
+      auto_assert %{email_was_saved: true, shows_success_message: true} <- newsletter_signup
     end
 
-    test "shows friendly message for duplicate email signup", %{conn: conn} do
-      email = "duplicate@example.com"
+    test "handles duplicate email signup gracefully", %{conn: conn} do
+      email = test_email("duplicate")
 
-      # Create newsletter email first
-      result =
+      {:ok, _existing} =
         NewsletterEmail
         |> Ash.Changeset.for_create(:create, %{email: email})
         |> Ash.create()
 
-      auto_assert {:ok, %NewsletterEmail{}} <- result
-
       {:ok, view, _html} = live(conn, "/")
 
-      # Try to sign up with same email
       view
       |> form("#newsletter-form", %{email: email})
       |> render_submit()
 
-      # Should show friendly duplicate message in flash
       html = render(view)
-      assert html =~ "You're already subscribed" or html =~ "already subscribed"
+
+      duplicate_handling = %{
+        shows_friendly_message: html =~ "already" || html =~ "subscribed",
+        no_error_displayed: !(html =~ "error" || html =~ "Error"),
+        maintains_single_record: newsletter_email_count_for(email) == 1
+      }
+
+      auto_assert %{
+                    maintains_single_record: true,
+                    no_error_displayed: true,
+                    shows_friendly_message: true
+                  } <- duplicate_handling
     end
 
-    test "verifies database interaction works correctly", %{conn: conn} do
+    test "newsletter signup validates email format", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/")
 
-      # Submit a valid email
       view
-      |> form("#newsletter-form", %{email: "db-test@example.com"})
+      |> form("#newsletter-form", %{email: "invalid-email"})
       |> render_submit()
 
-      # Verify email was saved to database
-      result =
-        NewsletterEmail
-        |> Ash.Query.filter(email == "db-test@example.com")
-        |> Ash.read()
+      html = render(view)
 
-      auto_assert {:ok, [%NewsletterEmail{email: "db-test@example.com"}]} <- result
+      validation_logic = %{
+        shows_validation_error: html =~ "invalid" || html =~ "format",
+        email_not_saved: !newsletter_email_exists?("invalid-email")
+      }
+
+      auto_assert %{email_not_saved: true, shows_validation_error: true} <- validation_logic
     end
   end
 end

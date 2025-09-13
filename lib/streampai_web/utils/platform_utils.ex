@@ -46,6 +46,6 @@ defmodule StreampaiWeb.Utils.PlatformUtils do
   Formats time ago for display in a human-readable format.
   """
   def format_time_ago(minutes) when minutes < 1, do: "just now"
-  def format_time_ago(minutes) when minutes < 60, do: "#{minutes} minutes ago"
-  def format_time_ago(minutes), do: "#{div(minutes, 60)} hours ago"
+  def format_time_ago(minutes) when minutes < 60, do: "#{trunc(minutes)} minutes ago"
+  def format_time_ago(minutes), do: "#{trunc(minutes / 60)} hours ago"
 end
