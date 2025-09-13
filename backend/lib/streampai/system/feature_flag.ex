@@ -39,6 +39,7 @@ defmodule Streampai.System.FeatureFlag do
         case Ash.Changeset.get_attribute(changeset, :id) do
           id when is_atom(id) ->
             Ash.Changeset.force_change_attribute(changeset, :id, to_string(id))
+
           _ ->
             changeset
         end
@@ -59,7 +60,9 @@ defmodule Streampai.System.FeatureFlag do
         name = Ash.Changeset.get_argument(changeset, :name)
 
         case __MODULE__.create(%{id: name, enabled: true}) do
-          {:ok, record} -> {:ok, record}
+          {:ok, record} ->
+            {:ok, record}
+
           {:error, _} ->
             case Ash.get(__MODULE__, name) do
               {:ok, existing} -> Ash.update(existing, %{enabled: true})
