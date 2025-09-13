@@ -100,15 +100,12 @@ defmodule Streampai.Accounts.UserRoleHelpers do
   """
   def has_permission?(user_id, granter_id, role_type)
       when is_binary(user_id) and is_binary(granter_id) and role_type in [:moderator, :manager] do
-    %{user_id: user_id, granter_id: granter_id, role_type: role_type}
-    |> UserRole.check_permission(actor: %{id: granter_id})
-    |> case do
-      {:ok, [_role | _]} -> true
-      {:ok, []} -> false
-      {:error, _} -> false
-    end
-  rescue
-    _ -> false
+    safe_permission_check(fn ->
+      UserRole.check_permission(
+        %{user_id: user_id, granter_id: granter_id, role_type: role_type},
+        actor: %{id: granter_id}
+      )
+    end)
   end
 
   def has_permission?(_, _, _), do: false
@@ -122,14 +119,10 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       # Returns list of UserRole structs where this user has been granted permissions
   """
   def get_user_roles(user_id) do
-    %{user_id: user_id}
-    |> UserRole.get_user_roles_for_user(actor: %{id: user_id})
-    |> case do
-      {:ok, roles} -> Ash.load!(roles, [:granter], authorize?: false)
-      {:error, _} -> []
-    end
-  rescue
-    _ -> []
+    safe_role_query(
+      fn -> UserRole.get_user_roles_for_user(%{user_id: user_id}, actor: %{id: user_id}) end,
+      [:granter]
+    )
   end
 
   @doc """
@@ -141,19 +134,10 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       # Returns list of UserRole structs with role_status == :pending
   """
   def get_pending_invitations(user_id) do
-    case UserRole.get_pending_invitations(%{user_id: user_id}, actor: %{id: user_id}) do
-      {:ok, invitations} ->
-        try do
-          Ash.load!(invitations, [:granter], authorize?: false)
-        rescue
-          _ -> invitations
-        end
-
-      {:error, _} ->
-        []
-    end
-  rescue
-    _ -> []
+    safe_role_query(
+      fn -> UserRole.get_pending_invitations(%{user_id: user_id}, actor: %{id: user_id}) end,
+      [:granter]
+    )
   end
 
   @doc """
@@ -165,14 +149,12 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       # Returns list of UserRole structs where this user granted permissions to others
   """
   def get_granted_roles(granter_id) do
-    %{granter_id: granter_id}
-    |> UserRole.get_user_roles_for_granter(actor: %{id: granter_id})
-    |> case do
-      {:ok, roles} -> Ash.load!(roles, [:user], authorize?: false)
-      {:error, _} -> []
-    end
-  rescue
-    _ -> []
+    safe_role_query(
+      fn ->
+        UserRole.get_user_roles_for_granter(%{granter_id: granter_id}, actor: %{id: granter_id})
+      end,
+      [:user]
+    )
   end
 
   @doc """
@@ -184,20 +166,19 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       # Returns list of all UserRole invitations sent by this user
   """
   def get_sent_invitations(granter_id) do
-    # Use basic filtering approach that's known to work in this codebase
-    case Ash.read(UserRole, authorize?: false) do
-      {:ok, roles} ->
-        roles
-        |> Enum.filter(fn role ->
-          role.granter_id == granter_id and is_nil(role.revoked_at)
-        end)
-        |> Ash.load!([:user], authorize?: false)
+    safe_role_query(
+      fn ->
+        with {:ok, roles} <- Ash.read(UserRole, authorize?: false) do
+          filtered_roles =
+            Enum.filter(roles, fn role ->
+              role.granter_id == granter_id and is_nil(role.revoked_at)
+            end)
 
-      {:error, _} ->
-        []
-    end
-  rescue
-    _ -> []
+          {:ok, filtered_roles}
+        end
+      end,
+      [:user]
+    )
   end
 
   @doc """
@@ -259,4 +240,37 @@ defmodule Streampai.Accounts.UserRoleHelpers do
   end
 
   def get_management_channels(_), do: []
+
+  # Private helper functions
+
+  @doc false
+  defp safe_role_query(query_fn, preload_associations) when is_list(preload_associations) do
+    case query_fn.() do
+      {:ok, results} when is_list(results) -> safe_load_associations(results, preload_associations)
+      {:ok, result} -> safe_load_associations([result], preload_associations)
+      {:error, _reason} -> []
+    end
+  rescue
+    _exception -> []
+  end
+
+  @doc false
+  defp safe_load_associations(results, []) when is_list(results), do: results
+
+  defp safe_load_associations(results, associations) when is_list(results) and is_list(associations) do
+    Ash.load!(results, associations, authorize?: false)
+  rescue
+    _exception -> results
+  end
+
+  @doc false
+  defp safe_permission_check(check_fn) do
+    case check_fn.() do
+      {:ok, [_role | _]} -> true
+      {:ok, []} -> false
+      {:error, _reason} -> false
+    end
+  rescue
+    _exception -> false
+  end
 end
