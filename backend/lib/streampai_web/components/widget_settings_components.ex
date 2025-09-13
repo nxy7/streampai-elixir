@@ -72,7 +72,7 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
   end
 
   attr :title, :string, required: true
-  attr :children, :list, default: []
+  slot :inner_block, required: true
 
   def settings_section(assigns) do
     ~H"""
@@ -176,6 +176,7 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
   end
 
   attr :widget_config, :map, required: true
+  slot :inner_block, required: true
 
   def settings_container(assigns) do
     ~H"""

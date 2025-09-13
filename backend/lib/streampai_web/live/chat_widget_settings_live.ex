@@ -84,23 +84,15 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Live Chat Widget Preview</h3>
-            <div class="flex items-center space-x-2">
-              <button
-                id="copy-url-button"
-                class="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                phx-hook="CopyToClipboard"
-                data-clipboard-text={url(~p"/widgets/chat/display?user_id=#{@current_user.id}")}
-                data-clipboard-message="Browser source URL copied!"
-              >
-                Copy Browser Source URL
-              </button>
-              <button class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors">
-                Configure
-              </button>
-            </div>
-          </div>
+          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
+            title="Live Chat Widget"
+            current_user={@current_user}
+            socket={@socket}
+            widget_type={:chat_widget}
+            url_path={~p"/widgets/chat/display"}
+            dimensions="400x600"
+            copy_button_id="copy-url-button"
+          />
           
     <!-- Chat Widget Display -->
           <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden">
@@ -117,146 +109,80 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
         </div>
         
     <!-- Configuration Options -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Widget Settings</h3>
-
-          <form phx-change="update_settings">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Display Options -->
-              <div class="space-y-4">
-                <h4 class="font-medium text-gray-700">Display Options</h4>
-
-                <div class="space-y-3">
-                  <label class="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="show_badges"
-                      class="rounded border-gray-300 text-purple-600"
-                      checked={@widget_config.show_badges}
-                    />
-                    <span class="ml-2 text-sm text-gray-700">Show user badges</span>
-                  </label>
-
-                  <label class="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="show_emotes"
-                      class="rounded border-gray-300 text-purple-600"
-                      checked={@widget_config.show_emotes}
-                    />
-                    <span class="ml-2 text-sm text-gray-700">Show emotes</span>
-                  </label>
-
-                  <label class="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="hide_bots"
-                      class="rounded border-gray-300 text-purple-600"
-                      checked={@widget_config.hide_bots}
-                    />
-                    <span class="ml-2 text-sm text-gray-700">Hide bot messages</span>
-                  </label>
-
-                  <label class="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="show_timestamps"
-                      class="rounded border-gray-300 text-purple-600"
-                      checked={@widget_config.show_timestamps}
-                    />
-                    <span class="ml-2 text-sm text-gray-700">Show timestamps</span>
-                  </label>
-
-                  <label class="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="show_platform"
-                      class="rounded border-gray-300 text-purple-600"
-                      checked={@widget_config.show_platform}
-                    />
-                    <span class="ml-2 text-sm text-gray-700">Show platform badges</span>
-                  </label>
-                </div>
-              </div>
-              
+        <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>
+          <!-- Display Options -->
+          <StreampaiWeb.WidgetSettingsComponents.settings_section title="Display Options">
+            <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
+              name="show_badges"
+              label="Show user badges"
+              checked={@widget_config.show_badges}
+            />
+            <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
+              name="show_emotes"
+              label="Show emotes"
+              checked={@widget_config.show_emotes}
+            />
+            <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
+              name="hide_bots"
+              label="Hide bot messages"
+              checked={@widget_config.hide_bots}
+            />
+            <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
+              name="show_timestamps"
+              label="Show timestamps"
+              checked={@widget_config.show_timestamps}
+            />
+            <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
+              name="show_platform"
+              label="Show platform badges"
+              checked={@widget_config.show_platform}
+            />
+          </StreampaiWeb.WidgetSettingsComponents.settings_section>
+          
     <!-- Message Settings -->
-              <div class="space-y-4">
-                <h4 class="font-medium text-gray-700">Message Settings</h4>
+          <StreampaiWeb.WidgetSettingsComponents.settings_section title="Message Settings">
+            <StreampaiWeb.WidgetSettingsComponents.number_input_setting
+              name="max_messages"
+              label="Max messages displayed"
+              value={@widget_config.max_messages}
+              min={1}
+              max={100}
+              help_text="Between 1 and 100 messages"
+            />
 
-                <div class="space-y-3">
-                  <div>
-                    <label class="block text-sm text-gray-700 mb-1">Max messages displayed</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      name="max_messages"
-                      value={@widget_config.max_messages}
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    />
-                    <p class="text-xs text-gray-500 mt-1">Between 1 and 100 messages</p>
-                  </div>
+            <StreampaiWeb.WidgetSettingsComponents.select_setting
+              name="message_fade_time"
+              label="Message fade time"
+              value={@widget_config.message_fade_time}
+              options={[
+                {0, "Never"},
+                {30, "30 seconds"},
+                {60, "60 seconds"},
+                {120, "2 minutes"}
+              ]}
+            />
 
-                  <div>
-                    <label class="block text-sm text-gray-700 mb-1">Message fade time</label>
-                    <select
-                      name="message_fade_time"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    >
-                      <option value="0" selected={@widget_config.message_fade_time == 0}>
-                        Never
-                      </option>
-                      <option value="30" selected={@widget_config.message_fade_time == 30}>
-                        30 seconds
-                      </option>
-                      <option value="60" selected={@widget_config.message_fade_time == 60}>
-                        60 seconds
-                      </option>
-                      <option value="120" selected={@widget_config.message_fade_time == 120}>
-                        2 minutes
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm text-gray-700 mb-1">Font size</label>
-                    <select
-                      name="font_size"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    >
-                      <option value="small" selected={@widget_config.font_size == "small"}>
-                        Small
-                      </option>
-                      <option value="medium" selected={@widget_config.font_size == "medium"}>
-                        Medium
-                      </option>
-                      <option value="large" selected={@widget_config.font_size == "large"}>
-                        Large
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
+            <StreampaiWeb.WidgetSettingsComponents.select_setting
+              name="font_size"
+              label="Font size"
+              value={@widget_config.font_size}
+              options={[
+                {"small", "Small"},
+                {"medium", "Medium"},
+                {"large", "Large"}
+              ]}
+            />
+          </StreampaiWeb.WidgetSettingsComponents.settings_section>
+        </StreampaiWeb.WidgetSettingsComponents.settings_container>
         
     <!-- Usage Instructions -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 class="text-lg font-medium text-blue-900 mb-4">How to use in OBS</h3>
-          <div class="space-y-2 text-sm text-blue-800">
-            <p><strong>1.</strong> Copy the browser source URL above</p>
-            <p><strong>2.</strong> In OBS, add a "Browser Source"</p>
-            <p><strong>3.</strong> Paste the URL and set dimensions to 400x600</p>
-            <p><strong>4.</strong> Position the widget on your stream layout</p>
-          </div>
-
-          <div class="mt-4 p-3 bg-white border border-blue-200 rounded">
-            <p class="text-xs text-gray-600 font-mono break-all">
-              {url(~p"/widgets/chat/display?user_id=#{@current_user.id}")}
-            </p>
-          </div>
-        </div>
+        <StreampaiWeb.WidgetSettingsComponents.obs_usage_instructions
+          title="Live Chat Widget"
+          socket={@socket}
+          url_path={~p"/widgets/chat/display"}
+          current_user={@current_user}
+          dimensions="400x600"
+        />
       </div>
     </.dashboard_layout>
     """
