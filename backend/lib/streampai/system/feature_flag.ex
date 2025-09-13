@@ -3,26 +3,24 @@ defmodule Streampai.System.FeatureFlag do
   Feature flag resource for controlling system-wide features.
 
   Feature flags allow enabling or disabling features without code deployment.
-  Flags are identified by string IDs and have a boolean enabled status.
+  Flags are identified by atom IDs and have a boolean enabled status.
 
   ## Usage Examples
 
       # Check if a feature is enabled
-      case FeatureFlag.enabled?("donation_module") do
+      case FeatureFlag.enabled?(:donation_module) do
         {:ok, _record} -> # feature is enabled
         {:error, _} -> # feature is disabled or doesn't exist
       end
 
       # Enable a feature
-      FeatureFlag.enable("new_feature")
+      FeatureFlag.enable(:new_feature)
 
       # Disable a feature
-      FeatureFlag.disable("old_feature")
+      FeatureFlag.disable(:old_feature)
 
       # Toggle a feature
-      FeatureFlag.toggle("beta_feature")
-
-  For atoms, convert to string: `to_string(:donation_module)`
+      FeatureFlag.toggle(:beta_feature)
   """
   use Ash.Resource,
     otp_app: :streampai,
@@ -52,27 +50,16 @@ defmodule Streampai.System.FeatureFlag do
       accept [:id, :enabled]
       upsert? true
       upsert_identity :unique_id
-
-      change fn changeset, _context ->
-        # Normalize atom to string if needed
-        case Ash.Changeset.get_attribute(changeset, :id) do
-          id when is_atom(id) ->
-            Ash.Changeset.force_change_attribute(changeset, :id, to_string(id))
-
-          _ ->
-            changeset
-        end
-      end
     end
 
     read :enabled? do
-      argument :name, :string, allow_nil?: false
+      argument :name, :atom, allow_nil?: false
       get? true
       filter expr(id == ^arg(:name) and enabled == true)
     end
 
     update :enable do
-      argument :name, :string, allow_nil?: false
+      argument :name, :atom, allow_nil?: false
       require_atomic? false
 
       manual fn changeset, _context ->
@@ -92,7 +79,7 @@ defmodule Streampai.System.FeatureFlag do
     end
 
     update :disable do
-      argument :name, :string, allow_nil?: false
+      argument :name, :atom, allow_nil?: false
       require_atomic? false
 
       manual fn changeset, _context ->
@@ -106,7 +93,7 @@ defmodule Streampai.System.FeatureFlag do
     end
 
     update :toggle do
-      argument :name, :string, allow_nil?: false
+      argument :name, :atom, allow_nil?: false
       require_atomic? false
 
       manual fn changeset, _context ->
@@ -121,11 +108,9 @@ defmodule Streampai.System.FeatureFlag do
   end
 
   attributes do
-    attribute :id, :string do
+    attribute :id, :atom do
       allow_nil? false
       primary_key? true
-
-      constraints max_length: 100
     end
 
     attribute :enabled, :boolean do
