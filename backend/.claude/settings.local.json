@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/home/nxyt/streampai-elixir/**)",
+      "mcp__tidewave__get_docs",
+      "mcp__tidewave__search_package_docs",
+      "mcp__tidewave__get_source_location"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

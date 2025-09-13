@@ -75,7 +75,7 @@ defmodule StreampaiWeb.MonitoringController do
     memory = :erlang.memory()
     {wall_clock_time, _} = :erlang.statistics(:wall_clock)
     {reductions, _} = :erlang.statistics(:reductions)
-    {run_queue, _} = :erlang.statistics(:run_queue)
+    run_queue = :erlang.statistics(:run_queue)
 
     %{
       timestamp: DateTime.utc_now(),

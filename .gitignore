@@ -6,4 +6,7 @@ glossary
 .lexical
 .elixir_ls
 
+# Include .claude directory in version control
+!.claude/
+
 tasks
