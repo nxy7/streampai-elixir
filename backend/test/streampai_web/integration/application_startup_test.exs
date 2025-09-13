@@ -37,20 +37,29 @@ defmodule StreampaiWeb.Integration.ApplicationStartupTest do
       end
       """
 
-      task = Task.async(fn ->
-        System.cmd("elixir", [
-          "--no-halt",
-          "-S", "mix", "run",
-          "-e", script
-        ], stderr_to_stdout: true, cd: File.cwd!(), env: [{"PORT", "4005"}])
-      end)
+      task =
+        Task.async(fn ->
+          System.cmd(
+            "elixir",
+            [
+              "--no-halt",
+              "-S",
+              "mix",
+              "run",
+              "-e",
+              script
+            ],
+            stderr_to_stdout: true,
+            cd: File.cwd!(),
+            env: [{"PORT", "4005"}]
+          )
+        end)
 
       {output, exit_code} = Task.await(task, 20_000)
 
       case {exit_code, String.contains?(output, "STARTUP_SUCCESS")} do
         {0, true} ->
           nil
-
 
         {_, _} ->
           IO.puts("Application startup output:")
@@ -72,5 +81,4 @@ defmodule StreampaiWeb.Integration.ApplicationStartupTest do
       assert is_integer(body["uptime"])
     end
   end
-
 end
