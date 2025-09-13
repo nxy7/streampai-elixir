@@ -2,58 +2,66 @@ defmodule Streampai.Cloudflare.APIClientTest do
   use ExUnit.Case, async: true
   use Mneme
 
+  import Streampai.ExternalAPITestHelpers
+
   alias Streampai.Cloudflare.APIClient
 
-  @moduletag :external
+  @moduletag :integration
   @moduletag :cloudflare
+
+  setup do
+    setup_external_api_test(
+      env_vars: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
+      service: "Cloudflare API",
+      tags: [:integration, :cloudflare]
+    )
+  end
 
   describe "live input operations" do
     test "create live input" do
       user_id = Ash.UUID.generate()
-
-      {:ok, response} =
-        APIClient.create_live_input(user_id, %{
-          recording: %{mode: "off"}
-        })
-
-      # Snapshot the response structure
-
       expected_name = APIClient.create_live_input_name(user_id)
 
-      auto_assert %{
-                    "created" => _,
-                    "deleteRecordingAfterDays" => nil,
-                    "meta" => %{"user_id" => ^user_id, "name" => ^expected_name, "env" => "test"},
-                    "modified" => _,
-                    "recording" => %{
-                      "allowedOrigins" => nil,
-                      "hideLiveViewerCount" => false,
-                      "mode" => "off",
-                      "requireSignedURLs" => false
-                    },
-                    "rtmps" => %{
-                      "streamKey" => _,
-                      "url" => "rtmps://live.cloudflare.com:443/live/"
-                    },
-                    "rtmpsPlayback" => %{
-                      "streamKey" => _,
-                      "url" => "rtmps://live.cloudflare.com:443/live/"
-                    },
-                    "srt" => %{
-                      "passphrase" => _,
-                      "streamId" => _,
-                      "url" => "srt://live.cloudflare.com:778"
-                    },
-                    "srtPlayback" => %{
-                      "passphrase" => _,
-                      "streamId" => _,
-                      "url" => "srt://live.cloudflare.com:778"
-                    },
-                    "status" => nil,
-                    "uid" => _,
-                    "webRTC" => %{"url" => _},
-                    "webRTCPlayback" => %{"url" => _}
-                  } <- response
+      result = APIClient.create_live_input(user_id, %{recording: %{mode: "off"}})
+
+      assert_external_api_response(result, %{
+        "created" => wildcard(:timestamp),
+        "deleteRecordingAfterDays" => nil,
+        "meta" => %{
+          "user_id" => pin_known_value(user_id),
+          "name" => pin_known_value(expected_name),
+          "env" => "test"
+        },
+        "modified" => wildcard(:timestamp),
+        "recording" => %{
+          "allowedOrigins" => nil,
+          "hideLiveViewerCount" => false,
+          "mode" => "off",
+          "requireSignedURLs" => false
+        },
+        "rtmps" => %{
+          "streamKey" => wildcard(:secret),
+          "url" => "rtmps://live.cloudflare.com:443/live/"
+        },
+        "rtmpsPlayback" => %{
+          "streamKey" => wildcard(:secret),
+          "url" => "rtmps://live.cloudflare.com:443/live/"
+        },
+        "srt" => %{
+          "passphrase" => wildcard(:secret),
+          "streamId" => wildcard(:secret),
+          "url" => "srt://live.cloudflare.com:778"
+        },
+        "srtPlayback" => %{
+          "passphrase" => wildcard(:secret),
+          "streamId" => wildcard(:secret),
+          "url" => "srt://live.cloudflare.com:778"
+        },
+        "status" => nil,
+        "uid" => wildcard(:uuid),
+        "webRTC" => %{"url" => wildcard(:url)},
+        "webRTCPlayback" => %{"url" => wildcard(:url)}
+      })
     end
 
     test "get live input" do
