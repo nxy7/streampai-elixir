@@ -101,6 +101,7 @@ defmodule Streampai.System.FeatureFlag do
   """
   def check_enabled?(input, context) do
     require Ash.Query
+
     name = input.arguments.name
 
     __MODULE__
