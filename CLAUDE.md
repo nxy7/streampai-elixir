@@ -108,6 +108,7 @@ When running multiple Claude Code instances or development servers simultaneousl
 - Uses environment-based configuration (`config/dev.exs`, `config/prod.exs`)
 - Secrets managed via `Streampai.Secrets` module
 - Background job processing ready (button server example)
+- **SQL Debugging**: Set `DEBUG_SQL=true` to enable SQL query logging in any environment
 
 ### Testing Strategy
 - Test support files in `test/support/`

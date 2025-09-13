@@ -27,6 +27,15 @@ database_url =
   System.get_env("DATABASE_URL") ||
     raise "DATABASE_URL environment variable is missing"
 
+# Configure SQL logging based on DEBUG_SQL environment variable
+if System.get_env("DEBUG_SQL") == "true" do
+  config :logger, level: :info
+
+  config :streampai, Streampai.Repo,
+    log: :info,
+    stacktrace: true
+end
+
 config :streampai, :strategies,
   google: [
     client_id: System.get_env("GOOGLE_CLIENT_ID"),
