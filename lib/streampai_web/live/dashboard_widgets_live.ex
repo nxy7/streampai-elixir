@@ -76,10 +76,13 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
                 <h4 class="font-medium text-sm">Alertbox Widget</h4>
                 <p class="text-xs text-gray-500">Show donation, follow & subscription alerts</p>
               </.link>
-              <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <.link
+                navigate={~p"/widgets/donation-goal"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
                 <h4 class="font-medium text-sm">Donation Goal</h4>
                 <p class="text-xs text-gray-500">Track donation progress</p>
-              </div>
+              </.link>
               <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Top Donators</h4>
                 <p class="text-xs text-gray-500">Display biggest supporters</p>

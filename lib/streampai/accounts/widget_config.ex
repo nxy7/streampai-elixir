@@ -82,6 +82,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :chat_widget,
                :alertbox_widget,
                :donation_widget,
+               :donation_goal_widget,
                :follow_widget,
                :subscriber_widget,
                :overlay_widget,
@@ -89,7 +90,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget
              ]) do
-      message "Type must be one of: chat_widget, alertbox_widget, donation_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, donation_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
     end
 
     validate present([:user_id])
@@ -174,6 +175,9 @@ defmodule Streampai.Accounts.WidgetConfig do
           animation_type: "bounce",
           display_duration: 4
         }
+
+      :donation_goal_widget ->
+        Streampai.Fake.DonationGoal.default_config()
 
       _ ->
         %{}
