@@ -4,6 +4,25 @@ defmodule Streampai.System.FeatureFlag do
 
   Feature flags allow enabling or disabling features without code deployment.
   Flags are identified by string IDs and have a boolean enabled status.
+
+  ## Usage Examples
+
+      # Check if a feature is enabled
+      case FeatureFlag.enabled?("donation_module") do
+        {:ok, _record} -> # feature is enabled
+        {:error, _} -> # feature is disabled or doesn't exist
+      end
+
+      # Enable a feature
+      FeatureFlag.enable("new_feature")
+
+      # Disable a feature
+      FeatureFlag.disable("old_feature")
+
+      # Toggle a feature
+      FeatureFlag.toggle("beta_feature")
+
+  For atoms, convert to string: `to_string(:donation_module)`
   """
   use Ash.Resource,
     otp_app: :streampai,
