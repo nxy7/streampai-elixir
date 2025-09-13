@@ -13,7 +13,6 @@ defmodule Streampai.Application do
 
     if System.get_env("PHX_SERVER") do
       run_migrations()
-      run_seeds()
     end
 
     children = [
@@ -52,21 +51,6 @@ defmodule Streampai.Application do
       error ->
         Logger.error("Migration failed: #{inspect(error)}")
         :ok
-    end
-  end
-
-  defp run_seeds do
-    if Mix.env() == :dev do
-      Logger.info("Running development seeds...")
-
-      try do
-        Code.eval_file("priv/repo/seeds.exs")
-        Logger.info("Seeds completed successfully")
-      rescue
-        error ->
-          Logger.warning("Seeds failed: #{inspect(error)}")
-          :ok
-      end
     end
   end
 end
