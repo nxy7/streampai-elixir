@@ -59,41 +59,37 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
   end
 
   defp create_from_api(user_id) do
-    case APIClient.create_live_input(user_id) do
-      {:ok, cloudflare_data} ->
-        # Try to create new record, but if it already exists, update it instead
-        case LiveInput
-             |> Ash.Changeset.for_create(:create, %{
-               user_id: user_id,
-               data: cloudflare_data
-             })
-             |> Ash.create(actor: %{id: user_id}) do
-          {:ok, live_input} ->
-            {:ok, live_input}
-
-          {:error,
-           %Ash.Error.Invalid{
-             errors: [%Ash.Error.Changes.InvalidAttribute{message: "has already been taken"}]
-           }} ->
-            # Record already exists, update it with fresh data
-            case LiveInput
-                 |> Ash.Query.filter(user_id == ^user_id)
-                 |> Ash.read_one(actor: %{id: user_id}) do
-              {:ok, existing_record} ->
-                existing_record
-                |> Ash.Changeset.for_update(:update, %{data: cloudflare_data})
-                |> Ash.update(actor: %{id: user_id})
-
-              error ->
-                error
-            end
-
-          error ->
-            error
-        end
-
-      error ->
-        error
+    with {:ok, cloudflare_data} <- APIClient.create_live_input(user_id) do
+      create_or_update_record(user_id, cloudflare_data)
     end
+  end
+
+  defp create_or_update_record(user_id, cloudflare_data) do
+    case create_new_record(user_id, cloudflare_data) do
+      {:ok, live_input} -> {:ok, live_input}
+      {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Changes.InvalidAttribute{message: "has already been taken"}]}} ->
+        update_existing_record(user_id, cloudflare_data)
+      error -> error
+    end
+  end
+
+  defp create_new_record(user_id, cloudflare_data) do
+    LiveInput
+    |> Ash.Changeset.for_create(:create, %{user_id: user_id, data: cloudflare_data})
+    |> Ash.create(actor: %{id: user_id})
+  end
+
+  defp update_existing_record(user_id, cloudflare_data) do
+    with {:ok, existing_record} <- get_existing_record(user_id) do
+      existing_record
+      |> Ash.Changeset.for_update(:update, %{data: cloudflare_data})
+      |> Ash.update(actor: %{id: user_id})
+    end
+  end
+
+  defp get_existing_record(user_id) do
+    LiveInput
+    |> Ash.Query.filter(user_id == ^user_id)
+    |> Ash.read_one(actor: %{id: user_id})
   end
 end

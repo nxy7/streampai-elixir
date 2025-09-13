@@ -370,86 +370,85 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   defp update_live_outputs(state, platform_configs) do
     input_id = get_input_id(state.live_input)
 
-    if input_id do
-      outputs =
-        Map.new(platform_configs, fn {platform, config} ->
-          if config.enabled do
-            output_config = %{
-              url: get_platform_rtmp_url(platform),
-              stream_key: config.stream_key,
-              enabled: true
-            }
-
-            case APIClient.create_live_output(input_id, output_config) do
-              {:ok, %{"uid" => output_id}} ->
-                {platform,
-                 %{
-                   output_id: output_id,
-                   platform: platform,
-                   stream_key: config.stream_key,
-                   rtmp_url: output_config.url,
-                   enabled: true
-                 }}
-
-              {:error, _error_type, message} ->
-                Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
-
-                {platform, %{enabled: false, error: message}}
-            end
-          else
-            {platform, %{enabled: false}}
-          end
-        end)
-
-      {:ok, outputs}
-    else
-      Logger.error("[CloudflareManager:#{state.user_id}] Cannot create live outputs: no input ID")
-      {:error, "No live input available"}
+    case input_id do
+      nil -> {:error, :no_input_id}
+      id -> create_platform_outputs(state, id, platform_configs)
     end
+  end
+
+  defp create_platform_outputs(state, input_id, platform_configs) do
+    outputs = Map.new(platform_configs, fn {platform, config} ->
+      create_single_output(state, input_id, platform, config)
+    end)
+
+    {:ok, outputs}
+  end
+
+  defp create_single_output(state, input_id, platform, %{enabled: true} = config) do
+    output_config = %{
+      url: get_platform_rtmp_url(platform),
+      stream_key: config.stream_key,
+      enabled: true
+    }
+
+    case APIClient.create_live_output(input_id, output_config) do
+      {:ok, %{"uid" => output_id}} ->
+        {platform, %{
+          output_id: output_id,
+          platform: platform,
+          stream_key: config.stream_key,
+          rtmp_url: output_config.url,
+          enabled: true
+        }}
+
+      {:error, _error_type, message} ->
+        Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+        {platform, %{enabled: false, error: message}}
+    end
+  end
+
+  defp create_single_output(_state, _input_id, platform, _config) do
+    {platform, %{enabled: false}}
   end
 
   defp enable_live_outputs(state) do
-    input_id = get_input_id(state.live_input)
-
-    if input_id && state.live_outputs do
-      Enum.each(state.live_outputs, fn {_platform, output_config} ->
-        if output_config[:output_id] do
-          case APIClient.toggle_live_output(input_id, output_config.output_id, true) do
-            {:ok, _} ->
-              Logger.info("[CloudflareManager:#{state.user_id}] Enabled output #{output_config.output_id}")
-
-            {:error, _error_type, message} ->
-              Logger.error(
-                "[CloudflareManager:#{state.user_id}] Failed to enable output #{output_config.output_id}: #{message}"
-              )
-          end
-        end
-      end)
+    case {get_input_id(state.live_input), state.live_outputs} do
+      {nil, _} -> :ok
+      {_, nil} -> :ok
+      {input_id, outputs} -> toggle_all_outputs(state, input_id, outputs, true)
     end
-
-    :ok
   end
 
   defp disable_live_outputs(state) do
-    input_id = get_input_id(state.live_input)
-
-    if input_id && state.live_outputs do
-      Enum.each(state.live_outputs, fn {_platform, output_config} ->
-        if output_config[:output_id] do
-          case APIClient.toggle_live_output(input_id, output_config.output_id, false) do
-            {:ok, _} ->
-              Logger.info("[CloudflareManager:#{state.user_id}] Disabled output #{output_config.output_id}")
-
-            {:error, _error_type, message} ->
-              Logger.error(
-                "[CloudflareManager:#{state.user_id}] Failed to disable output #{output_config.output_id}: #{message}"
-              )
-          end
-        end
-      end)
+    case {get_input_id(state.live_input), state.live_outputs} do
+      {nil, _} -> :ok
+      {_, nil} -> :ok
+      {input_id, outputs} -> toggle_all_outputs(state, input_id, outputs, false)
     end
+  end
 
+  defp toggle_all_outputs(state, input_id, outputs, enabled) do
+    Enum.each(outputs, fn {_platform, output_config} ->
+      if output_config[:output_id] do
+        toggle_single_output(state, input_id, output_config.output_id, enabled)
+      end
+    end)
     :ok
+  end
+
+  defp toggle_single_output(state, input_id, output_id, enabled) do
+    action = if enabled, do: "enable", else: "disable"
+    past_action = if enabled, do: "Enabled", else: "Disabled"
+
+    case APIClient.toggle_live_output(input_id, output_id, enabled) do
+      {:ok, _} ->
+        Logger.info("[CloudflareManager:#{state.user_id}] #{past_action} output #{output_id}")
+
+      {:error, _error_type, message} ->
+        Logger.error(
+          "[CloudflareManager:#{state.user_id}] Failed to #{action} output #{output_id}: #{message}"
+        )
+    end
   end
 
   defp get_rtmp_url(state) do

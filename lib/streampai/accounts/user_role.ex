@@ -122,7 +122,7 @@ defmodule Streampai.Accounts.UserRole do
     end
 
     update :accept do
-      # Can only accept pending invitations  
+      # Can only accept pending invitations
       change set_attribute(:role_status, :accepted)
       change set_attribute(:accepted_at, &DateTime.utc_now/0)
     end

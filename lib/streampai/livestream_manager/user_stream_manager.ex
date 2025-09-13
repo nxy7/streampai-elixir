@@ -199,7 +199,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp stop_platform_streaming(user_id) do
-    # Get all active platforms from PlatformSupervisor  
+    # Get all active platforms from PlatformSupervisor
     active_platforms = get_active_platforms(user_id)
 
     Logger.info("[UserStreamManager:#{user_id}] Stopping streaming on platforms: #{inspect(active_platforms)}")
@@ -274,42 +274,35 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp get_platform_config(user_id, platform) do
-    # First get the user to use as actor
-    case Ash.get(User, user_id, authorize?: false) do
-      {:ok, user} ->
-        # Get user with streaming accounts
-        case Ash.get(User, user_id, actor: user, load: [:streaming_accounts]) do
-          {:ok, user_with_accounts} ->
-            case Enum.find(user_with_accounts.streaming_accounts, &(&1.platform == platform)) do
-              %{
-                access_token: token,
-                refresh_token: refresh,
-                access_token_expires_at: expires,
-                extra_data: extra
-              } ->
-                {:ok,
-                 %{
-                   access_token: token,
-                   refresh_token: refresh,
-                   expires_at: expires,
-                   extra_data: extra
-                 }}
-
-              nil ->
-                {:error, :platform_not_found}
-            end
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
+         {:ok, user_with_accounts} <- Ash.get(User, user_id, actor: user, load: [:streaming_accounts]),
+         %{} = account <- find_platform_account(user_with_accounts.streaming_accounts, platform) do
+      format_platform_config(account)
+    else
+      nil -> {:error, :platform_not_found}
+      {:error, reason} -> {:error, reason}
     end
   rescue
     e ->
       Logger.error("[UserStreamManager:#{user_id}] Exception getting platform config: #{inspect(e)}")
-
       {:error, e}
+  end
+
+  defp find_platform_account(streaming_accounts, platform) do
+    Enum.find(streaming_accounts, &(&1.platform == platform))
+  end
+
+  defp format_platform_config(%{
+    access_token: token,
+    refresh_token: refresh,
+    access_token_expires_at: expires,
+    extra_data: extra
+  }) do
+    {:ok, %{
+      access_token: token,
+      refresh_token: refresh,
+      expires_at: expires,
+      extra_data: extra
+    }}
   end
 end
