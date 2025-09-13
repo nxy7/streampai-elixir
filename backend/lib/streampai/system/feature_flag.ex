@@ -1,5 +1,10 @@
 defmodule Streampai.System.FeatureFlag do
-  @moduledoc false
+  @moduledoc """
+  Feature flag resource for controlling system-wide features.
+
+  Feature flags allow enabling or disabling features without code deployment.
+  Flags are identified by string IDs and have a boolean enabled status.
+  """
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.System,
@@ -15,51 +20,81 @@ defmodule Streampai.System.FeatureFlag do
     define :read
     define :update
     define :destroy
-    define :get_by_id, action: :get_by_id, args: [:id]
-    define :enable, action: :enable, args: [:id]
-    define :disable, action: :disable, args: [:id]
-    define :is_enabled?, action: :is_enabled?, args: [:id]
+    define :enabled?, action: :enabled?, args: [:name]
+    define :enable, action: :enable, args: [:name]
+    define :disable, action: :disable, args: [:name]
+    define :toggle, action: :toggle, args: [:name]
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read, :update, :destroy]
 
     create :create do
       accept [:id, :enabled]
+      upsert? true
+      upsert_identity :unique_id
 
       change fn changeset, _context ->
-        Ash.Changeset.force_change_attribute(changeset, :id, to_string(changeset.attributes[:id]))
+        # Normalize atom to string if needed
+        case Ash.Changeset.get_attribute(changeset, :id) do
+          id when is_atom(id) ->
+            Ash.Changeset.force_change_attribute(changeset, :id, to_string(id))
+          _ ->
+            changeset
+        end
       end
     end
 
-    update :update do
-      accept [:enabled]
+    read :enabled? do
+      argument :name, :string, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:name) and enabled == true)
     end
 
     update :enable do
-      argument :id, :string, allow_nil?: false
+      argument :name, :string, allow_nil?: false
+      require_atomic? false
 
-      change filter expr(id == ^arg(:id))
-      change set_attribute(:enabled, true)
+      manual fn changeset, _context ->
+        name = Ash.Changeset.get_argument(changeset, :name)
+
+        case __MODULE__.create(%{id: name, enabled: true}) do
+          {:ok, record} -> {:ok, record}
+          {:error, _} ->
+            case Ash.get(__MODULE__, name) do
+              {:ok, existing} -> Ash.update(existing, %{enabled: true})
+              {:error, _} -> {:error, :not_found}
+            end
+        end
+      end
     end
 
     update :disable do
-      argument :id, :string, allow_nil?: false
+      argument :name, :string, allow_nil?: false
+      require_atomic? false
 
-      change filter expr(id == ^arg(:id))
-      change set_attribute(:enabled, false)
+      manual fn changeset, _context ->
+        name = Ash.Changeset.get_argument(changeset, :name)
+
+        case Ash.get(__MODULE__, name) do
+          {:ok, record} -> Ash.update(record, %{enabled: false})
+          {:error, _} -> {:ok, nil}
+        end
+      end
     end
 
-    read :get_by_id do
-      argument :id, :string, allow_nil?: false
-      get? true
-      filter expr(id == ^arg(:id))
-    end
+    update :toggle do
+      argument :name, :string, allow_nil?: false
+      require_atomic? false
 
-    read :is_enabled? do
-      argument :id, :string, allow_nil?: false
-      get? true
-      filter expr(id == ^arg(:id) and enabled == true)
+      manual fn changeset, _context ->
+        name = Ash.Changeset.get_argument(changeset, :name)
+
+        case Ash.get(__MODULE__, name) do
+          {:ok, record} -> Ash.update(record, %{enabled: not record.enabled})
+          {:error, _} -> __MODULE__.create(%{id: name, enabled: true})
+        end
+      end
     end
   end
 
