@@ -1,9 +1,15 @@
 import Config
 
-# Set required environment variables for tests
+# Set required environment variables for tests - worktree-friendly
+worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_")
+
+test_db_name =
+  System.get_env("TEST_DATABASE_NAME") ||
+    "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
+
 System.put_env(
   "DATABASE_URL",
-  "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}"
+  "postgresql://postgres:postgres@localhost:5432/#{test_db_name}"
 )
 
 System.put_env("SECRET_KEY", "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/dlt9ArOMnBFIoS")
@@ -34,7 +40,7 @@ config :streampai, Streampai.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "streampai_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: test_db_name,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
