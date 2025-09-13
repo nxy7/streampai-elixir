@@ -9,7 +9,9 @@
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --env-filter '\nif [ \"\"$GIT_COMMITTER_NAME\"\" = \"\"Claude\"\" ]; then\n    export GIT_COMMITTER_NAME=\"\"Dawid Danieluk\"\"\n    export GIT_COMMITTER_EMAIL=\"\"danielukd@gmail.com\"\"\nfi\nif [ \"\"$GIT_AUTHOR_NAME\"\" = \"\"Claude\"\" ]; then\n    export GIT_AUTHOR_NAME=\"\"Dawid Danieluk\"\"\n    export GIT_AUTHOR_EMAIL=\"\"danielukd@gmail.com\"\"\nfi\n' --tag-name-filter cat -- --branches --tags)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git shortlog:*)"
+      "Bash(git shortlog:*)",
+      "Bash(mix test:*)",
+      "Bash(MNEME_OVERRIDE=true mix test test/streampai_web/utils/platform_utils_test.exs --seed 0)"
     ],
     "deny": [],
     "ask": []
