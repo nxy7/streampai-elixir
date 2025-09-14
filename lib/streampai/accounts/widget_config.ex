@@ -85,6 +85,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :follower_count_widget,
                :donation_widget,
                :donation_goal_widget,
+               :top_donors_widget,
                :follow_widget,
                :subscriber_widget,
                :overlay_widget,
@@ -92,7 +93,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget
              ]) do
-      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, follower_count_widget, donation_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, follower_count_widget, donation_widget, top_donors_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
     end
 
     validate present([:user_id])
@@ -203,6 +204,9 @@ defmodule Streampai.Accounts.WidgetConfig do
       :donation_goal_widget ->
         Streampai.Fake.DonationGoal.default_config()
 
+      :top_donors_widget ->
+        Streampai.Fake.TopDonors.default_config()
+
       _ ->
         %{}
     end
@@ -232,6 +236,7 @@ defmodule Streampai.Accounts.WidgetConfig do
       :donation_widget -> [:show_amount, :minimum_amount]
       :follow_widget -> [:animation_type, :display_duration]
       :subscriber_widget -> [:show_tier, :animation_type, :display_duration]
+      :top_donors_widget -> [:display_count, :currency, :theme]
       _ -> []
     end
   end
@@ -241,6 +246,7 @@ defmodule Streampai.Accounts.WidgetConfig do
       :chat_widget -> valid_chat_config_values?(config)
       :alertbox_widget -> valid_alertbox_config_values?(config)
       :viewer_count_widget -> valid_viewer_count_config_values?(config)
+      :top_donors_widget -> valid_top_donors_config_values?(config)
       :follower_count_widget -> valid_follower_count_config_values?(config)
       # Other widget types don't have specific validations yet
       _ -> true
@@ -268,6 +274,16 @@ defmodule Streampai.Accounts.WidgetConfig do
     display_style = Map.get(config, :display_style)
     style_valid = display_style in ["minimal", "detailed", "cards"]
     style_valid
+  end
+
+  defp valid_top_donors_config_values?(config) do
+    display_count = Map.get(config, :display_count, 10)
+    currency = Map.get(config, :currency, "$")
+
+    display_count_valid = is_integer(display_count) and display_count >= 1 and display_count <= 20
+    currency_valid = currency in ["$", "€", "£", "¥", "₹", "₽"]
+
+    display_count_valid and currency_valid
   end
 
   defp valid_follower_count_config_values?(config) do
