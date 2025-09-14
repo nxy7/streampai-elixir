@@ -24,6 +24,9 @@ const props = defineProps<{
 
 const donorElements = ref<HTMLElement[]>([])
 const animatingDonors = ref<Set<string>>(new Set())
+const animatedAmounts = ref<Map<string, number>>(new Map())
+const previousAmounts = ref<Map<string, number>>(new Map())
+const animatingAmountIds = ref<Set<string>>(new Set())
 
 const displayedDonors = computed(() => {
   return props.donors.slice(0, props.config.display_count || 10)
@@ -64,7 +67,47 @@ function getDonorSizeClass(index: number): string {
 }
 
 function formatAmount(amount: number, currency: string): string {
-  return `${currency}${amount.toLocaleString()}`
+  return `${currency}${amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`
+}
+
+function getAnimatedAmount(donorId: string, actualAmount: number): number {
+  return animatedAmounts.value.get(donorId) ?? actualAmount
+}
+
+function animateAmountChange(donorId: string, fromAmount: number, toAmount: number) {
+  if (!props.config.animation_enabled || Math.abs(toAmount - fromAmount) < 0.01) {
+    animatedAmounts.value.set(donorId, toAmount)
+    return
+  }
+
+  // Add to animating set for visual feedback
+  animatingAmountIds.value.add(donorId)
+
+  const duration = 1200 // 1.2 seconds
+  const steps = 60
+  const increment = (toAmount - fromAmount) / steps
+  let currentAmount = fromAmount
+  let step = 0
+
+  const timer = setInterval(() => {
+    step++
+    currentAmount += increment
+
+    if (step >= steps) {
+      animatedAmounts.value.set(donorId, toAmount)
+      animatingAmountIds.value.delete(donorId)
+      clearInterval(timer)
+    } else {
+      animatedAmounts.value.set(donorId, Math.round(currentAmount * 100) / 100)
+    }
+  }, duration / steps)
+}
+
+function isAnimatingAmount(donorId: string): boolean {
+  return animatingAmountIds.value.has(donorId)
 }
 
 async function animateDonorChanges() {
@@ -78,6 +121,24 @@ async function animateDonorChanges() {
   const newDonors = [...currentDonors].filter(id => !previousDonors.has(id))
   const removedDonors = [...previousDonors].filter(id => !currentDonors.has(id))
 
+  // Handle amount changes for existing donors
+  displayedDonors.value.forEach(donor => {
+    const previousAmount = previousAmounts.value.get(donor.id)
+    if (previousAmount !== undefined && previousAmount !== donor.amount) {
+      animateAmountChange(donor.id, previousAmount, donor.amount)
+    } else if (previousAmount === undefined) {
+      // New donor - set initial amount without animation
+      animatedAmounts.value.set(donor.id, donor.amount)
+    }
+    previousAmounts.value.set(donor.id, donor.amount)
+  })
+
+  // Clean up removed donors
+  removedDonors.forEach(id => {
+    animatedAmounts.value.delete(id)
+    previousAmounts.value.delete(id)
+  })
+
   if (newDonors.length > 0 || removedDonors.length > 0) {
     animatingDonors.value = new Set([...animatingDonors.value, ...newDonors])
 
@@ -90,6 +151,11 @@ async function animateDonorChanges() {
 watch(() => displayedDonors.value, animateDonorChanges, { deep: true })
 
 onMounted(() => {
+  // Initialize animated amounts with current values
+  displayedDonors.value.forEach(donor => {
+    animatedAmounts.value.set(donor.id, donor.amount)
+    previousAmounts.value.set(donor.id, donor.amount)
+  })
   animatingDonors.value = new Set(displayedDonors.value.map(d => d.id))
 })
 </script>
@@ -122,7 +188,11 @@ onMounted(() => {
 
             <div class="donor-info">
               <div class="donor-name">{{ donor.username }}</div>
-              <div class="donor-amount">{{ formatAmount(donor.amount, donor.currency) }}</div>
+              <div
+                :class="['donor-amount', { 'animating': isAnimatingAmount(donor.id) }]"
+              >
+                {{ formatAmount(getAnimatedAmount(donor.id, donor.amount), donor.currency) }}
+              </div>
             </div>
 
             <div v-if="index < 3" class="donor-glow"></div>
@@ -312,6 +382,31 @@ onMounted(() => {
   font-weight: 600;
   color: #10b981;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.donor-amount.animating {
+  color: #fbbf24;
+  transform: scale(1.05);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+.donor-amount.animating::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, transparent, rgba(251, 191, 36, 0.2), transparent);
+  border-radius: 4px;
+  opacity: 0;
+  animation: numberPulse 1.2s ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes numberPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1); }
 }
 
 .top-1 .donor-name {
