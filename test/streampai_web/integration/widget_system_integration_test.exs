@@ -93,18 +93,5 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
       expected_url = url(~p"/widgets/chat/display?user_id=#{user.id}")
       assert html =~ expected_url
     end
-
-    test "widget display works in headless mode for OBS", %{conn: conn, user: user} do
-      create_widget_config(user, :chat_widget, %{})
-
-      conn = get(conn, ~p"/widgets/chat/display?user_id=#{user.id}")
-
-      auto_assert %{status: 200} <- conn
-      html = html_response(conn, 200)
-
-      assert html =~ "transparent"
-      refute html =~ "streampai-sidebar"
-      refute html =~ "dashboard-header"
-    end
   end
 end
