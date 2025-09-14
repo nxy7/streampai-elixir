@@ -22,10 +22,10 @@ defmodule Streampai.YouTube.IntegrationExample do
   - https://www.googleapis.com/auth/youtube.force-ssl
   """
 
-  require Logger
-
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.LiveChatStream
+
+  require Logger
 
   @doc """
   Complete example of setting up a YouTube live stream with chat.
@@ -45,10 +45,10 @@ defmodule Streampai.YouTube.IntegrationExample do
   def setup_live_stream_with_chat(access_token, stream_config) do
     with {:ok, broadcast} <- create_live_broadcast(access_token, stream_config),
          {:ok, stream} <- create_live_stream(access_token, stream_config),
-         {:ok, bound_broadcast} <- bind_stream_to_broadcast(access_token, broadcast["id"], stream["id"]),
+         {:ok, bound_broadcast} <-
+           bind_stream_to_broadcast(access_token, broadcast["id"], stream["id"]),
          {:ok, chat_id} <- extract_chat_id(bound_broadcast),
          {:ok, chat_pid} <- start_chat_streaming(access_token, chat_id) do
-
       result = %{
         broadcast: bound_broadcast,
         stream: stream,
@@ -94,11 +94,14 @@ defmodule Streampai.YouTube.IntegrationExample do
 
   defp create_live_broadcast(access_token, config) do
     broadcast_data = %{
-      snippet: %{
-        title: Map.get(config, :title, "Live Stream"),
-        description: Map.get(config, :description, ""),
-        scheduledStartTime: Map.get(config, :scheduled_start_time)
-      } |> Enum.reject(fn {_, v} -> is_nil(v) end) |> Map.new(),
+      snippet:
+        %{
+          title: Map.get(config, :title, "Live Stream"),
+          description: Map.get(config, :description, ""),
+          scheduledStartTime: Map.get(config, :scheduled_start_time)
+        }
+        |> Enum.reject(fn {_, v} -> is_nil(v) end)
+        |> Map.new(),
       status: %{
         privacyStatus: Map.get(config, :privacy_status, "public"),
         selfDeclaredMadeForKids: false
@@ -127,6 +130,7 @@ defmodule Streampai.YouTube.IntegrationExample do
 
   defp bind_stream_to_broadcast(access_token, broadcast_id, stream_id) do
     Logger.info("Binding stream #{stream_id} to broadcast #{broadcast_id}")
+
     ApiClient.bind_live_broadcast(access_token, broadcast_id, "snippet,status", stream_id: stream_id)
   end
 
