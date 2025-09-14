@@ -209,6 +209,10 @@ onMounted(() => {
   height: 100%;
   container-type: size;
   container-name: widget;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .top-donors-widget {
@@ -224,12 +228,15 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
   width: 100%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   box-sizing: border-box;
   min-height: fit-content;
   height: auto;
+  transform-origin: center;
+  transition: transform 0.3s ease;
 }
 
 .widget-title {
@@ -518,6 +525,71 @@ onMounted(() => {
 
   .donor-item {
     padding: 0.75rem;
+  }
+}
+
+/* Container-based responsive scaling to fit widget in available space */
+
+/* Scale down for smaller containers by height */
+@container widget (max-height: 600px) {
+  .top-donors-widget {
+    transform: scale(0.85);
+  }
+}
+
+@container widget (max-height: 500px) {
+  .top-donors-widget {
+    transform: scale(0.7);
+  }
+}
+
+@container widget (max-height: 400px) {
+  .top-donors-widget {
+    transform: scale(0.6);
+  }
+}
+
+@container widget (max-height: 350px) {
+  .top-donors-widget {
+    transform: scale(0.5);
+  }
+}
+
+/* Scale down for narrow containers by width */
+@container widget (max-width: 350px) {
+  .top-donors-widget {
+    transform: scale(0.85);
+  }
+}
+
+@container widget (max-width: 300px) {
+  .top-donors-widget {
+    transform: scale(0.75);
+  }
+}
+
+@container widget (max-width: 250px) {
+  .top-donors-widget {
+    transform: scale(0.65);
+  }
+}
+
+/* Handle both dimensions constrained - use the more restrictive scaling */
+@container widget (max-height: 500px) and (max-width: 350px) {
+  .top-donors-widget {
+    transform: scale(0.65);
+  }
+}
+
+@container widget (max-height: 400px) and (max-width: 300px) {
+  .top-donors-widget {
+    transform: scale(0.55);
+  }
+}
+
+@container widget (max-height: 350px) and (max-width: 280px) {
+  .top-donors-widget {
+    transform: scale(0.45);
   }
 }
 </style>
