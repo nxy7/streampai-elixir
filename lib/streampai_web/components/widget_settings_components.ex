@@ -131,6 +131,30 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
 
   attr :name, :string, required: true
   attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :placeholder, :string, default: ""
+  attr :help_text, :string, default: nil
+
+  def text_input_setting(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm text-gray-700 mb-1">{@label}</label>
+      <input
+        type="text"
+        name={@name}
+        value={@value}
+        placeholder={@placeholder}
+        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+      />
+      <%= if @help_text do %>
+        <p class="text-xs text-gray-500 mt-1">{@help_text}</p>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :name, :string, required: true
+  attr :label, :string, required: true
   attr :value, :any, required: true
   attr :options, :list, required: true
 
@@ -171,6 +195,38 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
         class="w-full"
       />
       <p class="text-xs text-gray-500 mt-1">{@label}: {@value}%</p>
+    </div>
+    """
+  end
+
+  attr :name, :string, required: true
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :default_color, :string, default: "#6b46c1"
+
+  def color_picker_setting(assigns) do
+    ~H"""
+    <div>
+      <label for={@name} class="block text-sm font-medium text-gray-700 mb-1">
+        {@label}
+      </label>
+      <div class="flex items-center space-x-2">
+        <input
+          type="color"
+          name={"#{@name}_picker"}
+          id={@name}
+          value={@value}
+          class="h-10 w-20 border border-gray-300 rounded cursor-pointer"
+        />
+        <input
+          type="text"
+          value={@value}
+          name={"#{@name}_text"}
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+          pattern="^#[0-9A-Fa-f]{6}$"
+          placeholder={@default_color}
+        />
+      </div>
     </div>
     """
   end

@@ -79,6 +79,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/alertbox/display", Components.AlertboxObsWidgetLive)
     live("/widgets/donation-goal/display", Components.DonationGoalObsWidgetLive)
     live("/widgets/viewer-count/display", Components.ViewerCountObsWidgetLive)
+    live("/widgets/follower-count/display", Components.FollowerCountObsWidgetLive)
 
     get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
@@ -103,6 +104,7 @@ defmodule StreampaiWeb.Router do
       live("/widgets/alertbox", AlertboxWidgetSettingsLive)
       live("/widgets/donation-goal", DonationGoalWidgetSettingsLive)
       live("/widgets/viewer-count", ViewerCountWidgetSettingsLive)
+      live("/widgets/follower-count", FollowerCountWidgetSettingsLive)
     end
 
     sign_out_route(AuthController, "/auth/sign-out")

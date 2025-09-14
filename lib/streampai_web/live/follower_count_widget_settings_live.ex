@@ -1,21 +1,21 @@
-defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
+defmodule StreampaiWeb.FollowerCountWidgetSettingsLive do
   @moduledoc """
-  LiveView for configuring viewer count widget settings and OBS browser source URL generation.
+  LiveView for configuring follower count widget settings and OBS browser source URL generation.
   """
   use StreampaiWeb.WidgetBehaviour,
     type: :settings,
-    widget_type: :viewer_count_widget,
-    fake_module: Streampai.Fake.ViewerCount
+    widget_type: :follower_count_widget,
+    fake_module: Streampai.Fake.FollowerCount
 
   alias StreampaiWeb.Utils.WidgetHelpers
 
   # Widget-specific implementations
 
-  defp widget_title, do: "Viewer Count Widget"
+  defp widget_title, do: "Follower Count Widget"
 
   defp initialize_widget_specific_assigns(socket) do
-    # Generate initial viewer data for preview
-    initial_data = @fake_module.generate_viewer_data()
+    # Generate initial follower data for preview
+    initial_data = @fake_module.generate_follower_data()
     assign(socket, :current_data, initial_data)
   end
 
@@ -38,9 +38,9 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
 
     new_data =
       if current_data do
-        @fake_module.generate_viewer_update(current_data)
+        @fake_module.generate_follower_update(current_data)
       else
-        @fake_module.generate_viewer_data()
+        @fake_module.generate_follower_data()
       end
 
     assign(socket, :current_data, new_data)
@@ -48,7 +48,6 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
 
   defp schedule_demo_event do
     # Use a reasonable default that matches our widget's typical interval
-    # This could be enhanced to read from socket.assigns.widget_config if passed
     Process.send_after(self(), :generate_demo_event, 3000)
   end
 
@@ -71,7 +70,7 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
         )
 
       :icon_color ->
-        WidgetHelpers.validate_hex_color(value, "#ef4444")
+        WidgetHelpers.validate_hex_color(value, "#9333ea")
 
       _ ->
         value
@@ -80,32 +79,32 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
 
   def render(assigns) do
     ~H"""
-    <.dashboard_layout {assigns} current_page="widgets" page_title="Viewer Count Widget">
+    <.dashboard_layout {assigns} current_page="widgets" page_title="Follower Count Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Viewer Count Widget"
+            title="Follower Count Widget"
             current_user={@current_user}
             socket={@socket}
-            widget_type={:viewer_count_widget}
-            url_path={~p"/widgets/viewer-count/display"}
+            widget_type={:follower_count_widget}
+            url_path={~p"/widgets/follower-count/display"}
             dimensions="800x200"
-            copy_button_id="copy-viewer-count-url-button"
+            copy_button_id="copy-follower-count-url-button"
           />
           
-    <!-- Viewer Count Widget Display -->
+    <!-- Follower Count Widget Display -->
           <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-64 overflow-hidden relative">
             <div class="text-xs text-gray-400 mb-2">
               Preview (actual widget has transparent background)
             </div>
             <.vue
-              v-component="ViewerCountWidget"
+              v-component="FollowerCountWidget"
               v-socket={@socket}
               config={@widget_config}
               data={@current_data}
               class="w-full h-full"
-              id="preview-viewer-count-widget"
+              id="preview-follower-count-widget"
             />
           </div>
         </div>
@@ -116,7 +115,7 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
           <StreampaiWeb.WidgetSettingsComponents.settings_section title="Display Options">
             <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
               name="show_total"
-              label="Show total viewer count"
+              label="Show total follower count"
               checked={@widget_config.show_total}
             />
             <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
@@ -130,11 +129,11 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
               checked={@widget_config.animation_enabled}
             />
             <StreampaiWeb.WidgetSettingsComponents.text_input_setting
-              name="viewer_label"
-              label="Viewer label"
-              value={@widget_config.viewer_label}
-              placeholder="viewers"
-              help_text="Text displayed next to the viewer count"
+              name="total_label"
+              label="Total followers label"
+              value={@widget_config.total_label}
+              placeholder="Total followers"
+              help_text="Text displayed next to the total follower count"
             />
           </StreampaiWeb.WidgetSettingsComponents.settings_section>
           
@@ -166,19 +165,19 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
               name="icon_color"
               label="Icon Color"
               value={@widget_config.icon_color}
-              default_color="#ef4444"
+              default_color="#9333ea"
             />
           </StreampaiWeb.WidgetSettingsComponents.settings_section>
         </StreampaiWeb.WidgetSettingsComponents.settings_container>
         
     <!-- Usage Instructions -->
         <StreampaiWeb.WidgetSettingsComponents.obs_usage_instructions
-          title="Viewer Count Widget"
+          title="Follower Count Widget"
           socket={@socket}
-          url_path={~p"/widgets/viewer-count/display"}
+          url_path={~p"/widgets/follower-count/display"}
           current_user={@current_user}
           dimensions="800x200"
-          instructions={["Viewer counts update automatically based on your stream platforms"]}
+          instructions={["Follower counts update automatically based on your stream platforms"]}
         />
       </div>
     </.dashboard_layout>
