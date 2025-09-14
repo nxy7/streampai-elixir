@@ -43,6 +43,7 @@ const props = defineProps<{
 const progressBarRef = ref<HTMLElement>()
 const floatingBubbles = ref<FloatingBubble[]>([])
 const animatedAmount = ref(props.currentAmount || props.config.starting_amount || 0)
+const lastProcessedDonationId = ref<string | null>(null)
 
 const progressPercentage = computed(() => {
   const total = animatedAmount.value
@@ -99,9 +100,16 @@ watch(() => props.currentAmount, (newAmount, oldAmount) => {
   }
 })
 
-watch(() => props.donation, (newDonation) => {
-  if (newDonation && props.config.animation_enabled) {
-    createFloatingBubble(newDonation)
+// Watch for donation ID changes specifically
+watch(() => props.donation?.id, (newDonationId) => {
+  if (newDonationId && props.config.animation_enabled) {
+    // Only create bubble if this is a genuinely new donation ID
+    if (newDonationId !== lastProcessedDonationId.value) {
+      lastProcessedDonationId.value = newDonationId
+      if (props.donation) {
+        createFloatingBubble(props.donation)
+      }
+    }
   }
 })
 
@@ -209,7 +217,7 @@ onMounted(() => {
         >
           <div class="bubble-content">
             <div class="bubble-plus">+</div>
-            <div class="bubble-amount">{{ bubble.currency }}{{ bubble.amount }}</div>
+            <div class="bubble-amount">{{ bubble.currency }}{{ bubble.amount.toFixed(2) }}</div>
           </div>
           <div class="bubble-glow"></div>
         </div>

@@ -52,6 +52,7 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
 
     socket
     |> assign(:current_amount, new_amount)
+    |> assign(:last_donation, nil)
     |> assign(:last_donation, donation)
   end
 
