@@ -178,7 +178,7 @@ onMounted(() => {
           <div
             v-for="(donor, index) in displayedDonors"
             :key="donor.id"
-            :class="['donor-item', getDonorSizeClass(index)]"
+            :class="['donor-item', getDonorSizeClass(index), { 'last-podium': index === 2 }]"
             ref="donorElements"
           >
             <div class="donor-rank">
@@ -303,6 +303,11 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+}
+
+/* Add extra margin after position 3 to separate top 3 from the rest */
+.donor-item.last-podium {
+  margin-bottom: 1.5rem;
 }
 
 .donor-item:hover {
