@@ -22,6 +22,7 @@ defmodule Streampai.Constants do
 
   # Admin Configuration
   @admin_email "lolnoxy@gmail.com"
+  @test_admin_email "testadmin@local.com"
 
   # Timeout Values (milliseconds)
   @default_timeout 10_000
@@ -42,6 +43,14 @@ defmodule Streampai.Constants do
   def url_max_length, do: @url_max_length
   def currency_code_max_length, do: @currency_code_max_length
 
-  def admin_email, do: @admin_email
+  def admin_email do
+    if Mix.env() == :test do
+      @test_admin_email
+    else
+      @admin_email
+    end
+  end
+
+  def test_admin_email, do: @test_admin_email
   def default_timeout, do: @default_timeout
 end

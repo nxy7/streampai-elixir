@@ -156,7 +156,6 @@ defmodule Streampai.Accounts.WidgetConfig do
         %{
           show_total: true,
           show_platforms: true,
-          update_interval: 3,
           font_size: "medium",
           display_style: "detailed",
           animation_enabled: true
@@ -210,7 +209,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     case widget_type do
       :chat_widget -> [:max_messages, :show_badges, :show_emotes]
       :alertbox_widget -> [:display_duration, :animation_type, :sound_enabled]
-      :viewer_count_widget -> [:show_total, :update_interval, :display_style]
+      :viewer_count_widget -> [:show_total, :display_style]
       :donation_widget -> [:show_amount, :minimum_amount]
       :follow_widget -> [:animation_type, :display_duration]
       :subscriber_widget -> [:show_tier, :animation_type, :display_duration]
@@ -246,14 +245,8 @@ defmodule Streampai.Accounts.WidgetConfig do
   end
 
   defp valid_viewer_count_config_values?(config) do
-    update_interval = Map.get(config, :update_interval)
     display_style = Map.get(config, :display_style)
-
-    interval_valid =
-      is_integer(update_interval) and update_interval > 0 and update_interval <= 30
-
     style_valid = display_style in ["minimal", "detailed", "cards"]
-
-    interval_valid and style_valid
+    style_valid
   end
 end

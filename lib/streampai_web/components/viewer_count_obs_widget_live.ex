@@ -27,6 +27,8 @@ defmodule StreampaiWeb.Components.ViewerCountObsWidgetLive do
       subscribe_to_real_events(user_id)
     end
 
+    # OBS widgets must bypass authorization as they're public endpoints
+    # for browser sources with no authentication context
     config =
       case WidgetConfig.get_by_user_and_type(
              %{
@@ -38,7 +40,14 @@ defmodule StreampaiWeb.Components.ViewerCountObsWidgetLive do
         {:ok, %{config: config}} ->
           config
 
-        {:error, _} ->
+        {:ok, widget_config} when is_map(widget_config) ->
+          # Handle case where config is directly returned
+          Map.get(widget_config, :config, ViewerCount.default_config())
+
+        {:error, _reason} ->
+          ViewerCount.default_config()
+
+        _ ->
           ViewerCount.default_config()
       end
 
