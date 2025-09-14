@@ -224,14 +224,12 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
   width: 100%;
-  max-width: min(400px, 90vw);
-  min-width: 280px;
+  max-width: 380px;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   box-sizing: border-box;
-  min-height: fit-content;
-  height: auto;
 }
 
 .widget-title {
@@ -283,7 +281,8 @@ onMounted(() => {
 
 .donors-list {
   flex: 1;
-  min-height: 0; /* Allow container to grow naturally */
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .donors-container {
@@ -523,7 +522,6 @@ onMounted(() => {
   }
 }
 
-/* Simple responsive adjustments for very small containers */
 @container widget (max-width: 300px) {
   .top-donors-widget {
     padding: 1rem;
