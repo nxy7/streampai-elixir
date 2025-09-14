@@ -39,26 +39,16 @@ defmodule Streampai.Fake.TopDonors do
     base_list = previous_donors || generate_top_donors_list(count)
     actual_count = length(base_list)
 
-    # Guarantee at least some changes happen
-    # 40% chance to replace someone
-    should_replace = Base.random_boolean(0.4)
+    # Always replace one donor (guaranteed)
+    replace_index = Enum.random(max(3, actual_count - 8)..(actual_count - 1))
 
-    # Pre-determine which indices to change
-    replace_index =
-      if should_replace and actual_count > 5 do
-        Enum.random(5..(actual_count - 1))
-      end
+    # Always modify 2-3 amounts with changes large enough to affect ranking
+    modify_count = Enum.random(2..min(3, actual_count - 1))
 
     modify_indices =
-      if actual_count > 2 do
-        # Always pick 2-3 donors to modify amounts
-        0..(actual_count - 1)
-        |> Enum.take_random(Enum.random(2..min(3, actual_count)))
-        # Don't modify the one being replaced
-        |> Enum.reject(&(&1 == replace_index))
-      else
-        [0]
-      end
+      0..(actual_count - 1)
+      |> Enum.reject(&(&1 == replace_index))
+      |> Enum.take_random(modify_count)
 
     # Apply changes based on pre-determined indices
     updated_list =
@@ -66,22 +56,18 @@ defmodule Streampai.Fake.TopDonors do
       |> Enum.with_index()
       |> Enum.map(fn {donor, index} ->
         cond do
-          # Replace 1 donor
+          # Always replace 1 donor with completely new one
           index == replace_index ->
             %{
               id: Base.generate_hex_id(),
               username: Base.generate_username(),
-              amount: generate_realistic_amount(),
+              amount: generate_ranking_affecting_amount(base_list, index),
               currency: "$"
             }
 
-          # Modify amounts for selected indices
+          # Modify amounts with changes large enough to shift rankings
           index in modify_indices ->
-            # 20-40% change for noticeable updates
-            # 20-40% change
-            change_percentage = 0.2 + :rand.uniform() * 0.2
-            adjustment = (:rand.uniform() - 0.5) * (donor.amount * change_percentage)
-            new_amount = max(donor.amount + adjustment, 5.0)
+            new_amount = generate_ranking_shift_amount(donor, base_list, index)
             %{donor | amount: Float.round(new_amount, 2)}
 
           true ->
@@ -91,6 +77,75 @@ defmodule Streampai.Fake.TopDonors do
       |> Enum.sort_by(& &1.amount, :desc)
 
     updated_list
+  end
+
+  # Generate amount that will cause ranking changes
+  defp generate_ranking_affecting_amount(donor_list, target_index) do
+    sorted_amounts = donor_list |> Enum.map(& &1.amount) |> Enum.sort(:desc)
+
+    cond_result =
+      cond do
+        target_index < 3 ->
+          # New top donor - should be higher than current #1
+          max_amount = Enum.at(sorted_amounts, 0, 1000)
+          max_amount + 50 + :rand.uniform() * 500
+
+        target_index < length(sorted_amounts) / 2 ->
+          # Mid-tier replacement - pick amount that will slot into top half
+          mid_point = div(length(sorted_amounts), 2)
+          target_amount = Enum.at(sorted_amounts, mid_point, 200)
+          target_amount + (:rand.uniform() - 0.5) * target_amount * 0.5
+
+        true ->
+          # Lower tier - generate amount that could still climb up
+          avg_amount = Enum.sum(sorted_amounts) / length(sorted_amounts)
+          avg_amount * (0.3 + :rand.uniform() * 0.7)
+      end
+
+    cond_result
+    |> max(10.0)
+    |> Float.round(2)
+  end
+
+  # Modify existing amount to cause ranking shift
+  defp generate_ranking_shift_amount(donor, donor_list, current_index) do
+    sorted_list = Enum.sort_by(donor_list, & &1.amount, :desc)
+    current_amount = donor.amount
+
+    # Determine if we should increase or decrease to cause movement
+    # 60% chance to increase
+    should_increase = Base.random_boolean(0.6)
+
+    if_result =
+      if should_increase do
+        # Increase enough to potentially jump 1-3 positions up
+        positions_to_jump = Enum.random(1..min(3, current_index))
+
+        if current_index >= positions_to_jump do
+          target_position = current_index - positions_to_jump
+          target_amount = Enum.at(sorted_list, target_position).amount
+          # Add extra to ensure we surpass the target
+          target_amount + 5 + :rand.uniform() * 50
+        else
+          # Already near top, just increase significantly
+          current_amount * (1.2 + :rand.uniform() * 0.3)
+        end
+      else
+        # Decrease enough to potentially drop 1-2 positions
+        positions_to_drop = Enum.random(1..min(2, length(sorted_list) - current_index - 1))
+
+        if current_index + positions_to_drop < length(sorted_list) do
+          target_position = current_index + positions_to_drop
+          target_amount = Enum.at(sorted_list, target_position).amount
+          # Subtract extra to ensure we drop below the target
+          max(target_amount - 5 - :rand.uniform() * 30, current_amount * 0.5)
+        else
+          # Near bottom, just decrease moderately
+          current_amount * (0.6 + :rand.uniform() * 0.2)
+        end
+      end
+
+    max(if_result, 5.0)
   end
 
   defp generate_ranked_amounts(count) do
@@ -115,8 +170,6 @@ defmodule Streampai.Fake.TopDonors do
   end
 
   defp calculate_amount_for_rank(_, _base_amount), do: 50 + :rand.uniform() * 200
-
-  defp generate_realistic_amount, do: Base.generate_donation_amount()
 
   defp get_username(_index), do: Base.generate_username()
 
