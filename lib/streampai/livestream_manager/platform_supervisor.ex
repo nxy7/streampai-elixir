@@ -40,6 +40,21 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   @doc """
   Stops a platform manager.
   """
+  def stop_platform_manager(user_id, :youtube) do
+    # For YouTube, we need to lookup the supervisor, not the manager
+    case Registry.lookup(
+           Streampai.LivestreamManager.Registry,
+           {:youtube_supervisor, user_id}
+         ) do
+      [{pid, _}] ->
+        supervisor_pid = via_tuple(user_id)
+        DynamicSupervisor.terminate_child(supervisor_pid, pid)
+
+      [] ->
+        {:error, :not_found}
+    end
+  end
+
   def stop_platform_manager(user_id, platform) do
     case Registry.lookup(
            Streampai.LivestreamManager.Registry,
@@ -135,6 +150,17 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
         # No connected platforms
         :ok
     end
+  end
+
+  defp get_platform_manager_spec(user_id, :youtube, config) do
+    # YouTube uses a supervisor that manages YouTubeManager and monitoring processes
+    %{
+      id: {:platform_manager, user_id, :youtube},
+      start:
+        {Streampai.LivestreamManager.Platforms.YouTube.Supervisor, :start_link, [[user_id: user_id, config: config]]},
+      restart: :permanent,
+      type: :supervisor
+    }
   end
 
   defp get_platform_manager_spec(user_id, platform, config) do
