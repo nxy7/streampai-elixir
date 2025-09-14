@@ -4,7 +4,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   Provides common patterns for widget configuration, PubSub, and OBS browser source URL generation.
   """
 
-  import Phoenix.LiveView, only: [put_flash: 3]
+  import StreampaiWeb.LiveHelpers.FlashHelpers
 
   alias Streampai.Accounts.WidgetConfig
 
@@ -126,7 +126,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
         {:noreply, Phoenix.Component.assign(socket, :widget_config, updated_config)}
 
       {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to save #{String.replace(field, "_", " ")} setting")}
+        {:noreply, flash_error(socket, "Failed to save #{String.replace(field, "_", " ")} setting")}
     end
   end
 
