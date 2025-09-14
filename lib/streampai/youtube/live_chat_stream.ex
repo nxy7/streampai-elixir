@@ -23,6 +23,7 @@ defmodule Streampai.YouTube.LiveChatStream do
   """
 
   use GenServer
+
   require Logger
 
   @youtube_api_host "youtubereporting.googleapis.com"
@@ -43,7 +44,7 @@ defmodule Streampai.YouTube.LiveChatStream do
     :reconnect_attempts,
     max_reconnect_attempts: 5,
     reconnect_delay: 5000,
-    heartbeat_interval: 30000
+    heartbeat_interval: 30_000
   ]
 
   @type t :: %__MODULE__{}
@@ -106,7 +107,7 @@ defmodule Streampai.YouTube.LiveChatStream do
       callback_pid: callback,
       reconnect_attempts: 0,
       max_reconnect_attempts: Keyword.get(opts, :max_reconnect_attempts, 5),
-      heartbeat_interval: Keyword.get(opts, :heartbeat_interval, 30000)
+      heartbeat_interval: Keyword.get(opts, :heartbeat_interval, 30_000)
     }
 
     # Start the gRPC connection process
@@ -175,6 +176,7 @@ defmodule Streampai.YouTube.LiveChatStream do
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
       Logger.info("Attempting to reconnect (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
+
       send(self(), :connect)
       {:noreply, %{state | reconnect_attempts: state.reconnect_attempts + 1}}
     else
@@ -192,6 +194,7 @@ defmodule Streampai.YouTube.LiveChatStream do
       reconnect_attempts: state.reconnect_attempts,
       max_reconnect_attempts: state.max_reconnect_attempts
     }
+
     {:reply, status, state}
   end
 
@@ -220,22 +223,20 @@ defmodule Streampai.YouTube.LiveChatStream do
       {:ok, connection} ->
         # Start streaming request
         request_data = build_stream_request(state)
+
         stream_opts = [
           headers: build_auth_headers(state.access_token)
         ]
 
         case :grpcbox_client.stream(
-          connection,
-          @service_name,
-          @method_name,
-          request_data,
-          stream_opts
-        ) do
+               connection,
+               @service_name,
+               @method_name,
+               request_data,
+               stream_opts
+             ) do
           {:ok, stream_ref} ->
-            new_state = %{state |
-              grpc_connection: connection,
-              stream_ref: stream_ref
-            }
+            new_state = %{state | grpc_connection: connection, stream_ref: stream_ref}
             {:ok, new_state}
 
           {:error, reason} ->
@@ -275,40 +276,38 @@ defmodule Streampai.YouTube.LiveChatStream do
     end
   end
 
+  # Decode protobuf response to Elixir map
+  # This would use generated protobuf decoders
+  # Placeholder - would decode actual protobuf data
   defp decode_chat_message(data) do
-    # Decode protobuf response to Elixir map
-    # This would use generated protobuf decoders
-    try do
-      # Placeholder - would decode actual protobuf data
-      decoded = %{
-        "id" => "message_id_#{:rand.uniform(1000)}",
-        "snippet" => %{
-          "type" => "textMessageEvent",
-          "liveChatId" => "some_chat_id",
-          "authorChannelId" => "author_id",
-          "publishedAt" => DateTime.utc_now() |> DateTime.to_iso8601(),
-          "hasDisplayContent" => true,
-          "displayMessage" => "Sample message",
-          "textMessageDetails" => %{
-            "messageText" => "Sample message"
-          }
-        },
-        "authorDetails" => %{
-          "channelId" => "author_id",
-          "channelUrl" => "https://youtube.com/channel/author_id",
-          "displayName" => "Sample User",
-          "profileImageUrl" => "https://example.com/avatar.jpg",
-          "isVerified" => false,
-          "isChatOwner" => false,
-          "isChatSponsor" => false,
-          "isChatModerator" => false
+    decoded = %{
+      "id" => "message_id_#{:rand.uniform(1000)}",
+      "snippet" => %{
+        "type" => "textMessageEvent",
+        "liveChatId" => "some_chat_id",
+        "authorChannelId" => "author_id",
+        "publishedAt" => DateTime.to_iso8601(DateTime.utc_now()),
+        "hasDisplayContent" => true,
+        "displayMessage" => "Sample message",
+        "textMessageDetails" => %{
+          "messageText" => "Sample message"
         }
+      },
+      "authorDetails" => %{
+        "channelId" => "author_id",
+        "channelUrl" => "https://youtube.com/channel/author_id",
+        "displayName" => "Sample User",
+        "profileImageUrl" => "https://example.com/avatar.jpg",
+        "isVerified" => false,
+        "isChatOwner" => false,
+        "isChatSponsor" => false,
+        "isChatModerator" => false
       }
+    }
 
-      {:ok, decoded}
-    rescue
-      e -> {:error, e}
-    end
+    {:ok, decoded}
+  rescue
+    e -> {:error, e}
   end
 
   defp handle_connection_error(state, _reason) do
@@ -317,11 +316,7 @@ defmodule Streampai.YouTube.LiveChatStream do
     # Schedule reconnection
     Process.send_after(self(), :reconnect, state.reconnect_delay)
 
-    new_state = %{state |
-      grpc_connection: nil,
-      stream_ref: nil,
-      heartbeat_timer: nil
-    }
+    new_state = %{state | grpc_connection: nil, stream_ref: nil, heartbeat_timer: nil}
 
     {:noreply, new_state}
   end

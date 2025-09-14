@@ -79,7 +79,8 @@ defmodule Streampai.YouTube.ApiClient do
   def insert_live_chat_message(access_token, part, message_data) do
     params = %{part: normalize_part_param(part)}
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.post(url: "/liveChat/messages", params: params, json: message_data)
     |> handle_response()
   end
@@ -95,7 +96,8 @@ defmodule Streampai.YouTube.ApiClient do
   def delete_live_chat_message(access_token, message_id) do
     params = %{id: message_id}
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.delete(url: "/liveChat/messages", params: params)
     |> handle_response()
   end
@@ -123,15 +125,22 @@ defmodule Streampai.YouTube.ApiClient do
     params =
       opts
       |> Keyword.take([
-        :broadcast_status, :broadcast_type, :id, :max_results, :mine,
-        :on_behalf_of_content_owner, :on_behalf_of_content_owner_channel, :page_token
+        :broadcast_status,
+        :broadcast_type,
+        :id,
+        :max_results,
+        :mine,
+        :on_behalf_of_content_owner,
+        :on_behalf_of_content_owner_channel,
+        :page_token
       ])
       |> Keyword.put(:part, normalize_part_param(part))
       |> Enum.reject(fn {_k, v} -> is_nil(v) end)
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.get(url: "/liveBroadcasts", params: params)
     |> handle_response()
   end
@@ -170,7 +179,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.post(url: "/liveBroadcasts", params: params, json: broadcast_data)
     |> handle_response()
   end
@@ -194,7 +204,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.put(url: "/liveBroadcasts", params: params, json: broadcast_data)
     |> handle_response()
   end
@@ -215,14 +226,19 @@ defmodule Streampai.YouTube.ApiClient do
   def bind_live_broadcast(access_token, id, part, opts \\ []) do
     params =
       opts
-      |> Keyword.take([:stream_id, :on_behalf_of_content_owner, :on_behalf_of_content_owner_channel])
+      |> Keyword.take([
+        :stream_id,
+        :on_behalf_of_content_owner,
+        :on_behalf_of_content_owner_channel
+      ])
       |> Keyword.put(:id, id)
       |> Keyword.put(:part, normalize_part_param(part))
       |> Enum.reject(fn {_k, v} -> is_nil(v) end)
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.post(url: "/liveBroadcasts/bind", params: params)
     |> handle_response()
   end
@@ -247,7 +263,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.delete(url: "/liveBroadcasts", params: params)
     |> handle_response()
   end
@@ -273,15 +290,20 @@ defmodule Streampai.YouTube.ApiClient do
     params =
       opts
       |> Keyword.take([
-        :id, :max_results, :mine, :on_behalf_of_content_owner,
-        :on_behalf_of_content_owner_channel, :page_token
+        :id,
+        :max_results,
+        :mine,
+        :on_behalf_of_content_owner,
+        :on_behalf_of_content_owner_channel,
+        :page_token
       ])
       |> Keyword.put(:part, normalize_part_param(part))
       |> Enum.reject(fn {_k, v} -> is_nil(v) end)
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.get(url: "/liveStreams", params: params)
     |> handle_response()
   end
@@ -320,7 +342,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.post(url: "/liveStreams", params: params, json: stream_data)
     |> handle_response()
   end
@@ -344,7 +367,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.put(url: "/liveStreams", params: params, json: stream_data)
     |> handle_response()
   end
@@ -369,7 +393,8 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    client(access_token)
+    access_token
+    |> client()
     |> Req.delete(url: "/liveStreams", params: params)
     |> handle_response()
   end
@@ -388,8 +413,12 @@ defmodule Streampai.YouTube.ApiClient do
           nil -> {:error, :no_live_chat_id}
           chat_id -> {:ok, chat_id}
         end
-      {:ok, %{"items" => []}} -> {:error, :broadcast_not_found}
-      error -> error
+
+      {:ok, %{"items" => []}} ->
+        {:error, :broadcast_not_found}
+
+      error ->
+        error
     end
   end
 
@@ -401,8 +430,7 @@ defmodule Streampai.YouTube.ApiClient do
 
   # Converts snake_case parameter names to camelCase for YouTube API
   defp normalize_broadcast_params(params) do
-    params
-    |> Enum.map(fn
+    Map.new(params, fn
       {:broadcast_status, value} -> {"broadcastStatus", value}
       {:broadcast_type, value} -> {"broadcastType", value}
       {:max_results, value} -> {"maxResults", value}
@@ -413,17 +441,18 @@ defmodule Streampai.YouTube.ApiClient do
       {key, value} when is_atom(key) -> {Atom.to_string(key), value}
       {key, value} -> {key, value}
     end)
-    |> Map.new()
   end
 
   # Handles HTTP responses consistently
   defp handle_response({:ok, %{status: status, body: body}}) when status in 200..299 do
     {:ok, body}
   end
+
   defp handle_response({:ok, %{status: status, body: body}}) do
     Logger.warning("YouTube API request failed with status #{status}: #{inspect(body)}")
     {:error, {:http_error, status, body}}
   end
+
   defp handle_response({:error, reason}) do
     Logger.error("YouTube API request failed: #{inspect(reason)}")
     {:error, reason}

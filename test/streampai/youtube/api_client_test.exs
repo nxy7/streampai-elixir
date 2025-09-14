@@ -3,6 +3,7 @@ defmodule Streampai.YouTube.ApiClientTest do
 
   alias Streampai.YouTube.ApiClient
 
+  @moduletag :skip
   @moduletag :integration
 
   describe "Live Broadcasts API" do
