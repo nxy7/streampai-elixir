@@ -58,27 +58,33 @@ defmodule Streampai.Fake.TopDonors do
     |> Enum.sort_by(& &1.amount, :desc)
   end
 
-  def generate_shuffled_top_donors(count \\ 15) do
-    # Generate a new list with some changes to simulate dynamic updates
-    current_list = generate_top_donors_list(count)
+  def generate_shuffled_top_donors(previous_donors \\ nil, count \\ 15) do
+    base_list = previous_donors || generate_top_donors_list(count)
 
-    # 80% chance to keep existing donors, 20% chance to add new ones
+    # For realistic updates: replace 1 donor, modify 2 others slightly
     updated_list =
-      current_list
-      |> Enum.map(fn donor ->
-        if Base.random_boolean(0.8) do
-          # Keep donor but possibly adjust amount slightly
-          adjustment = (:rand.uniform() - 0.5) * 50
-          new_amount = max(donor.amount + adjustment, 5.0)
-          %{donor | amount: Float.round(new_amount, 2)}
-        else
-          # Replace with new donor
-          %{
-            id: Base.generate_hex_id(),
-            username: Enum.random(@top_donor_usernames),
-            amount: generate_realistic_amount(),
-            currency: "$"
-          }
+      base_list
+      |> Enum.with_index()
+      |> Enum.map(fn {donor, index} ->
+        cond do
+          # Replace 1 donor (usually from middle/bottom)
+          index == Enum.random(5..(count - 1)) and Base.random_boolean(0.3) ->
+            %{
+              id: Base.generate_hex_id(),
+              username: Base.generate_username(),
+              amount: generate_realistic_amount(),
+              currency: "$"
+            }
+
+          # Modify amounts for 2 others (small adjustments)
+          index in [Enum.random(0..4), Enum.random(6..(count - 1))] and Base.random_boolean(0.4) ->
+            # 10% max change
+            adjustment = (:rand.uniform() - 0.5) * (donor.amount * 0.1)
+            new_amount = max(donor.amount + adjustment, 5.0)
+            %{donor | amount: Float.round(new_amount, 2)}
+
+          true ->
+            donor
         end
       end)
       |> Enum.sort_by(& &1.amount, :desc)

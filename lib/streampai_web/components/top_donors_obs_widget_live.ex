@@ -110,8 +110,9 @@ defmodule StreampaiWeb.Components.TopDonorsObsWidgetLive do
 
   # Handle demo updates
   def handle_info(:demo_update, socket) do
-    # Generate new shuffled donors list for demo animation
-    new_donors = TopDonors.generate_shuffled_top_donors(20)
+    # Generate new shuffled donors list for demo animation, passing current list for realistic updates
+    current_donors = socket.assigns.donors
+    new_donors = TopDonors.generate_shuffled_top_donors(current_donors, 20)
 
     # Schedule next demo update
     schedule_demo_update()
@@ -126,13 +127,13 @@ defmodule StreampaiWeb.Components.TopDonorsObsWidgetLive do
 
   def render(assigns) do
     ~H"""
-    <div class="h-screen w-screen bg-transparent p-4">
+    <div class="min-h-screen w-screen bg-transparent p-4 flex items-start">
       <.vue
         v-component="TopDonorsWidget"
         v-socket={@socket}
         config={@widget_config}
         donors={Enum.slice(@donors, 0, @widget_config.display_count || 10)}
-        class="w-full h-auto max-w-md"
+        class="w-full max-w-md"
         id="live-top-donors-widget"
       />
     </div>

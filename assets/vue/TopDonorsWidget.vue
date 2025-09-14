@@ -154,11 +154,12 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
   width: 100%;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   box-sizing: border-box;
+  min-height: fit-content;
+  height: auto;
 }
 
 .widget-title {
@@ -210,13 +211,14 @@ onMounted(() => {
 
 .donors-list {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0; /* Allow container to grow naturally */
 }
 
 .donors-container {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  position: relative;
 }
 
 .donor-item {
@@ -324,23 +326,42 @@ onMounted(() => {
   font-size: 1.03125rem;
 }
 
-.donor-enter-active,
+.donor-enter-active {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 .donor-leave-active {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  position: absolute;
+  left: 0;
+  right: 0;
 }
 
 .donor-enter-from {
   opacity: 0;
-  transform: translateX(-50px) scale(0.9);
+  transform: translateY(60px) scale(0.8);
 }
 
 .donor-leave-to {
   opacity: 0;
-  transform: translateX(50px) scale(0.9);
+  transform: translateY(-30px) scale(0.8);
+  height: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .donor-move {
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Ensure smooth height transitions for container */
+.donors-container {
+  transition: height 0.6s ease-out;
+}
+
+/* Reserve space to prevent layout shifts */
+.donor-item {
+  position: relative;
 }
 
 .theme-minimal {

@@ -32,8 +32,9 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
   end
 
   defp generate_and_assign_demo_data(socket) do
-    # Generate new top donors list with some changes
-    new_donors = @fake_module.generate_shuffled_top_donors(20)
+    # Generate new top donors list with some changes, passing previous list for realistic updates
+    current_donors = socket.assigns.donors
+    new_donors = @fake_module.generate_shuffled_top_donors(current_donors, 20)
 
     assign(socket, :donors, new_donors)
   end
