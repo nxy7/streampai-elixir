@@ -22,27 +22,15 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
 
   defp update_widget_settings(config, params) do
     boolean_fields = [:show_percentage, :show_amount_raised, :show_days_left, :animation_enabled]
+    color_fields = ["bar_color", "background_color", "text_color"]
 
-    # Map picker and text field names to unified names
-    normalized_params = params
-    |> Map.put("bar_color", params["bar_color_picker"] || params["bar_color_text"] || params["bar_color"])
-    |> Map.put("background_color", params["background_color_picker"] || params["background_color_text"] || params["background_color"])
-    |> Map.put("text_color", params["text_color_picker"] || params["text_color_text"] || params["text_color"])
-    |> Map.drop(["bar_color_picker", "bar_color_text", "background_color_picker", "background_color_text", "text_color_picker", "text_color_text"])
+    # Normalize color picker parameters using WidgetHelpers utility
+    normalized_params = WidgetHelpers.normalize_color_params(params, color_fields)
 
-    updated_config = WidgetHelpers.update_unified_settings(config, normalized_params,
+    WidgetHelpers.update_unified_settings(config, normalized_params,
       boolean_fields: boolean_fields,
       converter: &convert_setting_value/2
     )
-
-    # Debug logging
-    IO.inspect({:all_params, params}, label: "ALL PARAMS RECEIVED")
-    IO.inspect({:normalized_params, normalized_params}, label: "NORMALIZED PARAMS")
-    if Map.has_key?(normalized_params, "text_color") do
-      IO.inspect({:color_update, normalized_params, updated_config}, label: "DONATION GOAL COLOR UPDATE")
-    end
-
-    updated_config
   end
 
   defp generate_and_assign_demo_data(socket) do
@@ -102,26 +90,13 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
         String.slice(value, 0, 100)
 
       :bar_color ->
-        # Validate hex color
-        if String.match?(value, ~r/^#[0-9A-Fa-f]{6}$/) do
-          value
-        else
-          "#10b981"
-        end
+        WidgetHelpers.validate_hex_color(value, "#10b981")
 
       :background_color ->
-        if String.match?(value, ~r/^#[0-9A-Fa-f]{6}$/) do
-          value
-        else
-          "#e5e7eb"
-        end
+        WidgetHelpers.validate_hex_color(value, "#e5e7eb")
 
       :text_color ->
-        if String.match?(value, ~r/^#[0-9A-Fa-f]{6}$/) do
-          value
-        else
-          "#1f2937"
-        end
+        WidgetHelpers.validate_hex_color(value, "#1f2937")
 
       _ ->
         value

@@ -95,6 +95,37 @@ const CopyToClipboard = {
   },
 };
 
+// Color Picker Synchronization Hook
+const ColorPickerSync = {
+  mounted() {
+    const colorPickers = this.el.querySelectorAll('input[type="color"]');
+    const textInputs = this.el.querySelectorAll('input[type="text"][pattern*="[0-9A-Fa-f]"]');
+
+    // Create pairs of color picker and text input based on naming convention
+    colorPickers.forEach(colorPicker => {
+      const baseName = colorPicker.name.replace('_picker', '');
+      const textInput = this.el.querySelector(`input[name="${baseName}_text"]`);
+
+      if (textInput) {
+        // Sync color picker to text input
+        colorPicker.addEventListener('input', () => {
+          textInput.value = colorPicker.value;
+          // Trigger change event to update LiveView
+          textInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        // Sync text input to color picker
+        textInput.addEventListener('input', () => {
+          // Validate hex color format
+          if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+            colorPicker.value = textInput.value;
+          }
+        });
+      }
+    });
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -102,6 +133,7 @@ let Hooks = {
   MobileNavigation,
   DashboardSidebar,
   LocalStorage,
+  ColorPickerSync,
   ...getHooks(liveVueApp),
 };
 
