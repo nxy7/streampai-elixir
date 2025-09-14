@@ -25,6 +25,7 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
       case widget_type do
         :chat_widget -> "chat"
         :alertbox_widget -> "alertbox"
+        :donation_goal_widget -> "donation-goal"
         _ -> raise ArgumentError, "Unsupported widget type: #{inspect(widget_type)}"
       end
 
@@ -200,6 +201,52 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
   def validate_config_value(_setting, value, _allowed_values, _default) do
     value
   end
+
+  @doc """
+  Normalizes color picker parameters to unified field names.
+
+  Form inputs with color pickers use separate names (*_picker, *_text)
+  to avoid conflicts. This function merges them back to unified names.
+
+  ## Examples
+
+      iex> params = %{"bar_color_picker" => "#ff0000", "text_color_text" => "#00ff00"}
+      iex> normalize_color_params(params, ["bar_color", "text_color"])
+      %{"bar_color" => "#ff0000", "text_color" => "#00ff00"}
+  """
+  def normalize_color_params(params, color_fields) when is_list(color_fields) do
+    Enum.reduce(color_fields, params, fn field, acc ->
+      picker_key = "#{field}_picker"
+      text_key = "#{field}_text"
+
+      value = params[picker_key] || params[text_key] || params[field]
+
+      acc
+      |> Map.put(field, value)
+      |> Map.drop([picker_key, text_key])
+    end)
+  end
+
+  @doc """
+  Validates hex color format and returns valid color or default.
+
+  ## Examples
+
+      iex> validate_hex_color("#ff0000", "#000000")
+      "#ff0000"
+
+      iex> validate_hex_color("invalid", "#000000")
+      "#000000"
+  """
+  def validate_hex_color(value, default) when is_binary(value) do
+    if String.match?(value, ~r/^#[0-9A-Fa-f]{6}$/) do
+      value
+    else
+      default
+    end
+  end
+
+  def validate_hex_color(_, default), do: default
 
   @doc """
   Generates a standardized PubSub topic for widget configuration updates.

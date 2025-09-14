@@ -77,6 +77,7 @@ defmodule StreampaiWeb.Router do
 
     live("/widgets/chat/display", Components.ChatObsWidgetLive)
     live("/widgets/alertbox/display", Components.AlertboxObsWidgetLive)
+    live("/widgets/donation-goal/display", Components.DonationGoalObsWidgetLive)
     live("/widgets/viewer-count/display", Components.ViewerCountObsWidgetLive)
 
     get("/home", PageController, :home)
@@ -100,6 +101,7 @@ defmodule StreampaiWeb.Router do
       live("/dashboard/admin/users", DashboardAdminUsersLive)
       live("/widgets/chat", ChatWidgetSettingsLive)
       live("/widgets/alertbox", AlertboxWidgetSettingsLive)
+      live("/widgets/donation-goal", DonationGoalWidgetSettingsLive)
       live("/widgets/viewer-count", ViewerCountWidgetSettingsLive)
     end
 
