@@ -88,6 +88,11 @@ defmodule StreampaiWeb.WidgetBehaviour do
             end
           end
 
+          # Catch-all for unknown messages
+          def handle_info(_msg, socket) do
+            {:noreply, socket}
+          end
+
           # Helper functions to be overridden by implementing modules
 
           defp widget_title, do: "Widget Settings"
