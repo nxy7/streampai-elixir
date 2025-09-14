@@ -45,16 +45,6 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
     Process.send_after(self(), :generate_demo_event, delay)
   end
 
-  # Handle presence updates (inherited from BaseLive)
-  def handle_info(%Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"}, socket) do
-    {:noreply, socket}
-  end
-
-  # Let WidgetBehaviour handle other messages
-  def handle_info(msg, socket) do
-    super(msg, socket)
-  end
-
   defp convert_setting_value(setting, value) do
     case setting do
       :display_count ->

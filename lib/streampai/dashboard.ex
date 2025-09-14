@@ -48,11 +48,14 @@ defmodule Streampai.Dashboard do
 
   @doc "Gets dashboard data for a user."
   def get_dashboard_data(%User{} = user) do
+    # Load streaming accounts once to avoid multiple queries
+    streaming_accounts = get_streaming_accounts(user)
+
     %{
       user_info: get_user_info(user),
-      streaming_status: get_streaming_status(user),
-      quick_actions: get_quick_actions(user),
-      usage: get_usage_stats(user),
+      streaming_status: get_streaming_status(user, streaming_accounts),
+      quick_actions: get_quick_actions(user, streaming_accounts),
+      usage: get_usage_stats(user, streaming_accounts),
       metrics: get_metrics_cards(user)
     }
   end
@@ -69,8 +72,9 @@ defmodule Streampai.Dashboard do
   end
 
   @doc "Gets streaming status for a user."
-  def get_streaming_status(%User{} = user) do
-    connected_platforms = get_connected_platforms(user)
+  def get_streaming_status(%User{} = user, streaming_accounts \\ nil) do
+    streaming_accounts = streaming_accounts || get_streaming_accounts(user)
+    connected_platforms = get_connected_platforms_from_accounts(streaming_accounts)
 
     %{
       status: :offline,
@@ -80,18 +84,21 @@ defmodule Streampai.Dashboard do
   end
 
   @doc "Gets usage statistics for a user."
-  def get_usage_stats(%User{} = user) do
+  def get_usage_stats(%User{} = user, streaming_accounts \\ nil) do
+    streaming_accounts = streaming_accounts || get_streaming_accounts(user)
+
     %{
       hours_used: get_hours_used(user),
       hours_limit: get_hours_limit(user),
-      platforms_used: get_platforms_used(user),
+      platforms_used: get_platforms_used_from_accounts(streaming_accounts),
       platforms_limit: get_platforms_limit(user)
     }
   end
 
   @doc "Gets quick actions for a user."
-  def get_quick_actions(%User{} = user) do
-    connected_platforms = get_connected_platforms(user)
+  def get_quick_actions(%User{} = user, streaming_accounts \\ nil) do
+    streaming_accounts = streaming_accounts || get_streaming_accounts(user)
+    connected_platforms = get_connected_platforms_from_accounts(streaming_accounts)
 
     connected_actions = build_connected_actions(connected_platforms)
     unconnected_actions = build_unconnected_actions(connected_platforms, user)
@@ -162,10 +169,8 @@ defmodule Streampai.Dashboard do
     end
   end
 
-  defp get_connected_platforms(%User{} = user) do
-    user
-    |> get_streaming_accounts()
-    |> Enum.map(& &1.platform)
+  defp get_connected_platforms_from_accounts(streaming_accounts) do
+    Enum.map(streaming_accounts, & &1.platform)
   end
 
   defp get_display_name(%User{email: email}) when is_binary(email) do
@@ -185,10 +190,8 @@ defmodule Streampai.Dashboard do
   defp get_hours_limit(%User{tier: :pro}), do: :unlimited
   defp get_hours_limit(_), do: Constants.free_tier_hour_limit()
 
-  defp get_platforms_used(%User{} = user) do
-    user
-    |> get_connected_platforms()
-    |> length()
+  defp get_platforms_used_from_accounts(streaming_accounts) do
+    length(streaming_accounts)
   end
 
   defp get_platforms_limit(%User{tier: :pro}), do: 99

@@ -10,6 +10,7 @@ defmodule StreampaiWeb.Live.Helpers.RoleManagementHelpers do
 
   import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView, only: [put_flash: 3]
+  import StreampaiWeb.LiveHelpers.FlashHelpers
 
   alias Streampai.Accounts.UserRoleHelpers
 
@@ -55,8 +56,8 @@ defmodule StreampaiWeb.Live.Helpers.RoleManagementHelpers do
          {:ok, _result} <- action_fn.(role, current_user) do
       {:noreply, socket |> load_role_data(current_user) |> put_flash(:info, success_msg)}
     else
-      nil -> {:noreply, put_flash(socket, :error, not_found_msg)}
-      {:error, _} -> {:noreply, put_flash(socket, :error, error_msg)}
+      nil -> {:noreply, flash_error(socket, not_found_msg)}
+      {:error, _} -> {:noreply, flash_error(socket, error_msg)}
     end
   end
 

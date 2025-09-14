@@ -279,7 +279,7 @@ defmodule Streampai.YouTube.LiveChatStream do
   # Decode protobuf response to Elixir map
   # This would use generated protobuf decoders
   # Placeholder - would decode actual protobuf data
-  defp decode_chat_message(data) do
+  defp decode_chat_message(_data) do
     decoded = %{
       "id" => "message_id_#{:rand.uniform(1000)}",
       "snippet" => %{

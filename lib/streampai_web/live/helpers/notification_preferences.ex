@@ -6,6 +6,7 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
 
   import Phoenix.Component, only: [assign: 3, sigil_H: 2]
   import Phoenix.LiveView, only: [put_flash: 3]
+  import StreampaiWeb.LiveHelpers.FlashHelpers
 
   alias Streampai.Accounts.UserPreferences
 
@@ -58,7 +59,7 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
          )}
 
       {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to update notification preferences")}
+        {:noreply, flash_error(socket, "Failed to update notification preferences")}
     end
   end
 

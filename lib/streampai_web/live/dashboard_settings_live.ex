@@ -7,6 +7,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   import StreampaiWeb.Components.SubscriptionWidget
   import StreampaiWeb.Live.Helpers.NotificationPreferences
   import StreampaiWeb.Live.Helpers.RoleManagementHelpers
+  import StreampaiWeb.LiveHelpers.FlashHelpers
 
   alias Streampai.Accounts.NameValidator
   alias Streampai.Accounts.UserPreferences
@@ -51,7 +52,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
         {:noreply, redirect(socket, external: session.url)}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to start upgrade process: #{reason}")}
+        {:noreply, flash_error(socket, "Failed to start upgrade process: #{reason}")}
     end
   end
 
@@ -59,7 +60,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     {:noreply,
      socket
      |> assign(:current_plan, "free")
-     |> put_flash(:info, "Successfully downgraded to Free plan!")}
+     |> flash_success("Successfully downgraded to Free plan!")}
   end
 
   def handle_event("validate_name", %{"form" => form_params}, socket) do
@@ -114,7 +115,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
            )
            |> assign(:name_success, "Name updated successfully!")
            |> assign(:name_available, nil)
-           |> put_flash(:info, "Name updated successfully!")}
+           |> flash_success("Name updated successfully!")}
 
         {:error, form} ->
           {:noreply,
@@ -205,13 +206,12 @@ defmodule StreampaiWeb.DashboardSettingsLive do
         {:noreply,
          socket
          |> load_user_preferences()
-         |> put_flash(:info, "Donation preferences updated successfully!")}
+         |> flash_success("Donation preferences updated successfully!")}
 
       {:error, _changeset} ->
         {:noreply,
-         put_flash(
+         flash_error(
            socket,
-           :error,
            "Failed to update donation preferences. Please check your values."
          )}
     end
