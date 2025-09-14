@@ -112,7 +112,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
                 v-component="TopDonorsWidget"
                 v-socket={@socket}
                 config={@widget_config}
-                donors={Enum.slice(@donors, 0, @widget_config.display_count)}
+                donors={Enum.slice(@donors, 0, @widget_config.display_count || 10)}
                 class="w-full h-full"
                 id="preview-top-donors-widget"
               />
@@ -133,7 +133,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
                   type="number"
                   name="display_count"
                   id="display_count"
-                  value={@widget_config.display_count}
+                  value={@widget_config.display_count || 10}
                   phx-blur="update_settings"
                   min="1"
                   max="20"
@@ -145,7 +145,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
               <StreampaiWeb.WidgetSettingsComponents.select_setting
                 name="currency"
                 label="Currency"
-                value={@widget_config.currency}
+                value={@widget_config.currency || "$"}
                 options={[
                   {"$", "USD ($)"},
                   {"€", "EUR (€)"},
@@ -163,7 +163,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
             <StreampaiWeb.WidgetSettingsComponents.checkbox_setting
               name="animation_enabled"
               label="Enable smooth animations when donors list changes"
-              checked={@widget_config.animation_enabled}
+              checked={@widget_config.animation_enabled || true}
             />
           </StreampaiWeb.WidgetSettingsComponents.settings_section>
           
@@ -172,7 +172,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
             <StreampaiWeb.WidgetSettingsComponents.select_setting
               name="theme"
               label="Theme"
-              value={@widget_config.theme}
+              value={@widget_config.theme || "default"}
               options={[
                 {"default", "Default"},
                 {"minimal", "Minimal"},
@@ -190,12 +190,12 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
                     type="color"
                     name="background_color_picker"
                     id="background_color"
-                    value={@widget_config.background_color}
+                    value={@widget_config.background_color || "#1f2937"}
                     class="h-10 w-20 border border-gray-300 rounded cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={@widget_config.background_color}
+                    value={@widget_config.background_color || "#1f2937"}
                     name="background_color_text"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     pattern="^#[0-9A-Fa-f]{6}$"
@@ -213,12 +213,12 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
                     type="color"
                     name="text_color_picker"
                     id="text_color"
-                    value={@widget_config.text_color}
+                    value={@widget_config.text_color || "#ffffff"}
                     class="h-10 w-20 border border-gray-300 rounded cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={@widget_config.text_color}
+                    value={@widget_config.text_color || "#ffffff"}
                     name="text_color_text"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     pattern="^#[0-9A-Fa-f]{6}$"

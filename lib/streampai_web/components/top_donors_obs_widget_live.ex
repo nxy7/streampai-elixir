@@ -131,7 +131,7 @@ defmodule StreampaiWeb.Components.TopDonorsObsWidgetLive do
         v-component="TopDonorsWidget"
         v-socket={@socket}
         config={@widget_config}
-        donors={Enum.slice(@donors, 0, @widget_config.display_count)}
+        donors={Enum.slice(@donors, 0, @widget_config.display_count || 10)}
         class="w-full h-auto max-w-md"
         id="live-top-donors-widget"
       />
