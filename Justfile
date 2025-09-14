@@ -73,19 +73,27 @@ worktree name:
 
 	# Generate database name from worktree name (replace hyphens with underscores)
 	DB_NAME="streampai_$(echo "{{name}}" | tr '-' '_')_dev"
+	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
+
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;"
+
+	# Append worktree-specific configuration to .env before setup
+	echo "" >> .env
+	echo "# Worktree-specific configuration for: {{name}}" >> .env
+	echo "DATABASE_URL=$DB_URL" >> .env
 
 	mix deps.get
 	mix assets.setup
 	mix assets.build
 
-	mix ash.setup # this sets up db and runs seeds
+	# Export environment variables and run setup
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
-	claude .
+	# Create the database first (ecto.create connects to postgres db to create target db)
+	mix ecto.create
 
-	# Append worktree-specific configuration to .env
-	echo "" >> .env
-	echo "# Worktree-specific configuration for: {{name}}" >> .env
-	echo "DATABASE_NAME=$DB_NAME" >> .env
+	# Then run ash.setup for migrations and seeds
+	mix ash.setup
 
 	echo "Worktree created at: ../{{name}}"
 	echo "Database: $DB_NAME"
