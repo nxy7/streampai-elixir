@@ -323,15 +323,11 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   defp create_live_input(state) do
     Logger.info("[CloudflareManager:#{state.user_id}] Starting live input creation...")
-    Logger.info("[CloudflareManager:#{state.user_id}] Calling LiveInput.get_or_fetch_for_user...")
 
     case LiveInput.get_or_fetch_for_user_with_test_mode(state.user_id,
            actor: %{id: state.user_id}
          ) do
       {:ok, live_input} ->
-        Logger.info("[CloudflareManager:#{state.user_id}] LiveInput.get_or_fetch_for_user result: #{inspect(live_input)}")
-
-        # Extract data from the persisted LiveInput resource
         case live_input.data do
           %{
             "uid" => input_id,
