@@ -10,7 +10,7 @@ defmodule Streampai.Accounts.UserTest do
       {:ok, admin_user} =
         User
         |> Ash.Changeset.for_create(:register_with_password, %{
-          email: "lolnoxy@gmail.com",
+          email: "testadmin@local.com",
           password: "password123",
           password_confirmation: "password123"
         })

@@ -42,23 +42,14 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
     assign(socket, :current_data, new_data)
   end
 
-  defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 3000)
-
-  # Handle presence updates (inherited from BaseLive)
-  def handle_info(%Phoenix.Socket.Broadcast{topic: "users_presence", event: "presence_diff"}, socket) do
-    {:noreply, socket}
-  end
-
-  # Let WidgetBehaviour handle other messages
-  def handle_info(msg, socket) do
-    super(msg, socket)
+  defp schedule_demo_event do
+    # Use a reasonable default that matches our widget's typical interval
+    # This could be enhanced to read from socket.assigns.widget_config if passed
+    Process.send_after(self(), :generate_demo_event, 3000)
   end
 
   defp convert_setting_value(setting, value) do
     case setting do
-      :update_interval ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 30)
-
       :display_style ->
         WidgetHelpers.validate_config_value(
           :display_style,
@@ -155,18 +146,6 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
                 {"medium", "Medium"},
                 {"large", "Large"}
               ]}
-            />
-          </StreampaiWeb.WidgetSettingsComponents.settings_section>
-          
-    <!-- Update Settings -->
-          <StreampaiWeb.WidgetSettingsComponents.settings_section title="Update Settings">
-            <StreampaiWeb.WidgetSettingsComponents.number_input_setting
-              name="update_interval"
-              label="Update interval (seconds)"
-              value={@widget_config.update_interval}
-              min={1}
-              max={30}
-              help_text="How often viewer counts refresh (1-30 seconds)"
             />
           </StreampaiWeb.WidgetSettingsComponents.settings_section>
         </StreampaiWeb.WidgetSettingsComponents.settings_container>

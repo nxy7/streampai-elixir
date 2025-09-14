@@ -52,7 +52,7 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
         },
         impersonator: %{
           id: "123",
-          email: "lolnoxy@gmail.com",
+          email: "testadmin@local.com",
           avatar: "http://example.com/avatar.png"
         },
         current_page: "users",
@@ -69,7 +69,7 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
       assigns = %{
         current_user: %{
           id: "123",
-          email: "lolnoxy@gmail.com",
+          email: "testadmin@local.com",
           role: :admin,
           avatar: "http://example.com/avatar.png"
         },
