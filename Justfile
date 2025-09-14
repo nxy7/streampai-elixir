@@ -94,6 +94,7 @@ worktree name:
 
 	# Then run ash.setup for migrations and seeds
 	mix ash.setup
+	mix compile
 
 	echo "Worktree created at: ../{{name}}"
 	echo "Database: $DB_NAME"

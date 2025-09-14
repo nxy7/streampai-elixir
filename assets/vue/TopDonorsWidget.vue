@@ -283,6 +283,27 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  position: relative;
+}
+
+.donors-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.donors-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.donors-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.donors-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .donors-container {
@@ -290,6 +311,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.75rem;
   position: relative;
+  min-height: 0;
 }
 
 .donor-item {
@@ -428,27 +450,34 @@ onMounted(() => {
 }
 
 .donor-enter-active {
-  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  max-height: 100px;
+  overflow: hidden;
 }
 
 .donor-leave-active {
   transition: all 0.5s cubic-bezier(0.55, 0.06, 0.68, 0.19);
-  position: absolute;
+  position: absolute !important;
   left: 0;
   right: 0;
+  width: 100%;
+  z-index: -1;
 }
 
 .donor-enter-from {
   opacity: 0;
-  transform: translateY(60px) scale(0.8);
+  transform: translateY(30px) scale(0.95);
+  max-height: 0;
+  overflow: hidden;
 }
 
 .donor-leave-to {
   opacity: 0;
-  transform: translateY(-30px) scale(0.8);
-  height: 0;
-  padding: 0;
-  margin: 0;
+  transform: translateY(-20px) scale(0.95);
+  max-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
 }
 
 .donor-move {

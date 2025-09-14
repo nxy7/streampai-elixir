@@ -39,9 +39,9 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
     assign(socket, :donors, new_donors)
   end
 
-  # Schedule next demo event between 7-10 seconds
+  # Schedule next demo event between 3-5 seconds
   defp schedule_demo_event do
-    delay = Enum.random(7000..10_000)
+    delay = Enum.random(3000..5000)
     Process.send_after(self(), :generate_demo_event, delay)
   end
 
@@ -92,7 +92,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Top Donors Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-[]">
           <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
             title="Top Donors Widget"
             current_user={@current_user}
@@ -104,7 +104,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
           />
           
     <!-- Top Donors Widget Display -->
-          <div class="w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 min-h-[600px]">
+          <div class="w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 h-[600px] overflow-hidden">
             <div class="text-xs text-gray-400 mb-2">
               Preview (actual widget has transparent background)
             </div>

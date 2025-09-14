@@ -82,6 +82,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :chat_widget,
                :alertbox_widget,
                :viewer_count_widget,
+               :follower_count_widget,
                :donation_widget,
                :donation_goal_widget,
                :top_donors_widget,
@@ -92,7 +93,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget
              ]) do
-      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, donation_widget, donation_goal_widget, top_donors_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, follower_count_widget, donation_widget, top_donors_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
     end
 
     validate present([:user_id])
@@ -160,7 +161,20 @@ defmodule Streampai.Accounts.WidgetConfig do
           show_platforms: true,
           font_size: "medium",
           display_style: "detailed",
-          animation_enabled: true
+          animation_enabled: true,
+          icon_color: "#ef4444",
+          viewer_label: "viewers"
+        }
+
+      :follower_count_widget ->
+        %{
+          show_total: true,
+          show_platforms: true,
+          font_size: "medium",
+          display_style: "detailed",
+          animation_enabled: true,
+          total_label: "Total followers",
+          icon_color: "#9333ea"
         }
 
       :donation_widget ->
@@ -218,6 +232,7 @@ defmodule Streampai.Accounts.WidgetConfig do
       :chat_widget -> [:max_messages, :show_badges, :show_emotes]
       :alertbox_widget -> [:display_duration, :animation_type, :sound_enabled]
       :viewer_count_widget -> [:show_total, :display_style]
+      :follower_count_widget -> [:show_total, :display_style]
       :donation_widget -> [:show_amount, :minimum_amount]
       :follow_widget -> [:animation_type, :display_duration]
       :subscriber_widget -> [:show_tier, :animation_type, :display_duration]
@@ -232,6 +247,7 @@ defmodule Streampai.Accounts.WidgetConfig do
       :alertbox_widget -> valid_alertbox_config_values?(config)
       :viewer_count_widget -> valid_viewer_count_config_values?(config)
       :top_donors_widget -> valid_top_donors_config_values?(config)
+      :follower_count_widget -> valid_follower_count_config_values?(config)
       # Other widget types don't have specific validations yet
       _ -> true
     end
@@ -268,5 +284,11 @@ defmodule Streampai.Accounts.WidgetConfig do
     currency_valid = currency in ["$", "€", "£", "¥", "₹", "₽"]
 
     display_count_valid and currency_valid
+  end
+
+  defp valid_follower_count_config_values?(config) do
+    display_style = Map.get(config, :display_style)
+    style_valid = display_style in ["minimal", "detailed", "cards"]
+    style_valid
   end
 end
