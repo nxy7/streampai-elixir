@@ -73,30 +73,25 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Live Chat Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Live Chat Widget"
-            current_user={@current_user}
-            socket={@socket}
-            widget_type={:chat_widget}
-            url_path={~p"/widgets/chat/display"}
-            dimensions="400x600"
-            copy_button_id="copy-url-button"
+        <StreampaiWeb.WidgetSettingsComponents.widget_preview
+          title="Live Chat Widget"
+          current_user={@current_user}
+          socket={@socket}
+          widget_type={:chat_widget}
+          url_path={~p"/widgets/chat/display"}
+          dimensions="400x600"
+          copy_button_id="copy-url-button"
+          vue_component="ChatWidget"
+        >
+          <.vue
+            v-component="ChatWidget"
+            v-socket={@socket}
+            config={@widget_config}
+            messages={@vue_messages}
+            class="w-full h-full"
+            id="preview-chat-widget"
           />
-          
-    <!-- Chat Widget Display -->
-          <div class="max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden">
-            <div class="text-xs text-gray-400 mb-2">Preview (actual widget is transparent)</div>
-            <.vue
-              v-component="ChatWidget"
-              v-socket={@socket}
-              config={@widget_config}
-              messages={@vue_messages}
-              class="w-full h-full"
-              id="preview-chat-widget"
-            />
-          </div>
-        </div>
+        </StreampaiWeb.WidgetSettingsComponents.widget_preview>
         
     <!-- Configuration Options -->
         <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>

@@ -83,32 +83,26 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Viewer Count Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Viewer Count Widget"
-            current_user={@current_user}
-            socket={@socket}
-            widget_type={:viewer_count_widget}
-            url_path={~p"/widgets/viewer-count/display"}
-            dimensions="800x200"
-            copy_button_id="copy-viewer-count-url-button"
+        <StreampaiWeb.WidgetSettingsComponents.widget_preview
+          title="Viewer Count Widget"
+          current_user={@current_user}
+          socket={@socket}
+          widget_type={:viewer_count_widget}
+          url_path={~p"/widgets/viewer-count/display"}
+          dimensions="800x200"
+          copy_button_id="copy-viewer-count-url-button"
+          vue_component="ViewerCountWidget"
+          container_class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-64 overflow-hidden relative"
+        >
+          <.vue
+            v-component="ViewerCountWidget"
+            v-socket={@socket}
+            config={@widget_config}
+            data={@current_data}
+            class="w-full h-full"
+            id="preview-viewer-count-widget"
           />
-          
-    <!-- Viewer Count Widget Display -->
-          <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-64 overflow-hidden relative">
-            <div class="text-xs text-gray-400 mb-2">
-              Preview (actual widget has transparent background)
-            </div>
-            <.vue
-              v-component="ViewerCountWidget"
-              v-socket={@socket}
-              config={@widget_config}
-              data={@current_data}
-              class="w-full h-full"
-              id="preview-viewer-count-widget"
-            />
-          </div>
-        </div>
+        </StreampaiWeb.WidgetSettingsComponents.widget_preview>
         
     <!-- Configuration Options -->
         <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>

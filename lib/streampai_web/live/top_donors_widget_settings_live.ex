@@ -82,34 +82,27 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Top Donors Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-[]">
-          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Top Donors Widget"
-            current_user={@current_user}
-            socket={@socket}
-            widget_type={:top_donors_widget}
-            url_path={~p"/widgets/top-donors/display"}
-            dimensions="300x600"
-            copy_button_id="copy-top-donors-url-button"
+        <StreampaiWeb.WidgetSettingsComponents.widget_preview
+          title="Top Donors Widget"
+          current_user={@current_user}
+          socket={@socket}
+          widget_type={:top_donors_widget}
+          url_path={~p"/widgets/top-donors/display"}
+          dimensions="300x600"
+          copy_button_id="copy-top-donors-url-button"
+          vue_component="TopDonorsWidget"
+          container_class="w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 h-[600px] overflow-hidden"
+          preview_class="w-full max-w-sm mx-auto"
+        >
+          <.vue
+            v-component="TopDonorsWidget"
+            v-socket={@socket}
+            config={@widget_config}
+            donors={Enum.slice(@donors, 0, @widget_config.display_count || 10)}
+            class="w-full h-full"
+            id="preview-top-donors-widget"
           />
-          
-    <!-- Top Donors Widget Display -->
-          <div class="w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 h-[600px] overflow-hidden">
-            <div class="text-xs text-gray-400 mb-2">
-              Preview (actual widget has transparent background)
-            </div>
-            <div class="w-full max-w-sm mx-auto">
-              <.vue
-                v-component="TopDonorsWidget"
-                v-socket={@socket}
-                config={@widget_config}
-                donors={Enum.slice(@donors, 0, @widget_config.display_count || 10)}
-                class="w-full h-full"
-                id="preview-top-donors-widget"
-              />
-            </div>
-          </div>
-        </div>
+        </StreampaiWeb.WidgetSettingsComponents.widget_preview>
         
     <!-- Configuration Options -->
         <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>

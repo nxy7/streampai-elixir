@@ -109,35 +109,27 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Donation Goal Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Donation Goal Widget"
-            current_user={@current_user}
-            socket={@socket}
-            widget_type={:donation_goal_widget}
-            url_path={~p"/widgets/donation-goal/display"}
-            dimensions="400x200"
-            copy_button_id="copy-donation-goal-url-button"
+        <StreampaiWeb.WidgetSettingsComponents.widget_preview
+          title="Donation Goal Widget"
+          current_user={@current_user}
+          socket={@socket}
+          widget_type={:donation_goal_widget}
+          url_path={~p"/widgets/donation-goal/display"}
+          dimensions="400x200"
+          copy_button_id="copy-donation-goal-url-button"
+          vue_component="DonationGoalWidget"
+          preview_class="w-full aspect-video"
+        >
+          <.vue
+            v-component="DonationGoalWidget"
+            v-socket={@socket}
+            config={@widget_config}
+            currentAmount={@current_amount}
+            donation={@last_donation}
+            class="w-full h-full"
+            id="preview-donation-goal-widget"
           />
-          
-    <!-- Donation Goal Widget Display -->
-          <div class="w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 min-h-[400px]">
-            <div class="text-xs text-gray-400 mb-2">
-              Preview (actual widget has transparent background)
-            </div>
-            <div class="w-full aspect-video">
-              <.vue
-                v-component="DonationGoalWidget"
-                v-socket={@socket}
-                config={@widget_config}
-                currentAmount={@current_amount}
-                donation={@last_donation}
-                class="w-full h-full"
-                id="preview-donation-goal-widget"
-              />
-            </div>
-          </div>
-        </div>
+        </StreampaiWeb.WidgetSettingsComponents.widget_preview>
         
     <!-- Configuration Options -->
         <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>

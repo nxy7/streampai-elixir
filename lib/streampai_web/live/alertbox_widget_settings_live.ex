@@ -83,32 +83,25 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     <.dashboard_layout {assigns} current_page="widgets" page_title="Alertbox Widget">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Widget Preview -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <StreampaiWeb.WidgetSettingsComponents.widget_preview_header
-            title="Alertbox Widget"
-            current_user={@current_user}
-            socket={@socket}
-            widget_type={:alertbox_widget}
-            url_path={~p"/widgets/alertbox/display"}
-            dimensions="800x600"
-            copy_button_id="copy-alertbox-url-button"
+        <StreampaiWeb.WidgetSettingsComponents.widget_preview
+          title="Alertbox Widget"
+          current_user={@current_user}
+          socket={@socket}
+          widget_type={:alertbox_widget}
+          url_path={~p"/widgets/alertbox/display"}
+          dimensions="800x600"
+          copy_button_id="copy-alertbox-url-button"
+          vue_component="AlertboxWidget"
+        >
+          <.vue
+            v-component="AlertboxWidget"
+            v-socket={@socket}
+            config={@widget_config}
+            event={@current_event}
+            class="w-full h-full"
+            id="preview-alertbox-widget"
           />
-          
-    <!-- Alertbox Widget Display -->
-          <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-[32rem] overflow-hidden relative">
-            <div class="text-xs text-gray-400 mb-2">
-              Preview (actual widget has transparent background)
-            </div>
-            <.vue
-              v-component="AlertboxWidget"
-              v-socket={@socket}
-              config={@widget_config}
-              event={@current_event}
-              class="w-full h-full"
-              id="preview-alertbox-widget"
-            />
-          </div>
-        </div>
+        </StreampaiWeb.WidgetSettingsComponents.widget_preview>
         
     <!-- Configuration Options -->
         <StreampaiWeb.WidgetSettingsComponents.settings_container widget_config={@widget_config}>
