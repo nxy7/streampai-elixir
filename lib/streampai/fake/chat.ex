@@ -40,6 +40,7 @@ defmodule Streampai.Fake.Chat do
   def generate_chat_history_messages(count \\ 20) do
     1..count
     |> Enum.map(fn i ->
+      # Limited to platforms with chat history support
       platform = Enum.random([:twitch, :youtube])
       username = Base.generate_username()
       message = Enum.random(messages())

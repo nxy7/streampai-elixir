@@ -4,6 +4,13 @@ defmodule StreampaiWeb.Utils.PlatformUtils do
   """
 
   @doc """
+  Returns the list of all supported streaming platforms.
+  """
+  def supported_platforms do
+    Streampai.Stream.Platform.values()
+  end
+
+  @doc """
   Returns the background color class for a given platform.
   """
   def platform_color(:twitch), do: "bg-purple-500"

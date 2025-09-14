@@ -89,7 +89,7 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
 
   describe "PlatformUtils business logic consistency" do
     test "all platform functions handle same set of platforms consistently" do
-      supported_platforms = [:twitch, :youtube, :facebook, :kick]
+      supported_platforms = PlatformUtils.supported_platforms()
 
       for platform <- supported_platforms do
         # All functions should handle supported platforms without defaults
@@ -132,6 +132,7 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
   describe "PlatformUtils real-world usage scenarios" do
     test "supports typical streaming dashboard display" do
       # Simulate displaying platform info in dashboard
+      # Test subset
       active_platforms = [:twitch, :youtube, :kick]
 
       platform_data =

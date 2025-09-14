@@ -25,7 +25,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   @doc """
   Starts a platform manager for a specific platform.
   """
-  def start_platform_manager(user_id, platform, config) when platform in [:twitch, :youtube, :facebook, :kick] do
+  def start_platform_manager(user_id, platform, config) when platform in ~w(twitch youtube facebook kick)a do
     supervisor_pid = via_tuple(user_id)
 
     child_spec = get_platform_manager_spec(user_id, platform, config)

@@ -92,7 +92,7 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   end
 
   defp count_platform_connections do
-    platforms = [:twitch, :youtube, :facebook, :kick]
+    platforms = StreampaiWeb.Utils.PlatformUtils.supported_platforms()
 
     Map.new(platforms, fn platform ->
       count =

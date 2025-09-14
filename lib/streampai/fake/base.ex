@@ -11,7 +11,7 @@ defmodule Streampai.Fake.Base do
   Generates a random platform with standardized structure.
   """
   def generate_platform do
-    platform_name = Enum.random([:twitch, :youtube, :facebook, :kick])
+    platform_name = Enum.random(PlatformUtils.supported_platforms())
 
     %{
       name: PlatformUtils.platform_name(platform_name),

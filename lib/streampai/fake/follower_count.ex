@@ -7,7 +7,7 @@ defmodule Streampai.Fake.FollowerCount do
   alias Streampai.Fake.Base
   alias StreampaiWeb.Utils.PlatformUtils
 
-  @platforms [:twitch, :youtube, :kick, :facebook]
+  defp platforms, do: PlatformUtils.supported_platforms()
 
   def default_config do
     %{
@@ -54,7 +54,7 @@ defmodule Streampai.Fake.FollowerCount do
   defp generate_active_platforms do
     num_platforms = Enum.random(2..4)
 
-    @platforms
+    platforms()
     |> Enum.shuffle()
     |> Enum.take(num_platforms)
   end
