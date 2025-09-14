@@ -37,6 +37,62 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
   end
 
   attr :title, :string, required: true
+  attr :current_user, :map, required: true
+  attr :socket, :map, required: true
+  attr :widget_type, :atom, required: true
+  attr :url_path, :string, required: true
+  attr :dimensions, :string, default: "400x600"
+  attr :copy_button_id, :string, required: true
+  attr :vue_component, :string, required: true
+  attr :preview_class, :string, default: nil
+  attr :container_class, :string, default: nil
+  slot :inner_block, required: true
+
+  def widget_preview(assigns) do
+    # Set default container class based on dimensions for common cases
+    default_container_class =
+      case assigns.dimensions do
+        "400x600" ->
+          "max-w-md mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-96 overflow-hidden"
+
+        "800x600" ->
+          "max-w-2xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 h-[32rem] overflow-hidden relative"
+
+        "400x200" ->
+          "w-full max-w-4xl mx-auto bg-gray-900 border border-gray-200 rounded p-4 mt-4 min-h-[400px]"
+
+        _ ->
+          "mx-auto bg-gray-900 border border-gray-200 rounded p-4 overflow-hidden"
+      end
+
+    assigns =
+      assign(assigns, :final_container_class, assigns.container_class || default_container_class)
+
+    ~H"""
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <.widget_preview_header
+        title={@title}
+        current_user={@current_user}
+        socket={@socket}
+        widget_type={@widget_type}
+        url_path={@url_path}
+        dimensions={@dimensions}
+        copy_button_id={@copy_button_id}
+      />
+
+      <div class={@final_container_class}>
+        <div class="text-xs text-gray-400 mb-2">
+          Preview (actual widget has transparent background)
+        </div>
+        <div class={@preview_class || "w-full h-full"}>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :title, :string, required: true
   attr :socket, :map, required: true
   attr :url_path, :string, required: true
   attr :current_user, :map, required: true
