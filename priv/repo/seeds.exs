@@ -27,9 +27,11 @@ Logger.info("Repo config: #{inspect(repo_config)}")
 case Ash.read(Streampai.Accounts.User, actor: nil) do
   {:ok, users} ->
     Logger.info("Connected to database with #{length(users)} existing users")
+
   {:error, error} ->
     Logger.error("Database connection error: #{inspect(error)}")
 end
+
 # Create test user for development environment only
 if Mix.env() == :dev do
   import Ash.Expr

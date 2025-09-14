@@ -25,27 +25,32 @@ if System.get_env("PHX_SERVER") do
 end
 
 # Database configuration for all environments
-database_url = case env do
-  :prod ->
-    System.get_env("DATABASE_URL") ||
-      raise "DATABASE_URL environment variable is missing"
+database_url =
+  case env do
+    :prod ->
+      System.get_env("DATABASE_URL") ||
+        raise "DATABASE_URL environment variable is missing"
 
-  :test ->
-    # Build test database name similar to test.exs logic
-    worktree_name = Path.basename(File.cwd!()) |> String.replace("-", "_")
-    test_db_name = "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
-    System.get_env("DATABASE_URL") || "postgresql://postgres:postgres@localhost:5432/#{test_db_name}"
+    :test ->
+      # Build test database name similar to test.exs logic
+      worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_")
+      test_db_name = "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
 
-  :dev ->
-    System.get_env("DATABASE_URL") || "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
-end
+      System.get_env("DATABASE_URL") ||
+        "postgresql://postgres:postgres@localhost:5432/#{test_db_name}"
+
+    :dev ->
+      System.get_env("DATABASE_URL") ||
+        "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+  end
 
 # Configure the repository for all environments
-pool_size = case env do
-  :test -> System.schedulers_online() * 2
-  :dev -> 30
-  :prod -> String.to_integer(System.get_env("POOL_SIZE") || "25")
-end
+pool_size =
+  case env do
+    :test -> System.schedulers_online() * 2
+    :dev -> 30
+    :prod -> String.to_integer(System.get_env("POOL_SIZE") || "25")
+  end
 
 config :streampai, Streampai.Repo,
   url: database_url,
@@ -105,8 +110,7 @@ if config_env() == :prod do
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   # Add production-specific database settings
-  config :streampai, Streampai.Repo,
-    socket_options: maybe_ipv6
+  config :streampai, Streampai.Repo, socket_options: maybe_ipv6
 
   config :streampai, StreampaiWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

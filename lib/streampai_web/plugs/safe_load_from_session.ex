@@ -13,24 +13,22 @@ defmodule StreampaiWeb.Plugs.SafeLoadFromSession do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    try do
-      StreampaiWeb.AuthPlug.load_from_session(conn, [])
-    rescue
-      error ->
-        # Check if this is an authentication-related error
-        error_string = Exception.message(error)
+    StreampaiWeb.AuthPlug.load_from_session(conn, [])
+  rescue
+    error ->
+      # Check if this is an authentication-related error
+      error_string = Exception.message(error)
 
-        if auth_related_error?(error_string) do
-          Logger.info("User session invalid in current worktree database - clearing session")
+      if auth_related_error?(error_string) do
+        Logger.info("User session invalid in current worktree database - clearing session")
 
-          conn
-          |> clear_session()
-          |> assign(:current_user, nil)
-        else
-          # Re-raise non-authentication errors
-          reraise error, __STACKTRACE__
-        end
-    end
+        conn
+        |> clear_session()
+        |> assign(:current_user, nil)
+      else
+        # Re-raise non-authentication errors
+        reraise error, __STACKTRACE__
+      end
   end
 
   defp auth_related_error?(error_string) do
