@@ -10,7 +10,9 @@ config :live_vue, vite_host: "http://localhost:5173", ssr: false
 config :logger, :console, format: "[$level] $message\n"
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
-if System.get_env("DISABLE_LIVE_DEBUGGER") != "true" do
+if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do
+  config :live_debugger, :disabled?, true
+else
   config :live_debugger, LiveDebugger.App.Web.Endpoint,
     http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
 end
@@ -23,14 +25,7 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   enable_expensive_runtime_checks: true
 
-# Database configuration
-config :streampai, Streampai.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "postgres",
-  pool_size: 30,
-  show_sensitive_data_on_connection_error: true
+# Database configuration is now handled entirely in runtime.exs
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

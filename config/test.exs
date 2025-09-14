@@ -1,9 +1,13 @@
 import Config
 
-# Set required environment variables for tests
+# Set required environment variables for tests - worktree-friendly
+worktree_name = File.cwd!() |> Path.basename() |> String.replace("-", "_") |> String.downcase()
+
+test_db_name = "streampai_#{worktree_name}_test#{System.get_env("MIX_TEST_PARTITION")}"
+
 System.put_env(
   "DATABASE_URL",
-  "postgresql://postgres:postgres@localhost:5432/streampai_test#{System.get_env("MIX_TEST_PARTITION")}"
+  "postgresql://postgres:postgres@localhost:5432/#{test_db_name}"
 )
 
 System.put_env("SECRET_KEY", "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/dlt9ArOMnBFIoS")
@@ -30,13 +34,8 @@ config :streampai, Streampai.Mailer, adapter: Swoosh.Adapters.Test
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :streampai, Streampai.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "streampai_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+# Test-specific database configuration (URL is handled in runtime.exs)
+config :streampai, Streampai.Repo, pool: Ecto.Adapters.SQL.Sandbox
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

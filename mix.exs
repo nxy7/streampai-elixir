@@ -66,6 +66,7 @@ defmodule Streampai.MixProject do
       {:ash_postgres, "~> 2.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ash_authentication, "~> 4.0"},
+      # {:google_api_you_tube, "~> 0.54.0"},
       # {:ash_authentication_phoenix, "~> 2.10"},
       {:ash_authentication_phoenix, git: "https://github.com/nxy7/ash_authentication_phoenix.git", override: true},
       {:ash, "~> 3.0"},
@@ -98,7 +99,8 @@ defmodule Streampai.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:grpcbox, "~> 0.17"}
     ]
   end
 

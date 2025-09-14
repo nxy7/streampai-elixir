@@ -81,6 +81,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     validate one_of(:type, [
                :chat_widget,
                :alertbox_widget,
+               :viewer_count_widget,
                :donation_widget,
                :donation_goal_widget,
                :follow_widget,
@@ -90,7 +91,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget
              ]) do
-      message "Type must be one of: chat_widget, alertbox_widget, donation_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, donation_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
     end
 
     validate present([:user_id])
@@ -152,6 +153,15 @@ defmodule Streampai.Accounts.WidgetConfig do
           font_size: "medium"
         }
 
+      :viewer_count_widget ->
+        %{
+          show_total: true,
+          show_platforms: true,
+          font_size: "medium",
+          display_style: "detailed",
+          animation_enabled: true
+        }
+
       :donation_widget ->
         %{
           show_amount: true,
@@ -203,6 +213,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     case widget_type do
       :chat_widget -> [:max_messages, :show_badges, :show_emotes]
       :alertbox_widget -> [:display_duration, :animation_type, :sound_enabled]
+      :viewer_count_widget -> [:show_total, :display_style]
       :donation_widget -> [:show_amount, :minimum_amount]
       :follow_widget -> [:animation_type, :display_duration]
       :subscriber_widget -> [:show_tier, :animation_type, :display_duration]
@@ -214,6 +225,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     case widget_type do
       :chat_widget -> valid_chat_config_values?(config)
       :alertbox_widget -> valid_alertbox_config_values?(config)
+      :viewer_count_widget -> valid_viewer_count_config_values?(config)
       # Other widget types don't have specific validations yet
       _ -> true
     end
@@ -234,5 +246,11 @@ defmodule Streampai.Accounts.WidgetConfig do
     animation_valid = animation_type in ["fade", "slide", "bounce"]
 
     duration_valid and animation_valid
+  end
+
+  defp valid_viewer_count_config_values?(config) do
+    display_style = Map.get(config, :display_style)
+    style_valid = display_style in ["minimal", "detailed", "cards"]
+    style_valid
   end
 end

@@ -4,7 +4,7 @@ defmodule StreampaiWeb.Utils.MapUtils do
   """
   def to_atom_keys(map) when is_map(map) do
     for {k, v} <- map, into: %{} do
-      {String.to_existing_atom(k), v}
+      {String.to_atom(k), v}
     end
   end
 

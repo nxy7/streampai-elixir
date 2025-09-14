@@ -38,7 +38,17 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
     donation = @fake_module.generate_donation()
 
     # Update current amount
-    new_amount = socket.assigns.current_amount + donation.amount
+    current_amount = socket.assigns.current_amount + donation.amount
+    goal_amount = socket.assigns.widget_config.goal_amount
+    starting_amount = socket.assigns.widget_config.starting_amount
+
+    # Reset to starting amount if we've exceeded the goal for continuous demo
+    new_amount =
+      if current_amount >= goal_amount do
+        starting_amount + donation.amount
+      else
+        current_amount
+      end
 
     socket
     |> assign(:current_amount, new_amount)

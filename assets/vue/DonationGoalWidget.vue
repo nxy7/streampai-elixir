@@ -169,7 +169,7 @@ onMounted(() => {
       <div class="progress-container" ref="progressBarRef">
         <!-- Progress Label -->
         <div class="progress-labels">
-          <div class="current-amount">{{ formattedCurrent }}</div>
+          <div v-if="config.show_amount_raised" class="current-amount">{{ formattedCurrent }}</div>
           <div class="goal-amount">{{ formattedGoal }}</div>
         </div>
 

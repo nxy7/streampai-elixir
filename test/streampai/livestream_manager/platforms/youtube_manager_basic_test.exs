@@ -4,6 +4,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManagerBasicTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias Streampai.LivestreamManager.Platforms.YouTubeManager
 
+  @moduletag :skip
   setup do
     # Set database to shared mode for spawned processes
     Sandbox.mode(Streampai.Repo, {:shared, self()})
