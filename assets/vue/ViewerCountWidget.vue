@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 interface ViewerData {
   id: string
@@ -30,6 +30,109 @@ const props = defineProps<{
 
 const widgetId = props.id || 'viewer-count-widget'
 
+// Animation state
+const animatedTotalViewers = ref(0)
+const animatedPlatformViewers = ref<Record<string, number>>({})
+
+
+// Watch for data changes and animate
+watch(() => props.data?.total_viewers, (newTotal, oldTotal) => {
+  if (props.config.animation_enabled && newTotal !== undefined) {
+    if (oldTotal !== undefined && oldTotal !== newTotal) {
+      // Animate from current animated value to new value
+      const startValue = animatedTotalViewers.value
+      const difference = newTotal - startValue
+      const duration = 800
+      const start = Date.now()
+
+      const animate = () => {
+        const elapsed = Date.now() - start
+        const progress = Math.min(elapsed / duration, 1)
+        const easeOut = 1 - Math.pow(1 - progress, 3)
+
+        animatedTotalViewers.value = Math.round(startValue + (difference * easeOut))
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          animatedTotalViewers.value = newTotal
+        }
+      }
+
+      animate()
+    } else {
+      animatedTotalViewers.value = newTotal
+    }
+  } else if (newTotal !== undefined) {
+    animatedTotalViewers.value = newTotal
+  }
+}, { immediate: true })
+
+// Watch for platform data changes and animate
+watch(() => props.data?.platform_breakdown, (newPlatforms) => {
+  if (props.config.animation_enabled && newPlatforms) {
+    Object.entries(newPlatforms).forEach(([platform, data]) => {
+      const startValue = animatedPlatformViewers.value[platform] || 0
+      const newValue = data.viewers
+
+      if (startValue !== newValue) {
+        const difference = newValue - startValue
+        const duration = 800
+        const start = Date.now()
+
+        const animate = () => {
+          const elapsed = Date.now() - start
+          const progress = Math.min(elapsed / duration, 1)
+          const easeOut = 1 - Math.pow(1 - progress, 3)
+
+          const currentValue = Math.round(startValue + (difference * easeOut))
+          animatedPlatformViewers.value = {
+            ...animatedPlatformViewers.value,
+            [platform]: currentValue
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(animate)
+          } else {
+            animatedPlatformViewers.value = {
+              ...animatedPlatformViewers.value,
+              [platform]: newValue
+            }
+          }
+        }
+
+        animate()
+      } else {
+        animatedPlatformViewers.value = {
+          ...animatedPlatformViewers.value,
+          [platform]: newValue
+        }
+      }
+    })
+  } else if (newPlatforms) {
+    // No animation, set directly
+    const directValues: Record<string, number> = {}
+    Object.entries(newPlatforms).forEach(([platform, data]) => {
+      directValues[platform] = data.viewers
+    })
+    animatedPlatformViewers.value = directValues
+  }
+}, { immediate: true, deep: true })
+
+// Initialize animated values
+onMounted(() => {
+  if (props.data) {
+    animatedTotalViewers.value = props.data.total_viewers
+    if (props.data.platform_breakdown) {
+      const initialValues: Record<string, number> = {}
+      Object.entries(props.data.platform_breakdown).forEach(([platform, data]) => {
+        initialValues[platform] = data.viewers
+      })
+      animatedPlatformViewers.value = initialValues
+    }
+  }
+})
+
 const fontClass = computed(() => {
   switch (props.config.font_size) {
     case 'small': return 'text-xl'
@@ -48,9 +151,6 @@ const viewerIcon = computed(() => ({
   path: "M15 12c0 1.654-1.346 3-3 3s-3-1.346-3-3 1.346-3 3-3 3 1.346 3 3zm9-.449s-4.252 8.449-11.985 8.449c-7.18 0-12.015-8.449-12.015-8.449s4.446-7.551 12.015-7.551c7.694 0 11.985 7.551 11.985 7.551z"
 }))
 
-const platformCardClass = computed(() => (platformData: any) =>
-  `${platformData.color} rounded-lg p-3 text-white text-center`
-)
 </script>
 
 <template>
@@ -61,8 +161,8 @@ const platformCardClass = computed(() => (platformData: any) =>
         <svg class="w-8 h-8 text-blue-400" fill="currentColor" :viewBox="viewerIcon.viewBox">
           <path :d="viewerIcon.path"/>
         </svg>
-        <span :class="[fontClass, 'font-bold', config.animation_enabled && 'transition-all duration-500']">
-          {{ data.total_viewers.toLocaleString() }}
+        <span :class="[fontClass, 'font-bold']">
+          {{ config.animation_enabled ? animatedTotalViewers.toLocaleString() : data.total_viewers.toLocaleString() }}
         </span>
         <span class="text-sm text-gray-300 font-medium">viewers</span>
       </div>
@@ -75,8 +175,8 @@ const platformCardClass = computed(() => (platformData: any) =>
             <path :d="viewerIcon.path"/>
           </svg>
           <div class="text-center">
-            <div :class="[fontClass, 'font-bold', config.animation_enabled && 'transition-all duration-500']">
-              {{ data.total_viewers.toLocaleString() }}
+            <div :class="[fontClass, 'font-bold']">
+              {{ config.animation_enabled ? animatedTotalViewers.toLocaleString() : data.total_viewers.toLocaleString() }}
             </div>
             <div class="text-sm text-blue-100">Total Viewers</div>
           </div>
@@ -87,8 +187,8 @@ const platformCardClass = computed(() => (platformData: any) =>
           <div v-for="[platform, platformData] in platformEntries" :key="platform"
                class="flex items-center space-x-2 text-white bg-gray-900 bg-opacity-80 rounded-lg px-3 py-2 border border-gray-700">
             <div :class="`w-4 h-4 rounded-full ${platformData.color} shadow-lg`"></div>
-            <span :class="['font-bold', config.animation_enabled && 'transition-all duration-500']">
-              {{ platformData.viewers.toLocaleString() }}
+            <span :class="['font-bold']">
+              {{ config.animation_enabled ? (animatedPlatformViewers[platform] || 0).toLocaleString() : platformData.viewers.toLocaleString() }}
             </span>
           </div>
         </div>
@@ -104,8 +204,8 @@ const platformCardClass = computed(() => (platformData: any) =>
             </svg>
             <span class="text-sm font-medium">Total</span>
           </div>
-          <div :class="[fontClass, 'font-bold', config.animation_enabled && 'transition-all duration-500']">
-            {{ data.total_viewers.toLocaleString() }}
+          <div :class="[fontClass, 'font-bold']">
+            {{ config.animation_enabled ? animatedTotalViewers.toLocaleString() : data.total_viewers.toLocaleString() }}
           </div>
         </div>
 
@@ -113,8 +213,8 @@ const platformCardClass = computed(() => (platformData: any) =>
         <div v-if="config.show_platforms && platformEntries.length > 0" class="flex items-center justify-center space-x-3">
           <div v-for="[platform, platformData] in platformEntries" :key="platform"
                :class="`${platformData.color} rounded-xl p-3 text-white text-center shadow-lg hover:shadow-xl transition-shadow duration-200`">
-            <div :class="['text-lg font-bold', config.animation_enabled && 'transition-all duration-500']">
-              {{ platformData.viewers.toLocaleString() }}
+            <div :class="['text-lg font-bold']">
+              {{ config.animation_enabled ? (animatedPlatformViewers[platform] || 0).toLocaleString() : platformData.viewers.toLocaleString() }}
             </div>
           </div>
         </div>
