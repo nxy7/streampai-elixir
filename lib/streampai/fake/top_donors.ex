@@ -6,29 +6,6 @@ defmodule Streampai.Fake.TopDonors do
 
   alias Streampai.Fake.Base
 
-  @top_donor_usernames [
-    "BigDonor2024",
-    "GenerousGamer",
-    "StreamSupporter",
-    "MoneyBags",
-    "KindViewer123",
-    "ChampionDonor",
-    "TopTierFan",
-    "StreamHero",
-    "GoldenSupporter",
-    "DiamondDonor",
-    "PlatinumPlayer",
-    "SilverStream",
-    "BronzeBuddy",
-    "MegaFan99",
-    "SuperSupporter",
-    "UltimateDonor",
-    "StreamLegend",
-    "GivingGamer",
-    "CommunityHero",
-    "StreamChampion"
-  ]
-
   def default_config do
     %{
       display_count: 10,
@@ -60,15 +37,37 @@ defmodule Streampai.Fake.TopDonors do
 
   def generate_shuffled_top_donors(previous_donors \\ nil, count \\ 15) do
     base_list = previous_donors || generate_top_donors_list(count)
+    actual_count = length(base_list)
 
-    # For realistic updates: replace 1 donor, modify 2 others slightly
+    # Guarantee at least some changes happen
+    # 40% chance to replace someone
+    should_replace = Base.random_boolean(0.4)
+
+    # Pre-determine which indices to change
+    replace_index =
+      if should_replace and actual_count > 5 do
+        Enum.random(5..(actual_count - 1))
+      end
+
+    modify_indices =
+      if actual_count > 2 do
+        # Always pick 2-3 donors to modify amounts
+        0..(actual_count - 1)
+        |> Enum.take_random(Enum.random(2..min(3, actual_count)))
+        # Don't modify the one being replaced
+        |> Enum.reject(&(&1 == replace_index))
+      else
+        [0]
+      end
+
+    # Apply changes based on pre-determined indices
     updated_list =
       base_list
       |> Enum.with_index()
       |> Enum.map(fn {donor, index} ->
         cond do
-          # Replace 1 donor (usually from middle/bottom)
-          index == Enum.random(5..(count - 1)) and Base.random_boolean(0.3) ->
+          # Replace 1 donor
+          index == replace_index ->
             %{
               id: Base.generate_hex_id(),
               username: Base.generate_username(),
@@ -76,10 +75,12 @@ defmodule Streampai.Fake.TopDonors do
               currency: "$"
             }
 
-          # Modify amounts for 2 others (small adjustments)
-          index in [Enum.random(0..4), Enum.random(6..(count - 1))] and Base.random_boolean(0.4) ->
-            # 10% max change
-            adjustment = (:rand.uniform() - 0.5) * (donor.amount * 0.1)
+          # Modify amounts for selected indices
+          index in modify_indices ->
+            # 20-40% change for noticeable updates
+            # 20-40% change
+            change_percentage = 0.2 + :rand.uniform() * 0.2
+            adjustment = (:rand.uniform() - 0.5) * (donor.amount * change_percentage)
             new_amount = max(donor.amount + adjustment, 5.0)
             %{donor | amount: Float.round(new_amount, 2)}
 
