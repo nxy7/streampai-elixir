@@ -1,0 +1,119 @@
+name: Test with WireMock Recordings
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-with-recordings:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: streampai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      # Enable WireMock mode (no real API credentials needed!)
+      WIREMOCK_ENABLED: true
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/streampai_test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.15'
+        otp-version: '26'
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+
+    - name: Install dependencies
+      run: mix deps.get
+
+    - name: Set up test database
+      run: |
+        mix ecto.create
+        mix ecto.migrate
+
+    - name: Start WireMock with recorded responses
+      run: |
+        docker compose -f docker-compose.test.yml up -d wiremock
+        # Wait for WireMock to be ready
+        timeout 30s sh -c 'until curl -s http://localhost:8080/__admin/health; do sleep 1; done'
+
+    - name: Run tests with WireMock recordings
+      run: |
+        mix test --include wiremock_recording
+
+    - name: Stop WireMock
+      run: docker compose -f docker-compose.test.yml down
+
+  # Optional: Periodic job to update recordings with real APIs
+  update-recordings:
+    runs-on: ubuntu-latest
+    # Run weekly on Sundays
+    if: github.event_name == 'schedule'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.15'
+        otp-version: '26'
+
+    - name: Install dependencies
+      run: mix deps.get
+
+    - name: Record fresh API responses
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        YOUTUBE_ACCESS_TOKEN: ${{ secrets.YOUTUBE_ACCESS_TOKEN }}
+      run: |
+        ./scripts/record_all_apis.sh
+
+    - name: Create Pull Request with updated recordings
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore: update API recordings"
+        title: "🤖 Update WireMock API Recordings"
+        body: |
+          This PR contains updated WireMock recordings generated from real API responses.
+
+          **Updated APIs:**
+          - Cloudflare Stream API
+          - YouTube Live API
+
+          **Changes:**
+          - Fresh API responses with current data structures
+          - Updated error scenarios
+          - New endpoint mappings (if any)
+
+          Please review and merge to keep test recordings current.
+        branch: update-wiremock-recordings

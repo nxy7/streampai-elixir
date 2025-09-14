@@ -14,10 +14,10 @@ defmodule Streampai.YouTube.ApiClient do
 
   require Logger
 
-  @base_url "https://www.googleapis.com/youtube/v3"
-
   # Default request timeout in milliseconds
   @default_timeout 30_000
+
+  defp base_url, do: Application.get_env(:streampai, :youtube_base_url, "https://www.googleapis.com/youtube/v3")
 
   @type access_token :: String.t()
   @type api_result :: {:ok, map()} | {:error, term()}
@@ -26,7 +26,7 @@ defmodule Streampai.YouTube.ApiClient do
   # Client configuration
   defp client(access_token) do
     Req.new(
-      base_url: @base_url,
+      base_url: base_url(),
       headers: [
         {"Authorization", "Bearer #{access_token}"},
         {"Accept", "application/json"},

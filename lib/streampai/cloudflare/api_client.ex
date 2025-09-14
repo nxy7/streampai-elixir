@@ -18,7 +18,7 @@ defmodule Streampai.Cloudflare.APIClient do
 
   defp api_token, do: Application.get_env(:streampai, :cloudflare_api_token)
   defp account_id, do: Application.get_env(:streampai, :cloudflare_account_id)
-  defp base_url, do: "https://api.cloudflare.com/client/v4"
+  defp base_url, do: Application.get_env(:streampai, :cloudflare_base_url, "https://api.cloudflare.com/client/v4")
 
   defp env, do: Application.get_env(:streampai, :env)
 

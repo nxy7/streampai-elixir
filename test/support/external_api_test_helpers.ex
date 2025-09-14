@@ -3,9 +3,12 @@ defmodule Streampai.ExternalAPITestHelpers do
   Specialized helpers for testing external API integrations.
   Implements the external API testing patterns documented in CLAUDE.md
   with proper error handling, response validation, and credential management.
+
+  Supports both real API testing and WireMock-based mocking for development.
   """
 
   import ExUnit.Assertions
+  alias Streampai.WireMockHelpers
 
   @doc """
   Standard setup for external API integration tests.
@@ -26,14 +29,29 @@ defmodule Streampai.ExternalAPITestHelpers do
     _service = Keyword.get(opts, :service, "External API")
     tags = Keyword.get(opts, :tags, [:integration])
 
-    missing_vars = Enum.filter(env_vars, &(System.get_env(&1) in [nil, ""]))
+    cond do
+      WireMockHelpers.wiremock_enabled?() ->
+        # When WireMock is enabled, ensure it's running
+        case WireMockHelpers.ensure_wiremock_running() do
+          :ok ->
+            IO.puts("Using WireMock for API testing")
+            :ok
+          error ->
+            flunk("Failed to start WireMock: #{inspect(error)}")
+        end
 
-    if missing_vars == [] do
-      :ok
-    else
-      # Return :ok and let individual tests handle skipping
-      ExUnit.configure(exclude: tags)
-      :ok
+      true ->
+        # Original behavior - check for real API credentials
+        missing_vars = Enum.filter(env_vars, &(System.get_env(&1) in [nil, ""]))
+
+        if missing_vars == [] do
+          IO.puts("Using real APIs for integration testing")
+          :ok
+        else
+          # Return :ok and let individual tests handle skipping
+          ExUnit.configure(exclude: tags)
+          :ok
+        end
     end
   end
 

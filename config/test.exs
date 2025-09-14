@@ -51,3 +51,25 @@ config :streampai, token_signing_secret: System.get_env("SECRET_KEY")
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
+
+# WireMock configuration for testing external APIs
+wiremock_enabled = System.get_env("WIREMOCK_ENABLED", "false") == "true"
+wiremock_host = System.get_env("WIREMOCK_HOST", "localhost")
+wiremock_port = System.get_env("WIREMOCK_PORT", "8080")
+
+if wiremock_enabled do
+  # Override API base URLs to point to WireMock
+  config :streampai,
+    cloudflare_base_url: "http://#{wiremock_host}:#{wiremock_port}",
+    youtube_base_url: "http://#{wiremock_host}:#{wiremock_port}",
+    wiremock_enabled: true,
+    wiremock_host: wiremock_host,
+    wiremock_port: wiremock_port,
+    # Use test values for WireMock
+    cloudflare_api_token: "test_token",
+    cloudflare_account_id: "test_account"
+else
+  # Use real APIs for integration tests
+  config :streampai,
+    wiremock_enabled: false
+end
