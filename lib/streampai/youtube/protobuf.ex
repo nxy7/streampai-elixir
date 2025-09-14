@@ -16,54 +16,52 @@ defmodule Streampai.YouTube.Protobuf do
     part = Keyword.get(opts, :part, ["id", "snippet", "authorDetails"])
 
     # This would be actual protobuf encoding in production
-    %{
+    Jason.encode!(%{
       "liveChatId" => live_chat_id,
       "part" => part,
       "maxResults" => Keyword.get(opts, :max_results, 200)
-    }
-    |> Jason.encode!()
+    })
   end
 
   @doc """
   Decodes a chat message from protobuf format to Elixir map.
   """
   def decode_chat_message(protobuf_data) do
-    try do
-      # In production, this would use proper protobuf decoding
-      case Jason.decode(protobuf_data) do
-        {:ok, decoded} -> {:ok, normalize_chat_message(decoded)}
-        {:error, _} -> decode_binary_protobuf(protobuf_data)
-      end
-    rescue
-      e -> {:error, {:decode_error, e}}
+    # In production, this would use proper protobuf decoding
+    case Jason.decode(protobuf_data) do
+      {:ok, decoded} -> {:ok, normalize_chat_message(decoded)}
+      {:error, _} -> decode_binary_protobuf(protobuf_data)
     end
+  rescue
+    e -> {:error, {:decode_error, e}}
   end
 
   # Handle binary protobuf data (simplified placeholder)
   defp decode_binary_protobuf(data) when is_binary(data) do
     # This is a placeholder - would use actual protobuf library
     # For now, return a mock message structure
-    {:ok, %{
-      "id" => "msg_#{:crypto.strong_rand_bytes(8) |> Base.encode64(padding: false)}",
-      "snippet" => %{
-        "type" => "textMessageEvent",
-        "liveChatId" => "unknown",
-        "publishedAt" => DateTime.utc_now() |> DateTime.to_iso8601(),
-        "hasDisplayContent" => true,
-        "displayMessage" => "[Binary message - decoding not implemented]",
-        "textMessageDetails" => %{
-          "messageText" => "[Binary message - decoding not implemented]"
-        }
-      },
-      "authorDetails" => %{
-        "channelId" => "unknown",
-        "displayName" => "Unknown User",
-        "isVerified" => false,
-        "isChatOwner" => false,
-        "isChatSponsor" => false,
-        "isChatModerator" => false
-      }
-    }}
+    {:ok,
+     %{
+       "id" => "msg_#{8 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)}",
+       "snippet" => %{
+         "type" => "textMessageEvent",
+         "liveChatId" => "unknown",
+         "publishedAt" => DateTime.to_iso8601(DateTime.utc_now()),
+         "hasDisplayContent" => true,
+         "displayMessage" => "[Binary message - decoding not implemented]",
+         "textMessageDetails" => %{
+           "messageText" => "[Binary message - decoding not implemented]"
+         }
+       },
+       "authorDetails" => %{
+         "channelId" => "unknown",
+         "displayName" => "Unknown User",
+         "isVerified" => false,
+         "isChatOwner" => false,
+         "isChatSponsor" => false,
+         "isChatModerator" => false
+       }
+     }}
   end
 
   # Normalize the message structure to ensure consistent format
@@ -80,12 +78,13 @@ defmodule Streampai.YouTube.Protobuf do
       "type" => get_in(snippet, ["type"]) || "textMessageEvent",
       "liveChatId" => get_in(snippet, ["liveChatId"]),
       "authorChannelId" => get_in(snippet, ["authorChannelId"]),
-      "publishedAt" => get_in(snippet, ["publishedAt"]) || DateTime.utc_now() |> DateTime.to_iso8601(),
+      "publishedAt" => get_in(snippet, ["publishedAt"]) || DateTime.to_iso8601(DateTime.utc_now()),
       "hasDisplayContent" => get_in(snippet, ["hasDisplayContent"]) || true,
       "displayMessage" => get_in(snippet, ["displayMessage"]) || get_message_text(snippet),
       "textMessageDetails" => normalize_text_details(get_in(snippet, ["textMessageDetails"]))
     }
   end
+
   defp normalize_snippet(_), do: %{}
 
   defp normalize_text_details(details) when is_map(details) do
@@ -93,6 +92,7 @@ defmodule Streampai.YouTube.Protobuf do
       "messageText" => get_in(details, ["messageText"]) || ""
     }
   end
+
   defp normalize_text_details(_), do: %{"messageText" => ""}
 
   defp normalize_author_details(details) when is_map(details) do
@@ -107,6 +107,7 @@ defmodule Streampai.YouTube.Protobuf do
       "isChatModerator" => get_in(details, ["isChatModerator"]) || false
     }
   end
+
   defp normalize_author_details(_), do: %{}
 
   defp get_message_text(snippet) do
@@ -114,7 +115,7 @@ defmodule Streampai.YouTube.Protobuf do
   end
 
   defp generate_message_id do
-    "msg_#{:crypto.strong_rand_bytes(12) |> Base.encode64(padding: false)}"
+    "msg_#{12 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)}"
   end
 
   @doc """

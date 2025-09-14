@@ -80,6 +80,8 @@ worktree name:
 
 	mix ash.setup # this sets up db and runs seeds
 
+	claude .
+
 	# Append worktree-specific configuration to .env
 	echo "" >> .env
 	echo "# Worktree-specific configuration for: {{name}}" >> .env
