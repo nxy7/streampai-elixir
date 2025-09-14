@@ -14,6 +14,24 @@ require Logger
 
 # Ensure the repo is started
 {:ok, _} = Application.ensure_all_started(:streampai)
+
+# Log the database connection details for debugging
+database_url = System.get_env("DATABASE_URL")
+Logger.info("Seeds running against DATABASE_URL: #{database_url || "not set"}")
+
+# Also log the actual repo configuration to see what's being used
+repo_config = Application.get_env(:streampai, Streampai.Repo)
+Logger.info("Repo config: #{inspect(repo_config)}")
+
+# Test a simple database query to verify connection
+case Ash.read(Streampai.Accounts.User, actor: nil) do
+  {:ok, users} ->
+    Logger.info("Connected to database with #{length(users)} existing users")
+
+  {:error, error} ->
+    Logger.error("Database connection error: #{inspect(error)}")
+end
+
 # Create test user for development environment only
 if Mix.env() == :dev do
   import Ash.Expr

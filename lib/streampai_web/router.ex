@@ -8,6 +8,7 @@ defmodule StreampaiWeb.Router do
 
   alias StreampaiWeb.Plugs.ErrorTracker
   alias StreampaiWeb.Plugs.RedirectAfterAuth
+  alias StreampaiWeb.Plugs.SafeLoadFromSession
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -16,7 +17,7 @@ defmodule StreampaiWeb.Router do
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
-    plug(:load_from_session)
+    plug(SafeLoadFromSession)
     plug(ErrorTracker)
     plug(RedirectAfterAuth)
   end
@@ -29,7 +30,7 @@ defmodule StreampaiWeb.Router do
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
-    plug(:load_from_session)
+    plug(SafeLoadFromSession)
     plug(ErrorTracker)
     plug(RedirectAfterAuth)
   end
