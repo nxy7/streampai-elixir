@@ -28,7 +28,8 @@ defmodule Streampai.Application do
       {Finch, name: Streampai.Finch},
       StreampaiWeb.Endpoint,
       {AshAuthentication.Supervisor, [otp_app: :streampai]},
-      {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]}
+      {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
+      {Task.Supervisor, name: Streampai.TaskSupervisor}
     ]
 
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]

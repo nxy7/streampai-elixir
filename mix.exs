@@ -100,7 +100,7 @@ defmodule Streampai.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
-      {:grpcbox, "~> 0.17"}
+      {:grpc, "~> 0.9"}
     ]
   end
 

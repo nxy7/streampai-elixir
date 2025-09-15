@@ -26,23 +26,15 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   require Logger
 
-  # Suppress warnings for external Erlang module functions
-  @dialyzer {:nowarn_function, establish_grpc_connection: 1}
-  @dialyzer {:nowarn_function, cleanup_connection: 1}
-
-  @youtube_api_host "youtubereporting.googleapis.com"
+  @youtube_api_host "youtube.googleapis.com"
   @grpc_port 443
-
-  # YouTube Live Chat gRPC service definition
-  @service_name "youtube.livestreaming.v1.LiveChatService"
-  @method_name "StreamChatMessages"
 
   defstruct [
     :access_token,
     :live_chat_id,
     :client_pid,
-    :grpc_connection,
-    :stream_ref,
+    :grpc_channel,
+    :stream_task,
     :callback_pid,
     :heartbeat_timer,
     :reconnect_attempts,
@@ -150,30 +142,56 @@ defmodule Streampai.YouTube.LiveChatStream do
   end
 
   @impl true
-  def handle_info({:grpc_response, data}, state) do
-    case decode_chat_message(data) do
-      {:ok, message} ->
-        send(state.callback_pid, {:chat_message, message})
+  def handle_info({:stream_message, response}, state) do
+    # Process the streaming response from YouTube
+    # The response is already a decoded protobuf message
+    case process_stream_response(response) do
+      {:ok, messages} ->
+        # Send each chat message to the callback process
+        Enum.each(messages, fn msg ->
+          send(state.callback_pid, {:chat_message, msg})
+        end)
+
         {:noreply, state}
 
       {:error, reason} ->
-        Logger.warning("Failed to decode chat message: #{inspect(reason)}")
+        Logger.warning("Failed to process stream response: #{inspect(reason)}")
         {:noreply, state}
     end
   end
 
   @impl true
-  def handle_info({:grpc_error, reason}, state) do
-    Logger.error("gRPC stream error: #{inspect(reason)}")
+  def handle_info({:stream_error, %GRPC.RPCError{status: status, message: message}}, state) do
+    Logger.error("gRPC error - Status: #{status}, Message: #{message}")
+    send(state.callback_pid, {:chat_error, {:grpc_error, status, message}})
+    handle_connection_error(state, {:grpc_error, status})
+  end
+
+  @impl true
+  def handle_info({:stream_error, reason}, state) do
+    Logger.error("Stream error: #{inspect(reason)}")
     send(state.callback_pid, {:chat_error, reason})
     handle_connection_error(state, reason)
   end
 
   @impl true
-  def handle_info({:grpc_end, reason}, state) do
-    Logger.info("gRPC stream ended: #{inspect(reason)}")
-    send(state.callback_pid, {:chat_ended, reason})
-    handle_connection_error(state, reason)
+  def handle_info(:stream_ended, state) do
+    Logger.info("YouTube Live Chat stream ended normally")
+    send(state.callback_pid, {:chat_ended, :normal})
+    handle_connection_error(state, :stream_ended)
+  end
+
+  @impl true
+  def handle_info({:stream_crashed, error}, state) do
+    Logger.error("Stream task crashed: #{inspect(error)}")
+    send(state.callback_pid, {:chat_error, {:stream_crash, error}})
+    handle_connection_error(state, {:crash, error})
+  end
+
+  @impl true
+  def handle_info({:DOWN, _ref, :process, pid, reason}, state) when pid == state.stream_task do
+    Logger.warning("Stream task terminated: #{inspect(reason)}")
+    handle_connection_error(state, {:task_down, reason})
   end
 
   @impl true
@@ -193,7 +211,7 @@ defmodule Streampai.YouTube.LiveChatStream do
   @impl true
   def handle_call(:get_status, _from, state) do
     status = %{
-      connected: state.grpc_connection != nil,
+      connected: state.grpc_channel != nil && state.stream_task != nil,
       live_chat_id: state.live_chat_id,
       reconnect_attempts: state.reconnect_attempts,
       max_reconnect_attempts: state.max_reconnect_attempts
@@ -211,122 +229,149 @@ defmodule Streampai.YouTube.LiveChatStream do
   ## Private Functions
 
   defp establish_grpc_connection(state) do
-    # Create gRPC channel with authentication
-    # Note: This requires grpcbox dependency to be added to mix.exs
-    # For now, simulate connection for development
-    case Code.ensure_loaded(:grpcbox_client) do
-      {:module, _} ->
-        # Real gRPC implementation when grpcbox is available
-        channel_opts = [
-          transport_opts: [
-            tcp_opts: [
-              # Enable TLS
-              {:mode, :binary},
-              {:packet, 0},
-              {:active, false}
-            ]
-          ]
-        ]
+    # Create gRPC channel with authentication using Elixir gRPC client
+    case GRPC.Stub.connect("#{@youtube_api_host}:#{@grpc_port}",
+           interceptors: [
+             {GRPC.Client.Interceptors.Headers, authorization: "Bearer #{state.access_token}"}
+           ],
+           adapter: GRPC.Client.Adapters.Gun
+         ) do
+      {:ok, channel} ->
+        # Build the stream request for YouTube Live Chat
+        request = build_stream_request(state)
 
-        case apply(:grpcbox_client, :connect, [@youtube_api_host, @grpc_port, channel_opts]) do
-          {:ok, connection} ->
-            # Start streaming request
-            request_data = build_stream_request(state)
+        # Start a supervised task to consume the stream
+        # This ensures proper cleanup if the task crashes
+        {:ok, task} =
+          Task.Supervisor.start_child(
+            Streampai.TaskSupervisor,
+            fn -> consume_stream(channel, request, self()) end
+          )
 
-            stream_opts = [
-              headers: build_auth_headers(state.access_token)
-            ]
+        # Monitor the task so we know if it dies
+        Process.monitor(task)
 
-            case apply(:grpcbox_client, :stream, [
-                   connection,
-                   @service_name,
-                   @method_name,
-                   request_data,
-                   stream_opts
-                 ]) do
-              {:ok, stream_ref} ->
-                new_state = %{state | grpc_connection: connection, stream_ref: stream_ref}
-                {:ok, new_state}
-
-              {:error, reason} ->
-                apply(:grpcbox_client, :disconnect, [connection])
-                {:error, reason}
-            end
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-
-      {:error, :nofile} ->
-        # Fallback implementation for development without grpcbox
-        Logger.warning("grpcbox not available, using mock gRPC connection for YouTube chat")
-        mock_connection = make_ref()
-        mock_stream_ref = make_ref()
-        new_state = %{state | grpc_connection: mock_connection, stream_ref: mock_stream_ref}
+        new_state = %{state | grpc_channel: channel, stream_task: task}
         {:ok, new_state}
+
+      {:error, reason} ->
+        Logger.error("Failed to connect to gRPC server: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 
+  defp consume_stream(channel, request, parent_pid) do
+    # Get the stream from the gRPC stub
+    # This returns an Elixir Stream that we can consume
+    stream = YouTube.V3.LiveChatMessages.Stub.stream_list(channel, request)
+
+    # Process each message in the stream
+    # The stream will block waiting for messages from the server
+    Enum.each(stream, fn
+      {:ok, response} ->
+        # Decode and forward the response to the parent GenServer
+        send(parent_pid, {:stream_message, response})
+
+      {:error, %GRPC.RPCError{} = error} ->
+        # Handle gRPC errors
+        send(parent_pid, {:stream_error, error})
+
+      {:error, reason} ->
+        # Handle other errors
+        send(parent_pid, {:stream_error, reason})
+    end)
+
+    # Stream ended normally
+    send(parent_pid, :stream_ended)
+  rescue
+    error ->
+      # Stream crashed
+      send(parent_pid, {:stream_crashed, error})
+  end
+
   defp build_stream_request(state) do
-    # Build the protobuf request for streaming live chat messages
-    # This would normally be generated from YouTube's protobuf definitions
-    %{
-      "liveChatId" => state.live_chat_id,
-      "part" => ["id", "snippet", "authorDetails"]
+    # Build the request for streaming live chat messages
+    # Following YouTube Data API v3 streamList specification
+    %YouTube.V3.LiveChatMessages.StreamListRequest{
+      live_chat_id: state.live_chat_id,
+      part: ["id", "snippet", "authorDetails"],
+      # Maximum messages per response
+      page_size: 200,
+      profile_image_size: 88
     }
   end
 
-  defp build_auth_headers(access_token) do
-    [
-      {"authorization", "Bearer #{access_token}"},
-      {"content-type", "application/grpc"},
-      {"user-agent", "StreamPai-YouTube-Client/1.0"}
-    ]
-  end
-
   defp send_heartbeat(state) do
-    if state.grpc_connection && state.stream_ref do
-      # Send ping frame or similar heartbeat mechanism
-      # Implementation depends on gRPC client library
+    if state.grpc_channel && state.stream_task && Process.alive?(state.stream_task) do
+      # The Gun adapter maintains the HTTP/2 connection automatically
+      # We just check if our stream task is still alive
       :ok
     else
       {:error, :not_connected}
     end
   end
 
-  # Decode protobuf response to Elixir map
-  # This would use generated protobuf decoders
-  # Placeholder - would decode actual protobuf data
-  defp decode_chat_message(_data) do
-    decoded = %{
-      "id" => "message_id_#{:rand.uniform(1000)}",
-      "snippet" => %{
-        "type" => "textMessageEvent",
-        "liveChatId" => "some_chat_id",
-        "authorChannelId" => "author_id",
-        "publishedAt" => DateTime.to_iso8601(DateTime.utc_now()),
-        "hasDisplayContent" => true,
-        "displayMessage" => "Sample message",
-        "textMessageDetails" => %{
-          "messageText" => "Sample message"
+  defp process_stream_response(%YouTube.V3.LiveChatMessages.StreamListResponse{items: items}) do
+    # Transform the protobuf response into our internal format
+    messages =
+      Enum.map(items, fn item ->
+        %{
+          id: item.id,
+          type: item.snippet.type,
+          author: %{
+            channel_id: item.author_details.channel_id,
+            display_name: item.author_details.display_name,
+            profile_image_url: item.author_details.profile_image_url,
+            is_verified: item.author_details.is_verified,
+            is_moderator: item.author_details.is_chat_moderator,
+            is_owner: item.author_details.is_chat_owner,
+            is_sponsor: item.author_details.is_chat_sponsor
+          },
+          message: get_message_content(item.snippet),
+          published_at: item.snippet.published_at,
+          super_chat: extract_super_chat(item.snippet),
+          super_sticker: extract_super_sticker(item.snippet)
         }
-      },
-      "authorDetails" => %{
-        "channelId" => "author_id",
-        "channelUrl" => "https://youtube.com/channel/author_id",
-        "displayName" => "Sample User",
-        "profileImageUrl" => "https://example.com/avatar.jpg",
-        "isVerified" => false,
-        "isChatOwner" => false,
-        "isChatSponsor" => false,
-        "isChatModerator" => false
-      }
-    }
+      end)
 
-    {:ok, decoded}
+    {:ok, messages}
   rescue
     e -> {:error, e}
   end
+
+  defp get_message_content(%{text_message_details: %{message_text: text}}) when not is_nil(text) do
+    text
+  end
+
+  defp get_message_content(%{display_message: display}) when not is_nil(display) do
+    display
+  end
+
+  defp get_message_content(_), do: ""
+
+  defp extract_super_chat(%{super_chat_details: details}) when not is_nil(details) do
+    %{
+      amount_micros: details.amount_micros,
+      currency: details.currency,
+      amount_display: details.amount_display_string,
+      user_comment: details.user_comment,
+      tier: details.tier
+    }
+  end
+
+  defp extract_super_chat(_), do: nil
+
+  defp extract_super_sticker(%{super_sticker_details: details}) when not is_nil(details) do
+    %{
+      amount_micros: details.amount_micros,
+      currency: details.currency,
+      amount_display: details.amount_display_string,
+      tier: details.tier,
+      sticker_id: details.super_sticker_metadata.sticker_id
+    }
+  end
+
+  defp extract_super_sticker(_), do: nil
 
   defp handle_connection_error(state, _reason) do
     cleanup_connection(state)
@@ -334,7 +379,7 @@ defmodule Streampai.YouTube.LiveChatStream do
     # Schedule reconnection
     Process.send_after(self(), :reconnect, state.reconnect_delay)
 
-    new_state = %{state | grpc_connection: nil, stream_ref: nil, heartbeat_timer: nil}
+    new_state = %{state | grpc_channel: nil, stream_task: nil, heartbeat_timer: nil}
 
     {:noreply, new_state}
   end
@@ -344,14 +389,14 @@ defmodule Streampai.YouTube.LiveChatStream do
       Process.cancel_timer(state.heartbeat_timer)
     end
 
-    if state.grpc_connection do
-      case Code.ensure_loaded(:grpcbox_client) do
-        {:module, _} ->
-          apply(:grpcbox_client, :disconnect, [state.grpc_connection])
+    # Clean up the stream task if it's running
+    if state.stream_task && Process.alive?(state.stream_task) do
+      Process.exit(state.stream_task, :shutdown)
+    end
 
-        {:error, :nofile} ->
-          Logger.debug("grpcbox not available, skipping gRPC cleanup")
-      end
+    # Close the gRPC channel
+    if state.grpc_channel do
+      GRPC.Stub.disconnect(state.grpc_channel)
     end
   end
 

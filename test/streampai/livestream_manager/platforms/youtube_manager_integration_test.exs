@@ -5,6 +5,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManagerIntegrationTest do
   """
 
   use ExUnit.Case, async: false
+
   import ExUnit.CaptureLog
 
   alias Streampai.LivestreamManager.Platforms.YouTubeManager
@@ -65,9 +66,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManagerIntegrationTest do
       # For now, we'll test the interface and error handling
 
       # Capture logs to suppress expected authentication errors
-      {stream_result, _logs} = with_log(fn ->
-        YouTubeManager.start_streaming(user_id, stream_uuid)
-      end)
+      {stream_result, _logs} =
+        with_log(fn ->
+          YouTubeManager.start_streaming(user_id, stream_uuid)
+        end)
 
       # Since we're using test credentials, we expect this to fail
       # but the failure should be handled gracefully
@@ -83,9 +85,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManagerIntegrationTest do
       end
 
       # Test stopping streaming (should work even if start failed)
-      {actual_stop, _logs} = with_log(fn ->
-        YouTubeManager.stop_streaming(user_id)
-      end)
+      {actual_stop, _logs} =
+        with_log(fn ->
+          YouTubeManager.stop_streaming(user_id)
+        end)
+
       assert actual_stop == :ok or match?({:error, _}, actual_stop)
     end
 

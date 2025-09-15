@@ -145,7 +145,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       :exit, _ -> :ok
     end
 
-    # Cleanup YouTube streaming resources
     cleanup_streaming_resources(state)
 
     :ok
