@@ -15,13 +15,13 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def stat_card(assigns) do
     ~H"""
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-center justify-between">
         <div class="flex-1">
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <p class="text-sm font-medium text-gray-600">
             {@title}
           </p>
-          <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
+          <p class="mt-2 text-3xl font-semibold text-gray-900">
             {format_value(@value, @format)}
           </p>
           <%= if @change do %>
@@ -59,8 +59,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def line_chart(assigns) do
     ~H"""
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
         {@title}
       </h3>
       <div class={[@height, "relative"]}>
@@ -119,8 +119,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def bar_chart(assigns) do
     ~H"""
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
         {@title}
       </h3>
       <div class="space-y-3">
@@ -128,12 +128,12 @@ defmodule StreampaiWeb.AnalyticsComponents do
         <%= for item <- @data do %>
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-gray-600 dark:text-gray-400">{item.label}</span>
-              <span class="font-medium text-gray-900 dark:text-white">
+              <span class="text-gray-600">{item.label}</span>
+              <span class="font-medium text-gray-900">
                 {format_value(item.value, item[:format] || :number)}
               </span>
             </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div class="w-full bg-gray-200 rounded-full h-2">
               <div
                 class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
                 style={"width: #{item.value / max_value * 100}%"}
@@ -151,8 +151,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def pie_chart(assigns) do
     ~H"""
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
         {@title}
       </h3>
       <div class="relative">
@@ -200,10 +200,13 @@ defmodule StreampaiWeb.AnalyticsComponents do
           <%= for {segment, i} <- Enum.with_index(segments) do %>
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center min-w-0">
-                <span class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style={"background-color: #{segment.color}"} />
-                <span class="text-gray-600 dark:text-gray-400 truncate">{segment.item.label}</span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                  style={"background-color: #{segment.color}"}
+                />
+                <span class="text-gray-600 truncate">{segment.item.label}</span>
               </div>
-              <span class="font-medium text-gray-900 dark:text-white ml-2 whitespace-nowrap">
+              <span class="font-medium text-gray-900 ml-2 whitespace-nowrap">
                 {Float.round(segment.percentage, 1)}%
               </span>
             </div>
@@ -218,43 +221,43 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def stream_table(assigns) do
     ~H"""
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Recent Streams</h3>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Recent Streams</h3>
       </div>
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-900">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Stream
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Platform
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Duration
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Peak Viewers
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Income
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Engagement
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody class="bg-white divide-y divide-gray-200">
             <%= for stream <- @streams do %>
-              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+              <tr class="hover:bg-gray-50 cursor-pointer">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    <div class="text-sm font-medium text-gray-900">
                       {stream.title}
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <div class="text-xs text-gray-500">
                       {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
                     </div>
                   </div>
@@ -270,13 +273,13 @@ defmodule StreampaiWeb.AnalyticsComponents do
                     {stream.platform}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {stream.duration}h
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {format_number(stream.viewers.peak)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   ${Float.round(stream.income.total, 2)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">

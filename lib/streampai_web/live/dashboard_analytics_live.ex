@@ -109,10 +109,10 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
       <div class="space-y-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 class="text-2xl font-bold text-gray-900">
               Stream Analytics
             </h1>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p class="mt-1 text-sm text-gray-500">
               Track your streaming performance and audience engagement
             </p>
           </div>
@@ -121,7 +121,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
             <select
               phx-change="change_timeframe"
               name="timeframe"
-              class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm"
+              class="rounded-md border-gray-300 text-sm"
             >
               <option value="day" selected={@selected_timeframe == :day}>Last 24 Hours</option>
               <option value="week" selected={@selected_timeframe == :week}>Last 7 Days</option>
@@ -202,29 +202,29 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
           <.stream_table streams={Enum.take(@stream_list, 5)} />
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
                 Audience Demographics
               </h3>
               <div class="space-y-4">
                 <div>
-                  <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <h4 class="text-sm font-medium text-gray-700 mb-2">
                     Age Distribution
                   </h4>
                   <div class="space-y-2">
                     <%= for age_group <- @demographics.age_groups do %>
                       <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="text-sm text-gray-600">
                           {age_group.range}
                         </span>
                         <div class="flex items-center gap-2">
-                          <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div class="w-32 bg-gray-200 rounded-full h-2">
                             <div
                               class="bg-indigo-600 h-2 rounded-full"
                               style={"width: #{age_group.percentage}%"}
                             />
                           </div>
-                          <span class="text-sm font-medium text-gray-900 dark:text-white w-10 text-right">
+                          <span class="text-sm font-medium text-gray-900 w-10 text-right">
                             {age_group.percentage}%
                           </span>
                         </div>
@@ -234,16 +234,16 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
                 </div>
 
                 <div>
-                  <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <h4 class="text-sm font-medium text-gray-700 mb-2">
                     Top Countries
                   </h4>
                   <div class="space-y-2">
                     <%= for country <- Enum.take(@demographics.top_countries, 5) do %>
                       <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="text-sm text-gray-600">
                           {country.country}
                         </span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">
+                        <span class="text-sm font-medium text-gray-900">
                           {format_number(country.viewers)} viewers
                         </span>
                       </div>
@@ -253,64 +253,64 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
               </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
                 Performance Insights
               </h3>
               <div class="space-y-3">
-                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div class="p-3 bg-green-50 rounded-lg">
                   <div class="flex items-start">
                     <Core.icon name="hero-arrow-trending-up" class="w-5 h-5 text-green-600 mt-0.5" />
                     <div class="ml-3">
-                      <p class="text-sm font-medium text-green-800 dark:text-green-400">
+                      <p class="text-sm font-medium text-green-800">
                         Strong viewer retention
                       </p>
-                      <p class="text-xs text-green-600 dark:text-green-500 mt-1">
+                      <p class="text-xs text-green-600 mt-1">
                         Your average watch time increased by 15% this period
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div class="p-3 bg-blue-50 rounded-lg">
                   <div class="flex items-start">
                     <Core.icon name="hero-users" class="w-5 h-5 text-blue-600 mt-0.5" />
                     <div class="ml-3">
-                      <p class="text-sm font-medium text-blue-800 dark:text-blue-400">
+                      <p class="text-sm font-medium text-blue-800">
                         Growing audience
                       </p>
-                      <p class="text-xs text-blue-600 dark:text-blue-500 mt-1">
+                      <p class="text-xs text-blue-600 mt-1">
                         {@overall_stats.new_followers} new followers gained
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div class="p-3 bg-yellow-50 rounded-lg">
                   <div class="flex items-start">
                     <Core.icon name="hero-clock" class="w-5 h-5 text-yellow-600 mt-0.5" />
                     <div class="ml-3">
-                      <p class="text-sm font-medium text-yellow-800 dark:text-yellow-400">
+                      <p class="text-sm font-medium text-yellow-800">
                         Peak streaming time
                       </p>
-                      <p class="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                      <p class="text-xs text-yellow-600 mt-1">
                         Best engagement between 7 PM - 11 PM
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <div class="p-3 bg-purple-50 rounded-lg">
                   <div class="flex items-start">
                     <Core.icon
                       name="hero-chat-bubble-bottom-center-text"
                       class="w-5 h-5 text-purple-600 mt-0.5"
                     />
                     <div class="ml-3">
-                      <p class="text-sm font-medium text-purple-800 dark:text-purple-400">
+                      <p class="text-sm font-medium text-purple-800">
                         High chat activity
                       </p>
-                      <p class="text-xs text-purple-600 dark:text-purple-500 mt-1">
+                      <p class="text-xs text-purple-600 mt-1">
                         {format_number(@overall_stats.chat_messages)} chat messages received
                       </p>
                     </div>
@@ -329,26 +329,26 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
             </button>
           </div>
 
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
               {@selected_stream.title}
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Platform</p>
-                <p class="text-lg font-medium text-gray-900 dark:text-white">
+                <p class="text-sm text-gray-500">Platform</p>
+                <p class="text-lg font-medium text-gray-900">
                   {@selected_stream.platform}
                 </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Duration</p>
-                <p class="text-lg font-medium text-gray-900 dark:text-white">
+                <p class="text-sm text-gray-500">Duration</p>
+                <p class="text-lg font-medium text-gray-900">
                   {@selected_stream.duration} hours
                 </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Game</p>
-                <p class="text-lg font-medium text-gray-900 dark:text-white">
+                <p class="text-sm text-gray-500">Game</p>
+                <p class="text-lg font-medium text-gray-900">
                   {@selected_stream.game}
                 </p>
               </div>
