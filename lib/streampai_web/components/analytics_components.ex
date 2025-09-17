@@ -155,53 +155,55 @@ defmodule StreampaiWeb.AnalyticsComponents do
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
         {@title}
       </h3>
-      <div class="relative h-64">
-        <svg class="w-full h-full" viewBox="0 0 200 200">
-          <% total = @data |> Enum.map(& &1.value) |> Enum.sum() %>
-          <% colors = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6"] %>
-          <% {_, segments} =
-            @data
-            |> Enum.with_index()
-            |> Enum.reduce({0, []}, fn {item, i}, {start_angle, acc} ->
-              percentage = item.value / total
-              end_angle = start_angle + percentage * 360
-              color = Enum.at(colors, rem(i, length(colors)))
+      <div class="relative">
+        <div class="h-48">
+          <svg class="w-full h-full" viewBox="0 0 200 200">
+            <% total = @data |> Enum.map(& &1.value) |> Enum.sum() %>
+            <% colors = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6"] %>
+            <% {_, segments} =
+              @data
+              |> Enum.with_index()
+              |> Enum.reduce({0, []}, fn {item, i}, {start_angle, acc} ->
+                percentage = item.value / total
+                end_angle = start_angle + percentage * 360
+                color = Enum.at(colors, rem(i, length(colors)))
 
-              segment = %{
-                item: item,
-                start_angle: start_angle,
-                end_angle: end_angle,
-                color: color,
-                percentage: percentage * 100
-              }
+                segment = %{
+                  item: item,
+                  start_angle: start_angle,
+                  end_angle: end_angle,
+                  color: color,
+                  percentage: percentage * 100
+                }
 
-              {end_angle, acc ++ [segment]}
-            end) %>
+                {end_angle, acc ++ [segment]}
+              end) %>
 
-          <%= for segment <- segments do %>
-            <% large_arc = if segment.end_angle - segment.start_angle > 180, do: 1, else: 0 %>
-            <% start_x = 100 + 80 * :math.cos(segment.start_angle * :math.pi() / 180) %>
-            <% start_y = 100 + 80 * :math.sin(segment.start_angle * :math.pi() / 180) %>
-            <% end_x = 100 + 80 * :math.cos(segment.end_angle * :math.pi() / 180) %>
-            <% end_y = 100 + 80 * :math.sin(segment.end_angle * :math.pi() / 180) %>
+            <%= for segment <- segments do %>
+              <% large_arc = if segment.end_angle - segment.start_angle > 180, do: 1, else: 0 %>
+              <% start_x = 100 + 80 * :math.cos(segment.start_angle * :math.pi() / 180) %>
+              <% start_y = 100 + 80 * :math.sin(segment.start_angle * :math.pi() / 180) %>
+              <% end_x = 100 + 80 * :math.cos(segment.end_angle * :math.pi() / 180) %>
+              <% end_y = 100 + 80 * :math.sin(segment.end_angle * :math.pi() / 180) %>
 
-            <path
-              d={"M 100 100 L #{start_x} #{start_y} A 80 80 0 #{large_arc} 1 #{end_x} #{end_y} Z"}
-              fill={segment.color}
-              stroke="white"
-              stroke-width="2"
-            />
-          <% end %>
-        </svg>
+              <path
+                d={"M 100 100 L #{start_x} #{start_y} A 80 80 0 #{large_arc} 1 #{end_x} #{end_y} Z"}
+                fill={segment.color}
+                stroke="white"
+                stroke-width="2"
+              />
+            <% end %>
+          </svg>
+        </div>
 
-        <div class="mt-4 space-y-2">
+        <div class="mt-4 space-y-1">
           <%= for {segment, i} <- Enum.with_index(segments) do %>
-            <div class="flex items-center justify-between text-sm">
-              <div class="flex items-center">
-                <span class="w-3 h-3 rounded-full mr-2" style={"background-color: #{segment.color}"} />
-                <span class="text-gray-600 dark:text-gray-400">{segment.item.label}</span>
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style={"background-color: #{segment.color}"} />
+                <span class="text-gray-600 dark:text-gray-400 truncate">{segment.item.label}</span>
               </div>
-              <span class="font-medium text-gray-900 dark:text-white">
+              <span class="font-medium text-gray-900 dark:text-white ml-2 whitespace-nowrap">
                 {Float.round(segment.percentage, 1)}%
               </span>
             </div>

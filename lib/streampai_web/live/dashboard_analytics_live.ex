@@ -30,6 +30,10 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     {:noreply, socket}
   end
 
+  def handle_info(%Phoenix.Socket.Broadcast{}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("change_timeframe", %{"timeframe" => timeframe}, socket) do
     timeframe_atom = String.to_existing_atom(timeframe)
 
