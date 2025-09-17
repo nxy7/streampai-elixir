@@ -73,7 +73,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
 
     socket
     |> assign(:overall_stats, FakeAnalytics.generate_overall_stats(timeframe))
-    |> assign(:streams, FakeAnalytics.generate_stream_list())
+    |> assign(:stream_list, FakeAnalytics.generate_stream_list())
     |> assign(:viewer_data, FakeAnalytics.generate_time_series_data(:viewers, days))
     |> assign(:income_data, FakeAnalytics.generate_time_series_data(:income, days))
     |> assign(:follower_data, FakeAnalytics.generate_time_series_data(:followers, days))
@@ -195,7 +195,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
             />
           </div>
 
-          <.stream_table streams={Enum.take(@streams, 5)} />
+          <.stream_table streams={Enum.take(@stream_list, 5)} />
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
