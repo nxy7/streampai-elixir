@@ -2,6 +2,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   @moduledoc false
   use StreampaiWeb.BaseLive
 
+  import StreampaiWeb.AnalyticsComponents
   alias StreampaiWeb.Utils.FakePatreon
   alias StreampaiWeb.Utils.PlatformUtils
 
@@ -255,13 +256,12 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
                     <% end %>
                   </span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class={"h-2 rounded-full #{platform_color_class(stat.platform)}"}
-                    style={"width: #{if @platform_view_mode == "count", do: percentage_width(stat.total, @growth_metrics.total_patreons), else: percentage_width(stat.revenue, Enum.sum(Enum.map(@platform_stats, & &1.revenue)))}%"}
-                  >
-                  </div>
-                </div>
+                <.progress_bar
+                  value={if @platform_view_mode == "count", do: stat.total, else: stat.revenue}
+                  max_value={if @platform_view_mode == "count", do: @growth_metrics.total_patreons, else: Enum.sum(Enum.map(@platform_stats, & &1.revenue))}
+                  color_class={platform_color_class(stat.platform)}
+                  size={:medium}
+                />
               </div>
             <% end %>
           </div>
@@ -457,9 +457,4 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
 
   defp tier_badge_class(_), do: "bg-gray-100 text-gray-800"
 
-  defp percentage_width(value, total) when total > 0 do
-    Float.round(value / total * 100, 1)
-  end
-
-  defp percentage_width(_, _), do: 0
 end

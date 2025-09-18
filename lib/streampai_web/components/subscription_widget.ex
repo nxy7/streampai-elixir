@@ -2,6 +2,8 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
   @moduledoc false
   use StreampaiWeb, :html
 
+  import StreampaiWeb.AnalyticsComponents
+
   def subscription_widget(assigns) do
     assigns =
       assigns
@@ -38,21 +40,21 @@ defmodule StreampaiWeb.Components.SubscriptionWidget do
                   else: "#{@usage.hours_limit}h"}
               </span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <%= if @usage.hours_limit == :unlimited do %>
-                <div
-                  class="bg-green-500 h-2 rounded-full transition-all duration-300"
-                  style="width: 25%"
-                >
-                </div>
-              <% else %>
-                <div
-                  class="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                  style={"width: #{min((@usage.hours_used / @usage.hours_limit) * 100, 100)}%"}
-                >
-                </div>
-              <% end %>
-            </div>
+            <%= if @usage.hours_limit == :unlimited do %>
+              <.progress_bar
+                value={25.0}
+                max_value={100.0}
+                color_class="bg-green-500"
+                size={:medium}
+              />
+            <% else %>
+              <.progress_bar
+                value={@usage.hours_used}
+                max_value={@usage.hours_limit}
+                color_class="bg-purple-500"
+                size={:medium}
+              />
+            <% end %>
             <p class="text-xs text-gray-500 mt-1">
               <%= if @usage.hours_limit == :unlimited do %>
                 Unlimited streaming time
