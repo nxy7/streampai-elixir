@@ -198,15 +198,15 @@ defmodule StreampaiWeb.ViewersLive do
       <div class="space-y-6">
         <div class="flex flex-col gap-6">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Stream Viewers</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">
+            <h1 class="text-3xl font-bold text-gray-900">Stream Viewers</h1>
+            <p class="mt-2 text-gray-600">
               Manage and analyze your viewer base across all platforms
             </p>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+              <div class="bg-white rounded-lg shadow p-4">
                 <div class="flex flex-col sm:flex-row gap-4">
                   <form phx-submit="search" phx-change="search" class="flex-1">
                     <div class="relative">
@@ -215,7 +215,7 @@ defmodule StreampaiWeb.ViewersLive do
                         name="search[term]"
                         value={@search_term}
                         placeholder="Search by username, email, or name..."
-                        class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                       />
                       <svg
                         class="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
@@ -237,7 +237,7 @@ defmodule StreampaiWeb.ViewersLive do
                     <select
                       phx-change="filter_platform"
                       name="platform"
-                      class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                     >
                       <option value="all" selected={@selected_platform == nil}>All Platforms</option>
                       <option value="twitch" selected={@selected_platform == :twitch}>Twitch</option>
@@ -253,7 +253,7 @@ defmodule StreampaiWeb.ViewersLive do
                 </div>
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                  <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Filter by tags:</span>
+                  <span class="text-sm text-gray-600 mr-2">Filter by tags:</span>
                   <%= for tag <- ["VIP", "Subscriber", "Moderator", "Regular", "New"] do %>
                     <button
                       phx-click="toggle_tag"
@@ -262,7 +262,7 @@ defmodule StreampaiWeb.ViewersLive do
                         if tag in @selected_tags do
                           tag_color(tag)
                         else
-                          "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                          "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         end}
                     >
                       {tag}
@@ -280,16 +280,16 @@ defmodule StreampaiWeb.ViewersLive do
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+              <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                       <tr>
                         <th scope="col" class="px-6 py-3 text-left">
                           <button
                             phx-click="sort"
                             phx-value-by="username"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-100"
+                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
                           >
                             Viewer
                             <span class="ml-2 flex-none">
@@ -307,13 +307,13 @@ defmodule StreampaiWeb.ViewersLive do
                         </th>
                         <th
                           scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
                           Platforms
                         </th>
                         <th
                           scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
                           Tags
                         </th>
@@ -321,7 +321,7 @@ defmodule StreampaiWeb.ViewersLive do
                           <button
                             phx-click="sort"
                             phx-value-by="total_messages"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-100"
+                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
                           >
                             Messages
                             <span class="ml-2 flex-none">
@@ -341,7 +341,7 @@ defmodule StreampaiWeb.ViewersLive do
                           <button
                             phx-click="sort"
                             phx-value-by="total_donations"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-100"
+                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
                           >
                             Donations
                             <span class="ml-2 flex-none">
@@ -361,7 +361,7 @@ defmodule StreampaiWeb.ViewersLive do
                           <button
                             phx-click="sort"
                             phx-value-by="watch_time"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-100"
+                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
                           >
                             Watch Time
                             <span class="ml-2 flex-none">
@@ -381,7 +381,7 @@ defmodule StreampaiWeb.ViewersLive do
                           <button
                             phx-click="sort"
                             phx-value-by="last_seen"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-100"
+                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
                           >
                             Last Seen
                             <span class="ml-2 flex-none">
@@ -399,9 +399,9 @@ defmodule StreampaiWeb.ViewersLive do
                         </th>
                       </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody class="bg-white divide-y divide-gray-200">
                       <%= for viewer <- @viewers do %>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <tr class="hover:bg-gray-50 transition-colors">
                           <td class="px-6 py-4 whitespace-nowrap">
                             <.link
                               navigate={~p"/dashboard/viewers/#{viewer.id}"}
@@ -413,10 +413,10 @@ defmodule StreampaiWeb.ViewersLive do
                                 alt={viewer.username}
                               />
                               <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                <div class="text-sm font-medium text-gray-900 group-hover:text-purple-600">
                                   {viewer.username}
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                <div class="text-sm text-gray-500">
                                   {viewer.email}
                                 </div>
                               </div>
@@ -439,28 +439,28 @@ defmodule StreampaiWeb.ViewersLive do
                                 </span>
                               <% end %>
                               <%= if length(viewer.tags) > 3 do %>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-xs text-gray-500">
                                   +{length(viewer.tags) - 3}
                                 </span>
                               <% end %>
                             </div>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {viewer.total_messages
                             |> Integer.to_string()
                             |> String.replace(~r/(\d)(?=(\d{3})+(?!\d))/, "\\1,")}
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <%= if viewer.total_donations > 0 do %>
                               ${:erlang.float_to_binary(viewer.total_donations, decimals: 0)}
                             <% else %>
                               <span class="text-gray-400">-</span>
                             <% end %>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {format_duration(viewer.total_watch_time)}
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {format_date(viewer.last_seen)}
                           </td>
                         </tr>
@@ -484,10 +484,10 @@ defmodule StreampaiWeb.ViewersLive do
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                       />
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">
                       No viewers found
                     </h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-1 text-sm text-gray-500">
                       Try adjusting your search or filters
                     </p>
                   </div>
@@ -496,46 +496,46 @@ defmodule StreampaiWeb.ViewersLive do
             </div>
 
             <div class="space-y-4">
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Statistics</h3>
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Statistics</h3>
                 <dl class="space-y-4">
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Total Viewers
                     </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
                       {length(@all_viewers)}
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Active Subscribers
                     </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
                       {Enum.count(@all_viewers, & &1.is_subscriber)}
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Total Followers
                     </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
                       {Enum.count(@all_viewers, & &1.is_follower)}
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Multi-Platform
                     </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
                       {Enum.count(@all_viewers, fn v -> length(v.platforms) > 1 end)}
                     </dd>
                   </div>
                 </dl>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
                   Top Contributors
                 </h3>
                 <div class="space-y-3">
@@ -546,11 +546,11 @@ defmodule StreampaiWeb.ViewersLive do
                     >
                       <div class="flex items-center">
                         <img class="h-8 w-8 rounded-full" src={viewer.avatar} alt={viewer.username} />
-                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        <span class="ml-2 text-sm font-medium text-gray-900 group-hover:text-purple-600">
                           {viewer.username}
                         </span>
                       </div>
-                      <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                      <span class="text-sm font-semibold text-gray-900">
                         ${:erlang.float_to_binary(viewer.total_donations, decimals: 0)}
                       </span>
                     </.link>

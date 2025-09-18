@@ -51,22 +51,22 @@ defmodule StreampaiWeb.ViewerDetailsLive do
 
   defp platform_color(platform) do
     case platform do
-      :twitch -> "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-      :youtube -> "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-      :facebook -> "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-      :kick -> "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-      _ -> "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+      :twitch -> "bg-purple-100 text-purple-800"
+      :youtube -> "bg-red-100 text-red-800"
+      :facebook -> "bg-blue-100 text-blue-800"
+      :kick -> "bg-green-100 text-green-800"
+      _ -> "bg-gray-100 text-gray-800"
     end
   end
 
   defp tag_color(tag) do
     case tag do
-      "VIP" -> "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-      "Subscriber" -> "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-      "Moderator" -> "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-      "Regular" -> "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-      "New" -> "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200"
-      _ -> "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+      "VIP" -> "bg-yellow-100 text-yellow-800"
+      "Subscriber" -> "bg-purple-100 text-purple-800"
+      "Moderator" -> "bg-green-100 text-green-800"
+      "Regular" -> "bg-blue-100 text-blue-800"
+      "New" -> "bg-pink-100 text-pink-800"
+      _ -> "bg-gray-100 text-gray-800"
     end
   end
 
@@ -93,7 +93,7 @@ defmodule StreampaiWeb.ViewerDetailsLive do
           <div class="flex items-center space-x-4">
             <.link
               navigate={~p"/dashboard/viewers"}
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              class="text-gray-500 hover:text-gray-700"
             >
               <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -107,35 +107,35 @@ defmodule StreampaiWeb.ViewerDetailsLive do
             <div class="flex items-center">
               <img class="h-12 w-12 rounded-full" src={@viewer.avatar} alt={@viewer.username} />
               <div class="ml-4">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{@viewer.username}</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{@viewer.email}</p>
+                <h1 class="text-2xl font-bold text-gray-900">{@viewer.username}</h1>
+                <p class="text-sm text-gray-500">{@viewer.email}</p>
               </div>
             </div>
           </div>
           <div class="flex items-center space-x-2">
             <%= if @viewer.is_subscriber do %>
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                 Subscriber • Tier {@viewer.subscription_tier}
               </span>
             <% end %>
             <%= if @viewer.is_follower do %>
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                 Follower
               </span>
             <% end %>
           </div>
         </div>
 
-        <div class="border-b border-gray-200 dark:border-gray-700">
+        <div class="border-b border-gray-200">
           <nav class="-mb-px flex space-x-8">
             <button
               phx-click="change_tab"
               phx-value-tab="overview"
               class={"whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm " <>
                 if @active_tab == :overview do
-                  "border-blue-500 text-blue-600 dark:text-blue-400"
+                  "border-purple-500 text-purple-600"
                 else
-                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200"
+                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 end}
             >
               Overview
@@ -145,9 +145,9 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               phx-value-tab="statistics"
               class={"whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm " <>
                 if @active_tab == :statistics do
-                  "border-blue-500 text-blue-600 dark:text-blue-400"
+                  "border-purple-500 text-purple-600"
                 else
-                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200"
+                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 end}
             >
               Statistics
@@ -157,9 +157,9 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               phx-value-tab="chat_history"
               class={"whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm " <>
                 if @active_tab == :chat_history do
-                  "border-blue-500 text-blue-600 dark:text-blue-400"
+                  "border-purple-500 text-purple-600"
                 else
-                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200"
+                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 end}
             >
               Chat History
@@ -169,9 +169,9 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               phx-value-tab="donations"
               class={"whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm " <>
                 if @active_tab == :donations do
-                  "border-blue-500 text-blue-600 dark:text-blue-400"
+                  "border-purple-500 text-purple-600"
                 else
-                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200"
+                  "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 end}
             >
               Donations
@@ -183,29 +183,29 @@ defmodule StreampaiWeb.ViewerDetailsLive do
           <% :overview -> %>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">AI Summary</h3>
-                  <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">AI Summary</h3>
+                  <p class="text-gray-700 leading-relaxed">
                     {@viewer.ai_summary}
                   </p>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">
                     Linked Accounts
                   </h3>
                   <div class="space-y-3">
                     <%= for account <- @viewer.linked_accounts do %>
-                      <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div class="flex items-center space-x-3">
                           <span class={"inline-flex items-center px-2 py-1 rounded text-xs font-medium " <> platform_color(account.platform)}>
                             {account.platform |> Atom.to_string() |> String.capitalize()}
                           </span>
                           <div>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            <p class="text-sm font-medium text-gray-900">
                               {account.username}
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <p class="text-xs text-gray-500">
                               Linked via {account.linked_via} • {format_date_relative(
                                 account.linked_at
                               )}
@@ -213,8 +213,8 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                           </div>
                         </div>
                         <div class="text-right">
-                          <p class="text-xs text-gray-500 dark:text-gray-400">Confidence</p>
-                          <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                          <p class="text-xs text-gray-500">Confidence</p>
+                          <p class="text-sm font-semibold text-gray-900">
                             {account.confidence}%
                           </p>
                         </div>
@@ -223,19 +223,19 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                   </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">
                     Badges & Achievements
                   </h3>
                   <div class="grid grid-cols-2 gap-4">
                     <%= for badge <- @viewer.badges do %>
-                      <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                         <span class="text-2xl">{badge.icon}</span>
                         <div>
-                          <p class="text-sm font-medium text-gray-900 dark:text-white">
+                          <p class="text-sm font-medium text-gray-900">
                             {badge.name}
                           </p>
-                          <p class="text-xs text-gray-500 dark:text-gray-400">{badge.description}</p>
+                          <p class="text-xs text-gray-500">{badge.description}</p>
                         </div>
                       </div>
                     <% end %>
@@ -244,66 +244,66 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               </div>
 
               <div class="space-y-6">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Stats</h3>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Stats</h3>
                   <dl class="space-y-4">
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      <dt class="text-sm font-medium text-gray-500">
                         Total Watch Time
                       </dt>
-                      <dd class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
+                      <dd class="mt-1 text-xl font-semibold text-gray-900">
                         {format_duration(@viewer.total_watch_time)}
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      <dt class="text-sm font-medium text-gray-500">
                         Total Messages
                       </dt>
-                      <dd class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
+                      <dd class="mt-1 text-xl font-semibold text-gray-900">
                         {@viewer.total_messages
                         |> Integer.to_string()
                         |> String.replace(~r/(\d)(?=(\d{3})+(?!\d))/, "\\1,")}
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      <dt class="text-sm font-medium text-gray-500">
                         Total Donations
                       </dt>
-                      <dd class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
+                      <dd class="mt-1 text-xl font-semibold text-gray-900">
                         ${:erlang.float_to_binary(@viewer.total_donations, decimals: 2)}
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      <dt class="text-sm font-medium text-gray-500">
                         Engagement Score
                       </dt>
                       <dd class="mt-1">
                         <div class="flex items-center">
-                          <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div class="flex-1 bg-gray-200 rounded-full h-2">
                             <div
-                              class="bg-blue-500 h-2 rounded-full"
+                              class="bg-purple-500 h-2 rounded-full"
                               style={"width: #{@viewer.engagement_score}%"}
                             >
                             </div>
                           </div>
-                          <span class="ml-2 text-sm font-semibold text-gray-900 dark:text-white">
+                          <span class="ml-2 text-sm font-semibold text-gray-900">
                             {@viewer.engagement_score}%
                           </span>
                         </div>
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Sentiment</dt>
+                      <dt class="text-sm font-medium text-gray-500">Sentiment</dt>
                       <dd class="mt-1">
                         <div class="flex items-center">
-                          <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div class="flex-1 bg-gray-200 rounded-full h-2">
                             <div
                               class="bg-green-500 h-2 rounded-full"
                               style={"width: #{@viewer.sentiment_score}%"}
                             >
                             </div>
                           </div>
-                          <span class="ml-2 text-sm font-semibold text-gray-900 dark:text-white">
+                          <span class="ml-2 text-sm font-semibold text-gray-900">
                             {@viewer.sentiment_score}%
                           </span>
                         </div>
@@ -312,8 +312,8 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                   </dl>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Tags</h3>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Tags</h3>
                   <div class="flex flex-wrap gap-2">
                     <%= for tag <- @viewer.tags do %>
                       <span class={"inline-flex items-center px-3 py-1 rounded-full text-sm font-medium " <> tag_color(tag)}>
@@ -323,29 +323,29 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                   </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">
                     Activity Info
                   </h3>
                   <dl class="space-y-3">
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">First Seen</dt>
-                      <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                      <dt class="text-sm font-medium text-gray-500">First Seen</dt>
+                      <dd class="mt-1 text-sm text-gray-900">
                         {format_datetime(@viewer.first_seen)}
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Seen</dt>
-                      <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                      <dt class="text-sm font-medium text-gray-500">Last Seen</dt>
+                      <dd class="mt-1 text-sm text-gray-900">
                         {format_date_relative(@viewer.last_seen)}
                       </dd>
                     </div>
                     <%= if @viewer.is_subscriber do %>
                       <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <dt class="text-sm font-medium text-gray-500">
                           Subscription
                         </dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                        <dd class="mt-1 text-sm text-gray-900">
                           {@viewer.subscription_months} months • Tier {@viewer.subscription_tier}
                         </dd>
                       </div>
@@ -356,20 +356,20 @@ defmodule StreampaiWeb.ViewerDetailsLive do
             </div>
           <% :statistics -> %>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Top Donations</h3>
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Top Donations</h3>
                 <div class="space-y-3">
                   <%= for {donation, index} <- Enum.with_index(@viewer.top_donations, 1) do %>
-                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div class="flex items-center space-x-3">
                         <span class="flex-shrink-0 text-2xl font-bold text-gray-400">
                           #{index}
                         </span>
                         <div>
-                          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                          <p class="text-lg font-semibold text-gray-900">
                             ${:erlang.float_to_binary(donation.amount, decimals: 2)}
                           </p>
-                          <p class="text-sm text-gray-500 dark:text-gray-400">
+                          <p class="text-sm text-gray-500">
                             {format_date_relative(donation.timestamp)} via {donation.platform}
                           </p>
                         </div>
@@ -379,25 +379,25 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
                   Favorite Emotes
                 </h3>
                 <div class="space-y-3">
                   <%= for emote <- @viewer.favorite_emotes do %>
                     <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-900 dark:text-white">
+                      <span class="text-sm font-medium text-gray-900">
                         {emote.emote}
                       </span>
                       <div class="flex items-center space-x-2">
-                        <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="w-32 bg-gray-200 rounded-full h-2">
                           <div
-                            class="bg-blue-500 h-2 rounded-full"
+                            class="bg-purple-500 h-2 rounded-full"
                             style={"width: #{min(100, emote.usage_count / 5)}%"}
                           >
                           </div>
                         </div>
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                        <span class="text-sm text-gray-500">
                           {emote.usage_count}
                         </span>
                       </div>
@@ -406,67 +406,67 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
                   Chat Activity Patterns
                 </h3>
                 <dl class="space-y-4">
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Most Active Hour
                     </dt>
-                    <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-lg font-semibold text-gray-900">
                       {@viewer.common_chat_times.most_active_hour}:00 - {@viewer.common_chat_times.most_active_hour +
                         1}:00
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Most Active Day
                     </dt>
-                    <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-lg font-semibold text-gray-900">
                       {@viewer.common_chat_times.most_active_day}
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Avg Messages per Stream
                     </dt>
-                    <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-lg font-semibold text-gray-900">
                       {@viewer.common_chat_times.average_messages_per_stream}
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <dt class="text-sm font-medium text-gray-500">
                       Chat Participation Rate
                     </dt>
-                    <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                    <dd class="mt-1 text-lg font-semibold text-gray-900">
                       {@viewer.common_chat_times.chat_participation_rate}%
                     </dd>
                   </div>
                 </dl>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
                   Recent Watch Sessions
                 </h3>
                 <div class="space-y-2">
                   <%= for session <- Enum.take(@viewer.watch_sessions, 5) do %>
-                    <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
                       <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        <p class="text-sm font-medium text-gray-900">
                           {format_date_relative(session.date)}
                         </p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                        <p class="text-xs text-gray-500">
                           {session.platform} • {session.chat_messages} messages
                         </p>
                       </div>
                       <div class="text-right">
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        <p class="text-sm font-semibold text-gray-900">
                           {format_duration(div(session.duration, 60))}
                         </p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                        <p class="text-xs text-gray-500">
                           {session.engagement_rate}% engaged
                         </p>
                       </div>
@@ -476,26 +476,26 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               </div>
             </div>
           <% :chat_history -> %>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-              <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            <div class="bg-white rounded-lg shadow">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">
                   Recent Chat Messages
                 </h3>
               </div>
               <div class="max-h-96 overflow-y-auto">
-                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="divide-y divide-gray-200">
                   <%= for message <- @viewer.chat_history do %>
-                    <div class={"px-6 py-3 " <> if message.highlighted, do: "bg-yellow-50 dark:bg-yellow-900/20", else: "hover:bg-gray-50 dark:hover:bg-gray-700"}>
+                    <div class={"px-6 py-3 " <> if message.highlighted, do: "bg-yellow-50", else: "hover:bg-gray-50"}>
                       <div class="flex items-start justify-between">
                         <div class="flex-1">
-                          <p class="text-sm text-gray-900 dark:text-white">
+                          <p class="text-sm text-gray-900">
                             {message.message}
                           </p>
                           <div class="mt-1 flex items-center space-x-2">
                             <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium " <> platform_color(message.platform)}>
                               {message.platform |> Atom.to_string() |> String.capitalize()}
                             </span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                            <span class="text-xs text-gray-500">
                               {format_datetime(message.timestamp)}
                             </span>
                           </div>
@@ -514,56 +514,56 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               </div>
             </div>
           <% :donations -> %>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-              <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Donation History</h3>
+            <div class="bg-white rounded-lg shadow">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Donation History</h3>
               </div>
               <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead class="bg-gray-50 dark:bg-gray-700">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
                     <tr>
                       <th
                         scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Date
                       </th>
                       <th
                         scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Type
                       </th>
                       <th
                         scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Platform
                       </th>
                       <th
                         scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Amount
                       </th>
                       <th
                         scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Message
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody class="bg-white divide-y divide-gray-200">
                     <%= for donation <- @viewer.donation_history do %>
-                      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {format_datetime(donation.timestamp)}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                           <span class="inline-flex items-center space-x-1">
                             <span>{donation_type_icon(donation.type)}</span>
-                            <span class="text-gray-900 dark:text-white">
+                            <span class="text-gray-900">
                               {donation.type |> Atom.to_string() |> String.capitalize()}
                             </span>
                           </span>
@@ -573,10 +573,10 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                             {donation.platform |> Atom.to_string() |> String.capitalize()}
                           </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           ${:erlang.float_to_binary(donation.amount, decimals: 2)}
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <td class="px-6 py-4 text-sm text-gray-500">
                           {donation.message || "-"}
                         </td>
                       </tr>
