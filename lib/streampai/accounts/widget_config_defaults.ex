@@ -83,7 +83,10 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
   end
 
   def get_default_config(widget_type) do
-    Map.get(@widget_configs, widget_type, %{})
+    case Map.get(@widget_configs, widget_type) do
+      nil -> %{}
+      config -> config
+    end
   end
 
   def get_required_config_keys(widget_type) do

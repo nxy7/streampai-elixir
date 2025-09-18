@@ -3,6 +3,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   use StreampaiWeb.BaseLive
 
   alias StreampaiWeb.Utils.FakePatreon
+  alias StreampaiWeb.Utils.PlatformUtils
 
   def mount_page(socket, _params, _session) do
     patreons = FakePatreon.generate_patreons(250)
@@ -437,11 +438,11 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   end
 
   defp platform_color_class(platform) do
-    StreampaiWeb.Utils.PlatformUtils.platform_solid_color(platform)
+    PlatformUtils.platform_solid_color(platform)
   end
 
   defp platform_badge_class(platform) do
-    StreampaiWeb.Utils.PlatformUtils.platform_badge_color(platform)
+    PlatformUtils.platform_badge_color(platform)
   end
 
   defp tier_badge_class("Bronze"), do: "bg-amber-100 text-amber-800"
