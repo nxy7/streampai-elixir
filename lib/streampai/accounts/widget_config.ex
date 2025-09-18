@@ -7,6 +7,8 @@ defmodule Streampai.Accounts.WidgetConfig do
     extensions: [AshAdmin.Resource],
     data_layer: AshPostgres.DataLayer
 
+  alias Streampai.Accounts.WidgetConfigDefaults
+
   postgres do
     table "widget_configs"
     repo Streampai.Repo
@@ -130,86 +132,7 @@ defmodule Streampai.Accounts.WidgetConfig do
   Gets default configuration for a specific widget type.
   """
   def get_default_config(widget_type) do
-    case widget_type do
-      :chat_widget ->
-        %{
-          max_messages: 50,
-          show_badges: true,
-          show_emotes: true,
-          hide_bots: false,
-          show_timestamps: false,
-          show_platform: true,
-          message_fade_time: 0,
-          font_size: "medium"
-        }
-
-      :alertbox_widget ->
-        %{
-          display_duration: 5,
-          animation_type: "fade",
-          alert_position: "center",
-          sound_enabled: true,
-          sound_volume: 80,
-          show_amount: true,
-          show_message: true,
-          font_size: "medium"
-        }
-
-      :viewer_count_widget ->
-        %{
-          show_total: true,
-          show_platforms: true,
-          font_size: "medium",
-          display_style: "detailed",
-          animation_enabled: true,
-          icon_color: "#ef4444",
-          viewer_label: "viewers"
-        }
-
-      :follower_count_widget ->
-        %{
-          show_total: true,
-          show_platforms: true,
-          font_size: "medium",
-          display_style: "detailed",
-          animation_enabled: true,
-          total_label: "Total followers",
-          icon_color: "#9333ea"
-        }
-
-      :donation_widget ->
-        %{
-          show_amount: true,
-          show_message: true,
-          minimum_amount: 1.0,
-          animation_enabled: true,
-          sound_enabled: true
-        }
-
-      :follow_widget ->
-        %{
-          show_message: true,
-          animation_type: "slide",
-          display_duration: 3
-        }
-
-      :subscriber_widget ->
-        %{
-          show_tier: true,
-          show_message: true,
-          animation_type: "bounce",
-          display_duration: 4
-        }
-
-      :donation_goal_widget ->
-        Streampai.Fake.DonationGoal.default_config()
-
-      :top_donors_widget ->
-        Streampai.Fake.TopDonors.default_config()
-
-      _ ->
-        %{}
-    end
+    WidgetConfigDefaults.get_default_config(widget_type)
   end
 
   @doc """
@@ -228,17 +151,7 @@ defmodule Streampai.Accounts.WidgetConfig do
   Gets required configuration keys for a widget type.
   """
   def get_required_config_keys(widget_type) do
-    case widget_type do
-      :chat_widget -> [:max_messages, :show_badges, :show_emotes]
-      :alertbox_widget -> [:display_duration, :animation_type, :sound_enabled]
-      :viewer_count_widget -> [:show_total, :display_style]
-      :follower_count_widget -> [:show_total, :display_style]
-      :donation_widget -> [:show_amount, :minimum_amount]
-      :follow_widget -> [:animation_type, :display_duration]
-      :subscriber_widget -> [:show_tier, :animation_type, :display_duration]
-      :top_donors_widget -> [:display_count, :currency, :theme]
-      _ -> []
-    end
+    WidgetConfigDefaults.get_required_config_keys(widget_type)
   end
 
   defp valid_config_values?(widget_type, config) do

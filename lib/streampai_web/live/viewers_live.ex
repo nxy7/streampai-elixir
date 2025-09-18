@@ -177,18 +177,19 @@ defmodule StreampaiWeb.ViewersLive do
     end
   end
 
+  @tag_colors %{
+    "VIP" => "bg-yellow-100 text-yellow-800",
+    "Subscriber" => "bg-purple-100 text-purple-800",
+    "Moderator" => "bg-green-100 text-green-800",
+    "Regular" => "bg-blue-100 text-blue-800",
+    "New" => "bg-pink-100 text-pink-800",
+    "Turbo" => "bg-indigo-100 text-indigo-800",
+    "Prime" => "bg-orange-100 text-orange-800",
+    "Gifted Sub" => "bg-red-100 text-red-800"
+  }
+
   defp tag_color(tag) do
-    case tag do
-      "VIP" -> "bg-yellow-100 text-yellow-800"
-      "Subscriber" -> "bg-purple-100 text-purple-800"
-      "Moderator" -> "bg-green-100 text-green-800"
-      "Regular" -> "bg-blue-100 text-blue-800"
-      "New" -> "bg-pink-100 text-pink-800"
-      "Turbo" -> "bg-indigo-100 text-indigo-800"
-      "Prime" -> "bg-orange-100 text-orange-800"
-      "Gifted Sub" -> "bg-red-100 text-red-800"
-      _ -> "bg-gray-100 text-gray-800"
-    end
+    Map.get(@tag_colors, tag, "bg-gray-100 text-gray-800")
   end
 
   @impl true

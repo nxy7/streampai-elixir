@@ -455,13 +455,6 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
 
   defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
 
-  defp tier_color_class("Bronze"), do: "bg-amber-700"
-  defp tier_color_class("Silver"), do: "bg-gray-500"
-  defp tier_color_class("Gold"), do: "bg-yellow-500"
-  defp tier_color_class("Diamond"), do: "bg-cyan-500"
-  defp tier_color_class("Platinum"), do: "bg-purple-600"
-  defp tier_color_class(_), do: "bg-gray-600"
-
   defp tier_badge_class("Bronze"), do: "bg-amber-100 text-amber-800"
 
   defp tier_badge_class("Silver"), do: "bg-gray-100 text-gray-800"

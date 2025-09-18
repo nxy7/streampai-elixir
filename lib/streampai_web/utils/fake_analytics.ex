@@ -83,39 +83,7 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
     0..(days * 24 - 1)
     |> Enum.map(fn hours_ago ->
       time = DateTime.add(now, -hours_ago * 3600, :second)
-
-      value =
-        case metric do
-          :viewers ->
-            base =
-              if rem(hours_ago, 24) in 18..23 or rem(hours_ago, 24) in 0..2 do
-                Enum.random(500..2000)
-              else
-                Enum.random(100..500)
-              end
-
-            if rem(hours_ago, 6) == 0, do: base * 2, else: base
-
-          :income ->
-            if rem(hours_ago, 24) in 18..23 do
-              Enum.random(20..100) + :rand.uniform() * 20
-            else
-              Enum.random(5..30) + :rand.uniform() * 10
-            end
-
-          :followers ->
-            if rem(hours_ago, 24) in 18..23 do
-              Enum.random(5..30)
-            else
-              Enum.random(1..10)
-            end
-
-          :engagement ->
-            2.0 + :rand.uniform() * 3.0 + if rem(hours_ago, 12) == 0, do: 2.0, else: 0
-
-          _ ->
-            Enum.random(10..100)
-        end
+      value = generate_metric_value(metric, hours_ago)
 
       %{
         time: time,
@@ -123,6 +91,54 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
       }
     end)
     |> Enum.reverse()
+  end
+
+  defp generate_metric_value(:viewers, hours_ago) do
+    base = generate_viewer_base(hours_ago)
+    apply_viewer_spike(base, hours_ago)
+  end
+
+  defp generate_metric_value(:income, hours_ago) do
+    if prime_time?(hours_ago) do
+      Enum.random(20..100) + :rand.uniform() * 20
+    else
+      Enum.random(5..30) + :rand.uniform() * 10
+    end
+  end
+
+  defp generate_metric_value(:followers, hours_ago) do
+    if prime_time?(hours_ago) do
+      Enum.random(5..30)
+    else
+      Enum.random(1..10)
+    end
+  end
+
+  defp generate_metric_value(:engagement, hours_ago) do
+    base_engagement = 2.0 + :rand.uniform() * 3.0
+    spike = if rem(hours_ago, 12) == 0, do: 2.0, else: 0
+    base_engagement + spike
+  end
+
+  defp generate_metric_value(_, _hours_ago) do
+    Enum.random(10..100)
+  end
+
+  defp generate_viewer_base(hours_ago) do
+    if prime_time?(hours_ago) do
+      Enum.random(500..2000)
+    else
+      Enum.random(100..500)
+    end
+  end
+
+  defp apply_viewer_spike(base, hours_ago) do
+    if rem(hours_ago, 6) == 0, do: base * 2, else: base
+  end
+
+  defp prime_time?(hours_ago) do
+    hour_of_day = rem(hours_ago, 24)
+    hour_of_day in 18..23 or hour_of_day in 0..2
   end
 
   def generate_platform_breakdown do
