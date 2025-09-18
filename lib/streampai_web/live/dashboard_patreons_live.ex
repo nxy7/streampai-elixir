@@ -145,10 +145,10 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               <div>
                 <p class="text-sm text-gray-600">Total Patreons</p>
                 <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.total_patreons}
+                  <%= @growth_metrics.total_patreons %>
                 </p>
                 <p class="text-xs text-gray-500 mt-1">
-                  {@growth_metrics.active_patreons} active
+                  <%= @growth_metrics.active_patreons %> active
                 </p>
               </div>
               <div class="p-3 bg-purple-100 rounded-lg">
@@ -165,14 +165,14 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               <div>
                 <p class="text-sm text-gray-600">Monthly Revenue</p>
                 <p class="text-2xl font-bold text-gray-900">
-                  ${Float.round(Enum.sum(Enum.map(@platform_stats, & &1.revenue)), 2)}
+                  $<%= Float.round(Enum.sum(Enum.map(@platform_stats, & &1.revenue)), 2) %>
                 </p>
                 <p class="text-xs text-green-600 mt-1">
                   <StreampaiWeb.CoreComponents.icon
                     name="hero-arrow-trending-up"
                     class="w-3 h-3 inline"
                   />
-                  {@growth_metrics.growth_rate}% growth
+                  <%= @growth_metrics.growth_rate %>% growth
                 </p>
               </div>
               <div class="p-3 bg-green-100 rounded-lg">
@@ -189,7 +189,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               <div>
                 <p class="text-sm text-gray-600">New This Month</p>
                 <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.new_this_month}
+                  <%= @growth_metrics.new_this_month %>
                 </p>
                 <p class="text-xs text-gray-500 mt-1">
                   Joined recently
@@ -209,7 +209,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               <div>
                 <p class="text-sm text-gray-600">Retention Rate</p>
                 <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.retention_rate}%
+                  <%= @growth_metrics.retention_rate %>%
                 </p>
                 <p class="text-xs text-gray-500 mt-1">
                   Active subscribers
@@ -236,7 +236,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               phx-click="toggle_platform_view"
               class="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
-              View by: {(@platform_view_mode == "count" && "Count") || "Revenue"}
+              View by: <%= if @platform_view_mode == "count", do: "Count", else: "Revenue" %>
             </button>
           </div>
           <div class="space-y-4">
@@ -244,20 +244,20 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
               <div>
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-sm font-medium text-gray-700">
-                    {stat.platform}
+                    <%= stat.platform %>
                   </span>
                   <span class="text-sm text-gray-600">
                     <%= if @platform_view_mode == "count" do %>
-                      {stat.active} active / {stat.total} total
+                      <%= stat.total %> patreons
                     <% else %>
-                      ${Float.round(stat.revenue, 2)}
+                      $<%= Float.round(stat.revenue, 2) %>
                     <% end %>
                   </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                   <div
                     class={"h-2 rounded-full #{platform_color_class(stat.platform)}"}
-                    style={"width: #{if @platform_view_mode == "count", do: percentage_width(stat.active, @growth_metrics.active_patreons), else: percentage_width(stat.revenue, Enum.sum(Enum.map(@platform_stats, & &1.revenue)))}%"}
+                    style={"width: #{if @platform_view_mode == "count", do: percentage_width(stat.total, @growth_metrics.total_patreons), else: percentage_width(stat.revenue, Enum.sum(Enum.map(@platform_stats, & &1.revenue)))}%"}
                   >
                   </div>
                 </div>
@@ -376,29 +376,29 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
                         />
                         <div class="ml-4">
                           <div class="text-sm font-medium text-gray-900">
-                            {patreon.display_name}
+                            <%= patreon.display_name %>
                           </div>
                           <div class="text-sm text-gray-500">
-                            @{patreon.username}
+                            @<%= patreon.username %>
                           </div>
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{platform_badge_class(patreon.platform)}"}>
-                        {patreon.platform}
+                        <%= patreon.platform %>
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{tier_badge_class(patreon.tier)}"}>
-                        {patreon.tier}
+                        <%= patreon.tier %>
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${patreon.amount} {patreon.currency}
+                      $<%= patreon.amount %> <%= patreon.currency %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {patreon.months_subscribed} months
+                      <%= patreon.months_subscribed %> months
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <%= if patreon.is_active do %>
@@ -427,7 +427,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
 
           <%= if length(@filtered_patreons) > 20 do %>
             <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 text-center">
-              Showing 20 of {length(@filtered_patreons)} patreons
+              Showing 20 of <%= length(@filtered_patreons) %> patreons
             </div>
           <% end %>
         </div>
