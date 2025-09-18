@@ -40,34 +40,26 @@ defmodule StreampaiWeb.ViewerDetailsLive do
   end
 
   defp format_date_relative(datetime) do
-    case NaiveDateTime.diff(NaiveDateTime.utc_now(), datetime, :day) do
-      0 -> "Today"
-      1 -> "Yesterday"
-      days when days < 7 -> "#{days} days ago"
-      days when days < 30 -> "#{div(days, 7)} weeks ago"
-      days -> "#{div(days, 30)} months ago"
-    end
+    StreampaiWeb.Utils.FormatHelpers.format_date_relative(datetime)
   end
 
   defp platform_color(platform) do
-    case platform do
-      :twitch -> "bg-purple-100 text-purple-800"
-      :youtube -> "bg-red-100 text-red-800"
-      :facebook -> "bg-blue-100 text-blue-800"
-      :kick -> "bg-green-100 text-green-800"
-      _ -> "bg-gray-100 text-gray-800"
-    end
+    StreampaiWeb.Utils.PlatformUtils.platform_badge_color(platform)
   end
 
+  @tag_colors %{
+    "VIP" => "bg-yellow-100 text-yellow-800",
+    "Subscriber" => "bg-purple-100 text-purple-800",
+    "Moderator" => "bg-green-100 text-green-800",
+    "Regular" => "bg-blue-100 text-blue-800",
+    "New" => "bg-pink-100 text-pink-800",
+    "Turbo" => "bg-indigo-100 text-indigo-800",
+    "Prime" => "bg-orange-100 text-orange-800",
+    "Gifted Sub" => "bg-red-100 text-red-800"
+  }
+
   defp tag_color(tag) do
-    case tag do
-      "VIP" -> "bg-yellow-100 text-yellow-800"
-      "Subscriber" -> "bg-purple-100 text-purple-800"
-      "Moderator" -> "bg-green-100 text-green-800"
-      "Regular" -> "bg-blue-100 text-blue-800"
-      "New" -> "bg-pink-100 text-pink-800"
-      _ -> "bg-gray-100 text-gray-800"
-    end
+    Map.get(@tag_colors, tag, "bg-gray-100 text-gray-800")
   end
 
   defp donation_type_icon(type) do

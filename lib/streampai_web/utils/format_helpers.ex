@@ -79,4 +79,23 @@ defmodule StreampaiWeb.Utils.FormatHelpers do
   def format_chart_date(datetime) do
     Calendar.strftime(datetime, "%b %d")
   end
+
+  @doc """
+  Formats a datetime relative to now (e.g., "2 days ago", "Yesterday").
+
+  ## Examples
+
+      iex> format_date_relative(~N[2023-01-01 12:00:00])
+      # Would return something like "3 months ago" depending on current date
+
+  """
+  def format_date_relative(datetime) when is_struct(datetime, NaiveDateTime) do
+    case NaiveDateTime.diff(NaiveDateTime.utc_now(), datetime, :day) do
+      0 -> "Today"
+      1 -> "Yesterday"
+      days when days < 7 -> "#{days} days ago"
+      days when days < 30 -> "#{div(days, 7)} weeks ago"
+      days -> "#{div(days, 30)} months ago"
+    end
+  end
 end

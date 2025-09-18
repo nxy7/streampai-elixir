@@ -436,24 +436,13 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
     """
   end
 
-  defp platform_color_class("Twitch"), do: "bg-purple-600"
-  defp platform_color_class("YouTube"), do: "bg-red-600"
-  defp platform_color_class("Facebook"), do: "bg-blue-600"
-  defp platform_color_class("Kick"), do: "bg-green-600"
-  defp platform_color_class("Streampai"), do: "bg-gradient-to-r from-purple-600 to-pink-600"
-  defp platform_color_class(_), do: "bg-gray-600"
+  defp platform_color_class(platform) do
+    StreampaiWeb.Utils.PlatformUtils.platform_solid_color(platform)
+  end
 
-  defp platform_badge_class("Twitch"), do: "bg-purple-100 text-purple-800"
-
-  defp platform_badge_class("YouTube"), do: "bg-red-100 text-red-800"
-
-  defp platform_badge_class("Facebook"), do: "bg-blue-100 text-blue-800"
-
-  defp platform_badge_class("Kick"), do: "bg-green-100 text-green-800"
-
-  defp platform_badge_class("Streampai"), do: "bg-pink-100 text-pink-800"
-
-  defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
+  defp platform_badge_class(platform) do
+    StreampaiWeb.Utils.PlatformUtils.platform_badge_color(platform)
+  end
 
   defp tier_badge_class("Bronze"), do: "bg-amber-100 text-amber-800"
 
