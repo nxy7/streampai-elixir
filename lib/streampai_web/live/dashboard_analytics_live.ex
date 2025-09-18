@@ -162,6 +162,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
               change={2.1}
               change_type={:positive}
               icon="hero-chat-bubble-left-right"
+              tooltip="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count."
             />
           </div>
 

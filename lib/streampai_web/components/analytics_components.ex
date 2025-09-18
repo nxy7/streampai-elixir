@@ -17,15 +17,21 @@ defmodule StreampaiWeb.AnalyticsComponents do
   attr :change_type, :atom, default: :neutral
   attr :icon, :string, default: nil
   attr :format, :atom, default: :number
+  attr :tooltip, :string, default: nil
 
   def stat_card(assigns) do
     ~H"""
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-center justify-between">
         <div class="flex-1">
-          <p class="text-sm font-medium text-gray-600">
-            {@title}
-          </p>
+          <div class="flex items-center gap-2">
+            <p class="text-sm font-medium text-gray-600">
+              {@title}
+            </p>
+            <%= if @tooltip do %>
+              <.tooltip text={@tooltip} />
+            <% end %>
+          </div>
           <p class="mt-2 text-3xl font-semibold text-gray-900">
             {FormatHelpers.format_value(@value, @format)}
           </p>
@@ -250,7 +256,10 @@ defmodule StreampaiWeb.AnalyticsComponents do
                 Income
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Engagement
+                <div class="flex items-center gap-2">
+                  <span>Engagement</span>
+                  <.tooltip text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions" />
+                </div>
               </th>
             </tr>
           </thead>
@@ -309,5 +318,25 @@ defmodule StreampaiWeb.AnalyticsComponents do
   defp platform_badge_class("Facebook"), do: "bg-blue-100 text-blue-800"
   defp platform_badge_class("Kick"), do: "bg-green-100 text-green-800"
   defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
+
+  attr :text, :string, required: true
+
+  def tooltip(assigns) do
+    ~H"""
+    <div class="relative group inline-block">
+      <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+        <Core.icon name="hero-question-mark-circle" class="w-4 h-4" />
+      </button>
+      <div class="absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div class="bg-gray-800 text-white text-sm rounded-lg py-2 px-3 max-w-xs whitespace-normal shadow-lg">
+          <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+            <div class="border-4 border-transparent border-t-gray-800"></div>
+          </div>
+          {@text}
+        </div>
+      </div>
+    </div>
+    """
+  end
 
 end
