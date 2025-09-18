@@ -194,7 +194,7 @@ defmodule StreampaiWeb.ViewersLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.dashboard_layout current_page={:viewers} current_user={@current_user}>
+    <.dashboard_layout current_page={:viewers} current_user={@current_user} page_title="Viewers">
       <div class="space-y-6">
         <div class="flex flex-col gap-6">
           <div>
