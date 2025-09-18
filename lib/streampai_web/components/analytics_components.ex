@@ -240,25 +240,28 @@ defmodule StreampaiWeb.AnalyticsComponents do
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Stream
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Platform
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Duration
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Peak Viewers
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 Income
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 <div class="flex items-center gap-2">
                   <span>Engagement</span>
-                  <.tooltip text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions" position="bottom" />
+                  <.tooltip
+                    text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions"
+                    position="bottom"
+                  />
                 </div>
               </th>
             </tr>
@@ -346,7 +349,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
               "border-4 border-transparent",
               @position == "top" && "border-t-gray-800",
               @position == "bottom" && "border-b-gray-800"
-            ]}></div>
+            ]}>
+            </div>
           </div>
           {@text}
         </div>
