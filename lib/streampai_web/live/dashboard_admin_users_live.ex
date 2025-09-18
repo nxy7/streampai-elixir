@@ -39,12 +39,9 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
          |> Ash.Query.for_read(:get, %{}, load: [:role, :avatar], actor: actor)
          |> Ash.read() do
       {:ok, users} ->
-        IO.puts("users: " <> inspect(users))
         assign(socket, :users, users)
 
-      {:error, error} ->
-        IO.puts("Failed to load users" <> inspect(error))
-
+      {:error, _error} ->
         socket
         |> assign(:users, [])
         |> put_flash(:error, "Failed to load users")
