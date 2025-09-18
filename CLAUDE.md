@@ -273,4 +273,68 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - memorize "When you're using ash remember to always (unless necessary) to pass correct actor to the action"
 - memorize, for complex logic prefer Module preparations, changes over inline function version
 - memorize "if app PORT is taken, then use another port to launch the app instead of killing currently running app"
+
+## Playwright Testing Integration
+
+### Overview
+This project includes Playwright for end-to-end browser testing, accessible through Claude Code's MCP Playwright tools. This enables automated testing of UI functionality, layout issues, and user interactions.
+
+### Test User Credentials
+For development and testing purposes, use these credentials to access the dashboard:
+- **Email**: `test@test.local` (or value from `DEV_TEST_EMAIL` env var)
+- **Password**: `testpassword` (or value from `DEV_TEST_PASSWORD` env var)
+
+These are automatically created by the seeds file (`priv/repo/seeds.exs`) in development environment.
+
+### Starting the Application for Testing
+```bash
+# Start on default port (if available)
+mix phx.server
+
+# Start on alternative port (recommended for testing to avoid conflicts)
+DISABLE_LIVE_DEBUGGER=true PORT=4003 mix phx.server
+```
+
+### Using Playwright with Claude Code
+Claude Code provides MCP Playwright tools for browser automation:
+
+1. **Navigation**: `mcp__playwright__browser_navigate` - Navigate to pages
+2. **Interaction**: `mcp__playwright__browser_click`, `mcp__playwright__browser_fill_form` - Interact with elements
+3. **Verification**: `mcp__playwright__browser_snapshot`, `mcp__playwright__browser_take_screenshot` - Capture page state
+4. **Evaluation**: `mcp__playwright__browser_evaluate` - Run JavaScript in browser context
+
+### Example Testing Workflow
+```javascript
+// Navigate to application
+await page.goto('http://localhost:4003');
+
+// Login with test credentials
+await page.getByRole('textbox', { name: 'Email' }).fill('test@test.local');
+await page.getByRole('textbox', { name: 'Password' }).fill('testpassword');
+await page.getByRole('button', { name: 'Sign in' }).click();
+
+// Test sidebar functionality
+await page.locator('#sidebar-toggle').click();
+
+// Verify layout changes
+const marginLeft = await page.evaluate(() => {
+  const mainContent = document.querySelector('#main-content');
+  return window.getComputedStyle(mainContent).marginLeft;
+});
+```
+
+### Common Use Cases
+- **Layout testing**: Verify responsive design and sidebar behavior
+- **Form submission**: Test authentication and widget configuration
+- **UI interactions**: Validate button clicks, navigation, and state changes
+- **Visual regression**: Compare screenshots before/after changes
+
+### Best Practices
+- Use specific alternative ports (4001, 4002, 4003) to avoid conflicts
+- Disable LiveDebugger when running multiple instances: `DISABLE_LIVE_DEBUGGER=true`
+- Take screenshots for visual verification of layout fixes
+- Use browser evaluation for DOM inspection and debugging
+- Test both mobile and desktop viewport sizes for responsive behavior
+
+This integration enables comprehensive UI testing directly through Claude Code without requiring separate test infrastructure.
 - memorize that we're using MNEME for snapshots (not Snapshy), also mneme doesn't prompt with CI=true env variable
