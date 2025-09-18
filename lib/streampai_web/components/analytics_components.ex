@@ -258,10 +258,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                 <div class="flex items-center gap-2">
                   <span>Engagement</span>
-                  <.tooltip
-                    text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions"
-                    position="bottom"
-                  />
+                  <.tooltip text="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count." />
                 </div>
               </th>
             </tr>
@@ -335,7 +332,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
         <Core.icon name="hero-question-mark-circle" class="w-4 h-4" />
       </button>
       <div class={[
-        "absolute z-[100] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto",
+        "absolute z-[9999] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto",
         @position == "top" && "bottom-full left-1/2 transform -translate-x-1/2 mb-2",
         @position == "bottom" && "top-full left-1/2 transform -translate-x-1/2 mt-2"
       ]}>
