@@ -232,81 +232,83 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   def stream_table(assigns) do
     ~H"""
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200 rounded-t-lg">
         <h3 class="text-lg font-medium text-gray-900">Recent Streams</h3>
       </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Stream
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Platform
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Duration
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Peak Viewers
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                Income
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                <div class="flex items-center gap-2">
-                  <span>Engagement</span>
-                  <.tooltip text="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count." />
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <%= for stream <- @streams do %>
-              <tr class="hover:bg-gray-50 cursor-pointer">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div class="text-sm font-medium text-gray-900">
-                      {stream.title}
-                    </div>
-                    <div class="text-xs text-gray-500">
-                      {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
-                    </div>
+      <div class="relative rounded-b-lg">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Stream
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Platform
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Duration
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Peak Viewers
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Income
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  <div class="flex items-center gap-2">
+                    <span>Engagement</span>
+                    <.tooltip text="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count." />
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
-                    {stream.platform}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {stream.duration}h
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {FormatHelpers.format_number(stream.viewers.peak)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  ${Float.round(stream.income.total, 2)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center text-sm">
-                    <span class={[
-                      "font-medium",
-                      stream.engagement.engagement_rate > 3.0 && "text-green-600",
-                      stream.engagement.engagement_rate <= 3.0 &&
-                        stream.engagement.engagement_rate > 2.0 && "text-yellow-600",
-                      stream.engagement.engagement_rate <= 2.0 && "text-red-600"
-                    ]}>
-                      {Float.round(stream.engagement.engagement_rate, 1)}%
-                    </span>
-                  </div>
-                </td>
+                </th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <%= for stream <- @streams do %>
+                <tr class="hover:bg-gray-50 cursor-pointer">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">
+                        {stream.title}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
+                      {stream.platform}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {stream.duration}h
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {FormatHelpers.format_number(stream.viewers.peak)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${Float.round(stream.income.total, 2)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center text-sm">
+                      <span class={[
+                        "font-medium",
+                        stream.engagement.engagement_rate > 3.0 && "text-green-600",
+                        stream.engagement.engagement_rate <= 3.0 &&
+                          stream.engagement.engagement_rate > 2.0 && "text-yellow-600",
+                        stream.engagement.engagement_rate <= 2.0 && "text-red-600"
+                      ]}>
+                        {Float.round(stream.engagement.engagement_rate, 1)}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
     """

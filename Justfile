@@ -102,7 +102,6 @@ worktree name:
 	echo "Next steps:"
 	echo "  cd ../{{name}}"
 
-# Create a new git worktree with environment configuration
 worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
