@@ -48,6 +48,7 @@ defmodule Streampai.Fake.Chat do
 
       %{
         id: "msg_#{i}",
+        viewer_id: "viewer_#{:rand.uniform(50)}",
         username: username,
         message: message,
         platform: platform,
