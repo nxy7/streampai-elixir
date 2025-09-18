@@ -15,9 +15,7 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
   defp initialize_widget_specific_assigns(socket) do
     initial_messages = @fake_module.initial_messages()
 
-    socket
-    |> stream(:messages, initial_messages)
-    |> assign(:vue_messages, initial_messages)
+    assign(socket, vue_messages: initial_messages)
   end
 
   defp update_widget_settings(config, params) do
@@ -31,18 +29,12 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
 
   defp generate_and_assign_demo_data(socket) do
     new_message = @fake_module.generate_message()
+    current_messages = socket.assigns.vue_messages
 
-    # Add new message to stream and let stream handle limiting
-    socket = stream_insert(socket, :messages, new_message, at: -1)
+    # Keep only the last 10 messages
+    updated_messages = Enum.take([new_message | current_messages], 10)
 
-    current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
-    updated_vue_messages = [new_message | current_vue_messages]
-
-    # Limit messages to max_messages
-    limited_vue_messages =
-      Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
-
-    assign(socket, :vue_messages, limited_vue_messages)
+    assign(socket, vue_messages: updated_messages)
   end
 
   defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 1000)

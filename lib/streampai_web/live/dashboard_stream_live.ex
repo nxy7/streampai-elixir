@@ -44,10 +44,14 @@ defmodule StreampaiWeb.DashboardStreamLive do
         {:noreply, socket}
       rescue
         error ->
+          require Logger
+
+          Logger.error("Failed to start stream for user #{user_id}: #{inspect(error)}")
+
           socket =
             socket
             |> assign(:loading, false)
-            |> put_flash(:error, "Failed to start stream: #{inspect(error)}")
+            |> handle_error(error, "Failed to start stream. Please try again later.")
 
           {:noreply, socket}
       end
@@ -80,15 +84,19 @@ defmodule StreampaiWeb.DashboardStreamLive do
         {:noreply, socket}
       rescue
         error ->
+          require Logger
+
+          Logger.error("Failed to stop stream for user #{user_id}: #{inspect(error)}")
+
           socket =
             socket
             |> assign(:loading, false)
-            |> put_flash(:error, "Failed to stop stream: #{inspect(error)}")
+            |> handle_error(error, "Failed to stop stream. Please try again later.")
 
           {:noreply, socket}
       end
     else
-      socket = put_flash(socket, :error, "Streaming services not available.")
+      socket = handle_error(socket, :timeout, "Streaming services not available.")
       {:noreply, socket}
     end
   end

@@ -13,24 +13,24 @@ defmodule StreampaiWeb.ImpersonationController do
   def start_impersonation(conn, %{"user_id" => user_id}) do
     real_user = conn.assigns.current_user
 
-    if can_impersonate?(real_user) do
-      case load_user_by_id(user_id, real_user) do
-        {:ok, _target_user} ->
-          conn
-          |> put_session(:impersonated_user_id, user_id)
-          |> put_session(:impersonator_user_id, real_user.id)
-          |> put_flash(:info, "Impersonation started")
-          |> redirect(to: "/dashboard")
-
-        {:error, error} ->
-          conn
-          |> put_flash(:error, error)
-          |> redirect(to: "/dashboard/admin/users")
-      end
-    else
+    with true <- can_impersonate?(real_user),
+         {:ok, target_user} <- load_user_by_id(user_id, real_user),
+         true <- UserPolicy.can_impersonate_user?(real_user, target_user) do
       conn
-      |> put_flash(:error, "You don't have permission to impersonate users")
-      |> redirect(to: "/dashboard/admin/users")
+      |> put_session(:impersonated_user_id, user_id)
+      |> put_session(:impersonator_user_id, real_user.id)
+      |> put_flash(:info, "Impersonation started")
+      |> redirect(to: "/dashboard")
+    else
+      false ->
+        conn
+        |> put_flash(:error, "You don't have permission to impersonate this user")
+        |> redirect(to: "/dashboard/admin/users")
+
+      {:error, _error} ->
+        conn
+        |> put_flash(:error, "User not found or access denied")
+        |> redirect(to: "/dashboard/admin/users")
     end
   end
 
@@ -44,7 +44,7 @@ defmodule StreampaiWeb.ImpersonationController do
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
     Streampai.Accounts.User
-    |> Ash.Query.for_read(:get_by_id, %{id: user_id}, actor: actor)
+    |> Ash.Query.for_read(:get_by_id_minimal, %{id: user_id}, actor: actor)
     |> Ash.read()
   end
 

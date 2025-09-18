@@ -82,7 +82,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     import Ash.Query
 
     case User
-         |> for_read(:get_by_id, %{id: user_id}, actor: actor)
+         |> for_read(:get_by_id_minimal, %{id: user_id}, actor: actor)
          |> Ash.read() do
       {:ok, [user]} -> user
       {:ok, []} -> {:error, :user_not_found}
@@ -98,7 +98,7 @@ defmodule StreampaiWeb.LiveUserAuth do
     import Ash.Query
 
     case User
-         |> for_read(:get_by_id, %{id: user_id}, authorize?: false)
+         |> for_read(:get_by_id_minimal, %{id: user_id}, authorize?: false)
          |> Ash.read() do
       {:ok, [user]} -> user
       {:ok, []} -> {:error, :user_not_found}

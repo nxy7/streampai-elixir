@@ -84,7 +84,10 @@ defmodule StreampaiWeb.MultiProviderAuth do
         "Failed to connect #{String.capitalize(provider)} account: #{Enum.join(error_msgs, ", ")}"
 
       _ ->
-        "Failed to connect #{String.capitalize(provider)} account: #{inspect(error)}"
+        require Logger
+
+        Logger.error("Failed to connect #{provider} account for user: #{inspect(error)}")
+        "Failed to connect #{String.capitalize(provider)} account. Please try again later."
     end
   end
 

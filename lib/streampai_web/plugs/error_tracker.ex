@@ -97,14 +97,7 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   end
 
   defp store_error(error_data) do
-    case :ets.whereis(:streampai_errors) do
-      :undefined ->
-        :ets.new(:streampai_errors, [:named_table, :public, :set, {:read_concurrency, true}])
-
-      _ ->
-        :ok
-    end
-
+    # ETS table is now initialized at application startup
     current_count = :ets.info(:streampai_errors, :size) || 0
 
     if current_count >= 1000 do

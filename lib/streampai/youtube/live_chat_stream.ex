@@ -26,12 +26,7 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   require Logger
 
-  @youtube_api_host "youtubereporting.googleapis.com"
-  @grpc_port 443
-
-  # YouTube Live Chat gRPC service definition
-  @service_name "youtube.livestreaming.v1.LiveChatService"
-  @method_name "StreamChatMessages"
+  # YouTube API integration disabled - this is example code only
 
   defstruct [
     :access_token,
@@ -118,18 +113,11 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   @impl true
   def handle_info(:connect, state) do
-    Logger.info("Connecting to YouTube Live Chat stream for chat_id: #{state.live_chat_id}")
+    Logger.info("YouTube Live Chat streaming is disabled (integration example only)")
+    Logger.info("Chat ID: #{state.live_chat_id}")
 
-    case establish_grpc_connection(state) do
-      {:ok, new_state} ->
-        Logger.info("Successfully connected to YouTube Live Chat stream")
-        schedule_heartbeat(new_state)
-        {:noreply, %{new_state | reconnect_attempts: 0}}
-
-      {:error, reason} ->
-        Logger.error("Failed to connect to YouTube Live Chat stream: #{inspect(reason)}")
-        handle_connection_error(state, reason)
-    end
+    # Since gRPC is disabled, we'll stop the process
+    {:stop, :normal, state}
   end
 
   @impl true
@@ -206,65 +194,7 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   ## Private Functions
 
-  defp establish_grpc_connection(state) do
-    # Create gRPC channel with authentication
-    channel_opts = [
-      transport_opts: [
-        tcp_opts: [
-          # Enable TLS
-          {:mode, :binary},
-          {:packet, 0},
-          {:active, false}
-        ]
-      ]
-    ]
 
-    case :grpcbox_client.connect(@youtube_api_host, @grpc_port, channel_opts) do
-      {:ok, connection} ->
-        # Start streaming request
-        request_data = build_stream_request(state)
-
-        stream_opts = [
-          headers: build_auth_headers(state.access_token)
-        ]
-
-        case :grpcbox_client.stream(
-               connection,
-               @service_name,
-               @method_name,
-               request_data,
-               stream_opts
-             ) do
-          {:ok, stream_ref} ->
-            new_state = %{state | grpc_connection: connection, stream_ref: stream_ref}
-            {:ok, new_state}
-
-          {:error, reason} ->
-            :grpcbox_client.disconnect(connection)
-            {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  defp build_stream_request(state) do
-    # Build the protobuf request for streaming live chat messages
-    # This would normally be generated from YouTube's protobuf definitions
-    %{
-      "liveChatId" => state.live_chat_id,
-      "part" => ["id", "snippet", "authorDetails"]
-    }
-  end
-
-  defp build_auth_headers(access_token) do
-    [
-      {"authorization", "Bearer #{access_token}"},
-      {"content-type", "application/grpc"},
-      {"user-agent", "StreamPai-YouTube-Client/1.0"}
-    ]
-  end
 
   defp send_heartbeat(state) do
     if state.grpc_connection && state.stream_ref do
@@ -327,8 +257,13 @@ defmodule Streampai.YouTube.LiveChatStream do
     end
 
     if state.grpc_connection do
-      :grpcbox_client.disconnect(state.grpc_connection)
+      safe_disconnect(state.grpc_connection)
     end
+  end
+
+  defp safe_disconnect(_connection) do
+    # gRPC functionality disabled
+    :ok
   end
 
   defp schedule_heartbeat(state) do

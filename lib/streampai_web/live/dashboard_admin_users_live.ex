@@ -10,7 +10,9 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
   use StreampaiWeb, :live_view
 
   import StreampaiWeb.Components.DashboardLayout
+  import StreampaiWeb.LiveHelpers
 
+  alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPolicy
   alias StreampaiWeb.Presence
 
@@ -26,7 +28,10 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
        users: [],
        can_impersonate: UserPolicy.can_impersonate?(socket.assigns.current_user),
        online_users: %{},
-       page_title: "User Management"
+       page_title: "User Management",
+       page: 1,
+       page_size: 20,
+       total_count: 0
      )
      |> load_users()
      |> load_presence(), layout: false}
@@ -34,17 +39,35 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
 
   defp load_users(socket) do
     actor = socket.assigns[:impersonator] || socket.assigns.current_user
+    page = socket.assigns[:page] || 1
+    page_size = socket.assigns[:page_size] || 20
 
-    case Streampai.Accounts.User
-         |> Ash.Query.for_read(:get, %{}, load: [:role, :avatar], actor: actor)
-         |> Ash.read() do
-      {:ok, users} ->
-        assign(socket, :users, users)
+    # Get total count for pagination
+    total_count_result =
+      User
+      |> Ash.Query.for_read(:read, %{}, actor: actor)
+      |> Ash.count()
 
-      {:error, _error} ->
+    case {total_count_result,
+          User
+          |> Ash.Query.for_read(:list_paginated, %{page: page, page_size: page_size}, actor: actor)
+          |> Ash.read()} do
+      {{:ok, total_count}, {:ok, users}} ->
+        socket
+        |> assign(:users, users)
+        |> assign(:total_count, total_count)
+
+      {{:error, error}, _} ->
         socket
         |> assign(:users, [])
-        |> put_flash(:error, "Failed to load users")
+        |> assign(:total_count, 0)
+        |> handle_error(error, "Failed to load users")
+
+      {_, {:error, error}} ->
+        socket
+        |> assign(:users, [])
+        |> assign(:total_count, 0)
+        |> handle_error(error, "Failed to load users")
     end
   end
 
@@ -59,6 +82,45 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
       end)
 
     assign(socket, :online_users, online_users)
+  end
+
+  defp tier_badge_class(:pro), do: "bg-purple-100 text-purple-800"
+  defp tier_badge_class(_), do: "bg-gray-100 text-gray-800"
+
+  defp tier_display_name(:pro), do: "Pro"
+  defp tier_display_name(_), do: "Free"
+
+  def handle_event("next_page", _params, socket) do
+    current_page = socket.assigns.page
+    page_size = socket.assigns.page_size
+    total_count = socket.assigns.total_count
+    max_page = div(total_count - 1, page_size) + 1
+
+    if current_page < max_page do
+      socket =
+        socket
+        |> assign(:page, current_page + 1)
+        |> load_users()
+
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("prev_page", _params, socket) do
+    current_page = socket.assigns.page
+
+    if current_page > 1 do
+      socket =
+        socket
+        |> assign(:page, current_page - 1)
+        |> load_users()
+
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info(%{event: "presence_diff", topic: "users_presence"}, socket) do
@@ -178,16 +240,8 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{case Map.get(user, :tier) do
-                        :pro -> "bg-purple-100 text-purple-800"
-                        :free -> "bg-gray-100 text-gray-800"
-                        _ -> "bg-gray-100 text-gray-800"
-                      end}"}>
-                        {case Map.get(user, :tier) do
-                          :pro -> "Pro"
-                          :free -> "Free"
-                          _ -> "Free"
-                        end}
+                      <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{tier_badge_class(Map.get(user, :tier))}"}>
+                        {tier_display_name(Map.get(user, :tier))}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -248,6 +302,33 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
               </div>
             <% end %>
           </div>
+          
+    <!-- Pagination Controls -->
+          <%= if @total_count > @page_size do %>
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div class="text-sm text-gray-700">
+                Showing {(@page - 1) * @page_size + 1} to {min(@page * @page_size, @total_count)} of {@total_count} users
+              </div>
+              <div class="flex space-x-2">
+                <%= if @page > 1 do %>
+                  <button
+                    phx-click="prev_page"
+                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                <% end %>
+                <%= if @page * @page_size < @total_count do %>
+                  <button
+                    phx-click="next_page"
+                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
     </.dashboard_layout>

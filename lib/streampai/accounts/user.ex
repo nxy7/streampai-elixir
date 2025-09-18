@@ -109,6 +109,7 @@ defmodule Streampai.Accounts.User do
 
   code_interface do
     define :get_by_id
+    define :get_by_id_minimal
   end
 
   code_interface do
@@ -122,6 +123,17 @@ defmodule Streampai.Accounts.User do
       prepare build(load: [:tier, :connected_platforms])
     end
 
+    read :list_paginated do
+      argument :page, :integer, default: 1
+      argument :page_size, :integer, default: 20
+
+      prepare build(
+                load: [:role, :avatar],
+                limit: arg(:page_size),
+                offset: expr(arg(:page_size) * (arg(:page) - 1))
+              )
+    end
+
     read :get_by_id do
       get? true
 
@@ -130,6 +142,19 @@ defmodule Streampai.Accounts.User do
       end
 
       prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts, :avatar])
+
+      filter expr(id == ^arg(:id))
+    end
+
+    read :get_by_id_minimal do
+      description "Get user by ID with minimal data for authentication/authorization"
+      get? true
+
+      argument :id, :string do
+        allow_nil? false
+      end
+
+      prepare build(load: [:role])
 
       filter expr(id == ^arg(:id))
     end

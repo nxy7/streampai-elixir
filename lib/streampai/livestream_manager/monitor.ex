@@ -55,7 +55,9 @@ defmodule Streampai.LivestreamManager.Monitor do
     active_users = list_active_users()
 
     if Enum.empty?(active_users) do
-      IO.puts("No active UserStreamManager processes.")
+      require Logger
+
+      Logger.info("No active UserStreamManager processes.")
     else
       IO.puts("\n=== Active UserStreamManager Processes ===")
 

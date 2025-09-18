@@ -68,10 +68,14 @@ defmodule Streampai.Accounts.User.Changes.ValidateAndCheckNameUniqueness do
           Ash.Changeset.add_error(changeset, field: :name, message: "This name is already taken")
 
         {:error, error} ->
+          require Logger
+
+          Logger.error("Failed to validate name availability: #{inspect(error)}")
+
           Ash.Changeset.add_error(
             changeset,
             field: :name,
-            message: "Failed to validate name availability: #{inspect(error)}"
+            message: "Unable to validate name availability. Please try again."
           )
       end
     else
