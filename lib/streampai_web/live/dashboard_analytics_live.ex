@@ -7,7 +7,8 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   import StreampaiWeb.AnalyticsComponents
 
   alias StreampaiWeb.CoreComponents, as: Core
-  alias StreampaiWeb.Utils.{FakeAnalytics, FormatHelpers}
+  alias StreampaiWeb.Utils.FakeAnalytics
+  alias StreampaiWeb.Utils.FormatHelpers
 
   @update_interval 5_000
 

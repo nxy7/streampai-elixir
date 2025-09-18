@@ -258,7 +258,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div class="flex items-center gap-2">
                   <span>Engagement</span>
-                  <.tooltip text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions" />
+                  <.tooltip text="Engagement rate shows the percentage of viewers actively participating through chat, likes, and other interactions" position="bottom" />
                 </div>
               </th>
             </tr>
@@ -320,17 +320,33 @@ defmodule StreampaiWeb.AnalyticsComponents do
   defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
 
   attr :text, :string, required: true
+  attr :position, :string, default: "top"
 
   def tooltip(assigns) do
     ~H"""
     <div class="relative group inline-block">
-      <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+      <button
+        type="button"
+        class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+      >
         <Core.icon name="hero-question-mark-circle" class="w-4 h-4" />
       </button>
-      <div class="absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 bottom-full left-1/2 transform -translate-x-1/2 mb-2">
-        <div class="bg-gray-800 text-white text-sm rounded-lg py-2 px-3 max-w-xs whitespace-normal shadow-lg">
-          <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-            <div class="border-4 border-transparent border-t-gray-800"></div>
+      <div class={[
+        "absolute z-[100] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto",
+        @position == "top" && "bottom-full left-1/2 transform -translate-x-1/2 mb-2",
+        @position == "bottom" && "top-full left-1/2 transform -translate-x-1/2 mt-2"
+      ]}>
+        <div class="bg-gray-800 text-white text-sm rounded-lg py-2 px-3 w-64 shadow-lg">
+          <div class={[
+            "absolute left-1/2 transform -translate-x-1/2",
+            @position == "top" && "top-full -mt-1",
+            @position == "bottom" && "bottom-full -mb-1"
+          ]}>
+            <div class={[
+              "border-4 border-transparent",
+              @position == "top" && "border-t-gray-800",
+              @position == "bottom" && "border-b-gray-800"
+            ]}></div>
           </div>
           {@text}
         </div>
@@ -338,5 +354,4 @@ defmodule StreampaiWeb.AnalyticsComponents do
     </div>
     """
   end
-
 end
