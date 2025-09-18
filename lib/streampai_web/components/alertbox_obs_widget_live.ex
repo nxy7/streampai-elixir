@@ -126,22 +126,19 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
 
-  defp get_tts_url(event) do
-    case Map.get(event, :tts_path) do
-      nil -> nil
-      path -> Streampai.TtsService.get_tts_public_url(path)
-    end
-  end
+  defp get_tts_url(%{tts_path: path}) when is_binary(path), do: Streampai.TtsService.get_tts_public_url(path)
 
-  defp get_platform_info(event) do
-    case Map.get(event, :platform, :twitch) do
-      :twitch -> %{icon: "twitch", color: "bg-purple-600"}
-      :youtube -> %{icon: "youtube", color: "bg-red-600"}
-      :facebook -> %{icon: "facebook", color: "bg-blue-600"}
-      :kick -> %{icon: "kick", color: "bg-green-600"}
-      _ -> %{icon: "default", color: "bg-gray-600"}
-    end
-  end
+  defp get_tts_url(_event), do: nil
+
+  defp get_platform_info(%{platform: :twitch}), do: %{icon: "twitch", color: "bg-purple-600"}
+
+  defp get_platform_info(%{platform: :youtube}), do: %{icon: "youtube", color: "bg-red-600"}
+
+  defp get_platform_info(%{platform: :facebook}), do: %{icon: "facebook", color: "bg-blue-600"}
+
+  defp get_platform_info(%{platform: :kick}), do: %{icon: "kick", color: "bg-green-600"}
+
+  defp get_platform_info(_event), do: %{icon: "twitch", color: "bg-purple-600"}
 
   defp get_display_duration(event) do
     case event.type do
