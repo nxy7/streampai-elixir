@@ -99,6 +99,15 @@ config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
   client_id: System.get_env("TWITCH_CLIENT_ID"),
   client_secret: System.get_env("TWITCH_CLIENT_SECRET")
 
+# Set secret_key_base for development environment
+if config_env() == :dev do
+  secret_key_base =
+    System.get_env("SECRET_KEY") ||
+      "dev_secret_key_at_least_64_chars_long_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+  config :streampai, StreampaiWeb.Endpoint, secret_key_base: secret_key_base
+end
+
 if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 

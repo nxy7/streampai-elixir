@@ -106,14 +106,20 @@ worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	name=$(pwd | awk -F/ '{print $NF}')
+	
+	PORT=$(($(random) % 3000 + 4000))
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
 	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;"
+	claude mcp add --transport http tidewave http://localhost:$PORT/tidewave/mcp
 
+	cp ~/streampai-elixir/.env .
 	# Append worktree-specific configuration to .env before setup
 	echo "" >> .env
 	echo "# Worktree-specific configuration for: $name" >> .env
 	echo "DATABASE_URL=$DB_URL" >> .env
+	echo "PORT=$PORT" >> .env
+	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	mix deps.get
 	mix assets.setup
