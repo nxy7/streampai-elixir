@@ -101,9 +101,11 @@ config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
 
 # Set secret_key_base for development environment
 if config_env() == :dev do
-  secret_key_base = System.get_env("SECRET_KEY") || "dev_secret_key_at_least_64_chars_long_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-  config :streampai, StreampaiWeb.Endpoint,
-    secret_key_base: secret_key_base
+  secret_key_base =
+    System.get_env("SECRET_KEY") ||
+      "dev_secret_key_at_least_64_chars_long_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+  config :streampai, StreampaiWeb.Endpoint, secret_key_base: secret_key_base
 end
 
 if config_env() == :prod do

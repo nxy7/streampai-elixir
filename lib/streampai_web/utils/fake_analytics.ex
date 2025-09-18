@@ -13,8 +13,8 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
 
     %{
       total_viewers: Enum.random(base_viewers),
-      unique_viewers: (base_viewers.first * 0.3)..(base_viewers.last * 0.4) |> Enum.random() |> round(),
-      peak_viewers: (base_viewers.first * 0.15)..(base_viewers.last * 0.2) |> Enum.random() |> round(),
+      unique_viewers: Enum.random(round(base_viewers.first * 0.3)..round(base_viewers.last * 0.4)),
+      peak_viewers: Enum.random(round(base_viewers.first * 0.15)..round(base_viewers.last * 0.2)),
       average_watch_time: Enum.random(15..45),
       total_income: Float.round(Enum.random(500..5000) + :rand.uniform() * 100, 2),
       donations: Float.round(Enum.random(100..2000) + :rand.uniform() * 50, 2),
