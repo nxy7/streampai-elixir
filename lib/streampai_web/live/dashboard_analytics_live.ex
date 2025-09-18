@@ -7,11 +7,13 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   import StreampaiWeb.AnalyticsComponents
 
   alias StreampaiWeb.CoreComponents, as: Core
-  alias StreampaiWeb.Utils.FakeAnalytics
+  alias StreampaiWeb.Utils.{FakeAnalytics, FormatHelpers}
+
+  @update_interval 5_000
 
   def mount_page(socket, _params, _session) do
     if connected?(socket) do
-      :timer.send_interval(5000, self(), :update_data)
+      :timer.send_interval(@update_interval, self(), :update_data)
     end
 
     socket =
@@ -35,7 +37,14 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   end
 
   def handle_event("change_timeframe", %{"timeframe" => timeframe}, socket) do
-    timeframe_atom = String.to_existing_atom(timeframe)
+    timeframe_atom =
+      case timeframe do
+        "day" -> :day
+        "week" -> :week
+        "month" -> :month
+        "year" -> :year
+        _ -> :week
+      end
 
     socket =
       socket
@@ -46,14 +55,19 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   end
 
   def handle_event("select_stream", %{"stream_id" => stream_id}, socket) do
-    stream = Enum.find(socket.assigns.streams, &(&1.id == stream_id))
+    case Enum.find(socket.assigns.stream_list, &(&1.id == stream_id)) do
+      nil ->
+        socket = put_flash(socket, :error, "Stream not found")
+        {:noreply, socket}
 
-    socket =
-      socket
-      |> assign(:selected_stream, stream)
-      |> assign(:view_mode, :stream_detail)
+      stream ->
+        socket =
+          socket
+          |> assign(:selected_stream, stream)
+          |> assign(:view_mode, :stream_detail)
 
-    {:noreply, socket}
+        {:noreply, socket}
+    end
   end
 
   def handle_event("back_to_overview", _, socket) do
@@ -66,14 +80,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   end
 
   defp load_analytics_data(socket, timeframe) do
-    days =
-      case timeframe do
-        :day -> 1
-        :week -> 7
-        :month -> 30
-        :year -> 365
-        _ -> 7
-      end
+    days = days_for_timeframe(timeframe)
 
     socket
     |> assign(:overall_stats, FakeAnalytics.generate_overall_stats(timeframe))
@@ -87,21 +94,13 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     |> assign(:demographics, FakeAnalytics.generate_demographics())
   end
 
-  defp format_number(number) when is_integer(number) do
-    number
-    |> Integer.to_string()
-    |> String.graphemes()
-    |> Enum.reverse()
-    |> Enum.chunk_every(3)
-    |> Enum.join(",")
-    |> String.reverse()
-  end
+  defp days_for_timeframe(:day), do: 1
+  defp days_for_timeframe(:week), do: 7
+  defp days_for_timeframe(:month), do: 30
+  defp days_for_timeframe(:year), do: 365
+  defp days_for_timeframe(_), do: 7
 
-  defp format_number(number) when is_float(number) do
-    format_number(round(number))
-  end
-
-  defp format_number(number), do: to_string(number)
+  defp format_number(number), do: FormatHelpers.format_number(number)
 
   def render(assigns) do
     ~H"""

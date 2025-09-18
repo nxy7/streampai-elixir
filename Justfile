@@ -102,6 +102,34 @@ worktree name:
 	echo "Next steps:"
 	echo "  cd ../{{name}}"
 
+# Create a new git worktree with environment configuration
+worktree-setup:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	name=$(pwd | awk -F/ '{print $NF}')
+	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
+	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;"
+
+	# Append worktree-specific configuration to .env before setup
+	echo "" >> .env
+	echo "# Worktree-specific configuration for: $name" >> .env
+	echo "DATABASE_URL=$DB_URL" >> .env
+
+	mix deps.get
+	mix assets.setup
+	mix assets.build
+
+	# Export environment variables and run setup
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+
+	# Create the database first (ecto.create connects to postgres db to create target db)
+	mix ecto.create
+
+	# Then run ash.setup for migrations and seeds
+	mix ash.setup
+	mix compile
+
 tasks:
 	hx ./tasks
 

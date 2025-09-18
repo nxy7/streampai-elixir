@@ -1,10 +1,15 @@
 defmodule StreampaiWeb.AnalyticsComponents do
-  @moduledoc false
+  @moduledoc """
+  Analytics visualization components for streaming metrics.
+
+  Provides reusable chart components including line charts, bar charts,
+  pie charts, stat cards, and stream tables for displaying analytics data
+  in a consistent visual style.
+  """
   use Phoenix.Component
 
-  import StreampaiWeb.CoreComponents, except: [icon: 1]
-
   alias StreampaiWeb.CoreComponents, as: Core
+  alias StreampaiWeb.Utils.FormatHelpers
 
   attr :title, :string, required: true
   attr :value, :any, required: true
@@ -22,7 +27,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
             {@title}
           </p>
           <p class="mt-2 text-3xl font-semibold text-gray-900">
-            {format_value(@value, @format)}
+            {FormatHelpers.format_value(@value, @format)}
           </p>
           <%= if @change do %>
             <div class="mt-2 flex items-center text-sm">
@@ -106,7 +111,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
         <div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500">
           <%= for i <- [0, div(length(@data) - 1, 4), div(length(@data) - 1, 2), div(3 * (length(@data) - 1), 4), length(@data) - 1] do %>
-            <span>{format_chart_date(Enum.at(@data, i).time)}</span>
+            <span>{FormatHelpers.format_chart_date(Enum.at(@data, i).time)}</span>
           <% end %>
         </div>
       </div>
@@ -130,7 +135,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
             <div class="flex justify-between text-sm mb-1">
               <span class="text-gray-600">{item.label}</span>
               <span class="font-medium text-gray-900">
-                {format_value(item.value, item[:format] || :number)}
+                {FormatHelpers.format_value(item.value, item[:format] || :number)}
               </span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
@@ -263,13 +268,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class={[
-                    "px-2 py-1 text-xs rounded-full",
-                    stream.platform == "Twitch" && "bg-purple-100 text-purple-800",
-                    stream.platform == "YouTube" && "bg-red-100 text-red-800",
-                    stream.platform == "Facebook" && "bg-blue-100 text-blue-800",
-                    stream.platform == "Kick" && "bg-green-100 text-green-800"
-                  ]}>
+                  <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
                     {stream.platform}
                   </span>
                 </td>
@@ -277,7 +276,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
                   {stream.duration}h
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {format_number(stream.viewers.peak)}
+                  {FormatHelpers.format_number(stream.viewers.peak)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   ${Float.round(stream.income.total, 2)}
@@ -304,43 +303,11 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  defp format_value(value, format) do
-    case format do
-      :currency ->
-        "$#{format_number(Float.round(value, 2))}"
+  # Helper functions for platform-specific styling
+  defp platform_badge_class("Twitch"), do: "bg-purple-100 text-purple-800"
+  defp platform_badge_class("YouTube"), do: "bg-red-100 text-red-800"
+  defp platform_badge_class("Facebook"), do: "bg-blue-100 text-blue-800"
+  defp platform_badge_class("Kick"), do: "bg-green-100 text-green-800"
+  defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
 
-      :percentage ->
-        "#{Float.round(value, 1)}%"
-
-      :duration ->
-        "#{value} min"
-
-      _ ->
-        if is_float(value) do
-          format_number(Float.round(value, 0))
-        else
-          format_number(value)
-        end
-    end
-  end
-
-  defp format_number(number) when is_integer(number) do
-    number
-    |> Integer.to_string()
-    |> String.graphemes()
-    |> Enum.reverse()
-    |> Enum.chunk_every(3)
-    |> Enum.join(",")
-    |> String.reverse()
-  end
-
-  defp format_number(number) when is_float(number) do
-    format_number(round(number))
-  end
-
-  defp format_number(number), do: to_string(number)
-
-  defp format_chart_date(datetime) do
-    Calendar.strftime(datetime, "%b %d")
-  end
 end
