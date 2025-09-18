@@ -325,30 +325,26 @@ defmodule StreampaiWeb.AnalyticsComponents do
   attr :position, :string, default: "top"
 
   def tooltip(assigns) do
+    assigns = assign(assigns, :tooltip_id, "tooltip-#{System.unique_integer([:positive])}")
+
     ~H"""
-    <div class="relative group inline-block">
+    <div class="relative inline-block" phx-hook="TableTooltip" id={@tooltip_id}>
       <button
         type="button"
         class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+        aria-describedby={@tooltip_id <> "-content"}
       >
         <Core.icon name="hero-question-mark-circle" class="w-4 h-4" />
       </button>
-      <div class={[
-        "absolute z-[9999] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto",
-        @position == "top" && "bottom-full left-1/2 transform -translate-x-1/2 mb-2",
-        @position == "bottom" && "top-full left-1/2 transform -translate-x-1/2 mt-2"
-      ]}>
-        <div class="bg-gray-800 text-white text-sm rounded-lg py-2 px-3 w-64 shadow-lg">
-          <div class={[
-            "absolute left-1/2 transform -translate-x-1/2",
-            @position == "top" && "top-full -mt-1",
-            @position == "bottom" && "bottom-full -mb-1"
-          ]}>
-            <div class={[
-              "border-4 border-transparent",
-              @position == "top" && "border-t-gray-800",
-              @position == "bottom" && "border-b-gray-800"
-            ]}>
+      <div
+        id={@tooltip_id <> "-content"}
+        role="tooltip"
+        class="invisible opacity-0 transition-all duration-200 pointer-events-none z-[99999]"
+        style="width: max-content; max-width: 300px; position: absolute;"
+      >
+        <div class="bg-gray-900 text-white text-sm rounded-lg py-3 px-4 shadow-xl border border-gray-700 whitespace-normal">
+          <div class="absolute left-1/2 bottom-full transform -translate-x-1/2 mb-1">
+            <div class="w-0 h-0 border-l-4 border-r-4 border-transparent border-b-4 border-b-gray-900">
             </div>
           </div>
           {@text}

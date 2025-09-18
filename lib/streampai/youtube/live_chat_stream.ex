@@ -194,8 +194,6 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   ## Private Functions
 
-
-
   defp send_heartbeat(state) do
     if state.grpc_connection && state.stream_ref do
       # Send ping frame or similar heartbeat mechanism
