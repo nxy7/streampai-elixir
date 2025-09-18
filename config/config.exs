@@ -108,6 +108,12 @@ config :streampai,
     same_site: "Lax"
   ]
 
+# Configure esbuild version (even though we're using Vite)
+# config :esbuild, :version, "0.25.0"
+
+# Configure Tesla to disable deprecated builder warnings
+config :tesla, disable_deprecated_builder_warning: true
+
 config :ueberauth, Ueberauth,
   base_path: "/streaming/connect",
   providers: [
@@ -129,8 +135,5 @@ config :ueberauth, Ueberauth,
          default_scope: "user:read:email channel:read:subscriptions"
        ]}
   ]
-
-# Configure esbuild version (even though we're using Vite)
-# config :esbuild, :version, "0.25.0"
 
 import_config "#{config_env()}.exs"
