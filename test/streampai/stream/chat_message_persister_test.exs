@@ -48,7 +48,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         id: "test_msg_1",
         message: "Hello, world!",
         sender_username: "test_user",
-        sender_platform: :twitch,
+        platform: :twitch,
         sender_channel_id: "test_channel",
         user_id: user.id,
         livestream_id: livestream.id,
@@ -73,7 +73,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
           id: "batch_msg_#{i}",
           message: "Message #{i}",
           sender_username: "user_#{i}",
-          sender_platform: :twitch,
+          platform: :twitch,
           sender_channel_id: "test_channel",
           user_id: user.id,
           livestream_id: livestream.id,
@@ -108,7 +108,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
           id: "manual_msg_#{i}",
           message: "Manual flush test #{i}",
           sender_username: "manual_user_#{i}",
-          sender_platform: :youtube,
+          platform: :youtube,
           sender_channel_id: "manual_channel",
           user_id: user.id,
           livestream_id: livestream.id,
@@ -133,7 +133,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       assert length(saved_messages) == 5
 
       # Verify message content
-      youtube_messages = Enum.filter(saved_messages, &(&1.sender_platform == :youtube))
+      youtube_messages = Enum.filter(saved_messages, &(&1.platform == :youtube))
       assert length(youtube_messages) == 5
 
       moderator_messages = Enum.filter(saved_messages, &(&1.sender_is_moderator == true))
@@ -150,7 +150,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
           id: "timer_msg_#{i}",
           message: "Timer test #{i}",
           sender_username: "timer_user_#{i}",
-          sender_platform: :twitch,
+          platform: :twitch,
           sender_channel_id: "timer_channel",
           user_id: user.id,
           livestream_id: livestream.id,
@@ -190,7 +190,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         id: "unicode_msg_1",
         message: "Test message with unicode 🎮",
         sender_username: "test_streamer",
-        sender_platform: :twitch,
+        platform: :twitch,
         sender_channel_id: "special_channel_123",
         user_id: user.id,
         livestream_id: livestream.id,
@@ -207,7 +207,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
 
       assert saved_message.message == original_message.message
       assert saved_message.sender_username == original_message.sender_username
-      assert saved_message.sender_platform == original_message.sender_platform
+      assert saved_message.platform == original_message.platform
       assert saved_message.sender_channel_id == original_message.sender_channel_id
       assert saved_message.user_id == original_message.user_id
       assert saved_message.livestream_id == original_message.livestream_id
@@ -232,7 +232,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         id: "duplicate_msg_1",
         message: "Original message",
         sender_username: "duplicate_user",
-        sender_platform: :twitch,
+        platform: :twitch,
         sender_channel_id: "duplicate_channel",
         user_id: user.id,
         livestream_id: livestream.id,
@@ -276,7 +276,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
           id: "stats_msg_#{i}",
           message: "Stats test #{i}",
           sender_username: "stats_user",
-          sender_platform: :twitch,
+          platform: :twitch,
           sender_channel_id: "stats_channel",
           user_id: user.id,
           livestream_id: livestream.id,

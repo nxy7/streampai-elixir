@@ -2,9 +2,8 @@ defmodule Streampai.Repo.Migrations.RenameChatMessageColumnsAndAddIndexes do
   use Ecto.Migration
 
   def change do
-    # Rename columns to be more descriptive with sender_ prefix
+    # Rename columns to be more descriptive with sender_ prefix (except platform)
     rename table(:chat_messages), :username, to: :sender_username
-    rename table(:chat_messages), :platform, to: :sender_platform
     rename table(:chat_messages), :channel_id, to: :sender_channel_id
     rename table(:chat_messages), :is_moderator, to: :sender_is_moderator
     rename table(:chat_messages), :is_patreon, to: :sender_is_patreon
