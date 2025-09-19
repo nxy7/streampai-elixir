@@ -221,79 +221,6 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   ## Private Functions
 
-  defp establish_grpc_connection(state) do
-    # Create gRPC channel with authentication using Elixir gRPC client
-    case GRPC.Stub.connect("#{@youtube_api_host}:#{@grpc_port}",
-           interceptors: [
-             {GRPC.Client.Interceptors.Headers, authorization: "Bearer #{state.access_token}"}
-           ],
-           adapter: GRPC.Client.Adapters.Gun
-         ) do
-      {:ok, channel} ->
-        # Build the stream request for YouTube Live Chat
-        request = build_stream_request(state)
-
-        # Start a supervised task to consume the stream
-        # This ensures proper cleanup if the task crashes
-        {:ok, task} =
-          Task.Supervisor.start_child(
-            Streampai.TaskSupervisor,
-            fn -> consume_stream(channel, request, self()) end
-          )
-
-        # Monitor the task so we know if it dies
-        Process.monitor(task)
-
-        new_state = %{state | grpc_channel: channel, stream_task: task}
-        {:ok, new_state}
-
-      {:error, reason} ->
-        Logger.error("Failed to connect to gRPC server: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  defp consume_stream(channel, request, parent_pid) do
-    # Get the stream from the gRPC stub
-    # This returns an Elixir Stream that we can consume
-    stream = YouTube.V3.LiveChatMessages.Stub.stream_list(channel, request)
-
-    # Process each message in the stream
-    # The stream will block waiting for messages from the server
-    Enum.each(stream, fn
-      {:ok, response} ->
-        # Decode and forward the response to the parent GenServer
-        send(parent_pid, {:stream_message, response})
-
-      {:error, %GRPC.RPCError{} = error} ->
-        # Handle gRPC errors
-        send(parent_pid, {:stream_error, error})
-
-      {:error, reason} ->
-        # Handle other errors
-        send(parent_pid, {:stream_error, reason})
-    end)
-
-    # Stream ended normally
-    send(parent_pid, :stream_ended)
-  rescue
-    error ->
-      # Stream crashed
-      send(parent_pid, {:stream_crashed, error})
-  end
-
-  defp build_stream_request(state) do
-    # Build the request for streaming live chat messages
-    # Following YouTube Data API v3 streamList specification
-    %YouTube.V3.LiveChatMessages.StreamListRequest{
-      live_chat_id: state.live_chat_id,
-      part: ["id", "snippet", "authorDetails"],
-      # Maximum messages per response
-      page_size: 200,
-      profile_image_size: 88
-    }
-  end
-
   defp send_heartbeat(state) do
     if state.grpc_channel && state.stream_task && Process.alive?(state.stream_task) do
       # The Gun adapter maintains the HTTP/2 connection automatically
@@ -391,11 +318,6 @@ defmodule Streampai.YouTube.LiveChatStream do
     if state.grpc_channel do
       GRPC.Stub.disconnect(state.grpc_channel)
     end
-  end
-
-  defp safe_disconnect(_connection) do
-    # gRPC functionality disabled
-    :ok
   end
 
   defp schedule_heartbeat(state) do
