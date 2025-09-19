@@ -8,6 +8,7 @@ defmodule Streampai.TestHelpers do
   import ExUnit.Assertions
 
   alias Streampai.Accounts.NewsletterEmail
+  alias Streampai.Accounts.StreamingAccount
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPremiumGrant
   alias Streampai.Accounts.WidgetConfig
@@ -328,8 +329,28 @@ defmodule Streampai.TestHelpers do
       }
     }
 
-    {:ok, account} = Streampai.Accounts.StreamingAccount.create(account_params, actor: user)
+    {:ok, account} = StreamingAccount.create(account_params, actor: user)
     account
+  end
+
+  @doc """
+  Attempts to create a streaming account for a user on the specified platform.
+  Returns the result tuple (either {:ok, account} or {:error, error}).
+  """
+  def try_create_streaming_account(user, platform) do
+    account_params = %{
+      user_id: user.id,
+      platform: platform,
+      access_token: "test_token_#{platform}",
+      refresh_token: "refresh_token_#{platform}",
+      access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
+      extra_data: %{
+        channel_id: "test_channel_#{platform}_#{:rand.uniform(10_000)}",
+        username: "test_user_#{platform}"
+      }
+    }
+
+    StreamingAccount.create(account_params, actor: user)
   end
 
   @doc """

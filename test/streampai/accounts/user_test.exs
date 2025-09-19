@@ -106,7 +106,7 @@ defmodule Streampai.Accounts.UserTest do
 
       Process.sleep(50)
 
-      {:ok, reloaded_user} = Ash.get(User, user.id)
+      {:ok, reloaded_user} = Ash.get(User, user.id, actor: user, load: [:tier])
 
       tier_logic = %{
         upgraded_to_pro: reloaded_user.tier == :pro,
@@ -142,7 +142,7 @@ defmodule Streampai.Accounts.UserTest do
 
       Process.sleep(50)
 
-      {:ok, reloaded_user} = Ash.get(User, user.id)
+      {:ok, reloaded_user} = Ash.get(User, user.id, actor: user, load: [:connected_platforms])
 
       platform_logic = %{
         count_increased: reloaded_user.connected_platforms > initial_count,
