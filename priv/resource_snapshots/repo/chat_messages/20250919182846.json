@@ -2,7 +2,7 @@
   "attributes": [
     {
       "allow_nil?": false,
-      "default": "fragment(\"gen_random_uuid()\")",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": true,
@@ -10,18 +10,6 @@
       "scale": null,
       "size": null,
       "source": "id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "message",
       "type": "text"
     },
     {
@@ -33,7 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "username",
+      "source": "message",
       "type": "text"
     },
     {
@@ -57,7 +45,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "channel_id",
+      "source": "sender_username",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sender_channel_id",
       "type": "text"
     },
     {
@@ -69,7 +69,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "is_moderator",
+      "source": "sender_is_moderator",
       "type": "boolean"
     },
     {
@@ -81,7 +81,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "is_patreon",
+      "source": "sender_is_patreon",
       "type": "boolean"
     },
     {
@@ -94,18 +94,6 @@
       "scale": null,
       "size": null,
       "source": "inserted_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "updated_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -169,34 +157,151 @@
       "size": null,
       "source": "livestream_id",
       "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "chat_messages_viewer_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "viewers"
+      },
+      "scale": null,
+      "size": null,
+      "source": "viewer_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
   "check_constraints": [],
-  "custom_indexes": [],
-  "custom_statements": [],
-  "has_create_action": true,
-  "hash": "9AA0E6959328D2279A6850196D453C55072CF94986530B146A1A7522824F23F8",
-  "identities": [
+  "custom_indexes": [
     {
       "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "chat_messages_unique_message_per_stream_index",
-      "keys": [
+      "concurrently": false,
+      "error_fields": [
+        "user_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "user_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "idx_chat_messages_user_id",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "livestream_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "livestream_id"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "idx_chat_messages_livestream_id",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "inserted_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "inserted_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "idx_chat_messages_inserted_at",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "livestream_id",
+        "inserted_at"
+      ],
+      "fields": [
         {
           "type": "atom",
           "value": "livestream_id"
         },
         {
           "type": "atom",
-          "value": "username"
-        },
-        {
-          "type": "atom",
-          "value": "message"
+          "value": "inserted_at"
         }
       ],
-      "name": "unique_message_per_stream",
+      "include": null,
+      "message": null,
+      "name": "idx_chat_messages_stream_chrono",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "D73081E3BD0AF8F0D6DF422F2E1AFACA3C26108A613CB22E4110F48B322A977B",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "chat_messages_primary_key_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "id"
+        }
+      ],
+      "name": "primary_key",
       "nils_distinct?": true,
       "where": null
     }

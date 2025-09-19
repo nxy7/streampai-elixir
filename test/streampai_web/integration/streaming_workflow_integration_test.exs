@@ -4,7 +4,7 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
 
   Tests platform connections, event handling, and multi-platform coordination.
   """
-  use StreampaiWeb.ConnCase, async: false
+  use StreampaiWeb.ConnCase, async: true
   use Mneme
 
   import Phoenix.LiveViewTest

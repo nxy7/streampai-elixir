@@ -4,7 +4,7 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
 
   Tests widget configuration, real-time updates, and OBS integration workflows.
   """
-  use StreampaiWeb.ConnCase, async: false
+  use StreampaiWeb.ConnCase, async: true
   use Mneme
 
   import Phoenix.LiveViewTest

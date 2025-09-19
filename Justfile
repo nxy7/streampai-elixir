@@ -79,6 +79,9 @@ worktree-setup:
 	claude mcp add --transport http tidewave http://localhost:$PORT/tidewave/mcp
 
 	cp ~/streampai-elixir/.env .
+	# copy compiled artifacts for faster startup
+	cp ~/streampai-elixir/deps .
+	cp ~/streampai-elixir/_build .
 	# Append worktree-specific configuration to .env before setup
 	echo "" >> .env
 	echo "# Worktree-specific configuration for: $name" >> .env

@@ -31,6 +31,10 @@ defmodule Streampai.Stream.StreamEvent do
       # For platform-specific queries
       index [:platform, :inserted_at],
         name: "idx_stream_events_platform_chrono"
+
+      # For viewer-specific queries (chronological)
+      index [:viewer_id, :inserted_at],
+        name: "idx_stream_events_viewer_chrono"
     end
   end
 
@@ -46,9 +50,16 @@ defmodule Streampai.Stream.StreamEvent do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:type, :data, :livestream_id, :user_id, :platform]
-
-      validate present([:type, :data, :platform, :livestream_id])
+      accept [
+        :type,
+        :data,
+        :data_raw,
+        :author_id,
+        :livestream_id,
+        :user_id,
+        :platform,
+        :viewer_id
+      ]
     end
 
     read :for_stream do
@@ -127,6 +138,12 @@ defmodule Streampai.Stream.StreamEvent do
 
     belongs_to :livestream, Streampai.Stream.Livestream do
       source_attribute :livestream_id
+      destination_attribute :id
+    end
+
+    belongs_to :viewer, Streampai.Stream.Viewer do
+      description "The global viewer who triggered this event (optional)"
+      source_attribute :viewer_id
       destination_attribute :id
     end
   end

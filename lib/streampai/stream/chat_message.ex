@@ -1,5 +1,17 @@
 defmodule Streampai.Stream.ChatMessage do
-  @moduledoc false
+  @moduledoc """
+  Represents a chat message from a streaming platform.
+
+  ChatMessages are linked to both users (the streamer) and optionally to viewers
+  (the person who sent the message). This allows tracking chat activity across
+  different platforms and linking messages to specific viewer identities.
+
+  ## Key Features
+  - Platform-agnostic message storage
+  - Optional viewer linking for identity management
+  - Moderator and subscription status tracking
+  - Upsert capabilities for message deduplication
+  """
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
@@ -19,10 +31,29 @@ defmodule Streampai.Stream.ChatMessage do
 
   code_interface do
     define :upsert
+    define :create
+    define :read
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      primary? true
+
+      accept [
+        :id,
+        :message,
+        :sender_username,
+        :platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
+        :user_id,
+        :livestream_id,
+        :viewer_id
+      ]
+    end
 
     create :upsert do
       accept [
@@ -34,7 +65,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_id
       ]
 
       upsert? true
@@ -48,7 +80,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_id
       ]
     end
   end
@@ -96,6 +129,11 @@ defmodule Streampai.Stream.ChatMessage do
 
     belongs_to :livestream, Streampai.Stream.Livestream do
       allow_nil? false
+      attribute_writable? true
+    end
+
+    belongs_to :viewer, Streampai.Stream.Viewer do
+      description "The global viewer who sent this message (optional)"
       attribute_writable? true
     end
   end
