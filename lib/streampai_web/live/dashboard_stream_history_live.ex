@@ -74,12 +74,12 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   defp filter_by_date_range(streams, "7days") do
     cutoff = DateTime.add(DateTime.utc_now(), -7 * 24 * 60 * 60, :second)
-    Enum.filter(streams, &(DateTime.compare(&1.started_at, cutoff) == :gt))
+    Enum.filter(streams, &DateTime.after?(&1.started_at, cutoff))
   end
 
   defp filter_by_date_range(streams, "30days") do
     cutoff = DateTime.add(DateTime.utc_now(), -30 * 24 * 60 * 60, :second)
-    Enum.filter(streams, &(DateTime.compare(&1.started_at, cutoff) == :gt))
+    Enum.filter(streams, &DateTime.after?(&1.started_at, cutoff))
   end
 
   defp filter_by_date_range(streams, _), do: streams
@@ -128,8 +128,19 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  <svg
+                    class="w-4 h-4 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    >
+                    </path>
                   </svg>
                 </div>
               </div>
@@ -144,8 +155,19 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    >
+                    </path>
                   </svg>
                 </div>
               </div>
@@ -160,9 +182,26 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  <svg
+                    class="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    >
+                    </path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    >
+                    </path>
                   </svg>
                 </div>
               </div>
@@ -177,8 +216,19 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  <svg
+                    class="w-4 h-4 text-yellow-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    >
+                    </path>
                   </svg>
                 </div>
               </div>
@@ -189,8 +239,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             </div>
           </div>
         </div>
-
-        <!-- Filters -->
+        
+    <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Streams</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,7 +266,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                 name="filter[date_range]"
               >
                 <option value="7days" selected={@filters.date_range == "7days"}>Last 7 days</option>
-                <option value="30days" selected={@filters.date_range == "30days"}>Last 30 days</option>
+                <option value="30days" selected={@filters.date_range == "30days"}>
+                  Last 30 days
+                </option>
                 <option value="all" selected={@filters.date_range == "all"}>All time</option>
               </select>
             </div>
@@ -228,14 +280,16 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                 name="filter[sort]"
               >
                 <option value="recent" selected={@filters.sort == "recent"}>Most Recent</option>
-                <option value="duration" selected={@filters.sort == "duration"}>Longest Duration</option>
+                <option value="duration" selected={@filters.sort == "duration"}>
+                  Longest Duration
+                </option>
                 <option value="viewers" selected={@filters.sort == "viewers"}>Most Viewers</option>
               </select>
             </div>
           </div>
         </div>
-
-        <!-- Stream History List -->
+        
+    <!-- Stream History List -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Recent Streams</h3>
@@ -283,8 +337,19 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                     </div>
                   </div>
                   <div class="flex-shrink-0">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    <svg
+                      class="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      >
+                      </path>
                     </svg>
                   </div>
                 </div>
@@ -294,8 +359,19 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
           <%= if Enum.empty?(@stream_list) do %>
             <div class="text-center py-12">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                >
+                </path>
               </svg>
               <h3 class="mt-2 text-sm font-medium text-gray-900">No streams found</h3>
               <p class="mt-1 text-sm text-gray-500">

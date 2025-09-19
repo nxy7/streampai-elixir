@@ -4,7 +4,6 @@ defmodule Streampai.Fake.Livestream do
   Used for testing, development, and demonstrations.
   """
 
-
   @stream_titles [
     "Just Chatting with the Community",
     "Epic Gaming Session",
@@ -37,7 +36,7 @@ defmodule Streampai.Fake.Livestream do
       # Random stream duration between 1-8 hours
       duration_hours = :rand.uniform(8)
       duration_minutes = :rand.uniform(60)
-      duration_seconds = (duration_hours * 3600) + (duration_minutes * 60)
+      duration_seconds = duration_hours * 3600 + duration_minutes * 60
 
       ended_at = DateTime.add(started_at, duration_seconds, :second)
 
@@ -68,24 +67,26 @@ defmodule Streampai.Fake.Livestream do
   Generates viewer metrics throughout a stream duration.
   """
   def generate_viewer_metrics(started_at, ended_at) do
-    duration_minutes = DateTime.diff(ended_at, started_at, :second) |> div(60)
+    duration_minutes = ended_at |> DateTime.diff(started_at, :second) |> div(60)
 
     # Generate data points every 5 minutes
     intervals = max(1, div(duration_minutes, 5))
 
     base_viewers = :rand.uniform(50) + 10
-    peak_multiplier = 1.5 + (:rand.uniform(200) / 100) # 1.5x to 3.5x peak
+    # 1.5x to 3.5x peak
+    peak_multiplier = 1.5 + :rand.uniform(200) / 100
 
     viewer_data =
-      0..intervals
-      |> Enum.map(fn i ->
+      Enum.map(0..intervals, fn i ->
         # Create a natural viewer curve - starts low, peaks in middle, drops at end
         progress = i / intervals
         curve_factor = :math.sin(progress * :math.pi())
-        noise = (:rand.uniform(40) - 20) / 100 # ±20% random noise
+        # ±20% random noise
+        noise = (:rand.uniform(40) - 20) / 100
 
         viewers = round(base_viewers * (1 + curve_factor * peak_multiplier + noise))
-        viewers = max(1, viewers) # Ensure at least 1 viewer
+        # Ensure at least 1 viewer
+        viewers = max(1, viewers)
 
         timestamp = DateTime.add(started_at, i * 5 * 60, :second)
 
@@ -116,23 +117,30 @@ defmodule Streampai.Fake.Livestream do
     now = DateTime.utc_now()
     thirty_days_ago = DateTime.add(now, -30 * 24 * 60 * 60, :second)
 
-    recent_streams = Enum.filter(streams, fn stream ->
-      DateTime.compare(stream.started_at, thirty_days_ago) == :gt
-    end)
+    recent_streams =
+      Enum.filter(streams, fn stream ->
+        DateTime.after?(stream.started_at, thirty_days_ago)
+      end)
 
-    total_duration = recent_streams
-    |> Enum.map(& &1.duration_seconds)
-    |> Enum.sum()
-    |> div(3600) # Convert to hours
+    total_duration =
+      recent_streams
+      |> Enum.map(& &1.duration_seconds)
+      |> Enum.sum()
+      # Convert to hours
+      |> div(3600)
 
     %{
       total_streams: length(recent_streams),
       total_hours: total_duration,
-      avg_viewers: if length(recent_streams) > 0 do
-        recent_streams |> Enum.map(& &1.avg_viewers) |> Enum.sum() |> div(length(recent_streams))
-      else
-        0
-      end,
+      avg_viewers:
+        if length(recent_streams) > 0 do
+          recent_streams
+          |> Enum.map(& &1.avg_viewers)
+          |> Enum.sum()
+          |> div(length(recent_streams))
+        else
+          0
+        end,
       total_followers: recent_streams |> Enum.map(& &1.total_followers) |> Enum.sum(),
       total_donations: recent_streams |> Enum.map(& &1.total_donation_amount) |> Enum.sum()
     }
