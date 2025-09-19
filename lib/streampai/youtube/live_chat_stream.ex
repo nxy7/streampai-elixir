@@ -26,9 +26,6 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   require Logger
 
-  @youtube_api_host "youtube.googleapis.com"
-  @grpc_port 443
-
   defstruct [
     :access_token,
     :live_chat_id,

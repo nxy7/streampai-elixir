@@ -49,10 +49,23 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     schedule_activity_log()
     schedule_state_debug()
 
+    # Get the test registry name if we're in test mode
+    registry_name =
+      if Application.get_env(:streampai, :test_mode, false) and
+           Map.has_key?(config, :test_registry_name) do
+        config.test_registry_name
+      else
+        Streampai.LivestreamManager.Registry
+      end
+
+    # Store registry name in process dictionary for via_tuple access
+    Process.put(:youtube_manager_registry, registry_name)
+
     state = %{
       user_id: user_id,
       platform: :youtube,
       config: config,
+      registry_name: registry_name,
       is_active: false,
       started_at: DateTime.utc_now(),
       # YouTube broadcast state
@@ -521,7 +534,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp get_cloudflare_manager_pid(state) do
-    {:via, Registry, {get_registry_name(), {:cloudflare_manager, state.user_id}}}
+    {:via, Registry, {state.registry_name, {:cloudflare_manager, state.user_id}}}
   end
 
   defp get_cloudflare_input_id(cloudflare_manager_pid) do
@@ -562,7 +575,13 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp via_tuple(user_id) do
-    registry_name = get_registry_name()
+    # Use the stored registry name from state when possible, fallback to global lookup
+    registry_name =
+      case Process.get(:youtube_manager_registry) do
+        nil -> get_registry_name()
+        registry -> registry
+      end
+
     {:via, Registry, {registry_name, {:platform_manager, user_id, :youtube}}}
   end
 

@@ -298,18 +298,6 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
     end
   end
 
-  defp format_relative_time(datetime) do
-    now = DateTime.utc_now()
-    diff_seconds = DateTime.diff(now, datetime)
-
-    cond do
-      diff_seconds < 60 -> "#{diff_seconds}s ago"
-      diff_seconds < 3600 -> "#{div(diff_seconds, 60)}m ago"
-      diff_seconds < 86_400 -> "#{div(diff_seconds, 3600)}h ago"
-      true -> "#{div(diff_seconds, 86_400)}d ago"
-    end
-  end
-
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="stream-history" page_title="Stream Details">
