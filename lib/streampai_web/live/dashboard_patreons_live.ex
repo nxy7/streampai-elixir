@@ -3,6 +3,7 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   use StreampaiWeb.BaseLive
 
   import StreampaiWeb.AnalyticsComponents
+
   alias StreampaiWeb.Utils.FakePatreon
   alias StreampaiWeb.Utils.PlatformUtils
 
@@ -258,7 +259,11 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
                 </div>
                 <.progress_bar
                   value={if @platform_view_mode == "count", do: stat.total, else: stat.revenue}
-                  max_value={if @platform_view_mode == "count", do: @growth_metrics.total_patreons, else: Enum.sum(Enum.map(@platform_stats, & &1.revenue))}
+                  max_value={
+                    if @platform_view_mode == "count",
+                      do: @growth_metrics.total_patreons,
+                      else: Enum.sum(Enum.map(@platform_stats, & &1.revenue))
+                  }
                   color_class={platform_color_class(stat.platform)}
                   size={:medium}
                 />
@@ -456,5 +461,4 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   defp tier_badge_class("Platinum"), do: "bg-purple-100 text-purple-800"
 
   defp tier_badge_class(_), do: "bg-gray-100 text-gray-800"
-
 end

@@ -116,6 +116,10 @@ defmodule Streampai.Accounts.User do
     define :register_with_password
   end
 
+  code_interface do
+    define :update_avatar, args: [:avatar_url]
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -127,11 +131,16 @@ defmodule Streampai.Accounts.User do
       argument :page, :integer, default: 1
       argument :page_size, :integer, default: 20
 
-      prepare build(
-                load: [:role, :avatar],
-                limit: arg(:page_size),
-                offset: expr(arg(:page_size) * (arg(:page) - 1))
-              )
+      prepare fn query, _context ->
+        page = Ash.Query.get_argument(query, :page) || 1
+        page_size = Ash.Query.get_argument(query, :page_size) || 20
+        offset = (page - 1) * page_size
+
+        query
+        |> Ash.Query.load([:role, :display_avatar])
+        |> Ash.Query.limit(page_size)
+        |> Ash.Query.offset(offset)
+      end
     end
 
     read :get_by_id do
@@ -141,7 +150,7 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts, :avatar])
+      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts, :display_avatar])
 
       filter expr(id == ^arg(:id))
     end
@@ -330,6 +339,21 @@ defmodule Streampai.Accounts.User do
       change Streampai.Accounts.User.Changes.ValidateAndCheckNameUniqueness
     end
 
+    update :update_avatar do
+      description "Update user's avatar"
+      accept [:avatar]
+      require_atomic? false
+
+      argument :avatar_url, :string do
+        allow_nil? false
+        description "The URL path to the avatar image"
+      end
+
+      change fn changeset, _ ->
+        Ash.Changeset.change_attribute(changeset, :avatar, changeset.arguments.avatar_url)
+      end
+    end
+
     action :reconcile_subscription do
       description "Reconcile user's subscription state with Stripe"
 
@@ -376,6 +400,12 @@ defmodule Streampai.Accounts.User do
     attribute :name, :string do
       public? true
       allow_nil? false
+    end
+
+    attribute :avatar, :string do
+      public? true
+      allow_nil? true
+      description "User's uploaded avatar URL"
     end
 
     attribute :hashed_password, :string do
@@ -425,7 +455,7 @@ defmodule Streampai.Accounts.User do
               :atom,
               expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
 
-    calculate :avatar, :string, expr(extra_data["picture"])
+    calculate :display_avatar, :string, expr(avatar || extra_data["picture"])
   end
 
   aggregates do

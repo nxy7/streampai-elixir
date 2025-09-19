@@ -205,10 +205,10 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
-                          <%= if user.avatar do %>
+                          <%= if user.display_avatar do %>
                             <img
                               class="w-10 h-10 rounded-full"
-                              src={user.avatar}
+                              src={user.display_avatar}
                               alt={user.name || user.email}
                             />
                           <% else %>

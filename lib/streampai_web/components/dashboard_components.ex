@@ -713,7 +713,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <.stream_status_card
         title="Active Platforms"
         icon="globe"
-        value={"#{@current_user.connected_platforms}/#{if @current_user.tier == :free, do: 1, else: 99}"}
+        value={"#{Map.get(@current_user || %{}, :connected_platforms, 0)}/#{if Map.get(@current_user || %{}, :tier) == :free, do: 1, else: 99}"}
         color="blue"
       />
       <.stream_status_card

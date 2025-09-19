@@ -356,7 +356,11 @@ defmodule StreampaiWeb.AnalyticsComponents do
 
   attr :value, :float, required: true, doc: "Progress value between 0.0 and 1.0"
   attr :max_value, :float, default: 1.0, doc: "Maximum value for percentage calculation"
-  attr :color_class, :string, default: "bg-indigo-600", doc: "Tailwind color class for the progress bar"
+
+  attr :color_class, :string,
+    default: "bg-indigo-600",
+    doc: "Tailwind color class for the progress bar"
+
   attr :size, :atom, default: :medium, values: [:small, :medium, :large], doc: "Size variant"
   attr :width_class, :string, default: "w-full", doc: "Width class for the container"
   attr :animate, :boolean, default: true, doc: "Whether to animate transitions"
@@ -364,11 +368,12 @@ defmodule StreampaiWeb.AnalyticsComponents do
   attr :show_percentage, :boolean, default: false, doc: "Whether to show percentage text"
 
   def progress_bar(assigns) do
-    height_class = case assigns.size do
-      :small -> "h-1"
-      :medium -> "h-2"
-      :large -> "h-3"
-    end
+    height_class =
+      case assigns.size do
+        :small -> "h-1"
+        :medium -> "h-2"
+        :large -> "h-3"
+      end
 
     percentage = min(assigns.value / assigns.max_value * 100, 100)
     assigns = assign(assigns, :height_class, height_class)

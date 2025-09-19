@@ -2,8 +2,8 @@ defmodule StreampaiWeb.ViewerDetailsLive do
   @moduledoc false
   use StreampaiWeb, :live_view
 
-  import StreampaiWeb.Components.DashboardLayout
   import StreampaiWeb.AnalyticsComponents
+  import StreampaiWeb.Components.DashboardLayout
 
   alias StreampaiWeb.Utils.MockViewers
 

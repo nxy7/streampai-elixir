@@ -15,6 +15,7 @@ import { NewsletterForm } from "../../lib/streampai_web/live/landing_live.js";
 import { MobileNavigation } from "../../lib/streampai_web/components/landing_navigation.js";
 import { DashboardSidebar } from "../../lib/streampai_web/components/dashboard_layout.js";
 import LocalStorage from "./hooks/local_storage_hook.js";
+import AvatarUpload from "./hooks/avatar_upload_hook.js";
 
 // Hooks for various functionality
 
@@ -181,6 +182,7 @@ let Hooks = {
   LocalStorage,
   ColorPickerSync,
   TableTooltip,
+  AvatarUpload,
   ...getHooks(liveVueApp),
 };
 

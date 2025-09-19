@@ -43,9 +43,7 @@ defmodule StreampaiWeb.ImpersonationController do
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
-    Streampai.Accounts.User
-    |> Ash.Query.for_read(:get_by_id_minimal, %{id: user_id}, actor: actor)
-    |> Ash.read()
+    Streampai.Accounts.User.get_by_id(%{id: user_id}, actor: actor)
   end
 
   defp load_user_by_id(_, _), do: {:error, :invalid_id}

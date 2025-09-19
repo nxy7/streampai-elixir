@@ -395,9 +395,9 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden hover:bg-purple-600 transition-colors cursor-pointer"
                       title="Go to Settings"
                     >
-                      <%= if @current_user && @current_user.avatar do %>
+                      <%= if @current_user && @current_user.display_avatar do %>
                         <img
-                          src={@current_user.avatar}
+                          src={@current_user.display_avatar}
                           alt="User Avatar"
                           class="w-full h-full object-cover"
                         />

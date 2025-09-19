@@ -11,7 +11,8 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
         current_user: %{
           id: "123",
           email: "test@example.com",
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         current_page: "dashboard",
         page_title: "Test Dashboard",
@@ -28,7 +29,8 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
         current_user: %{
           id: "123",
           email: "test@example.com",
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         current_page: "stream",
         page_title: "Stream Management",
@@ -48,12 +50,14 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
         current_user: %{
           id: "456",
           email: "user@example.com",
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         impersonator: %{
           id: "123",
           email: "testadmin@local.com",
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         current_page: "users",
         page_title: "User Management",
@@ -71,7 +75,8 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
           id: "123",
           email: "testadmin@local.com",
           role: :admin,
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         current_page: "users",
         page_title: "User Management",
@@ -92,7 +97,8 @@ defmodule StreampaiWeb.Components.DashboardLayoutTest do
         current_user: %{
           id: "456",
           email: "regular@example.com",
-          avatar: "http://example.com/avatar.png"
+          avatar: "http://example.com/avatar.png",
+          display_avatar: "http://example.com/avatar.png"
         },
         current_page: "dashboard",
         page_title: "Dashboard",
