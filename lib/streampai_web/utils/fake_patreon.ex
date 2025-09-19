@@ -1,7 +1,9 @@
 defmodule StreampaiWeb.Utils.FakePatreon do
   @moduledoc false
 
-  @platforms ["Twitch", "YouTube", "Facebook", "Kick", "Streampai"]
+  alias Streampai.Fake.Base
+  alias StreampaiWeb.Utils.PlatformUtils
+
   @tiers ["Bronze", "Silver", "Gold", "Diamond", "Platinum"]
 
   @first_names [
@@ -57,39 +59,11 @@ defmodule StreampaiWeb.Utils.FakePatreon do
     "Thompson"
   ]
 
-  @usernames [
-    "xXGamerBoi",
-    "StreamQueen",
-    "NightOwl",
-    "ProGamer",
-    "CasualViewer",
-    "LoyalFan",
-    "MegaSupporter",
-    "ElitePatron",
-    "StreamAddict",
-    "ContentKing",
-    "ViewerOne",
-    "SuperFan2024",
-    "ChatMaster",
-    "DonationKing",
-    "SubLord",
-    "TierThreeSub",
-    "ModSquad",
-    "VIPViewer",
-    "PrimeSupporter",
-    "TurboUser",
-    "BitsDonator",
-    "CheerLeader",
-    "TopDonor",
-    "MonthlySupport",
-    "YearlyPatron"
-  ]
-
   def generate_patreons(count \\ 250) do
     current_time = DateTime.utc_now()
 
     Enum.map(1..count, fn i ->
-      platform = Enum.random(@platforms)
+      platform = PlatformUtils.supported_platforms() |> Enum.random() |> Atom.to_string()
       tier = Enum.random(@tiers)
       months_subscribed = :rand.uniform(36)
       start_date = DateTime.add(current_time, -months_subscribed * 30 * 24 * 3600, :second)
@@ -97,7 +71,7 @@ defmodule StreampaiWeb.Utils.FakePatreon do
       %{
         id: "patreon_#{i}",
         viewer_id: "viewer_#{:rand.uniform(500)}",
-        username: "#{Enum.random(@usernames)}#{:rand.uniform(999)}",
+        username: "#{Base.generate_username()}#{:rand.uniform(999)}",
         display_name: "#{Enum.random(@first_names)} #{Enum.random(@last_names)}",
         platform: platform,
         tier: tier,
@@ -119,7 +93,7 @@ defmodule StreampaiWeb.Utils.FakePatreon do
   end
 
   def get_platform_stats(patreons) do
-    platforms = @platforms
+    platforms = Enum.map(PlatformUtils.supported_platforms(), &Atom.to_string/1)
 
     Enum.map(platforms, fn platform ->
       platform_patreons = Enum.filter(patreons, &(&1.platform == platform))

@@ -114,7 +114,7 @@ defmodule StreampaiWeb.DashboardLive do
               </div>
               <.info_row
                 label="Connected Platforms"
-                value={to_string(Map.get(@current_user || %{}, :connected_platforms, 0))}
+                value={safe_field_value(@current_user, :connected_platforms, "0")}
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">
@@ -151,6 +151,14 @@ defmodule StreampaiWeb.DashboardLive do
       </div>
     </.dashboard_layout>
     """
+  end
+
+  defp safe_field_value(user, field, default) do
+    case Map.get(user || %{}, field) do
+      %Ash.NotLoaded{} -> default
+      nil -> default
+      value -> to_string(value)
+    end
   end
 
   if Application.compile_env(:streampai, :env) == :prod do

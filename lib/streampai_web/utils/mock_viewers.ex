@@ -117,20 +117,19 @@ defmodule StreampaiWeb.Utils.MockViewers do
   def generate_viewer_details(viewer_id) do
     base_viewer = 1 |> generate_viewers() |> List.first()
 
-    %{
-      base_viewer
-      | id: viewer_id,
-        ai_summary: generate_ai_summary(),
-        chat_history: generate_chat_history(),
-        donation_history: generate_donation_history(),
-        top_donations: generate_top_donations(),
-        watch_sessions: generate_watch_sessions(),
-        engagement_score: :rand.uniform(100),
-        sentiment_score: 50 + :rand.uniform(50),
-        favorite_emotes: generate_favorite_emotes(),
-        common_chat_times: generate_chat_times(),
-        badges: generate_badges()
-    }
+    Map.merge(base_viewer, %{
+      id: viewer_id,
+      ai_summary: generate_ai_summary(),
+      chat_history: generate_chat_history(),
+      donation_history: generate_donation_history(),
+      top_donations: generate_top_donations(),
+      watch_sessions: generate_watch_sessions(),
+      engagement_score: :rand.uniform(100),
+      sentiment_score: 50 + :rand.uniform(50),
+      favorite_emotes: generate_favorite_emotes(),
+      common_chat_times: generate_chat_times(),
+      badges: generate_badges()
+    })
   end
 
   defp generate_platforms do
@@ -231,7 +230,7 @@ defmodule StreampaiWeb.Utils.MockViewers do
         highlighted: :rand.uniform() > 0.8
       }
     end)
-    |> Enum.sort_by(& &1.timestamp, DateTime)
+    |> Enum.sort_by(& &1.timestamp, NaiveDateTime)
   end
 
   defp generate_donation_history do
@@ -245,7 +244,7 @@ defmodule StreampaiWeb.Utils.MockViewers do
         type: Enum.random([:bits, :superchat, :donation, :subscription])
       }
     end)
-    |> Enum.sort_by(& &1.timestamp, {:desc, DateTime})
+    |> Enum.sort_by(& &1.timestamp, {:desc, NaiveDateTime})
   end
 
   defp generate_top_donations do

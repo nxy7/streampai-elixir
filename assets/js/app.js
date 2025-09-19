@@ -15,6 +15,7 @@ import { NewsletterForm } from "../../lib/streampai_web/live/landing_live.js";
 import { MobileNavigation } from "../../lib/streampai_web/components/landing_navigation.js";
 import { DashboardSidebar } from "../../lib/streampai_web/components/dashboard_layout.js";
 import LocalStorage from "./hooks/local_storage_hook.js";
+import AvatarUpload from "./hooks/avatar_upload_hook.js";
 
 // Hooks for various functionality
 
@@ -126,6 +127,52 @@ const ColorPickerSync = {
   }
 };
 
+// Table Tooltip Hook - positions tooltips to avoid table overflow clipping
+const TableTooltip = {
+  mounted() {
+    const tooltip = this.el.querySelector('[role="tooltip"]');
+    const button = this.el.querySelector('button');
+
+    if (!tooltip || !button) return;
+
+    // Use fixed positioning to escape table overflow
+    const showTooltip = () => {
+      const rect = button.getBoundingClientRect();
+
+      // Position tooltip using fixed positioning
+      tooltip.style.position = 'fixed';
+      tooltip.style.bottom = 'auto';
+      tooltip.style.left = `${rect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - 8}px`; // 8px gap above button
+      tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+      tooltip.classList.remove('invisible', 'opacity-0');
+      tooltip.classList.add('visible', 'opacity-100');
+    };
+
+    const hideTooltip = () => {
+      tooltip.classList.add('invisible', 'opacity-0');
+      tooltip.classList.remove('visible', 'opacity-100');
+    };
+
+    button.addEventListener('mouseenter', showTooltip);
+    button.addEventListener('mouseleave', hideTooltip);
+    button.addEventListener('focus', showTooltip);
+    button.addEventListener('blur', hideTooltip);
+
+    // Store cleanup function
+    this.cleanup = () => {
+      button.removeEventListener('mouseenter', showTooltip);
+      button.removeEventListener('mouseleave', hideTooltip);
+      button.removeEventListener('focus', showTooltip);
+      button.removeEventListener('blur', hideTooltip);
+    };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -134,6 +181,8 @@ let Hooks = {
   DashboardSidebar,
   LocalStorage,
   ColorPickerSync,
+  TableTooltip,
+  AvatarUpload,
   ...getHooks(liveVueApp),
 };
 

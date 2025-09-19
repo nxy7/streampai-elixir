@@ -8,6 +8,7 @@ defmodule StreampaiWeb.Components.DonationGoalObsWidgetLive do
   use StreampaiWeb, :live_view
 
   alias Streampai.Accounts.WidgetConfig
+  alias Streampai.Accounts.WidgetConfigDefaults
   alias StreampaiWeb.Utils.WidgetHelpers
 
   def mount(params, _session, socket) do
@@ -41,7 +42,7 @@ defmodule StreampaiWeb.Components.DonationGoalObsWidgetLive do
           config
 
         {:error, _} ->
-          Streampai.Fake.DonationGoal.default_config()
+          WidgetConfigDefaults.get_default_config(:donation_goal_widget)
       end
 
     # Get current donation total from database or cache

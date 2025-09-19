@@ -2,6 +2,7 @@ defmodule StreampaiWeb.ViewerDetailsLive do
   @moduledoc false
   use StreampaiWeb, :live_view
 
+  import StreampaiWeb.AnalyticsComponents
   import StreampaiWeb.Components.DashboardLayout
 
   alias StreampaiWeb.Utils.MockViewers
@@ -270,35 +271,25 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                         Engagement Score
                       </dt>
                       <dd class="mt-1">
-                        <div class="flex items-center">
-                          <div class="flex-1 bg-gray-200 rounded-full h-2">
-                            <div
-                              class="bg-purple-500 h-2 rounded-full"
-                              style={"width: #{@viewer.engagement_score}%"}
-                            >
-                            </div>
-                          </div>
-                          <span class="ml-2 text-sm font-semibold text-gray-900">
-                            {@viewer.engagement_score}%
-                          </span>
-                        </div>
+                        <.progress_bar
+                          value={@viewer.engagement_score}
+                          max_value={100.0}
+                          color_class="bg-purple-500"
+                          size={:medium}
+                          show_percentage={true}
+                        />
                       </dd>
                     </div>
                     <div>
                       <dt class="text-sm font-medium text-gray-500">Sentiment</dt>
                       <dd class="mt-1">
-                        <div class="flex items-center">
-                          <div class="flex-1 bg-gray-200 rounded-full h-2">
-                            <div
-                              class="bg-green-500 h-2 rounded-full"
-                              style={"width: #{@viewer.sentiment_score}%"}
-                            >
-                            </div>
-                          </div>
-                          <span class="ml-2 text-sm font-semibold text-gray-900">
-                            {@viewer.sentiment_score}%
-                          </span>
-                        </div>
+                        <.progress_bar
+                          value={@viewer.sentiment_score}
+                          max_value={100.0}
+                          color_class="bg-green-500"
+                          size={:medium}
+                          show_percentage={true}
+                        />
                       </dd>
                     </div>
                   </dl>
@@ -382,13 +373,13 @@ defmodule StreampaiWeb.ViewerDetailsLive do
                         {emote.emote}
                       </span>
                       <div class="flex items-center space-x-2">
-                        <div class="w-32 bg-gray-200 rounded-full h-2">
-                          <div
-                            class="bg-purple-500 h-2 rounded-full"
-                            style={"width: #{min(100, emote.usage_count / 5)}%"}
-                          >
-                          </div>
-                        </div>
+                        <.progress_bar
+                          value={min(100, emote.usage_count / 5)}
+                          max_value={100.0}
+                          color_class="bg-purple-500"
+                          width_class="w-32"
+                          size={:medium}
+                        />
                         <span class="text-sm text-gray-500">
                           {emote.usage_count}
                         </span>

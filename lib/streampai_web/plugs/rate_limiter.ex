@@ -59,6 +59,9 @@ defmodule StreampaiWeb.Plugs.RateLimiter do
   defp check_rate_limit(key, limit, window) do
     now = System.system_time(:millisecond)
 
+    # Ensure ETS table exists
+    ensure_rate_limiter_table()
+
     # Clean up old entries and increment counter
     case :ets.lookup(:rate_limiter, key) do
       [{^key, count, first_request}] when now - first_request < window ->
@@ -75,8 +78,27 @@ defmodule StreampaiWeb.Plugs.RateLimiter do
         :ok
     end
   rescue
-    _ ->
-      # ETS table doesn't exist yet, allow request
-      :ok
+    error ->
+      require Logger
+
+      Logger.error("Rate limiter ETS error: #{inspect(error)}")
+      # Fail securely - rate limit when there are ETS issues
+      :rate_limited
+  end
+
+  defp ensure_rate_limiter_table do
+    case :ets.whereis(:rate_limiter) do
+      :undefined ->
+        try do
+          :ets.new(:rate_limiter, [:set, :public, :named_table])
+        rescue
+          ArgumentError ->
+            # Table might have been created by another process in a race condition
+            :ok
+        end
+
+      _ ->
+        :ok
+    end
   end
 end

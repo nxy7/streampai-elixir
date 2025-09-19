@@ -8,8 +8,9 @@ defmodule Streampai.Application do
   def start(_type, _args) do
     Logger.info("streampai startup")
 
-    # Initialize ETS table for rate limiting
+    # Initialize ETS tables
     :ets.new(:rate_limiter, [:set, :public, :named_table])
+    :ets.new(:streampai_errors, [:named_table, :public, :set, {:read_concurrency, true}])
 
     if System.get_env("PHX_SERVER") do
       run_migrations()

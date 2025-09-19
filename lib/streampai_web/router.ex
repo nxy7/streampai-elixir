@@ -158,7 +158,9 @@ defmodule StreampaiWeb.Router do
     if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
       conn
     else
-      IO.puts("Denied access to monitoring interface from IP: #{client_ip}")
+      require Logger
+
+      Logger.warning("Denied access to monitoring interface from IP: #{client_ip}")
 
       conn
       |> put_status(:forbidden)

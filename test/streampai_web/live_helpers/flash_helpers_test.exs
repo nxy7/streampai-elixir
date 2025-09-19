@@ -1,6 +1,8 @@
 defmodule StreampaiWeb.LiveHelpers.FlashHelpersTest do
   use StreampaiWeb.ConnCase, async: true
 
+  import ExUnit.CaptureLog
+
   alias StreampaiWeb.LiveHelpers.FlashHelpers
 
   # Helper to create a properly initialized socket for testing
@@ -56,8 +58,18 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpersTest do
     test "flash_platform_error/3" do
       socket = test_socket()
       error = %{message: "Invalid credentials"}
-      result = FlashHelpers.flash_platform_error(socket, "youtube", error)
-      assert String.contains?(result.assigns.flash["error"], "Failed to connect Youtube account")
+
+      log =
+        capture_log(fn ->
+          result = FlashHelpers.flash_platform_error(socket, "youtube", error)
+
+          assert String.contains?(
+                   result.assigns.flash["error"],
+                   "Failed to connect Youtube account"
+                 )
+        end)
+
+      assert log =~ "Platform error: Failed to connect Youtube account"
     end
   end
 

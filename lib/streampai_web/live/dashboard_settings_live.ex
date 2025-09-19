@@ -14,6 +14,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   alias Streampai.Accounts.UserRoleHelpers
   alias Streampai.Billing
   alias Streampai.Dashboard
+  alias StreampaiWeb.Components.AvatarUploadComponent
   alias StreampaiWeb.LiveHelpers.FormHelpers
   alias StreampaiWeb.LiveHelpers.UserHelpers
 
@@ -187,6 +188,22 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     handle_invitation_request(socket, username, role_type, current_user)
   end
 
+  # Handle avatar upload events delegated from the JavaScript hook
+  def handle_event("validate_avatar", params, socket) do
+    # Try to send the event to the component manually
+    send_update(AvatarUploadComponent,
+      id: "avatar-upload",
+      action: :validate_avatar,
+      params: params
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_event("drag_over", _params, socket), do: {:noreply, socket}
+  def handle_event("drag_leave", _params, socket), do: {:noreply, socket}
+  def handle_event("file_error", _params, socket), do: {:noreply, socket}
+
   def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
     current_user = socket.assigns.current_user
 
@@ -215,6 +232,23 @@ defmodule StreampaiWeb.DashboardSettingsLive do
            "Failed to update donation preferences. Please check your values."
          )}
     end
+  end
+
+  def handle_info({:avatar_uploaded, _avatar_url}, socket) do
+    current_user = socket.assigns.current_user
+
+    # Reload the user to get the updated avatar
+    updated_user = Ash.reload!(current_user, actor: current_user)
+
+    {:noreply,
+     socket
+     |> assign(:current_user, updated_user)
+     |> flash_success("Avatar updated successfully!")}
+  end
+
+  # Catch-all for other messages like presence_diff
+  def handle_info(_msg, socket) do
+    {:noreply, socket}
   end
 
   defp parse_amount(amount), do: FormHelpers.parse_numeric_setting(amount, min: 1)
@@ -439,6 +473,17 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                 </div>
               </.form>
             </div>
+            
+    <!-- Avatar Upload Section -->
+            <div>
+              <.live_component
+                module={AvatarUploadComponent}
+                id="avatar-upload"
+                current_user={@current_user}
+                user_name={@current_user.name}
+              />
+            </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Streaming Platforms</label>
               <div class="space-y-2">
@@ -491,9 +536,9 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
               <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <%= if @current_user.avatar do %>
+                  <%= if @current_user.display_avatar do %>
                     <img
-                      src={@current_user.avatar}
+                      src={@current_user.display_avatar}
                       alt="Avatar"
                       class="w-10 h-10 rounded-full object-cover"
                     />

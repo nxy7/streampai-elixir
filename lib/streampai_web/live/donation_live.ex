@@ -159,9 +159,9 @@ defmodule StreampaiWeb.DonationLive do
           <!-- Header -->
           <div class="text-center mb-12">
             <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden">
-              <%= if @user.avatar do %>
+              <%= if @user.display_avatar do %>
                 <img
-                  src={@user.avatar}
+                  src={@user.display_avatar}
                   alt={@user.name}
                   class="w-full h-full object-cover"
                 />

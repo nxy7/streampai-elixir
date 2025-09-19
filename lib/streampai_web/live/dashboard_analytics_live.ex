@@ -219,12 +219,12 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
                           {age_group.range}
                         </span>
                         <div class="flex items-center gap-2">
-                          <div class="w-32 bg-gray-200 rounded-full h-2">
-                            <div
-                              class="bg-indigo-600 h-2 rounded-full"
-                              style={"width: #{age_group.percentage}%"}
-                            />
-                          </div>
+                          <.progress_bar
+                            value={age_group.percentage}
+                            max_value={100.0}
+                            width_class="w-32"
+                            size={:medium}
+                          />
                           <span class="text-sm font-medium text-gray-900 w-10 text-right">
                             {age_group.percentage}%
                           </span>

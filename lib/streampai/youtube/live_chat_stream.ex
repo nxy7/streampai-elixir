@@ -114,18 +114,11 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   @impl true
   def handle_info(:connect, state) do
-    Logger.info("Connecting to YouTube Live Chat stream for chat_id: #{state.live_chat_id}")
+    Logger.info("YouTube Live Chat streaming is disabled (integration example only)")
+    Logger.info("Chat ID: #{state.live_chat_id}")
 
-    case establish_grpc_connection(state) do
-      {:ok, new_state} ->
-        Logger.info("Successfully connected to YouTube Live Chat stream")
-        schedule_heartbeat(new_state)
-        {:noreply, %{new_state | reconnect_attempts: 0}}
-
-      {:error, reason} ->
-        Logger.error("Failed to connect to YouTube Live Chat stream: #{inspect(reason)}")
-        handle_connection_error(state, reason)
-    end
+    # Since gRPC is disabled, we'll stop the process
+    {:stop, :normal, state}
   end
 
   @impl true
@@ -398,6 +391,11 @@ defmodule Streampai.YouTube.LiveChatStream do
     if state.grpc_channel do
       GRPC.Stub.disconnect(state.grpc_channel)
     end
+  end
+
+  defp safe_disconnect(_connection) do
+    # gRPC functionality disabled
+    :ok
   end
 
   defp schedule_heartbeat(state) do

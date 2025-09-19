@@ -37,7 +37,9 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info({:user_joined, user_id}, state) do
-    IO.puts("[PresenceManager] User #{user_id} joined - starting UserStreamManager")
+    require Logger
+
+    Logger.debug("[PresenceManager] User #{user_id} joined - starting UserStreamManager")
 
     # Cancel any existing cleanup timer
     state = cancel_cleanup_timer(state, user_id)
@@ -52,7 +54,9 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info({:user_left, user_id}, state) do
-    IO.puts("[PresenceManager] User #{user_id} left - scheduling cleanup in #{@cleanup_timeout}ms")
+    require Logger
+
+    Logger.debug("[PresenceManager] User #{user_id} left - scheduling cleanup in #{@cleanup_timeout}ms")
 
     active_users = MapSet.delete(state.active_users, user_id)
 
@@ -66,13 +70,14 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info({:cleanup_user, user_id}, state) do
+    require Logger
     # Only cleanup if user is still not active
     if MapSet.member?(state.active_users, user_id) do
-      IO.puts("[PresenceManager] User #{user_id} is active again, skipping cleanup")
+      Logger.debug("[PresenceManager] User #{user_id} is active again, skipping cleanup")
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
       {:noreply, %{state | cleanup_timers: cleanup_timers}}
     else
-      IO.puts("[PresenceManager] Cleaning up UserStreamManager for user #{user_id}")
+      Logger.debug("[PresenceManager] Cleaning up UserStreamManager for user #{user_id}")
 
       managers = stop_manager(state.managers, user_id)
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
@@ -83,12 +88,14 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info(:initialize_existing_presence, state) do
-    IO.puts("[PresenceManager] Initializing UserStreamManagers for existing presence...")
+    require Logger
+
+    Logger.debug("[PresenceManager] Initializing UserStreamManagers for existing presence...")
 
     try do
       existing_users = "users_presence" |> StreampaiWeb.Presence.list() |> Map.keys()
 
-      IO.puts("[PresenceManager] Found #{length(existing_users)} existing users: #{inspect(existing_users)}")
+      Logger.debug("[PresenceManager] Found #{length(existing_users)} existing users: #{inspect(existing_users)}")
 
       # Start managers for existing users
       {active_users, managers} =
@@ -101,7 +108,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
       {:noreply, %{state | active_users: active_users, managers: managers}}
     rescue
       error ->
-        IO.puts("[PresenceManager] Error initializing existing presence: #{inspect(error)}")
+        Logger.error("[PresenceManager] Error initializing existing presence: #{inspect(error)}")
         {:noreply, state}
     end
   end
@@ -163,7 +170,9 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def handle_info(msg, state) do
-    IO.puts("[PresenceManager] Received unknown message: #{inspect(msg)}")
+    require Logger
+
+    Logger.warning("[PresenceManager] Received unknown message: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -204,63 +213,65 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     GenServer.call(__MODULE__, :get_summary_metrics, 10_000)
   end
 
-  @doc """
-  Debug function to show current presence and manager state.
-  Use in IEx: Streampai.LivestreamManager.PresenceManager.debug()
-  """
-  def debug do
-    IO.puts("\n🔍 PresenceManager Debug Info")
-    IO.puts("=" <> String.duplicate("=", 40))
+  if Mix.env() != :prod do
+    @doc """
+    Debug function to show current presence and manager state.
+    Use in IEx: Streampai.LivestreamManager.PresenceManager.debug()
+    """
+    def debug do
+      IO.puts("\n🔍 PresenceManager Debug Info")
+      IO.puts("=" <> String.duplicate("=", 40))
 
-    # Current presence
-    presence = StreampaiWeb.Presence.list("users_presence")
-    IO.puts("\n📍 Phoenix.Presence state:")
+      # Current presence
+      presence = StreampaiWeb.Presence.list("users_presence")
+      IO.puts("\n📍 Phoenix.Presence state:")
 
-    if map_size(presence) == 0 do
-      IO.puts("  No users present")
-    else
-      print_presence_info(presence)
+      if map_size(presence) == 0 do
+        IO.puts("  No users present")
+      else
+        print_presence_info(presence)
+      end
+
+      # PresenceManager state
+      active = get_active_users()
+      managed = get_managed_users()
+
+      IO.puts("\n🎯 PresenceManager state:")
+      IO.puts("  Active users: #{inspect(active)}")
+      IO.puts("  Managed users: #{inspect(managed)}")
+
+      # Running managers
+      IO.puts("\n⚡ Running UserStreamManagers:")
+
+      if Enum.empty?(managed) do
+        IO.puts("  None")
+      else
+        Enum.each(managed, &print_manager_status/1)
+      end
+
+      :ok
     end
 
-    # PresenceManager state
-    active = get_active_users()
-    managed = get_managed_users()
+    defp print_presence_info(presence) do
+      Enum.each(presence, fn {user_id, %{metas: metas}} ->
+        IO.puts("  #{user_id}: #{length(metas)} sessions")
 
-    IO.puts("\n🎯 PresenceManager state:")
-    IO.puts("  Active users: #{inspect(active)}")
-    IO.puts("  Managed users: #{inspect(managed)}")
-
-    # Running managers
-    IO.puts("\n⚡ Running UserStreamManagers:")
-
-    if Enum.empty?(managed) do
-      IO.puts("  None")
-    else
-      Enum.each(managed, &print_manager_status/1)
-    end
-
-    :ok
-  end
-
-  defp print_presence_info(presence) do
-    Enum.each(presence, fn {user_id, %{metas: metas}} ->
-      IO.puts("  #{user_id}: #{length(metas)} sessions")
-
-      metas
-      |> Enum.with_index(1)
-      |> Enum.each(fn {meta, idx} ->
-        IO.puts("    Session #{idx}: #{inspect(meta)}")
+        metas
+        |> Enum.with_index(1)
+        |> Enum.each(fn {meta, idx} ->
+          IO.puts("    Session #{idx}: #{inspect(meta)}")
+        end)
       end)
-    end)
-  end
+    end
 
-  defp print_manager_status(user_id) do
-    case Registry.lookup(
-           Streampai.LivestreamManager.Registry,
-           {:user_stream_manager, user_id}
-         ) do
-      [{pid, _}] -> IO.puts("  #{user_id}: #{inspect(pid)} (alive: #{Process.alive?(pid)})")
-      [] -> IO.puts("  #{user_id}: NOT FOUND in registry")
+    defp print_manager_status(user_id) do
+      case Registry.lookup(
+             Streampai.LivestreamManager.Registry,
+             {:user_stream_manager, user_id}
+           ) do
+        [{pid, _}] -> IO.puts("  #{user_id}: #{inspect(pid)} (alive: #{Process.alive?(pid)})")
+        [] -> IO.puts("  #{user_id}: NOT FOUND in registry")
+      end
     end
   end
 

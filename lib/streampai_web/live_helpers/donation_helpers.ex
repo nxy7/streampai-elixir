@@ -15,7 +15,7 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   def find_user_by_username(username) do
     import Ash.Query
 
-    query = User |> for_read(:get, %{}, load: [:avatar]) |> filter(name == ^username)
+    query = User |> for_read(:get, %{}, load: [:display_avatar]) |> filter(name == ^username)
 
     case Ash.read_one(query, authorize?: false) do
       {:ok, user} when not is_nil(user) -> {:ok, user}

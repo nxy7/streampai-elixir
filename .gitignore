@@ -88,3 +88,4 @@ pids
 *.pid.lock
 assets/.vite/deps
 tasks
+.playwright-mcp

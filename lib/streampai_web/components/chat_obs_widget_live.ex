@@ -14,9 +14,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   defp initialize_display_assigns(socket) do
     initial_messages = Chat.initial_messages()
 
-    socket
-    |> stream(:messages, initial_messages)
-    |> assign(:vue_messages, initial_messages)
+    stream(socket, :messages, initial_messages, limit: socket.assigns.widget_config.max_messages)
   end
 
   defp subscribe_to_real_events(_user_id) do
@@ -30,15 +28,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
   defp handle_demo_message_generation(socket) do
     new_message = Chat.generate_message()
 
-    socket = stream_insert(socket, :messages, new_message)
-
-    current_vue_messages = Map.get(socket.assigns, :vue_messages, [])
-    updated_vue_messages = [new_message | current_vue_messages]
-
-    limited_vue_messages =
-      Enum.take(updated_vue_messages, socket.assigns.widget_config.max_messages)
-
-    socket = assign(socket, :vue_messages, limited_vue_messages)
+    socket = stream_insert(socket, :messages, new_message, at: -1)
 
     schedule_demo_message()
 
@@ -52,12 +42,18 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
         v-component="ChatWidget"
         v-socket={@socket}
         config={@widget_config}
-        messages={@vue_messages}
+        messages={stream_to_list(@streams.messages)}
         class="w-full h-full"
         id="live-chat-widget"
       />
     </div>
     """
+  end
+
+  defp stream_to_list(stream) do
+    stream
+    |> Stream.map(fn {_id, message} -> message end)
+    |> Enum.to_list()
   end
 
   defp schedule_demo_message do

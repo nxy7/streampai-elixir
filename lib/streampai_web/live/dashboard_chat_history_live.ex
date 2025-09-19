@@ -160,7 +160,12 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-1">
-                      <span class="text-sm font-medium text-gray-900">{message.username}</span>
+                      <.link
+                        navigate={~p"/dashboard/viewers/#{Map.get(message, :viewer_id, "viewer_1")}"}
+                        class="text-sm font-medium text-gray-900 hover:text-purple-600 hover:underline transition-colors"
+                      >
+                        {message.username}
+                      </.link>
                       <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(message.platform)}"}>
                         {platform_name(message.platform)}
                       </span>

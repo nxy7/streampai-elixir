@@ -129,7 +129,10 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_ash_error(error) do
-    "An error occurred: #{inspect(error)}"
+    require Logger
+
+    Logger.error("Ash error occurred: #{inspect(error)}")
+    "An error occurred. Please try again later."
   end
 
   defp format_individual_error(%{message: message}) when is_binary(message) do
@@ -141,7 +144,10 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_individual_error(error) do
-    inspect(error)
+    require Logger
+
+    Logger.error("Individual error formatting fallback: #{inspect(error)}")
+    "An error occurred. Please try again."
   end
 
   defp format_platform_error(base_message, %Invalid{} = error) do
@@ -150,7 +156,10 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_platform_error(base_message, error) do
-    "#{base_message}: #{inspect(error)}"
+    require Logger
+
+    Logger.error("Platform error: #{base_message} - #{inspect(error)}")
+    "#{base_message}. Please try again later."
   end
 
   defp format_operation_message(operation, resource, result_type) do

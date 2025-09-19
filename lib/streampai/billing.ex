@@ -48,7 +48,10 @@ defmodule Streampai.Billing do
         {:error, "Failed to create checkout session: #{error.message}"}
 
       {:error, error} ->
-        {:error, "Unexpected error: #{inspect(error)}"}
+        require Logger
+
+        Logger.error("Unexpected billing error: #{inspect(error)}")
+        {:error, "Failed to process billing request. Please try again later."}
     end
   end
 

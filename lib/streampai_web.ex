@@ -17,7 +17,7 @@ defmodule StreampaiWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images tts favicon.ico robots.txt favicon.png favicon-32x32.png)
+  def static_paths, do: ~w(assets fonts images tts avatars favicon.ico robots.txt favicon.png favicon-32x32.png)
 
   def router do
     quote do

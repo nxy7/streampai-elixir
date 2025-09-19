@@ -26,11 +26,15 @@ defmodule Streampai.Accounts.DefaultUsername do
         Ash.Changeset.change_attribute(changeset, :name, final_username)
 
       {:error, error} ->
+        require Logger
+
+        Logger.error("Failed to generate username: #{inspect(error)}")
+
         Ash.Changeset.add_error(
           changeset,
           %Ash.Error.Changes.InvalidAttribute{
             field: :name,
-            message: "Failed to generate username: #{inspect(error)}"
+            message: "Unable to generate username. Please try again."
           }
         )
     end
