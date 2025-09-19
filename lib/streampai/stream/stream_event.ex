@@ -34,6 +34,7 @@ defmodule Streampai.Stream.StreamEvent do
 
       # For viewer-specific queries
       index [:viewer_id], name: "idx_stream_events_viewer_id"
+
       index [:viewer_id, :inserted_at],
         name: "idx_stream_events_viewer_chrono"
     end
@@ -51,7 +52,16 @@ defmodule Streampai.Stream.StreamEvent do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:type, :data, :data_raw, :author_id, :livestream_id, :user_id, :platform, :viewer_id]
+      accept [
+        :type,
+        :data,
+        :data_raw,
+        :author_id,
+        :livestream_id,
+        :user_id,
+        :platform,
+        :viewer_id
+      ]
 
       validate present([:type, :data, :platform, :livestream_id, :author_id])
     end

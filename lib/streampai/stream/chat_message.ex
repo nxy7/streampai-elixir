@@ -51,7 +51,6 @@ defmodule Streampai.Stream.ChatMessage do
         :viewer_id
       ]
     end
-
   end
 
   attributes do

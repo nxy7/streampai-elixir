@@ -69,6 +69,12 @@ defmodule Streampai.Stream.Viewer do
     end
   end
 
+  validations do
+    validate match(:display_name, ~r/^[a-zA-Z0-9_\-\s]+$/) do
+      message "Display name can only contain letters, numbers, underscores, hyphens, and spaces"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -122,12 +128,6 @@ defmodule Streampai.Stream.Viewer do
   identities do
     identity :user_display_name_unique, [:user_id, :display_name] do
       description "Each display name must be unique per streamer"
-    end
-  end
-
-  validations do
-    validate match(:display_name, ~r/^[a-zA-Z0-9_\-\s]+$/) do
-      message "Display name can only contain letters, numbers, underscores, hyphens, and spaces"
     end
   end
 end

@@ -15,13 +15,19 @@ defmodule Streampai.Stream.ViewerIdentity do
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer
 
+  alias Streampai.Stream.Platform
+
   postgres do
     table "viewer_identities"
     repo Streampai.Repo
 
     custom_indexes do
       index [:viewer_id], name: "idx_viewer_identities_viewer_id"
-      index [:platform, :platform_user_id], name: "idx_viewer_identities_platform_user", unique: true
+
+      index [:platform, :platform_user_id],
+        name: "idx_viewer_identities_platform_user",
+        unique: true
+
       index [:viewer_id, :platform], name: "idx_viewer_identities_viewer_platform"
       index [:confidence_score], name: "idx_viewer_identities_confidence"
       index [:linked_at], name: "idx_viewer_identities_linked_at"
@@ -43,6 +49,7 @@ defmodule Streampai.Stream.ViewerIdentity do
 
     create :create do
       primary? true
+
       accept [
         :platform,
         :platform_user_id,
@@ -78,24 +85,38 @@ defmodule Streampai.Stream.ViewerIdentity do
     end
 
     read :for_platform do
-      argument :platform, Streampai.Stream.Platform, allow_nil?: false
+      argument :platform, Platform, allow_nil?: false
 
       filter expr(platform == ^arg(:platform))
       prepare build(sort: [linked_at: :desc])
     end
 
     read :find_by_platform_id do
-      argument :platform, Streampai.Stream.Platform, allow_nil?: false
+      argument :platform, Platform, allow_nil?: false
       argument :platform_user_id, :string, allow_nil?: false
 
       filter expr(platform == ^arg(:platform) and platform_user_id == ^arg(:platform_user_id))
     end
   end
 
+  validations do
+    validate match(:username, ~r/^[a-zA-Z0-9_\-]+$/) do
+      message "Username can only contain letters, numbers, underscores, and hyphens"
+    end
+
+    validate compare(:confidence_score, greater_than_or_equal_to: Decimal.new("0.0")) do
+      message "Confidence score must be between 0.0 and 1.0"
+    end
+
+    validate compare(:confidence_score, less_than_or_equal_to: Decimal.new("1.0")) do
+      message "Confidence score must be between 0.0 and 1.0"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
-    attribute :platform, Streampai.Stream.Platform do
+    attribute :platform, Platform do
       description "The streaming platform this identity belongs to"
       allow_nil? false
     end
@@ -121,17 +142,23 @@ defmodule Streampai.Stream.ViewerIdentity do
       description "Confidence level of this identity linkage (0.0 to 1.0)"
       allow_nil? false
       default Decimal.new("1.0")
-      constraints [
-        min: Decimal.new("0.0"),
-        max: Decimal.new("1.0")
-      ]
+
+      constraints min: Decimal.new("0.0"),
+                  max: Decimal.new("1.0")
     end
 
     attribute :linking_method, :atom do
       description "How this identity was linked to the viewer"
       allow_nil? false
       default :automatic
-      constraints one_of: [:automatic, :manual, :username_similarity, :cross_platform_activity, :admin_override]
+
+      constraints one_of: [
+                    :automatic,
+                    :manual,
+                    :username_similarity,
+                    :cross_platform_activity,
+                    :admin_override
+                  ]
     end
 
     attribute :linking_batch_id, :string do
@@ -165,20 +192,6 @@ defmodule Streampai.Stream.ViewerIdentity do
   identities do
     identity :platform_user_unique, [:platform, :platform_user_id] do
       description "Each platform user ID can only belong to one viewer identity"
-    end
-  end
-
-  validations do
-    validate match(:username, ~r/^[a-zA-Z0-9_\-]+$/) do
-      message "Username can only contain letters, numbers, underscores, and hyphens"
-    end
-
-    validate compare(:confidence_score, greater_than_or_equal_to: Decimal.new("0.0")) do
-      message "Confidence score must be between 0.0 and 1.0"
-    end
-
-    validate compare(:confidence_score, less_than_or_equal_to: Decimal.new("1.0")) do
-      message "Confidence score must be between 0.0 and 1.0"
     end
   end
 end

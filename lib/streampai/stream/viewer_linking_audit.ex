@@ -41,6 +41,7 @@ defmodule Streampai.Stream.ViewerLinkingAudit do
 
     create :create do
       primary? true
+
       accept [
         :viewer_identity_id,
         :action_type,
@@ -77,13 +78,33 @@ defmodule Streampai.Stream.ViewerLinkingAudit do
     end
   end
 
+  validations do
+    validate compare(:confidence_score, greater_than_or_equal_to: Decimal.new("0.0")) do
+      message "Confidence score must be between 0.0 and 1.0"
+      where present(:confidence_score)
+    end
+
+    validate compare(:confidence_score, less_than_or_equal_to: Decimal.new("1.0")) do
+      message "Confidence score must be between 0.0 and 1.0"
+      where present(:confidence_score)
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
     attribute :action_type, :atom do
       description "Type of linking action performed"
       allow_nil? false
-      constraints one_of: [:create, :update, :unlink, :relink, :confidence_update, :username_update]
+
+      constraints one_of: [
+                    :create,
+                    :update,
+                    :unlink,
+                    :relink,
+                    :confidence_update,
+                    :username_update
+                  ]
     end
 
     attribute :linking_batch_id, :string do
@@ -112,10 +133,9 @@ defmodule Streampai.Stream.ViewerLinkingAudit do
 
     attribute :confidence_score, :decimal do
       description "Confidence score for this linking decision"
-      constraints [
-        min: Decimal.new("0.0"),
-        max: Decimal.new("1.0")
-      ]
+
+      constraints min: Decimal.new("0.0"),
+                  max: Decimal.new("1.0")
     end
 
     attribute :notes, :string do
@@ -131,18 +151,6 @@ defmodule Streampai.Stream.ViewerLinkingAudit do
       description "The viewer identity this audit record relates to"
       allow_nil? false
       attribute_writable? true
-    end
-  end
-
-  validations do
-    validate compare(:confidence_score, greater_than_or_equal_to: Decimal.new("0.0")) do
-      message "Confidence score must be between 0.0 and 1.0"
-      where present(:confidence_score)
-    end
-
-    validate compare(:confidence_score, less_than_or_equal_to: Decimal.new("1.0")) do
-      message "Confidence score must be between 0.0 and 1.0"
-      where present(:confidence_score)
     end
   end
 end
