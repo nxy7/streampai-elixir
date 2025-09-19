@@ -1,15 +1,16 @@
-defmodule Streampai.Stream.ChatMessageBatcher do
+defmodule Streampai.Stream.ChatMessagePersister do
   @moduledoc """
-  Batches chat messages from all platforms and saves them to the database in bulk.
+  Persists chat messages from all platforms to the database in efficient batches.
 
   This process collects chat messages from various streaming platforms and
-  periodically saves them to the database using bulk operations for performance.
+  periodically saves them to the database using bulk operations for optimal
+  database performance and reduced load.
   """
   use GenServer
 
-  require Logger
-
   alias Streampai.Stream.ChatMessage
+
+  require Logger
 
   @batch_size 100
   @flush_interval 3_000
@@ -32,11 +33,9 @@ defmodule Streampai.Stream.ChatMessageBatcher do
       flush_timer: schedule_flush()
     }
 
-    Logger.info("ChatMessageBatcher started")
+    Logger.info("ChatMessagePersister started")
     {:ok, state}
   end
-
-  # Client API
 
   @doc """
   Adds a chat message to the batch queue.
@@ -45,7 +44,7 @@ defmodule Streampai.Stream.ChatMessageBatcher do
   - `message_data`: Map containing chat message fields
 
   ## Example
-      ChatMessageBatcher.add_message(%{
+      ChatMessagePersister.add_message(%{
         message: "Hello, world!",
         username: "user123",
         platform: :twitch,
@@ -74,29 +73,14 @@ defmodule Streampai.Stream.ChatMessageBatcher do
     GenServer.call(__MODULE__, :get_stats)
   end
 
-  # Server callbacks
-
   @impl true
   def handle_cast({:add_message, message_data}, state) do
     chat_message = struct(ChatMessage, message_data)
     new_messages = [chat_message | state.messages]
 
     if length(new_messages) >= @batch_size do
-      case flush_messages(new_messages) do
-        {:ok, _result} ->
-          Logger.debug("Flushed #{length(new_messages)} messages (batch size reached)")
-
-          new_state = %{
-            state |
-            messages: [],
-            last_flush: :os.system_time(:millisecond)
-          }
-          {:noreply, new_state}
-
-        {:error, reason} ->
-          Logger.error("Failed to flush messages: #{inspect(reason)}")
-          {:noreply, %{state | messages: new_messages}}
-      end
+      {_result, new_state} = do_flush(state, new_messages, "batch size reached")
+      {:noreply, new_state}
     else
       {:noreply, %{state | messages: new_messages}}
     end
@@ -105,21 +89,8 @@ defmodule Streampai.Stream.ChatMessageBatcher do
   @impl true
   def handle_call(:flush_now, _from, state) do
     if length(state.messages) > 0 do
-      case flush_messages(state.messages) do
-        {:ok, result} ->
-          Logger.info("Manual flush completed: #{length(state.messages)} messages")
-
-          new_state = %{
-            state |
-            messages: [],
-            last_flush: :os.system_time(:millisecond)
-          }
-          {:reply, {:ok, result}, new_state}
-
-        {:error, reason} ->
-          Logger.error("Manual flush failed: #{inspect(reason)}")
-          {:reply, {:error, reason}, state}
-      end
+      {result, new_state} = do_flush(state, state.messages, "manual")
+      {:reply, result, new_state}
     else
       {:reply, {:ok, []}, state}
     end
@@ -132,6 +103,7 @@ defmodule Streampai.Stream.ChatMessageBatcher do
       last_flush: state.last_flush,
       uptime: :os.system_time(:millisecond) - state.last_flush
     }
+
     {:reply, stats, state}
   end
 
@@ -139,20 +111,8 @@ defmodule Streampai.Stream.ChatMessageBatcher do
   def handle_info(:flush_timer, state) do
     new_state =
       if length(state.messages) > 0 do
-        case flush_messages(state.messages) do
-          {:ok, _result} ->
-            Logger.debug("Timer flush completed: #{length(state.messages)} messages")
-
-            %{
-              state |
-              messages: [],
-              last_flush: :os.system_time(:millisecond)
-            }
-
-          {:error, reason} ->
-            Logger.error("Timer flush failed: #{inspect(reason)}")
-            state
-        end
+        {_result, updated_state} = do_flush(state, state.messages, "timer")
+        updated_state
       else
         state
       end
@@ -167,39 +127,55 @@ defmodule Streampai.Stream.ChatMessageBatcher do
       Logger.info("Flushing #{length(state.messages)} messages before shutdown")
       flush_messages(state.messages)
     end
+
     :ok
   end
 
-  # Private functions
+  defp do_flush(state, messages, flush_type) do
+    case flush_messages(messages) do
+      {:ok, result} ->
+        Logger.debug("#{String.capitalize(flush_type)} flush completed: #{length(messages)} messages")
+
+        new_state = %{
+          state
+          | messages: [],
+            last_flush: :os.system_time(:millisecond)
+        }
+
+        {{:ok, result}, new_state}
+
+      {:error, reason} ->
+        Logger.error("#{String.capitalize(flush_type)} flush failed: #{inspect(reason)}")
+        {{:error, reason}, %{state | messages: messages}}
+    end
+  end
 
   defp flush_messages([]), do: {:ok, []}
 
   defp flush_messages(messages) do
-    try do
-      # Convert struct messages to attribute maps for bulk creation
-      message_attrs = Enum.map(messages, &struct_to_attrs/1)
+    message_attrs = Enum.map(messages, &struct_to_attrs/1)
+    result = Ash.bulk_create(message_attrs, ChatMessage, :create_batch)
 
-      # Use Ash bulk create for efficient insertion
-      result =
-        ChatMessage
-        |> Ash.Changeset.for_create(:create_batch, %{messages: message_attrs})
-        |> Ash.create()
-
-      case result do
-        {:ok, _} -> {:ok, length(messages)}
-        {:error, reason} -> {:error, reason}
-      end
-    rescue
-      e -> {:error, e}
+    case result do
+      %Ash.BulkResult{status: :success} -> {:ok, length(messages)}
+      %Ash.BulkResult{status: :error, errors: errors} -> {:error, errors}
+      error -> {:error, error}
     end
+  rescue
+    e -> {:error, e}
   end
 
   defp struct_to_attrs(%ChatMessage{} = message) do
-    message
-    |> Map.from_struct()
-    |> Map.drop([:__meta__])
-    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-    |> Map.new()
+    %{
+      message: message.message,
+      username: message.username,
+      platform: message.platform,
+      channel_id: message.channel_id,
+      is_moderator: message.is_moderator,
+      is_patreon: message.is_patreon,
+      user_id: message.user_id,
+      livestream_id: message.livestream_id
+    }
   end
 
   defp schedule_flush do

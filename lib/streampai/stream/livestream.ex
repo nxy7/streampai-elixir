@@ -11,7 +11,11 @@ defmodule Streampai.Stream.Livestream do
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      accept [:started_at, :ended_at]
+    end
   end
 
   attributes do

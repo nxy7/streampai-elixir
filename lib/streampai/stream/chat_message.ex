@@ -1,4 +1,5 @@
 defmodule Streampai.Stream.ChatMessage do
+  @moduledoc false
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
@@ -13,10 +14,35 @@ defmodule Streampai.Stream.ChatMessage do
     defaults [:read, :destroy, create: :*, update: :*]
 
     create :create_batch do
-      accept [:message, :username, :platform, :channel_id, :is_moderator, :is_patreon, :user_id, :livestream_id]
+      accept [
+        :message,
+        :username,
+        :platform,
+        :channel_id,
+        :is_moderator,
+        :is_patreon,
+        :user_id,
+        :livestream_id
+      ]
+
       upsert? true
       upsert_identity :unique_message_per_stream
       upsert_fields [:message, :username, :platform, :channel_id, :is_moderator, :is_patreon]
+    end
+
+    create :bulk_create do
+      accept [
+        :message,
+        :username,
+        :platform,
+        :channel_id,
+        :is_moderator,
+        :is_patreon,
+        :user_id,
+        :livestream_id
+      ]
+
+      primary? false
     end
   end
 
@@ -65,6 +91,6 @@ defmodule Streampai.Stream.ChatMessage do
   end
 
   identities do
-    identity :unique_message_per_stream, [:livestream_id, :username, :message, :inserted_at]
+    identity :unique_message_per_stream, [:livestream_id, :username, :message]
   end
 end

@@ -24,7 +24,7 @@ defmodule Streampai.LivestreamManager.Supervisor do
           [
             Streampai.LivestreamManager.PresenceManager,
             Streampai.LivestreamManager.MetricsCollector,
-            Streampai.Stream.ChatMessageBatcher
+            Streampai.Stream.ChatMessagePersister
           ]
         end
 
