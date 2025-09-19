@@ -1,8 +1,11 @@
 defmodule Streampai.Stream.ViewerLinking do
   @moduledoc """
-  Service for linking platform-specific identities to viewers in an idempotent,
-  auditable way. Handles the complex logic of determining when identities
-  from different platforms belong to the same physical person.
+  Service for linking platform-specific identities to viewers within a streamer's context.
+
+  This module handles the ViewerIdentity > Viewer relationship where:
+  - ViewerIdentity represents a platform-specific identity (e.g., Twitch username)
+  - Viewer represents a person aggregating multiple platform identities for a specific streamer
+  - Each ViewerIdentity belongs to one Viewer (per-streamer scoped)
 
   Key features:
   - Idempotent operations: can be run multiple times safely
@@ -25,20 +28,20 @@ defmodule Streampai.Stream.ViewerLinking do
   @default_confidence_threshold Decimal.new("0.7")
 
   @doc """
-  Links a platform identity (platform_user_id + platform) to a viewer.
-  Creates viewer if none exists, or finds/creates the best matching viewer.
+  Links a platform identity (platform_user_id + platform) to a viewer for a specific streamer.
 
   Options:
   - `:confidence_threshold` - minimum confidence required for automatic linking
   - `:linking_method` - override the linking method
   - `:batch_id` - group this operation with others for reevaluation
-  - `:user_id` - the streamer this viewer belongs to (required)
+  - `:user_id` - the streamer this identity is associated with (required)
 
-  Returns `{:ok, %{viewer: viewer, identity: identity, created?: boolean}}`
+  Returns `{:ok, %{identity: viewer_identity, viewer: viewer, created?: boolean}}`
   """
   def link_identity(platform, platform_user_id, username, opts \\ []) do
+    user_id = Keyword.fetch!(opts, :user_id)
+
     with :ok <- validate_linking_inputs(platform, platform_user_id, username) do
-      user_id = Keyword.fetch!(opts, :user_id)
       batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
       confidence_threshold = Keyword.get(opts, :confidence_threshold, @default_confidence_threshold)
 
@@ -47,7 +50,6 @@ defmodule Streampai.Stream.ViewerLinking do
   end
 
   defp do_link_identity(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, opts) do
-
     # Check if identity already exists
     case ViewerIdentity.find_by_platform_id(
            platform: platform,
@@ -58,7 +60,7 @@ defmodule Streampai.Stream.ViewerLinking do
         update_existing_identity(existing_identity, username, batch_id)
 
       {:ok, []} ->
-        # Find or create viewer for this new identity
+        # Create new identity with linked viewer
         create_new_identity_link(
           platform,
           platform_user_id,
@@ -175,18 +177,16 @@ defmodule Streampai.Stream.ViewerLinking do
             batch_id: batch_id
           })
 
-          {:ok, %{viewer: identity.viewer, identity: updated_identity, created?: false}}
+          # Load the viewer relationship
+          viewer = Viewer.read!(identity.viewer_id)
+          {:ok, %{viewer: viewer, identity: updated_identity, created?: false}}
 
         {:error, _} = error ->
           error
       end
     else
-      # No changes needed
-      # Load the viewer relationship if not already loaded
-      viewer = case identity.viewer do
-        %Ash.NotLoaded{} -> Viewer.read!(identity.viewer_id)
-        viewer -> viewer
-      end
+      # No changes needed, load the viewer relationship
+      viewer = Viewer.read!(identity.viewer_id)
       {:ok, %{viewer: viewer, identity: identity, created?: false}}
     end
   end
@@ -215,9 +215,18 @@ defmodule Streampai.Stream.ViewerLinking do
 
   defp find_candidate_viewers(username, user_id, platform) do
     # Find viewers with similar usernames on other platforms
-    case Viewer.for_user(user_id: user_id, load: [:viewer_identities]) do
+    case Viewer.for_user(user_id: user_id) do
       {:ok, user_viewers} ->
-        Enum.filter(user_viewers, fn viewer ->
+        # Load viewer identities for each viewer
+        viewers_with_identities =
+          Enum.map(user_viewers, fn viewer ->
+            case Viewer.read(viewer.id, load: [:viewer_identities]) do
+              {:ok, loaded_viewer} -> loaded_viewer
+              {:error, _} -> viewer
+            end
+          end)
+
+        Enum.filter(viewers_with_identities, fn viewer ->
           has_similar_identity?(viewer, username, platform)
         end)
 
@@ -227,9 +236,14 @@ defmodule Streampai.Stream.ViewerLinking do
   end
 
   defp has_similar_identity?(viewer, username, exclude_platform) do
-    viewer.viewer_identities
-    |> Enum.reject(&(&1.platform == exclude_platform))
-    |> Enum.any?(&(username_similarity(&1.username, username) > 0.8))
+    case viewer.viewer_identities do
+      %Ash.NotLoaded{} -> false
+      identities when is_list(identities) ->
+        identities
+        |> Enum.reject(&(&1.platform == exclude_platform))
+        |> Enum.any?(&(username_similarity(&1.username, username) > 0.8))
+      _ -> false
+    end
   end
 
   defp username_similarity(username1, username2) when is_binary(username1) and is_binary(username2) do
@@ -310,11 +324,15 @@ defmodule Streampai.Stream.ViewerLinking do
 
   defp score_viewer_match(viewer, username, platform) do
     # Calculate confidence based on username similarity and other factors
-    max_similarity =
-      viewer.viewer_identities
-      |> Enum.reject(&(&1.platform == platform))
-      |> Enum.map(&username_similarity(&1.username, username))
-      |> Enum.max(&>=/2, fn -> 0.0 end)
+    max_similarity = case viewer.viewer_identities do
+      %Ash.NotLoaded{} -> 0.0
+      identities when is_list(identities) ->
+        identities
+        |> Enum.reject(&(&1.platform == platform))
+        |> Enum.map(&username_similarity(&1.username, username))
+        |> Enum.max(&>=/2, fn -> 0.0 end)
+      _ -> 0.0
+    end
 
     confidence = Decimal.new(to_string(max_similarity))
     method = if max_similarity > 0.9, do: :username_similarity, else: :weak_similarity

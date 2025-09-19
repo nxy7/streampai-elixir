@@ -1,14 +1,11 @@
 defmodule Streampai.Stream.Viewer do
   @moduledoc """
-  A Viewer represents how a specific streamer categorizes and views a person.
-  This is a per-streamer record that allows different streamers to have their own
-  notes, categorizations, and recognition levels for the same global person.
+  A Viewer represents a physical person who interacts with a streamer's content
+  across multiple platforms. This allows linking chat messages, donations, follows,
+  and other events from the same person across different streaming platforms.
 
-  The global person is represented by ViewerIdentity, and this Viewer record
-  is linked to it via ViewerLink. This separation allows:
-  - The same person to be recognized across different streamers
-  - Each streamer to maintain their own notes/categorization
-  - Privacy and independence between different streamers' viewer data
+  Each viewer is scoped to a specific streamer (user_id) and can have multiple
+  platform identities linked to them via ViewerIdentity records.
   """
   use Ash.Resource,
     otp_app: :streampai,
@@ -53,6 +50,7 @@ defmodule Streampai.Stream.Viewer do
 
     update :touch_last_seen do
       accept []
+      require_atomic? false
 
       change set_attribute(:last_seen_at, &DateTime.utc_now/0)
     end
@@ -69,6 +67,12 @@ defmodule Streampai.Stream.Viewer do
       argument :display_name, :string, allow_nil?: false
 
       filter expr(user_id == ^arg(:user_id) and display_name == ^arg(:display_name))
+    end
+  end
+
+  validations do
+    validate match(:display_name, ~r/^[a-zA-Z0-9_\-\s]+$/) do
+      message "Display name can only contain letters, numbers, underscores, hyphens, and spaces"
     end
   end
 
@@ -98,7 +102,8 @@ defmodule Streampai.Stream.Viewer do
       default &DateTime.utc_now/0
     end
 
-    timestamps()
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   relationships do
@@ -108,10 +113,17 @@ defmodule Streampai.Stream.Viewer do
       attribute_writable? true
     end
 
-    has_many :viewer_links, Streampai.Stream.ViewerLink do
-      description "Links to global viewer identities"
+    has_many :viewer_identities, Streampai.Stream.ViewerIdentity do
+      description "Platform-specific identities linked to this viewer"
     end
 
+    has_many :chat_messages, Streampai.Stream.ChatMessage do
+      description "Chat messages linked to this viewer"
+    end
+
+    has_many :stream_events, Streampai.Stream.StreamEvent do
+      description "Stream events (donations, follows, etc.) linked to this viewer"
+    end
   end
 
   identities do

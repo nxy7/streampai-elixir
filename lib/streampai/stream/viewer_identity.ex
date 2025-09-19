@@ -1,15 +1,14 @@
 defmodule Streampai.Stream.ViewerIdentity do
   @moduledoc """
-  A ViewerIdentity represents a global person across all streaming platforms.
-  This is the core entity that links "johndoe123" on Twitch, "john_doe" on YouTube,
-  and other platform identities as the same physical person.
+  A ViewerIdentity represents a platform-specific identity (e.g., Twitch username,
+  YouTube channel ID) that belongs to a Viewer. This allows us to track that
+  "johndoe123" on Twitch and "john_doe" on YouTube are the same physical person.
 
   Key features:
-  - Global identity across all platforms and streamers
-  - Multiple platform-specific accounts per identity
-  - Can be linked to different streamers' local Viewer records via ViewerLink
-  - Maintains confidence scores and linking metadata
+  - Tracks platform-specific identifiers and usernames
+  - Records confidence level of the linkage
   - Supports both automatic and manual linking
+  - Maintains audit trail for linking decisions
   """
   use Ash.Resource,
     otp_app: :streampai,
@@ -23,20 +22,15 @@ defmodule Streampai.Stream.ViewerIdentity do
     repo Streampai.Repo
 
     custom_indexes do
-      index [:global_viewer_id], name: "idx_viewer_identities_global_viewer_id"
+      index [:viewer_id], name: "idx_viewer_identities_viewer_id"
 
       index [:platform, :platform_user_id],
         name: "idx_viewer_identities_platform_user",
         unique: true
 
-      index [:global_viewer_id, :platform],
-        name: "idx_viewer_identities_global_viewer_platform_unique",
-        unique: true
-
-      index [:display_name], name: "idx_viewer_identities_display_name"
+      index [:viewer_id, :platform], name: "idx_viewer_identities_viewer_platform"
       index [:confidence_score], name: "idx_viewer_identities_confidence"
       index [:linked_at], name: "idx_viewer_identities_linked_at"
-      index [:last_seen_at], name: "idx_viewer_identities_last_seen_at"
     end
   end
 
@@ -45,7 +39,7 @@ defmodule Streampai.Stream.ViewerIdentity do
     define :read
     define :update
     define :destroy
-    define :for_global_viewer
+    define :for_viewer
     define :for_platform
     define :find_by_platform_id
   end
@@ -60,21 +54,19 @@ defmodule Streampai.Stream.ViewerIdentity do
         :platform,
         :platform_user_id,
         :username,
-        :global_viewer_id,
-        :display_name,
+        :viewer_id,
         :confidence_score,
         :linking_method,
         :linking_batch_id,
-        :metadata,
-        :global_notes
+        :metadata
       ]
 
-      validate present([:platform, :platform_user_id, :global_viewer_id])
+      validate present([:platform, :platform_user_id, :viewer_id])
     end
 
     update :update do
       primary? true
-      accept [:username, :confidence_score, :metadata, :last_seen_username, :display_name, :global_notes, :last_seen_at]
+      accept [:username, :confidence_score, :metadata, :last_seen_username]
 
       change set_attribute(:updated_at, &DateTime.utc_now/0)
     end
@@ -85,10 +77,10 @@ defmodule Streampai.Stream.ViewerIdentity do
       change set_attribute(:updated_at, &DateTime.utc_now/0)
     end
 
-    read :for_global_viewer do
-      argument :global_viewer_id, :uuid, allow_nil?: false
+    read :for_viewer do
+      argument :viewer_id, :uuid, allow_nil?: false
 
-      filter expr(global_viewer_id == ^arg(:global_viewer_id))
+      filter expr(viewer_id == ^arg(:viewer_id))
       prepare build(sort: [platform: :asc])
     end
 
@@ -124,12 +116,6 @@ defmodule Streampai.Stream.ViewerIdentity do
   attributes do
     uuid_primary_key :id
 
-    attribute :global_viewer_id, :uuid do
-      description "Global identifier linking platform identities to the same person"
-      allow_nil? false
-      default &Ash.UUID.generate/0
-    end
-
     attribute :platform, Platform do
       description "The streaming platform this identity belongs to"
       allow_nil? false
@@ -152,28 +138,6 @@ defmodule Streampai.Stream.ViewerIdentity do
       constraints max_length: 100
     end
 
-    attribute :display_name, :string do
-      description "The preferred display name for this global viewer identity"
-      constraints max_length: 100
-    end
-
-    attribute :global_notes, :string do
-      description "Global notes about this person (not streamer-specific)"
-      constraints max_length: 1000
-    end
-
-    attribute :first_seen_at, :utc_datetime_usec do
-      description "When this global identity was first created"
-      allow_nil? false
-      default &DateTime.utc_now/0
-    end
-
-    attribute :last_seen_at, :utc_datetime_usec do
-      description "When this identity was last seen across any platform"
-      allow_nil? false
-      default &DateTime.utc_now/0
-    end
-
     attribute :confidence_score, :decimal do
       description "Confidence level of this identity linkage (0.0 to 1.0)"
       allow_nil? false
@@ -184,7 +148,7 @@ defmodule Streampai.Stream.ViewerIdentity do
     end
 
     attribute :linking_method, :atom do
-      description "How this identity was linked to the global viewer"
+      description "How this identity was linked to the viewer"
       allow_nil? false
       default :automatic
 
@@ -208,7 +172,7 @@ defmodule Streampai.Stream.ViewerIdentity do
     end
 
     attribute :linked_at, :utc_datetime_usec do
-      description "When this identity was linked to the global viewer"
+      description "When this identity was linked to the viewer"
       allow_nil? false
       default &DateTime.utc_now/0
     end
@@ -218,26 +182,16 @@ defmodule Streampai.Stream.ViewerIdentity do
   end
 
   relationships do
-    has_many :viewer_links, Streampai.Stream.ViewerLink do
-      description "Links to streamer-specific viewer records"
-    end
-
-    has_many :chat_messages, Streampai.Stream.ChatMessage do
-      description "Chat messages from this global identity"
-    end
-
-    has_many :stream_events, Streampai.Stream.StreamEvent do
-      description "Stream events from this global identity"
+    belongs_to :viewer, Streampai.Stream.Viewer do
+      description "The viewer this identity belongs to"
+      allow_nil? false
+      attribute_writable? true
     end
   end
 
   identities do
     identity :platform_user_unique, [:platform, :platform_user_id] do
-      description "Each platform user ID can only belong to one global viewer identity"
-    end
-
-    identity :global_viewer_platform_unique, [:global_viewer_id, :platform] do
-      description "Each global viewer can only have one identity per platform"
+      description "Each platform user ID can only belong to one viewer identity"
     end
   end
 end

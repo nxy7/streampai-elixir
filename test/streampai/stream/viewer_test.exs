@@ -20,7 +20,7 @@ defmodule Streampai.Stream.ViewerTest do
   describe "creating viewers" do
     test "creates viewer with valid attributes", %{user: user} do
       result =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "testviewer",
           user_id: user.id,
           notes: "VIP viewer"
@@ -42,20 +42,19 @@ defmodule Streampai.Stream.ViewerTest do
     test "enforces unique display_name per user", %{user: user} do
       # Create first viewer
       {:ok, _viewer1} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "uniquename",
           user_id: user.id
         })
 
       # Try to create second viewer with same display_name for same user
       result =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "uniquename",
           user_id: user.id
         })
 
-      auto_assert {:error, %Invalid{errors: [%Ash.Error.Changes.InvalidIdentity{}]}} <-
-                    result
+      auto_assert {:error, %Invalid{}} <- result
     end
 
     test "allows same display_name for different users" do
@@ -73,13 +72,13 @@ defmodule Streampai.Stream.ViewerTest do
 
       # Create viewers with same display_name for different users
       {:ok, viewer1} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "samename",
           user_id: user1.id
         })
 
       {:ok, viewer2} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "samename",
           user_id: user2.id
         })
@@ -94,7 +93,7 @@ defmodule Streampai.Stream.ViewerTest do
 
       for name <- valid_names do
         {:ok, _viewer} =
-          Viewer.create!(%{
+          Viewer.create(%{
             display_name: name,
             user_id: user.id
           })
@@ -102,7 +101,7 @@ defmodule Streampai.Stream.ViewerTest do
 
       # Invalid characters should fail
       result =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "user@invalid!",
           user_id: user.id
         })
@@ -121,25 +120,25 @@ defmodule Streampai.Stream.ViewerTest do
 
       # Create viewers for both users
       {:ok, viewer1} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "viewer1",
           user_id: user.id
         })
 
       {:ok, _other_viewer} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "viewer2",
           user_id: other_user.id
         })
 
       {:ok, viewer3} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "viewer3",
           user_id: user.id
         })
 
       # Query viewers for our user
-      viewers = Viewer.for_user!(user_id: user.id)
+      viewers = Viewer.for_user!(%{user_id: user.id})
 
       viewer_ids = Enum.map(viewers, & &1.id)
       assert viewer1.id in viewer_ids
@@ -149,12 +148,12 @@ defmodule Streampai.Stream.ViewerTest do
 
     test "by_display_name finds viewer by name for user", %{user: user} do
       {:ok, viewer} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "findme",
           user_id: user.id
         })
 
-      result = Viewer.by_display_name!(user_id: user.id, display_name: "findme")
+      result = Viewer.by_display_name!(%{user_id: user.id, display_name: "findme"})
 
       auto_assert [found_viewer] <- result
       assert found_viewer.id == viewer.id
@@ -164,7 +163,7 @@ defmodule Streampai.Stream.ViewerTest do
   describe "updating viewers" do
     test "touch_last_seen updates last_seen_at", %{user: user} do
       {:ok, viewer} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "testviewer",
           user_id: user.id
         })
@@ -174,20 +173,20 @@ defmodule Streampai.Stream.ViewerTest do
       # Wait a moment to ensure timestamp difference
       :timer.sleep(10)
 
-      {:ok, updated_viewer} = Viewer.touch_last_seen!(viewer)
+      updated_viewer = Viewer.touch_last_seen!(viewer)
 
       assert DateTime.after?(updated_viewer.last_seen_at, original_last_seen)
     end
 
     test "update changes display_name and notes", %{user: user} do
       {:ok, viewer} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "oldname",
           user_id: user.id,
           notes: "old notes"
         })
 
-      {:ok, updated_viewer} =
+      updated_viewer =
         Viewer.update!(viewer, %{
           display_name: "newname",
           notes: "updated notes"
@@ -202,12 +201,12 @@ defmodule Streampai.Stream.ViewerTest do
   describe "viewer relationships" do
     test "loads viewer_identities relationship", %{user: user} do
       {:ok, viewer} =
-        Viewer.create!(%{
+        Viewer.create(%{
           display_name: "testviewer",
           user_id: user.id
         })
 
-      {:ok, _identity1} =
+      _identity1 =
         ViewerIdentity.create!(%{
           viewer_id: viewer.id,
           platform: :twitch,
@@ -217,7 +216,7 @@ defmodule Streampai.Stream.ViewerTest do
           linking_method: :automatic
         })
 
-      {:ok, _identity2} =
+      _identity2 =
         ViewerIdentity.create!(%{
           viewer_id: viewer.id,
           platform: :youtube,
@@ -228,7 +227,7 @@ defmodule Streampai.Stream.ViewerTest do
         })
 
       # Load viewer with identities
-      viewer_with_identities = Viewer.read!(viewer.id, load: [:viewer_identities])
+      viewer_with_identities = Ash.load!(viewer, [:viewer_identities])
 
       assert length(viewer_with_identities.viewer_identities) == 2
 

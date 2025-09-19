@@ -14,17 +14,32 @@ defmodule Streampai.Stream.ChatMessage do
       index [:livestream_id], name: "idx_chat_messages_livestream_id"
       index [:inserted_at], name: "idx_chat_messages_inserted_at"
       index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
-      index [:viewer_identity_id], name: "idx_chat_messages_viewer_identity_id"
-      index [:viewer_identity_id, :inserted_at], name: "idx_chat_messages_viewer_identity_chrono"
     end
   end
 
   code_interface do
     define :upsert
+    define :create!
+    define :read
   end
 
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
+
+    create :create! do
+      primary? true
+      accept [
+        :id,
+        :message,
+        :sender_username,
+        :platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
+        :user_id,
+        :livestream_id
+      ]
+    end
 
     create :upsert do
       accept [
@@ -36,8 +51,7 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id,
-        :viewer_identity_id
+        :livestream_id
       ]
 
       upsert? true
@@ -51,8 +65,7 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id,
-        :viewer_identity_id
+        :livestream_id
       ]
     end
   end
@@ -95,9 +108,6 @@ defmodule Streampai.Stream.ChatMessage do
       description "Optional reference to the streamer-specific viewer who sent this message"
     end
 
-    attribute :viewer_identity_id, :uuid do
-      description "Optional reference to the global viewer identity who sent this message"
-    end
   end
 
   relationships do
@@ -116,10 +126,6 @@ defmodule Streampai.Stream.ChatMessage do
       attribute_writable? true
     end
 
-    belongs_to :viewer_identity, Streampai.Stream.ViewerIdentity do
-      description "The global viewer identity who sent this message (optional)"
-      attribute_writable? true
-    end
   end
 
   identities do

@@ -15,7 +15,6 @@ defmodule Streampai.Stream do
     resource Streampai.Stream.StreamSettings
     resource Streampai.Stream.Viewer
     resource Streampai.Stream.ViewerIdentity
-    resource Streampai.Stream.ViewerLink
     resource Streampai.Stream.ViewerLinkingAudit
   end
 end
