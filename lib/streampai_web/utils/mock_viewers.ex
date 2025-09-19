@@ -343,6 +343,9 @@ defmodule StreampaiWeb.Utils.MockViewers do
   def filter_viewers(viewers, _), do: viewers
 
   defp viewer_matches_search(viewer, term) do
-    Enum.any?([viewer.username, viewer.email, viewer.full_name], &String.contains?(String.downcase(&1), term))
+    Enum.any?(
+      [viewer.username, viewer.email, viewer.full_name],
+      &String.contains?(String.downcase(&1), term)
+    )
   end
 end
