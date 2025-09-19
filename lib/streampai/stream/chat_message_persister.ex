@@ -45,6 +45,7 @@ defmodule Streampai.Stream.ChatMessagePersister do
 
   ## Example
       ChatMessagePersister.add_message(%{
+        id: "twitch_msg_123456",
         message: "Hello, world!",
         username: "user123",
         platform: :twitch,
@@ -167,6 +168,7 @@ defmodule Streampai.Stream.ChatMessagePersister do
 
   defp struct_to_attrs(%ChatMessage{} = message) do
     %{
+      id: message.id,
       message: message.message,
       username: message.username,
       platform: message.platform,

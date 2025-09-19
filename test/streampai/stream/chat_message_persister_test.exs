@@ -45,6 +45,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       persister: persister
     } do
       message_data = %{
+        id: "test_msg_1",
         message: "Hello, world!",
         username: "test_user",
         platform: :twitch,
@@ -69,6 +70,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       # Add 100 messages to trigger batch flush
       for i <- 1..100 do
         message_data = %{
+          id: "batch_msg_#{i}",
           message: "Message #{i}",
           username: "user_#{i}",
           platform: :twitch,
@@ -103,6 +105,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       # Add a few messages
       for i <- 1..5 do
         message_data = %{
+          id: "manual_msg_#{i}",
           message: "Manual flush test #{i}",
           username: "manual_user_#{i}",
           platform: :youtube,
@@ -144,6 +147,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       # Add a few messages (less than batch size)
       for i <- 1..3 do
         message_data = %{
+          id: "timer_msg_#{i}",
           message: "Timer test #{i}",
           username: "timer_user_#{i}",
           platform: :twitch,
@@ -183,6 +187,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       persister: persister
     } do
       original_message = %{
+        id: "unicode_msg_1",
         message: "Test message with unicode 🎮",
         username: "test_streamer",
         platform: :twitch,
@@ -218,13 +223,14 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       assert stats.pending_messages == 0
     end
 
-    test "upsert prevents duplicate messages across separate flushes", %{
+    test "upsert updates existing message with same ID", %{
       user: user,
       livestream: livestream,
       persister: persister
     } do
-      message_data = %{
-        message: "Duplicate test message",
+      message_data_v1 = %{
+        id: "duplicate_msg_1",
+        message: "Original message",
         username: "duplicate_user",
         platform: :twitch,
         channel_id: "duplicate_channel",
@@ -234,19 +240,23 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         is_patreon: false
       }
 
-      # Add and flush the first message
-      GenServer.cast(persister, {:add_message, message_data})
+      # Add and flush the first version
+      GenServer.cast(persister, {:add_message, message_data_v1})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
-      # Add the same message again and flush
-      GenServer.cast(persister, {:add_message, message_data})
+      # Update the same message (same ID, different content)
+      message_data_v2 = %{message_data_v1 | message: "Updated message", is_moderator: true}
+      GenServer.cast(persister, {:add_message, message_data_v2})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
-      # Should only have one message due to upsert
-      query = Ash.Query.filter(ChatMessage, message: message_data.message)
+      # Should only have one message due to upsert by ID
+      query = Ash.Query.filter(ChatMessage, id: message_data_v1.id)
       {:ok, saved_messages} = Ash.read(query)
 
       assert length(saved_messages) == 1
+      [saved_message] = saved_messages
+      assert saved_message.message == "Updated message"
+      assert saved_message.is_moderator == true
     end
 
     test "get_stats returns correct information", %{
@@ -263,6 +273,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       # Add messages
       for i <- 1..3 do
         message_data = %{
+          id: "stats_msg_#{i}",
           message: "Stats test #{i}",
           username: "stats_user",
           platform: :twitch,

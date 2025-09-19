@@ -15,6 +15,7 @@ defmodule Streampai.Stream.ChatMessage do
 
     create :create_batch do
       accept [
+        :id,
         :message,
         :username,
         :platform,
@@ -26,12 +27,23 @@ defmodule Streampai.Stream.ChatMessage do
       ]
 
       upsert? true
-      upsert_identity :unique_message_per_stream
-      upsert_fields [:message, :username, :platform, :channel_id, :is_moderator, :is_patreon]
+      upsert_identity :primary_key
+
+      upsert_fields [
+        :message,
+        :username,
+        :platform,
+        :channel_id,
+        :is_moderator,
+        :is_patreon,
+        :user_id,
+        :livestream_id
+      ]
     end
 
     create :bulk_create do
       accept [
+        :id,
         :message,
         :username,
         :platform,
@@ -47,20 +59,20 @@ defmodule Streampai.Stream.ChatMessage do
   end
 
   attributes do
-    uuid_primary_key :id
+    attribute :id, :string, primary_key?: true, allow_nil?: false
 
     attribute :message, :string do
       allow_nil? false
       constraints max_length: 500
     end
 
+    attribute :platform, Streampai.Stream.Platform do
+      allow_nil? false
+    end
+
     attribute :username, :string do
       allow_nil? false
       constraints max_length: 100
-    end
-
-    attribute :platform, Streampai.Stream.Platform do
-      allow_nil? false
     end
 
     attribute :channel_id, :string do
@@ -91,6 +103,6 @@ defmodule Streampai.Stream.ChatMessage do
   end
 
   identities do
-    identity :unique_message_per_stream, [:livestream_id, :username, :message]
+    identity :primary_key, [:id]
   end
 end
