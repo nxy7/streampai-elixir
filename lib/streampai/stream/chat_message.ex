@@ -1,61 +1,144 @@
-# TODO make this module reuse the same table as StreamEvent
+defmodule Streampai.Stream.ChatMessage do
+  @moduledoc """
+  Represents a chat message from a streaming platform.
 
-# defmodule Streampai.Stream.ChatMessage do
-#   use Ash.Resource,
-#     otp_app: :streampai,
-#     domain: Streampai.Stream,
-#     data_layer: AshPostgres.DataLayer
+  ChatMessages are linked to both users (the streamer) and optionally to viewers
+  (the person who sent the message). This allows tracking chat activity across
+  different platforms and linking messages to specific viewer identities.
 
-#   postgres do
-#     table "chat_messages"
-#     repo Streampai.Repo
-#   end
+  ## Key Features
+  - Platform-agnostic message storage
+  - Optional viewer linking for identity management
+  - Moderator and subscription status tracking
+  - Upsert capabilities for message deduplication
+  """
+  use Ash.Resource,
+    otp_app: :streampai,
+    domain: Streampai.Stream,
+    data_layer: AshPostgres.DataLayer
 
-#   actions do
-#     defaults [:read, :destroy, create: :*, update: :*]
-#   end
+  postgres do
+    table "chat_messages"
+    repo Streampai.Repo
 
-#   attributes do
-#     uuid_primary_key :id
+    custom_indexes do
+      index [:user_id], name: "idx_chat_messages_user_id"
+      index [:livestream_id], name: "idx_chat_messages_livestream_id"
+      index [:inserted_at], name: "idx_chat_messages_inserted_at"
+      index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
+    end
+  end
 
-#     attribute :message, :string do
-#       allow_nil? false
-#       constraints max_length: 500
-#     end
+  code_interface do
+    define :upsert
+    define :create
+    define :read
+  end
 
-#     attribute :username, :string do
-#       allow_nil? false
-#       constraints max_length: 100
-#     end
+  actions do
+    defaults [:read, :destroy, update: :*]
 
-#     attribute :platform, Streampai.Stream.Platform do
-#       allow_nil? false
-#     end
+    create :create do
+      primary? true
 
-#     attribute :channel_id, :string do
-#       allow_nil? false
-#     end
+      accept [
+        :id,
+        :message,
+        :sender_username,
+        :platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
+        :user_id,
+        :livestream_id,
+        :viewer_id
+      ]
+    end
 
-#     attribute :is_moderator, :boolean do
-#       default false
-#     end
+    create :upsert do
+      accept [
+        :id,
+        :message,
+        :sender_username,
+        :platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
+        :user_id,
+        :livestream_id,
+        :viewer_id
+      ]
 
-#     attribute :is_patreon, :boolean do
-#       default false
-#     end
+      upsert? true
+      upsert_identity :primary_key
 
-#     timestamps()
-#   end
+      upsert_fields [
+        :message,
+        :sender_username,
+        :platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
+        :user_id,
+        :livestream_id,
+        :viewer_id
+      ]
+    end
+  end
 
-#   relationships do
-#     belongs_to :user, Streampai.Accounts.User do
-#       allow_nil? false
-#       attribute_writable? true
-#     end
+  attributes do
+    attribute :id, :string, primary_key?: true, allow_nil?: false
 
-#     belongs_to :livestream, Streampai.Stream.Livestream do
-#       allow_nil? false
-#       attribute_writable? true
-#     end
-#   end
-# end
+    attribute :message, :string do
+      allow_nil? false
+      constraints max_length: 500
+    end
+
+    attribute :platform, Streampai.Stream.Platform do
+      allow_nil? false
+    end
+
+    attribute :sender_username, :string do
+      allow_nil? false
+      constraints max_length: 100
+    end
+
+    attribute :sender_channel_id, :string do
+      allow_nil? false
+    end
+
+    attribute :sender_is_moderator, :boolean do
+      default false
+    end
+
+    attribute :sender_is_patreon, :boolean do
+      default false
+    end
+
+    attribute :inserted_at, :utc_datetime_usec do
+      allow_nil? false
+      default &DateTime.utc_now/0
+    end
+  end
+
+  relationships do
+    belongs_to :user, Streampai.Accounts.User do
+      allow_nil? false
+      attribute_writable? true
+    end
+
+    belongs_to :livestream, Streampai.Stream.Livestream do
+      allow_nil? false
+      attribute_writable? true
+    end
+
+    belongs_to :viewer, Streampai.Stream.Viewer do
+      description "The global viewer who sent this message (optional)"
+      attribute_writable? true
+    end
+  end
+
+  identities do
+    identity :primary_key, [:id]
+  end
+end

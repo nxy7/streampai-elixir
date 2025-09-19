@@ -10,8 +10,19 @@ defmodule Streampai.Stream.Livestream do
     repo Streampai.Repo
   end
 
+  code_interface do
+    define :create
+    define :read
+    define :update
+    define :destroy
+  end
+
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      accept [:started_at, :ended_at]
+    end
   end
 
   attributes do

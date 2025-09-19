@@ -31,11 +31,9 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   end
 
   defp get_cached_chat_messages do
-    # Cache chat messages for 5 minutes to avoid regenerating on every mount
     case :ets.lookup(:chat_cache, :messages) do
       [{:messages, messages, timestamp}] ->
         if DateTime.diff(DateTime.utc_now(), timestamp, :second) < 300 do
-          # Return only first 20 for initial display
           Enum.take(messages, 20)
         else
           regenerate_and_cache_messages()
@@ -46,7 +44,6 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
     end
   rescue
     ArgumentError ->
-      # ETS table doesn't exist, create it and generate messages
       :ets.new(:chat_cache, [:set, :public, :named_table])
       regenerate_and_cache_messages()
   end
@@ -54,7 +51,6 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   defp regenerate_and_cache_messages do
     messages = Chat.generate_chat_history_messages(50)
     :ets.insert(:chat_cache, {:messages, messages, DateTime.utc_now()})
-    # Return only first 20 for initial display
     Enum.take(messages, 20)
   end
 

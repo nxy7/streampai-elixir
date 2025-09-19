@@ -4,7 +4,7 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
 
   Tests platform connections, event handling, and multi-platform coordination.
   """
-  use StreampaiWeb.ConnCase, async: false
+  use StreampaiWeb.ConnCase, async: true
   use Mneme
 
   import Phoenix.LiveViewTest
@@ -173,9 +173,9 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
       user = user_fixture_with_tier(:free)
       create_streaming_account(user, :twitch)
 
-      assert_raise Ash.Error.Forbidden, fn ->
-        create_streaming_account(user, :youtube)
-      end
+      result = try_create_streaming_account(user, :youtube)
+
+      assert {:error, %Ash.Error.Forbidden{}} = result
     end
 
     test "pro tier users can connect multiple platforms" do

@@ -48,7 +48,6 @@ defmodule Streampai.Dashboard do
 
   @doc "Gets dashboard data for a user."
   def get_dashboard_data(%User{} = user) do
-    # Load streaming accounts once to avoid multiple queries
     streaming_accounts = get_streaming_accounts(user)
 
     %{
@@ -201,7 +200,6 @@ defmodule Streampai.Dashboard do
   def get_metrics_cards(%User{} = user) do
     current_month = Date.beginning_of_month(Date.utc_today())
 
-    # Generate consistent mock data based on user ID for demonstration
     seed = :erlang.phash2(user.id, 1000)
     rand_state = :rand.seed_s(:exsss, {seed, seed + 1, seed + 2})
 

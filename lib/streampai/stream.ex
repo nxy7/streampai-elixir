@@ -8,10 +8,12 @@ defmodule Streampai.Stream do
   end
 
   resources do
-    # resource Streampai.Stream.ChatMessage
+    resource Streampai.Stream.ChatMessage
     resource Streampai.Stream.StreamEvent
     resource Streampai.Stream.LivestreamMetric
     resource Streampai.Stream.Livestream
     resource Streampai.Stream.StreamSettings
+    resource Streampai.Stream.Viewer
+    resource Streampai.Stream.StreamViewer
   end
 end
