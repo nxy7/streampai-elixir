@@ -155,7 +155,7 @@ defmodule Streampai.Stream.ChatMessagePersister do
 
   defp flush_messages(messages) do
     message_attrs = Enum.map(messages, &struct_to_attrs/1)
-    result = Ash.bulk_create(message_attrs, ChatMessage, :create_batch)
+    result = Ash.bulk_create(message_attrs, ChatMessage, :upsert)
 
     case result do
       %Ash.BulkResult{status: :success} -> {:ok, length(messages)}

@@ -1,5 +1,5 @@
 defmodule Streampai.Stream.ChatMessagePersisterTest do
-  use Streampai.DataCase, async: false
+  use Streampai.DataCase, async: true
 
   import Streampai.TestHelpers
 

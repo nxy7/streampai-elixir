@@ -14,15 +14,17 @@ defmodule Streampai.Stream.ChatMessage do
       index [:livestream_id], name: "idx_chat_messages_livestream_id"
       index [:inserted_at], name: "idx_chat_messages_inserted_at"
       index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
-      index [:viewer_id], name: "idx_chat_messages_viewer_id"
-      index [:viewer_id, :inserted_at], name: "idx_chat_messages_viewer_chrono"
     end
+  end
+
+  code_interface do
+    define :upsert
   end
 
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
 
-    create :create_batch do
+    create :upsert do
       accept [
         :id,
         :message,
@@ -32,8 +34,7 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id,
-        :viewer_id
+        :livestream_id
       ]
 
       upsert? true
@@ -47,8 +48,7 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id,
-        :viewer_id
+        :livestream_id
       ]
     end
   end
