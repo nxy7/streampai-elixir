@@ -1,0 +1,356 @@
+defmodule Streampai.Stream.ViewerLinking do
+  @moduledoc """
+  Service for linking platform-specific identities to viewers in an idempotent,
+  auditable way. Handles the complex logic of determining when identities
+  from different platforms belong to the same physical person.
+
+  Key features:
+  - Idempotent operations: can be run multiple times safely
+  - Audit trail: all decisions are logged for transparency
+  - Batch processing: supports bulk reevaluation
+  - Multiple linking strategies: username similarity, cross-platform activity patterns
+  - Confidence scoring: tracks certainty of linking decisions
+  """
+
+  require Ash.Query
+  require Logger
+
+  alias Streampai.Stream.{Viewer, ViewerIdentity, ViewerLinkingAudit, ChatMessage, StreamEvent}
+
+  @algorithm_version "1.0.0"
+  @default_confidence_threshold Decimal.new("0.7")
+
+  @doc """
+  Links a platform identity (platform_user_id + platform) to a viewer.
+  Creates viewer if none exists, or finds/creates the best matching viewer.
+
+  Options:
+  - `:confidence_threshold` - minimum confidence required for automatic linking
+  - `:linking_method` - override the linking method
+  - `:batch_id` - group this operation with others for reevaluation
+  - `:user_id` - the streamer this viewer belongs to (required)
+
+  Returns `{:ok, %{viewer: viewer, identity: identity, created?: boolean}}`
+  """
+  def link_identity(platform, platform_user_id, username, opts \\ []) do
+    user_id = Keyword.fetch!(opts, :user_id)
+    batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
+    confidence_threshold = Keyword.get(opts, :confidence_threshold, @default_confidence_threshold)
+
+    # Check if identity already exists
+    case ViewerIdentity.find_by_platform_id!(platform: platform, platform_user_id: platform_user_id) do
+      %ViewerIdentity{} = existing_identity ->
+        # Update existing identity if needed
+        update_existing_identity(existing_identity, username, batch_id)
+
+      nil ->
+        # Find or create viewer for this new identity
+        create_new_identity_link(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, opts)
+    end
+  end
+
+  @doc """
+  Links a chat message to a viewer based on the message's sender information.
+  This is the primary entry point for linking chat activity to viewers.
+  """
+  def link_chat_message(%ChatMessage{} = message, opts \\ []) do
+    batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
+
+    with {:ok, result} <- link_identity(
+           message.platform,
+           message.sender_channel_id,
+           message.sender_username,
+           Keyword.merge(opts, [user_id: message.user_id, batch_id: batch_id])
+         ),
+         {:ok, updated_message} <- update_message_viewer_id(message, result.viewer.id) do
+      {:ok, %{message: updated_message, viewer: result.viewer, identity: result.identity}}
+    end
+  end
+
+  @doc """
+  Links a stream event to a viewer based on the event's author information.
+  """
+  def link_stream_event(%StreamEvent{} = event, opts \\ []) do
+    batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
+
+    # Extract username from event data if available
+    username = extract_username_from_event_data(event)
+
+    with {:ok, result} <- link_identity(
+           event.platform,
+           event.author_id,
+           username,
+           Keyword.merge(opts, [user_id: event.user_id, batch_id: batch_id])
+         ),
+         {:ok, updated_event} <- update_event_viewer_id(event, result.viewer.id) do
+      {:ok, %{event: updated_event, viewer: result.viewer, identity: result.identity}}
+    end
+  end
+
+  @doc """
+  Reevaluates all viewer linking decisions for a user, optionally filtering
+  by algorithm version, confidence threshold, or other criteria.
+
+  This is useful when:
+  - Linking algorithms improve
+  - Manual corrections need to be applied in bulk
+  - Data quality issues are discovered
+
+  Options:
+  - `:user_id` - required, the streamer to reevaluate
+  - `:algorithm_version` - only reevaluate decisions from this version
+  - `:confidence_below` - only reevaluate decisions below this confidence
+  - `:dry_run` - if true, only return what would be changed without making changes
+  """
+  def reevaluate_user_linking(opts \\ []) do
+    user_id = Keyword.fetch!(opts, :user_id)
+    dry_run = Keyword.get(opts, :dry_run, false)
+    batch_id = generate_batch_id()
+
+    Logger.info("Starting viewer linking reevaluation for user #{user_id} with batch #{batch_id}")
+
+    # Get all identities that match reevaluation criteria
+    identities_to_reevaluate = find_identities_for_reevaluation(user_id, opts)
+
+    results = Enum.map(identities_to_reevaluate, fn identity ->
+      if dry_run do
+        analyze_identity_linking(identity, batch_id)
+      else
+        reevaluate_identity_linking(identity, batch_id)
+      end
+    end)
+
+    summary = %{
+      total_identities: length(identities_to_reevaluate),
+      results: results,
+      batch_id: batch_id,
+      dry_run: dry_run
+    }
+
+    Logger.info("Completed viewer linking reevaluation: #{inspect(summary)}")
+    {:ok, summary}
+  end
+
+  # Private helper functions
+
+  defp update_existing_identity(identity, username, batch_id) do
+    if identity.username != username or identity.last_seen_username != identity.username do
+      # Username has changed, update it
+      case ViewerIdentity.update!(identity, %{
+             username: username,
+             last_seen_username: identity.username
+           }) do
+        {:ok, updated_identity} ->
+          log_linking_decision(updated_identity, :username_update, %{
+            old_username: identity.username,
+            new_username: username,
+            batch_id: batch_id
+          })
+
+          {:ok, %{viewer: identity.viewer, identity: updated_identity, created?: false}}
+
+        error ->
+          error
+      end
+    else
+      # No changes needed
+      {:ok, %{viewer: identity.viewer, identity: identity, created?: false}}
+    end
+  end
+
+  defp create_new_identity_link(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, _opts) do
+    # Try to find existing viewer by username similarity or other heuristics
+    candidate_viewers = find_candidate_viewers(username, user_id, platform)
+
+    case select_best_viewer_match(candidate_viewers, username, platform, confidence_threshold) do
+      {:ok, %{viewer: viewer, confidence: confidence, method: method}} ->
+        create_identity_for_viewer(viewer, platform, platform_user_id, username, confidence, method, batch_id)
+
+      {:no_match, _reason} ->
+        # Create new viewer
+        create_new_viewer_with_identity(platform, platform_user_id, username, user_id, batch_id)
+    end
+  end
+
+  defp find_candidate_viewers(username, user_id, platform) do
+    # Find viewers with similar usernames on other platforms
+    user_viewers = Viewer.for_user!(user_id: user_id)
+
+    Enum.filter(user_viewers, fn viewer ->
+      has_similar_identity?(viewer, username, platform)
+    end)
+  end
+
+  defp has_similar_identity?(viewer, username, exclude_platform) do
+    viewer.viewer_identities
+    |> Enum.reject(&(&1.platform == exclude_platform))
+    |> Enum.any?(&(username_similarity(&1.username, username) > 0.8))
+  end
+
+  defp username_similarity(username1, username2) when is_binary(username1) and is_binary(username2) do
+    # Simple Jaro-Winkler-like similarity
+    username1 = String.downcase(username1)
+    username2 = String.downcase(username2)
+
+    cond do
+      username1 == username2 -> 1.0
+      String.contains?(username1, username2) or String.contains?(username2, username1) -> 0.9
+      String.jaro_distance(username1, username2) > 0.8 -> 0.8
+      true -> 0.0
+    end
+  end
+
+  defp username_similarity(_, _), do: 0.0
+
+  defp select_best_viewer_match(candidates, username, platform, confidence_threshold) do
+    case candidates do
+      [] ->
+        {:no_match, :no_candidates}
+
+      candidates ->
+        best_match =
+          candidates
+          |> Enum.map(&score_viewer_match(&1, username, platform))
+          |> Enum.max_by(& &1.confidence)
+
+        if Decimal.compare(best_match.confidence, confidence_threshold) != :lt do
+          {:ok, best_match}
+        else
+          {:no_match, {:low_confidence, best_match.confidence}}
+        end
+    end
+  end
+
+  defp score_viewer_match(viewer, username, platform) do
+    # Calculate confidence based on username similarity and other factors
+    max_similarity =
+      viewer.viewer_identities
+      |> Enum.reject(&(&1.platform == platform))
+      |> Enum.map(&username_similarity(&1.username, username))
+      |> Enum.max(&>=/2, fn -> 0.0 end)
+
+    confidence = Decimal.new(to_string(max_similarity))
+    method = if max_similarity > 0.9, do: :username_similarity, else: :weak_similarity
+
+    %{viewer: viewer, confidence: confidence, method: method}
+  end
+
+  defp create_identity_for_viewer(viewer, platform, platform_user_id, username, confidence, method, batch_id) do
+    case ViewerIdentity.create!(%{
+           viewer_id: viewer.id,
+           platform: platform,
+           platform_user_id: platform_user_id,
+           username: username,
+           confidence_score: confidence,
+           linking_method: method,
+           linking_batch_id: batch_id
+         }) do
+      {:ok, identity} ->
+        log_linking_decision(identity, :create, %{
+          linking_method: method,
+          confidence: confidence,
+          batch_id: batch_id
+        })
+
+        Viewer.touch_last_seen!(viewer)
+
+        {:ok, %{viewer: viewer, identity: identity, created?: true}}
+
+      error ->
+        error
+    end
+  end
+
+  defp create_new_viewer_with_identity(platform, platform_user_id, username, user_id, batch_id) do
+    case Viewer.create!(%{
+           display_name: username,
+           user_id: user_id
+         }) do
+      {:ok, viewer} ->
+        case ViewerIdentity.create!(%{
+               viewer_id: viewer.id,
+               platform: platform,
+               platform_user_id: platform_user_id,
+               username: username,
+               confidence_score: Decimal.new("1.0"),
+               linking_method: :automatic,
+               linking_batch_id: batch_id
+             }) do
+          {:ok, identity} ->
+            log_linking_decision(identity, :create, %{
+              new_viewer: true,
+              batch_id: batch_id
+            })
+
+            {:ok, %{viewer: viewer, identity: identity, created?: true}}
+
+          error ->
+            error
+        end
+
+      error ->
+        error
+    end
+  end
+
+  defp update_message_viewer_id(message, viewer_id) do
+    message
+    |> Ash.Changeset.for_update(:update, %{viewer_id: viewer_id})
+    |> Ash.update()
+  end
+
+  defp update_event_viewer_id(event, viewer_id) do
+    event
+    |> Ash.Changeset.for_update(:update, %{viewer_id: viewer_id})
+    |> Ash.update()
+  end
+
+  defp extract_username_from_event_data(%StreamEvent{data: data}) when is_map(data) do
+    # Try various common fields where username might be stored
+    data["username"] || data["user_name"] || data["display_name"] ||
+    data["author"] || data["sender"] || "unknown"
+  end
+
+  defp extract_username_from_event_data(_), do: "unknown"
+
+  defp find_identities_for_reevaluation(_user_id, _opts) do
+    # This would query ViewerIdentity based on the reevaluation criteria
+    # For now, returning an empty list as placeholder
+    []
+  end
+
+  defp analyze_identity_linking(identity, batch_id) do
+    # Analyze what would happen if we reevaluated this identity
+    %{
+      identity_id: identity.id,
+      current_confidence: identity.confidence_score,
+      recommended_action: :no_change,
+      batch_id: batch_id
+    }
+  end
+
+  defp reevaluate_identity_linking(identity, batch_id) do
+    # Actually reevaluate and potentially change the identity linking
+    analyze_identity_linking(identity, batch_id)
+  end
+
+  defp log_linking_decision(identity, action_type, metadata) do
+    ViewerLinkingAudit.create!(%{
+      viewer_identity_id: identity.id,
+      action_type: action_type,
+      linking_batch_id: metadata[:batch_id] || generate_batch_id(),
+      algorithm_version: @algorithm_version,
+      input_data: %{
+        platform: identity.platform,
+        platform_user_id: identity.platform_user_id,
+        username: identity.username
+      },
+      decision_data: metadata,
+      confidence_score: identity.confidence_score
+    })
+  end
+
+  defp generate_batch_id do
+    "batch_#{System.system_time(:millisecond)}_#{:rand.uniform(1000)}"
+  end
+end

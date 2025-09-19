@@ -13,5 +13,8 @@ defmodule Streampai.Stream do
     resource Streampai.Stream.LivestreamMetric
     resource Streampai.Stream.Livestream
     resource Streampai.Stream.StreamSettings
+    resource Streampai.Stream.Viewer
+    resource Streampai.Stream.ViewerIdentity
+    resource Streampai.Stream.ViewerLinkingAudit
   end
 end
