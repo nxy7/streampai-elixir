@@ -47,13 +47,13 @@ defmodule Streampai.Stream.ChatMessagePersister do
       ChatMessagePersister.add_message(%{
         id: "twitch_msg_123456",
         message: "Hello, world!",
-        username: "user123",
-        platform: :twitch,
-        channel_id: "channel_123",
+        sender_username: "user123",
+        sender_platform: :twitch,
+        sender_channel_id: "channel_123",
         user_id: "user_uuid",
         livestream_id: "stream_uuid",
-        is_moderator: false,
-        is_patreon: false
+        sender_is_moderator: false,
+        sender_is_patreon: false
       })
   """
   def add_message(message_data) do
@@ -170,11 +170,11 @@ defmodule Streampai.Stream.ChatMessagePersister do
     %{
       id: message.id,
       message: message.message,
-      username: message.username,
-      platform: message.platform,
-      channel_id: message.channel_id,
-      is_moderator: message.is_moderator,
-      is_patreon: message.is_patreon,
+      sender_username: message.sender_username,
+      sender_platform: message.sender_platform,
+      sender_channel_id: message.sender_channel_id,
+      sender_is_moderator: message.sender_is_moderator,
+      sender_is_patreon: message.sender_is_patreon,
       user_id: message.user_id,
       livestream_id: message.livestream_id
     }

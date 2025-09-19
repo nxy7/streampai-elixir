@@ -8,6 +8,13 @@ defmodule Streampai.Stream.ChatMessage do
   postgres do
     table "chat_messages"
     repo Streampai.Repo
+
+    custom_indexes do
+      index [:user_id], name: "idx_chat_messages_user_id"
+      index [:livestream_id], name: "idx_chat_messages_livestream_id"
+      index [:inserted_at], name: "idx_chat_messages_inserted_at"
+      index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
+    end
   end
 
   actions do
@@ -17,11 +24,11 @@ defmodule Streampai.Stream.ChatMessage do
       accept [
         :id,
         :message,
-        :username,
-        :platform,
-        :channel_id,
-        :is_moderator,
-        :is_patreon,
+        :sender_username,
+        :sender_platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
         :user_id,
         :livestream_id
       ]
@@ -31,11 +38,11 @@ defmodule Streampai.Stream.ChatMessage do
 
       upsert_fields [
         :message,
-        :username,
-        :platform,
-        :channel_id,
-        :is_moderator,
-        :is_patreon,
+        :sender_username,
+        :sender_platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
         :user_id,
         :livestream_id
       ]
@@ -45,11 +52,11 @@ defmodule Streampai.Stream.ChatMessage do
       accept [
         :id,
         :message,
-        :username,
-        :platform,
-        :channel_id,
-        :is_moderator,
-        :is_patreon,
+        :sender_username,
+        :sender_platform,
+        :sender_channel_id,
+        :sender_is_moderator,
+        :sender_is_patreon,
         :user_id,
         :livestream_id
       ]
@@ -66,28 +73,31 @@ defmodule Streampai.Stream.ChatMessage do
       constraints max_length: 500
     end
 
-    attribute :platform, Streampai.Stream.Platform do
+    attribute :sender_platform, Streampai.Stream.Platform do
       allow_nil? false
     end
 
-    attribute :username, :string do
+    attribute :sender_username, :string do
       allow_nil? false
       constraints max_length: 100
     end
 
-    attribute :channel_id, :string do
+    attribute :sender_channel_id, :string do
       allow_nil? false
     end
 
-    attribute :is_moderator, :boolean do
+    attribute :sender_is_moderator, :boolean do
       default false
     end
 
-    attribute :is_patreon, :boolean do
+    attribute :sender_is_patreon, :boolean do
       default false
     end
 
-    timestamps()
+    attribute :inserted_at, :utc_datetime_usec do
+      allow_nil? false
+      default &DateTime.utc_now/0
+    end
   end
 
   relationships do

@@ -47,13 +47,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       message_data = %{
         id: "test_msg_1",
         message: "Hello, world!",
-        username: "test_user",
-        platform: :twitch,
-        channel_id: "test_channel",
+        sender_username: "test_user",
+        sender_platform: :twitch,
+        sender_channel_id: "test_channel",
         user_id: user.id,
         livestream_id: livestream.id,
-        is_moderator: false,
-        is_patreon: false
+        sender_is_moderator: false,
+        sender_is_patreon: false
       }
 
       GenServer.cast(persister, {:add_message, message_data})
@@ -72,13 +72,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         message_data = %{
           id: "batch_msg_#{i}",
           message: "Message #{i}",
-          username: "user_#{i}",
-          platform: :twitch,
-          channel_id: "test_channel",
+          sender_username: "user_#{i}",
+          sender_platform: :twitch,
+          sender_channel_id: "test_channel",
           user_id: user.id,
           livestream_id: livestream.id,
-          is_moderator: false,
-          is_patreon: false
+          sender_is_moderator: false,
+          sender_is_patreon: false
         }
 
         GenServer.cast(persister, {:add_message, message_data})
@@ -107,13 +107,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         message_data = %{
           id: "manual_msg_#{i}",
           message: "Manual flush test #{i}",
-          username: "manual_user_#{i}",
-          platform: :youtube,
-          channel_id: "manual_channel",
+          sender_username: "manual_user_#{i}",
+          sender_platform: :youtube,
+          sender_channel_id: "manual_channel",
           user_id: user.id,
           livestream_id: livestream.id,
-          is_moderator: i == 1,
-          is_patreon: i == 2
+          sender_is_moderator: i == 1,
+          sender_is_patreon: i == 2
         }
 
         GenServer.cast(persister, {:add_message, message_data})
@@ -133,13 +133,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       assert length(saved_messages) == 5
 
       # Verify message content
-      youtube_messages = Enum.filter(saved_messages, &(&1.platform == :youtube))
+      youtube_messages = Enum.filter(saved_messages, &(&1.sender_platform == :youtube))
       assert length(youtube_messages) == 5
 
-      moderator_messages = Enum.filter(saved_messages, &(&1.is_moderator == true))
+      moderator_messages = Enum.filter(saved_messages, &(&1.sender_is_moderator == true))
       assert length(moderator_messages) == 1
 
-      patreon_messages = Enum.filter(saved_messages, &(&1.is_patreon == true))
+      patreon_messages = Enum.filter(saved_messages, &(&1.sender_is_patreon == true))
       assert length(patreon_messages) == 1
     end
 
@@ -149,13 +149,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         message_data = %{
           id: "timer_msg_#{i}",
           message: "Timer test #{i}",
-          username: "timer_user_#{i}",
-          platform: :twitch,
-          channel_id: "timer_channel",
+          sender_username: "timer_user_#{i}",
+          sender_platform: :twitch,
+          sender_channel_id: "timer_channel",
           user_id: user.id,
           livestream_id: livestream.id,
-          is_moderator: false,
-          is_patreon: false
+          sender_is_moderator: false,
+          sender_is_patreon: false
         }
 
         GenServer.cast(persister, {:add_message, message_data})
@@ -189,13 +189,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       original_message = %{
         id: "unicode_msg_1",
         message: "Test message with unicode 🎮",
-        username: "test_streamer",
-        platform: :twitch,
-        channel_id: "special_channel_123",
+        sender_username: "test_streamer",
+        sender_platform: :twitch,
+        sender_channel_id: "special_channel_123",
         user_id: user.id,
         livestream_id: livestream.id,
-        is_moderator: true,
-        is_patreon: true
+        sender_is_moderator: true,
+        sender_is_patreon: true
       }
 
       GenServer.cast(persister, {:add_message, original_message})
@@ -206,13 +206,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       {:ok, [saved_message]} = Ash.read(query)
 
       assert saved_message.message == original_message.message
-      assert saved_message.username == original_message.username
-      assert saved_message.platform == original_message.platform
-      assert saved_message.channel_id == original_message.channel_id
+      assert saved_message.sender_username == original_message.sender_username
+      assert saved_message.sender_platform == original_message.sender_platform
+      assert saved_message.sender_channel_id == original_message.sender_channel_id
       assert saved_message.user_id == original_message.user_id
       assert saved_message.livestream_id == original_message.livestream_id
-      assert saved_message.is_moderator == original_message.is_moderator
-      assert saved_message.is_patreon == original_message.is_patreon
+      assert saved_message.sender_is_moderator == original_message.sender_is_moderator
+      assert saved_message.sender_is_patreon == original_message.sender_is_patreon
     end
 
     test "handles empty flush gracefully", %{persister: persister} do
@@ -231,13 +231,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       message_data_v1 = %{
         id: "duplicate_msg_1",
         message: "Original message",
-        username: "duplicate_user",
-        platform: :twitch,
-        channel_id: "duplicate_channel",
+        sender_username: "duplicate_user",
+        sender_platform: :twitch,
+        sender_channel_id: "duplicate_channel",
         user_id: user.id,
         livestream_id: livestream.id,
-        is_moderator: false,
-        is_patreon: false
+        sender_is_moderator: false,
+        sender_is_patreon: false
       }
 
       # Add and flush the first version
@@ -245,7 +245,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
       # Update the same message (same ID, different content)
-      message_data_v2 = %{message_data_v1 | message: "Updated message", is_moderator: true}
+      message_data_v2 = %{message_data_v1 | message: "Updated message", sender_is_moderator: true}
       GenServer.cast(persister, {:add_message, message_data_v2})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
@@ -256,7 +256,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       assert length(saved_messages) == 1
       [saved_message] = saved_messages
       assert saved_message.message == "Updated message"
-      assert saved_message.is_moderator == true
+      assert saved_message.sender_is_moderator == true
     end
 
     test "get_stats returns correct information", %{
@@ -275,13 +275,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
         message_data = %{
           id: "stats_msg_#{i}",
           message: "Stats test #{i}",
-          username: "stats_user",
-          platform: :twitch,
-          channel_id: "stats_channel",
+          sender_username: "stats_user",
+          sender_platform: :twitch,
+          sender_channel_id: "stats_channel",
           user_id: user.id,
           livestream_id: livestream.id,
-          is_moderator: false,
-          is_patreon: false
+          sender_is_moderator: false,
+          sender_is_patreon: false
         }
 
         GenServer.cast(persister, {:add_message, message_data})
