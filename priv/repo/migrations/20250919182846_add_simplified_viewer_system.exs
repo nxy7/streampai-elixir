@@ -147,17 +147,17 @@ defmodule Streampai.Repo.Migrations.AddSimplifiedViewerSystem do
     END $$;
     """
 
-    create index(:chat_messages, [:livestream_id, :inserted_at],
+    create_if_not_exists index(:chat_messages, [:livestream_id, :inserted_at],
              name: "idx_chat_messages_stream_chrono"
            )
 
-    create index(:chat_messages, [:inserted_at], name: "idx_chat_messages_inserted_at")
+    create_if_not_exists index(:chat_messages, [:inserted_at], name: "idx_chat_messages_inserted_at")
 
-    create index(:chat_messages, [:livestream_id], name: "idx_chat_messages_livestream_id")
+    create_if_not_exists index(:chat_messages, [:livestream_id], name: "idx_chat_messages_livestream_id")
 
-    create index(:chat_messages, [:user_id], name: "idx_chat_messages_user_id")
+    create_if_not_exists index(:chat_messages, [:user_id], name: "idx_chat_messages_user_id")
 
-    create unique_index(:chat_messages, [:id], name: "chat_messages_primary_key_index")
+    create_if_not_exists unique_index(:chat_messages, [:id], name: "chat_messages_primary_key_index")
   end
 
   def down do
