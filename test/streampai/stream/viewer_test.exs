@@ -1,5 +1,5 @@
 defmodule Streampai.Stream.ViewerTest do
-  use Streampai.DataCase
+  use Streampai.DataCase, async: true
   use Mneme
 
   alias Streampai.Stream.Viewer
@@ -26,7 +26,7 @@ defmodule Streampai.Stream.ViewerTest do
 
       # Load viewer with stream_viewers relationship
       viewer_with_stream_viewers = Ash.load!(viewer, [:stream_viewers])
-
+ 
       # Should start with empty stream_viewers
       assert viewer_with_stream_viewers.stream_viewers == []
     end

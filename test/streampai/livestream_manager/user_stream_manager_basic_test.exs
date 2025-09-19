@@ -1,5 +1,5 @@
 defmodule Streampai.LivestreamManager.UserStreamManagerBasicTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Ecto.Adapters.SQL.Sandbox
   alias Streampai.LivestreamManager.UserStreamManager
