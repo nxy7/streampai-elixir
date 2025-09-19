@@ -17,15 +17,19 @@ defmodule Streampai.Stream.ChatMessage do
     end
   end
 
+  code_interface do
+    define :upsert
+  end
+
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
 
-    create :create_batch do
+    create :upsert do
       accept [
         :id,
         :message,
         :sender_username,
-        :sender_platform,
+        :platform,
         :sender_channel_id,
         :sender_is_moderator,
         :sender_is_patreon,
@@ -39,29 +43,13 @@ defmodule Streampai.Stream.ChatMessage do
       upsert_fields [
         :message,
         :sender_username,
-        :sender_platform,
+        :platform,
         :sender_channel_id,
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
         :livestream_id
       ]
-    end
-
-    create :bulk_create do
-      accept [
-        :id,
-        :message,
-        :sender_username,
-        :sender_platform,
-        :sender_channel_id,
-        :sender_is_moderator,
-        :sender_is_patreon,
-        :user_id,
-        :livestream_id
-      ]
-
-      primary? false
     end
   end
 
@@ -73,7 +61,7 @@ defmodule Streampai.Stream.ChatMessage do
       constraints max_length: 500
     end
 
-    attribute :sender_platform, Streampai.Stream.Platform do
+    attribute :platform, Streampai.Stream.Platform do
       allow_nil? false
     end
 
