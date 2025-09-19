@@ -5,8 +5,8 @@ defmodule Streampai.Repo.Migrations.AddViewerTables do
     # Create viewers table
     create table(:viewers, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
-      add :display_name, :string, null: false, size: 100
-      add :notes, :text, size: 1000
+      add :display_name, :string, null: false
+      add :notes, :text
       add :first_seen_at, :utc_datetime_usec, null: false, default: fragment("now()")
       add :last_seen_at, :utc_datetime_usec, null: false, default: fragment("now()")
       add :user_id, references(:users, type: :uuid, on_delete: :delete_all), null: false
@@ -23,12 +23,12 @@ defmodule Streampai.Repo.Migrations.AddViewerTables do
     create table(:viewer_identities, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :platform, :string, null: false
-      add :platform_user_id, :string, null: false, size: 255
-      add :username, :string, null: false, size: 100
-      add :last_seen_username, :string, size: 100
+      add :platform_user_id, :string, null: false
+      add :username, :string, null: false
+      add :last_seen_username, :string
       add :confidence_score, :decimal, null: false, default: 1.0, precision: 3, scale: 2
       add :linking_method, :string, null: false, default: "automatic"
-      add :linking_batch_id, :string, size: 100
+      add :linking_batch_id, :string
       add :metadata, :map, null: false, default: %{}
       add :linked_at, :utc_datetime_usec, null: false, default: fragment("now()")
       add :viewer_id, references(:viewers, type: :uuid, on_delete: :delete_all), null: false
@@ -70,12 +70,12 @@ defmodule Streampai.Repo.Migrations.AddViewerTables do
     create table(:viewer_linking_audits, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :action_type, :string, null: false
-      add :linking_batch_id, :string, null: false, size: 100
-      add :algorithm_version, :string, null: false, size: 50
+      add :linking_batch_id, :string, null: false
+      add :algorithm_version, :string, null: false
       add :input_data, :map, null: false, default: %{}
       add :decision_data, :map, null: false, default: %{}
       add :confidence_score, :decimal, precision: 3, scale: 2
-      add :notes, :text, size: 1000
+      add :notes, :text
 
       add :viewer_identity_id,
           references(:viewer_identities, type: :uuid, on_delete: :delete_all),

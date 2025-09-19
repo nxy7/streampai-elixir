@@ -37,6 +37,12 @@ defmodule Streampai.Stream.StreamEvent do
 
       index [:viewer_id, :inserted_at],
         name: "idx_stream_events_viewer_chrono"
+
+      # For global viewer identity queries
+      index [:viewer_identity_id], name: "idx_stream_events_viewer_identity_id"
+
+      index [:viewer_identity_id, :inserted_at],
+        name: "idx_stream_events_viewer_identity_chrono"
     end
   end
 
@@ -60,7 +66,8 @@ defmodule Streampai.Stream.StreamEvent do
         :livestream_id,
         :user_id,
         :platform,
-        :viewer_id
+        :viewer_id,
+        :viewer_identity_id
       ]
 
       validate present([:type, :data, :platform, :livestream_id, :author_id])
@@ -132,7 +139,12 @@ defmodule Streampai.Stream.StreamEvent do
     end
 
     attribute :viewer_id, :uuid do
-      description "Optional reference to the viewer who triggered this event"
+      description "Optional reference to the streamer-specific viewer who triggered this event"
+      public? true
+    end
+
+    attribute :viewer_identity_id, :uuid do
+      description "Optional reference to the global viewer identity who triggered this event"
       public? true
     end
 
@@ -151,8 +163,14 @@ defmodule Streampai.Stream.StreamEvent do
     end
 
     belongs_to :viewer, Streampai.Stream.Viewer do
-      description "The viewer who triggered this event (optional)"
+      description "The streamer-specific viewer who triggered this event (optional)"
       source_attribute :viewer_id
+      destination_attribute :id
+    end
+
+    belongs_to :viewer_identity, Streampai.Stream.ViewerIdentity do
+      description "The global viewer identity who triggered this event (optional)"
+      source_attribute :viewer_identity_id
       destination_attribute :id
     end
   end

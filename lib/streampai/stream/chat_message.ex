@@ -14,6 +14,8 @@ defmodule Streampai.Stream.ChatMessage do
       index [:livestream_id], name: "idx_chat_messages_livestream_id"
       index [:inserted_at], name: "idx_chat_messages_inserted_at"
       index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
+      index [:viewer_identity_id], name: "idx_chat_messages_viewer_identity_id"
+      index [:viewer_identity_id, :inserted_at], name: "idx_chat_messages_viewer_identity_chrono"
     end
   end
 
@@ -34,7 +36,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_identity_id
       ]
 
       upsert? true
@@ -48,7 +51,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_identity_id
       ]
     end
   end
@@ -88,7 +92,11 @@ defmodule Streampai.Stream.ChatMessage do
     end
 
     attribute :viewer_id, :uuid do
-      description "Optional reference to the viewer who sent this message"
+      description "Optional reference to the streamer-specific viewer who sent this message"
+    end
+
+    attribute :viewer_identity_id, :uuid do
+      description "Optional reference to the global viewer identity who sent this message"
     end
   end
 
@@ -104,7 +112,12 @@ defmodule Streampai.Stream.ChatMessage do
     end
 
     belongs_to :viewer, Streampai.Stream.Viewer do
-      description "The viewer who sent this message (optional)"
+      description "The streamer-specific viewer who sent this message (optional)"
+      attribute_writable? true
+    end
+
+    belongs_to :viewer_identity, Streampai.Stream.ViewerIdentity do
+      description "The global viewer identity who sent this message (optional)"
       attribute_writable? true
     end
   end
