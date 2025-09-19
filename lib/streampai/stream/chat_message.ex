@@ -1,5 +1,17 @@
 defmodule Streampai.Stream.ChatMessage do
-  @moduledoc false
+  @moduledoc """
+  Represents a chat message from a streaming platform.
+
+  ChatMessages are linked to both users (the streamer) and optionally to viewers
+  (the person who sent the message). This allows tracking chat activity across
+  different platforms and linking messages to specific viewer identities.
+
+  ## Key Features
+  - Platform-agnostic message storage
+  - Optional viewer linking for identity management
+  - Moderator and subscription status tracking
+  - Upsert capabilities for message deduplication
+  """
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
@@ -19,15 +31,16 @@ defmodule Streampai.Stream.ChatMessage do
 
   code_interface do
     define :upsert
-    define :create!
+    define :create
     define :read
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
 
-    create :create! do
+    create :create do
       primary? true
+
       accept [
         :id,
         :message,
@@ -37,7 +50,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_id
       ]
     end
 
@@ -51,7 +65,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_id
       ]
 
       upsert? true
@@ -65,7 +80,8 @@ defmodule Streampai.Stream.ChatMessage do
         :sender_is_moderator,
         :sender_is_patreon,
         :user_id,
-        :livestream_id
+        :livestream_id,
+        :viewer_id
       ]
     end
   end
@@ -103,11 +119,6 @@ defmodule Streampai.Stream.ChatMessage do
       allow_nil? false
       default &DateTime.utc_now/0
     end
-
-    attribute :viewer_id, :uuid do
-      description "Optional reference to the streamer-specific viewer who sent this message"
-    end
-
   end
 
   relationships do
@@ -122,10 +133,9 @@ defmodule Streampai.Stream.ChatMessage do
     end
 
     belongs_to :viewer, Streampai.Stream.Viewer do
-      description "The streamer-specific viewer who sent this message (optional)"
+      description "The global viewer who sent this message (optional)"
       attribute_writable? true
     end
-
   end
 
   identities do

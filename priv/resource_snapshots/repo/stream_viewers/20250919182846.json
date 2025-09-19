@@ -6,102 +6,6 @@
       "generated?": false,
       "precision": null,
       "primary_key?": true,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "id",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "message",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "platform",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "sender_username",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "sender_channel_id",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "sender_is_moderator",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "sender_is_patreon",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "inserted_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
       "references": {
         "deferrable": false,
         "destination_attribute": "id",
@@ -115,7 +19,38 @@
           "global": null,
           "strategy": null
         },
-        "name": "chat_messages_user_id_fkey",
+        "name": "stream_viewers_viewer_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "viewers"
+      },
+      "scale": null,
+      "size": null,
+      "source": "viewer_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "stream_viewers_user_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -133,30 +68,83 @@
       "generated?": false,
       "precision": null,
       "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "chat_messages_livestream_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "livestreams"
-      },
+      "references": null,
       "scale": null,
       "size": null,
-      "source": "livestream_id",
-      "type": "uuid"
+      "source": "display_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "notes",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "ai_summary",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "first_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
     }
   ],
   "base_filter": null,
@@ -166,108 +154,95 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "user_id"
+        "user_id",
+        "display_name"
       ],
       "fields": [
         {
           "type": "atom",
           "value": "user_id"
-        }
-      ],
-      "include": null,
-      "message": null,
-      "name": "idx_chat_messages_user_id",
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": false,
-      "using": null,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "livestream_id"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "livestream_id"
-        }
-      ],
-      "include": null,
-      "message": null,
-      "name": "idx_chat_messages_livestream_id",
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": false,
-      "using": null,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "inserted_at"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "inserted_at"
-        }
-      ],
-      "include": null,
-      "message": null,
-      "name": "idx_chat_messages_inserted_at",
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": false,
-      "using": null,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "livestream_id",
-        "inserted_at"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "livestream_id"
         },
         {
           "type": "atom",
-          "value": "inserted_at"
+          "value": "display_name"
         }
       ],
       "include": null,
       "message": null,
-      "name": "idx_chat_messages_stream_chrono",
+      "name": "idx_stream_viewers_user_display_name",
       "nulls_distinct": true,
       "prefix": null,
       "table": null,
       "unique": false,
       "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "user_id",
+        "last_seen_at"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "user_id"
+        },
+        {
+          "type": "atom",
+          "value": "last_seen_at"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "idx_stream_viewers_user_last_seen",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "display_name"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "display_name"
+        }
+      ],
+      "include": null,
+      "message": null,
+      "name": "idx_stream_viewers_display_name_gin",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": "gin",
       "where": null
     }
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "B6CD2BBB699AB805732580D0E23B29B9D5B2F99BE14D605572B29B560C8B9DB8",
+  "hash": "65F4E0AA30F368699642DD9FC2475681D456F859FEC3558B48C8339ACD56F3C4",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "chat_messages_primary_key_index",
+      "index_name": "stream_viewers_primary_key_index",
       "keys": [
         {
           "type": "atom",
-          "value": "id"
+          "value": "viewer_id"
+        },
+        {
+          "type": "atom",
+          "value": "user_id"
         }
       ],
       "name": "primary_key",
@@ -282,5 +257,5 @@
   },
   "repo": "Elixir.Streampai.Repo",
   "schema": null,
-  "table": "chat_messages"
+  "table": "stream_viewers"
 }
