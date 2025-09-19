@@ -20,9 +20,18 @@ defmodule Streampai.Repo.Migrations.AddSimplifiedViewerSystem do
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
 
-    alter table(:users) do
-      add :avatar, :text
-    end
+    # Add avatar column if it doesn't exist
+    execute """
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='users' AND column_name='avatar'
+      ) THEN
+        ALTER TABLE users ADD COLUMN avatar TEXT;
+      END IF;
+    END $$;
+    """
 
     create table(:stream_viewers, primary_key: false) do
       add :viewer_id,
@@ -94,26 +103,49 @@ defmodule Streampai.Repo.Migrations.AddSimplifiedViewerSystem do
              name: "idx_stream_events_viewer_chrono"
            )
 
-    alter table(:chat_messages) do
-      remove :updated_at
-      remove :is_patreon
-      remove :is_moderator
-      remove :channel_id
-      remove :username
-      modify :id, :text, default: nil
-      add :sender_username, :text, null: false
-      add :sender_channel_id, :text, null: false
-      add :sender_is_moderator, :boolean, default: false
-      add :sender_is_patreon, :boolean, default: false
+    # Handle chat_messages table modifications with column existence checks
+    execute """
+    DO $$
+    BEGIN
+      -- Remove columns if they exist
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='updated_at') THEN
+        ALTER TABLE chat_messages DROP COLUMN updated_at;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='is_patreon') THEN
+        ALTER TABLE chat_messages DROP COLUMN is_patreon;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='is_moderator') THEN
+        ALTER TABLE chat_messages DROP COLUMN is_moderator;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='channel_id') THEN
+        ALTER TABLE chat_messages DROP COLUMN channel_id;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='username') THEN
+        ALTER TABLE chat_messages DROP COLUMN username;
+      END IF;
 
-      add :viewer_id,
-          references(:viewers,
-            column: :id,
-            name: "chat_messages_viewer_id_fkey",
-            type: :uuid,
-            prefix: "public"
-          )
-    end
+      -- Modify id column type
+      ALTER TABLE chat_messages ALTER COLUMN id SET DEFAULT NULL;
+      ALTER TABLE chat_messages ALTER COLUMN id TYPE TEXT;
+
+      -- Add new columns if they don't exist
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='sender_username') THEN
+        ALTER TABLE chat_messages ADD COLUMN sender_username TEXT NOT NULL DEFAULT '';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='sender_channel_id') THEN
+        ALTER TABLE chat_messages ADD COLUMN sender_channel_id TEXT NOT NULL DEFAULT '';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='sender_is_moderator') THEN
+        ALTER TABLE chat_messages ADD COLUMN sender_is_moderator BOOLEAN DEFAULT FALSE;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='sender_is_patreon') THEN
+        ALTER TABLE chat_messages ADD COLUMN sender_is_patreon BOOLEAN DEFAULT FALSE;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_messages' AND column_name='viewer_id') THEN
+        ALTER TABLE chat_messages ADD COLUMN viewer_id UUID REFERENCES viewers(id);
+      END IF;
+    END $$;
+    """
 
     create index(:chat_messages, [:livestream_id, :inserted_at],
              name: "idx_chat_messages_stream_chrono"
@@ -192,9 +224,18 @@ defmodule Streampai.Repo.Migrations.AddSimplifiedViewerSystem do
 
     drop table(:stream_viewers)
 
-    alter table(:users) do
-      remove :avatar
-    end
+    # Remove avatar column if it was added by this migration
+    execute """
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='users' AND column_name='avatar'
+      ) THEN
+        ALTER TABLE users DROP COLUMN avatar;
+      END IF;
+    END $$;
+    """
 
     drop table(:viewers)
   end

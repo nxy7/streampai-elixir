@@ -29,27 +29,13 @@ defmodule Streampai.Accounts.UserTest do
     end
 
     test "admin can read all users", %{admin_user: admin_user} do
-      # This would normally create actual users, but for snapshot testing
-      # we'll test the policy structure
+      {:ok, users} =
+        User
+        |> Ash.Query.for_read(:get, %{}, actor: admin_user)
+        |> Ash.read()
 
-      case User
-           |> Ash.Query.for_read(:get, %{}, actor: admin_user)
-           |> Ash.read() do
-        {:ok, users} ->
-          # Snapshot the successful structure
-          result = %{status: :success, user_count: length(users)}
-          auto_assert(^result <- result)
-
-        {:error, error} ->
-          # Snapshot the error structure if policies fail
-          error_map = %{
-            status: :error,
-            class: error.__struct__,
-            message: Exception.message(error)
-          }
-
-          auto_assert(error_map)
-      end
+      result = %{status: :success, user_count: length(users)}
+      auto_assert(^result <- result)
     end
 
     test "regular user cannot read other users", %{regular_user: regular_user} do
@@ -118,22 +104,16 @@ defmodule Streampai.Accounts.UserTest do
           actor: :system
         )
 
-      # Give the database a moment to process the grant
       Process.sleep(50)
 
-      case Ash.get(User, user.id) do
-        {:ok, reloaded_user} ->
-          tier_logic = %{
-            upgraded_to_pro: reloaded_user.tier == :pro,
-            reflects_premium_status: reloaded_user.tier != :free
-          }
+      {:ok, reloaded_user} = Ash.get(User, user.id)
 
-          auto_assert %{upgraded_to_pro: true, reflects_premium_status: true} <- tier_logic
+      tier_logic = %{
+        upgraded_to_pro: reloaded_user.tier == :pro,
+        reflects_premium_status: reloaded_user.tier != :free
+      }
 
-        {:error, _} ->
-          # If reload fails, test the grant creation at least worked
-          assert true, "Grant was created successfully"
-      end
+      auto_assert %{upgraded_to_pro: true, reflects_premium_status: true} <- tier_logic
     end
 
     test "connected platforms count updates correctly" do
@@ -144,7 +124,6 @@ defmodule Streampai.Accounts.UserTest do
       }
 
       {:ok, user} = User.register_with_password(user_params)
-      # Load the connected_platforms aggregate
       user = Ash.load!(user, [:connected_platforms])
 
       initial_count = user.connected_platforms
@@ -161,22 +140,16 @@ defmodule Streampai.Accounts.UserTest do
 
       {:ok, _account} = Streampai.Accounts.StreamingAccount.create(account_params, actor: user)
 
-      # Give the database a moment to update the count
       Process.sleep(50)
 
-      case Ash.get(User, user.id) do
-        {:ok, reloaded_user} ->
-          platform_logic = %{
-            count_increased: reloaded_user.connected_platforms > initial_count,
-            reflects_one_platform: reloaded_user.connected_platforms == 1
-          }
+      {:ok, reloaded_user} = Ash.get(User, user.id)
 
-          auto_assert %{count_increased: true, reflects_one_platform: true} <- platform_logic
+      platform_logic = %{
+        count_increased: reloaded_user.connected_platforms > initial_count,
+        reflects_one_platform: reloaded_user.connected_platforms == 1
+      }
 
-        {:error, _} ->
-          # If reload fails, at least verify the account was created
-          assert true, "StreamingAccount was created successfully"
-      end
+      auto_assert %{count_increased: true, reflects_one_platform: true} <- platform_logic
     end
   end
 end
