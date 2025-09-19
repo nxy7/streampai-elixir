@@ -41,7 +41,6 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   @impl true
   def init(user_id) do
-    # Load Cloudflare configuration from environment/database
     config = load_cloudflare_config()
 
     state = %__MODULE__{
@@ -57,14 +56,11 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       poll_interval: config.poll_interval
     }
 
-    # Initialize live input for this user
     send(self(), :initialize_live_input)
 
     Logger.info("CloudflareManager started for user #{user_id}")
     {:ok, state}
   end
-
-  # Client API
 
   @doc """
   Gets the current Cloudflare stream configuration.
@@ -294,14 +290,14 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   @impl true
-  def handle_call({:set_live_input_id, input_id}, _from, state) do
-    # Update the live input with the new ID
-    updated_input =
-      case state.live_input do
-        nil -> %{input_id: input_id}
-        live_input -> Map.put(live_input, :input_id, input_id)
-      end
+  def handle_call({:set_live_input_id, input_id}, _from, %{live_input: nil} = state) do
+    new_state = %{state | live_input: %{input_id: input_id}}
+    Logger.info("[CloudflareManager:#{state.user_id}] Live input ID set to: #{input_id}")
+    {:reply, :ok, new_state}
+  end
 
+  def handle_call({:set_live_input_id, input_id}, _from, %{live_input: live_input} = state) do
+    updated_input = Map.put(live_input, :input_id, input_id)
     new_state = %{state | live_input: updated_input}
     Logger.info("[CloudflareManager:#{state.user_id}] Live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
@@ -502,7 +498,6 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   defp handle_input_status_change(state, new_status) do
     case {state.input_streaming_status, new_status} do
       {:offline, :live} ->
-        # Input started streaming
         Logger.info("Input streaming started for user #{state.user_id}")
 
         state = %{
@@ -518,7 +513,6 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         state
 
       {:live, :offline} ->
-        # Input stopped streaming
         Logger.info("Input streaming stopped for user #{state.user_id}")
 
         state = %{state | input_streaming_status: :offline, last_streaming_at: DateTime.utc_now()}
