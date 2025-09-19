@@ -8,6 +8,7 @@ defmodule Streampai.TestHelpers do
   import ExUnit.Assertions
 
   alias Streampai.Accounts.NewsletterEmail
+  alias Streampai.Accounts.StreamingAccount
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPremiumGrant
   alias Streampai.Accounts.WidgetConfig
@@ -83,43 +84,22 @@ defmodule Streampai.TestHelpers do
   Helper for testing Ash resource queries with consistent error handling.
   """
   def assert_ash_query(query, expected_count) when is_integer(expected_count) do
-    case Ash.read(query) do
-      {:ok, results} when is_list(results) ->
-        assert length(results) == expected_count
-        results
-
-      {:error, error} ->
-        flunk("Ash query failed: #{inspect(error)}")
-    end
+    {:ok, results} = Ash.read(query)
+    assert length(results) == expected_count
+    results
   end
 
   def assert_ash_query(query, :single) do
-    case Ash.read(query) do
-      {:ok, [result]} -> result
-      {:ok, []} -> flunk("Expected single result, got empty list")
-      {:ok, results} -> flunk("Expected single result, got #{length(results)} results")
-      {:error, error} -> flunk("Ash query failed: #{inspect(error)}")
-    end
+    {:ok, [result]} = Ash.read(query)
+    result
   end
 
   @doc """
   Pattern for testing external API responses with proper error handling.
-  Validates response structure and provides clear failure messages.
   """
   def assert_api_response({:ok, response}, pattern) when is_map(pattern) do
-    case response do
-      ^pattern ->
-        response
-
-      _ ->
-        # Use pattern matching for better error messages
-        try do
-          assert ^pattern = response
-        rescue
-          ExUnit.AssertionError ->
-            flunk("API response structure mismatch:\nExpected: #{inspect(pattern)}\nActual: #{inspect(response)}")
-        end
-    end
+    ^pattern = response
+    response
   end
 
   def assert_api_response({:error, reason}, :error) do
@@ -137,20 +117,20 @@ defmodule Streampai.TestHelpers do
   @doc """
   Helper for testing HTTP error responses with consistent error message patterns.
   """
-  def assert_http_error(response, expected_status, expected_operation \\ nil) do
-    case response do
-      {:error, :http_error, message} ->
-        assert message =~ "HTTP #{expected_status} error"
+  def assert_http_error(response, expected_status, expected_operation \\ nil)
 
-        if expected_operation do
-          assert message =~ "HTTP #{expected_status} error during #{expected_operation}"
-        end
+  def assert_http_error({:error, :http_error, message}, expected_status, expected_operation) do
+    assert message =~ "HTTP #{expected_status} error"
 
-        message
-
-      actual ->
-        flunk("Expected HTTP error, got: #{inspect(actual)}")
+    if expected_operation do
+      assert message =~ "HTTP #{expected_status} error during #{expected_operation}"
     end
+
+    message
+  end
+
+  def assert_http_error(actual, _expected_status, _expected_operation) do
+    flunk("Expected HTTP error, got: #{inspect(actual)}")
   end
 
   @doc """
@@ -163,17 +143,19 @@ defmodule Streampai.TestHelpers do
 
     html = Phoenix.LiveViewTest.render(view)
 
-    case expected_content do
-      content when is_binary(content) ->
-        assert html =~ content
-
-      patterns when is_list(patterns) ->
-        Enum.each(patterns, fn pattern ->
-          assert html =~ pattern
-        end)
-    end
+    assert_content_match(html, expected_content)
 
     html
+  end
+
+  defp assert_content_match(html, content) when is_binary(content) do
+    assert html =~ content
+  end
+
+  defp assert_content_match(html, patterns) when is_list(patterns) do
+    Enum.each(patterns, fn pattern ->
+      assert html =~ pattern
+    end)
   end
 
   @doc """
@@ -347,10 +329,28 @@ defmodule Streampai.TestHelpers do
       }
     }
 
-    case Streampai.Accounts.StreamingAccount.create(account_params, actor: user) do
-      {:ok, account} -> account
-      {:error, error} -> raise error
-    end
+    {:ok, account} = StreamingAccount.create(account_params, actor: user)
+    account
+  end
+
+  @doc """
+  Attempts to create a streaming account for a user on the specified platform.
+  Returns the result tuple (either {:ok, account} or {:error, error}).
+  """
+  def try_create_streaming_account(user, platform) do
+    account_params = %{
+      user_id: user.id,
+      platform: platform,
+      access_token: "test_token_#{platform}",
+      refresh_token: "refresh_token_#{platform}",
+      access_token_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
+      extra_data: %{
+        channel_id: "test_channel_#{platform}_#{:rand.uniform(10_000)}",
+        username: "test_user_#{platform}"
+      }
+    }
+
+    StreamingAccount.create(account_params, actor: user)
   end
 
   @doc """
@@ -398,10 +398,7 @@ defmodule Streampai.TestHelpers do
   def newsletter_email_exists?(email) do
     query = Ash.Query.filter(NewsletterEmail, email == ^email)
 
-    case Ash.read(query) do
-      {:ok, [_]} -> true
-      _ -> false
-    end
+    match?({:ok, [_]}, Ash.read(query))
   end
 
   @doc """
@@ -410,10 +407,8 @@ defmodule Streampai.TestHelpers do
   def newsletter_email_count_for(email) do
     query = Ash.Query.filter(NewsletterEmail, email == ^email)
 
-    case Ash.read(query) do
-      {:ok, records} -> length(records)
-      _ -> 0
-    end
+    {:ok, records} = Ash.read(query)
+    length(records)
   end
 
   @doc """
@@ -427,31 +422,19 @@ defmodule Streampai.TestHelpers do
       |> Ash.Changeset.for_create(:register_with_password, user_attrs)
       |> Ash.create()
 
-    case tier do
-      :pro ->
-        {:ok, _grant} =
-          UserPremiumGrant.create_grant(
-            user.id,
-            user.id,
-            DateTime.add(DateTime.utc_now(), 30, :day),
-            DateTime.utc_now(),
-            "test_pro_grant",
-            actor: :system
-          )
+    if tier in [:pro, :enterprise] do
+      duration_days = if tier == :pro, do: 30, else: 365
+      grant_type = "test_#{tier}_grant"
 
-      :enterprise ->
-        {:ok, _grant} =
-          UserPremiumGrant.create_grant(
-            user.id,
-            user.id,
-            DateTime.add(DateTime.utc_now(), 365, :day),
-            DateTime.utc_now(),
-            "test_enterprise_grant",
-            actor: :system
-          )
-
-      _ ->
-        nil
+      {:ok, _grant} =
+        UserPremiumGrant.create_grant(
+          user.id,
+          user.id,
+          DateTime.add(DateTime.utc_now(), duration_days, :day),
+          DateTime.utc_now(),
+          grant_type,
+          actor: :system
+        )
     end
 
     user
@@ -482,9 +465,7 @@ defmodule Streampai.TestHelpers do
       |> Ash.Query.sort(inserted_at: :desc)
       |> Ash.Query.limit(1)
 
-    case Ash.read(query) do
-      {:ok, [event]} -> event
-      _ -> flunk("Expected stream event of type #{event_type} for user #{user_id} to be created")
-    end
+    {:ok, [event]} = Ash.read(query)
+    event
   end
 end
