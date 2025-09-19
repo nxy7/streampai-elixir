@@ -150,10 +150,12 @@ defmodule StreampaiWeb.Utils.MockViewers do
   end
 
   defp generate_donation_amount do
-    case :rand.uniform(10) do
-      n when n <= 6 -> 0.0
-      n when n <= 8 -> :rand.uniform(100) * 1.0
-      _ -> :rand.uniform(1000) * 1.0
+    random_value = :rand.uniform(10)
+
+    cond do
+      random_value <= 6 -> 0.0
+      random_value <= 8 -> :rand.uniform(100) * 1.0
+      true -> :rand.uniform(1000) * 1.0
     end
   end
 
@@ -166,10 +168,12 @@ defmodule StreampaiWeb.Utils.MockViewers do
   end
 
   defp generate_sub_tier do
-    case :rand.uniform(10) do
-      n when n <= 5 -> 1
-      n when n <= 8 -> 2
-      _ -> 3
+    random_value = :rand.uniform(10)
+
+    cond do
+      random_value <= 5 -> 1
+      random_value <= 8 -> 2
+      true -> 3
     end
   end
 
@@ -333,12 +337,12 @@ defmodule StreampaiWeb.Utils.MockViewers do
   def filter_viewers(viewers, search_term) when is_binary(search_term) and search_term != "" do
     term = String.downcase(search_term)
 
-    Enum.filter(viewers, fn viewer ->
-      String.contains?(String.downcase(viewer.username), term) ||
-        String.contains?(String.downcase(viewer.email), term) ||
-        String.contains?(String.downcase(viewer.full_name), term)
-    end)
+    Enum.filter(viewers, &viewer_matches_search(&1, term))
   end
 
   def filter_viewers(viewers, _), do: viewers
+
+  defp viewer_matches_search(viewer, term) do
+    Enum.any?([viewer.username, viewer.email, viewer.full_name], &String.contains?(String.downcase(&1), term))
+  end
 end
