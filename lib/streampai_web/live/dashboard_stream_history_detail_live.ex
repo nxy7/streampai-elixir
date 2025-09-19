@@ -30,7 +30,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
     position = String.to_integer(position_str)
 
     # Filter chat messages to show only up to this timeline position
-    filtered_chat = filter_chat_by_timeline(socket.assigns.chat_messages, socket.assigns.stream, position)
+    filtered_chat =
+      filter_chat_by_timeline(socket.assigns.chat_messages, socket.assigns.stream, position)
 
     socket =
       socket
@@ -56,7 +57,14 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
 
     %{
       id: stream_id,
-      title: Enum.random(["Epic Gaming Marathon", "Community Game Night", "Speedrun Attempts", "Just Chatting Session", "New Game First Time"]),
+      title:
+        Enum.random([
+          "Epic Gaming Marathon",
+          "Community Game Night",
+          "Speedrun Attempts",
+          "Just Chatting Session",
+          "New Game First Time"
+        ]),
       started_at: started_at,
       ended_at: ended_at,
       duration_seconds: duration_seconds,
@@ -71,12 +79,13 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   defp generate_stream_events(stream_id, started_at, ended_at) do
     :rand.seed(:exrop, {String.to_integer(String.slice(stream_id, 0, 8), 16), 1, 0})
 
-    duration_minutes = DateTime.diff(ended_at, started_at, :second) |> div(60)
-    event_count = max(5, div(duration_minutes, 10)) # One event every ~10 minutes
+    duration_minutes = ended_at |> DateTime.diff(started_at, :second) |> div(60)
+    # One event every ~10 minutes
+    event_count = max(5, div(duration_minutes, 10))
 
     1..event_count
     |> Enum.map(fn i ->
-      minutes_offset = round((i / event_count) * duration_minutes)
+      minutes_offset = round(i / event_count * duration_minutes)
       timestamp = DateTime.add(started_at, minutes_offset * 60, :second)
 
       event_type = Enum.random([:donation, :follow, :subscription, :raid])
@@ -84,7 +93,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       base_event = %{
         id: Ecto.UUID.generate(),
         timestamp: timestamp,
-        timeline_position: round((minutes_offset / duration_minutes) * 100),
+        timeline_position: round(minutes_offset / duration_minutes * 100),
         type: event_type
       }
 
@@ -97,9 +106,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
           })
 
         :follow ->
-          Map.merge(base_event, %{
-            username: Enum.random(["new_follower", "first_time_here", "loving_it", "found_you"])
-          })
+          Map.put(base_event, :username, Enum.random(["new_follower", "first_time_here", "loving_it", "found_you"]))
 
         :subscription ->
           Map.merge(base_event, %{
@@ -121,24 +128,42 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   defp generate_stream_chat(stream_id, started_at, ended_at) do
     :rand.seed(:exrop, {String.to_integer(String.slice(stream_id, 0, 8), 16), 2, 0})
 
-    duration_minutes = DateTime.diff(ended_at, started_at, :second) |> div(60)
-    message_count = duration_minutes * 2 # ~2 messages per minute
+    duration_minutes = ended_at |> DateTime.diff(started_at, :second) |> div(60)
+    # ~2 messages per minute
+    message_count = duration_minutes * 2
 
     1..message_count
     |> Enum.map(fn i ->
-      minutes_offset = (i / message_count) * duration_minutes
+      minutes_offset = i / message_count * duration_minutes
       timestamp = DateTime.add(started_at, round(minutes_offset * 60), :second)
 
       %{
         id: "chat_#{i}",
-        username: Enum.random(["viewer123", "chat_user", "stream_fan", "regular_viewer", "newcomer", "loyal_fan"]),
-        message: Enum.random([
-          "Hello everyone!", "Great stream!", "Love this game!", "First time here!",
-          "You're doing great!", "This is awesome!", "Keep it up!", "Amazing gameplay!",
-          "Been watching for hours", "Love the community here", "Great vibes"
-        ]),
+        username:
+          Enum.random([
+            "viewer123",
+            "chat_user",
+            "stream_fan",
+            "regular_viewer",
+            "newcomer",
+            "loyal_fan"
+          ]),
+        message:
+          Enum.random([
+            "Hello everyone!",
+            "Great stream!",
+            "Love this game!",
+            "First time here!",
+            "You're doing great!",
+            "This is awesome!",
+            "Keep it up!",
+            "Amazing gameplay!",
+            "Been watching for hours",
+            "Love the community here",
+            "Great vibes"
+          ]),
         timestamp: timestamp,
-        timeline_position: round((minutes_offset / duration_minutes) * 100),
+        timeline_position: round(minutes_offset / duration_minutes * 100),
         platform: :twitch,
         is_moderator: :rand.uniform(20) == 1,
         is_subscriber: :rand.uniform(5) == 1
@@ -148,13 +173,15 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   end
 
   defp generate_stream_insights(stream, events, chat_messages) do
-    chat_density = length(chat_messages) / (stream.duration_seconds / 60) # messages per minute
+    # messages per minute
+    chat_density = length(chat_messages) / (stream.duration_seconds / 60)
 
-    peak_viewer_data = stream.viewer_data |> Enum.max_by(& &1.viewers)
+    peak_viewer_data = Enum.max_by(stream.viewer_data, & &1.viewers)
     peak_viewer_time = peak_viewer_data.timestamp
 
     # Calculate timeline position for peak moment
-    peak_timeline_position = DateTime.diff(peak_viewer_time, stream.started_at, :second) / stream.duration_seconds * 100
+    peak_timeline_position =
+      DateTime.diff(peak_viewer_time, stream.started_at, :second) / stream.duration_seconds * 100
 
     most_active_period = find_most_active_chat_period(chat_messages, stream.duration_seconds)
 
@@ -170,12 +197,13 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       chat_activity: %{
         total_messages: length(chat_messages),
         messages_per_minute: Float.round(chat_density, 1),
-        activity_level: case chat_density do
-          x when x > 5 -> "Very High"
-          x when x > 2 -> "High"
-          x when x > 1 -> "Medium"
-          _ -> "Low"
-        end
+        activity_level:
+          case chat_density do
+            x when x > 5 -> "Very High"
+            x when x > 2 -> "High"
+            x when x > 1 -> "Medium"
+            _ -> "Low"
+          end
       },
       engagement_score: calculate_engagement_score(stream, events, chat_messages)
     }
@@ -183,7 +211,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
 
   defp find_most_active_chat_period(chat_messages, duration_seconds) do
     # Find 10-minute window with most messages
-    window_size = 10 * 60 # 10 minutes in seconds
+    # 10 minutes in seconds
+    window_size = 10 * 60
 
     if length(chat_messages) > 0 do
       first_message_time = hd(chat_messages).timestamp
@@ -193,19 +222,22 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
         window_start = DateTime.add(first_message_time, offset, :second)
         window_end = DateTime.add(window_start, window_size, :second)
 
-        messages_in_window = Enum.count(chat_messages, fn msg ->
-          DateTime.compare(msg.timestamp, window_start) != :lt and
-          DateTime.compare(msg.timestamp, window_end) != :gt
-        end)
+        messages_in_window =
+          Enum.count(chat_messages, fn msg ->
+            DateTime.compare(msg.timestamp, window_start) != :lt and
+              DateTime.compare(msg.timestamp, window_end) != :gt
+          end)
 
         %{
           start_time: window_start,
           message_count: messages_in_window,
-          timeline_position: round((offset / duration_seconds) * 100),
+          timeline_position: round(offset / duration_seconds * 100),
           description: "Most active chat period"
         }
       end)
-      |> Enum.max_by(& &1.message_count, fn -> %{start_time: nil, message_count: 0, timeline_position: 0} end)
+      |> Enum.max_by(& &1.message_count, fn ->
+        %{start_time: nil, message_count: 0, timeline_position: 0}
+      end)
     else
       %{start_time: nil, message_count: 0, timeline_position: 0}
     end
@@ -223,26 +255,32 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   defp filter_chat_by_timeline(chat_messages, stream, timeline_position) do
     # Convert timeline position (0-100) to actual timestamp
     progress = timeline_position / 100
-    target_time = DateTime.add(stream.started_at, round(stream.duration_seconds * progress), :second)
 
-    Enum.filter(chat_messages, fn msg ->
+    target_time =
+      DateTime.add(stream.started_at, round(stream.duration_seconds * progress), :second)
+
+    chat_messages
+    |> Enum.filter(fn msg ->
       DateTime.compare(msg.timestamp, target_time) != :gt
     end)
-    |> Enum.take(-50) # Show last 50 messages up to this point
+    # Show last 50 messages up to this point
+    |> Enum.take(-50)
   end
 
   defp format_timeline_time(stream, position) do
-    seconds_elapsed = round((position / 100) * stream.duration_seconds)
+    seconds_elapsed = round(position / 100 * stream.duration_seconds)
     hours = div(seconds_elapsed, 3600)
     minutes = div(rem(seconds_elapsed, 3600), 60)
     seconds = rem(seconds_elapsed, 60)
 
-    if hours > 0 do
-      :io_lib.format("~2..0B:~2..0B:~2..0B", [hours, minutes, seconds])
-    else
-      :io_lib.format("~2..0B:~2..0B", [minutes, seconds])
-    end
-    |> to_string()
+    if_result =
+      if hours > 0 do
+        :io_lib.format("~2..0B:~2..0B:~2..0B", [hours, minutes, seconds])
+      else
+        :io_lib.format("~2..0B:~2..0B", [minutes, seconds])
+      end
+
+    to_string(if_result)
   end
 
   defp format_duration(seconds) do
@@ -263,8 +301,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
     cond do
       diff_seconds < 60 -> "#{diff_seconds}s ago"
       diff_seconds < 3600 -> "#{div(diff_seconds, 60)}m ago"
-      diff_seconds < 86400 -> "#{div(diff_seconds, 3600)}h ago"
-      true -> "#{div(diff_seconds, 86400)}d ago"
+      diff_seconds < 86_400 -> "#{div(diff_seconds, 3600)}h ago"
+      true -> "#{div(diff_seconds, 86_400)}d ago"
     end
   end
 
@@ -310,23 +348,37 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 <svg class="w-full h-full" viewBox="0 0 400 200">
                   <!-- Chart background -->
                   <rect width="400" height="200" fill="#f9fafb" />
-
-                  <!-- Grid lines -->
+                  
+    <!-- Grid lines -->
                   <%= for i <- 0..4 do %>
-                    <line x1="50" y1={40 + i * 30} x2="370" y2={40 + i * 30} stroke="#e5e7eb" stroke-width="1" />
+                    <line
+                      x1="50"
+                      y1={40 + i * 30}
+                      x2="370"
+                      y2={40 + i * 30}
+                      stroke="#e5e7eb"
+                      stroke-width="1"
+                    />
                   <% end %>
                   <%= for i <- 0..6 do %>
-                    <line x1={50 + i * 53} y1="40" x2={50 + i * 53} y2="160" stroke="#e5e7eb" stroke-width="1" />
+                    <line
+                      x1={50 + i * 53}
+                      y1="40"
+                      x2={50 + i * 53}
+                      y2="160"
+                      stroke="#e5e7eb"
+                      stroke-width="1"
+                    />
                   <% end %>
-
-                  <!-- Viewer count line -->
+                  
+    <!-- Viewer count line -->
                   <polyline
                     points={
                       @stream.viewer_data
                       |> Enum.with_index()
                       |> Enum.map(fn {point, index} ->
-                        x = 50 + (index / (length(@stream.viewer_data) - 1)) * 320
-                        y = 160 - ((point.viewers / @stream.max_viewers) * 120)
+                        x = 50 + index / (length(@stream.viewer_data) - 1) * 320
+                        y = 160 - point.viewers / @stream.max_viewers * 120
                         "#{x},#{y}"
                       end)
                       |> Enum.join(" ")
@@ -335,15 +387,15 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     stroke="#8b5cf6"
                     stroke-width="2"
                   />
-
-                  <!-- Y-axis labels -->
+                  
+    <!-- Y-axis labels -->
                   <%= for i <- 0..4 do %>
                     <text x="45" y={45 + i * 30} text-anchor="end" font-size="12" fill="#6b7280">
                       {@stream.max_viewers - round(@stream.max_viewers * i / 4)}
                     </text>
                   <% end %>
-
-                  <!-- X-axis labels -->
+                  
+    <!-- X-axis labels -->
                   <%= for i <- 0..6 do %>
                     <text x={50 + i * 53} y="175" text-anchor="middle" font-size="12" fill="#6b7280">
                       {format_timeline_time(@stream, round(i * 100 / 6))}
@@ -352,30 +404,45 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 </svg>
               </div>
             </div>
-
-            <!-- Stream Playback Placeholder -->
+            
+    <!-- Stream Playback Placeholder -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Stream Playback</h3>
               <div class="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
                 <div class="text-center text-gray-400">
-                  <svg class="mx-auto h-16 w-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M6 6v6a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2z"></path>
+                  <svg
+                    class="mx-auto h-16 w-16 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M6 6v6a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2z"
+                    >
+                    </path>
                   </svg>
                   <p class="text-lg font-medium">Stream Playback</p>
                   <p class="text-sm">Video playback will be available here</p>
                 </div>
               </div>
             </div>
-
-            <!-- Timeline with Events -->
+            
+    <!-- Timeline with Events -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Stream Timeline</h3>
               <div class="relative">
                 <!-- Timeline bar -->
                 <div class="h-3 bg-gray-200 rounded-full relative mb-6">
-                  <div class="absolute h-full bg-purple-600 rounded-full" style={"width: #{@current_timeline_position}%"}></div>
-
-                  <!-- Event markers -->
+                  <div
+                    class="absolute h-full bg-purple-600 rounded-full"
+                    style={"width: #{@current_timeline_position}%"}
+                  >
+                  </div>
+                  
+    <!-- Event markers -->
                   <%= for event <- @events do %>
                     <div
                       class="absolute w-3 h-3 -mt-0 rounded-full cursor-pointer transform hover:scale-125 transition-transform"
@@ -387,8 +454,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     </div>
                   <% end %>
                 </div>
-
-                <!-- Timeline controls -->
+                
+    <!-- Timeline controls -->
                 <div class="flex items-center space-x-4">
                   <input
                     type="range"
@@ -403,8 +470,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     {format_timeline_time(@stream, @current_timeline_position)}
                   </span>
                 </div>
-
-                <!-- Event legend -->
+                
+    <!-- Event legend -->
                 <div class="flex items-center space-x-4 mt-4 text-xs">
                   <div class="flex items-center">
                     <div class="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
@@ -426,8 +493,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
               </div>
             </div>
           </div>
-
-          <!-- Sidebar -->
+          
+    <!-- Sidebar -->
           <div class="space-y-6">
             <!-- Stream Insights -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -479,15 +546,21 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                   <h4 class="font-medium text-green-900 mb-2">Engagement Score</h4>
                   <div class="flex items-center">
                     <div class="flex-1 bg-green-200 rounded-full h-2">
-                      <div class="bg-green-600 h-2 rounded-full" style={"width: #{@insights.engagement_score}%"}></div>
+                      <div
+                        class="bg-green-600 h-2 rounded-full"
+                        style={"width: #{@insights.engagement_score}%"}
+                      >
+                      </div>
                     </div>
-                    <span class="ml-2 text-sm font-medium text-green-900">{@insights.engagement_score}/100</span>
+                    <span class="ml-2 text-sm font-medium text-green-900">
+                      {@insights.engagement_score}/100
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Stream Chat -->
+            
+    <!-- Stream Chat -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200">
               <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-medium text-gray-900">Chat Replay</h3>
