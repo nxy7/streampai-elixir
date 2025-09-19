@@ -30,6 +30,9 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       {:ok, persister_pid} =
         ChatMessagePersister.start_link(name: :"TestPersister_#{:rand.uniform(10_000)}")
 
+      # Allow the persister process to access the database connection
+      Ecto.Adapters.SQL.Sandbox.allow(Streampai.Repo, self(), persister_pid)
+
       on_exit(fn ->
         if Process.alive?(persister_pid) do
           GenServer.stop(persister_pid)
