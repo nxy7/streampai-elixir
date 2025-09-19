@@ -98,6 +98,7 @@ defmodule StreampaiWeb.Router do
       live("/dashboard/viewers", ViewersLive)
       live("/dashboard/viewers/:id", ViewerDetailsLive)
       live("/dashboard/stream-history", DashboardStreamHistoryLive)
+      live("/dashboard/stream-history/:stream_id", DashboardStreamHistoryDetailLive)
       live("/dashboard/widgets", DashboardWidgetsLive)
       live("/dashboard/analytics", DashboardAnalyticsLive)
       live("/dashboard/settings", DashboardSettingsLive)

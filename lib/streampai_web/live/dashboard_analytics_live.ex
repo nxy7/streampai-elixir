@@ -80,6 +80,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     {:noreply, socket}
   end
 
+
   defp load_analytics_data(socket, timeframe) do
     days = days_for_timeframe(timeframe)
 
