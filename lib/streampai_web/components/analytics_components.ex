@@ -8,6 +8,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
   """
   use Phoenix.Component
 
+  alias Streampai.Fake.Livestream
   alias StreampaiWeb.CoreComponents, as: Core
   alias StreampaiWeb.Utils.FormatHelpers
 
@@ -266,43 +267,73 @@ defmodule StreampaiWeb.AnalyticsComponents do
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <%= for stream <- @streams do %>
-                <tr class="hover:bg-gray-50 cursor-pointer">
+                <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {stream.title}
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">
+                          {stream.title}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                          {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
+                        </div>
                       </div>
-                      <div class="text-xs text-gray-500">
-                        {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
-                      </div>
-                    </div>
+                    </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
-                      {stream.platform}
-                    </span>
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
+                        {stream.platform}
+                      </span>
+                    </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {stream.duration}h
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      {stream.duration}h
+                    </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {FormatHelpers.format_number(stream.viewers.peak)}
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      {FormatHelpers.format_number(stream.viewers.peak)}
+                    </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${Float.round(stream.income.total, 2)}
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      ${Float.round(stream.income.total, 2)}
+                    </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center text-sm">
-                      <span class={[
-                        "font-medium",
-                        stream.engagement.engagement_rate > 3.0 && "text-green-600",
-                        stream.engagement.engagement_rate <= 3.0 &&
-                          stream.engagement.engagement_rate > 2.0 && "text-yellow-600",
-                        stream.engagement.engagement_rate <= 2.0 && "text-red-600"
-                      ]}>
-                        {Float.round(stream.engagement.engagement_rate, 1)}%
-                      </span>
-                    </div>
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      <div class="flex items-center text-sm">
+                        <span class={[
+                          "font-medium",
+                          stream.engagement.engagement_rate > 3.0 && "text-green-600",
+                          stream.engagement.engagement_rate <= 3.0 &&
+                            stream.engagement.engagement_rate > 2.0 && "text-yellow-600",
+                          stream.engagement.engagement_rate <= 2.0 && "text-red-600"
+                        ]}>
+                          {Float.round(stream.engagement.engagement_rate, 1)}%
+                        </span>
+                      </div>
+                    </.link>
                   </td>
                 </tr>
               <% end %>
@@ -320,6 +351,18 @@ defmodule StreampaiWeb.AnalyticsComponents do
   defp platform_badge_class("Facebook"), do: "bg-blue-100 text-blue-800"
   defp platform_badge_class("Kick"), do: "bg-green-100 text-green-800"
   defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
+
+  # Helper function to generate stream history URL
+  defp get_stream_history_url(_stream) do
+    # Since analytics streams use different IDs, we'll get a random stream from history
+    # This is a temporary solution until we unify the data structure
+    stream_list = Livestream.generate_stream_history(1)
+
+    case stream_list do
+      [first_stream | _] -> "/dashboard/stream-history/#{first_stream.id}"
+      [] -> "/dashboard/stream-history"
+    end
+  end
 
   attr :text, :string, required: true
   attr :position, :string, default: "top"
