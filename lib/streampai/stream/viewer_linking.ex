@@ -12,10 +12,14 @@ defmodule Streampai.Stream.ViewerLinking do
   - Confidence scoring: tracks certainty of linking decisions
   """
 
+  alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.Viewer
+  alias Streampai.Stream.ViewerIdentity
+  alias Streampai.Stream.ViewerLinkingAudit
+
   require Ash.Query
   require Logger
-
-  alias Streampai.Stream.{Viewer, ViewerIdentity, ViewerLinkingAudit, ChatMessage, StreamEvent}
 
   @algorithm_version "1.0.0"
   @default_confidence_threshold Decimal.new("0.7")
@@ -33,19 +37,40 @@ defmodule Streampai.Stream.ViewerLinking do
   Returns `{:ok, %{viewer: viewer, identity: identity, created?: boolean}}`
   """
   def link_identity(platform, platform_user_id, username, opts \\ []) do
-    user_id = Keyword.fetch!(opts, :user_id)
-    batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
-    confidence_threshold = Keyword.get(opts, :confidence_threshold, @default_confidence_threshold)
+    with :ok <- validate_linking_inputs(platform, platform_user_id, username) do
+      user_id = Keyword.fetch!(opts, :user_id)
+      batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
+      confidence_threshold = Keyword.get(opts, :confidence_threshold, @default_confidence_threshold)
+
+      do_link_identity(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, opts)
+    end
+  end
+
+  defp do_link_identity(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, opts) do
 
     # Check if identity already exists
-    case ViewerIdentity.find_by_platform_id!(platform: platform, platform_user_id: platform_user_id) do
-      %ViewerIdentity{} = existing_identity ->
+    case ViewerIdentity.find_by_platform_id(
+           platform: platform,
+           platform_user_id: platform_user_id
+         ) do
+      {:ok, [%ViewerIdentity{} = existing_identity]} ->
         # Update existing identity if needed
         update_existing_identity(existing_identity, username, batch_id)
 
-      nil ->
+      {:ok, []} ->
         # Find or create viewer for this new identity
-        create_new_identity_link(platform, platform_user_id, username, user_id, batch_id, confidence_threshold, opts)
+        create_new_identity_link(
+          platform,
+          platform_user_id,
+          username,
+          user_id,
+          batch_id,
+          confidence_threshold,
+          opts
+        )
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -56,12 +81,13 @@ defmodule Streampai.Stream.ViewerLinking do
   def link_chat_message(%ChatMessage{} = message, opts \\ []) do
     batch_id = Keyword.get(opts, :batch_id, generate_batch_id())
 
-    with {:ok, result} <- link_identity(
-           message.platform,
-           message.sender_channel_id,
-           message.sender_username,
-           Keyword.merge(opts, [user_id: message.user_id, batch_id: batch_id])
-         ),
+    with {:ok, result} <-
+           link_identity(
+             message.platform,
+             message.sender_channel_id,
+             message.sender_username,
+             Keyword.merge(opts, user_id: message.user_id, batch_id: batch_id)
+           ),
          {:ok, updated_message} <- update_message_viewer_id(message, result.viewer.id) do
       {:ok, %{message: updated_message, viewer: result.viewer, identity: result.identity}}
     end
@@ -76,12 +102,13 @@ defmodule Streampai.Stream.ViewerLinking do
     # Extract username from event data if available
     username = extract_username_from_event_data(event)
 
-    with {:ok, result} <- link_identity(
-           event.platform,
-           event.author_id,
-           username,
-           Keyword.merge(opts, [user_id: event.user_id, batch_id: batch_id])
-         ),
+    with {:ok, result} <-
+           link_identity(
+             event.platform,
+             event.author_id,
+             username,
+             Keyword.merge(opts, user_id: event.user_id, batch_id: batch_id)
+           ),
          {:ok, updated_event} <- update_event_viewer_id(event, result.viewer.id) do
       {:ok, %{event: updated_event, viewer: result.viewer, identity: result.identity}}
     end
@@ -112,13 +139,14 @@ defmodule Streampai.Stream.ViewerLinking do
     # Get all identities that match reevaluation criteria
     identities_to_reevaluate = find_identities_for_reevaluation(user_id, opts)
 
-    results = Enum.map(identities_to_reevaluate, fn identity ->
-      if dry_run do
-        analyze_identity_linking(identity, batch_id)
-      else
-        reevaluate_identity_linking(identity, batch_id)
-      end
-    end)
+    results =
+      Enum.map(identities_to_reevaluate, fn identity ->
+        if dry_run do
+          analyze_identity_linking(identity, batch_id)
+        else
+          reevaluate_identity_linking(identity, batch_id)
+        end
+      end)
 
     summary = %{
       total_identities: length(identities_to_reevaluate),
@@ -136,7 +164,7 @@ defmodule Streampai.Stream.ViewerLinking do
   defp update_existing_identity(identity, username, batch_id) do
     if identity.username != username or identity.last_seen_username != identity.username do
       # Username has changed, update it
-      case ViewerIdentity.update!(identity, %{
+      case ViewerIdentity.update(identity, %{
              username: username,
              last_seen_username: identity.username
            }) do
@@ -149,12 +177,17 @@ defmodule Streampai.Stream.ViewerLinking do
 
           {:ok, %{viewer: identity.viewer, identity: updated_identity, created?: false}}
 
-        error ->
+        {:error, _} = error ->
           error
       end
     else
       # No changes needed
-      {:ok, %{viewer: identity.viewer, identity: identity, created?: false}}
+      # Load the viewer relationship if not already loaded
+      viewer = case identity.viewer do
+        %Ash.NotLoaded{} -> Viewer.read!(identity.viewer_id)
+        viewer -> viewer
+      end
+      {:ok, %{viewer: viewer, identity: identity, created?: false}}
     end
   end
 
@@ -164,7 +197,15 @@ defmodule Streampai.Stream.ViewerLinking do
 
     case select_best_viewer_match(candidate_viewers, username, platform, confidence_threshold) do
       {:ok, %{viewer: viewer, confidence: confidence, method: method}} ->
-        create_identity_for_viewer(viewer, platform, platform_user_id, username, confidence, method, batch_id)
+        create_identity_for_viewer(
+          viewer,
+          platform,
+          platform_user_id,
+          username,
+          confidence,
+          method,
+          batch_id
+        )
 
       {:no_match, _reason} ->
         # Create new viewer
@@ -174,11 +215,15 @@ defmodule Streampai.Stream.ViewerLinking do
 
   defp find_candidate_viewers(username, user_id, platform) do
     # Find viewers with similar usernames on other platforms
-    user_viewers = Viewer.for_user!(user_id: user_id)
+    case Viewer.for_user(user_id: user_id, load: [:viewer_identities]) do
+      {:ok, user_viewers} ->
+        Enum.filter(user_viewers, fn viewer ->
+          has_similar_identity?(viewer, username, platform)
+        end)
 
-    Enum.filter(user_viewers, fn viewer ->
-      has_similar_identity?(viewer, username, platform)
-    end)
+      {:error, _} ->
+        []
+    end
   end
 
   defp has_similar_identity?(viewer, username, exclude_platform) do
@@ -188,19 +233,61 @@ defmodule Streampai.Stream.ViewerLinking do
   end
 
   defp username_similarity(username1, username2) when is_binary(username1) and is_binary(username2) do
-    # Simple Jaro-Winkler-like similarity
-    username1 = String.downcase(username1)
-    username2 = String.downcase(username2)
+    # Normalize usernames for comparison (lowercase, remove spaces/special chars)
+    norm1 = normalize_username(username1)
+    norm2 = normalize_username(username2)
 
     cond do
-      username1 == username2 -> 1.0
-      String.contains?(username1, username2) or String.contains?(username2, username1) -> 0.9
-      String.jaro_distance(username1, username2) > 0.8 -> 0.8
-      true -> 0.0
+      norm1 == norm2 -> 1.0
+      String.contains?(norm1, norm2) or String.contains?(norm2, norm1) ->
+        # Weighted by base Jaro distance
+        base_similarity = String.jaro_distance(norm1, norm2)
+        0.9 * base_similarity
+      true ->
+        jaro = String.jaro_distance(norm1, norm2)
+        if jaro > 0.8, do: jaro, else: 0.0
     end
   end
 
   defp username_similarity(_, _), do: 0.0
+
+  defp normalize_username(username) when is_binary(username) do
+    username
+    |> String.downcase()
+    |> String.replace(~r/[\s\-_\.]+/, "")  # Remove spaces, hyphens, underscores, dots
+    |> String.trim()
+  end
+
+  defp normalize_username(_), do: ""
+
+  defp validate_linking_inputs(platform, platform_user_id, username) do
+    with :ok <- validate_platform(platform),
+         :ok <- validate_platform_user_id(platform_user_id),
+         :ok <- validate_username(username) do
+      :ok
+    end
+  end
+
+  defp validate_platform(platform) when platform in [:youtube, :twitch, :facebook, :kick], do: :ok
+  defp validate_platform(_), do: {:error, :invalid_platform}
+
+  defp validate_platform_user_id(id) when is_binary(id) and byte_size(id) > 0 and byte_size(id) <= 255 do
+    if String.match?(id, ~r/^[a-zA-Z0-9_\-]+$/) do
+      :ok
+    else
+      {:error, :invalid_platform_user_id}
+    end
+  end
+  defp validate_platform_user_id(_), do: {:error, :invalid_platform_user_id}
+
+  defp validate_username(username) when is_binary(username) and byte_size(username) > 0 and byte_size(username) <= 100 do
+    if String.match?(username, ~r/^[a-zA-Z0-9_\-\s\.]+$/) do
+      :ok
+    else
+      {:error, :invalid_username}
+    end
+  end
+  defp validate_username(_), do: {:error, :invalid_username}
 
   defp select_best_viewer_match(candidates, username, platform, confidence_threshold) do
     case candidates do
@@ -213,10 +300,10 @@ defmodule Streampai.Stream.ViewerLinking do
           |> Enum.map(&score_viewer_match(&1, username, platform))
           |> Enum.max_by(& &1.confidence)
 
-        if Decimal.compare(best_match.confidence, confidence_threshold) != :lt do
-          {:ok, best_match}
-        else
+        if Decimal.compare(best_match.confidence, confidence_threshold) == :lt do
           {:no_match, {:low_confidence, best_match.confidence}}
+        else
+          {:ok, best_match}
         end
     end
   end
@@ -236,7 +323,7 @@ defmodule Streampai.Stream.ViewerLinking do
   end
 
   defp create_identity_for_viewer(viewer, platform, platform_user_id, username, confidence, method, batch_id) do
-    case ViewerIdentity.create!(%{
+    case ViewerIdentity.create(%{
            viewer_id: viewer.id,
            platform: platform,
            platform_user_id: platform_user_id,
@@ -252,22 +339,26 @@ defmodule Streampai.Stream.ViewerLinking do
           batch_id: batch_id
         })
 
-        Viewer.touch_last_seen!(viewer)
+        case Viewer.touch_last_seen(viewer) do
+          {:ok, updated_viewer} ->
+            {:ok, %{viewer: updated_viewer, identity: identity, created?: true}}
+          {:error, _} ->
+            # Still return success for identity creation even if touch fails
+            {:ok, %{viewer: viewer, identity: identity, created?: true}}
+        end
 
-        {:ok, %{viewer: viewer, identity: identity, created?: true}}
-
-      error ->
+      {:error, _} = error ->
         error
     end
   end
 
   defp create_new_viewer_with_identity(platform, platform_user_id, username, user_id, batch_id) do
-    case Viewer.create!(%{
+    case Viewer.create(%{
            display_name: username,
            user_id: user_id
          }) do
       {:ok, viewer} ->
-        case ViewerIdentity.create!(%{
+        case ViewerIdentity.create(%{
                viewer_id: viewer.id,
                platform: platform,
                platform_user_id: platform_user_id,
@@ -284,11 +375,11 @@ defmodule Streampai.Stream.ViewerLinking do
 
             {:ok, %{viewer: viewer, identity: identity, created?: true}}
 
-          error ->
+          {:error, _} = error ->
             error
         end
 
-      error ->
+      {:error, _} = error ->
         error
     end
   end
@@ -308,7 +399,7 @@ defmodule Streampai.Stream.ViewerLinking do
   defp extract_username_from_event_data(%StreamEvent{data: data}) when is_map(data) do
     # Try various common fields where username might be stored
     data["username"] || data["user_name"] || data["display_name"] ||
-    data["author"] || data["sender"] || "unknown"
+      data["author"] || data["sender"] || "unknown"
   end
 
   defp extract_username_from_event_data(_), do: "unknown"
@@ -335,19 +426,24 @@ defmodule Streampai.Stream.ViewerLinking do
   end
 
   defp log_linking_decision(identity, action_type, metadata) do
-    ViewerLinkingAudit.create!(%{
-      viewer_identity_id: identity.id,
-      action_type: action_type,
-      linking_batch_id: metadata[:batch_id] || generate_batch_id(),
-      algorithm_version: @algorithm_version,
-      input_data: %{
-        platform: identity.platform,
-        platform_user_id: identity.platform_user_id,
-        username: identity.username
-      },
-      decision_data: metadata,
-      confidence_score: identity.confidence_score
-    })
+    case ViewerLinkingAudit.create(%{
+           viewer_identity_id: identity.id,
+           action_type: action_type,
+           linking_batch_id: metadata[:batch_id] || generate_batch_id(),
+           algorithm_version: @algorithm_version,
+           input_data: %{
+             platform: identity.platform,
+             platform_user_id: identity.platform_user_id,
+             username: identity.username
+           },
+           decision_data: metadata,
+           confidence_score: identity.confidence_score
+         }) do
+      {:ok, _audit} -> :ok
+      {:error, error} ->
+        Logger.warning("Failed to log linking decision: #{inspect(error)}")
+        :ok  # Don't fail the main operation due to audit logging issues
+    end
   end
 
   defp generate_batch_id do
