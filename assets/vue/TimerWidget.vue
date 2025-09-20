@@ -68,6 +68,7 @@ const lastExtension = ref<ExtensionInfo | null>(null)
 const extensionClass = ref('')
 
 let timerInterval: number | null = null
+let extensionTimeout: number | null = null
 
 // Computed properties
 const formattedTime = computed(() => {
@@ -187,25 +188,24 @@ const extendTimer = (amount: number, username: string) => {
   lastExtension.value = { amount, username, timestamp: Date.now() }
   extensionClass.value = `extension-${props.config.extension_animation}`
 
-  setTimeout(() => {
+  // Clear any existing timeout
+  if (extensionTimeout) {
+    clearTimeout(extensionTimeout)
+  }
+
+  extensionTimeout = setTimeout(() => {
     lastExtension.value = null
     extensionClass.value = ''
+    extensionTimeout = null
   }, 3000)
 
-  // Play sound if enabled
-  if (props.config.sound_enabled) {
-    playExtensionSound()
-  }
+  // TODO: Implement sound effects when needed
 }
 
 const setTime = (time: number) => {
   currentTime.value = time
 }
 
-const playExtensionSound = () => {
-  // Sound playback would be implemented here
-  // Using Web Audio API or HTML5 Audio
-}
 
 // Watch for events
 watch(() => props.event, (newEvent) => {
@@ -250,12 +250,20 @@ onMounted(() => {
   }
 })
 
-// Cleanup on unmount
-onUnmounted(() => {
+// Cleanup function
+const cleanup = () => {
   if (timerInterval) {
     clearInterval(timerInterval)
+    timerInterval = null
   }
-})
+  if (extensionTimeout) {
+    clearTimeout(extensionTimeout)
+    extensionTimeout = null
+  }
+}
+
+// Cleanup on unmount
+onUnmounted(cleanup)
 </script>
 
 <style scoped>

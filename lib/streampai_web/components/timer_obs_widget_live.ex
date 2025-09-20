@@ -113,9 +113,8 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
   defp ensure_timer_manager_started(user_id) do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:timer_manager, user_id}) do
       [] ->
-        # Start the timer manager if it's not running
         case DynamicSupervisor.start_child(
-          Streampai.LivestreamManager.Supervisor,
+          Streampai.LivestreamManager.DynamicSupervisor,
           TimerManager.child_spec(user_id)
         ) do
           {:ok, _pid} -> :ok
@@ -123,7 +122,6 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
           {:error, reason} -> {:error, reason}
         end
       [{_pid, _}] ->
-        # Timer manager is already running
         :ok
     end
   end

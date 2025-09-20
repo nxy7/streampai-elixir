@@ -86,10 +86,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def init(user_id) do
-    # Subscribe to user stream events for automatic extensions
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
-
-    # Subscribe to timer config updates
     Phoenix.PubSub.subscribe(
       Streampai.PubSub,
       "widget_config:timer_widget:#{user_id}"
@@ -258,14 +255,12 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
       new_state = %{state | current_time: new_time}
 
-      # Check if timer has ended (for countdown)
       new_state = if state.count_direction == "down" and new_time <= 0 do
         handle_timer_end(new_state)
       else
         schedule_tick(new_state)
       end
 
-      # Broadcast tick update
       broadcast_tick(new_state)
 
       {:noreply, new_state}
