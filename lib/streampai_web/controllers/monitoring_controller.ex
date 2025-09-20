@@ -5,6 +5,7 @@ defmodule StreampaiWeb.MonitoringController do
   use StreampaiWeb, :controller
 
   alias StreampaiWeb.Plugs.ErrorTracker
+  alias StreampaiWeb.Utils.FormatHelpers
 
   def system_info(conn, _params) do
     metrics = collect_system_metrics()
@@ -21,7 +22,7 @@ defmodule StreampaiWeb.MonitoringController do
       status: "ok",
       timestamp: DateTime.utc_now(),
       uptime: uptime_ms,
-      uptime_human: format_uptime(uptime_ms),
+      uptime_human: FormatHelpers.format_uptime(uptime_ms),
       node: Node.self(),
       version: :streampai |> Application.spec(:vsn) |> to_string(),
       git_sha: System.get_env("GIT_SHA", "unknown")
@@ -137,23 +138,5 @@ defmodule StreampaiWeb.MonitoringController do
       error_types: Enum.frequencies_by(recent_errors, & &1.type),
       status_codes: Enum.frequencies_by(recent_errors, & &1[:status])
     }
-  end
-
-  defp format_uptime(uptime_ms) do
-    seconds = div(uptime_ms, 1000)
-    minutes = div(seconds, 60)
-    hours = div(minutes, 60)
-    days = div(hours, 24)
-
-    remaining_hours = rem(hours, 24)
-    remaining_minutes = rem(minutes, 60)
-    remaining_seconds = rem(seconds, 60)
-
-    cond do
-      days > 0 -> "#{days}d #{remaining_hours}h #{remaining_minutes}m"
-      hours > 0 -> "#{hours}h #{remaining_minutes}m"
-      minutes > 0 -> "#{minutes}m #{remaining_seconds}s"
-      true -> "#{seconds}s"
-    end
   end
 end

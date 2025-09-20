@@ -5,6 +5,7 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   import StreampaiWeb.Utils.PlatformUtils
 
   alias Streampai.Fake.Chat
+  alias StreampaiWeb.Utils.CacheUtils
 
   def mount_page(socket, _params, _session) do
     chat_messages = get_cached_chat_messages()
@@ -31,26 +32,11 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   end
 
   defp get_cached_chat_messages do
-    case :ets.lookup(:chat_cache, :messages) do
-      [{:messages, messages, timestamp}] ->
-        if DateTime.diff(DateTime.utc_now(), timestamp, :second) < 300 do
-          Enum.take(messages, 20)
-        else
-          regenerate_and_cache_messages()
-        end
+    messages =
+      CacheUtils.get_cached(:chat_cache, :messages, 300, fn ->
+        Chat.generate_chat_history_messages(50)
+      end)
 
-      [] ->
-        regenerate_and_cache_messages()
-    end
-  rescue
-    ArgumentError ->
-      :ets.new(:chat_cache, [:set, :public, :named_table])
-      regenerate_and_cache_messages()
-  end
-
-  defp regenerate_and_cache_messages do
-    messages = Chat.generate_chat_history_messages(50)
-    :ets.insert(:chat_cache, {:messages, messages, DateTime.utc_now()})
     Enum.take(messages, 20)
   end
 

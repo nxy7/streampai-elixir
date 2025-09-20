@@ -14,6 +14,7 @@ defmodule StreampaiWeb.LiveHelpers do
 
   alias Streampai.Accounts.StreamingAccount
   alias Streampai.Accounts.User
+  alias StreampaiWeb.Utils.FormatHelpers
 
   @doc """
   Handles errors consistently across LiveViews with user-friendly messages.
@@ -237,10 +238,5 @@ defmodule StreampaiWeb.LiveHelpers do
 
   # Private helpers
 
-  defp format_changeset_errors(%Ecto.Changeset{errors: errors}) do
-    case Enum.map_join(errors, ", ", fn {field, {message, _}} -> "#{field}: #{message}" end) do
-      "" -> "Invalid data provided"
-      formatted -> formatted
-    end
-  end
+  defp format_changeset_errors(changeset), do: FormatHelpers.format_changeset_errors(changeset)
 end

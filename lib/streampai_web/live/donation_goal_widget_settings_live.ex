@@ -7,6 +7,7 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
     widget_type: :donation_goal_widget,
     fake_module: Streampai.Fake.DonationGoal
 
+  alias StreampaiWeb.Utils.ValidationUtils
   alias StreampaiWeb.Utils.WidgetHelpers
 
   defp widget_title, do: "Donation Goal Widget"
@@ -72,32 +73,17 @@ defmodule StreampaiWeb.DonationGoalWidgetSettingsLive do
   defp convert_setting_value(:text_color, value), do: validate_text_color(value)
   defp convert_setting_value(_, value), do: value
 
-  defp validate_goal_amount(value) do
-    WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1_000_000)
-  end
+  defp validate_goal_amount(value), do: ValidationUtils.parse_numeric_setting(value, min: 1, max: 1_000_000)
 
-  defp validate_starting_amount(value) do
-    WidgetHelpers.parse_numeric_setting(value, min: 0, max: 1_000_000)
-  end
+  defp validate_starting_amount(value), do: ValidationUtils.parse_numeric_setting(value, min: 0, max: 1_000_000)
 
-  defp validate_theme(value) do
-    WidgetHelpers.validate_config_value(
-      :theme,
-      value,
-      ["default", "minimal", "modern"],
-      "default"
-    )
-  end
+  defp validate_theme(value), do: ValidationUtils.validate_enum_value(value, ["default", "minimal", "modern"], "default")
 
-  defp validate_currency(value) do
-    valid_currencies = ["$", "€", "£", "¥", "₹", "₽"]
-    if value in valid_currencies, do: value, else: "$"
-  end
-
-  defp validate_title(value), do: String.slice(value, 0, 100)
-  defp validate_bar_color(value), do: WidgetHelpers.validate_hex_color(value, "#10b981")
-  defp validate_background_color(value), do: WidgetHelpers.validate_hex_color(value, "#e5e7eb")
-  defp validate_text_color(value), do: WidgetHelpers.validate_hex_color(value, "#1f2937")
+  defp validate_currency(value), do: ValidationUtils.validate_currency(value)
+  defp validate_title(value), do: ValidationUtils.validate_string_length(value, 100)
+  defp validate_bar_color(value), do: ValidationUtils.validate_hex_color(value, "#10b981")
+  defp validate_background_color(value), do: ValidationUtils.validate_hex_color(value, "#e5e7eb")
+  defp validate_text_color(value), do: ValidationUtils.validate_hex_color(value, "#1f2937")
 
   def render(assigns) do
     ~H"""

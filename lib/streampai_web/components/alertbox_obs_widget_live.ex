@@ -8,6 +8,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
   use StreampaiWeb, :live_view
 
   alias Streampai.Accounts.WidgetConfig
+  alias StreampaiWeb.Utils.IdUtils
   alias StreampaiWeb.Utils.WidgetHelpers
 
   def mount(params, _session, socket) do
@@ -122,9 +123,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     }
   end
 
-  defp generate_event_id do
-    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
-  end
+  defp generate_event_id, do: IdUtils.generate_event_id()
 
   defp get_tts_url(%{tts_path: path}) when is_binary(path), do: Streampai.TtsService.get_tts_public_url(path)
 

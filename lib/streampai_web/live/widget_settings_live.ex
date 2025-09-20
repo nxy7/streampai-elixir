@@ -7,6 +7,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   import StreampaiWeb.LiveHelpers.FlashHelpers
 
   alias Streampai.Accounts.WidgetConfig
+  alias StreampaiWeb.Utils.ValidationUtils
 
   defmacro __using__(opts) do
     widget_type = Keyword.fetch!(opts, :widget_type)
@@ -131,11 +132,7 @@ defmodule StreampaiWeb.WidgetSettingsLive do
   end
 
   # Parse setting values based on field type
-  defp parse_setting_value("max_messages", value), do: String.to_integer(value)
-  defp parse_setting_value("message_fade_time", value), do: String.to_integer(value)
-  defp parse_setting_value("display_duration", value), do: String.to_integer(value)
-  defp parse_setting_value("animation_duration", value), do: String.to_integer(value)
-  defp parse_setting_value(_field, value), do: value
+  defp parse_setting_value(field, value), do: ValidationUtils.parse_setting_value(field, value)
 
   # Helper to generate OBS browser source URL
   def obs_browser_source_url(user_id, widget_type) do
