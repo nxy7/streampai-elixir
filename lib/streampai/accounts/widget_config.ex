@@ -93,9 +93,10 @@ defmodule Streampai.Accounts.WidgetConfig do
                :overlay_widget,
                :alert_widget,
                :goal_widget,
-               :leaderboard_widget
+               :leaderboard_widget,
+               :timer_widget
              ]) do
-      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, follower_count_widget, donation_widget, top_donors_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget"
+      message "Type must be one of: chat_widget, alertbox_widget, viewer_count_widget, follower_count_widget, donation_widget, top_donors_widget, donation_goal_widget, follow_widget, subscriber_widget, overlay_widget, alert_widget, goal_widget, leaderboard_widget, timer_widget"
     end
 
     validate present([:user_id])

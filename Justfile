@@ -63,7 +63,8 @@ worktree name:
 	echo "Creating worktree: {{name}}"
 
 	# Create the worktree
-	git worktree add "../{{name}}" -b "{{name}}"
+	git worktree add "../{{name}}" -b "{{name}}" || echo "Worktree ../{{name}} already exists"
+	cd "../{{name}}"
 
 	just worktree-setup
 
@@ -71,17 +72,19 @@ worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	name=$(pwd | awk -F/ '{print $NF}')
+
+	echo "Setting up worktree: $name"
 	
 	PORT=$(($(random) % 3000 + 4000))
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
-	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;"
-	claude mcp add --transport http tidewave http://localhost:$PORT/tidewave/mcp
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" || echo "Database $DB_NAME already exists"
+	claude mcp add --transport http tidewave http://localhost:$PORT/tidewave/mcp || echo "MCP already exists"
 
 	cp ~/streampai-elixir/.env .
 	# copy compiled artifacts for faster startup
-	cp ~/streampai-elixir/deps .
-	cp ~/streampai-elixir/_build .
+	cp -r ~/streampai-elixir/deps .
+	cp -r ~/streampai-elixir/_build .
 	# Append worktree-specific configuration to .env before setup
 	echo "" >> .env
 	echo "# Worktree-specific configuration for: $name" >> .env
@@ -97,11 +100,12 @@ worktree-setup:
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
 	# Create the database first (ecto.create connects to postgres db to create target db)
-	mix ecto.create
+	mix ecto.create || echo "Database $DB_NAME already exists"
 
 	# Then run ash.setup for migrations and seeds
 	mix ash.setup
 	mix compile
+	claude --dangerously-skip-permissions .
 
 tasks:
 	hx ./tasks
