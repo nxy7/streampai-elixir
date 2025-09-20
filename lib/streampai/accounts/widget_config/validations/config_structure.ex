@@ -10,6 +10,7 @@ defmodule Streampai.Accounts.WidgetConfig.Validations.ConfigStructure do
     case {Ash.Changeset.get_attribute(changeset, :type), Ash.Changeset.get_attribute(changeset, :config)} do
       {:chat_widget, config} -> validate_chat_widget_config(config, changeset)
       {:alertbox_widget, config} -> validate_alertbox_widget_config(config, changeset)
+      {:eventlist_widget, config} -> validate_eventlist_widget_config(config, changeset)
       {nil, _} -> :ok
       {_, nil} -> :ok
       {_, config} when is_map(config) -> :ok
@@ -41,6 +42,27 @@ defmodule Streampai.Accounts.WidgetConfig.Validations.ConfigStructure do
       end
     else
       {:error, field: :config, message: "Missing required alertbox widget config keys: #{inspect(missing_keys)}"}
+    end
+  end
+
+  defp validate_eventlist_widget_config(config, _changeset) do
+    required_keys = [:max_events, :animation_type, :event_types, :font_size]
+    missing_keys = required_keys -- Map.keys(config)
+
+    if missing_keys == [] do
+      with :ok <- validate_max_events(config),
+           :ok <- validate_animation_type(config),
+           :ok <- validate_event_types(config),
+           :ok <- validate_font_size(config) do
+        validate_boolean_fields(config, [
+          :show_timestamps,
+          :show_platform,
+          :show_amounts,
+          :compact_mode
+        ])
+      end
+    else
+      {:error, field: :config, message: "Missing required eventlist widget config keys: #{inspect(missing_keys)}"}
     end
   end
 
@@ -108,6 +130,55 @@ defmodule Streampai.Accounts.WidgetConfig.Validations.ConfigStructure do
 
       _ ->
         {:error, field: :config, message: "sound_enabled must be true or false"}
+    end
+  end
+
+  defp validate_max_events(config) do
+    case Map.get(config, :max_events) do
+      n when is_integer(n) and n > 0 and n <= 50 ->
+        :ok
+
+      n when is_integer(n) and n <= 0 ->
+        {:error, field: :config, message: "max_events must be greater than 0"}
+
+      n when is_integer(n) and n > 50 ->
+        {:error, field: :config, message: "max_events cannot exceed 50"}
+
+      _ ->
+        {:error, field: :config, message: "max_events must be an integer"}
+    end
+  end
+
+  defp validate_event_types(config) do
+    valid_types = ["donation", "follow", "subscription", "raid", "chat_message"]
+
+    case Map.get(config, :event_types) do
+      types when is_list(types) ->
+        if Enum.all?(types, &(&1 in valid_types)) do
+          :ok
+        else
+          invalid_types = types -- valid_types
+
+          {:error,
+           field: :config,
+           message: "Invalid event types: #{inspect(invalid_types)}. Must be one of: #{inspect(valid_types)}"}
+        end
+
+      _ ->
+        {:error, field: :config, message: "event_types must be a list of strings"}
+    end
+  end
+
+  defp validate_font_size(config) do
+    case Map.get(config, :font_size) do
+      size when size in ["small", "medium", "large"] ->
+        :ok
+
+      size when is_binary(size) ->
+        {:error, field: :config, message: "font_size '#{size}' is invalid. Must be one of: small, medium, large"}
+
+      _ ->
+        {:error, field: :config, message: "font_size must be a string (one of: small, medium, large)"}
     end
   end
 end

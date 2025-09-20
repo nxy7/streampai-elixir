@@ -90,6 +90,13 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
                 <h4 class="font-medium text-sm">Top Donors</h4>
                 <p class="text-xs text-gray-500">Display biggest supporters with rankings</p>
               </.link>
+              <.link
+                navigate={~p"/widgets/eventlist"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <h4 class="font-medium text-sm">Event List</h4>
+                <p class="text-xs text-gray-500">Display recent donations, follows, subs & raids</p>
+              </.link>
             </div>
           </div>
           
