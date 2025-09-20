@@ -90,6 +90,13 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
                 <h4 class="font-medium text-sm">Top Donors</h4>
                 <p class="text-xs text-gray-500">Display biggest supporters with rankings</p>
               </.link>
+              <.link
+                navigate={~p"/widgets/giveaway"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <h4 class="font-medium text-sm">Giveaway Widget</h4>
+                <p class="text-xs text-gray-500">Run giveaways and show participation status</p>
+              </.link>
             </div>
           </div>
           
