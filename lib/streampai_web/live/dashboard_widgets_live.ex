@@ -126,6 +126,13 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
                 <h4 class="font-medium text-sm">Follower Count Widget</h4>
                 <p class="text-xs text-gray-500">Display real-time follower counts per platform</p>
               </.link>
+              <.link
+                navigate={~p"/widgets/timer"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <h4 class="font-medium text-sm">Timer Widget</h4>
+                <p class="text-xs text-gray-500">Countdown/countup timer with event extensions</p>
+              </.link>
               <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Stream Uptime</h4>
                 <p class="text-xs text-gray-500">How long you've been live</p>
