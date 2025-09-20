@@ -98,4 +98,63 @@ defmodule StreampaiWeb.Utils.FormatHelpers do
       days -> "#{div(days, 30)} months ago"
     end
   end
+
+  @doc """
+  Formats file size in bytes to human-readable format.
+
+  ## Examples
+
+      iex> format_file_size(1024)
+      "1.0 KB"
+
+      iex> format_file_size(1048576)
+      "1.0 MB"
+
+      iex> format_file_size(500)
+      "500 B"
+  """
+  def format_file_size(bytes) when bytes < 1024, do: "#{bytes} B"
+  def format_file_size(bytes) when bytes < 1024 * 1024, do: "#{Float.round(bytes / 1024, 1)} KB"
+  def format_file_size(bytes), do: "#{Float.round(bytes / (1024 * 1024), 1)} MB"
+
+  @doc """
+  Formats uptime in milliseconds to human-readable format.
+
+  ## Examples
+
+      iex> format_uptime(3661000)
+      "1h 1m 1s"
+
+      iex> format_uptime(60000)
+      "1m 0s"
+  """
+  def format_uptime(uptime_ms) do
+    seconds = div(uptime_ms, 1000)
+    minutes = div(seconds, 60)
+    hours = div(minutes, 60)
+
+    remaining_seconds = rem(seconds, 60)
+    remaining_minutes = rem(minutes, 60)
+
+    cond do
+      hours > 0 -> "#{hours}h #{remaining_minutes}m #{remaining_seconds}s"
+      minutes > 0 -> "#{remaining_minutes}m #{remaining_seconds}s"
+      true -> "#{remaining_seconds}s"
+    end
+  end
+
+  @doc """
+  Formats changeset errors into a readable string.
+
+  ## Examples
+
+      iex> format_changeset_errors(%Ecto.Changeset{errors: [name: {"can't be blank", []}]})
+      "name: can't be blank"
+  """
+  def format_changeset_errors(%Ecto.Changeset{errors: errors}) do
+    case Enum.map_join(errors, ", ", fn {field, {message, _}} -> "#{field}: #{message}" end) do
+      "" -> "Invalid data provided"
+      formatted -> formatted
+    end
+  end
 end

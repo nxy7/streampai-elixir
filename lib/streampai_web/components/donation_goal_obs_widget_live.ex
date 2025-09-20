@@ -9,6 +9,7 @@ defmodule StreampaiWeb.Components.DonationGoalObsWidgetLive do
 
   alias Streampai.Accounts.WidgetConfig
   alias Streampai.Accounts.WidgetConfigDefaults
+  alias StreampaiWeb.Utils.IdUtils
   alias StreampaiWeb.Utils.WidgetHelpers
 
   def mount(params, _session, socket) do
@@ -131,9 +132,7 @@ defmodule StreampaiWeb.Components.DonationGoalObsWidgetLive do
     {:noreply, socket}
   end
 
-  defp generate_event_id do
-    8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
-  end
+  defp generate_event_id, do: IdUtils.generate_event_id()
 
   def render(assigns) do
     ~H"""

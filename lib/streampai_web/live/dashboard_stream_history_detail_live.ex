@@ -5,6 +5,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   import StreampaiWeb.Utils.PlatformUtils
 
   alias Streampai.Fake.Livestream
+  alias StreampaiWeb.Utils.DateTimeUtils
 
   def mount_page(socket, %{"stream_id" => stream_id}, _session) do
     # In a real app, you'd fetch from database
@@ -272,31 +273,10 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   end
 
   defp format_timeline_time(stream, position) do
-    seconds_elapsed = round(position / 100 * stream.duration_seconds)
-    hours = div(seconds_elapsed, 3600)
-    minutes = div(rem(seconds_elapsed, 3600), 60)
-    seconds = rem(seconds_elapsed, 60)
-
-    if_result =
-      if hours > 0 do
-        :io_lib.format("~2..0B:~2..0B:~2..0B", [hours, minutes, seconds])
-      else
-        :io_lib.format("~2..0B:~2..0B", [minutes, seconds])
-      end
-
-    to_string(if_result)
+    DateTimeUtils.format_timeline_position(stream, position)
   end
 
-  defp format_duration(seconds) do
-    hours = div(seconds, 3600)
-    minutes = div(rem(seconds, 3600), 60)
-
-    cond do
-      hours > 0 -> "#{hours}h #{minutes}m"
-      minutes > 0 -> "#{minutes}m"
-      true -> "< 1m"
-    end
-  end
+  defp format_duration(seconds), do: DateTimeUtils.format_duration(seconds)
 
   def render(assigns) do
     ~H"""

@@ -4,6 +4,7 @@ defmodule StreampaiWeb.ViewersLive do
 
   import StreampaiWeb.Components.DashboardLayout
 
+  alias StreampaiWeb.Utils.DateTimeUtils
   alias StreampaiWeb.Utils.MockViewers
 
   @impl true
@@ -146,16 +147,7 @@ defmodule StreampaiWeb.ViewersLive do
   defp default_sort_order(:username), do: :asc
   defp default_sort_order(_), do: :desc
 
-  defp format_duration(minutes) do
-    hours = div(minutes, 60)
-    remaining_minutes = rem(minutes, 60)
-
-    cond do
-      hours > 24 -> "#{div(hours, 24)}d #{rem(hours, 24)}h"
-      hours > 0 -> "#{hours}h #{remaining_minutes}m"
-      true -> "#{remaining_minutes}m"
-    end
-  end
+  defp format_duration(minutes), do: DateTimeUtils.format_duration_minutes(minutes)
 
   defp format_date(datetime) do
     StreampaiWeb.Utils.FormatHelpers.format_date_relative(datetime)

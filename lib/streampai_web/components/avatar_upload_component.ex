@@ -6,6 +6,8 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
 
   import StreampaiWeb.AnalyticsComponents
 
+  alias StreampaiWeb.Utils.FormatHelpers
+
   require Logger
 
   @impl true
@@ -89,7 +91,9 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
               <img src={@preview_url} alt="Preview" class="w-12 h-12 rounded-full object-cover" />
               <div class="flex-1">
                 <p class="text-sm font-medium text-gray-900">Ready to upload</p>
-                <p class="text-xs text-gray-500">{@file_name} • {format_file_size(@file_size)}</p>
+                <p class="text-xs text-gray-500">
+                  {@file_name} • {FormatHelpers.format_file_size(@file_size)}
+                </p>
               </div>
               <button
                 type="button"
@@ -388,8 +392,4 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
     |> Ash.Changeset.for_update(:update_avatar, %{avatar_url: avatar_url})
     |> Ash.update!(actor: user)
   end
-
-  defp format_file_size(bytes) when bytes < 1024, do: "#{bytes} B"
-  defp format_file_size(bytes) when bytes < 1024 * 1024, do: "#{Float.round(bytes / 1024, 1)} KB"
-  defp format_file_size(bytes), do: "#{Float.round(bytes / (1024 * 1024), 1)} MB"
 end

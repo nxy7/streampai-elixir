@@ -5,6 +5,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
   import StreampaiWeb.Utils.PlatformUtils
 
   alias Streampai.Fake.Livestream
+  alias StreampaiWeb.Utils.CacheUtils
+  alias StreampaiWeb.Utils.DateTimeUtils
 
   def mount_page(socket, _params, _session) do
     stream_list = get_cached_streams()
@@ -33,27 +35,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
   end
 
   defp get_cached_streams do
-    case :ets.lookup(:stream_cache, :streams) do
-      [{:streams, streams, timestamp}] ->
-        if DateTime.diff(DateTime.utc_now(), timestamp, :second) < 300 do
-          streams
-        else
-          regenerate_and_cache_streams()
-        end
-
-      [] ->
-        regenerate_and_cache_streams()
-    end
-  rescue
-    ArgumentError ->
-      :ets.new(:stream_cache, [:set, :public, :named_table])
-      regenerate_and_cache_streams()
-  end
-
-  defp regenerate_and_cache_streams do
-    streams = Livestream.generate_stream_history(15)
-    :ets.insert(:stream_cache, {:streams, streams, DateTime.utc_now()})
-    streams
+    CacheUtils.get_cached(:stream_cache, :streams, 300, fn ->
+      Livestream.generate_stream_history(15)
+    end)
   end
 
   defp apply_filters(streams, filters) do
@@ -98,25 +82,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   defp sort_streams(streams, _), do: streams
 
-  defp format_duration(seconds) do
-    hours = div(seconds, 3600)
-    minutes = div(rem(seconds, 3600), 60)
+  defp format_duration(seconds), do: DateTimeUtils.format_duration(seconds)
 
-    cond do
-      hours > 0 -> "#{hours}h #{minutes}m"
-      minutes > 0 -> "#{minutes}m"
-      true -> "< 1m"
-    end
-  end
-
-  defp format_date(datetime) do
-    case DateTime.diff(DateTime.utc_now(), datetime, :day) do
-      0 -> "Today"
-      1 -> "Yesterday"
-      days when days < 7 -> "#{days} days ago"
-      _ -> Calendar.strftime(datetime, "%b %d, %Y")
-    end
-  end
+  defp format_date(datetime), do: DateTimeUtils.format_date(datetime)
 
   def render(assigns) do
     ~H"""
