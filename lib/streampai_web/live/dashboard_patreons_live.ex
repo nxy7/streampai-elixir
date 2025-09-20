@@ -381,9 +381,12 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
                           alt={patreon.display_name}
                         />
                         <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
+                          <.link
+                            navigate={"/dashboard/viewers/#{patreon.viewer_id}"}
+                            class="text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors"
+                          >
                             {patreon.display_name}
-                          </div>
+                          </.link>
                           <div class="text-sm text-gray-500">
                             @{patreon.username}
                           </div>
