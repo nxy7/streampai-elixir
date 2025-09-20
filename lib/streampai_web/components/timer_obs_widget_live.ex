@@ -6,8 +6,8 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
   use StreampaiWeb, :live_view
 
   alias Streampai.Accounts.WidgetConfig
-  alias Streampai.LivestreamManager.TimerManager
   alias Streampai.Fake.Timer, as: FakeTimer
+  alias Streampai.LivestreamManager.TimerManager
   alias StreampaiWeb.Utils.WidgetHelpers
 
   @widget_type :timer_widget
@@ -73,16 +73,20 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
       user_id = socket.assigns.user_id
       event_type = Enum.random([:donation, :subscription, :raid, :patreon])
 
-      {amount, username} = case event_type do
-        :donation ->
-          {Enum.random(5..50), FakeTimer.generate_extension_event(:donation).username}
-        :subscription ->
-          {nil, FakeTimer.generate_extension_event(:subscription).username}
-        :raid ->
-          {Enum.random(10..200), FakeTimer.generate_extension_event(:raid).username}
-        :patreon ->
-          {nil, FakeTimer.generate_extension_event(:patreon).username}
-      end
+      {amount, username} =
+        case event_type do
+          :donation ->
+            {Enum.random(5..50), FakeTimer.generate_extension_event(:donation).username}
+
+          :subscription ->
+            {nil, FakeTimer.generate_extension_event(:subscription).username}
+
+          :raid ->
+            {Enum.random(10..200), FakeTimer.generate_extension_event(:raid).username}
+
+          :patreon ->
+            {nil, FakeTimer.generate_extension_event(:patreon).username}
+        end
 
       extension_amount = calculate_extension_for_demo(event_type, amount, socket.assigns.config)
 
@@ -101,6 +105,7 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
       # Start scheduling demo extensions
       schedule_demo_extension()
     end
+
     {:noreply, socket}
   end
 
@@ -113,17 +118,16 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
   defp ensure_timer_manager_started(user_id) do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:timer_manager, user_id}) do
       [] ->
-        # Start the timer manager if it's not running
         case DynamicSupervisor.start_child(
-          Streampai.LivestreamManager.Supervisor,
-          TimerManager.child_spec(user_id)
-        ) do
+               Streampai.LivestreamManager.DynamicSupervisor,
+               TimerManager.child_spec(user_id)
+             ) do
           {:ok, _pid} -> :ok
           {:error, {:already_started, _pid}} -> :ok
           {:error, reason} -> {:error, reason}
         end
+
       [{_pid, _}] ->
-        # Timer manager is already running
         :ok
     end
   end
@@ -143,7 +147,8 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
       :donation ->
         donation_amount = amount || Enum.random(5..50)
         extension_per_dollar = config[:donation_extension_amount] || 30
-        round(donation_amount * extension_per_dollar / 10)  # Divide by 10 for demo
+        # Divide by 10 for demo
+        round(donation_amount * extension_per_dollar / 10)
 
       :subscription ->
         config[:subscription_extension_amount] || 60
@@ -158,7 +163,11 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
     end
   end
 
-  def mount(%{"user_id" => user_id}, _session, socket) do
+  def mount(params, session, socket) do
+    mount_with_user_id(params, session, socket)
+  end
+
+  defp mount_with_user_id(%{"user_id" => user_id}, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(
         Streampai.PubSub,
@@ -191,6 +200,18 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
     end
 
     {:ok, socket, layout: false}
+  end
+
+  defp mount_with_user_id(params, %{"user" => user_token}, socket) when is_binary(user_token) do
+    # Extract user_id from session user token
+    user_id = user_token |> String.split(":") |> List.first()
+    mount_with_user_id(Map.put(params, "user_id", user_id), %{}, socket)
+  end
+
+  defp mount_with_user_id(_params, _session, socket) do
+    # No user_id provided and no authenticated user - use demo mode
+    demo_user_id = "demo_user_#{8 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)}"
+    mount_with_user_id(%{"user_id" => demo_user_id}, %{}, socket)
   end
 
   def render(assigns) do

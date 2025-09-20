@@ -21,7 +21,8 @@ defmodule Streampai.Fake.Timer do
 
   def default_config do
     %{
-      initial_duration: 300,  # 5 minutes default
+      # 5 minutes default
+      initial_duration: 300,
       count_direction: "down",
       show_label: true,
       timer_label: "Stream Timer",
@@ -35,19 +36,24 @@ defmodule Streampai.Fake.Timer do
       extension_animation: "bounce",
       sound_enabled: true,
       sound_volume: 75,
-      warning_threshold: 30,  # 30 seconds warning
+      # 30 seconds warning
+      warning_threshold: 30,
       warning_color: "#ef4444",
       # Extension settings
       donation_extension_enabled: true,
-      donation_extension_amount: 30,  # seconds per dollar
+      # seconds per dollar
+      donation_extension_amount: 30,
       donation_min_amount: 1,
       subscription_extension_enabled: true,
-      subscription_extension_amount: 60,  # 1 minute per sub
+      # 1 minute per sub
+      subscription_extension_amount: 60,
       raid_extension_enabled: true,
-      raid_extension_per_viewer: 1,  # 1 second per viewer
+      # 1 second per viewer
+      raid_extension_per_viewer: 1,
       raid_min_viewers: 5,
       patreon_extension_enabled: true,
-      patreon_extension_amount: 120  # 2 minutes per patreon
+      # 2 minutes per patreon
+      patreon_extension_amount: 120
     }
   end
 
@@ -93,8 +99,10 @@ defmodule Streampai.Fake.Timer do
     case type do
       :start ->
         Map.put(base_event, :duration, 300)
+
       :reset ->
         Map.put(base_event, :duration, 300)
+
       _ ->
         base_event
     end
@@ -103,25 +111,29 @@ defmodule Streampai.Fake.Timer do
   def generate_extension_event(source_type, amount \\ nil) do
     username = Base.generate_username()
 
-    extension_amount = case source_type do
-      :donation ->
-        donation_amount = amount || Base.generate_donation_amount()
-        # 30 seconds per dollar by default
-        round(donation_amount * 30)
+    extension_amount =
+      case source_type do
+        :donation ->
+          donation_amount = amount || Base.generate_donation_amount()
+          # 30 seconds per dollar by default
+          round(donation_amount * 30)
 
-      :subscription ->
-        60  # 1 minute per sub
+        :subscription ->
+          # 1 minute per sub
+          60
 
-      :raid ->
-        viewers = amount || Enum.random(10..200)
-        viewers  # 1 second per viewer
+        :raid ->
+          viewers = amount || Enum.random(10..200)
+          # 1 second per viewer
+          viewers
 
-      :patreon ->
-        120  # 2 minutes per patreon
+        :patreon ->
+          # 2 minutes per patreon
+          120
 
-      _ ->
-        Enum.random(10..60)
-    end
+        _ ->
+          Enum.random(10..60)
+      end
 
     %{
       id: Base.generate_hex_id(),
@@ -138,11 +150,11 @@ defmodule Streampai.Fake.Timer do
     [
       %{type: :start, duration: 300, delay: 0},
       %{type: :extend, amount: 30, username: "DemoUser1", delay: 5000},
-      %{type: :extend, amount: 60, username: "DemoUser2", delay: 10000},
-      %{type: :stop, delay: 15000},
-      %{type: :resume, delay: 18000},
-      %{type: :extend, amount: 45, username: "DemoUser3", delay: 22000},
-      %{type: :reset, duration: 300, delay: 30000}
+      %{type: :extend, amount: 60, username: "DemoUser2", delay: 10_000},
+      %{type: :stop, delay: 15_000},
+      %{type: :resume, delay: 18_000},
+      %{type: :extend, amount: 45, username: "DemoUser3", delay: 22_000},
+      %{type: :reset, duration: 300, delay: 30_000}
     ]
   end
 end

@@ -63,19 +63,17 @@ defmodule Streampai.LivestreamManager.TimerManager do
   end
 
   def get_state(user_id) do
-    try do
-      GenServer.call(via_tuple(user_id), :get_state)
-    catch
-      :exit, {:noproc, _} ->
-        # Return default state if process doesn't exist
-        %{
-          current_time: 300,
-          total_duration: 300,
-          is_running: false,
-          is_paused: false,
-          count_direction: "down"
-        }
-    end
+    GenServer.call(via_tuple(user_id), :get_state)
+  catch
+    :exit, {:noproc, _} ->
+      # Return default state if process doesn't exist
+      %{
+        current_time: 300,
+        total_duration: 300,
+        is_running: false,
+        is_paused: false,
+        count_direction: "down"
+      }
   end
 
   def update_config(user_id, config) do
@@ -86,10 +84,8 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def init(user_id) do
-    # Subscribe to user stream events for automatic extensions
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
 
-    # Subscribe to timer config updates
     Phoenix.PubSub.subscribe(
       Streampai.PubSub,
       "widget_config:timer_widget:#{user_id}"
@@ -120,12 +116,13 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
     state = cancel_timer(state)
 
-    new_state = %{state |
-      total_duration: new_duration,
-      current_time: if(state.count_direction == "down", do: new_duration, else: 0),
-      is_running: true,
-      is_paused: false,
-      start_time: System.monotonic_time(:second)
+    new_state = %{
+      state
+      | total_duration: new_duration,
+        current_time: if(state.count_direction == "down", do: new_duration, else: 0),
+        is_running: true,
+        is_paused: false,
+        start_time: System.monotonic_time(:second)
     }
 
     new_state = schedule_tick(new_state)
@@ -137,12 +134,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
   @impl true
   def handle_call(:stop_timer, _from, state) do
     state = cancel_timer(state)
-    new_state = %{state |
-      is_running: false,
-      is_paused: false,
-      start_time: nil,
-      pause_time: nil
-    }
+    new_state = %{state | is_running: false, is_paused: false, start_time: nil, pause_time: nil}
 
     broadcast_event(new_state, %{type: :stop})
     {:reply, :ok, new_state}
@@ -152,10 +144,12 @@ defmodule Streampai.LivestreamManager.TimerManager do
   def handle_call(:pause_timer, _from, state) do
     if state.is_running and not state.is_paused do
       state = cancel_timer(state)
-      new_state = %{state |
-        is_running: false,
-        is_paused: true,
-        pause_time: System.monotonic_time(:second)
+
+      new_state = %{
+        state
+        | is_running: false,
+          is_paused: true,
+          pause_time: System.monotonic_time(:second)
       }
 
       broadcast_event(new_state, %{type: :pause})
@@ -168,11 +162,12 @@ defmodule Streampai.LivestreamManager.TimerManager do
   @impl true
   def handle_call(:resume_timer, _from, state) do
     if state.is_paused do
-      new_state = %{state |
-        is_running: true,
-        is_paused: false,
-        start_time: System.monotonic_time(:second),
-        pause_time: nil
+      new_state = %{
+        state
+        | is_running: true,
+          is_paused: false,
+          start_time: System.monotonic_time(:second),
+          pause_time: nil
       }
 
       new_state = schedule_tick(new_state)
@@ -188,13 +183,14 @@ defmodule Streampai.LivestreamManager.TimerManager do
     state = cancel_timer(state)
     new_duration = duration || state.config[:initial_duration] || state.total_duration
 
-    new_state = %{state |
-      total_duration: new_duration,
-      current_time: if(state.count_direction == "down", do: new_duration, else: 0),
-      is_running: false,
-      is_paused: false,
-      start_time: nil,
-      pause_time: nil
+    new_state = %{
+      state
+      | total_duration: new_duration,
+        current_time: if(state.count_direction == "down", do: new_duration, else: 0),
+        is_running: false,
+        is_paused: false,
+        start_time: nil,
+        pause_time: nil
     }
 
     broadcast_event(new_state, %{type: :reset, duration: new_duration})
@@ -203,11 +199,12 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def handle_call({:extend_timer, amount, username, source_type}, _from, state) do
-    new_state = if state.count_direction == "down" do
-      %{state | current_time: state.current_time + amount}
-    else
-      %{state | total_duration: state.total_duration + amount}
-    end
+    new_state =
+      if state.count_direction == "down" do
+        %{state | current_time: state.current_time + amount}
+      else
+        %{state | total_duration: state.total_duration + amount}
+      end
 
     broadcast_event(new_state, %{
       type: :extend,
@@ -235,37 +232,40 @@ defmodule Streampai.LivestreamManager.TimerManager do
       is_paused: state.is_paused,
       count_direction: state.count_direction
     }
+
     {:reply, timer_state, state}
   end
 
   @impl true
   def handle_cast({:update_config, config}, state) do
-    new_state = %{state |
-      config: config,
-      count_direction: config[:count_direction] || state.count_direction
+    new_state = %{
+      state
+      | config: config,
+        count_direction: config[:count_direction] || state.count_direction
     }
+
     {:noreply, new_state}
   end
 
   @impl true
   def handle_info(:tick, state) do
     if state.is_running do
-      new_time = if state.count_direction == "down" do
-        state.current_time - 1
-      else
-        state.current_time + 1
-      end
+      new_time =
+        if state.count_direction == "down" do
+          state.current_time - 1
+        else
+          state.current_time + 1
+        end
 
       new_state = %{state | current_time: new_time}
 
-      # Check if timer has ended (for countdown)
-      new_state = if state.count_direction == "down" and new_time <= 0 do
-        handle_timer_end(new_state)
-      else
-        schedule_tick(new_state)
-      end
+      new_state =
+        if state.count_direction == "down" and new_time <= 0 do
+          handle_timer_end(new_state)
+        else
+          schedule_tick(new_state)
+        end
 
-      # Broadcast tick update
       broadcast_tick(new_state)
 
       {:noreply, new_state}
@@ -281,11 +281,12 @@ defmodule Streampai.LivestreamManager.TimerManager do
       extension_amount = calculate_extension(event, state.config)
 
       if extension_amount > 0 do
-        new_state = if state.count_direction == "down" do
-          %{state | current_time: state.current_time + extension_amount}
-        else
-          %{state | total_duration: state.total_duration + extension_amount}
-        end
+        new_state =
+          if state.count_direction == "down" do
+            %{state | current_time: state.current_time + extension_amount}
+          else
+            %{state | total_duration: state.total_duration + extension_amount}
+          end
 
         broadcast_event(new_state, %{
           type: :extend,
@@ -306,21 +307,24 @@ defmodule Streampai.LivestreamManager.TimerManager do
   @impl true
   def handle_info(%{config: config, type: :timer_widget}, state) do
     # Update config when changed from settings
-    new_state = %{state |
-      config: config,
-      count_direction: config[:count_direction] || state.count_direction
+    new_state = %{
+      state
+      | config: config,
+        count_direction: config[:count_direction] || state.count_direction
     }
+
     {:noreply, new_state}
   end
 
   @impl true
   def handle_info({:auto_restart, duration}, state) do
-    new_state = %{state |
-      total_duration: duration,
-      current_time: if(state.count_direction == "down", do: duration, else: 0),
-      is_running: true,
-      is_paused: false,
-      start_time: System.monotonic_time(:second)
+    new_state = %{
+      state
+      | total_duration: duration,
+        current_time: if(state.count_direction == "down", do: duration, else: 0),
+        is_running: true,
+        is_paused: false,
+        start_time: System.monotonic_time(:second)
     }
 
     new_state = schedule_tick(new_state)
@@ -342,9 +346,10 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   defp load_timer_config(user_id) do
     case Streampai.Accounts.WidgetConfig.get_by_user_and_type(
-      %{user_id: user_id, type: :timer_widget},
-      actor: %{id: user_id}  # Simple actor for reading
-    ) do
+           %{user_id: user_id, type: :timer_widget},
+           # Simple actor for reading
+           actor: %{id: user_id}
+         ) do
       {:ok, %{config: config}} -> config
       _ -> Streampai.Fake.Timer.default_config()
     end
@@ -354,6 +359,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
     if state.timer_ref do
       Process.cancel_timer(state.timer_ref)
     end
+
     %{state | timer_ref: nil}
   end
 
@@ -383,14 +389,14 @@ defmodule Streampai.LivestreamManager.TimerManager do
     case event.type do
       :donation ->
         config[:donation_extension_enabled] and
-        event.amount >= (config[:donation_min_amount] || 1)
+          event.amount >= (config[:donation_min_amount] || 1)
 
       :subscription ->
         config[:subscription_extension_enabled]
 
       :raid ->
         config[:raid_extension_enabled] and
-        event.viewer_count >= (config[:raid_min_viewers] || 5)
+          event.viewer_count >= (config[:raid_min_viewers] || 5)
 
       :patreon ->
         config[:patreon_extension_enabled]
@@ -424,13 +430,14 @@ defmodule Streampai.LivestreamManager.TimerManager do
   end
 
   defp broadcast_event(state, event_data) do
-    event = Map.merge(event_data, %{
-      current_time: state.current_time,
-      total_duration: state.total_duration,
-      is_running: state.is_running,
-      is_paused: state.is_paused,
-      timestamp: DateTime.utc_now()
-    })
+    event =
+      Map.merge(event_data, %{
+        current_time: state.current_time,
+        total_duration: state.total_duration,
+        is_running: state.is_running,
+        is_paused: state.is_paused,
+        timestamp: DateTime.utc_now()
+      })
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
@@ -444,12 +451,13 @@ defmodule Streampai.LivestreamManager.TimerManager do
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
       "widget_events:#{state.user_id}:timer",
-      {:timer_tick, %{
-        current_time: state.current_time,
-        total_duration: state.total_duration,
-        is_running: state.is_running,
-        is_paused: state.is_paused
-      }}
+      {:timer_tick,
+       %{
+         current_time: state.current_time,
+         total_duration: state.total_duration,
+         is_running: state.is_running,
+         is_paused: state.is_paused
+       }}
     )
   end
 end

@@ -68,6 +68,7 @@ const lastExtension = ref<ExtensionInfo | null>(null)
 const extensionClass = ref('')
 
 let timerInterval: number | null = null
+let extensionTimeout: number | null = null
 
 // Computed properties
 const formattedTime = computed(() => {
@@ -125,8 +126,10 @@ const showProgressBar = computed(() => props.config.show_progress_bar)
 
 // Timer control functions
 const startTimer = () => {
+  // Always clear any existing timer first
   if (timerInterval) {
     clearInterval(timerInterval)
+    timerInterval = null
   }
 
   isRunning.value = true
@@ -157,23 +160,43 @@ const stopTimer = () => {
     timerInterval = null
   }
   isRunning.value = false
+  isPaused.value = false
 }
 
 const pauseTimer = () => {
-  stopTimer()
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+  isRunning.value = false
   isPaused.value = true
 }
 
 const resumeTimer = () => {
-  if (isPaused.value) {
+  if (isPaused.value && !isRunning.value) {
     startTimer()
   }
 }
 
 const resetTimer = (duration?: number) => {
-  stopTimer()
-  currentTime.value = duration || totalDuration.value
+  // Stop any running timer
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+
+  // Reset state
+  isRunning.value = false
   isPaused.value = false
+
+  // Reset time
+  const resetDuration = duration || totalDuration.value
+  if (props.config.count_direction === 'down') {
+    currentTime.value = resetDuration
+  } else {
+    currentTime.value = 0
+  }
+  totalDuration.value = resetDuration
 }
 
 const extendTimer = (amount: number, username: string) => {
@@ -187,43 +210,37 @@ const extendTimer = (amount: number, username: string) => {
   lastExtension.value = { amount, username, timestamp: Date.now() }
   extensionClass.value = `extension-${props.config.extension_animation}`
 
-  setTimeout(() => {
+  // Clear any existing timeout
+  if (extensionTimeout) {
+    clearTimeout(extensionTimeout)
+  }
+
+  extensionTimeout = setTimeout(() => {
     lastExtension.value = null
     extensionClass.value = ''
+    extensionTimeout = null
   }, 3000)
 
-  // Play sound if enabled
-  if (props.config.sound_enabled) {
-    playExtensionSound()
-  }
+  // TODO: Implement sound effects when needed
 }
 
 const setTime = (time: number) => {
   currentTime.value = time
 }
 
-const playExtensionSound = () => {
-  // Sound playback would be implemented here
-  // Using Web Audio API or HTML5 Audio
-}
 
 // Watch for events
-watch(() => props.event, (newEvent) => {
+watch(() => props.event, (newEvent, oldEvent) => {
   if (!newEvent) return
 
   switch (newEvent.type) {
     case 'start':
-      if (newEvent.duration) {
-        totalDuration.value = newEvent.duration
-        currentTime.value = props.config.count_direction === 'down' ? newEvent.duration : 0
-      }
+    case 'resume':
+      // Just start/resume the timer without resetting time
       startTimer()
       break
     case 'stop':
-      stopTimer()
-      break
-    case 'resume':
-      resumeTimer()
+      pauseTimer()
       break
     case 'reset':
       resetTimer(newEvent.duration)
@@ -239,7 +256,7 @@ watch(() => props.event, (newEvent) => {
       }
       break
   }
-})
+}, { deep: true })
 
 // Initialize timer on mount
 onMounted(() => {
@@ -250,12 +267,20 @@ onMounted(() => {
   }
 })
 
-// Cleanup on unmount
-onUnmounted(() => {
+// Cleanup function
+const cleanup = () => {
   if (timerInterval) {
     clearInterval(timerInterval)
+    timerInterval = null
   }
-})
+  if (extensionTimeout) {
+    clearTimeout(extensionTimeout)
+    extensionTimeout = null
+  }
+}
+
+// Cleanup on unmount
+onUnmounted(cleanup)
 </script>
 
 <style scoped>

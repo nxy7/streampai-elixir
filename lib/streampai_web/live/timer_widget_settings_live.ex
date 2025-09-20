@@ -14,12 +14,11 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
   defp widget_title, do: "Timer Widget"
 
   defp initialize_widget_specific_assigns(socket) do
-    # Generate initial event for preview
-    initial_event = @fake_module.generate_control_event(:start)
-
+    # Don't generate initial event automatically - let Vue component handle initial state
     socket
-    |> assign(:current_event, initial_event)
+    |> assign(:current_event, nil)
     |> assign(:timer_controls_visible, true)
+    |> assign(:timer_running, false)
   end
 
   defp update_widget_settings(config, params) do
@@ -46,7 +45,8 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
     assign(socket, :current_event, new_event)
   end
 
-  defp schedule_demo_event, do: Process.send_after(self(), :generate_demo_event, 8000)
+  # Disable automatic demo events for timer widget since Vue component handles its own timer
+  defp schedule_demo_event, do: :ok
 
   defp convert_setting_value(setting, value) do
     case setting do
@@ -119,15 +119,37 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
 
   # Additional event handlers for timer controls
   def handle_event("timer_control", %{"action" => action}, socket) do
-    event = case action do
-      "start" -> @fake_module.generate_control_event(:start)
-      "stop" -> @fake_module.generate_control_event(:stop)
-      "resume" -> @fake_module.generate_control_event(:resume)
-      "reset" -> @fake_module.generate_control_event(:reset)
-      "extend" -> @fake_module.generate_extension_event(:donation)
-    end
+    {event, new_timer_running} =
+      case action do
+        "toggle" ->
+          if socket.assigns.timer_running do
+            {@fake_module.generate_control_event(:stop), false}
+          else
+            {@fake_module.generate_control_event(:start), true}
+          end
 
-    {:noreply, assign(socket, :current_event, event)}
+        "reset" ->
+          {@fake_module.generate_control_event(:reset), false}
+
+        "extend" ->
+          # Fixed 30 second extension for testing
+          event = %{
+            id: Streampai.Fake.Base.generate_hex_id(),
+            type: :extend,
+            amount: 30,
+            username: "TestUser",
+            timestamp: DateTime.utc_now()
+          }
+
+          {event, socket.assigns.timer_running}
+      end
+
+    socket =
+      socket
+      |> assign(:current_event, event)
+      |> assign(:timer_running, new_timer_running)
+
+    {:noreply, socket}
   end
 
   def render(assigns) do
@@ -152,57 +174,56 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
             event={@current_event}
           />
         </StreampaiWeb.WidgetSettingsComponents.widget_preview>
-
-        <!-- Timer Controls for Testing -->
+        
+    <!-- Timer Controls for Testing -->
         <div class="bg-white shadow rounded-lg p-6">
           <h2 class="text-lg font-medium text-gray-900 mb-4">Timer Controls (Preview)</h2>
           <div class="flex flex-wrap gap-2">
             <button
               phx-click="timer_control"
-              phx-value-action="start"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              phx-value-action="toggle"
+              class={
+                if @timer_running,
+                  do: "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors",
+                  else:
+                    "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              }
             >
-              <StreampaiWeb.CoreComponents.icon name="hero-play-solid" class="h-4 w-4 mr-1" /> Start
-            </button>
-            <button
-              phx-click="timer_control"
-              phx-value-action="stop"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <StreampaiWeb.CoreComponents.icon name="hero-stop-solid" class="h-4 w-4 mr-1" /> Stop
-            </button>
-            <button
-              phx-click="timer_control"
-              phx-value-action="resume"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <StreampaiWeb.CoreComponents.icon name="hero-play-pause-solid" class="h-4 w-4 mr-1" /> Resume
+              <%= if @timer_running do %>
+                <StreampaiWeb.CoreComponents.icon name="hero-stop-solid" class="h-4 w-4 mr-1" /> Stop
+              <% else %>
+                <StreampaiWeb.CoreComponents.icon name="hero-play-solid" class="h-4 w-4 mr-1" /> Start
+              <% end %>
             </button>
             <button
               phx-click="timer_control"
               phx-value-action="reset"
               class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
-              <StreampaiWeb.CoreComponents.icon name="hero-arrow-path-solid" class="h-4 w-4 mr-1" /> Reset
+              <StreampaiWeb.CoreComponents.icon name="hero-arrow-path-solid" class="h-4 w-4 mr-1" />
+              Reset
             </button>
             <button
               phx-click="timer_control"
               phx-value-action="extend"
               class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
-              <StreampaiWeb.CoreComponents.icon name="hero-plus-circle-solid" class="h-4 w-4 mr-1" /> Extend (+30s)
+              <StreampaiWeb.CoreComponents.icon name="hero-plus-circle-solid" class="h-4 w-4 mr-1" />
+              Extend (+30s)
             </button>
           </div>
         </div>
-
-        <!-- Timer Settings Form -->
+        
+    <!-- Timer Settings Form -->
         <form phx-change="update_settings" class="space-y-6">
           <!-- Basic Timer Settings -->
           <div class="bg-white shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Basic Timer Settings</h2>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700">Initial Duration (seconds)</label>
+                <label class="block text-sm font-medium text-gray-700">
+                  Initial Duration (seconds)
+                </label>
                 <input
                   type="number"
                   name="initial_duration"
@@ -296,7 +317,9 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
               </div>
 
               <div :if={@widget_config[:auto_restart]}>
-                <label class="block text-sm font-medium text-gray-700">Restart Duration (seconds)</label>
+                <label class="block text-sm font-medium text-gray-700">
+                  Restart Duration (seconds)
+                </label>
                 <input
                   type="number"
                   name="restart_duration"
@@ -308,7 +331,9 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
               </div>
 
               <div :if={@widget_config[:count_direction] == "down"}>
-                <label class="block text-sm font-medium text-gray-700">Warning Threshold (seconds)</label>
+                <label class="block text-sm font-medium text-gray-700">
+                  Warning Threshold (seconds)
+                </label>
                 <input
                   type="number"
                   name="warning_threshold"
@@ -317,12 +342,14 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   max="300"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
                 />
-                <p class="mt-1 text-sm text-gray-500">Timer will pulse when below this threshold (0 to disable)</p>
+                <p class="mt-1 text-sm text-gray-500">
+                  Timer will pulse when below this threshold (0 to disable)
+                </p>
               </div>
             </div>
           </div>
-
-          <!-- Appearance Settings -->
+          
+    <!-- Appearance Settings -->
           <div class="bg-white shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Appearance</h2>
             <div class="space-y-4">
@@ -332,10 +359,18 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   name="font_size"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
                 >
-                  <option value="small" selected={@widget_config[:font_size] == "small"}>Small</option>
-                  <option value="medium" selected={@widget_config[:font_size] == "medium"}>Medium</option>
-                  <option value="large" selected={@widget_config[:font_size] == "large"}>Large</option>
-                  <option value="extra-large" selected={@widget_config[:font_size] == "extra-large"}>Extra Large</option>
+                  <option value="small" selected={@widget_config[:font_size] == "small"}>
+                    Small
+                  </option>
+                  <option value="medium" selected={@widget_config[:font_size] == "medium"}>
+                    Medium
+                  </option>
+                  <option value="large" selected={@widget_config[:font_size] == "large"}>
+                    Large
+                  </option>
+                  <option value="extra-large" selected={@widget_config[:font_size] == "extra-large"}>
+                    Extra Large
+                  </option>
                 </select>
               </div>
 
@@ -359,7 +394,9 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                 />
               </div>
 
-              <div :if={@widget_config[:count_direction] == "down" && @widget_config[:warning_threshold] > 0}>
+              <div :if={
+                @widget_config[:count_direction] == "down" && @widget_config[:warning_threshold] > 0
+              }>
                 <label class="block text-sm font-medium text-gray-700">Warning Color</label>
                 <input
                   type="color"
@@ -375,15 +412,21 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   name="extension_animation"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
                 >
-                  <option value="slide" selected={@widget_config[:extension_animation] == "slide"}>Slide</option>
-                  <option value="fade" selected={@widget_config[:extension_animation] == "fade"}>Fade</option>
-                  <option value="bounce" selected={@widget_config[:extension_animation] == "bounce"}>Bounce</option>
+                  <option value="slide" selected={@widget_config[:extension_animation] == "slide"}>
+                    Slide
+                  </option>
+                  <option value="fade" selected={@widget_config[:extension_animation] == "fade"}>
+                    Fade
+                  </option>
+                  <option value="bounce" selected={@widget_config[:extension_animation] == "bounce"}>
+                    Bounce
+                  </option>
                 </select>
               </div>
             </div>
           </div>
-
-          <!-- Extension Settings -->
+          
+    <!-- Extension Settings -->
           <div class="bg-white shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Timer Extensions</h2>
             <div class="space-y-4">
@@ -426,8 +469,8 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   </div>
                 </div>
               </div>
-
-              <!-- Subscription Extensions -->
+              
+    <!-- Subscription Extensions -->
               <div class="border-b pb-4">
                 <div class="flex items-center mb-2">
                   <input
@@ -453,8 +496,8 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   />
                 </div>
               </div>
-
-              <!-- Raid Extensions -->
+              
+    <!-- Raid Extensions -->
               <div class="border-b pb-4">
                 <div class="flex items-center mb-2">
                   <input
@@ -494,8 +537,8 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
                   </div>
                 </div>
               </div>
-
-              <!-- Patreon Extensions -->
+              
+    <!-- Patreon Extensions -->
               <div>
                 <div class="flex items-center mb-2">
                   <input
@@ -523,8 +566,8 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
               </div>
             </div>
           </div>
-
-          <!-- Sound Settings -->
+          
+    <!-- Sound Settings -->
           <div class="bg-white shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Sound Settings</h2>
             <div class="space-y-4">
