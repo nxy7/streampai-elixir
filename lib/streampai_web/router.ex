@@ -82,6 +82,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/viewer-count/display", Components.ViewerCountObsWidgetLive)
     live("/widgets/follower-count/display", Components.FollowerCountObsWidgetLive)
     live("/widgets/timer/display", Components.TimerObsWidgetLive)
+    live("/widgets/giveaway/display", Components.GiveawayObsWidgetLive)
     live("/widgets/eventlist/display", Components.EventlistObsWidgetLive)
 
     get("/home", PageController, :home)
@@ -112,6 +113,7 @@ defmodule StreampaiWeb.Router do
       live("/widgets/viewer-count", ViewerCountWidgetSettingsLive)
       live("/widgets/follower-count", FollowerCountWidgetSettingsLive)
       live("/widgets/timer", TimerWidgetSettingsLive)
+      live("/widgets/giveaway", GiveawayWidgetSettingsLive)
       live("/widgets/eventlist", EventlistWidgetSettingsLive)
     end
 
