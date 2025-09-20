@@ -86,6 +86,10 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
     Streampai.Fake.Timer.default_config()
   end
 
+  def get_default_config(:poll_widget) do
+    StreampaiWeb.Utils.FakePoll.default_config()
+  end
+
   def get_default_config(widget_type) do
     Map.get(@widget_configs, widget_type, %{})
   end

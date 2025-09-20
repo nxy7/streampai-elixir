@@ -82,6 +82,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/viewer-count/display", Components.ViewerCountObsWidgetLive)
     live("/widgets/follower-count/display", Components.FollowerCountObsWidgetLive)
     live("/widgets/timer/display", Components.TimerObsWidgetLive)
+    live("/widgets/poll/display", Components.PollObsWidgetLive)
 
     get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
@@ -111,6 +112,7 @@ defmodule StreampaiWeb.Router do
       live("/widgets/viewer-count", ViewerCountWidgetSettingsLive)
       live("/widgets/follower-count", FollowerCountWidgetSettingsLive)
       live("/widgets/timer", TimerWidgetSettingsLive)
+      live("/widgets/poll", PollWidgetSettingsLive)
     end
 
     sign_out_route(AuthController, "/auth/sign-out")
