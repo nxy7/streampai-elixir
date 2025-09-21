@@ -10,12 +10,12 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
         "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
       widgets: [
         %{
-          route: "/widgets/chat",
+          route: "/dashboard/widgets/chat",
           title: "Live Chat Overlay",
           description: "Display live chat on stream"
         },
         %{
-          route: "/widgets/poll",
+          route: "/dashboard/widgets/poll",
           title: "Poll Widget",
           description: "Display live poll results in real-time"
         }
@@ -28,27 +28,27 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
         "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1",
       widgets: [
         %{
-          route: "/widgets/alertbox",
+          route: "/dashboard/widgets/alertbox",
           title: "Alertbox Widget",
           description: "Show donation, follow & subscription alerts"
         },
         %{
-          route: "/widgets/donation-goal",
+          route: "/dashboard/widgets/donation-goal",
           title: "Donation Goal",
           description: "Track donation progress"
         },
         %{
-          route: "/widgets/top-donors",
+          route: "/dashboard/widgets/top-donors",
           title: "Top Donors",
           description: "Display biggest supporters with rankings"
         },
         %{
-          route: "/widgets/giveaway",
+          route: "/dashboard/widgets/giveaway",
           title: "Giveaway Widget",
           description: "Run giveaways and show participation status"
         },
         %{
-          route: "/widgets/eventlist",
+          route: "/dashboard/widgets/eventlist",
           title: "Event List",
           description: "Display recent donations, follows, subs & raids"
         }
@@ -61,22 +61,22 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
         "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
       widgets: [
         %{
-          route: "/widgets/viewer-count",
+          route: "/dashboard/widgets/viewer-count",
           title: "Viewer Count Widget",
           description: "Display real-time viewer counts per platform"
         },
         %{
-          route: "/widgets/follower-count",
+          route: "/dashboard/widgets/follower-count",
           title: "Follower Count Widget",
           description: "Display real-time follower counts per platform"
         },
         %{
-          route: "/widgets/timer",
+          route: "/dashboard/widgets/timer",
           title: "Timer Widget",
           description: "Countdown/countup timer with event extensions"
         },
         %{
-          route: "/widgets/slider",
+          route: "/dashboard/widgets/slider",
           title: "Image Slider Widget",
           description: "Slideshow of uploaded images with transitions"
         }
