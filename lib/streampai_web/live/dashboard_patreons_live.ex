@@ -2,8 +2,6 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   @moduledoc false
   use StreampaiWeb.BaseLive
 
-  import StreampaiWeb.AnalyticsComponents
-
   alias StreampaiWeb.Utils.FakePatreon
   alias StreampaiWeb.Utils.PlatformUtils
 
@@ -141,134 +139,118 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
     ~H"""
     <.dashboard_layout {assigns} current_page="patreons" page_title="Patreons">
       <div class="space-y-6">
-        <!-- Metrics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-600">Total Patreons</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.total_patreons}
-                </p>
-                <p class="text-xs text-gray-500 mt-1">
-                  {@growth_metrics.active_patreons} active
-                </p>
-              </div>
-              <div class="p-3 bg-purple-100 rounded-lg">
-                <StreampaiWeb.CoreComponents.icon
-                  name="hero-users"
-                  class="w-6 h-6 text-purple-600"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-600">Monthly Revenue</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  ${Float.round(Enum.sum(Enum.map(@platform_stats, & &1.revenue)), 2)}
-                </p>
-                <p class="text-xs text-green-600 mt-1">
-                  <StreampaiWeb.CoreComponents.icon
-                    name="hero-arrow-trending-up"
-                    class="w-3 h-3 inline"
-                  />
-                  {@growth_metrics.growth_rate}% growth
-                </p>
-              </div>
-              <div class="p-3 bg-green-100 rounded-lg">
-                <StreampaiWeb.CoreComponents.icon
-                  name="hero-currency-dollar"
-                  class="w-6 h-6 text-green-600"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-600">New This Month</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.new_this_month}
-                </p>
-                <p class="text-xs text-gray-500 mt-1">
-                  Joined recently
-                </p>
-              </div>
-              <div class="p-3 bg-blue-100 rounded-lg">
-                <StreampaiWeb.CoreComponents.icon
-                  name="hero-user-plus"
-                  class="w-6 h-6 text-blue-600"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-600">Retention Rate</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  {@growth_metrics.retention_rate}%
-                </p>
-                <p class="text-xs text-gray-500 mt-1">
-                  Active subscribers
-                </p>
-              </div>
-              <div class="p-3 bg-amber-100 rounded-lg">
-                <StreampaiWeb.CoreComponents.icon
-                  name="hero-chart-pie"
-                  class="w-6 h-6 text-amber-600"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        
-    <!-- Platform Distribution -->
-        <div class="bg-white rounded-lg p-6 border border-gray-200">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">
-              Platform Distribution
-            </h3>
-            <button
-              type="button"
-              phx-click="toggle_platform_view"
-              class="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              View by: {if @platform_view_mode == "count", do: "Count", else: "Revenue"}
-            </button>
-          </div>
-          <div class="space-y-4">
-            <%= for stat <- @platform_stats do %>
-              <div>
-                <div class="flex justify-between items-center mb-1">
-                  <span class="text-sm font-medium text-gray-700">
-                    {stat.platform}
-                  </span>
-                  <span class="text-sm text-gray-600">
-                    <%= if @platform_view_mode == "count" do %>
-                      {stat.total} patreons
-                    <% else %>
-                      ${Float.round(stat.revenue, 2)}
-                    <% end %>
-                  </span>
+        <!-- Main Layout: Stats Cards (Left) + Platform Distribution (Right) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left Column: Metrics Cards (Vertical) -->
+          <div class="lg:col-span-1 space-y-4">
+            <div class="bg-white rounded-lg p-6 border border-gray-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600">Total Patreons</p>
+                  <p class="text-2xl font-bold text-gray-900">
+                    {@growth_metrics.total_patreons}
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {@growth_metrics.active_patreons} active
+                  </p>
                 </div>
-                <.progress_bar
-                  value={if @platform_view_mode == "count", do: stat.total, else: stat.revenue}
-                  max_value={
-                    if @platform_view_mode == "count",
-                      do: @growth_metrics.total_patreons,
-                      else: Enum.sum(Enum.map(@platform_stats, & &1.revenue))
-                  }
-                  color_class={platform_color_class(stat.platform)}
-                  size={:medium}
+                <div class="p-3 bg-purple-100 rounded-lg">
+                  <StreampaiWeb.CoreComponents.icon
+                    name="hero-users"
+                    class="w-6 h-6 text-purple-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 border border-gray-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600">Monthly Revenue</p>
+                  <p class="text-2xl font-bold text-gray-900">
+                    ${Float.round(Enum.sum(Enum.map(@platform_stats, & &1.revenue)), 2)}
+                  </p>
+                  <p class="text-xs text-green-600 mt-1">
+                    <StreampaiWeb.CoreComponents.icon
+                      name="hero-arrow-trending-up"
+                      class="w-3 h-3 inline"
+                    />
+                    {@growth_metrics.growth_rate}% growth
+                  </p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-lg">
+                  <StreampaiWeb.CoreComponents.icon
+                    name="hero-currency-dollar"
+                    class="w-6 h-6 text-green-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 border border-gray-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600">New This Month</p>
+                  <p class="text-2xl font-bold text-gray-900">
+                    {@growth_metrics.new_this_month}
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Joined recently
+                  </p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-lg">
+                  <StreampaiWeb.CoreComponents.icon
+                    name="hero-user-plus"
+                    class="w-6 h-6 text-blue-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 border border-gray-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600">Retention Rate</p>
+                  <p class="text-2xl font-bold text-gray-900">
+                    {@growth_metrics.retention_rate}%
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Active subscribers
+                  </p>
+                </div>
+                <div class="p-3 bg-amber-100 rounded-lg">
+                  <StreampaiWeb.CoreComponents.icon
+                    name="hero-chart-pie"
+                    class="w-6 h-6 text-amber-600"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+    <!-- Right Column: Platform Distribution Pie Chart -->
+          <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg p-6 border border-gray-200 h-full">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">
+                  Platform Distribution
+                </h3>
+                <button
+                  type="button"
+                  phx-click="toggle_platform_view"
+                  class="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  View by: {if @platform_view_mode == "count", do: "Count", else: "Revenue"}
+                </button>
+              </div>
+              <div class="flex items-center justify-center h-96">
+                <.platform_pie_chart
+                  data={@platform_stats}
+                  mode={@platform_view_mode}
+                  total_patreons={@growth_metrics.total_patreons}
                 />
               </div>
-            <% end %>
+            </div>
           </div>
         </div>
         
@@ -445,10 +427,6 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
     """
   end
 
-  defp platform_color_class(platform) do
-    PlatformUtils.platform_solid_color(platform)
-  end
-
   defp platform_badge_class(platform) do
     PlatformUtils.platform_badge_color(platform)
   end
@@ -464,4 +442,92 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
   defp tier_badge_class("Platinum"), do: "bg-purple-100 text-purple-800"
 
   defp tier_badge_class(_), do: "bg-gray-100 text-gray-800"
+
+  attr :data, :list, required: true
+  attr :mode, :string, required: true
+  attr :total_patreons, :integer, required: true
+
+  def platform_pie_chart(assigns) do
+    ~H"""
+    <div class="relative">
+      <div class="h-80 flex items-center justify-center">
+        <svg class="w-80 h-80" viewBox="0 0 200 200">
+          <% total =
+            if @mode == "count", do: @total_patreons, else: Enum.sum(Enum.map(@data, & &1.revenue)) %>
+          <% platform_colors = %{
+            "youtube" => "#FF0000",
+            "twitch" => "#9146FF",
+            "facebook" => "#1877F2",
+            "kick" => "#53FC18",
+            "streampai" => "#6366F1"
+          } %>
+          <% {_, segments} =
+            @data
+            |> Enum.with_index()
+            |> Enum.reduce({0, []}, fn {stat, _i}, {start_angle, acc} ->
+              value = if @mode == "count", do: stat.total, else: stat.revenue
+              percentage = value / total
+              end_angle = start_angle + percentage * 360
+              platform_key = String.downcase(stat.platform)
+              color = Map.get(platform_colors, platform_key, "#6B7280")
+
+              segment = %{
+                platform: stat.platform,
+                value: value,
+                start_angle: start_angle,
+                end_angle: end_angle,
+                color: color,
+                percentage: percentage * 100
+              }
+
+              {end_angle, acc ++ [segment]}
+            end) %>
+
+          <%= for segment <- segments do %>
+            <% large_arc = if segment.end_angle - segment.start_angle > 180, do: 1, else: 0 %>
+            <% start_x = 100 + 70 * :math.cos(segment.start_angle * :math.pi() / 180) %>
+            <% start_y = 100 + 70 * :math.sin(segment.start_angle * :math.pi() / 180) %>
+            <% end_x = 100 + 70 * :math.cos(segment.end_angle * :math.pi() / 180) %>
+            <% end_y = 100 + 70 * :math.sin(segment.end_angle * :math.pi() / 180) %>
+
+            <path
+              d={"M 100 100 L #{start_x} #{start_y} A 70 70 0 #{large_arc} 1 #{end_x} #{end_y} Z"}
+              fill={segment.color}
+              stroke="white"
+              stroke-width="2"
+              class="hover:opacity-80 transition-opacity cursor-pointer"
+            />
+          <% end %>
+        </svg>
+      </div>
+      
+    <!-- Legend -->
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <%= for segment <- segments do %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center min-w-0">
+              <span
+                class="w-3 h-3 rounded-full mr-3 flex-shrink-0"
+                style={"background-color: #{segment.color}"}
+              />
+              <span class="text-sm text-gray-700 truncate">{segment.platform}</span>
+            </div>
+            <div class="text-right ml-2">
+              <div class="text-sm font-medium text-gray-900">
+                <%= if @mode == "count" do %>
+                  {segment.value}
+                <% else %>
+                  ${Float.round(segment.value, 2)}
+                <% end %>
+              </div>
+              <div class="text-xs text-gray-500">
+                {Float.round(segment.percentage, 1)}%
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
 end

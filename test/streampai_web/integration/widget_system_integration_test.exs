@@ -19,7 +19,7 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
     test "user can create and configure widget", %{conn: conn, user: user} do
       conn = log_in_user(conn, user)
 
-      {:ok, view, _html} = live(conn, ~p"/widgets/chat")
+      {:ok, view, _html} = live(conn, ~p"/dashboard/widgets/chat")
 
       config_data = %{
         "max_messages" => "25",
@@ -40,7 +40,7 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
       conn = log_in_user(conn, user)
 
       with_live_subscription("widget_config:chat_widget:#{user.id}", fn ->
-        {:ok, settings_view, _html} = live(conn, ~p"/widgets/chat")
+        {:ok, settings_view, _html} = live(conn, ~p"/dashboard/widgets/chat")
 
         config_data = %{
           "max_messages" => "30"
@@ -73,8 +73,8 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
       html = render(view)
       assert html =~ "Live Chat Overlay"
       assert html =~ "Alertbox Widget"
-      assert html =~ "/widgets/chat"
-      assert html =~ "/widgets/alertbox"
+      assert html =~ "/dashboard/widgets/chat"
+      assert html =~ "/dashboard/widgets/alertbox"
     end
   end
 
@@ -87,7 +87,7 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
     test "generates correct OBS browser source URLs", %{conn: conn, user: user} do
       conn = log_in_user(conn, user)
 
-      {:ok, view, _html} = live(conn, ~p"/widgets/chat")
+      {:ok, view, _html} = live(conn, ~p"/dashboard/widgets/chat")
 
       html = render(view)
       expected_url = url(~p"/widgets/chat/display?user_id=#{user.id}")
