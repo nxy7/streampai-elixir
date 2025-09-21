@@ -65,6 +65,9 @@ defmodule StreampaiWeb.Router do
   scope "/", StreampaiWeb do
     pipe_through(:browser)
 
+    # Serve uploaded slider images
+    get("/slider_images/*path", SliderImageController, :serve)
+
     ash_authentication_live_session :authentication_optional,
       on_mount: {StreampaiWeb.LiveUserAuth, :handle_impersonation} do
       live("/", LandingLive)
@@ -83,6 +86,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/follower-count/display", Components.FollowerCountObsWidgetLive)
     live("/widgets/timer/display", Components.TimerObsWidgetLive)
     live("/widgets/poll/display", Components.PollObsWidgetLive)
+    live("/widgets/slider/display", Components.SliderObsWidgetLive)
     live("/widgets/giveaway/display", Components.GiveawayObsWidgetLive)
     live("/widgets/eventlist/display", Components.EventlistObsWidgetLive)
 
@@ -115,6 +119,7 @@ defmodule StreampaiWeb.Router do
       live("/widgets/follower-count", FollowerCountWidgetSettingsLive)
       live("/widgets/timer", TimerWidgetSettingsLive)
       live("/widgets/poll", PollWidgetSettingsLive)
+      live("/widgets/slider", SliderWidgetSettingsLive)
       live("/widgets/giveaway", GiveawayWidgetSettingsLive)
       live("/widgets/eventlist", EventlistWidgetSettingsLive)
     end
