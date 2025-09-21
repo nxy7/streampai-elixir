@@ -71,7 +71,8 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
     donation_widget: [:show_amount, :minimum_amount],
     follow_widget: [:animation_type, :display_duration],
     subscriber_widget: [:show_tier, :animation_type, :display_duration],
-    top_donors_widget: [:display_count, :currency, :theme]
+    top_donors_widget: [:display_count, :currency, :theme],
+    slider_widget: [:slide_duration, :transition_duration, :transition_type, :fit_mode]
   }
 
   def get_default_config(:donation_goal_widget) do
@@ -84,6 +85,10 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
 
   def get_default_config(:timer_widget) do
     Streampai.Fake.Timer.default_config()
+  end
+
+  def get_default_config(:slider_widget) do
+    StreampaiWeb.Utils.FakeSlider.default_config()
   end
 
   def get_default_config(widget_type) do
