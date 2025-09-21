@@ -87,7 +87,7 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
   end
 
   def get_default_config(:poll_widget) do
-    StreampaiWeb.Utils.FakePoll.default_config()
+    Streampai.Fake.Poll.default_config()
   end
 
   def get_default_config(:giveaway_widget) do

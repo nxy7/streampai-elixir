@@ -1,5 +1,9 @@
-defmodule StreampaiWeb.Utils.FakePoll do
-  @moduledoc false
+defmodule Streampai.Fake.Poll do
+  @moduledoc """
+  Utility module for generating fake poll events for testing and demonstration purposes.
+  """
+
+  alias Streampai.Fake.Base
 
   @poll_questions [
     "What game should I play next?",
@@ -60,48 +64,42 @@ defmodule StreampaiWeb.Utils.FakePoll do
     ["Love it", "Like it", "Neutral", "Dislike it"]
   ]
 
-  @usernames [
-    "GamerPro",
-    "StreamFan",
-    "ViewerOne",
-    "ChatMaster",
-    "PixelHero",
-    "StreamViewer",
-    "GameNinja",
-    "ChatBot",
-    "ViewerFriend",
-    "StreamBuddy",
-    "GamingFan",
-    "LiveViewer",
-    "PixelWarrior",
-    "StreamLover",
-    "ChatFriend",
-    "ViewerPro",
-    "GamingBuddy",
-    "StreamChat",
-    "PixelMaster",
-    "LiveGamer",
-    "ChatViewer",
-    "StreamSupporter",
-    "GamingHero",
-    "ViewerChat"
-  ]
-
   def default_config do
     %{
-      "show_title" => true,
-      "show_percentages" => true,
-      "show_vote_counts" => true,
-      "font_size" => "medium",
-      "primary_color" => "#3B82F6",
-      "secondary_color" => "#10B981",
-      "background_color" => "#FFFFFF",
-      "text_color" => "#1F2937",
-      "winner_color" => "#F59E0B",
-      "animation_type" => "smooth",
-      "highlight_winner" => true,
-      "auto_hide_after_end" => false,
-      "hide_delay" => 10
+      show_title: true,
+      show_percentages: true,
+      show_vote_counts: true,
+      font_size: "medium",
+      primary_color: "#3B82F6",
+      secondary_color: "#10B981",
+      background_color: "#FFFFFF",
+      text_color: "#1F2937",
+      winner_color: "#F59E0B",
+      animation_type: "smooth",
+      highlight_winner: true,
+      auto_hide_after_end: false,
+      hide_delay: 10
+    }
+  end
+
+  def generate_event do
+    # Generate a poll event
+    event_type = Enum.random(["poll_started", "poll_updated", "poll_ended", "new_vote"])
+
+    poll_status =
+      case event_type do
+        "poll_started" -> "active"
+        "poll_ended" -> "ended"
+        _ -> Enum.random(["active", "ended"])
+      end
+
+    %{
+      id: "event_#{Base.generate_hex_id()}",
+      type: event_type,
+      poll_status: generate_poll_status(poll_status),
+      username: Base.generate_username(),
+      timestamp: DateTime.utc_now(),
+      platform: Enum.random(["twitch", "youtube", "facebook", "kick"])
     }
   end
 
@@ -114,12 +112,12 @@ defmodule StreampaiWeb.Utils.FakePoll do
     total_votes = Enum.reduce(poll_options, 0, fn option, acc -> acc + option.votes end)
 
     %{
-      id: "poll_#{:rand.uniform(9999)}",
+      id: "poll_#{Base.generate_hex_id()}",
       title: question,
       status: poll_status,
       options: poll_options,
       total_votes: total_votes,
-      created_at: DateTime.add(DateTime.utc_now(), -:rand.uniform(300), :second),
+      created_at: Base.generate_timestamp(5),
       ends_at:
         if(poll_status == "active",
           do: DateTime.add(DateTime.utc_now(), :rand.uniform(600), :second)
@@ -136,24 +134,22 @@ defmodule StreampaiWeb.Utils.FakePoll do
     generate_poll_status("ended")
   end
 
-  def generate_poll_event do
-    event_type = Enum.random(["poll_started", "poll_updated", "poll_ended", "new_vote"])
+  def simulate_vote_update(poll_status) do
+    if poll_status.status == "active" do
+      # Randomly pick an option to get a new vote
+      option_index = :rand.uniform(length(poll_status.options)) - 1
 
-    poll_status =
-      case event_type do
-        "poll_started" -> "active"
-        "poll_ended" -> "ended"
-        _ -> Enum.random(["active", "ended"])
-      end
+      updated_options =
+        List.update_at(poll_status.options, option_index, fn option ->
+          %{option | votes: option.votes + 1}
+        end)
 
-    %{
-      id: "event_#{:rand.uniform(9999)}",
-      type: event_type,
-      poll_status: generate_poll_status(poll_status),
-      username: Enum.random(@usernames),
-      timestamp: DateTime.utc_now(),
-      platform: Enum.random(["twitch", "youtube", "facebook", "kick"])
-    }
+      new_total = poll_status.total_votes + 1
+
+      %{poll_status | options: updated_options, total_votes: new_total}
+    else
+      poll_status
+    end
   end
 
   defp generate_poll_options(option_texts, status) do
@@ -186,24 +182,6 @@ defmodule StreampaiWeb.Utils.FakePoll do
     end)
     # Shuffle so winner isn't always first
     |> Enum.shuffle()
-  end
-
-  def simulate_vote_update(poll_status) do
-    if poll_status.status == "active" do
-      # Randomly pick an option to get a new vote
-      option_index = :rand.uniform(length(poll_status.options)) - 1
-
-      updated_options =
-        List.update_at(poll_status.options, option_index, fn option ->
-          %{option | votes: option.votes + 1}
-        end)
-
-      new_total = poll_status.total_votes + 1
-
-      %{poll_status | options: updated_options, total_votes: new_total}
-    else
-      poll_status
-    end
   end
 
   def create_sample_polls do

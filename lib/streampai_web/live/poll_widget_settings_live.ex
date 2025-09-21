@@ -5,7 +5,7 @@ defmodule StreampaiWeb.PollWidgetSettingsLive do
   use StreampaiWeb.WidgetBehaviour,
     type: :settings,
     widget_type: :poll_widget,
-    fake_module: StreampaiWeb.Utils.FakePoll
+    fake_module: Streampai.Fake.Poll
 
   alias StreampaiWeb.Utils.WidgetHelpers
 
