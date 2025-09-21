@@ -91,6 +91,14 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
     StreampaiWeb.Utils.FakeSlider.default_config()
   end
 
+  def get_default_config(:giveaway_widget) do
+    Streampai.Fake.Giveaway.default_config()
+  end
+
+  def get_default_config(:eventlist_widget) do
+    StreampaiWeb.Utils.FakeEventlist.default_config()
+  end
+
   def get_default_config(widget_type) do
     Map.get(@widget_configs, widget_type, %{})
   end
