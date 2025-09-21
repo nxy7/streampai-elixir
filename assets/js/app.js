@@ -173,6 +173,118 @@ const TableTooltip = {
   }
 };
 
+// Slider Image Upload Hook
+const SliderImageUpload = {
+  mounted() {
+    this.el.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      const promises = files.map(file => this.processFile(file));
+
+      Promise.all(promises).then(processedFiles => {
+        this.pushEvent("upload_images", { images: processedFiles });
+      }).catch(error => {
+        console.error("Error processing files:", error);
+      });
+    });
+  },
+
+  processFile(file) {
+    return new Promise((resolve, reject) => {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        reject(new Error(`File ${file.name} is too large`));
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        reject(new Error(`File ${file.name} is not an image`));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: e.target.result
+        });
+      };
+      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+// Sortable Images Hook
+const SortableImages = {
+  mounted() {
+    // Simple drag and drop reordering
+    let draggedElement = null;
+    let draggedIndex = null;
+
+    this.el.addEventListener("dragstart", (e) => {
+      if (e.target.closest("[data-image-id]")) {
+        draggedElement = e.target.closest("[data-image-id]");
+        draggedIndex = Array.from(this.el.children).indexOf(draggedElement);
+        e.dataTransfer.effectAllowed = "move";
+        draggedElement.style.opacity = "0.5";
+      }
+    });
+
+    this.el.addEventListener("dragend", (e) => {
+      if (draggedElement) {
+        draggedElement.style.opacity = "";
+        draggedElement = null;
+        draggedIndex = null;
+      }
+    });
+
+    this.el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+
+    this.el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const dropTarget = e.target.closest("[data-image-id]");
+
+      if (dropTarget && draggedElement && dropTarget !== draggedElement) {
+        const dropIndex = Array.from(this.el.children).indexOf(dropTarget);
+        const children = Array.from(this.el.children);
+
+        // Reorder in DOM
+        if (draggedIndex < dropIndex) {
+          this.el.insertBefore(draggedElement, dropTarget.nextSibling);
+        } else {
+          this.el.insertBefore(draggedElement, dropTarget);
+        }
+
+        // Get new order
+        const newOrder = Array.from(this.el.children).map(child =>
+          child.dataset.imageId
+        );
+
+        // Send to LiveView
+        this.pushEvent("reorder_images", { image_ids: newOrder });
+      }
+    });
+
+    // Make items draggable
+    this.el.querySelectorAll("[data-image-id]").forEach(item => {
+      item.draggable = true;
+    });
+  },
+
+  updated() {
+    // Make new items draggable
+    this.el.querySelectorAll("[data-image-id]").forEach(item => {
+      item.draggable = true;
+    });
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -183,6 +295,8 @@ let Hooks = {
   ColorPickerSync,
   TableTooltip,
   AvatarUpload,
+  SliderImageUpload,
+  SortableImages,
   ...getHooks(liveVueApp),
 };
 
@@ -331,11 +445,23 @@ Hooks.ChatDisplay = {
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+// Debug hook registration
+console.log("SliderImageUpload defined:", typeof SliderImageUpload);
+console.log("SortableImages defined:", typeof SortableImages);
 console.log("All hooks registered:", Object.keys(Hooks));
+
+// Force add slider hooks directly to ensure they're included
+const FinalHooks = Object.assign({}, Hooks, {
+  SliderImageUpload: SliderImageUpload,
+  SortableImages: SortableImages
+});
+
+console.log("Final hooks before LiveSocket:", Object.keys(FinalHooks));
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: Hooks,
+  hooks: FinalHooks,
 });
 window.liveSocket = liveSocket;
 
