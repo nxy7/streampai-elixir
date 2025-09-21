@@ -39,6 +39,13 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
                 <h4 class="font-medium text-sm">Live Chat Overlay</h4>
                 <p class="text-xs text-gray-500">Display live chat on stream</p>
               </.link>
+              <.link
+                navigate={~p"/widgets/poll"}
+                class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <h4 class="font-medium text-sm">Poll Widget</h4>
+                <p class="text-xs text-gray-500">Display live poll results in real-time</p>
+              </.link>
               <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h4 class="font-medium text-sm">Chat Commands</h4>
                 <p class="text-xs text-gray-500">Show recent commands used</p>

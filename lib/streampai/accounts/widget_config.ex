@@ -95,6 +95,7 @@ defmodule Streampai.Accounts.WidgetConfig do
                :goal_widget,
                :leaderboard_widget,
                :timer_widget,
+               :poll_widget,
                :slider_widget,
                :giveaway_widget,
                :eventlist_widget
