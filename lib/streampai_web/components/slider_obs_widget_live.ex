@@ -31,7 +31,7 @@ defmodule StreampaiWeb.Components.SliderObsWidgetLive do
   def handle_info(:generate_demo_images, socket) do
     user_images = get_user_images(socket.assigns.widget_config)
 
-    if socket.assigns.demo_mode and length(user_images) == 0 do
+    if socket.assigns.demo_mode and Enum.empty?(user_images) do
       # Only generate demo images if user has no uploaded images
       demo_event = FakeSlider.generate_event()
 
@@ -54,7 +54,7 @@ defmodule StreampaiWeb.Components.SliderObsWidgetLive do
     # 1. It's development environment AND
     # 2. User has no uploaded images AND
     # 3. User ID contains "demo" OR it's the test user
-    has_no_images = length(user_images) == 0
+    has_no_images = Enum.empty?(user_images)
     is_dev = Application.get_env(:streampai, :env) == :dev
 
     is_demo_user =

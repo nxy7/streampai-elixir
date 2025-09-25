@@ -143,24 +143,28 @@ defmodule StreampaiWeb.Components.TimerObsWidgetLive do
   end
 
   defp calculate_extension_for_demo(event_type, amount, config) do
-    case event_type do
-      :donation ->
-        donation_amount = amount || Enum.random(5..50)
-        extension_per_dollar = config[:donation_extension_amount] || 30
-        # Divide by 10 for demo
-        round(donation_amount * extension_per_dollar / 10)
+    calculate_demo_extension_by_type(event_type, amount, config)
+  end
 
-      :subscription ->
-        config[:subscription_extension_amount] || 60
+  defp calculate_demo_extension_by_type(:donation, amount, config) do
+    donation_amount = amount || Enum.random(5..50)
+    extension_per_dollar = config[:donation_extension_amount] || 30
+    # Divide by 10 for demo
+    round(donation_amount * extension_per_dollar / 10)
+  end
 
-      :raid ->
-        viewers = amount || Enum.random(10..200)
-        per_viewer = config[:raid_extension_per_viewer] || 1
-        round(viewers * per_viewer)
+  defp calculate_demo_extension_by_type(:subscription, _amount, config) do
+    config[:subscription_extension_amount] || 60
+  end
 
-      :patreon ->
-        config[:patreon_extension_amount] || 120
-    end
+  defp calculate_demo_extension_by_type(:raid, amount, config) do
+    viewers = amount || Enum.random(10..200)
+    per_viewer = config[:raid_extension_per_viewer] || 1
+    round(viewers * per_viewer)
+  end
+
+  defp calculate_demo_extension_by_type(:patreon, _amount, config) do
+    config[:patreon_extension_amount] || 120
   end
 
   def mount(params, session, socket) do

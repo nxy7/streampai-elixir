@@ -49,73 +49,81 @@ defmodule StreampaiWeb.TimerWidgetSettingsLive do
   defp schedule_demo_event, do: :ok
 
   defp convert_setting_value(setting, value) do
-    case setting do
-      :initial_duration ->
-        WidgetHelpers.parse_numeric_setting(value, min: 10, max: 3600)
+    cond do
+      setting in numeric_duration_settings() ->
+        convert_numeric_duration_setting(setting, value)
 
-      :restart_duration ->
-        WidgetHelpers.parse_numeric_setting(value, min: 10, max: 3600)
+      setting in numeric_amount_settings() ->
+        convert_numeric_amount_setting(setting, value)
 
-      :warning_threshold ->
-        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
+      setting in choice_settings() ->
+        convert_choice_setting(setting, value)
 
-      :sound_volume ->
-        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
-
-      :donation_extension_amount ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 300)
-
-      :donation_min_amount ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1000)
-
-      :subscription_extension_amount ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 600)
-
-      :raid_extension_per_viewer ->
-        WidgetHelpers.parse_numeric_setting(value, min: 0.1, max: 10)
-
-      :raid_min_viewers ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1000)
-
-      :patreon_extension_amount ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 600)
-
-      :count_direction ->
-        WidgetHelpers.validate_config_value(
-          :count_direction,
-          value,
-          ["up", "down"],
-          "down"
-        )
-
-      :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
-          value,
-          ["small", "medium", "large", "extra-large"],
-          "large"
-        )
-
-      :timer_format ->
-        WidgetHelpers.validate_config_value(
-          :timer_format,
-          value,
-          ["mm:ss", "hh:mm:ss", "seconds"],
-          "mm:ss"
-        )
-
-      :extension_animation ->
-        WidgetHelpers.validate_config_value(
-          :extension_animation,
-          value,
-          ["slide", "fade", "bounce"],
-          "bounce"
-        )
-
-      _ ->
+      true ->
         value
     end
   end
+
+  defp numeric_duration_settings do
+    [:initial_duration, :restart_duration, :warning_threshold, :sound_volume]
+  end
+
+  defp numeric_amount_settings do
+    [
+      :donation_extension_amount,
+      :donation_min_amount,
+      :subscription_extension_amount,
+      :raid_extension_per_viewer,
+      :raid_min_viewers,
+      :patreon_extension_amount
+    ]
+  end
+
+  defp choice_settings do
+    [:count_direction, :font_size, :timer_format, :extension_animation]
+  end
+
+  defp convert_numeric_duration_setting(:initial_duration, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 10, max: 3600)
+
+  defp convert_numeric_duration_setting(:restart_duration, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 10, max: 3600)
+
+  defp convert_numeric_duration_setting(:warning_threshold, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
+
+  defp convert_numeric_duration_setting(:sound_volume, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
+
+  defp convert_numeric_amount_setting(:donation_extension_amount, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 1, max: 300)
+
+  defp convert_numeric_amount_setting(:donation_min_amount, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1000)
+
+  defp convert_numeric_amount_setting(:subscription_extension_amount, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 1, max: 600)
+
+  defp convert_numeric_amount_setting(:raid_extension_per_viewer, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 0.1, max: 10)
+
+  defp convert_numeric_amount_setting(:raid_min_viewers, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1000)
+
+  defp convert_numeric_amount_setting(:patreon_extension_amount, value),
+    do: WidgetHelpers.parse_numeric_setting(value, min: 1, max: 600)
+
+  defp convert_choice_setting(:count_direction, value),
+    do: WidgetHelpers.validate_config_value(:count_direction, value, ["up", "down"], "down")
+
+  defp convert_choice_setting(:font_size, value),
+    do: WidgetHelpers.validate_config_value(:font_size, value, ["small", "medium", "large", "extra-large"], "large")
+
+  defp convert_choice_setting(:timer_format, value),
+    do: WidgetHelpers.validate_config_value(:timer_format, value, ["mm:ss", "hh:mm:ss", "seconds"], "mm:ss")
+
+  defp convert_choice_setting(:extension_animation, value),
+    do: WidgetHelpers.validate_config_value(:extension_animation, value, ["slide", "fade", "bounce"], "bounce")
 
   # Additional event handlers for timer controls
   def handle_event("timer_control", %{"action" => action}, socket) do

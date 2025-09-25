@@ -276,31 +276,9 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def handle_info({:stream_event, event}, state) do
-    # Handle stream events for automatic extensions
-    if should_extend_timer?(event, state.config) do
-      extension_amount = calculate_extension(event, state.config)
-
-      if extension_amount > 0 do
-        new_state =
-          if state.count_direction == "down" do
-            %{state | current_time: state.current_time + extension_amount}
-          else
-            %{state | total_duration: state.total_duration + extension_amount}
-          end
-
-        broadcast_event(new_state, %{
-          type: :extend,
-          amount: extension_amount,
-          username: event.username,
-          source_type: event.type
-        })
-
-        {:noreply, new_state}
-      else
-        {:noreply, state}
-      end
-    else
-      {:noreply, state}
+    case process_stream_event_extension(event, state) do
+      {:extend, new_state} -> {:noreply, new_state}
+      :no_extension -> {:noreply, state}
     end
   end
 
@@ -318,24 +296,49 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def handle_info({:auto_restart, duration}, state) do
+    # Auto restart after stream ends
     new_state = %{
       state
-      | total_duration: duration,
-        current_time: if(state.count_direction == "down", do: duration, else: 0),
+      | current_time: duration,
+        total_duration: duration,
         is_running: true,
-        is_paused: false,
-        start_time: System.monotonic_time(:second)
+        is_paused: false
     }
 
-    new_state = schedule_tick(new_state)
-    broadcast_event(new_state, %{type: :start, duration: duration, auto_restarted: true})
-
+    schedule_tick(new_state)
+    broadcast_event(new_state, %{type: :restart, auto_restart: true})
     {:noreply, new_state}
   end
 
   @impl true
   def handle_info(_msg, state) do
     {:noreply, state}
+  end
+
+  defp process_stream_event_extension(event, state) do
+    with true <- should_extend_timer?(event, state.config),
+         extension_amount when extension_amount > 0 <- calculate_extension(event, state.config) do
+      new_state = apply_timer_extension(state, extension_amount)
+
+      broadcast_event(new_state, %{
+        type: :extend,
+        amount: extension_amount,
+        username: event.username,
+        source_type: event.type
+      })
+
+      {:extend, new_state}
+    else
+      _ -> :no_extension
+    end
+  end
+
+  defp apply_timer_extension(state, extension_amount) do
+    if state.count_direction == "down" do
+      %{state | current_time: state.current_time + extension_amount}
+    else
+      %{state | total_duration: state.total_duration + extension_amount}
+    end
   end
 
   # Private functions
@@ -386,48 +389,52 @@ defmodule Streampai.LivestreamManager.TimerManager do
   end
 
   defp should_extend_timer?(event, config) do
-    case event.type do
-      :donation ->
-        config[:donation_extension_enabled] and
-          event.amount >= (config[:donation_min_amount] || 1)
-
-      :subscription ->
-        config[:subscription_extension_enabled]
-
-      :raid ->
-        config[:raid_extension_enabled] and
-          event.viewer_count >= (config[:raid_min_viewers] || 5)
-
-      :patreon ->
-        config[:patreon_extension_enabled]
-
-      _ ->
-        false
-    end
+    extension_enabled?(event.type, config) and meets_minimum_threshold?(event, config)
   end
+
+  defp extension_enabled?(:donation, config), do: config[:donation_extension_enabled] || false
+
+  defp extension_enabled?(:subscription, config), do: config[:subscription_extension_enabled] || false
+
+  defp extension_enabled?(:raid, config), do: config[:raid_extension_enabled] || false
+  defp extension_enabled?(:patreon, config), do: config[:patreon_extension_enabled] || false
+  defp extension_enabled?(_, _config), do: false
+
+  defp meets_minimum_threshold?(%{type: :donation, amount: amount}, config),
+    do: amount >= (config[:donation_min_amount] || 1)
+
+  defp meets_minimum_threshold?(%{type: :raid, viewer_count: viewers}, config),
+    do: viewers >= (config[:raid_min_viewers] || 5)
+
+  defp meets_minimum_threshold?(%{type: type}, _config) when type in [:subscription, :patreon], do: true
+
+  defp meets_minimum_threshold?(_event, _config), do: false
 
   defp calculate_extension(event, config) do
-    case event.type do
-      :donation ->
-        amount = event.amount || 0
-        extension_per_dollar = config[:donation_extension_amount] || 30
-        round(amount * extension_per_dollar)
-
-      :subscription ->
-        config[:subscription_extension_amount] || 60
-
-      :raid ->
-        viewers = event.viewer_count || 0
-        per_viewer = config[:raid_extension_per_viewer] || 1
-        round(viewers * per_viewer)
-
-      :patreon ->
-        config[:patreon_extension_amount] || 120
-
-      _ ->
-        0
-    end
+    calculate_extension_by_type(event.type, event, config)
   end
+
+  defp calculate_extension_by_type(:donation, event, config) do
+    amount = event.amount || 0
+    extension_per_dollar = config[:donation_extension_amount] || 30
+    round(amount * extension_per_dollar)
+  end
+
+  defp calculate_extension_by_type(:subscription, _event, config) do
+    config[:subscription_extension_amount] || 60
+  end
+
+  defp calculate_extension_by_type(:raid, event, config) do
+    viewers = event.viewer_count || 0
+    per_viewer = config[:raid_extension_per_viewer] || 1
+    round(viewers * per_viewer)
+  end
+
+  defp calculate_extension_by_type(:patreon, _event, config) do
+    config[:patreon_extension_amount] || 120
+  end
+
+  defp calculate_extension_by_type(_type, _event, _config), do: 0
 
   defp broadcast_event(state, event_data) do
     event =

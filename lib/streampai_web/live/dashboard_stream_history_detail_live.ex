@@ -215,37 +215,54 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   end
 
   defp find_most_active_chat_period(chat_messages, duration_seconds) do
-    # Find 10-minute window with most messages
+    if Enum.empty?(chat_messages) do
+      empty_chat_period()
+    else
+      find_peak_activity_window(chat_messages, duration_seconds)
+    end
+  end
+
+  defp empty_chat_period do
+    %{start_time: nil, message_count: 0, timeline_position: 0}
+  end
+
+  defp find_peak_activity_window(chat_messages, duration_seconds) do
     # 10 minutes in seconds
     window_size = 10 * 60
+    first_message_time = hd(chat_messages).timestamp
 
-    if length(chat_messages) > 0 do
-      first_message_time = hd(chat_messages).timestamp
+    0..(duration_seconds - window_size)//60
+    |> Enum.map(
+      &calculate_window_activity(
+        &1,
+        first_message_time,
+        window_size,
+        chat_messages,
+        duration_seconds
+      )
+    )
+    |> Enum.max_by(& &1.message_count, fn -> empty_chat_period() end)
+  end
 
-      0..(duration_seconds - window_size)//60
-      |> Enum.map(fn offset ->
-        window_start = DateTime.add(first_message_time, offset, :second)
-        window_end = DateTime.add(window_start, window_size, :second)
+  defp calculate_window_activity(offset, first_message_time, window_size, chat_messages, duration_seconds) do
+    window_start = DateTime.add(first_message_time, offset, :second)
+    window_end = DateTime.add(window_start, window_size, :second)
 
-        messages_in_window =
-          Enum.count(chat_messages, fn msg ->
-            DateTime.compare(msg.timestamp, window_start) != :lt and
-              DateTime.compare(msg.timestamp, window_end) != :gt
-          end)
+    messages_in_window = count_messages_in_window(chat_messages, window_start, window_end)
 
-        %{
-          start_time: window_start,
-          message_count: messages_in_window,
-          timeline_position: round(offset / duration_seconds * 100),
-          description: "Most active chat period"
-        }
-      end)
-      |> Enum.max_by(& &1.message_count, fn ->
-        %{start_time: nil, message_count: 0, timeline_position: 0}
-      end)
-    else
-      %{start_time: nil, message_count: 0, timeline_position: 0}
-    end
+    %{
+      start_time: window_start,
+      message_count: messages_in_window,
+      timeline_position: round(offset / duration_seconds * 100),
+      description: "Most active chat period"
+    }
+  end
+
+  defp count_messages_in_window(messages, window_start, window_end) do
+    Enum.count(messages, fn msg ->
+      DateTime.compare(msg.timestamp, window_start) != :lt and
+        DateTime.compare(msg.timestamp, window_end) != :gt
+    end)
   end
 
   defp calculate_engagement_score(stream, events, chat_messages) do

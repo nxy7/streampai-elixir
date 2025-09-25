@@ -20,7 +20,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
     user_images = config_with_images[:images]
 
     initial_event =
-      if length(user_images) == 0 do
+      if Enum.empty?(user_images) do
         @fake_module.generate_event()
       else
         %{
@@ -46,7 +46,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
     # Generate demo images if user has no uploaded images
     user_images = socket.assigns.widget_config[:images] || []
 
-    if length(user_images) == 0 do
+    if Enum.empty?(user_images) do
       # Generate fake demo images for preview
       new_event = @fake_module.generate_event()
       assign(socket, :current_event, new_event)
@@ -154,7 +154,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
       # Create new event with updated images to trigger Vue component update
       new_event =
-        if length(updated_images) == 0 do
+        if Enum.empty?(updated_images) do
           # If no images left, generate demo event
           @fake_module.generate_event()
         else
@@ -182,14 +182,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
     if length(image_ids) == length(current_images) do
       # Reorder images based on the provided order
-      reordered_images =
-        image_ids
-        |> Enum.with_index()
-        |> Enum.map(fn {image_id, new_index} ->
-          image = Enum.find(current_images, &(to_string(&1["id"]) == image_id))
-          if image, do: Map.put(image, "index", new_index)
-        end)
-        |> Enum.reject(&is_nil/1)
+      reordered_images = reorder_images_by_ids(image_ids, current_images)
 
       if length(reordered_images) == length(current_images) do
         updated_config = Map.put(current_config, :images, reordered_images)
@@ -219,6 +212,16 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
   def handle_event("reorder_images", _params, socket) do
     {:noreply, put_flash(socket, :error, "Invalid reorder data")}
+  end
+
+  defp reorder_images_by_ids(image_ids, current_images) do
+    image_ids
+    |> Enum.with_index()
+    |> Enum.map(fn {image_id, new_index} ->
+      image = Enum.find(current_images, &(to_string(&1["id"]) == image_id))
+      if image, do: Map.put(image, "index", new_index)
+    end)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp process_image_uploads(images, user) do
@@ -455,10 +458,10 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
             <% end %>
             
     <!-- Current Images -->
-            <%= if @widget_config[:images] && length(@widget_config[:images]) > 0 do %>
+            <%= if @widget_config[:images] && not Enum.empty?(@widget_config[:images]) do %>
               <div>
                 <h3 class="text-sm font-medium text-gray-900 mb-3">
-                  Current Images ({length(@widget_config[:images])})
+                  Current Images ({Enum.count(@widget_config[:images])})
                 </h3>
                 <div
                   class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
