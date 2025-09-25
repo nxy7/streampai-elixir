@@ -75,11 +75,8 @@ defmodule StreampaiWeb.DonationLive do
     preferences = socket.assigns.preferences
 
     case FormHelpers.validate_donation_amount(amount, preferences) do
-      {:ok, validated_amount} ->
-        process_donation(socket, params, validated_amount)
-
-      {:error, message} ->
-        {:noreply, flash_error(socket, message)}
+      {:ok, validated_amount} -> process_donation(socket, params, validated_amount)
+      {:error, message} -> {:noreply, flash_error(socket, message)}
     end
   end
 
@@ -332,11 +329,10 @@ defmodule StreampaiWeb.DonationLive do
                       <%= if @processing do %>
                         Processing...
                       <% else %>
-                        <%= case FormHelpers.get_donation_amount(assigns) do %>
-                          <% nil -> %>
-                            Select Amount to Donate
-                          <% amount -> %>
-                            Donate {@preferences.donation_currency} {amount}
+                        <%= if amount = FormHelpers.get_donation_amount(assigns) do %>
+                          Donate {@preferences.donation_currency} {amount}
+                        <% else %>
+                          Select Amount to Donate
                         <% end %>
                       <% end %>
                     </button>
@@ -357,11 +353,11 @@ defmodule StreampaiWeb.DonationLive do
                     <div class="flex items-start space-x-3">
                       <div class={[
                         "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                        case index do
-                          0 -> "bg-yellow-500 text-black"
-                          1 -> "bg-gray-400 text-black"
-                          2 -> "bg-amber-600 text-white"
-                          _ -> "bg-purple-600 text-white"
+                        cond do
+                          index == 0 -> "bg-yellow-500 text-black"
+                          index == 1 -> "bg-gray-400 text-black"
+                          index == 2 -> "bg-amber-600 text-white"
+                          true -> "bg-purple-600 text-white"
                         end
                       ]}>
                         {index + 1}

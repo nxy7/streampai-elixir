@@ -34,9 +34,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
     |> redirect(to: @redirect_url)
   end
 
-  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{}, current_user: nil}} = conn, %{
-        "provider" => _provider
-      }) do
+  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{}, current_user: nil}} = conn, %{"provider" => _provider}) do
     handle_unauthenticated_callback(conn)
   end
 
@@ -66,31 +64,28 @@ defmodule StreampaiWeb.MultiProviderAuth do
     end
   end
 
-  defp format_oauth_error(%Ueberauth.Failure{errors: errors}, provider) do
-    case errors do
-      [%Ueberauth.Failure.Error{message: message} | _] ->
-        "Failed to authenticate with #{String.capitalize(provider)}: #{message}"
+  defp format_oauth_error(%Ueberauth.Failure{errors: [%Ueberauth.Failure.Error{message: message} | _]}, provider) do
+    "Failed to authenticate with #{String.capitalize(provider)}: #{message}"
+  end
 
-      [] ->
-        "Failed to authenticate with #{String.capitalize(provider)}: Unknown error"
+  defp format_oauth_error(%Ueberauth.Failure{errors: []}, provider) do
+    "Failed to authenticate with #{String.capitalize(provider)}: Unknown error"
+  end
 
-      _ ->
-        "Failed to authenticate with #{String.capitalize(provider)}"
-    end
+  defp format_oauth_error(%Ueberauth.Failure{}, provider) do
+    "Failed to authenticate with #{String.capitalize(provider)}"
+  end
+
+  defp format_connection_error(provider, %Ash.Error.Invalid{errors: errors}) do
+    error_msgs = Enum.map(errors, & &1.message)
+    "Failed to connect #{String.capitalize(provider)} account: #{Enum.join(error_msgs, ", ")}"
   end
 
   defp format_connection_error(provider, error) do
-    case error do
-      %Ash.Error.Invalid{errors: errors} ->
-        error_msgs = Enum.map(errors, & &1.message)
-        "Failed to connect #{String.capitalize(provider)} account: #{Enum.join(error_msgs, ", ")}"
+    require Logger
 
-      _ ->
-        require Logger
-
-        Logger.error("Failed to connect #{provider} account for user: #{inspect(error)}")
-        "Failed to connect #{String.capitalize(provider)} account. Please try again later."
-    end
+    Logger.error("Failed to connect #{provider} account for user: #{inspect(error)}")
+    "Failed to connect #{String.capitalize(provider)} account. Please try again later."
   end
 
   defp create_or_update_streaming_account(user, auth, provider) do
@@ -174,20 +169,14 @@ defmodule StreampaiWeb.MultiProviderAuth do
   end
 
   defp expires_at_from_auth(_) do
-    # Default to 1 hour from now if we can't determine expiration
     DateTime.add(DateTime.utc_now(), 3600, :second)
   end
 
-  # Helper function to safely extract fields from raw_info
-  defp extract_from_raw_info(auth, field_name) do
-    case auth.extra.raw_info do
-      %{user: user_data} when is_map(user_data) ->
-        Map.get(user_data, field_name)
-
-      _ ->
-        nil
-    end
+  defp extract_from_raw_info(%{extra: %{raw_info: %{user: user_data}}}, field_name) when is_map(user_data) do
+    Map.get(user_data, field_name)
   end
+
+  defp extract_from_raw_info(_auth, _field_name), do: nil
 
   # Helper function to extract fields from JWT id_token
   defp extract_from_jwt(auth, field_name) do

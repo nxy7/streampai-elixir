@@ -66,26 +66,25 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
     end
   end
 
-  defp convert_setting_value(setting, value) do
-    case setting do
-      :slide_duration ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 60)
-
-      :transition_duration ->
-        WidgetHelpers.parse_numeric_setting(value, min: 100, max: 3000)
-
-      :transition_type ->
-        valid_types = Enum.map(FakeSlider.transition_types(), & &1.value)
-        WidgetHelpers.validate_config_value(:transition_type, value, valid_types, "fade")
-
-      :fit_mode ->
-        valid_modes = Enum.map(FakeSlider.fit_modes(), & &1.value)
-        WidgetHelpers.validate_config_value(:fit_mode, value, valid_modes, "contain")
-
-      _ ->
-        value
-    end
+  defp convert_setting_value(:slide_duration, value) do
+    WidgetHelpers.parse_numeric_setting(value, min: 1, max: 60)
   end
+
+  defp convert_setting_value(:transition_duration, value) do
+    WidgetHelpers.parse_numeric_setting(value, min: 100, max: 3000)
+  end
+
+  defp convert_setting_value(:transition_type, value) do
+    valid_types = Enum.map(FakeSlider.transition_types(), & &1.value)
+    WidgetHelpers.validate_config_value(:transition_type, value, valid_types, "fade")
+  end
+
+  defp convert_setting_value(:fit_mode, value) do
+    valid_modes = Enum.map(FakeSlider.fit_modes(), & &1.value)
+    WidgetHelpers.validate_config_value(:fit_mode, value, valid_modes, "contain")
+  end
+
+  defp convert_setting_value(_setting, value), do: value
 
   # Handle image uploads
   def handle_event("upload_images", %{"images" => images}, socket) when is_list(images) do
@@ -585,14 +584,14 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
                   <% end %>
                 </select>
                 <p class="mt-1 text-xs text-gray-500">
-                  <%= case @widget_config[:fit_mode] do %>
-                    <% "contain" -> %>
+                  <%= cond do %>
+                    <% @widget_config[:fit_mode] == "contain" -> %>
                       Scale image to fit within container
-                    <% "cover" -> %>
+                    <% @widget_config[:fit_mode] == "cover" -> %>
                       Scale image to fill container, may crop parts
-                    <% "fill" -> %>
+                    <% @widget_config[:fit_mode] == "fill" -> %>
                       Stretch image to fill container exactly
-                    <% _ -> %>
+                    <% true -> %>
                       Scale image to fit within container
                   <% end %>
                 </p>

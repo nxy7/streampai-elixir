@@ -250,14 +250,14 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   defp parse_amount(amount), do: FormHelpers.parse_numeric_setting(amount, min: 1)
 
   defp role_icon_component(assigns) do
+    icon_name =
+      if assigns.role_type == :moderator, do: "hero-shield-check", else: "hero-cog-6-tooth"
+
+    assigns = assign(assigns, :icon_name, icon_name)
+
     ~H"""
     <div class={"w-10 h-10 #{@bg_color} rounded-full flex items-center justify-center"}>
-      <%= case @role_type do %>
-        <% :moderator -> %>
-          <StreampaiWeb.CoreComponents.icon name="hero-shield-check" class={"w-5 h-5 #{@icon_color}"} />
-        <% :manager -> %>
-          <StreampaiWeb.CoreComponents.icon name="hero-cog-6-tooth" class={"w-5 h-5 #{@icon_color}"} />
-      <% end %>
+      <StreampaiWeb.CoreComponents.icon name={@icon_name} class={"w-5 h-5 #{@icon_color}"} />
     </div>
     """
   end
