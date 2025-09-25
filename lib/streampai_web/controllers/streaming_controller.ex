@@ -34,14 +34,16 @@ defmodule StreampaiWeb.MultiProviderAuth do
     |> redirect(to: @redirect_url)
   end
 
-  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, %{"provider" => provider}) do
-    case conn.assigns.current_user do
-      nil ->
-        handle_unauthenticated_callback(conn)
+  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{}, current_user: nil}} = conn, %{
+        "provider" => _provider
+      }) do
+    handle_unauthenticated_callback(conn)
+  end
 
-      user ->
-        handle_authenticated_callback(conn, user, auth, provider)
-    end
+  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth, current_user: user}} = conn, %{
+        "provider" => provider
+      }) do
+    handle_authenticated_callback(conn, user, auth, provider)
   end
 
   defp handle_unauthenticated_callback(conn) do

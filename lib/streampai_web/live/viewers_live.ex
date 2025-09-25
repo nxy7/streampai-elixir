@@ -27,16 +27,16 @@ defmodule StreampaiWeb.ViewersLive do
 
   @impl true
   def handle_event("search", %{"search" => %{"term" => term}}, socket) do
-    filtered_viewers =
-      filter_and_sort_viewers(
-        socket.assigns.all_viewers,
-        term,
-        socket.assigns.selected_platform,
-        socket.assigns.selected_tags,
-        socket.assigns.sort_by,
-        socket.assigns.sort_order
-      )
+    filter_params = %{
+      viewers: socket.assigns.all_viewers,
+      search_term: term,
+      platform: socket.assigns.selected_platform,
+      tags: socket.assigns.selected_tags,
+      sort_by: socket.assigns.sort_by,
+      sort_order: socket.assigns.sort_order
+    }
 
+    filtered_viewers = filter_and_sort_viewers(filter_params)
     {:noreply, assign(socket, search_term: term, viewers: filtered_viewers)}
   end
 
@@ -44,16 +44,16 @@ defmodule StreampaiWeb.ViewersLive do
   def handle_event("filter_platform", %{"platform" => platform}, socket) do
     platform = if platform == "all", do: nil, else: String.to_atom(platform)
 
-    filtered_viewers =
-      filter_and_sort_viewers(
-        socket.assigns.all_viewers,
-        socket.assigns.search_term,
-        platform,
-        socket.assigns.selected_tags,
-        socket.assigns.sort_by,
-        socket.assigns.sort_order
-      )
+    filter_params = %{
+      viewers: socket.assigns.all_viewers,
+      search_term: socket.assigns.search_term,
+      platform: platform,
+      tags: socket.assigns.selected_tags,
+      sort_by: socket.assigns.sort_by,
+      sort_order: socket.assigns.sort_order
+    }
 
+    filtered_viewers = filter_and_sort_viewers(filter_params)
     {:noreply, assign(socket, selected_platform: platform, viewers: filtered_viewers)}
   end
 
@@ -66,15 +66,16 @@ defmodule StreampaiWeb.ViewersLive do
         [tag | socket.assigns.selected_tags]
       end
 
-    filtered_viewers =
-      filter_and_sort_viewers(
-        socket.assigns.all_viewers,
-        socket.assigns.search_term,
-        socket.assigns.selected_platform,
-        selected_tags,
-        socket.assigns.sort_by,
-        socket.assigns.sort_order
-      )
+    filter_params = %{
+      viewers: socket.assigns.all_viewers,
+      search_term: socket.assigns.search_term,
+      platform: socket.assigns.selected_platform,
+      tags: selected_tags,
+      sort_by: socket.assigns.sort_by,
+      sort_order: socket.assigns.sort_order
+    }
+
+    filtered_viewers = filter_and_sort_viewers(filter_params)
 
     {:noreply, assign(socket, selected_tags: selected_tags, viewers: filtered_viewers)}
   end
@@ -90,20 +91,28 @@ defmodule StreampaiWeb.ViewersLive do
         default_sort_order(sort_by)
       end
 
-    filtered_viewers =
-      filter_and_sort_viewers(
-        socket.assigns.all_viewers,
-        socket.assigns.search_term,
-        socket.assigns.selected_platform,
-        socket.assigns.selected_tags,
-        sort_by,
-        sort_order
-      )
+    filter_params = %{
+      viewers: socket.assigns.all_viewers,
+      search_term: socket.assigns.search_term,
+      platform: socket.assigns.selected_platform,
+      tags: socket.assigns.selected_tags,
+      sort_by: sort_by,
+      sort_order: sort_order
+    }
+
+    filtered_viewers = filter_and_sort_viewers(filter_params)
 
     {:noreply, assign(socket, sort_by: sort_by, sort_order: sort_order, viewers: filtered_viewers)}
   end
 
-  defp filter_and_sort_viewers(viewers, search_term, platform, tags, sort_by, sort_order) do
+  defp filter_and_sort_viewers(%{
+         viewers: viewers,
+         search_term: search_term,
+         platform: platform,
+         tags: tags,
+         sort_by: sort_by,
+         sort_order: sort_order
+       }) do
     viewers
     |> MockViewers.filter_viewers(search_term)
     |> filter_by_platform(platform)

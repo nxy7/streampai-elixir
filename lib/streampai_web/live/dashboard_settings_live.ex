@@ -131,10 +131,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     handle_notification_toggle(socket)
   end
 
-  def handle_event("disconnect_platform", %{"platform" => platform_str} = _params, socket) do
-    handle_platform_disconnect(socket, platform_str)
-  end
-
   def handle_event("accept_role", %{"role_id" => role_id}, socket) do
     handle_role_action(
       socket,

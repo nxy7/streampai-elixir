@@ -4,8 +4,6 @@ defmodule StreampaiWeb.DashboardLive do
   """
   use StreampaiWeb.BaseLive
 
-  import StreampaiWeb.Components.DashboardComponents
-
   alias Streampai.Dashboard
   alias StreampaiWeb.LiveHelpers.UserHelpers
 

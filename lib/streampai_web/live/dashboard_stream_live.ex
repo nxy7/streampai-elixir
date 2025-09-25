@@ -105,10 +105,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
   end
 
-  def handle_event("disconnect_platform", %{"platform" => platform_str, "value" => _}, socket) do
-    handle_platform_disconnect(socket, platform_str)
-  end
-
   def handle_info({:stream_status_changed, _event}, socket) do
     user_id = socket.assigns.current_user.id
     stream_status = get_stream_status(user_id)
