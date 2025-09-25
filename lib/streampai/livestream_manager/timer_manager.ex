@@ -199,12 +199,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   @impl true
   def handle_call({:extend_timer, amount, username, source_type}, _from, state) do
-    new_state =
-      if state.count_direction == "down" do
-        %{state | current_time: state.current_time + amount}
-      else
-        %{state | total_duration: state.total_duration + amount}
-      end
+    new_state = apply_timer_extension_by_direction(state, amount)
 
     broadcast_event(new_state, %{
       type: :extend,
@@ -250,12 +245,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
   @impl true
   def handle_info(:tick, state) do
     if state.is_running do
-      new_time =
-        if state.count_direction == "down" do
-          state.current_time - 1
-        else
-          state.current_time + 1
-        end
+      new_time = update_time_by_direction(state.count_direction, state.current_time)
 
       new_state = %{state | current_time: new_time}
 
@@ -334,12 +324,19 @@ defmodule Streampai.LivestreamManager.TimerManager do
   end
 
   defp apply_timer_extension(state, extension_amount) do
-    if state.count_direction == "down" do
-      %{state | current_time: state.current_time + extension_amount}
-    else
-      %{state | total_duration: state.total_duration + extension_amount}
-    end
+    apply_timer_extension_by_direction(state, extension_amount)
   end
+
+  defp apply_timer_extension_by_direction(%{count_direction: "down"} = state, amount) do
+    %{state | current_time: state.current_time + amount}
+  end
+
+  defp apply_timer_extension_by_direction(state, amount) do
+    %{state | total_duration: state.total_duration + amount}
+  end
+
+  defp update_time_by_direction("down", current_time), do: current_time - 1
+  defp update_time_by_direction(_, current_time), do: current_time + 1
 
   # Private functions
 
@@ -350,7 +347,6 @@ defmodule Streampai.LivestreamManager.TimerManager do
   defp load_timer_config(user_id) do
     case Streampai.Accounts.WidgetConfig.get_by_user_and_type(
            %{user_id: user_id, type: :timer_widget},
-           # Simple actor for reading
            actor: %{id: user_id}
          ) do
       {:ok, %{config: config}} -> config
@@ -410,31 +406,25 @@ defmodule Streampai.LivestreamManager.TimerManager do
 
   defp meets_minimum_threshold?(_event, _config), do: false
 
-  defp calculate_extension(event, config) do
-    calculate_extension_by_type(event.type, event, config)
-  end
-
-  defp calculate_extension_by_type(:donation, event, config) do
-    amount = event.amount || 0
+  defp calculate_extension(%{type: :donation, amount: amount}, config) do
     extension_per_dollar = config[:donation_extension_amount] || 30
-    round(amount * extension_per_dollar)
+    round((amount || 0) * extension_per_dollar)
   end
 
-  defp calculate_extension_by_type(:subscription, _event, config) do
+  defp calculate_extension(%{type: :subscription}, config) do
     config[:subscription_extension_amount] || 60
   end
 
-  defp calculate_extension_by_type(:raid, event, config) do
-    viewers = event.viewer_count || 0
+  defp calculate_extension(%{type: :raid, viewer_count: viewers}, config) do
     per_viewer = config[:raid_extension_per_viewer] || 1
-    round(viewers * per_viewer)
+    round((viewers || 0) * per_viewer)
   end
 
-  defp calculate_extension_by_type(:patreon, _event, config) do
+  defp calculate_extension(%{type: :patreon}, config) do
     config[:patreon_extension_amount] || 120
   end
 
-  defp calculate_extension_by_type(_type, _event, _config), do: 0
+  defp calculate_extension(_event, _config), do: 0
 
   defp broadcast_event(state, event_data) do
     event =
