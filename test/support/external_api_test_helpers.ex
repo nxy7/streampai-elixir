@@ -93,24 +93,7 @@ defmodule Streampai.ExternalAPITestHelpers do
   def assert_api_error({:error, {:http_error, status, body}}, expected_status, _expected_operation) do
     assert status == expected_status
 
-    # Validate error body structure for common API patterns
-    case body do
-      %{"errors" => errors} when is_list(errors) ->
-        # Standard API error format
-        body
-
-      %{"error" => _error_msg} ->
-        # Simple error format
-        body
-
-      error_string when is_binary(error_string) ->
-        # Plain string error
-        body
-
-      _ ->
-        # Unexpected error format - might indicate API changes
-        flunk("Unexpected error response format: #{inspect(body)}")
-    end
+    validate_error_body_structure(body)
   end
 
   @doc """
@@ -158,26 +141,7 @@ defmodule Streampai.ExternalAPITestHelpers do
     expected_page_size = Keyword.get(opts, :page_size, 50)
     has_next_page = Keyword.get(opts, :has_next_page, false)
 
-    case response do
-      {:ok, %{"data" => data, "pagination" => pagination}} ->
-        assert is_list(data)
-        assert length(data) <= expected_page_size
-
-        if has_next_page do
-          assert Map.has_key?(pagination, "next_cursor") or
-                   Map.has_key?(pagination, "next_page")
-        end
-
-        {data, pagination}
-
-      {:ok, data} when is_list(data) ->
-        # Simple list response without pagination metadata
-        assert length(data) <= expected_page_size
-        data
-
-      other ->
-        flunk("Expected paginated response, got: #{inspect(other)}")
-    end
+    validate_paginated_response(response, expected_page_size, has_next_page)
   end
 
   @doc """
@@ -189,11 +153,7 @@ defmodule Streampai.ExternalAPITestHelpers do
       |> :crypto.mac(algorithm, secret, payload)
       |> Base.encode16(case: :lower)
 
-    # Compare signatures securely
-    case signature do
-      ^expected_signature -> :ok
-      _ -> {:error, :invalid_signature}
-    end
+    validate_signature_match(signature, expected_signature)
   end
 
   # Private helper functions
@@ -240,16 +200,12 @@ defmodule Streampai.ExternalAPITestHelpers do
     end)
   end
 
-  defp validate_wildcard_type(value, type, key) do
-    case type do
-      :timestamp -> validate_timestamp(value, key)
-      :uuid -> validate_uuid(value, key)
-      :secret -> validate_secret(value, key)
-      :url -> validate_url(value, key)
-      :any -> :ok
-      _ -> validate_not_nil(value, key)
-    end
-  end
+  defp validate_wildcard_type(value, :timestamp, key), do: validate_timestamp(value, key)
+  defp validate_wildcard_type(value, :uuid, key), do: validate_uuid(value, key)
+  defp validate_wildcard_type(value, :secret, key), do: validate_secret(value, key)
+  defp validate_wildcard_type(value, :url, key), do: validate_url(value, key)
+  defp validate_wildcard_type(_value, :any, _key), do: :ok
+  defp validate_wildcard_type(value, _type, key), do: validate_not_nil(value, key)
 
   defp validate_timestamp(value, key) do
     assert is_binary(value) and String.match?(value, ~r/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
@@ -280,6 +236,40 @@ defmodule Streampai.ExternalAPITestHelpers do
   defp validate_not_nil(value, key) do
     assert not is_nil(value), "Expected #{key} to have a value, got nil"
   end
+
+  defp validate_error_body_structure(%{"errors" => errors}) when is_list(errors), do: %{"errors" => errors}
+
+  defp validate_error_body_structure(%{"error" => _error_msg} = body), do: body
+  defp validate_error_body_structure(error_string) when is_binary(error_string), do: error_string
+
+  defp validate_error_body_structure(body), do: flunk("Unexpected error response format: #{inspect(body)}")
+
+  defp validate_paginated_response(
+         {:ok, %{"data" => data, "pagination" => pagination}},
+         expected_page_size,
+         has_next_page
+       ) do
+    assert is_list(data)
+    assert length(data) <= expected_page_size
+
+    if has_next_page do
+      assert Map.has_key?(pagination, "next_cursor") or Map.has_key?(pagination, "next_page")
+    end
+
+    {data, pagination}
+  end
+
+  defp validate_paginated_response({:ok, data}, expected_page_size, _has_next_page) when is_list(data) do
+    assert length(data) <= expected_page_size
+    data
+  end
+
+  defp validate_paginated_response(other, _expected_page_size, _has_next_page) do
+    flunk("Expected paginated response, got: #{inspect(other)}")
+  end
+
+  defp validate_signature_match(expected_signature, expected_signature), do: :ok
+  defp validate_signature_match(_signature, _expected_signature), do: {:error, :invalid_signature}
 
   defp provide_helpful_api_error(actual, expected, original_error) do
     error_details = """

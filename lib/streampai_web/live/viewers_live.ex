@@ -27,97 +27,58 @@ defmodule StreampaiWeb.ViewersLive do
 
   @impl true
   def handle_event("search", %{"search" => %{"term" => term}}, socket) do
-    filter_params = %{
-      viewers: socket.assigns.all_viewers,
-      search_term: term,
-      platform: socket.assigns.selected_platform,
-      tags: socket.assigns.selected_tags,
-      sort_by: socket.assigns.sort_by,
-      sort_order: socket.assigns.sort_order
-    }
-
-    filtered_viewers = filter_and_sort_viewers(filter_params)
-    {:noreply, assign(socket, search_term: term, viewers: filtered_viewers)}
+    updated_socket = assign(socket, :search_term, term)
+    filtered_viewers = build_and_filter_viewers(updated_socket)
+    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
   end
 
   @impl true
   def handle_event("filter_platform", %{"platform" => platform}, socket) do
     platform = if platform == "all", do: nil, else: String.to_atom(platform)
-
-    filter_params = %{
-      viewers: socket.assigns.all_viewers,
-      search_term: socket.assigns.search_term,
-      platform: platform,
-      tags: socket.assigns.selected_tags,
-      sort_by: socket.assigns.sort_by,
-      sort_order: socket.assigns.sort_order
-    }
-
-    filtered_viewers = filter_and_sort_viewers(filter_params)
-    {:noreply, assign(socket, selected_platform: platform, viewers: filtered_viewers)}
+    updated_socket = assign(socket, :selected_platform, platform)
+    filtered_viewers = build_and_filter_viewers(updated_socket)
+    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
   end
 
   @impl true
   def handle_event("toggle_tag", %{"tag" => tag}, socket) do
-    selected_tags =
-      if tag in socket.assigns.selected_tags do
-        List.delete(socket.assigns.selected_tags, tag)
-      else
-        [tag | socket.assigns.selected_tags]
-      end
-
-    filter_params = %{
-      viewers: socket.assigns.all_viewers,
-      search_term: socket.assigns.search_term,
-      platform: socket.assigns.selected_platform,
-      tags: selected_tags,
-      sort_by: socket.assigns.sort_by,
-      sort_order: socket.assigns.sort_order
-    }
-
-    filtered_viewers = filter_and_sort_viewers(filter_params)
-
-    {:noreply, assign(socket, selected_tags: selected_tags, viewers: filtered_viewers)}
+    selected_tags = toggle_tag_in_list(tag, socket.assigns.selected_tags)
+    updated_socket = assign(socket, :selected_tags, selected_tags)
+    filtered_viewers = build_and_filter_viewers(updated_socket)
+    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
   end
 
   @impl true
   def handle_event("sort", %{"by" => sort_by}, socket) do
     sort_by = String.to_atom(sort_by)
-
-    sort_order =
-      if sort_by == socket.assigns.sort_by do
-        if socket.assigns.sort_order == :asc, do: :desc, else: :asc
-      else
-        default_sort_order(sort_by)
-      end
-
-    filter_params = %{
-      viewers: socket.assigns.all_viewers,
-      search_term: socket.assigns.search_term,
-      platform: socket.assigns.selected_platform,
-      tags: socket.assigns.selected_tags,
-      sort_by: sort_by,
-      sort_order: sort_order
-    }
-
-    filtered_viewers = filter_and_sort_viewers(filter_params)
-
-    {:noreply, assign(socket, sort_by: sort_by, sort_order: sort_order, viewers: filtered_viewers)}
+    sort_order = determine_sort_order(sort_by, socket.assigns.sort_by, socket.assigns.sort_order)
+    updated_socket = assign(socket, sort_by: sort_by, sort_order: sort_order)
+    filtered_viewers = build_and_filter_viewers(updated_socket)
+    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
   end
 
-  defp filter_and_sort_viewers(%{
-         viewers: viewers,
-         search_term: search_term,
-         platform: platform,
-         tags: tags,
-         sort_by: sort_by,
-         sort_order: sort_order
-       }) do
-    viewers
-    |> MockViewers.filter_viewers(search_term)
-    |> filter_by_platform(platform)
-    |> filter_by_tags(tags)
-    |> sort_viewers(sort_by, sort_order)
+  defp build_and_filter_viewers(socket) do
+    socket.assigns.all_viewers
+    |> MockViewers.filter_viewers(socket.assigns.search_term)
+    |> filter_by_platform(socket.assigns.selected_platform)
+    |> filter_by_tags(socket.assigns.selected_tags)
+    |> sort_viewers(socket.assigns.sort_by, socket.assigns.sort_order)
+  end
+
+  defp toggle_tag_in_list(tag, selected_tags) do
+    if tag in selected_tags do
+      List.delete(selected_tags, tag)
+    else
+      [tag | selected_tags]
+    end
+  end
+
+  defp determine_sort_order(new_sort_by, current_sort_by, current_sort_order) do
+    if new_sort_by == current_sort_by do
+      if current_sort_order == :asc, do: :desc, else: :asc
+    else
+      default_sort_order(new_sort_by)
+    end
   end
 
   defp filter_by_platform(viewers, nil), do: viewers
@@ -137,21 +98,15 @@ defmodule StreampaiWeb.ViewersLive do
   end
 
   defp sort_viewers(viewers, sort_by, sort_order) do
-    Enum.sort_by(
-      viewers,
-      fn viewer ->
-        case sort_by do
-          :username -> viewer.username
-          :last_seen -> viewer.last_seen
-          :total_messages -> viewer.total_messages
-          :total_donations -> viewer.total_donations
-          :watch_time -> viewer.total_watch_time
-          _ -> viewer.last_seen
-        end
-      end,
-      sort_order
-    )
+    Enum.sort_by(viewers, &get_sort_value(&1, sort_by), sort_order)
   end
+
+  defp get_sort_value(viewer, :username), do: viewer.username
+  defp get_sort_value(viewer, :last_seen), do: viewer.last_seen
+  defp get_sort_value(viewer, :total_messages), do: viewer.total_messages
+  defp get_sort_value(viewer, :total_donations), do: viewer.total_donations
+  defp get_sort_value(viewer, :watch_time), do: viewer.total_watch_time
+  defp get_sort_value(viewer, _), do: viewer.last_seen
 
   defp default_sort_order(:username), do: :asc
   defp default_sort_order(_), do: :desc
