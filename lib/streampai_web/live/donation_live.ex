@@ -5,6 +5,8 @@ defmodule StreampaiWeb.DonationLive do
   """
   use StreampaiWeb, :live_view
 
+  import StreampaiWeb.LiveHelpers.FlashHelpers
+
   alias StreampaiWeb.LiveHelpers.DonationHelpers
   alias StreampaiWeb.LiveHelpers.FormHelpers
 
@@ -77,7 +79,7 @@ defmodule StreampaiWeb.DonationLive do
         process_donation(socket, params, validated_amount)
 
       {:error, message} ->
-        {:noreply, put_flash(socket, :error, message)}
+        {:noreply, flash_error(socket, message)}
     end
   end
 
@@ -100,7 +102,7 @@ defmodule StreampaiWeb.DonationLive do
         {:noreply,
          socket
          |> assign(:processing, false)
-         |> put_flash(:error, "There was an issue processing your donation. Please try again.")}
+         |> flash_error("There was an issue processing your donation. Please try again.")}
     end
   end
 

@@ -7,6 +7,8 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
     widget_type: :slider_widget,
     fake_module: StreampaiWeb.Utils.FakeSlider
 
+  import StreampaiWeb.LiveHelpers.FlashHelpers
+
   alias StreampaiWeb.Utils.FakeSlider
   alias StreampaiWeb.Utils.WidgetHelpers
 
@@ -95,7 +97,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
       socket =
         socket
         |> assign(:image_upload_errors, ["Maximum of 20 images allowed"])
-        |> put_flash(:error, "Too many images. Maximum of 20 images allowed.")
+        |> flash_error("Too many images. Maximum of 20 images allowed.")
 
       {:noreply, socket}
     else
@@ -119,7 +121,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
             |> assign(:widget_config, updated_config)
             |> assign(:current_event, new_event)
             |> assign(:image_upload_errors, [])
-            |> put_flash(:info, "Images uploaded successfully!")
+            |> flash_success("Images uploaded successfully!")
 
           {:noreply, socket}
 
@@ -127,7 +129,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
           socket =
             socket
             |> assign(:image_upload_errors, ["Failed to save configuration: #{reason}"])
-            |> put_flash(:error, "Failed to save widget configuration")
+            |> flash_error("Failed to save widget configuration")
 
           {:noreply, socket}
       end
@@ -135,7 +137,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
   end
 
   def handle_event("upload_images", _params, socket) do
-    {:noreply, put_flash(socket, :error, "No images provided")}
+    {:noreply, flash_error(socket, "No images provided")}
   end
 
   def handle_event("remove_image", %{"image_id" => image_id}, socket) do
@@ -147,7 +149,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
     if length(updated_images) == initial_count do
       # No image was removed
-      {:noreply, put_flash(socket, :error, "Image not found")}
+      {:noreply, flash_error(socket, "Image not found")}
     else
       updated_config = Map.put(current_config, :images, updated_images)
       save_and_broadcast_config(socket, updated_config)
@@ -170,7 +172,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
         socket
         |> assign(:widget_config, updated_config)
         |> assign(:current_event, new_event)
-        |> put_flash(:info, "Image removed successfully!")
+        |> flash_success("Image removed successfully!")
 
       {:noreply, socket}
     end
@@ -203,15 +205,15 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
         {:noreply, socket}
       else
-        {:noreply, put_flash(socket, :error, "Some images could not be found for reordering")}
+        {:noreply, flash_error(socket, "Some images could not be found for reordering")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Invalid reorder operation")}
+      {:noreply, flash_error(socket, "Invalid reorder operation")}
     end
   end
 
   def handle_event("reorder_images", _params, socket) do
-    {:noreply, put_flash(socket, :error, "Invalid reorder data")}
+    {:noreply, flash_error(socket, "Invalid reorder data")}
   end
 
   defp reorder_images_by_ids(image_ids, current_images) do
