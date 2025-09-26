@@ -1,3 +1,4 @@
+.crypt.key
 .direnv
 tasks
 # The directory Mix will write compiled artifacts to.
