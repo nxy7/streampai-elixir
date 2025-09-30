@@ -18,6 +18,7 @@
         {
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
+              ffmpeg
               elixir
               # elixir_1_19
               elixir-ls
@@ -28,6 +29,8 @@
               just
               nodejs
               bun
+              protobuf
+              protoc-gen-elixir
               # dbmate
               # telepresence2
               # cilium-cli

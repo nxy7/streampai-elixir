@@ -100,7 +100,9 @@ defmodule Streampai.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
-      {:grpcbox, "~> 0.17"}
+      {:grpc, "~> 0.9"},
+      {:protobuf, "~> 0.12"},
+      {:protobuf_generate, "~> 0.1.0"}
     ]
   end
 

@@ -113,11 +113,42 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   @impl true
   def handle_info(:connect, state) do
-    Logger.info("YouTube Live Chat streaming is disabled (integration example only)")
-    Logger.info("Chat ID: #{state.live_chat_id}")
+    Logger.info("Connecting to YouTube Live Chat: #{state.live_chat_id}")
 
-    # Since gRPC is disabled, we'll stop the process
-    {:stop, :normal, state}
+    case start_polling(state) do
+      {:ok, next_page_token} ->
+        schedule_next_poll(0)
+        new_state = %{state | stream_ref: next_page_token, reconnect_attempts: 0}
+        {:noreply, new_state}
+
+      {:error, reason} ->
+        Logger.error("Failed to start chat polling: #{inspect(reason)}")
+        send(state.callback_pid, {:chat_error, reason})
+        {:stop, reason, state}
+    end
+  end
+
+  @impl true
+  def handle_info(:poll, state) do
+    case fetch_messages(state) do
+      {:ok, messages, next_page_token, poll_interval} ->
+        Enum.each(messages, fn msg ->
+          send(state.callback_pid, {:chat_message, msg})
+        end)
+
+        schedule_next_poll(poll_interval)
+        new_state = %{state | stream_ref: next_page_token, reconnect_attempts: 0}
+        {:noreply, new_state}
+
+      {:error, :chat_disabled} ->
+        Logger.info("Chat has been disabled")
+        send(state.callback_pid, {:chat_ended, :chat_disabled})
+        {:stop, :normal, state}
+
+      {:error, reason} ->
+        Logger.warning("Failed to fetch messages: #{inspect(reason)}")
+        handle_connection_error(state, reason)
+    end
   end
 
   @impl true
@@ -134,30 +165,9 @@ defmodule Streampai.YouTube.LiveChatStream do
   end
 
   @impl true
-  def handle_info({:grpc_response, data}, state) do
-    case decode_chat_message(data) do
-      {:ok, message} ->
-        send(state.callback_pid, {:chat_message, message})
-        {:noreply, state}
-
-      {:error, reason} ->
-        Logger.warning("Failed to decode chat message: #{inspect(reason)}")
-        {:noreply, state}
-    end
-  end
-
-  @impl true
-  def handle_info({:grpc_error, reason}, state) do
-    Logger.error("gRPC stream error: #{inspect(reason)}")
-    send(state.callback_pid, {:chat_error, reason})
-    handle_connection_error(state, reason)
-  end
-
-  @impl true
-  def handle_info({:grpc_end, reason}, state) do
-    Logger.info("gRPC stream ended: #{inspect(reason)}")
-    send(state.callback_pid, {:chat_ended, reason})
-    handle_connection_error(state, reason)
+  def handle_info(msg, state) do
+    Logger.debug("[YouTubeLiveChat:#{state.live_chat_id}] Unknown message: #{inspect(msg)}")
+    {:noreply, state}
   end
 
   @impl true
@@ -194,48 +204,87 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   ## Private Functions
 
+  @base_url "https://www.googleapis.com/youtube/v3"
+
+  defp start_polling(state) do
+    case fetch_initial_page(state) do
+      {:ok, _messages, next_page_token, _poll_interval} ->
+        {:ok, next_page_token}
+
+      error ->
+        error
+    end
+  end
+
+  defp fetch_initial_page(state) do
+    params = %{
+      liveChatId: state.live_chat_id,
+      part: "snippet,authorDetails",
+      maxResults: 200
+    }
+
+    make_request(state, params)
+  end
+
+  defp fetch_messages(state) do
+    params = %{
+      liveChatId: state.live_chat_id,
+      part: "snippet,authorDetails",
+      maxResults: 200,
+      pageToken: state.stream_ref
+    }
+
+    make_request(state, params)
+  end
+
+  defp make_request(state, params) do
+    client =
+      Req.new(
+        base_url: @base_url,
+        headers: [
+          {"Authorization", "Bearer #{state.access_token}"},
+          {"Accept", "application/json"}
+        ]
+      )
+
+    case Req.get(client, url: "/liveChat/messages", params: params) do
+      {:ok, %{status: 200, body: body}} ->
+        messages = Map.get(body, "items", [])
+        next_page_token = Map.get(body, "nextPageToken")
+        poll_interval = Map.get(body, "pollingIntervalMillis", 5000)
+
+        {:ok, messages, next_page_token, poll_interval}
+
+      {:ok, %{status: 403, body: body}} ->
+        case get_in(body, ["error", "errors"]) do
+          [%{"reason" => "liveChatDisabled"} | _] ->
+            {:error, :chat_disabled}
+
+          [%{"reason" => "liveChatEnded"} | _] ->
+            {:error, :chat_disabled}
+
+          _ ->
+            {:error, {:forbidden, body}}
+        end
+
+      {:ok, %{status: status, body: body}} ->
+        {:error, {:http_error, status, body}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp schedule_next_poll(interval_ms) do
+    Process.send_after(self(), :poll, interval_ms)
+  end
+
   defp send_heartbeat(state) do
     if state.grpc_connection && state.stream_ref do
-      # Send ping frame or similar heartbeat mechanism
-      # Implementation depends on gRPC client library
       :ok
     else
       {:error, :not_connected}
     end
-  end
-
-  # Decode protobuf response to Elixir map
-  # This would use generated protobuf decoders
-  # Placeholder - would decode actual protobuf data
-  defp decode_chat_message(_data) do
-    decoded = %{
-      "id" => "message_id_#{:rand.uniform(1000)}",
-      "snippet" => %{
-        "type" => "textMessageEvent",
-        "liveChatId" => "some_chat_id",
-        "authorChannelId" => "author_id",
-        "publishedAt" => DateTime.to_iso8601(DateTime.utc_now()),
-        "hasDisplayContent" => true,
-        "displayMessage" => "Sample message",
-        "textMessageDetails" => %{
-          "messageText" => "Sample message"
-        }
-      },
-      "authorDetails" => %{
-        "channelId" => "author_id",
-        "channelUrl" => "https://youtube.com/channel/author_id",
-        "displayName" => "Sample User",
-        "profileImageUrl" => "https://example.com/avatar.jpg",
-        "isVerified" => false,
-        "isChatOwner" => false,
-        "isChatSponsor" => false,
-        "isChatModerator" => false
-      }
-    }
-
-    {:ok, decoded}
-  rescue
-    e -> {:error, e}
   end
 
   defp handle_connection_error(state, _reason) do

@@ -114,3 +114,9 @@ test-deploy-prod:
 	git pull
 	docker compose -f docker-compose.prod.yml build streampai
 	docker compose -f docker-compose.prod.yml up
+
+test-stream stream-key:
+	ffmpeg -loop 1 -i priv/static/favicon-32x32.png -c:v libx264 -pix_fmt yuv420p -f flv rtmps://live.cloudflare.com:443/live/{{stream-key}}
+
+proto-gen:
+	protoc --proto_path=proto/yt --elixir_out=plugins=grpc:./lib/streampai/youtube/generated stream_list.proto

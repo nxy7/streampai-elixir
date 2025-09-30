@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package youtube.v3;
+
+option go_package = "google.golang.org/youtube/v3";
+
+// YouTube Live Chat Message Streaming Service
+service V3DataLiveChatMessageService {
+  // Streams live chat messages for a specific chat in real-time
+  rpc StreamList(LiveChatMessageListRequest) returns (stream LiveChatMessageListResponse);
+}
+
+// Request message for streaming live chat messages
+message LiveChatMessageListRequest {
+  // The liveChatId parameter specifies the ID of the live chat for which chat messages should be returned
+  string live_chat_id = 1;
+
+  // The part parameter specifies a comma-separated list of one or more liveChatMessage resource properties
+  repeated string part = 2;
+
+  // The maxResults parameter specifies the maximum number of items that should be returned
+  uint32 max_results = 3;
+
+  // The pageToken parameter identifies a specific page in the result set
+  string page_token = 4;
+
+  // Profile image size (optional)
+  uint32 profile_image_size = 5;
+}
+
+// Response message containing live chat messages
+message LiveChatMessageListResponse {
+  // Identifies the API resource's type
+  string kind = 1;
+
+  // The Etag of this resource
+  string etag = 2;
+
+  // The token that can be used as the value of the pageToken parameter to retrieve the next page
+  string next_page_token = 3;
+
+  // The amount of time the client should wait before polling again
+  uint32 polling_interval_millis = 4;
+
+  // The visitorId identifies the visitor
+  string visitor_id = 5;
+
+  // Paging information
+  PageInfo page_info = 6;
+
+  // List of chat messages
+  repeated LiveChatMessage items = 7;
+}
+
+// Page information
+message PageInfo {
+  int32 total_results = 1;
+  int32 results_per_page = 2;
+}
+
+// Live chat message
+message LiveChatMessage {
+  string kind = 1;
+  string etag = 2;
+  string id = 3;
+  LiveChatMessageSnippet snippet = 4;
+  AuthorDetails author_details = 5;
+}
+
+// Live chat message snippet
+message LiveChatMessageSnippet {
+  string type = 1;
+  string live_chat_id = 2;
+  string author_channel_id = 3;
+  string published_at = 4;
+  bool has_display_content = 5;
+  string display_message = 6;
+
+  // Fan funding event details (Super Chat)
+  FanFundingEventDetails fan_funding_event_details = 7;
+
+  // Text message details
+  TextMessageDetails text_message_details = 8;
+
+  // Message deleted details
+  MessageDeletedDetails message_deleted_details = 9;
+
+  // User banned details
+  UserBannedDetails user_banned_details = 10;
+
+  // Super chat details
+  SuperChatEventDetails super_chat_details = 11;
+
+  // Super sticker details
+  SuperStickerDetails super_sticker_details = 12;
+
+  // New sponsor details
+  NewSponsorDetails new_sponsor_details = 13;
+
+  // Membership gifting details
+  MembershipGiftingDetails membership_gifting_details = 14;
+
+  // Gift membership received details
+  GiftMembershipReceivedDetails gift_membership_received_details = 15;
+
+  // Member milestone chat details
+  MemberMilestoneChatDetails member_milestone_chat_details = 16;
+}
+
+// Author details
+message AuthorDetails {
+  string channel_id = 1;
+  string channel_url = 2;
+  string display_name = 3;
+  string profile_image_url = 4;
+  bool is_verified = 5;
+  bool is_chat_owner = 6;
+  bool is_chat_sponsor = 7;
+  bool is_chat_moderator = 8;
+}
+
+// Text message details
+message TextMessageDetails {
+  string message_text = 1;
+}
+
+// Fan funding event details
+message FanFundingEventDetails {
+  uint64 amount_micros = 1;
+  string currency = 2;
+  string amount_display_string = 3;
+  string user_comment = 4;
+}
+
+// Super chat event details
+message SuperChatEventDetails {
+  uint64 amount_micros = 1;
+  string currency = 2;
+  string amount_display_string = 3;
+  uint32 tier = 4;
+  string user_comment = 5;
+}
+
+// Super sticker details
+message SuperStickerDetails {
+  string super_sticker_metadata_id = 1;
+  uint64 amount_micros = 2;
+  string currency = 3;
+  string amount_display_string = 4;
+  uint32 tier = 5;
+}
+
+// New sponsor details
+message NewSponsorDetails {
+  bool is_upgrade = 1;
+  string member_level_name = 2;
+}
+
+// Membership gifting details
+message MembershipGiftingDetails {
+  int32 gifting_count = 1;
+  string member_level_name = 2;
+}
+
+// Gift membership received details
+message GiftMembershipReceivedDetails {
+  string gifter_channel_id = 1;
+  string member_level_name = 2;
+}
+
+// Member milestone chat details
+message MemberMilestoneChatDetails {
+  string user_comment = 1;
+  uint32 member_month = 2;
+  string member_level_name = 3;
+}
+
+// Message deleted details
+message MessageDeletedDetails {
+  string deleted_message_id = 1;
+}
+
+// User banned details
+message UserBannedDetails {
+  string banned_user_details = 1;
+  string ban_type = 2;
+  uint64 ban_duration_seconds = 3;
+}
