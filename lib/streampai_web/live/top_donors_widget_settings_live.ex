@@ -8,6 +8,7 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
     fake_module: Streampai.Fake.TopDonors
 
   alias StreampaiWeb.Utils.WidgetHelpers
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Top Donors Widget"
 
@@ -48,29 +49,19 @@ defmodule StreampaiWeb.TopDonorsWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :display_count ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 20)
+        WidgetValidators.validate_numeric(value, min: 1, max: 20)
 
       :theme ->
-        WidgetHelpers.validate_config_value(
-          :theme,
-          value,
-          ["default", "minimal", "modern"],
-          "default"
-        )
+        WidgetValidators.validate_enum(value, ["default", "minimal", "modern"], "default")
 
       :currency ->
-        # Ensure currency is a valid symbol
-        if value in ["$", "€", "£", "¥", "₹", "₽", "¥"] do
-          value
-        else
-          "$"
-        end
+        WidgetValidators.validate_enum(value, ["$", "€", "£", "¥", "₹", "₽"], "$")
 
       :background_color ->
-        WidgetHelpers.validate_hex_color(value, "#1f2937")
+        WidgetValidators.validate_hex_color(value, "#1f2937")
 
       :text_color ->
-        WidgetHelpers.validate_hex_color(value, "#ffffff")
+        WidgetValidators.validate_hex_color(value, "#ffffff")
 
       _ ->
         value

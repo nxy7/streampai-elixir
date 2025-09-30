@@ -8,8 +8,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     fake_module: Streampai.Fake.Chat
 
   alias StreampaiWeb.Utils.WidgetHelpers
+  alias StreampaiWeb.Utils.WidgetValidators
 
-  # Widget-specific implementations
   defp widget_title, do: "Live Chat Widget"
 
   defp initialize_widget_specific_assigns(socket) do
@@ -41,22 +41,10 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
 
   defp convert_setting_value(setting, value) do
     case setting do
-      :max_messages ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 100)
-
-      :message_fade_time ->
-        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 300)
-
-      :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
-          value,
-          ["small", "medium", "large"],
-          "medium"
-        )
-
-      _ ->
-        value
+      :max_messages -> WidgetValidators.validate_numeric(value, min: 1, max: 100)
+      :message_fade_time -> WidgetValidators.validate_numeric(value, min: 0, max: 300)
+      :font_size -> WidgetValidators.validate_font_size(value)
+      _ -> value
     end
   end
 

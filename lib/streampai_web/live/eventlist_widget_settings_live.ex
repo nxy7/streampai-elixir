@@ -8,8 +8,7 @@ defmodule StreampaiWeb.EventlistWidgetSettingsLive do
     fake_module: StreampaiWeb.Utils.FakeEventlist
 
   alias StreampaiWeb.Utils.WidgetHelpers
-
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Event List Widget"
 
@@ -39,26 +38,15 @@ defmodule StreampaiWeb.EventlistWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :max_events ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 50)
+        WidgetValidators.validate_numeric(value, min: 1, max: 50)
 
       :animation_type ->
-        WidgetHelpers.validate_config_value(
-          :animation_type,
-          value,
-          ["fade", "slide", "bounce"],
-          "fade"
-        )
+        WidgetValidators.validate_animation_type(value)
 
       :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
-          value,
-          ["small", "medium", "large"],
-          "medium"
-        )
+        WidgetValidators.validate_font_size(value)
 
       :event_types ->
-        # Handle multi-select for event types
         case value do
           value when is_list(value) ->
             valid_types = ["donation", "follow", "subscription", "raid", "chat_message"]

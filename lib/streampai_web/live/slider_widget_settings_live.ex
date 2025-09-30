@@ -11,6 +11,7 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
 
   alias StreampaiWeb.Utils.FakeSlider
   alias StreampaiWeb.Utils.WidgetHelpers
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Slider Widget"
 
@@ -66,25 +67,15 @@ defmodule StreampaiWeb.SliderWidgetSettingsLive do
     end
   end
 
-  defp convert_setting_value(:slide_duration, value) do
-    WidgetHelpers.parse_numeric_setting(value, min: 1, max: 60)
+  defp convert_setting_value(setting, value) do
+    case setting do
+      :slide_duration -> WidgetValidators.validate_numeric(value, min: 1, max: 60)
+      :transition_duration -> WidgetValidators.validate_numeric(value, min: 100, max: 3000)
+      :transition_type -> WidgetValidators.validate_transition_type(value)
+      :fit_mode -> WidgetValidators.validate_fit_mode(value)
+      _ -> value
+    end
   end
-
-  defp convert_setting_value(:transition_duration, value) do
-    WidgetHelpers.parse_numeric_setting(value, min: 100, max: 3000)
-  end
-
-  defp convert_setting_value(:transition_type, value) do
-    valid_types = Enum.map(FakeSlider.transition_types(), & &1.value)
-    WidgetHelpers.validate_config_value(:transition_type, value, valid_types, "fade")
-  end
-
-  defp convert_setting_value(:fit_mode, value) do
-    valid_modes = Enum.map(FakeSlider.fit_modes(), & &1.value)
-    WidgetHelpers.validate_config_value(:fit_mode, value, valid_modes, "contain")
-  end
-
-  defp convert_setting_value(_setting, value), do: value
 
   # Handle image uploads
   def handle_event("upload_images", %{"images" => images}, socket) when is_list(images) do

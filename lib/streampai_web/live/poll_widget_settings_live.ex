@@ -8,8 +8,7 @@ defmodule StreampaiWeb.PollWidgetSettingsLive do
     fake_module: Streampai.Fake.Poll
 
   alias StreampaiWeb.Utils.WidgetHelpers
-
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Poll Widget"
 
@@ -54,23 +53,17 @@ defmodule StreampaiWeb.PollWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :hide_delay ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 60)
+        WidgetValidators.validate_numeric(value, min: 1, max: 60)
 
       :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
+        WidgetValidators.validate_enum(
           value,
           ["small", "medium", "large", "extra-large"],
           "medium"
         )
 
       :animation_type ->
-        WidgetHelpers.validate_config_value(
-          :animation_type,
-          value,
-          ["none", "smooth", "bounce"],
-          "smooth"
-        )
+        WidgetValidators.validate_enum(value, ["none", "smooth", "bounce"], "smooth")
 
       _ ->
         value

@@ -19,11 +19,11 @@
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
               elixir
-              # beamMinimal28Packages.elixir_1_19
+              # elixir_1_19
               elixir-ls
               lexical
               next-ls
-              erlang_26
+              erlang_28
               inotify-tools
               just
               nodejs

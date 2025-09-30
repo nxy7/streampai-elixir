@@ -8,8 +8,7 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
     fake_module: Streampai.Fake.Alert
 
   alias StreampaiWeb.Utils.WidgetHelpers
-
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Alertbox Widget"
 
@@ -43,38 +42,12 @@ defmodule StreampaiWeb.AlertboxWidgetSettingsLive do
 
   defp convert_setting_value(setting, value) do
     case setting do
-      :display_duration ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 30)
-
-      :sound_volume ->
-        WidgetHelpers.parse_numeric_setting(value, min: 0, max: 100)
-
-      :animation_type ->
-        WidgetHelpers.validate_config_value(
-          :animation_type,
-          value,
-          ["fade", "slide", "bounce"],
-          "fade"
-        )
-
-      :alert_position ->
-        WidgetHelpers.validate_config_value(
-          :alert_position,
-          value,
-          ["top", "center", "bottom"],
-          "center"
-        )
-
-      :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
-          value,
-          ["small", "medium", "large"],
-          "medium"
-        )
-
-      _ ->
-        value
+      :display_duration -> WidgetValidators.validate_numeric(value, min: 1, max: 30)
+      :sound_volume -> WidgetValidators.validate_numeric(value, min: 0, max: 100)
+      :animation_type -> WidgetValidators.validate_animation_type(value)
+      :alert_position -> WidgetValidators.validate_alert_position(value)
+      :font_size -> WidgetValidators.validate_font_size(value)
+      _ -> value
     end
   end
 

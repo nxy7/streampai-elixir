@@ -132,7 +132,8 @@ defmodule Streampai.Fake.TopDonors do
         end
       else
         # Decrease enough to potentially drop 1-2 positions
-        positions_to_drop = Enum.random(1..min(2, length(sorted_list) - current_index - 1))
+        max_drop = max(1, length(sorted_list) - current_index - 1)
+        positions_to_drop = Enum.random(1..min(2, max_drop))
 
         if current_index + positions_to_drop < length(sorted_list) do
           target_position = current_index + positions_to_drop

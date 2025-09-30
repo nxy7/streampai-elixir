@@ -1,6 +1,10 @@
 defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
   @moduledoc """
   LiveView for configuring viewer count widget settings and OBS browser source URL generation.
+
+  NOTE: This widget shares 95% of its implementation with FollowerCountWidgetSettingsLive.
+  The only differences are: widget title, fake module, default icon color, and label field name.
+  If significant changes are needed, consider extracting shared functionality.
   """
   use StreampaiWeb.WidgetBehaviour,
     type: :settings,
@@ -8,8 +12,7 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
     fake_module: Streampai.Fake.ViewerCount
 
   alias StreampaiWeb.Utils.WidgetHelpers
-
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Viewer Count Widget"
 
@@ -54,27 +57,10 @@ defmodule StreampaiWeb.ViewerCountWidgetSettingsLive do
 
   defp convert_setting_value(setting, value) do
     case setting do
-      :display_style ->
-        WidgetHelpers.validate_config_value(
-          :display_style,
-          value,
-          ["minimal", "detailed", "cards"],
-          "detailed"
-        )
-
-      :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
-          value,
-          ["small", "medium", "large"],
-          "medium"
-        )
-
-      :icon_color ->
-        WidgetHelpers.validate_hex_color(value, "#ef4444")
-
-      _ ->
-        value
+      :display_style -> WidgetValidators.validate_display_style(value)
+      :font_size -> WidgetValidators.validate_font_size(value)
+      :icon_color -> WidgetValidators.validate_hex_color(value, "#ef4444")
+      _ -> value
     end
   end
 

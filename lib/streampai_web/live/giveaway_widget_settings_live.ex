@@ -8,8 +8,7 @@ defmodule StreampaiWeb.GiveawayWidgetSettingsLive do
     fake_module: Streampai.Fake.Giveaway
 
   alias StreampaiWeb.Utils.WidgetHelpers
-
-  # Widget-specific implementations
+  alias StreampaiWeb.Utils.WidgetValidators
 
   defp widget_title, do: "Giveaway Widget"
 
@@ -44,26 +43,20 @@ defmodule StreampaiWeb.GiveawayWidgetSettingsLive do
   defp convert_setting_value(setting, value) do
     case setting do
       :target_participants ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 1000)
+        WidgetValidators.validate_numeric(value, min: 1, max: 1000)
 
       :patreon_multiplier ->
-        WidgetHelpers.parse_numeric_setting(value, min: 1, max: 10)
+        WidgetValidators.validate_numeric(value, min: 1, max: 10)
 
       :font_size ->
-        WidgetHelpers.validate_config_value(
-          :font_size,
+        WidgetValidators.validate_enum(
           value,
           ["small", "medium", "large", "extra-large"],
           "medium"
         )
 
       :winner_animation ->
-        WidgetHelpers.validate_config_value(
-          :winner_animation,
-          value,
-          ["fade", "slide", "bounce", "confetti"],
-          "bounce"
-        )
+        WidgetValidators.validate_enum(value, ["fade", "slide", "bounce", "confetti"], "bounce")
 
       _ ->
         value
