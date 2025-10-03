@@ -212,7 +212,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
               </div>
             <% end %>
           </div>
-          
+
     <!-- Content Section -->
           <div class="flex flex-col">
             <%= if @connected and @account_data do %>
@@ -244,7 +244,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
             <% end %>
           </div>
         </div>
-        
+
     <!-- Action Section -->
         <div class="flex items-center">
           <%= if not @connected do %>
@@ -580,8 +580,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   ## Examples
 
-      <.coming_soon_placeholder 
-        title="Analytics Dashboard" 
+      <.coming_soon_placeholder
+        title="Analytics Dashboard"
         description="Detailed analytics and insights coming soon!" />
   """
   attr :title, :string, required: true, doc: "Feature title"
@@ -1019,7 +1019,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       </p>
       <div class="flex items-center justify-center space-x-2">
         <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-        <span class="text-sm text-blue-600">Setting up CloudflareManager...</span>
+        <span class="text-sm text-blue-600">Our gnomes are starting your streaming infrastructure...</span>
       </div>
       <p class="text-xs text-gray-500 mt-4">
         ℹ️ Streaming services start automatically when you're detected as online
