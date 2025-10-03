@@ -43,12 +43,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     # Subscribe to token updates
     TokenManager.subscribe(user_id)
 
-    # Get current valid token
-    {:ok, access_token} = TokenManager.get_token(user_id)
-
+    # Use the token from config initially to avoid blocking
+    # TokenManager will send updated token if it refreshes
     state = %__MODULE__{
       user_id: user_id,
-      access_token: access_token,
+      access_token: config.access_token,
       refresh_token: config.refresh_token,
       expires_at: config.expires_at,
       is_active: false,

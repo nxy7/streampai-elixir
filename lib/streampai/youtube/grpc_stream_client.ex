@@ -109,7 +109,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
   @impl true
   def handle_info(:connect, state) do
-    Logger.info("Connecting to chat")
+    # Logger.info("Connecting to chat")
 
     # Connect to gRPC channel if not already connected
     result = if state.channel, do: {:ok, state.channel}, else: connect_and_validate(state)
@@ -125,7 +125,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
             consume_stream_loop(parent_pid, channel, state)
           end)
 
-        Logger.info("Stream consumer started in PID #{inspect(consumer_pid)}")
+        # Logger.info("Stream consumer started in PID #{inspect(consumer_pid)}")
 
         new_state = %{
           state
@@ -170,7 +170,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
   @impl true
   def handle_info({:stream_batch_complete, next_token}, state) do
-    Logger.info("Stream batch completed, starting new stream with next_page_token...")
+    Logger.debug("Stream batch completed, reconnecting with next_page_token...")
 
     # Update state with next_page_token and start new stream (reuse channel)
     new_state = %{
@@ -180,7 +180,8 @@ defmodule Streampai.YouTube.GrpcStreamClient do
         stream_consumer_pid: nil
     }
 
-    send(self(), :connect)
+    # Small delay before reconnecting to avoid hammering API during quiet periods
+    Process.send_after(self(), :connect, 100)
 
     {:noreply, new_state}
   end
@@ -357,10 +358,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
     # Pass authorization as metadata to the RPC call, not channel headers
     metadata = [{"authorization", "Bearer #{state.access_token}"}]
 
-    Logger.info("Starting StreamList RPC call")
-    # Logger.info("  Request: #{inspect(request, pretty: true)}")
-    # Logger.info("  Encoded size: #{byte_size(LiveChatMessageListRequest.encode(request))} bytes")
-
     Stub.stream_list(channel, request, metadata: metadata)
   end
 
@@ -373,13 +370,20 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp process_message(message, state) do
-    {:ok, event_type} = determine_event_type(message)
-    {:ok, processed_data} = extract_message_data(message, event_type)
-    queue_event_for_persistence(event_type, processed_data, state)
-    send(state.callback_pid, {:youtube_message, event_type, processed_data})
-  catch
-    :error, %MatchError{} ->
-      Logger.warning("Failed to process message: unsupported message type or invalid data")
+    case determine_event_type(message) do
+      {:ok, event_type} ->
+        case extract_message_data(message, event_type) do
+          {:ok, processed_data} ->
+            queue_event_for_persistence(event_type, processed_data, state)
+            send(state.callback_pid, {:youtube_message, event_type, processed_data})
+
+          {:error, reason} ->
+            Logger.warning("Failed to extract message data: #{inspect(reason)}")
+        end
+
+      {:error, :unsupported_message_type} ->
+        Logger.debug("Skipping unsupported message type: #{inspect(message.snippet.type)}")
+    end
   end
 
   defp queue_event_for_persistence(:chat_message, data, state) do
@@ -538,7 +542,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp consume_stream_loop(parent_pid, channel, state) do
-    Logger.info("Starting stream consumption in PID #{inspect(self())}")
+    Logger.debug("Starting stream consumption")
 
     case start_stream(channel, state) do
       {:ok, stream} ->
@@ -546,10 +550,12 @@ defmodule Streampai.YouTube.GrpcStreamClient do
           Enum.reduce_while(stream, {0, nil}, fn item, {count, _prev_token} ->
             case item do
               {:ok, response} ->
-                Logger.info("✓ Received message batch ##{count + 1} with #{length(response.items || [])} items")
+                item_count = length(response.items || [])
 
-                dbg(response)
-                Logger.info("  next_page_token: #{inspect(response.next_page_token)}")
+                if item_count > 0 do
+                  Logger.debug("Received batch with #{item_count} messages")
+                end
+
                 process_response(response, state)
                 {:cont, {count + 1, response.next_page_token}}
 
@@ -589,6 +595,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
             send(parent_pid, {:stream_batch_complete, next_token})
 
           {:error, reason} ->
+            Logger.error("Stream ended with error: #{inspect(reason)}")
             send(parent_pid, {:stream_error, reason})
         end
 

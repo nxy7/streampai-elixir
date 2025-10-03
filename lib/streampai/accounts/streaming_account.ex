@@ -81,8 +81,6 @@ defmodule Streampai.Accounts.StreamingAccount do
       require_atomic? false
 
       validate present([:access_token])
-
-      change Streampai.Accounts.StreamingAccount.Changes.UpdateRefreshTimestamp
     end
   end
 
