@@ -105,6 +105,11 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
   end
 
+  # Delegate other events to BaseLive
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
+  end
+
   def handle_info({:stream_status_changed, _event}, socket) do
     user_id = socket.assigns.current_user.id
     stream_status = get_stream_status(user_id)

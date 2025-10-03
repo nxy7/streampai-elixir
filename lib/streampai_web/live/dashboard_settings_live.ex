@@ -230,6 +230,11 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     end
   end
 
+  # Delegate other events to BaseLive
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
+  end
+
   def handle_info({:avatar_uploaded, _avatar_url}, socket) do
     current_user = socket.assigns.current_user
 

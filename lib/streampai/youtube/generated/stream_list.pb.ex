@@ -59,16 +59,18 @@ defmodule Youtube.Api.V3.LiveChatMessageListResponse do
 
   use Protobuf, protoc_gen_elixir_version: "0.15.0", syntax: :proto2
 
+  alias Youtube.Api.V3.LiveChatMessage
+
   field :kind, 200, optional: true, type: :string
   field :etag, 201, optional: true, type: :string
   field :offline_at, 2, optional: true, type: :string, json_name: "offlineAt"
   field :page_info, 1004, optional: true, type: Youtube.Api.V3.PageInfo, json_name: "pageInfo"
   field :next_page_token, 100_602, optional: true, type: :string, json_name: "nextPageToken"
-  field :items, 1007, repeated: true, type: Youtube.Api.V3.LiveChatMessage
+  field :items, 1007, repeated: true, type: LiveChatMessage
 
   field :active_poll_item, 1008,
     optional: true,
-    type: Youtube.Api.V3.LiveChatMessage,
+    type: LiveChatMessage,
     json_name: "activePollItem"
 end
 
@@ -93,7 +95,7 @@ defmodule Youtube.Api.V3.LiveChatMessageAuthorDetails do
 
   use Protobuf, protoc_gen_elixir_version: "0.15.0", syntax: :proto2
 
-  field :channel_id, 10101, optional: true, type: :string, json_name: "channelId"
+  field :channel_id, 10_101, optional: true, type: :string, json_name: "channelId"
   field :channel_url, 102, optional: true, type: :string, json_name: "channelUrl"
   field :display_name, 103, optional: true, type: :string, json_name: "displayName"
   field :profile_image_url, 104, optional: true, type: :string, json_name: "profileImageUrl"
@@ -114,7 +116,7 @@ defmodule Youtube.Api.V3.LiveChatMessageSnippet do
 
   use Protobuf, protoc_gen_elixir_version: "0.15.0", syntax: :proto2
 
-  oneof :displayed_content, 0
+  oneof(:displayed_content, 0)
 
   field :type, 1,
     optional: true,
@@ -434,9 +436,11 @@ defmodule Youtube.Api.V3.V3DataLiveChatMessageService.Service do
     name: "youtube.api.v3.V3DataLiveChatMessageService",
     protoc_gen_elixir_version: "0.15.0"
 
-  rpc :StreamList,
-      Youtube.Api.V3.LiveChatMessageListRequest,
-      stream(Youtube.Api.V3.LiveChatMessageListResponse)
+  rpc(
+    :StreamList,
+    Youtube.Api.V3.LiveChatMessageListRequest,
+    stream(Youtube.Api.V3.LiveChatMessageListResponse)
+  )
 end
 
 defmodule Youtube.Api.V3.V3DataLiveChatMessageService.Stub do

@@ -23,7 +23,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
       # Create test livestream
       {:ok, livestream} =
         Livestream
-        |> Ash.Changeset.for_create(:create, %{started_at: DateTime.utc_now()})
+        |> Ash.Changeset.for_create(:create, %{user_id: user.id, started_at: DateTime.utc_now()})
         |> Ash.create()
 
       # Start the persister process for testing

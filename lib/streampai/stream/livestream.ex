@@ -21,7 +21,7 @@ defmodule Streampai.Stream.Livestream do
     defaults [:read, :destroy, update: :*]
 
     create :create do
-      accept [:started_at, :ended_at]
+      accept [:started_at, :ended_at, :user_id]
     end
   end
 
@@ -34,6 +34,13 @@ defmodule Streampai.Stream.Livestream do
 
     attribute :ended_at, :utc_datetime do
       allow_nil? true
+    end
+  end
+
+  relationships do
+    belongs_to :user, Streampai.Accounts.User do
+      allow_nil? false
+      attribute_writable? true
     end
   end
 end

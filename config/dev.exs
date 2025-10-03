@@ -5,7 +5,9 @@ config :ash, policies: [show_policy_breakdowns?: true]
 config :live_vue, vite_host: "http://localhost:5173", ssr: false
 
 # Logging and debugging
-config :logger, :console, format: "[$level] $message\n"
+config :logger, :console,
+  format: {Streampai.LoggerFormatter, :format},
+  metadata: [:user_id, :component, :chat_id, :platform, :file, :line]
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
 if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do

@@ -123,19 +123,36 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     GenServer.call(via_tuple(user_id), {:set_live_input_id, input_id})
   end
 
+  @doc """
+  Creates a Cloudflare Live Output for a specific platform.
+  Returns {:ok, output_id} or {:error, reason}.
+
+  This is used by platform managers (YouTube, Twitch, etc.) to create their own outputs
+  when they start streaming.
+  """
+  def create_platform_output(server, platform, rtmp_url, stream_key) do
+    GenServer.call(server, {:create_platform_output, platform, rtmp_url, stream_key})
+  end
+
+  @doc """
+  Deletes a Cloudflare Live Output for a specific platform.
+
+  This is used by platform managers when they stop streaming to clean up their output.
+  """
+  def delete_platform_output(server, platform) do
+    GenServer.call(server, {:delete_platform_output, platform})
+  end
+
   # Server callbacks
 
   @impl true
   def handle_info(:initialize_live_input, state) do
     case create_live_input(state) do
       {:ok, live_input} ->
-        # Start polling for input status
-        poll_timer = schedule_input_poll(state.poll_interval)
+        state = %{state | live_input: live_input, stream_status: :ready}
 
-        state = %{state | live_input: live_input, stream_status: :ready, poll_timer: poll_timer}
-
-        # Update stream state with Cloudflare input info
-        update_stream_state(state)
+        # Check input status immediately
+        send(self(), :poll_input_status)
 
         Logger.info("Live input ready for user #{state.user_id}: #{live_input.input_id}")
         {:noreply, state}
@@ -303,6 +320,78 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     {:reply, :ok, new_state}
   end
 
+  @impl true
+  def handle_call({:create_platform_output, platform, rtmp_url, stream_key}, _from, state) do
+    input_id = get_input_id(state.live_input)
+
+    case input_id do
+      nil ->
+        Logger.error("[CloudflareManager:#{state.user_id}] Cannot create output: no live input ID")
+
+        {:reply, {:error, :no_input_id}, state}
+
+      id ->
+        output_config = %{
+          rtmp_url: rtmp_url,
+          stream_key: stream_key,
+          enabled: state.stream_status == :streaming
+        }
+
+        case APIClient.create_live_output(id, output_config) do
+          {:ok, %{"uid" => output_id}} ->
+            platform_output = %{
+              output_id: output_id,
+              platform: platform,
+              stream_key: stream_key,
+              rtmp_url: rtmp_url,
+              enabled: output_config.enabled
+            }
+
+            new_outputs = Map.put(state.live_outputs, platform, platform_output)
+            new_state = %{state | live_outputs: new_outputs}
+
+            Logger.info("[CloudflareManager:#{state.user_id}] Created output for #{platform}: #{output_id}")
+
+            {:reply, {:ok, output_id}, new_state}
+
+          {:error, error_type, message} ->
+            Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+
+            {:reply, {:error, {error_type, message}}, state}
+        end
+    end
+  end
+
+  @impl true
+  def handle_call({:delete_platform_output, platform}, _from, state) do
+    case Map.get(state.live_outputs, platform) do
+      nil ->
+        {:reply, :ok, state}
+
+      %{output_id: output_id} ->
+        delete_output_from_api(state, platform, output_id)
+        new_outputs = Map.delete(state.live_outputs, platform)
+        new_state = %{state | live_outputs: new_outputs}
+        {:reply, :ok, new_state}
+    end
+  end
+
+  defp delete_output_from_api(state, platform, output_id) do
+    case get_input_id(state.live_input) do
+      nil ->
+        :ok
+
+      input_id ->
+        case APIClient.delete_live_output(input_id, output_id) do
+          :ok ->
+            Logger.info("[CloudflareManager:#{state.user_id}] Deleted output for #{platform}: #{output_id}")
+
+          {:error, _error_type, message} ->
+            Logger.warning("[CloudflareManager:#{state.user_id}] Failed to delete output #{output_id}: #{message}")
+        end
+    end
+  end
+
   # Helper functions
 
   defp via_tuple(user_id) do
@@ -379,7 +468,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   defp create_single_output(state, input_id, platform, %{enabled: true} = config) do
     output_config = %{
-      url: get_platform_rtmp_url(platform),
+      rtmp_url: get_platform_rtmp_url(platform),
       stream_key: config.stream_key,
       enabled: true
     }
@@ -391,7 +480,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
            output_id: output_id,
            platform: platform,
            stream_key: config.stream_key,
-           rtmp_url: output_config.url,
+           rtmp_url: output_config.rtmp_url,
            enabled: true
          }}
 

@@ -23,17 +23,13 @@ defmodule Streampai.YouTube.ApiClient do
   @type api_result :: {:ok, map()} | {:error, term()}
   @type part_param :: String.t() | [String.t()]
 
-  # Client configuration
-  defp client(access_token) do
-    Req.new(
+  # Build base request options
+  defp base_opts(access_token) do
+    [
       base_url: @base_url,
-      headers: [
-        {"Authorization", "Bearer #{access_token}"},
-        {"Accept", "application/json"},
-        {"Content-Type", "application/json"}
-      ],
+      auth: {:bearer, access_token},
       receive_timeout: @default_timeout
-    )
+    ]
   end
 
   ## Live Chat Messages API
@@ -79,9 +75,11 @@ defmodule Streampai.YouTube.ApiClient do
   def insert_live_chat_message(access_token, part, message_data) do
     params = %{part: normalize_part_param(part)}
 
-    access_token
-    |> client()
-    |> Req.post(url: "/liveChat/messages", params: params, json: message_data)
+    req_opts =
+      base_opts(access_token) ++ [url: "/liveChat/messages", params: params, json: message_data]
+
+    req_opts
+    |> Req.post()
     |> handle_response()
   end
 
@@ -96,9 +94,10 @@ defmodule Streampai.YouTube.ApiClient do
   def delete_live_chat_message(access_token, message_id) do
     params = %{id: message_id}
 
-    access_token
-    |> client()
-    |> Req.delete(url: "/liveChat/messages", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveChat/messages", params: params]
+
+    req_opts
+    |> Req.delete()
     |> handle_response()
   end
 
@@ -139,9 +138,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.get(url: "/liveBroadcasts", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveBroadcasts", params: params]
+
+    req_opts
+    |> Req.get()
     |> handle_response()
   end
 
@@ -179,9 +179,11 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.post(url: "/liveBroadcasts", params: params, json: broadcast_data)
+    req_opts =
+      base_opts(access_token) ++ [url: "/liveBroadcasts", params: params, json: broadcast_data]
+
+    req_opts
+    |> Req.post()
     |> handle_response()
   end
 
@@ -204,9 +206,11 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.put(url: "/liveBroadcasts", params: params, json: broadcast_data)
+    req_opts =
+      base_opts(access_token) ++ [url: "/liveBroadcasts", params: params, json: broadcast_data]
+
+    req_opts
+    |> Req.put()
     |> handle_response()
   end
 
@@ -237,9 +241,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.post(url: "/liveBroadcasts/bind", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveBroadcasts/bind", params: params, body: ""]
+
+    req_opts
+    |> Req.post()
     |> handle_response()
   end
 
@@ -263,9 +268,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.delete(url: "/liveBroadcasts", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveBroadcasts", params: params]
+
+    req_opts
+    |> Req.delete()
     |> handle_response()
   end
 
@@ -302,9 +308,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.get(url: "/liveStreams", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveStreams", params: params]
+
+    req_opts
+    |> Req.get()
     |> handle_response()
   end
 
@@ -342,9 +349,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.post(url: "/liveStreams", params: params, json: stream_data)
+    req_opts = base_opts(access_token) ++ [url: "/liveStreams", params: params, json: stream_data]
+
+    req_opts
+    |> Req.post()
     |> handle_response()
   end
 
@@ -367,9 +375,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.put(url: "/liveStreams", params: params, json: stream_data)
+    req_opts = base_opts(access_token) ++ [url: "/liveStreams", params: params, json: stream_data]
+
+    req_opts
+    |> Req.put()
     |> handle_response()
   end
 
@@ -393,9 +402,10 @@ defmodule Streampai.YouTube.ApiClient do
       |> Map.new()
       |> normalize_broadcast_params()
 
-    access_token
-    |> client()
-    |> Req.delete(url: "/liveStreams", params: params)
+    req_opts = base_opts(access_token) ++ [url: "/liveStreams", params: params]
+
+    req_opts
+    |> Req.delete()
     |> handle_response()
   end
 

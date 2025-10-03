@@ -182,26 +182,59 @@ defmodule StreampaiWeb.LiveHelpers do
   Handles platform disconnection with consistent patterns.
   """
   def handle_platform_disconnect(socket, platform) do
+    require Ash.Query
+    require Logger
+
     current_user = socket.assigns.current_user
+    platform_atom = if is_binary(platform), do: String.to_existing_atom(platform), else: platform
 
-    case StreamingAccount.destroy(
-           %{user_id: current_user.id, platform: platform},
-           actor: current_user
-         ) do
-      :ok ->
-        # Refresh platform connections and usage data
-        platform_connections = Streampai.Dashboard.get_platform_connections(current_user)
-        user_data = Streampai.Dashboard.get_dashboard_data(current_user)
+    Logger.debug("Attempting to disconnect platform: #{inspect(platform_atom)} for user: #{current_user.id}")
 
-        {:noreply,
-         socket
-         |> reload_current_user()
-         |> assign(:platform_connections, platform_connections)
-         |> assign(:usage, user_data.usage)
-         |> show_success("Successfully disconnected #{String.capitalize(platform)} account")}
+    # First, find the streaming account using the unique index
+    user_id = current_user.id
+
+    query =
+      StreamingAccount
+      |> Ash.Query.for_read(:read, %{}, actor: current_user)
+      |> Ash.Query.filter(user_id: user_id, platform: platform_atom)
+
+    case Ash.read(query, actor: current_user) do
+      {:ok, [account]} ->
+        Logger.debug("Found account to disconnect: #{inspect(account)}")
+
+        # Then destroy it
+        case StreamingAccount.destroy(account, actor: current_user) do
+          :ok ->
+            Logger.info("Successfully disconnected #{platform_atom} for user #{current_user.id}")
+
+            # Refresh platform connections and usage data
+            platform_connections = Streampai.Dashboard.get_platform_connections(current_user)
+            user_data = Streampai.Dashboard.get_dashboard_data(current_user)
+
+            {:noreply,
+             socket
+             |> reload_current_user()
+             |> assign(:platform_connections, platform_connections)
+             |> assign(:usage, user_data.usage)
+             |> show_success("Successfully disconnected #{String.capitalize(to_string(platform_atom))} account")}
+
+          {:error, reason} ->
+            Logger.error("Failed to destroy account: #{inspect(reason)}")
+            {:noreply, handle_error(socket, reason, "Failed to disconnect account")}
+        end
+
+      {:ok, []} ->
+        Logger.warning("No account found for platform: #{inspect(platform_atom)}, user: #{current_user.id}")
+
+        {:noreply, handle_error(socket, :not_found, "Platform account not found")}
+
+      {:ok, accounts} ->
+        Logger.warning("Multiple accounts found (#{length(accounts)}): #{inspect(accounts)}")
+        {:noreply, handle_error(socket, :multiple_found, "Multiple accounts found")}
 
       {:error, reason} ->
-        {:noreply, handle_error(socket, reason, "Failed to disconnect account")}
+        Logger.error("Failed to read accounts: #{inspect(reason)}")
+        {:noreply, handle_error(socket, reason, "Failed to find account to disconnect")}
     end
   end
 

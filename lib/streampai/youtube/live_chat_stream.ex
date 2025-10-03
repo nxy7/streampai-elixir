@@ -117,6 +117,7 @@ defmodule Streampai.YouTube.LiveChatStream do
 
     case start_polling(state) do
       {:ok, next_page_token} ->
+        Logger.info("Successfully connected to chat, starting to poll for messages")
         schedule_next_poll(0)
         new_state = %{state | stream_ref: next_page_token, reconnect_attempts: 0}
         {:noreply, new_state}
@@ -132,6 +133,10 @@ defmodule Streampai.YouTube.LiveChatStream do
   def handle_info(:poll, state) do
     case fetch_messages(state) do
       {:ok, messages, next_page_token, poll_interval} ->
+        if length(messages) > 0 do
+          Logger.debug("Received #{length(messages)} chat messages")
+        end
+
         Enum.each(messages, fn msg ->
           send(state.callback_pid, {:chat_message, msg})
         end)
@@ -165,12 +170,6 @@ defmodule Streampai.YouTube.LiveChatStream do
   end
 
   @impl true
-  def handle_info(msg, state) do
-    Logger.debug("[YouTubeLiveChat:#{state.live_chat_id}] Unknown message: #{inspect(msg)}")
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
       Logger.info("Attempting to reconnect (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
@@ -182,6 +181,12 @@ defmodule Streampai.YouTube.LiveChatStream do
       send(state.callback_pid, {:chat_ended, :max_reconnects_reached})
       {:stop, :normal, state}
     end
+  end
+
+  @impl true
+  def handle_info(msg, state) do
+    Logger.debug("[YouTubeLiveChat:#{state.live_chat_id}] Unknown message: #{inspect(msg)}")
+    {:noreply, state}
   end
 
   @impl true

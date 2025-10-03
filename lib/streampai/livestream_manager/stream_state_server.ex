@@ -31,6 +31,9 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def init(user_id) do
+    # Set Logger metadata once for this process
+    Logger.metadata(user_id: user_id, component: :stream_state_server)
+
     # Load user's connected platforms from database
     platforms = load_user_platforms(user_id)
 
@@ -48,7 +51,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
       }
     }
 
-    Logger.info("StreamStateServer started for user #{user_id}")
+    Logger.info("StreamStateServer started")
     {:ok, state}
   end
 
@@ -170,7 +173,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:start_stream, stream_uuid}, state) do
-    Logger.info("[StreamStateServer:#{state.user_id}] Starting stream: #{stream_uuid}")
+    Logger.info("Starting stream", stream_uuid: stream_uuid)
 
     state = %{state | status: :starting, started_at: DateTime.utc_now()}
 
@@ -180,7 +183,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast(:stop_stream, state) do
-    Logger.info("[StreamStateServer:#{state.user_id}] Stopping stream")
+    Logger.info("Stopping stream")
 
     state = %{state | status: :offline, ended_at: DateTime.utc_now()}
 
@@ -190,7 +193,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:update_input_status, status}, state) do
-    Logger.debug("[StreamStateServer:#{state.user_id}] Input status: #{status}")
+    Logger.debug("Input status updated", input_status: status)
 
     # Update cloudflare input status
     cloudflare_input = Map.put(state.cloudflare_input || %{}, :input_status, status)

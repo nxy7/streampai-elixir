@@ -29,6 +29,7 @@ defmodule Streampai.Application do
       {Finch, name: Streampai.Finch},
       StreampaiWeb.Endpoint,
       {AshAuthentication.Supervisor, [otp_app: :streampai]},
+      {Task.Supervisor, name: Streampai.TaskSupervisor},
       {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]}
     ]
 
