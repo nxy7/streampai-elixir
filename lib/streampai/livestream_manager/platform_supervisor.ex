@@ -8,6 +8,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   alias Streampai.Accounts.StreamingAccount
   alias Streampai.LivestreamManager.Platforms
 
+  @initialization_delay 100
+
   def start_link(user_id) when is_binary(user_id) do
     DynamicSupervisor.start_link(__MODULE__, user_id, name: via_tuple(user_id))
   end
@@ -58,26 +60,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Broadcasts a chat message to specified platforms or all platforms.
   """
   def broadcast_message(user_id, message, platforms \\ :all) do
-    target_platforms =
-      case platforms do
-        :all -> get_active_platforms(user_id)
-        platforms when is_list(platforms) -> platforms
-        platform when is_atom(platform) -> [platform]
-      end
-
-    Enum.each(target_platforms, fn platform ->
-      case Registry.lookup(
-             Streampai.LivestreamManager.Registry,
-             {:platform_manager, user_id, platform}
-           ) do
-        [{pid, _}] ->
-          platform_module = get_platform_module(platform)
-          platform_module.send_chat_message(pid, message)
-
-        [] ->
-          # Platform not connected, skip
-          :ok
-      end
+    execute_on_platforms(user_id, platforms, fn platform_module, pid ->
+      platform_module.send_chat_message(pid, message)
     end)
   end
 
@@ -85,12 +69,15 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Updates stream metadata on specified platforms.
   """
   def update_metadata(user_id, metadata, platforms \\ :all) do
-    target_platforms =
-      case platforms do
-        :all -> get_active_platforms(user_id)
-        platforms when is_list(platforms) -> platforms
-        platform when is_atom(platform) -> [platform]
-      end
+    execute_on_platforms(user_id, platforms, fn platform_module, pid ->
+      platform_module.update_stream_metadata(pid, metadata)
+    end)
+  end
+
+  # Helper functions
+
+  defp execute_on_platforms(user_id, platforms, callback) do
+    target_platforms = normalize_platforms(user_id, platforms)
 
     Enum.each(target_platforms, fn platform ->
       case Registry.lookup(
@@ -99,16 +86,17 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
            ) do
         [{pid, _}] ->
           platform_module = get_platform_module(platform)
-          platform_module.update_stream_metadata(pid, metadata)
+          callback.(platform_module, pid)
 
         [] ->
-          # Platform not connected, skip
           :ok
       end
     end)
   end
 
-  # Helper functions
+  defp normalize_platforms(user_id, :all), do: get_active_platforms(user_id)
+  defp normalize_platforms(_user_id, platforms) when is_list(platforms), do: platforms
+  defp normalize_platforms(_user_id, platform) when is_atom(platform), do: [platform]
 
   defp via_tuple(user_id) do
     {:via, Registry, {Streampai.LivestreamManager.Registry, {:platform_supervisor, user_id}}}
@@ -116,7 +104,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
 
   defp initialize_user_platforms(user_id) do
     # Small delay to ensure supervisor is fully initialized
-    Process.sleep(100)
+    Process.sleep(@initialization_delay)
 
     case StreamingAccount.for_user(user_id) do
       {:ok, accounts} ->

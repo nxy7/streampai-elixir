@@ -132,7 +132,7 @@ test-stream stream-key:
 		-c:a aac \
 		-b:a 128k \
 		-f flv \
-		rtmps://live.cloudflare.com:443/live/{{stream-key}}
+		rtmps://live.streampai.com:443/live/{{stream-key}}
 
 proto-gen:
 	protoc --proto_path=proto/yt --elixir_out=plugins=grpc:./lib/streampai/youtube/generated stream_list.proto

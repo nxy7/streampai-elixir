@@ -339,3 +339,6 @@ const marginLeft = await page.evaluate(() => {
 This integration enables comprehensive UI testing directly through Claude Code without requiring separate test infrastructure.
 - memorize that we're using MNEME for snapshots (not Snapshy), also mneme doesn't prompt with CI=true env variable
 - memorize "Put markdown notes in vault dir which is encrypted on github"
+- memorize "prefer pattern matching to 'with' statement unless 'with' statement makes code more readable/consise"
+- memorize Prefer implicit catch to explicit try-catch
+- memorize "Prefer implicit catch to 'with' statement in short functions"

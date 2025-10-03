@@ -23,8 +23,7 @@ defmodule Streampai.LivestreamManager.Supervisor do
         else
           [
             Streampai.LivestreamManager.PresenceManager,
-            Streampai.LivestreamManager.MetricsCollector,
-            Streampai.Stream.ChatMessagePersister
+            Streampai.LivestreamManager.MetricsCollector
           ]
         end
 

@@ -24,8 +24,10 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     # Transform the chat event to match widget format
     widget_message = transform_chat_event(chat_event)
 
-    # Add new message and keep only max_messages
-    updated_messages = Enum.take([widget_message | current_messages], max_messages)
+    # Keep 2x max_messages as buffer (in case some messages are filtered out on frontend)
+    # This ensures we always have enough messages to display after filtering
+    buffer_size = max_messages * 2
+    updated_messages = Enum.take([widget_message | current_messages], buffer_size)
 
     {:noreply, assign(socket, :current_messages, updated_messages)}
   end

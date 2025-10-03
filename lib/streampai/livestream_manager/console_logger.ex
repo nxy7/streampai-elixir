@@ -18,7 +18,7 @@ defmodule Streampai.LivestreamManager.ConsoleLogger do
   end
 
   @impl true
-  def handle_info(:log, %{user_id: user_id, count: count} = state) do
+  def handle_info(:log, %{count: count} = state) do
     require Logger
 
     Logger.debug("Console log ##{count + 1} - #{DateTime.utc_now()}")

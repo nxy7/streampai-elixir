@@ -7,7 +7,19 @@ config :live_vue, vite_host: "http://localhost:5173", ssr: false
 # Logging and debugging
 config :logger, :console,
   format: {Streampai.LoggerFormatter, :format},
-  metadata: [:user_id, :component, :chat_id, :platform, :file, :line]
+  metadata: [
+    :user_id,
+    :component,
+    :chat_id,
+    :platform,
+    :file,
+    :line,
+    :error_id,
+    :duration,
+    :input_status,
+    :stream_uuid,
+    :path
+  ]
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
 if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do

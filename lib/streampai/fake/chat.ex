@@ -21,10 +21,21 @@ defmodule Streampai.Fake.Chat do
     username = Base.generate_username()
     platform = Base.generate_platform()
 
+    # For YouTube platform, maybe add emotes in :shortcode: format
+    content =
+      case platform do
+        %{icon: "youtube"} ->
+          base_message = Enum.random(messages())
+          maybe_add_youtube_emotes(base_message)
+
+        _ ->
+          Enum.random(messages())
+      end
+
     %{
       id: Base.generate_id(),
       username: username,
-      content: Enum.random(messages()),
+      content: content,
       badge: Enum.random(badges()),
       badge_color: Enum.random(badge_colors()),
       username_color: ColorUtils.username_color(username),
@@ -74,6 +85,59 @@ defmodule Streampai.Fake.Chat do
       message_fade_time: 60,
       font_size: "medium"
     }
+  end
+
+  # Private helper functions
+
+  defp maybe_add_youtube_emotes(message) do
+    # 60% chance to add emotes to YouTube messages
+    if :rand.uniform() < 0.6 do
+      emote_count = Enum.random(1..3)
+      emotes = Enum.take_random(youtube_emote_shortcodes(), emote_count)
+
+      # Add emotes at the end of the message
+      emote_string = Enum.join(emotes, " ")
+      "#{message} #{emote_string}"
+    else
+      message
+    end
+  end
+
+  defp youtube_emote_shortcodes do
+    [
+      ":fire:",
+      ":heart:",
+      ":joy:",
+      ":star:",
+      ":thumbsup:",
+      ":clap:",
+      ":wave:",
+      ":eyes:",
+      ":raised_hands:",
+      ":muscle:",
+      ":rocket:",
+      ":sparkles:",
+      ":tada:",
+      ":100:",
+      ":sunglasses:",
+      ":trophy:",
+      ":crown:",
+      ":gem:",
+      ":zap:",
+      ":boom:",
+      ":fire:",
+      ":party_popper:",
+      ":ok_hand:",
+      ":point_right:",
+      ":pray:",
+      ":smile:",
+      ":laughing:",
+      ":grin:",
+      ":heart_eyes:",
+      ":thinking:",
+      ":flushed:",
+      ":exploding_head:"
+    ]
   end
 
   # Private data pools

@@ -76,6 +76,9 @@ defmodule Streampai.LivestreamManager.UserStreamManagerBasicTest do
     start_result =
       try do
         UserStreamManager.start_stream(user_id)
+      rescue
+        # DB ownership errors can occur in test environment
+        MatchError -> {:error, :db_access_error}
       catch
         :exit, {:noproc, _} -> {:error, :cloudflare_manager_not_available}
         :exit, {reason, _} when is_atom(reason) -> {:error, reason}

@@ -8,6 +8,8 @@ defmodule Streampai.Widgets.TimerServer do
 
   require Logger
 
+  @default_interval 1000
+
   defstruct [:widget_id, :liveview_pid, :count, :interval]
 
   def start_link({widget_id, liveview_pid, opts}) do
@@ -63,7 +65,7 @@ defmodule Streampai.Widgets.TimerServer do
     # Monitor the LiveView process so we can clean up when it dies
     Process.monitor(liveview_pid)
 
-    interval = opts[:interval] || 1000
+    interval = opts[:interval] || @default_interval
 
     state = %__MODULE__{
       widget_id: widget_id,

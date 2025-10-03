@@ -213,7 +213,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       live_outputs: state.live_outputs,
       stream_status: state.stream_status,
       input_streaming_status: state.input_streaming_status,
-      rtmp_url: get_rtmp_url(state),
+      rtmp_url: "rtmps://live.streampai.com:443/live/",
       stream_key: get_stream_key(state),
       can_start_streaming: can_start_streaming_internal(state)
     }
@@ -468,7 +468,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     {:ok, outputs}
   end
 
-  defp create_single_output(state, input_id, platform, %{enabled: true} = config) do
+  defp create_single_output(_state, input_id, platform, %{enabled: true} = config) do
     output_config = %{
       rtmp_url: get_platform_rtmp_url(platform),
       stream_key: config.stream_key,
@@ -523,7 +523,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     :ok
   end
 
-  defp toggle_single_output(state, input_id, output_id, enabled) do
+  defp toggle_single_output(_state, input_id, output_id, enabled) do
     action = if enabled, do: "enable", else: "disable"
     past_action = if enabled, do: "Enabled", else: "Disabled"
 

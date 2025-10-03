@@ -59,9 +59,8 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
   end
 
   defp create_from_api(user_id) do
-    with {:ok, cloudflare_data} <- APIClient.create_live_input(user_id) do
-      create_or_update_record(user_id, cloudflare_data)
-    end
+    {:ok, cloudflare_data} = APIClient.create_live_input(user_id)
+    create_or_update_record(user_id, cloudflare_data)
   end
 
   defp create_or_update_record(user_id, cloudflare_data) do
@@ -87,11 +86,11 @@ defmodule Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch do
   end
 
   defp update_existing_record(user_id, cloudflare_data) do
-    with {:ok, existing_record} <- get_existing_record(user_id) do
-      existing_record
-      |> Ash.Changeset.for_update(:update, %{data: cloudflare_data})
-      |> Ash.update(actor: %{id: user_id})
-    end
+    {:ok, existing_record} = get_existing_record(user_id)
+
+    existing_record
+    |> Ash.Changeset.for_update(:update, %{data: cloudflare_data})
+    |> Ash.update(actor: %{id: user_id})
   end
 
   defp get_existing_record(user_id) do

@@ -14,8 +14,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.LivestreamManager.Platforms.YouTubeManager
   alias Streampai.LivestreamManager.PlatformSupervisor
   alias Streampai.LivestreamManager.StreamStateServer
+  alias Streampai.Stream.Livestream
 
   require Logger
+
+  @platform_manager_startup_delay 100
 
   def start_link(user_id) when is_binary(user_id) do
     Supervisor.start_link(__MODULE__, user_id, name: via_tuple(user_id))
@@ -94,23 +97,31 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   @doc """
   Starts streaming for all connected platforms.
   Generates a stream UUID and starts platform processes.
+  Creates a livestream database record.
   """
   def start_stream(user_id) when is_binary(user_id) do
-    stream_uuid = Ecto.UUID.generate()
+    {:ok, user} = Ash.get(User, user_id, authorize?: false)
 
-    # Update stream state
+    {:ok, livestream} =
+      Livestream.create(
+        %{
+          user_id: user_id,
+          started_at: DateTime.utc_now()
+        },
+        actor: user
+      )
+
+    stream_uuid = livestream.id
+
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
       stream_uuid
     )
 
-    # Start CloudflareManager streaming (enables live outputs and sets status to :streaming)
     CloudflareManager.start_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
 
-    # Start platform streaming processes
     start_platform_streaming(user_id, stream_uuid)
 
-    # Broadcast stream status change
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
       "stream_status:#{user_id}",
@@ -123,8 +134,13 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   @doc """
   Stops streaming for all connected platforms.
   Cleans up platform processes and updates stream state.
+  Updates the livestream record's ended_at timestamp.
   """
   def stop_stream(user_id) when is_binary(user_id) do
+    # Get current stream UUID before stopping
+    stream_state = get_state(user_id)
+    stream_uuid = stream_state.stream_uuid
+
     # Stop platform streaming processes
     stop_platform_streaming(user_id)
 
@@ -133,6 +149,17 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     # Update stream state
     StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
+
+    # Update livestream record with ended_at timestamp
+    if stream_uuid do
+      {:ok, user} = Ash.get(User, user_id, authorize?: false)
+      {:ok, livestream} = Ash.get(Livestream, stream_uuid, authorize?: false)
+
+      {:ok, _updated_livestream} =
+        Livestream.update(livestream, %{ended_at: DateTime.utc_now()}, actor: user)
+
+      Logger.info("Updated livestream #{stream_uuid} with end time")
+    end
 
     # Broadcast stream status change
     Phoenix.PubSub.broadcast(
@@ -162,116 +189,85 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp start_platform_streaming(user_id, stream_uuid) do
-    # Get all active platforms from PlatformSupervisor
     active_platforms = get_active_platforms(user_id)
-
     Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
 
-    # Ensure platform managers are started and then start streaming on each platform
     Enum.each(active_platforms, fn platform ->
-      # Ensure platform manager is started before calling it
       ensure_platform_manager_started(user_id, platform)
-
-      case platform do
-        :twitch ->
-          TwitchManager.start_streaming(
-            user_id,
-            stream_uuid
-          )
-
-        :youtube ->
-          YouTubeManager.start_streaming(
-            user_id,
-            stream_uuid
-          )
-
-        :facebook ->
-          FacebookManager.start_streaming(
-            user_id,
-            stream_uuid
-          )
-
-        :kick ->
-          KickManager.start_streaming(user_id, stream_uuid)
-
-        _ ->
-          Logger.warning("Unknown platform: #{platform}")
-      end
+      start_platform(platform, user_id, stream_uuid)
     end)
+  end
+
+  defp start_platform(:twitch, user_id, stream_uuid) do
+    TwitchManager.start_streaming(user_id, stream_uuid)
+  end
+
+  defp start_platform(:youtube, user_id, stream_uuid) do
+    YouTubeManager.start_streaming(user_id, stream_uuid)
+  end
+
+  defp start_platform(:facebook, user_id, stream_uuid) do
+    FacebookManager.start_streaming(user_id, stream_uuid)
+  end
+
+  defp start_platform(:kick, user_id, stream_uuid) do
+    KickManager.start_streaming(user_id, stream_uuid)
+  end
+
+  defp start_platform(platform, _user_id, _stream_uuid) do
+    Logger.warning("Unknown platform: #{platform}")
   end
 
   defp stop_platform_streaming(user_id) do
-    # Get all active platforms from PlatformSupervisor
     active_platforms = get_active_platforms(user_id)
-
     Logger.info("Stopping streaming on platforms: #{inspect(active_platforms)}")
 
-    # Stop streaming on each platform
-    Enum.each(active_platforms, fn platform ->
-      case platform do
-        :twitch ->
-          TwitchManager.stop_streaming(user_id)
-
-        :youtube ->
-          YouTubeManager.stop_streaming(user_id)
-
-        :facebook ->
-          FacebookManager.stop_streaming(user_id)
-
-        :kick ->
-          KickManager.stop_streaming(user_id)
-
-        _ ->
-          Logger.warning("Unknown platform: #{platform}")
-      end
-    end)
+    Enum.each(active_platforms, &stop_platform(&1, user_id))
   end
 
-  # Get connected streaming accounts from database instead of looking at running processes
-  # First get the user to use as actor
+  defp stop_platform(:twitch, user_id), do: TwitchManager.stop_streaming(user_id)
+  defp stop_platform(:youtube, user_id), do: YouTubeManager.stop_streaming(user_id)
+  defp stop_platform(:facebook, user_id), do: FacebookManager.stop_streaming(user_id)
+  defp stop_platform(:kick, user_id), do: KickManager.stop_streaming(user_id)
+
+  defp stop_platform(platform, _user_id) do
+    Logger.warning("Unknown platform: #{platform}")
+  end
+
   defp get_active_platforms(user_id) do
-    case Ash.get(User, user_id, authorize?: false) do
-      {:ok, user} ->
-        # Then get user with streaming accounts using the user as actor
-        case Ash.get(User, user_id, actor: user, load: [:streaming_accounts]) do
-          {:ok, user_with_accounts} ->
-            Enum.map(user_with_accounts.streaming_accounts, & &1.platform)
-
-          {:error, reason} ->
-            Logger.warning("Could not load streaming accounts: #{inspect(reason)}")
-
-            []
-        end
-
+    with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
+         {:ok, user_with_accounts} <-
+           Ash.get(User, user_id, actor: user, load: [:streaming_accounts]) do
+      Enum.map(user_with_accounts.streaming_accounts, & &1.platform)
+    else
       {:error, reason} ->
-        Logger.warning("Could not load user: #{inspect(reason)}")
+        Logger.warning("Could not load user or streaming accounts: #{inspect(reason)}")
         []
     end
   rescue
     e ->
       Logger.error("Exception loading user platforms: #{inspect(e)}")
-
       []
   end
 
   defp ensure_platform_manager_started(user_id, platform) do
-    # Check if platform manager is already running
     case Registry.lookup(get_registry_name(), {:platform_manager, user_id, platform}) do
       [{_pid, _}] ->
-        # Platform manager already exists
         :ok
 
       [] ->
-        # Platform manager doesn't exist, start it
-        case get_platform_config(user_id, platform) do
-          {:ok, config} ->
-            PlatformSupervisor.start_platform_manager(user_id, platform, config)
-            # Give it a moment to start
-            Process.sleep(100)
+        start_new_platform_manager(user_id, platform)
+    end
+  end
 
-          {:error, reason} ->
-            Logger.warning("Could not get config for #{platform}: #{inspect(reason)}")
-        end
+  defp start_new_platform_manager(user_id, platform) do
+    case get_platform_config(user_id, platform) do
+      {:ok, config} ->
+        PlatformSupervisor.start_platform_manager(user_id, platform, config)
+        Process.sleep(@platform_manager_startup_delay)
+
+      {:error, reason} ->
+        Logger.warning("Could not get config for #{platform}: #{inspect(reason)}")
     end
   end
 
@@ -279,7 +275,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
          {:ok, user_with_accounts} <-
            Ash.get(User, user_id, actor: user, load: [:streaming_accounts]),
-         %{} = account <- find_platform_account(user_with_accounts.streaming_accounts, platform) do
+         %{} = account <-
+           Enum.find(user_with_accounts.streaming_accounts, &(&1.platform == platform)) do
       format_platform_config(account)
     else
       nil -> {:error, :platform_not_found}
@@ -288,12 +285,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   rescue
     e ->
       Logger.error("Exception getting platform config: #{inspect(e)}")
-
       {:error, e}
-  end
-
-  defp find_platform_account(streaming_accounts, platform) do
-    Enum.find(streaming_accounts, &(&1.platform == platform))
   end
 
   defp format_platform_config(%{

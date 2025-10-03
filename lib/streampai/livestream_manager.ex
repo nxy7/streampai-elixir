@@ -20,9 +20,8 @@ defmodule Streampai.LivestreamManager do
   Creates the user stream manager if it doesn't exist.
   """
   def get_stream_state(user_id) when is_binary(user_id) do
-    with {:ok, pid} <- get_user_stream_pid(user_id) do
-      UserStreamManager.get_state(pid)
-    end
+    {:ok, pid} = get_user_stream_pid(user_id)
+    UserStreamManager.get_state(pid)
   end
 
   @doc """
@@ -30,9 +29,8 @@ defmodule Streampai.LivestreamManager do
   Creates the user stream manager if it doesn't exist.
   """
   def send_chat_message(user_id, message, platforms \\ :all) do
-    with {:ok, pid} <- get_user_stream_pid(user_id) do
-      UserStreamManager.send_chat_message(pid, message, platforms)
-    end
+    {:ok, pid} = get_user_stream_pid(user_id)
+    UserStreamManager.send_chat_message(pid, message, platforms)
   end
 
   @doc """
@@ -40,9 +38,8 @@ defmodule Streampai.LivestreamManager do
   Creates the user stream manager if it doesn't exist.
   """
   def update_stream_metadata(user_id, metadata, platforms \\ :all) do
-    with {:ok, pid} <- get_user_stream_pid(user_id) do
-      UserStreamManager.update_stream_metadata(pid, metadata, platforms)
-    end
+    {:ok, pid} = get_user_stream_pid(user_id)
+    UserStreamManager.update_stream_metadata(pid, metadata, platforms)
   end
 
   @doc """
@@ -50,9 +47,8 @@ defmodule Streampai.LivestreamManager do
   Creates the user stream manager if it doesn't exist.
   """
   def configure_stream_outputs(user_id, platform_configs) do
-    with {:ok, pid} <- get_user_stream_pid(user_id) do
-      UserStreamManager.configure_stream_outputs(pid, platform_configs)
-    end
+    {:ok, pid} = get_user_stream_pid(user_id)
+    UserStreamManager.configure_stream_outputs(pid, platform_configs)
   end
 
   defp get_user_stream_pid(user_id) do

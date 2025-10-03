@@ -7,7 +7,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.YouTube.ApiClient
-  alias Streampai.YouTube.LiveChatStream
+  alias Streampai.YouTube.GrpcStreamClient
+  alias Streampai.YouTube.TokenManager
 
   require Logger
 
@@ -35,30 +36,19 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   def init({user_id, config}) do
     Logger.metadata(user_id: user_id, component: :youtube_manager)
 
-    # Check if token needs refresh and refresh if needed
-    config =
-      if token_needs_refresh?(config.expires_at) do
-        Logger.info("Token expiring soon, refreshing...")
+    # Ensure token manager is running for this user
+    {:ok, _token_manager_pid} =
+      Streampai.YouTube.TokenSupervisor.ensure_token_manager(user_id, config)
 
-        case refresh_google_token(config.refresh_token) do
-          {:ok, new_config} ->
-            # Update database with new tokens
-            update_streaming_account_tokens(user_id, new_config)
-            Logger.info("Token refreshed successfully")
-            new_config
+    # Subscribe to token updates
+    TokenManager.subscribe(user_id)
 
-          {:error, reason} ->
-            Logger.error("Failed to refresh token: #{inspect(reason)}")
-            # Try with old token anyway
-            config
-        end
-      else
-        config
-      end
+    # Get current valid token
+    {:ok, access_token} = TokenManager.get_token(user_id)
 
     state = %__MODULE__{
       user_id: user_id,
-      access_token: config.access_token,
+      access_token: access_token,
       refresh_token: config.refresh_token,
       expires_at: config.expires_at,
       is_active: false,
@@ -110,9 +100,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
          {:create_stream, {:ok, stream}} <- {:create_stream, create_stream(state, stream_uuid)},
          {:bind_stream, {:ok, bound_broadcast}} <-
            {:bind_stream, bind_stream(state, broadcast["id"], stream["id"])},
-         {:extract_chat_id, {:ok, chat_id}} <-
-           {:extract_chat_id, extract_chat_id(bound_broadcast)},
-         {:start_chat, {:ok, chat_pid}} <- {:start_chat, start_chat_streaming(state, chat_id)},
+         {:get_chat_ids, {:ok, broadcast_chat_id, active_chat_id}} <-
+           {:get_chat_ids, get_chat_ids(state, bound_broadcast, broadcast["id"])},
+         {:start_chat, {:ok, chat_pid}} <-
+           {:start_chat, start_chat_streaming(state, stream_uuid, broadcast_chat_id)},
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
          {:create_output, {:ok, output_id}} <-
@@ -122,18 +113,16 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         | is_active: true,
           broadcast_id: broadcast["id"],
           stream_id: stream["id"],
-          chat_id: chat_id,
+          chat_id: active_chat_id,
           chat_pid: chat_pid,
           stream_key: stream_key,
           rtmp_url: rtmp_url,
           cloudflare_output_id: output_id
       }
 
-      Logger.info(
-        "Stream created successfully - RTMP: #{new_state.rtmp_url}, Key: #{new_state.stream_key}, Cloudflare Output: #{output_id}"
-      )
+      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Cloudflare Output: #{output_id}")
 
-      {:reply, {:ok, %{rtmp_url: new_state.rtmp_url, stream_key: new_state.stream_key}}, new_state}
+      {:reply, {:ok, %{rtmp_url: rtmp_url, stream_key: stream_key}}, new_state}
     else
       {step, {:error, reason}} ->
         Logger.error("Failed at #{step}: #{inspect(reason)}")
@@ -146,7 +135,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     Logger.info("Stopping stream")
 
     if state.chat_pid do
-      LiveChatStream.stop_stream(state.chat_pid)
+      GrpcStreamClient.stop(state.chat_pid)
     end
 
     cleanup_cloudflare_output(state)
@@ -205,29 +194,62 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
-  def handle_info({:chat_message, message}, state) do
-    author = get_in(message, ["authorDetails", "displayName"]) || "Unknown"
-    text = get_in(message, ["snippet", "displayMessage"]) || ""
-
-    Logger.debug("💬 Chat message from #{author}: #{text}")
-
-    # Broadcast chat message to OBS widgets
-    broadcast_chat_message(state.user_id, message)
-
+  def handle_info({:youtube_message, :chat_message, data}, state) do
+    Logger.debug("💬 Chat message from #{data.username}: #{data.message}")
+    broadcast_chat_message(state.user_id, data)
     {:noreply, state}
   end
 
   @impl true
-  def handle_info({:chat_error, reason}, state) do
-    Logger.error("Chat error: #{inspect(reason)}")
+  def handle_info({:youtube_message, event_type, data}, state) do
+    Logger.debug("YouTube event [#{event_type}]: #{inspect(data)}")
     {:noreply, state}
   end
 
   @impl true
-  def handle_info({:chat_ended, reason}, state) do
-    Logger.info("Chat ended: #{inspect(reason)}")
+  def handle_info({:stream_ended, reason}, state) do
+    Logger.info("gRPC stream ended: #{inspect(reason)}")
     new_state = %{state | chat_pid: nil}
     {:noreply, new_state}
+  end
+
+  @impl true
+  def handle_info({:token_updated, _user_id, new_token}, state) do
+    Logger.info("Received updated token from TokenManager")
+
+    # Update gRPC client with new token if running
+    if state.chat_pid do
+      GrpcStreamClient.update_token(state.chat_pid, new_token)
+    end
+
+    {:noreply, %{state | access_token: new_token}}
+  end
+
+  @impl true
+  def handle_info({:token_expired, _reason}, state) do
+    Logger.warning("Token expired, requesting refresh from TokenManager...")
+
+    case TokenManager.refresh_token(state.user_id) do
+      {:ok, new_token} ->
+        Logger.info("Token refreshed successfully")
+
+        # Update gRPC client with new token
+        if state.chat_pid do
+          GrpcStreamClient.update_token(state.chat_pid, new_token)
+        end
+
+        {:noreply, %{state | access_token: new_token}}
+
+      {:error, reason} ->
+        Logger.error("Failed to refresh token: #{inspect(reason)}")
+
+        # Stop the gRPC stream on failed refresh
+        if state.chat_pid do
+          GrpcStreamClient.stop(state.chat_pid)
+        end
+
+        {:noreply, %{state | chat_pid: nil}}
+    end
   end
 
   @impl true
@@ -242,7 +264,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
     # Stop chat stream
     if state.chat_pid do
-      LiveChatStream.stop_stream(state.chat_pid)
+      GrpcStreamClient.stop(state.chat_pid)
     end
 
     # Delete Cloudflare Live Output
@@ -357,15 +379,82 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end)
   end
 
-  defp extract_chat_id(broadcast) do
-    case get_in(broadcast, ["snippet", "liveChatId"]) do
-      nil -> {:error, :no_live_chat_id}
-      chat_id -> {:ok, chat_id}
-    end
+  defp get_chat_ids(state, broadcast, broadcast_id) do
+    # Get liveChatId from broadcast (REST API method)
+    broadcast_chat_id = get_in(broadcast, ["snippet", "liveChatId"])
+
+    # Get activeLiveChatId from video (gRPC docs method)
+    active_chat_id =
+      case get_video_active_chat_id(state, broadcast_id) do
+        {:ok, chat_id} -> chat_id
+        {:error, _} -> nil
+      end
+
+    Logger.info("""
+    Chat ID comparison:
+      - broadcast.snippet.liveChatId: #{inspect(broadcast_chat_id)}
+      - video.liveStreamingDetails.activeLiveChatId: #{inspect(active_chat_id)}
+      - Using for gRPC: #{inspect(active_chat_id || broadcast_chat_id)}
+    """)
+
+    # Prefer activeLiveChatId for gRPC, fallback to broadcast liveChatId
+    # chat_id_to_use = active_chat_id || broadcast_chat_id
+
+    {:ok, broadcast_chat_id, active_chat_id}
+
+    # case chat_id_to_use do
+    #   nil -> {:error, :no_live_chat_id}
+    #   chat_id -> {:ok, broadcast_chat_id, chat_id}
+    # end
   end
 
-  defp start_chat_streaming(state, chat_id) do
-    LiveChatStream.start_stream(state.access_token, chat_id, self())
+  defp get_video_active_chat_id(state, video_id) do
+    get_video_active_chat_id_with_retry(state, video_id, 3)
+  end
+
+  defp get_video_active_chat_id_with_retry(state, video_id, retries_left) when retries_left > 0 do
+    with_token_retry(state, fn token ->
+      case ApiClient.get_video(token, video_id, [
+             "liveStreamingDetails",
+             "contentDetails",
+             "statistics"
+           ]) do
+        {:ok, video} ->
+          live_streaming_details = Map.get(video, "liveStreamingDetails", %{})
+
+          if live_streaming_details == %{} do
+            Logger.info("liveStreamingDetails is empty, retrying in 500ms (#{retries_left} retries left)")
+
+            Process.sleep(1000)
+            get_video_active_chat_id_with_retry(state, video_id, retries_left - 1)
+          else
+            case get_in(video, ["liveStreamingDetails", "activeLiveChatId"]) do
+              nil -> {:error, :no_active_chat_id}
+              chat_id -> {:ok, chat_id}
+            end
+          end
+
+        error ->
+          error
+      end
+    end)
+  end
+
+  defp get_video_active_chat_id_with_retry(_state, _video_id, 0) do
+    Logger.warning("liveStreamingDetails still empty after 3 retries")
+    {:error, :no_active_chat_id}
+  end
+
+  defp start_chat_streaming(state, livestream_id, chat_id) do
+    Logger.info("Starting gRPC chat streaming for chat ID: #{chat_id}, livestream ID: #{livestream_id}")
+
+    GrpcStreamClient.start_link(
+      state.user_id,
+      livestream_id,
+      state.access_token,
+      chat_id,
+      self()
+    )
   end
 
   defp create_cloudflare_output(state, rtmp_url, stream_key) do
@@ -445,17 +534,19 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end
   end
 
-  defp broadcast_chat_message(user_id, message) do
+  defp broadcast_chat_message(user_id, data) do
+    # Data already comes in the correct format from GrpcStreamClient
     chat_event = %{
-      id: get_in(message, ["id"]) || "msg_#{System.unique_integer([:positive])}",
-      username: get_in(message, ["authorDetails", "displayName"]) || "Unknown",
-      message: get_in(message, ["snippet", "displayMessage"]) || "",
+      id: data.id,
+      username: data.username,
+      message: data.message,
       platform: :youtube,
-      timestamp: parse_timestamp(get_in(message, ["snippet", "publishedAt"])),
-      author_channel_id: get_in(message, ["authorDetails", "channelId"]),
-      is_moderator: get_in(message, ["authorDetails", "isChatModerator"]) || false,
-      is_owner: get_in(message, ["authorDetails", "isChatOwner"]) || false,
-      profile_image_url: get_in(message, ["authorDetails", "profileImageUrl"])
+      timestamp: data.timestamp,
+      author_channel_id: data.channel_id,
+      is_moderator: data.is_moderator,
+      is_owner: data.is_owner,
+      # Not included in gRPC response
+      profile_image_url: nil
     }
 
     Phoenix.PubSub.broadcast(
@@ -465,28 +556,18 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     )
   end
 
-  defp parse_timestamp(nil), do: DateTime.utc_now()
-
-  defp parse_timestamp(timestamp_string) do
-    case DateTime.from_iso8601(timestamp_string) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _} -> DateTime.utc_now()
-    end
-  end
-
   # Token refresh helpers
 
   defp with_token_retry(state, api_call_fn) do
     case api_call_fn.(state.access_token) do
       {:error, {:http_error, 401, _}} = error ->
-        Logger.warning("Got 401 error, attempting token refresh...")
+        Logger.warning("Got 401 error, requesting token refresh from TokenManager...")
 
-        case refresh_google_token(state.refresh_token) do
-          {:ok, new_config} ->
-            update_streaming_account_tokens(state.user_id, new_config)
+        case TokenManager.refresh_token(state.user_id) do
+          {:ok, new_token} ->
             Logger.info("Token refreshed, retrying API call")
             # Retry with new token
-            api_call_fn.(new_config.access_token)
+            api_call_fn.(new_token)
 
           {:error, refresh_error} ->
             Logger.error("Token refresh failed: #{inspect(refresh_error)}")
@@ -496,85 +577,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
       result ->
         result
-    end
-  end
-
-  defp token_needs_refresh?(nil), do: true
-
-  defp token_needs_refresh?(expires_at) do
-    # Refresh if token expires within 5 minutes
-    DateTime.diff(expires_at, DateTime.utc_now(), :second) < 300
-  end
-
-  defp refresh_google_token(refresh_token) do
-    client_id = System.get_env("GOOGLE_CLIENT_ID")
-    client_secret = System.get_env("GOOGLE_CLIENT_SECRET")
-
-    case Req.post("https://oauth2.googleapis.com/token",
-           form: [
-             client_id: client_id,
-             client_secret: client_secret,
-             refresh_token: refresh_token,
-             grant_type: "refresh_token"
-           ]
-         ) do
-      {:ok, %{status: 200, body: body}} ->
-        new_refresh_token = Map.get(body, "refresh_token", refresh_token)
-
-        {:ok,
-         %{
-           access_token: body["access_token"],
-           refresh_token: new_refresh_token,
-           expires_at: DateTime.add(DateTime.utc_now(), body["expires_in"], :second)
-         }}
-
-      {:ok, %{status: status, body: body}} ->
-        Logger.error("Google token refresh failed with status #{status}: #{inspect(body)}")
-        {:error, {:http_error, status, body}}
-
-      {:error, reason} ->
-        Logger.error("Google token refresh request failed: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  defp update_streaming_account_tokens(user_id, new_config) do
-    alias Streampai.Accounts.StreamingAccount
-
-    require Ash.Query
-
-    # Get the user for actor context
-    case Ash.get(Streampai.Accounts.User, user_id, authorize?: false) do
-      {:ok, user} ->
-        # Find the YouTube streaming account
-        query =
-          StreamingAccount
-          |> Ash.Query.for_read(:read, %{}, actor: user)
-          |> Ash.Query.filter(user_id: user_id, platform: :youtube)
-
-        case Ash.read(query, actor: user) do
-          {:ok, [account]} ->
-            # Update the tokens
-            account
-            |> Ash.Changeset.for_update(:refresh_token, %{
-              access_token: new_config.access_token,
-              refresh_token: new_config.refresh_token,
-              access_token_expires_at: new_config.expires_at
-            })
-            |> Ash.update(actor: user)
-
-          {:ok, []} ->
-            Logger.warning("No YouTube streaming account found for user #{user_id}")
-            {:error, :account_not_found}
-
-          {:error, reason} ->
-            Logger.error("Failed to read streaming account: #{inspect(reason)}")
-            {:error, reason}
-        end
-
-      {:error, reason} ->
-        Logger.error("Failed to load user #{user_id}: #{inspect(reason)}")
-        {:error, reason}
     end
   end
 end

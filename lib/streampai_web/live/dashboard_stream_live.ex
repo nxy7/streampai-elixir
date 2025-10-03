@@ -27,77 +27,75 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:ok, socket, layout: false}
   end
 
+  def handle_event("start_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
+    socket =
+      put_flash(
+        socket,
+        :error,
+        "Streaming services not yet available. Please wait a moment and try again."
+      )
+
+    {:noreply, socket}
+  end
+
   def handle_event("start_streaming", _params, socket) do
     user_id = socket.assigns.current_user.id
+    socket = assign(socket, :loading, true)
 
-    if socket.assigns.stream_status.manager_available do
-      socket = assign(socket, :loading, true)
+    try do
+      UserStreamManager.start_stream(user_id)
 
-      try do
-        UserStreamManager.start_stream(user_id)
+      socket =
+        socket
+        |> assign(:loading, false)
+        |> put_flash(:info, "Stream started successfully!")
+
+      {:noreply, socket}
+    rescue
+      error ->
+        require Logger
+
+        Logger.error("Failed to start stream for user #{user_id}: #{inspect(error)}")
 
         socket =
           socket
           |> assign(:loading, false)
-          |> put_flash(:info, "Stream started successfully!")
+          |> handle_error(error, "Failed to start stream. Please try again later.")
 
         {:noreply, socket}
-      rescue
-        error ->
-          require Logger
-
-          Logger.error("Failed to start stream for user #{user_id}: #{inspect(error)}")
-
-          socket =
-            socket
-            |> assign(:loading, false)
-            |> handle_error(error, "Failed to start stream. Please try again later.")
-
-          {:noreply, socket}
-      end
-    else
-      socket =
-        put_flash(
-          socket,
-          :error,
-          "Streaming services not yet available. Please wait a moment and try again."
-        )
-
-      {:noreply, socket}
     end
+  end
+
+  def handle_event("stop_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
+    socket = handle_error(socket, :timeout, "Streaming services not available.")
+    {:noreply, socket}
   end
 
   def handle_event("stop_streaming", _params, socket) do
     user_id = socket.assigns.current_user.id
+    socket = assign(socket, :loading, true)
 
-    if socket.assigns.stream_status.manager_available do
-      socket = assign(socket, :loading, true)
+    try do
+      UserStreamManager.stop_stream(user_id)
 
-      try do
-        UserStreamManager.stop_stream(user_id)
+      socket =
+        socket
+        |> assign(:loading, false)
+        |> put_flash(:info, "Stream stopped successfully")
+
+      {:noreply, socket}
+    rescue
+      error ->
+        require Logger
+
+        Logger.error("Failed to stop stream for user #{user_id}: #{inspect(error)}")
 
         socket =
           socket
           |> assign(:loading, false)
-          |> put_flash(:info, "Stream stopped successfully")
+          |> handle_error(error, "Failed to stop stream. Please try again later.")
 
         {:noreply, socket}
-      rescue
-        error ->
-          require Logger
-
-          Logger.error("Failed to stop stream for user #{user_id}: #{inspect(error)}")
-
-          socket =
-            socket
-            |> assign(:loading, false)
-            |> handle_error(error, "Failed to stop stream. Please try again later.")
-
-          {:noreply, socket}
-      end
-    else
-      socket = handle_error(socket, :timeout, "Streaming services not available.")
-      {:noreply, socket}
     end
   end
 
@@ -110,23 +108,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
     super(event, params, socket)
   end
 
-  def handle_info({:stream_status_changed, _event}, socket) do
-    user_id = socket.assigns.current_user.id
-    stream_status = get_stream_status(user_id)
-
-    socket = assign(socket, :stream_status, stream_status)
-
-    {:noreply, socket}
-  end
-
   def handle_info({event_type, _event}, socket)
-      when event_type in [:stream_auto_stopped, :input_streaming_started, :input_streaming_stopped] do
-    user_id = socket.assigns.current_user.id
-    stream_status = get_stream_status(user_id)
-
-    socket = assign(socket, :stream_status, stream_status)
-
-    {:noreply, socket}
+      when event_type in [
+             :stream_status_changed,
+             :stream_auto_stopped,
+             :input_streaming_started,
+             :input_streaming_stopped
+           ] do
+    stream_status = get_stream_status(socket.assigns.current_user.id)
+    {:noreply, assign(socket, :stream_status, stream_status)}
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}

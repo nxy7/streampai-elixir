@@ -15,6 +15,7 @@ defmodule Streampai.YouTube.ApiClient do
   require Logger
 
   @base_url "https://www.googleapis.com/youtube/v3"
+  @token_info_url "https://www.googleapis.com/oauth2/v3/tokeninfo"
 
   # Default request timeout in milliseconds
   @default_timeout 30_000
@@ -30,6 +31,37 @@ defmodule Streampai.YouTube.ApiClient do
       auth: {:bearer, access_token},
       receive_timeout: @default_timeout
     ]
+  end
+
+  ## Authentication Validation
+
+  @doc """
+  Validates an OAuth 2.0 access token and returns token information including scopes.
+
+  This is useful for verifying that a token is valid and has the necessary YouTube scopes.
+
+  ## Returns
+  - `{:ok, token_info}` - Token is valid, returns info including scopes, expiry, etc.
+  - `{:error, reason}` - Token is invalid or request failed
+
+  ## Example
+      {:ok, info} = ApiClient.validate_token(access_token)
+      # Returns: %{
+      #   "aud" => "client_id",
+      #   "scope" => "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl",
+      #   "exp" => "1234567890",
+      #   "expires_in" => "3599"
+      # }
+  """
+  @spec validate_token(access_token) :: api_result()
+  def validate_token(access_token) do
+    [
+      url: @token_info_url,
+      params: %{access_token: access_token},
+      receive_timeout: @default_timeout
+    ]
+    |> Req.get()
+    |> handle_response()
   end
 
   ## Live Chat Messages API
@@ -246,6 +278,74 @@ defmodule Streampai.YouTube.ApiClient do
     req_opts
     |> Req.post()
     |> handle_response()
+  end
+
+  @doc """
+  Transitions a broadcast to a new status (testing, live, or complete).
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `broadcast_id`: The ID of the broadcast to transition
+  - `broadcast_status`: New status ("testing", "live", or "complete")
+  - `part`: Resource parts to include (typically "id,snippet,status")
+  - `opts`: Additional options
+
+  ## Example
+      {:ok, result} = ApiClient.transition_live_broadcast(token, broadcast_id, "live", "id,status")
+  """
+  @spec transition_live_broadcast(access_token, String.t(), String.t(), part_param, keyword()) ::
+          api_result()
+  def transition_live_broadcast(access_token, broadcast_id, broadcast_status, part, opts \\ []) do
+    params = %{
+      id: broadcast_id,
+      broadcastStatus: broadcast_status,
+      part: normalize_part_param(part)
+    }
+
+    req_opts =
+      base_opts(access_token) ++ [url: "/liveBroadcasts/transition", params: params] ++ opts
+
+    req_opts
+    |> Req.post()
+    |> handle_response()
+  end
+
+  @doc """
+  Gets video details including live streaming information.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `video_id`: The video ID (same as broadcast ID for live streams)
+  - `part`: Resource parts to include (typically "liveStreamingDetails")
+  - `opts`: Additional options
+
+  ## Example
+      {:ok, video} = ApiClient.get_video(token, video_id, "liveStreamingDetails")
+      active_chat_id = get_in(video, ["liveStreamingDetails", "activeLiveChatId"])
+  """
+  @spec get_video(access_token, String.t(), part_param, keyword()) :: api_result()
+  def get_video(access_token, video_id, part, opts \\ []) do
+    params = %{
+      id: video_id,
+      part: normalize_part_param(part)
+    }
+
+    req_opts = base_opts(access_token) ++ [url: "/videos", params: params] ++ opts
+
+    req_opts
+    |> Req.get()
+    |> handle_response()
+    |> case do
+      {:ok, %{"items" => []}} ->
+        {:error, :video_not_found}
+
+      {:ok, %{"items" => videos}} ->
+        dbg(videos)
+        {:ok, List.first(videos)}
+
+      error ->
+        error
+    end
   end
 
   @doc """

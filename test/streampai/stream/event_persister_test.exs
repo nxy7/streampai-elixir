@@ -1,16 +1,16 @@
-defmodule Streampai.Stream.ChatMessagePersisterTest do
+defmodule Streampai.Stream.EventPersisterTest do
   use Streampai.DataCase, async: true
 
   import Streampai.TestHelpers
 
   alias Streampai.Accounts.User
   alias Streampai.Stream.ChatMessage
-  alias Streampai.Stream.ChatMessagePersister
+  alias Streampai.Stream.EventPersister
   alias Streampai.Stream.Livestream
 
   require Ash.Query
 
-  describe "ChatMessagePersister" do
+  describe "EventPersister" do
     setup do
       # Create test user
       user_attrs = factory(:user)
@@ -28,7 +28,7 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
 
       # Start the persister process for testing
       {:ok, persister_pid} =
-        ChatMessagePersister.start_link(name: :"TestPersister_#{:rand.uniform(10_000)}")
+        EventPersister.start_link(name: :"TestPersister_#{:rand.uniform(10_000)}")
 
       # Allow the persister process to access the database connection
       Ecto.Adapters.SQL.Sandbox.allow(Streampai.Repo, self(), persister_pid)
@@ -296,13 +296,13 @@ defmodule Streampai.Stream.ChatMessagePersisterTest do
     end
   end
 
-  describe "ChatMessagePersister module functions" do
+  describe "EventPersister module functions" do
     test "add_message/1 works with global persister" do
       # This test would require the global persister to be running
       # For now, we'll test the function exists and has correct arity
-      assert function_exported?(ChatMessagePersister, :add_message, 1)
-      assert function_exported?(ChatMessagePersister, :flush_now, 0)
-      assert function_exported?(ChatMessagePersister, :get_stats, 0)
+      assert function_exported?(EventPersister, :add_message, 1)
+      assert function_exported?(EventPersister, :flush_now, 0)
+      assert function_exported?(EventPersister, :get_stats, 0)
     end
   end
 end

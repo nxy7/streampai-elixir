@@ -30,6 +30,8 @@ defmodule Streampai.Application do
       StreampaiWeb.Endpoint,
       {AshAuthentication.Supervisor, [otp_app: :streampai]},
       {Task.Supervisor, name: Streampai.TaskSupervisor},
+      Streampai.Stream.EventPersister,
+      Streampai.YouTube.TokenSupervisor,
       {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]}
     ]
 

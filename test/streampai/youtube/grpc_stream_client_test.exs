@@ -1,17 +1,27 @@
-defmodule Streampai.YouTube.LiveChatStreamTest do
+defmodule Streampai.YouTube.GrpcStreamClientTest do
   use ExUnit.Case, async: true
 
-  alias Streampai.YouTube.LiveChatStream
+  alias Streampai.YouTube.GrpcStreamClient
 
   @moduletag :skip
-  describe "LiveChatStream" do
-    test "start_stream/4 starts GenServer process" do
+  describe "GrpcStreamClient" do
+    test "start_link/5 starts GenServer process" do
       # Mock test - would need proper gRPC setup for real testing
+      user_id = "test_user"
+      livestream_id = "test_stream"
       access_token = "mock_token"
       live_chat_id = "mock_chat_id"
 
       # This will start but fail to connect with mock credentials
-      assert {:ok, pid} = LiveChatStream.start_stream(access_token, live_chat_id, self())
+      assert {:ok, pid} =
+               GrpcStreamClient.start_link(
+                 user_id,
+                 livestream_id,
+                 access_token,
+                 live_chat_id,
+                 self()
+               )
+
       assert is_pid(pid)
 
       # Clean up
@@ -19,34 +29,22 @@ defmodule Streampai.YouTube.LiveChatStreamTest do
     end
 
     test "get_status/1 returns current stream status" do
+      user_id = "test_user"
+      livestream_id = "test_stream"
       access_token = "mock_token"
       live_chat_id = "mock_chat_id"
 
-      {:ok, pid} = LiveChatStream.start_stream(access_token, live_chat_id, self())
+      {:ok, pid} =
+        GrpcStreamClient.start_link(user_id, livestream_id, access_token, live_chat_id, self())
 
-      status = LiveChatStream.get_status(pid)
+      status = GrpcStreamClient.get_status(pid)
 
       assert %{
-               # Expected with mock credentials
-               connected: false,
                live_chat_id: ^live_chat_id,
-               reconnect_attempts: _,
-               max_reconnect_attempts: _
+               reconnect_attempts: _
              } = status
 
       GenServer.stop(pid, :normal)
-    end
-
-    test "log_handler/0 spawns message logging process" do
-      pid = LiveChatStream.log_handler()
-      assert is_pid(pid)
-      assert Process.alive?(pid)
-
-      # Send test message
-      send(pid, {:chat_message, %{"test" => "message"}})
-
-      # Clean up
-      Process.exit(pid, :normal)
     end
   end
 

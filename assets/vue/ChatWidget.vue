@@ -47,7 +47,18 @@ const fontClass = computed(() => {
 const displayMessages = computed(() => {
   // Messages come from Elixir in reverse order (newest first)
   // Reverse them for chronological display (oldest first)
-  return [...props.messages].reverse().slice(-props.config.max_messages)
+  const allMessages = [...props.messages].reverse()
+
+  // Filter out messages that have no content after processing
+  const messagesWithContent = allMessages.filter(message => {
+    const parts = processMessageContent(message)
+    // Check if there's any non-empty text content
+    return parts.some(part => part.type === 'text' && part.content.trim().length > 0) ||
+           parts.some(part => part.type === 'emote')
+  })
+
+  // Take only max_messages from the filtered list
+  return messagesWithContent.slice(-props.config.max_messages)
 })
 
 const formatTimestamp = (timestamp: Date | string) => {
@@ -99,9 +110,24 @@ const unicodeHexToUrl = (hex: string): string => {
 }
 
 const processMessageContent = (message: Message): MessagePart[] => {
-  // If emotes disabled, remove :shortcode: patterns
+  // If emotes disabled, remove :shortcode: patterns AND Unicode emojis
   if (!props.config.show_emotes) {
-    const cleanContent = message.content.replace(/:[a-zA-Z0-9_+-]+:/g, '').trim()
+    const cleanContent = message.content
+      // Remove :shortcode: patterns
+      .replace(/:[a-zA-Z0-9_+-]+:/g, '')
+      // Remove Unicode emoji characters (using regex to match emoji ranges)
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc Symbols and Pictographs
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map
+      .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
+      .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
+      .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
+      .replace(/[\u{FE00}-\u{FE0F}]/gu, '')   // Variation Selectors
+      .replace(/[\u{200D}]/gu, '')            // Zero Width Joiner
+      .trim()
     return [{ type: 'text', content: cleanContent }]
   }
 
@@ -134,8 +160,13 @@ const processMessageContent = (message: Message): MessagePart[] => {
         unicode: unicodeHex,
         url: unicodeHexToUrl(unicodeHex)
       })
+    } else {
+      // If emoji not found, keep the shortcode text as-is
+      parts.push({
+        type: 'text',
+        content: fullMatch
+      })
     }
-    // If no match, emote is removed (not added to parts)
 
     lastIndex = match.index + fullMatch.length
   }

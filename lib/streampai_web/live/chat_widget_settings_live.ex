@@ -31,8 +31,8 @@ defmodule StreampaiWeb.ChatWidgetSettingsLive do
     new_message = @fake_module.generate_message()
     current_messages = socket.assigns.vue_messages
 
-    # Keep only the last 10 messages
-    updated_messages = Enum.take([new_message | current_messages], 10)
+    # Keep 20 messages as buffer (frontend will filter and show fewer based on settings)
+    updated_messages = Enum.take([new_message | current_messages], 20)
 
     assign(socket, vue_messages: updated_messages)
   end

@@ -8,8 +8,9 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   alias Phoenix.PubSub
   alias Streampai.LivestreamManager.UserStreamManager
 
-  # 5 seconds
   @cleanup_timeout 5_000
+  @initialization_delay 1_000
+  @metrics_call_timeout 10_000
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -34,7 +35,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     }
 
     # Initialize with existing presence after a short delay to ensure Presence is ready
-    Process.send_after(self(), :initialize_existing_presence, 1000)
+    Process.send_after(self(), :initialize_existing_presence, @initialization_delay)
 
     {:ok, state}
   end
@@ -206,7 +207,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   }
   """
   def get_metrics do
-    GenServer.call(__MODULE__, :get_metrics, 10_000)
+    GenServer.call(__MODULE__, :get_metrics, @metrics_call_timeout)
   end
 
   @doc """
@@ -214,7 +215,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   Returns: %{total_managers: integer, total_memory_kb: integer, total_processes: integer}
   """
   def get_summary_metrics do
-    GenServer.call(__MODULE__, :get_summary_metrics, 10_000)
+    GenServer.call(__MODULE__, :get_summary_metrics, @metrics_call_timeout)
   end
 
   if Mix.env() != :prod do
