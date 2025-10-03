@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   use Supervisor
 
   alias Streampai.Accounts.User
+  alias Streampai.Jobs.ProcessFinishedLivestreamJob
   alias Streampai.LivestreamManager.AlertQueue
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.Platforms.FacebookManager
@@ -159,6 +160,13 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
         Livestream.update(livestream, %{ended_at: DateTime.utc_now()}, actor: user)
 
       Logger.info("Updated livestream #{stream_uuid} with end time")
+
+      # Schedule post-stream processing job
+      %{livestream_id: stream_uuid}
+      |> ProcessFinishedLivestreamJob.new()
+      |> Oban.insert()
+
+      Logger.info("Scheduled post-stream processing job for livestream #{stream_uuid}")
     end
 
     # Broadcast stream status change
