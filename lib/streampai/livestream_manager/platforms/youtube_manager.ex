@@ -411,37 +411,52 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     get_video_active_chat_id_with_retry(state, video_id, 3)
   end
 
-  defp get_video_active_chat_id_with_retry(state, video_id, retries_left) when retries_left > 0 do
-    with_token_retry(state, fn token ->
-      case ApiClient.get_video(token, video_id, [
-             "liveStreamingDetails",
-             "contentDetails",
-             "statistics"
-           ]) do
-        {:ok, video} ->
-          live_streaming_details = Map.get(video, "liveStreamingDetails", %{})
-
-          if live_streaming_details == %{} do
-            Logger.info("liveStreamingDetails is empty, retrying in 500ms (#{retries_left} retries left)")
-
-            Process.sleep(1000)
-            get_video_active_chat_id_with_retry(state, video_id, retries_left - 1)
-          else
-            case get_in(video, ["liveStreamingDetails", "activeLiveChatId"]) do
-              nil -> {:error, :no_active_chat_id}
-              chat_id -> {:ok, chat_id}
-            end
-          end
-
-        error ->
-          error
-      end
-    end)
-  end
-
   defp get_video_active_chat_id_with_retry(_state, _video_id, 0) do
     Logger.warning("liveStreamingDetails still empty after 3 retries")
     {:error, :no_active_chat_id}
+  end
+
+  defp get_video_active_chat_id_with_retry(state, video_id, retries_left) do
+    with_token_retry(state, fn token ->
+      do_get_video_active_chat_id(token, video_id, state, retries_left)
+    end)
+  end
+
+  defp do_get_video_active_chat_id(token, video_id, state, retries_left) do
+    case ApiClient.get_video(token, video_id, [
+           "liveStreamingDetails",
+           "contentDetails",
+           "statistics"
+         ]) do
+      {:ok, video} ->
+        handle_video_response(video, state, video_id, retries_left)
+
+      error ->
+        error
+    end
+  end
+
+  defp handle_video_response(video, state, video_id, retries_left) do
+    live_streaming_details = Map.get(video, "liveStreamingDetails", %{})
+
+    if live_streaming_details == %{} do
+      retry_video_fetch(state, video_id, retries_left)
+    else
+      extract_active_chat_id(video)
+    end
+  end
+
+  defp retry_video_fetch(state, video_id, retries_left) do
+    Logger.info("liveStreamingDetails is empty, retrying in 500ms (#{retries_left} retries left)")
+    Process.sleep(1000)
+    get_video_active_chat_id_with_retry(state, video_id, retries_left - 1)
+  end
+
+  defp extract_active_chat_id(video) do
+    case get_in(video, ["liveStreamingDetails", "activeLiveChatId"]) do
+      nil -> {:error, :no_active_chat_id}
+      chat_id -> {:ok, chat_id}
+    end
   end
 
   defp start_chat_streaming(state, livestream_id, chat_id) do

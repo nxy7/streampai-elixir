@@ -546,62 +546,68 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
     case start_stream(channel, state) do
       {:ok, stream} ->
-        result =
-          Enum.reduce_while(stream, {0, nil}, fn item, {count, _prev_token} ->
-            case item do
-              {:ok, response} ->
-                item_count = length(response.items || [])
-
-                if item_count > 0 do
-                  Logger.debug("Received batch with #{item_count} messages")
-                end
-
-                process_response(response, state)
-                {:cont, {count + 1, response.next_page_token}}
-
-              {:error, %GRPC.RPCError{status: status, message: message} = error} ->
-                Logger.error("✗ gRPC error during stream consumption")
-                Logger.error("  Status code: #{status}")
-                Logger.error("  Error message: #{message}")
-
-                # 16 = UNAUTHENTICATED in gRPC status codes
-                if status == 16 do
-                  Logger.warning("Token expired during stream, requesting refresh...")
-
-                  case TokenManager.refresh_token(state.user_id) do
-                    {:ok, _new_token} ->
-                      # Token refreshed, signal parent to restart stream
-                      send(parent_pid, {:stream_error, {:token_refreshed, error}})
-
-                    {:error, _reason} ->
-                      # Refresh failed, notify callback
-                      send(state.callback_pid, {:token_expired, error})
-                  end
-                else
-                  send(state.callback_pid, {:stream_ended, {:error, error}})
-                end
-
-                {:halt, {:error, error}}
-
-              {:error, error} ->
-                Logger.error("✗ Stream error: #{inspect(error, pretty: true)}")
-                send(state.callback_pid, {:stream_ended, {:error, error}})
-                {:halt, {:error, error}}
-            end
-          end)
-
-        case result do
-          {_count, next_token} when is_binary(next_token) or is_nil(next_token) ->
-            send(parent_pid, {:stream_batch_complete, next_token})
-
-          {:error, reason} ->
-            Logger.error("Stream ended with error: #{inspect(reason)}")
-            send(parent_pid, {:stream_error, reason})
-        end
+        result = process_stream_items(stream, state, parent_pid)
+        handle_stream_result(result, parent_pid)
 
       {:error, reason} ->
         Logger.error("Failed to start stream: #{inspect(reason, pretty: true, limit: :infinity)}")
         send(parent_pid, {:stream_error, reason})
     end
+  end
+
+  defp process_stream_items(stream, state, parent_pid) do
+    Enum.reduce_while(stream, {0, nil}, fn item, {count, _prev_token} ->
+      handle_stream_item(item, count, state, parent_pid)
+    end)
+  end
+
+  defp handle_stream_item({:ok, response}, count, state, _parent_pid) do
+    item_count = length(response.items || [])
+
+    if item_count > 0 do
+      Logger.debug("Received batch with #{item_count} messages")
+    end
+
+    process_response(response, state)
+    {:cont, {count + 1, response.next_page_token}}
+  end
+
+  defp handle_stream_item({:error, %GRPC.RPCError{} = error}, _count, state, parent_pid) do
+    handle_grpc_error(error, state, parent_pid)
+    {:halt, {:error, error}}
+  end
+
+  defp handle_stream_item({:error, error}, _count, state, _parent_pid) do
+    Logger.error("✗ Stream error: #{inspect(error, pretty: true)}")
+    send(state.callback_pid, {:stream_ended, {:error, error}})
+    {:halt, {:error, error}}
+  end
+
+  defp handle_grpc_error(%GRPC.RPCError{status: 16} = error, state, parent_pid) do
+    Logger.warning("Token expired during stream, requesting refresh...")
+
+    case TokenManager.refresh_token(state.user_id) do
+      {:ok, _new_token} ->
+        send(parent_pid, {:stream_error, {:token_refreshed, error}})
+
+      {:error, _reason} ->
+        send(state.callback_pid, {:token_expired, error})
+    end
+  end
+
+  defp handle_grpc_error(%GRPC.RPCError{status: status, message: message} = error, state, _parent_pid) do
+    Logger.error("✗ gRPC error during stream consumption")
+    Logger.error("  Status code: #{status}")
+    Logger.error("  Error message: #{message}")
+    send(state.callback_pid, {:stream_ended, {:error, error}})
+  end
+
+  defp handle_stream_result({_count, next_token}, parent_pid) when is_binary(next_token) or is_nil(next_token) do
+    send(parent_pid, {:stream_batch_complete, next_token})
+  end
+
+  defp handle_stream_result({:error, reason}, parent_pid) do
+    Logger.error("Stream ended with error: #{inspect(reason)}")
+    send(parent_pid, {:stream_error, reason})
   end
 end

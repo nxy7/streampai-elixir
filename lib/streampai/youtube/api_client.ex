@@ -340,7 +340,6 @@ defmodule Streampai.YouTube.ApiClient do
         {:error, :video_not_found}
 
       {:ok, %{"items" => videos}} ->
-        dbg(videos)
         {:ok, List.first(videos)}
 
       error ->
