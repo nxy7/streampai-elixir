@@ -96,6 +96,8 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   @impl true
   def init(%{access_token: token, live_chat_id: chat_id, callback_pid: callback, opts: opts}) do
+    Logger.metadata(component: :youtube_live_chat, live_chat_id: chat_id)
+
     state = %__MODULE__{
       access_token: token,
       live_chat_id: chat_id,
@@ -185,7 +187,7 @@ defmodule Streampai.YouTube.LiveChatStream do
 
   @impl true
   def handle_info(msg, state) do
-    Logger.debug("[YouTubeLiveChat:#{state.live_chat_id}] Unknown message: #{inspect(msg)}")
+    Logger.debug("Unknown message: #{inspect(msg)}")
     {:noreply, state}
   end
 

@@ -15,6 +15,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   @impl true
   def init({user_id, config}) do
+    Logger.metadata(component: :facebook_manager, user_id: user_id)
     schedule_activity_log()
 
     state = %{
@@ -25,7 +26,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
       started_at: DateTime.utc_now()
     }
 
-    Logger.info("[FacebookManager:#{user_id}] Started - #{DateTime.utc_now()}")
+    Logger.info("Started - #{DateTime.utc_now()}")
     {:ok, state}
   end
 
@@ -60,9 +61,9 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   @impl true
   def handle_info(:log_activity, state) do
     if state.is_active do
-      Logger.info("[FacebookManager:#{state.user_id}] Streaming active - #{DateTime.utc_now()}")
+      Logger.info("Streaming active - #{DateTime.utc_now()}")
     else
-      Logger.debug("[FacebookManager:#{state.user_id}] Standby - #{DateTime.utc_now()}")
+      Logger.debug("Standby - #{DateTime.utc_now()}")
     end
 
     schedule_activity_log()
@@ -71,45 +72,45 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   @impl true
   def handle_info(msg, state) do
-    Logger.debug("[FacebookManager:#{state.user_id}] Unknown message: #{inspect(msg)}")
+    Logger.debug("Unknown message: #{inspect(msg)}")
     {:noreply, state}
   end
 
   @impl true
   def handle_call({:start_streaming, stream_uuid}, _from, state) do
-    Logger.info("[FacebookManager:#{state.user_id}] Starting stream: #{stream_uuid}")
+    Logger.info("Starting stream: #{stream_uuid}")
     new_state = %{state | is_active: true}
     {:reply, :ok, new_state}
   end
 
   @impl true
   def handle_call(:stop_streaming, _from, state) do
-    Logger.info("[FacebookManager:#{state.user_id}] Stopping stream")
+    Logger.info("Stopping stream")
     new_state = %{state | is_active: false}
     {:reply, :ok, new_state}
   end
 
   @impl true
   def handle_call({:send_chat_message, message}, _from, state) do
-    Logger.info("[FacebookManager:#{state.user_id}] Sending chat message: #{message}")
+    Logger.info("Sending chat message: #{message}")
     {:reply, :ok, state}
   end
 
   @impl true
   def handle_call({:update_stream_metadata, metadata}, _from, state) do
-    Logger.info("[FacebookManager:#{state.user_id}] Updating metadata: #{inspect(metadata)}")
+    Logger.info("Updating metadata: #{inspect(metadata)}")
     {:reply, :ok, state}
   end
 
   @impl true
   def handle_call(request, _from, state) do
-    Logger.debug("[FacebookManager:#{state.user_id}] Unhandled call: #{inspect(request)}")
+    Logger.debug("Unhandled call: #{inspect(request)}")
     {:reply, :ok, state}
   end
 
   @impl true
   def handle_cast(request, state) do
-    Logger.debug("[FacebookManager:#{state.user_id}] Unhandled cast: #{inspect(request)}")
+    Logger.debug("Unhandled cast: #{inspect(request)}")
     {:noreply, state}
   end
 

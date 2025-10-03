@@ -9,31 +9,45 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     type: :display,
     widget_type: :chat_widget
 
-  alias Streampai.Fake.Chat
-
   defp initialize_display_assigns(socket) do
-    initial_messages = Chat.initial_messages()
-
-    stream(socket, :messages, initial_messages, limit: socket.assigns.widget_config.max_messages)
+    assign(socket, :current_messages, [])
   end
 
-  defp subscribe_to_real_events(_user_id) do
-    schedule_demo_message()
+  defp subscribe_to_real_events(user_id) do
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "chat:#{user_id}")
   end
 
-  defp handle_real_event(socket, _event_data) do
-    {:noreply, socket}
+  defp handle_real_event(socket, chat_event) do
+    current_messages = socket.assigns.current_messages || []
+    max_messages = socket.assigns.widget_config.max_messages || 50
+
+    # Transform the chat event to match widget format
+    widget_message = transform_chat_event(chat_event)
+
+    # Add new message and keep only max_messages
+    updated_messages = Enum.take([widget_message | current_messages], max_messages)
+
+    {:noreply, assign(socket, :current_messages, updated_messages)}
   end
 
-  defp handle_demo_message_generation(socket) do
-    new_message = Chat.generate_message()
-
-    socket = stream_insert(socket, :messages, new_message, at: -1)
-
-    schedule_demo_message()
-
-    {:noreply, socket}
+  defp transform_chat_event(event) do
+    %{
+      id: event.id,
+      username: event.username,
+      content: event.message,
+      platform: platform_info(event.platform),
+      timestamp: event.timestamp,
+      is_moderator: Map.get(event, :is_moderator, false),
+      is_owner: Map.get(event, :is_owner, false),
+      profile_image_url: Map.get(event, :profile_image_url)
+    }
   end
+
+  defp platform_info(:youtube), do: %{icon: "youtube", color: "bg-red-600"}
+  defp platform_info(:twitch), do: %{icon: "twitch", color: "bg-purple-600"}
+  defp platform_info(:facebook), do: %{icon: "facebook", color: "bg-blue-600"}
+  defp platform_info(:kick), do: %{icon: "kick", color: "bg-green-600"}
+  defp platform_info(_), do: %{icon: "twitch", color: "bg-purple-600"}
 
   def render(assigns) do
     ~H"""
@@ -42,7 +56,7 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
         v-component="ChatWidget"
         v-socket={@socket}
         config={@widget_config}
-        messages={stream_to_list(@streams.messages)}
+        messages={@current_messages}
         class="w-full h-full"
         id="live-chat-widget"
       />
@@ -50,14 +64,13 @@ defmodule StreampaiWeb.Components.ChatObsWidgetLive do
     """
   end
 
-  defp stream_to_list(stream) do
-    stream
-    |> Stream.map(fn {_id, message} -> message end)
-    |> Enum.to_list()
+  # Override handle_info to catch real chat messages
+  def handle_info({:chat_message, chat_event}, socket) do
+    handle_real_event(socket, chat_event)
   end
 
-  defp schedule_demo_message do
-    delay = 1000
-    Process.send_after(self(), :generate_demo_message, delay)
+  # Delegate other messages to the WidgetBehaviour default implementation
+  def handle_info(msg, socket) do
+    super(msg, socket)
   end
 end

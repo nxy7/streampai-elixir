@@ -9,9 +9,11 @@
       Streampai
     </title>
 
-    <link phx-track-static rel="stylesheet" href="/assets/app.css" />
-    <script type="module" phx-track-static type="text/javascript" src="/assets/app.js">
-    </script>
+    <LiveVue.Reload.vite_assets assets={["/js/app.js", "/css/app.css"]}>
+      <link phx-track-static rel="stylesheet" href="/assets/app.css" />
+      <script type="module" phx-track-static type="text/javascript" src="/assets/app.js">
+      </script>
+    </LiveVue.Reload.vite_assets>
   </head>
   <body class="bg-transparent">
     {@inner_content}

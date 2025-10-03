@@ -23,6 +23,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   @impl true
   def init(user_id) do
+    Logger.metadata(component: :user_stream_manager, user_id: user_id)
+
     children = [
       {StreamStateServer, user_id},
       {CloudflareManager, user_id},
@@ -163,7 +165,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     # Get all active platforms from PlatformSupervisor
     active_platforms = get_active_platforms(user_id)
 
-    Logger.info("[UserStreamManager:#{user_id}] Starting streaming on platforms: #{inspect(active_platforms)}")
+    Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
 
     # Ensure platform managers are started and then start streaming on each platform
     Enum.each(active_platforms, fn platform ->
@@ -193,7 +195,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
           KickManager.start_streaming(user_id, stream_uuid)
 
         _ ->
-          Logger.warning("[UserStreamManager:#{user_id}] Unknown platform: #{platform}")
+          Logger.warning("Unknown platform: #{platform}")
       end
     end)
   end
@@ -202,7 +204,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     # Get all active platforms from PlatformSupervisor
     active_platforms = get_active_platforms(user_id)
 
-    Logger.info("[UserStreamManager:#{user_id}] Stopping streaming on platforms: #{inspect(active_platforms)}")
+    Logger.info("Stopping streaming on platforms: #{inspect(active_platforms)}")
 
     # Stop streaming on each platform
     Enum.each(active_platforms, fn platform ->
@@ -220,7 +222,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
           KickManager.stop_streaming(user_id)
 
         _ ->
-          Logger.warning("[UserStreamManager:#{user_id}] Unknown platform: #{platform}")
+          Logger.warning("Unknown platform: #{platform}")
       end
     end)
   end
@@ -236,18 +238,18 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
             Enum.map(user_with_accounts.streaming_accounts, & &1.platform)
 
           {:error, reason} ->
-            Logger.warning("[UserStreamManager:#{user_id}] Could not load streaming accounts: #{inspect(reason)}")
+            Logger.warning("Could not load streaming accounts: #{inspect(reason)}")
 
             []
         end
 
       {:error, reason} ->
-        Logger.warning("[UserStreamManager:#{user_id}] Could not load user: #{inspect(reason)}")
+        Logger.warning("Could not load user: #{inspect(reason)}")
         []
     end
   rescue
     e ->
-      Logger.error("[UserStreamManager:#{user_id}] Exception loading user platforms: #{inspect(e)}")
+      Logger.error("Exception loading user platforms: #{inspect(e)}")
 
       []
   end
@@ -268,7 +270,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
             Process.sleep(100)
 
           {:error, reason} ->
-            Logger.warning("[UserStreamManager:#{user_id}] Could not get config for #{platform}: #{inspect(reason)}")
+            Logger.warning("Could not get config for #{platform}: #{inspect(reason)}")
         end
     end
   end
@@ -285,7 +287,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     end
   rescue
     e ->
-      Logger.error("[UserStreamManager:#{user_id}] Exception getting platform config: #{inspect(e)}")
+      Logger.error("Exception getting platform config: #{inspect(e)}")
 
       {:error, e}
   end

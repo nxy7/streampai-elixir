@@ -211,6 +211,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
     Logger.debug("💬 Chat message from #{author}: #{text}")
 
+    # Broadcast chat message to OBS widgets
+    broadcast_chat_message(state.user_id, message)
+
     {:noreply, state}
   end
 
@@ -439,6 +442,35 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       end
     else
       Streampai.LivestreamManager.Registry
+    end
+  end
+
+  defp broadcast_chat_message(user_id, message) do
+    chat_event = %{
+      id: get_in(message, ["id"]) || "msg_#{System.unique_integer([:positive])}",
+      username: get_in(message, ["authorDetails", "displayName"]) || "Unknown",
+      message: get_in(message, ["snippet", "displayMessage"]) || "",
+      platform: :youtube,
+      timestamp: parse_timestamp(get_in(message, ["snippet", "publishedAt"])),
+      author_channel_id: get_in(message, ["authorDetails", "channelId"]),
+      is_moderator: get_in(message, ["authorDetails", "isChatModerator"]) || false,
+      is_owner: get_in(message, ["authorDetails", "isChatOwner"]) || false,
+      profile_image_url: get_in(message, ["authorDetails", "profileImageUrl"])
+    }
+
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "chat:#{user_id}",
+      {:chat_message, chat_event}
+    )
+  end
+
+  defp parse_timestamp(nil), do: DateTime.utc_now()
+
+  defp parse_timestamp(timestamp_string) do
+    case DateTime.from_iso8601(timestamp_string) do
+      {:ok, datetime, _offset} -> datetime
+      {:error, _} -> DateTime.utc_now()
     end
   end
 

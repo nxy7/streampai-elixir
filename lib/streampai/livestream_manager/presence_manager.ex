@@ -17,6 +17,10 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   @impl true
   def init(_opts) do
+    require Logger
+
+    Logger.metadata(component: :presence_manager)
+
     # Subscribe to presence updates (both manual and Phoenix.Presence events)
     PubSub.subscribe(Streampai.PubSub, "presence_updates")
     PubSub.subscribe(Streampai.PubSub, "users_presence")
@@ -39,7 +43,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info({:user_joined, user_id}, state) do
     require Logger
 
-    Logger.debug("[PresenceManager] User #{user_id} joined - starting UserStreamManager")
+    Logger.debug("User #{user_id} joined - starting UserStreamManager")
 
     # Cancel any existing cleanup timer
     state = cancel_cleanup_timer(state, user_id)
@@ -56,7 +60,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info({:user_left, user_id}, state) do
     require Logger
 
-    Logger.debug("[PresenceManager] User #{user_id} left - scheduling cleanup in #{@cleanup_timeout}ms")
+    Logger.debug("User #{user_id} left - scheduling cleanup in #{@cleanup_timeout}ms")
 
     active_users = MapSet.delete(state.active_users, user_id)
 
@@ -73,11 +77,11 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     require Logger
     # Only cleanup if user is still not active
     if MapSet.member?(state.active_users, user_id) do
-      Logger.debug("[PresenceManager] User #{user_id} is active again, skipping cleanup")
+      Logger.debug("User #{user_id} is active again, skipping cleanup")
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
       {:noreply, %{state | cleanup_timers: cleanup_timers}}
     else
-      Logger.debug("[PresenceManager] Cleaning up UserStreamManager for user #{user_id}")
+      Logger.debug("Cleaning up UserStreamManager for user #{user_id}")
 
       managers = stop_manager(state.managers, user_id)
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
@@ -90,12 +94,12 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info(:initialize_existing_presence, state) do
     require Logger
 
-    Logger.debug("[PresenceManager] Initializing UserStreamManagers for existing presence...")
+    Logger.debug("Initializing UserStreamManagers for existing presence...")
 
     try do
       existing_users = "users_presence" |> StreampaiWeb.Presence.list() |> Map.keys()
 
-      Logger.debug("[PresenceManager] Found #{length(existing_users)} existing users: #{inspect(existing_users)}")
+      Logger.debug("Found #{length(existing_users)} existing users: #{inspect(existing_users)}")
 
       # Start managers for existing users
       {active_users, managers} =
@@ -108,7 +112,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
       {:noreply, %{state | active_users: active_users, managers: managers}}
     rescue
       error ->
-        Logger.error("[PresenceManager] Error initializing existing presence: #{inspect(error)}")
+        Logger.error("Error initializing existing presence: #{inspect(error)}")
         {:noreply, state}
     end
   end
@@ -172,7 +176,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info(msg, state) do
     require Logger
 
-    Logger.warning("[PresenceManager] Received unknown message: #{inspect(msg)}")
+    Logger.warning("Received unknown message: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -413,7 +417,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
             Map.put(managers, user_id, pid)
 
           {:error, reason} ->
-            IO.puts("[PresenceManager] Failed to start manager for #{user_id}: #{inspect(reason)}")
+            IO.puts("Failed to start manager for #{user_id}: #{inspect(reason)}")
 
             managers
         end

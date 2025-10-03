@@ -29,6 +29,8 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def init({user_id, config}) do
+    Logger.metadata(component: :twitch_manager, user_id: user_id)
+
     state = %__MODULE__{
       user_id: user_id,
       access_token: config.access_token,
@@ -192,14 +194,14 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def handle_call({:start_streaming, stream_uuid}, _from, state) do
-    Logger.info("[TwitchManager:#{state.user_id}] Starting stream: #{stream_uuid}")
+    Logger.info("Starting stream: #{stream_uuid}")
     new_state = %{state | stream_uuid: stream_uuid}
     {:reply, :ok, new_state}
   end
 
   @impl true
   def handle_call(:stop_streaming, _from, state) do
-    Logger.info("[TwitchManager:#{state.user_id}] Stopping stream")
+    Logger.info("Stopping stream")
     new_state = %{state | stream_uuid: nil}
     {:reply, :ok, new_state}
   end

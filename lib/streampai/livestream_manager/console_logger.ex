@@ -10,6 +10,9 @@ defmodule Streampai.LivestreamManager.ConsoleLogger do
 
   @impl true
   def init(user_id) do
+    require Logger
+
+    Logger.metadata(component: :console_logger, user_id: user_id)
     schedule_log()
     {:ok, %{user_id: user_id, count: 0}}
   end
@@ -18,7 +21,7 @@ defmodule Streampai.LivestreamManager.ConsoleLogger do
   def handle_info(:log, %{user_id: user_id, count: count} = state) do
     require Logger
 
-    Logger.debug("[UserStreamManager:#{user_id}] Console log ##{count + 1} - #{DateTime.utc_now()}")
+    Logger.debug("Console log ##{count + 1} - #{DateTime.utc_now()}")
 
     schedule_log()
     {:noreply, %{state | count: count + 1}}

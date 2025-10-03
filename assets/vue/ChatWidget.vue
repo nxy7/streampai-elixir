@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { get as getEmoji } from 'node-emoji'
 
 interface Platform {
   icon: string
@@ -15,7 +16,6 @@ interface Message {
   badge?: string
   badge_color?: string
   username_color?: string
-  emotes?: string[]
 }
 
 interface ChatConfig {
@@ -67,8 +67,88 @@ const getPlatformIcon = (platform: Platform) => {
     facebook: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z",
     kick: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
   }
-  
+
   return iconPaths[platform.icon as keyof typeof iconPaths] || "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+}
+
+interface MessagePart {
+  type: 'text' | 'emote'
+  content: string
+  url?: string
+  unicode?: string
+}
+
+const shortcodeToUnicodeHex = (shortcode: string): string | null => {
+  try {
+    // node-emoji uses shortcodes like "wave" not ":wave:"
+    const unicode = getEmoji(shortcode)
+    if (!unicode) return null
+
+    // Convert Unicode emoji to hex codepoint for Google Fonts URL
+    const codePoint = unicode.codePointAt(0)
+    if (!codePoint) return null
+
+    return codePoint.toString(16).toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+const unicodeHexToUrl = (hex: string): string => {
+  return `https://fonts.gstatic.com/s/e/notoemoji/15.1/${hex}/72.png`
+}
+
+const processMessageContent = (message: Message): MessagePart[] => {
+  // If emotes disabled, remove :shortcode: patterns
+  if (!props.config.show_emotes) {
+    const cleanContent = message.content.replace(/:[a-zA-Z0-9_+-]+:/g, '').trim()
+    return [{ type: 'text', content: cleanContent }]
+  }
+
+  const parts: MessagePart[] = []
+  let lastIndex = 0
+
+  // Find all :shortcode: patterns
+  const regex = /:[a-zA-Z0-9_+-]+:/g
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(message.content)) !== null) {
+    const fullMatch = match[0]
+    const shortcode = fullMatch.slice(1, -1) // Remove : from both ends
+
+    // Add text before emote
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: message.content.substring(lastIndex, match.index)
+      })
+    }
+
+    // Try to convert shortcode to emoji
+    const unicodeHex = shortcodeToUnicodeHex(shortcode)
+
+    if (unicodeHex) {
+      parts.push({
+        type: 'emote',
+        content: fullMatch,
+        unicode: unicodeHex,
+        url: unicodeHexToUrl(unicodeHex)
+      })
+    }
+    // If no match, emote is removed (not added to parts)
+
+    lastIndex = match.index + fullMatch.length
+  }
+
+  // Add remaining text
+  if (lastIndex < message.content.length) {
+    parts.push({
+      type: 'text',
+      content: message.content.substring(lastIndex)
+    })
+  }
+
+  return parts
 }
 
 // Reference for the messages container (kept for potential future use)
@@ -109,33 +189,29 @@ const messagesContainer = ref<HTMLElement>()
           
           <!-- Message Content -->
           <div class="flex-1 min-w-0">
-            <span 
-              v-if="config.show_timestamps" 
+            <span
+              v-if="config.show_timestamps"
               class="text-xs text-gray-500 mr-2"
             >
               {{ formatTimestamp(message.timestamp) }}
             </span>
-            <span 
-              class="font-semibold" 
+            <span
+              class="font-semibold"
               :style="{ color: message.username_color }"
             >
               {{ message.username }}:
             </span>
-            <span class="ml-1 text-gray-100">{{ message.content }}</span>
-            
-            <!-- Emotes/Reactions -->
-            <div 
-              v-if="config.show_emotes && message.emotes && message.emotes.length > 0"
-              class="inline-flex ml-2 space-x-1"
-            >
-              <span 
-                v-for="emote in message.emotes" 
-                :key="emote" 
-                class="text-yellow-400"
-              >
-                {{ emote }}
-              </span>
-            </div>
+            <span class="ml-1 text-gray-100">
+              <template v-for="(part, index) in processMessageContent(message)" :key="index">
+                <span v-if="part.type === 'text'">{{ part.content }}</span>
+                <img
+                  v-else-if="part.type === 'emote'"
+                  :src="part.url"
+                  :alt="part.content"
+                  class="inline h-6 w-6 align-middle mx-0.5"
+                />
+              </template>
+            </span>
           </div>
         </div>
       </div>

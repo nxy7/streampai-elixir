@@ -41,6 +41,8 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   @impl true
   def init(user_id) do
+    Logger.metadata(component: :cloudflare_manager, user_id: user_id)
+
     config = load_cloudflare_config()
 
     state = %__MODULE__{
@@ -58,7 +60,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
     send(self(), :initialize_live_input)
 
-    Logger.info("CloudflareManager started for user #{user_id}")
+    Logger.info("Started")
     {:ok, state}
   end
 
@@ -175,7 +177,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
         {:error, _reason} ->
           # Handle API errors gracefully - keep current status
-          Logger.debug("[CloudflareManager:#{state.user_id}] Ignoring API error during status check")
+          Logger.debug("Ignoring API error during status check")
 
           state
       end
@@ -309,14 +311,14 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   @impl true
   def handle_call({:set_live_input_id, input_id}, _from, %{live_input: nil} = state) do
     new_state = %{state | live_input: %{input_id: input_id}}
-    Logger.info("[CloudflareManager:#{state.user_id}] Live input ID set to: #{input_id}")
+    Logger.info("Live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
   end
 
   def handle_call({:set_live_input_id, input_id}, _from, %{live_input: live_input} = state) do
     updated_input = Map.put(live_input, :input_id, input_id)
     new_state = %{state | live_input: updated_input}
-    Logger.info("[CloudflareManager:#{state.user_id}] Live input ID set to: #{input_id}")
+    Logger.info("Live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
   end
 
@@ -326,7 +328,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
     case input_id do
       nil ->
-        Logger.error("[CloudflareManager:#{state.user_id}] Cannot create output: no live input ID")
+        Logger.error("Cannot create output: no live input ID")
 
         {:reply, {:error, :no_input_id}, state}
 
@@ -350,12 +352,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
             new_outputs = Map.put(state.live_outputs, platform, platform_output)
             new_state = %{state | live_outputs: new_outputs}
 
-            Logger.info("[CloudflareManager:#{state.user_id}] Created output for #{platform}: #{output_id}")
+            Logger.info("Created output for #{platform}: #{output_id}")
 
             {:reply, {:ok, output_id}, new_state}
 
           {:error, error_type, message} ->
-            Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+            Logger.error("Failed to create output for #{platform}: #{message}")
 
             {:reply, {:error, {error_type, message}}, state}
         end
@@ -384,10 +386,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       input_id ->
         case APIClient.delete_live_output(input_id, output_id) do
           :ok ->
-            Logger.info("[CloudflareManager:#{state.user_id}] Deleted output for #{platform}: #{output_id}")
+            Logger.info("Deleted output for #{platform}: #{output_id}")
 
           {:error, _error_type, message} ->
-            Logger.warning("[CloudflareManager:#{state.user_id}] Failed to delete output #{output_id}: #{message}")
+            Logger.warning("Failed to delete output #{output_id}: #{message}")
         end
     end
   end
@@ -407,7 +409,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp create_live_input(state) do
-    Logger.info("[CloudflareManager:#{state.user_id}] Starting live input creation...")
+    Logger.info("Starting live input creation...")
 
     case LiveInput.get_or_fetch_for_user_with_test_mode(state.user_id,
            actor: %{id: state.user_id}
@@ -431,19 +433,19 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
              }}
 
           invalid_data ->
-            Logger.error("[CloudflareManager:#{state.user_id}] Invalid live input data: #{inspect(invalid_data)}")
+            Logger.error("Invalid live input data: #{inspect(invalid_data)}")
 
             {:error, "Invalid live input data structure"}
         end
 
       {:error, reason} ->
-        Logger.error("[CloudflareManager:#{state.user_id}] Failed to get/fetch live input: #{inspect(reason)}")
+        Logger.error("Failed to get/fetch live input: #{inspect(reason)}")
 
         {:error, reason}
     end
   rescue
     error ->
-      Logger.error("[CloudflareManager:#{state.user_id}] Exception during live input creation: #{inspect(error)}")
+      Logger.error("Exception during live input creation: #{inspect(error)}")
 
       {:error, error}
   end
@@ -485,7 +487,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
          }}
 
       {:error, _error_type, message} ->
-        Logger.error("[CloudflareManager:#{state.user_id}] Failed to create output for #{platform}: #{message}")
+        Logger.error("Failed to create output for #{platform}: #{message}")
 
         {platform, %{enabled: false, error: message}}
     end
@@ -527,10 +529,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
     case APIClient.toggle_live_output(input_id, output_id, enabled) do
       {:ok, _} ->
-        Logger.info("[CloudflareManager:#{state.user_id}] #{past_action} output #{output_id}")
+        Logger.info("#{past_action} output #{output_id}")
 
       {:error, _error_type, message} ->
-        Logger.error("[CloudflareManager:#{state.user_id}] Failed to #{action} output #{output_id}: #{message}")
+        Logger.error("Failed to #{action} output #{output_id}: #{message}")
     end
   end
 
@@ -569,12 +571,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
             {:ok, if(streaming_status, do: :live, else: :offline)}
 
           {:error, :http_error, "HTTP 404 error during get_live_input"} ->
-            Logger.warning("[CloudflareManager:#{state.user_id}] Live input #{input_id} not found")
+            Logger.warning("Live input #{input_id} not found")
 
             {:ok, :offline}
 
           {:error, _error_type, message} ->
-            Logger.warning("[CloudflareManager:#{state.user_id}] Failed to check input status: #{inspect(message)}")
+            Logger.warning("Failed to check input status: #{inspect(message)}")
 
             {:error, message}
         end
@@ -686,7 +688,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp extract_streaming_status(input_data) do
-    Logger.debug("[CloudflareManager] No status.current in input data: #{inspect(input_data)}")
+    Logger.debug("No status.current in input data: #{inspect(input_data)}")
     false
   end
 end
