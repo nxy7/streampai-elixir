@@ -133,6 +133,67 @@ defmodule Streampai.YouTube.ApiClient do
     |> handle_response()
   end
 
+  @doc """
+  Bans a user from a live chat (permanent or temporary).
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `live_chat_id`: The ID of the live chat
+  - `channel_id`: The channel ID of the user to ban
+  - `opts`: Options
+    - `:type` - "permanent" or "temporary" (default: "permanent")
+    - `:duration_seconds` - Ban duration for temporary bans (default: 300)
+
+  ## Example
+      ApiClient.ban_user(token, chat_id, user_channel_id, type: "temporary", duration_seconds: 600)
+  """
+  @spec ban_user(access_token, String.t(), String.t(), keyword()) :: api_result()
+  def ban_user(access_token, live_chat_id, channel_id, opts \\ []) do
+    ban_type = Keyword.get(opts, :type, "permanent")
+    duration_seconds = Keyword.get(opts, :duration_seconds, 300)
+
+    ban_data = %{
+      snippet: %{
+        liveChatId: live_chat_id,
+        type: ban_type,
+        bannedUserDetails: %{
+          channelId: channel_id
+        }
+      }
+    }
+
+    ban_data =
+      if ban_type == "temporary" do
+        put_in(ban_data, [:snippet, :banDurationSeconds], duration_seconds)
+      else
+        ban_data
+      end
+
+    params = %{part: "snippet"}
+    req_opts = base_opts(access_token) ++ [url: "/liveChat/bans", params: params, json: ban_data]
+
+    req_opts
+    |> Req.post()
+    |> handle_response()
+  end
+
+  @doc """
+  Unbans a user from a live chat.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `ban_id`: The ID of the ban to remove
+  """
+  @spec unban_user(access_token, String.t()) :: api_result()
+  def unban_user(access_token, ban_id) do
+    params = %{id: ban_id}
+    req_opts = base_opts(access_token) ++ [url: "/liveChat/bans", params: params]
+
+    req_opts
+    |> Req.delete()
+    |> handle_response()
+  end
+
   ## Live Broadcasts API
 
   @doc """

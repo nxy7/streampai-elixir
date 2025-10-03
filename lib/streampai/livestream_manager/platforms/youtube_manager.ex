@@ -88,6 +88,41 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     GenServer.call(via_tuple(user_id), :get_status)
   end
 
+  @doc """
+  Deletes a chat message.
+  """
+  def delete_message(user_id, message_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:delete_message, message_id})
+  end
+
+  @doc """
+  Bans a user permanently from the live chat.
+  """
+  def ban_user(user_id, channel_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:ban_user, channel_id, :permanent})
+  end
+
+  @doc """
+  Temporarily bans (timeouts) a user from the live chat.
+
+  ## Parameters
+  - `user_id`: The stream owner's user ID
+  - `channel_id`: The channel ID of the user to timeout
+  - `duration_seconds`: Timeout duration in seconds (default: 300)
+  """
+  def timeout_user(user_id, channel_id, duration_seconds \\ 300) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:ban_user, channel_id, {:temporary, duration_seconds}})
+  end
+
+  @doc """
+  Unbans a user from the live chat.
+
+  Note: You need the ban ID, not the channel ID. Ban IDs are returned when creating a ban.
+  """
+  def unban_user(user_id, ban_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:unban_user, ban_id})
+  end
+
   # Server callbacks
 
   @impl true
@@ -178,6 +213,21 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     }
 
     {:reply, {:ok, status}, state}
+  end
+
+  @impl true
+  def handle_call({:delete_message, message_id}, _from, state) do
+    do_delete_message(message_id, state)
+  end
+
+  @impl true
+  def handle_call({:ban_user, channel_id, ban_type}, _from, state) do
+    do_ban_user(channel_id, ban_type, state)
+  end
+
+  @impl true
+  def handle_call({:unban_user, ban_id}, _from, state) do
+    do_unban_user(ban_id, state)
   end
 
   @impl true
@@ -321,6 +371,75 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
       {:error, reason} ->
         Logger.error("Failed to send chat message: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_delete_message(_message_id, %{chat_id: nil} = state) do
+    {:reply, {:error, :no_active_chat}, state}
+  end
+
+  defp do_delete_message(message_id, state) do
+    case with_token_retry(state, fn token ->
+           ApiClient.delete_live_chat_message(token, message_id)
+         end) do
+      {:ok, _result} ->
+        Logger.info("Chat message deleted: #{message_id}")
+        {:reply, :ok, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to delete chat message: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_ban_user(_channel_id, _ban_type, %{chat_id: nil} = state) do
+    {:reply, {:error, :no_active_chat}, state}
+  end
+
+  defp do_ban_user(channel_id, :permanent, state) do
+    case with_token_retry(state, fn token ->
+           ApiClient.ban_user(token, state.chat_id, channel_id, type: "permanent")
+         end) do
+      {:ok, result} ->
+        ban_id = Map.get(result, "id")
+        Logger.info("User banned permanently: #{channel_id}, ban_id: #{ban_id}")
+        {:reply, {:ok, ban_id}, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to ban user: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_ban_user(channel_id, {:temporary, duration_seconds}, state) do
+    case with_token_retry(state, fn token ->
+           ApiClient.ban_user(token, state.chat_id, channel_id,
+             type: "temporary",
+             duration_seconds: duration_seconds
+           )
+         end) do
+      {:ok, result} ->
+        ban_id = Map.get(result, "id")
+        Logger.info("User timed out: #{channel_id} for #{duration_seconds}s, ban_id: #{ban_id}")
+        {:reply, {:ok, ban_id}, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to timeout user: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_unban_user(ban_id, state) do
+    case with_token_retry(state, fn token ->
+           ApiClient.unban_user(token, ban_id)
+         end) do
+      {:ok, _result} ->
+        Logger.info("User unbanned: ban_id #{ban_id}")
+        {:reply, :ok, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to unban user: #{inspect(reason)}")
         {:reply, {:error, reason}, state}
     end
   end
