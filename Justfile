@@ -116,7 +116,23 @@ test-deploy-prod:
 	docker compose -f docker-compose.prod.yml up
 
 test-stream stream-key:
-	ffmpeg -loop 1 -i priv/static/favicon-32x32.png -c:v libx264 -pix_fmt yuv420p -f flv rtmps://live.cloudflare.com:443/live/{{stream-key}}
+	ffmpeg -re -loop 1 -i priv/static/lenny.jpg \
+		-f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
+		-vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2" \
+		-c:v libx264 \
+		-preset veryfast \
+		-profile:v high \
+		-b:v 6000k \
+		-minrate 6000k \
+		-maxrate 6000k \
+		-bufsize 12000k \
+		-pix_fmt yuv420p \
+		-r 60 \
+		-g 60 \
+		-c:a aac \
+		-b:a 128k \
+		-f flv \
+		rtmps://live.cloudflare.com:443/live/{{stream-key}}
 
 proto-gen:
 	protoc --proto_path=proto/yt --elixir_out=plugins=grpc:./lib/streampai/youtube/generated stream_list.proto
