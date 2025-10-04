@@ -35,6 +35,16 @@ defmodule Streampai.Stream.LivestreamMetric do
       default 0
     end
 
+    attribute :facebook_viewers, :integer do
+      allow_nil? false
+      default 0
+    end
+
+    attribute :kick_viewers, :integer do
+      allow_nil? false
+      default 0
+    end
+
     attribute :created_at, :utc_datetime do
       primary_key? true
       allow_nil? false
