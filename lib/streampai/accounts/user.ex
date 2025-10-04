@@ -456,6 +456,12 @@ defmodule Streampai.Accounts.User do
               expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
 
     calculate :display_avatar, :string, expr(avatar || extra_data["picture"])
+
+    calculate :hours_streamed_last_30_days,
+              :float,
+              Streampai.Accounts.User.Calculations.HoursStreamedLast30Days do
+      public? true
+    end
   end
 
   aggregates do

@@ -18,6 +18,7 @@ config :logger, :console,
     :duration,
     :input_status,
     :stream_uuid,
+    :stream_id,
     :path
   ]
 

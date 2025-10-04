@@ -788,6 +788,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :stream_status, :map, required: true
   attr :loading, :boolean, required: true
   attr :show_stream_key, :boolean, required: true
+  attr :stream_metadata, :map, default: %{}
 
   def stream_controls(assigns) do
     ~H"""
@@ -798,7 +799,15 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <div class="p-6">
         <%= if @stream_status.manager_available do %>
           <div class="flex flex-col space-y-4">
-            <.stream_input_status status={@stream_status.input_streaming_status} />
+            <.stream_input_status
+              status={@stream_status.input_streaming_status}
+              youtube_broadcast_id={Map.get(@stream_status, :youtube_broadcast_id)}
+            />
+
+            <%= if @stream_status.can_start_streaming && @stream_status.status != :streaming do %>
+              <.stream_metadata_form metadata={@stream_metadata} />
+            <% end %>
+
             <.stream_action_button stream_status={@stream_status} loading={@loading} />
             <%= if @stream_status.rtmp_url && @stream_status.stream_key do %>
               <.rtmp_connection_details
@@ -823,6 +832,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   Input streaming status indicator.
   """
   attr :status, :atom, required: true
+  attr :youtube_broadcast_id, :string, default: nil
 
   def stream_input_status(assigns) do
     ~H"""
@@ -836,6 +846,86 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         <span class="text-sm font-medium text-gray-700">
           Input Stream: {if @status == :live, do: "LIVE", else: "Offline"}
         </span>
+      </div>
+      <%= if @youtube_broadcast_id do %>
+        <a
+          href={"https://youtu.be/#{@youtube_broadcast_id}"}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center space-x-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+          </svg>
+          <span>Watch on YouTube</span>
+        </a>
+      <% end %>
+    </div>
+    """
+  end
+
+  @doc """
+  Stream metadata form for title, description, and thumbnail.
+  """
+  attr :metadata, :map, required: true
+
+  def stream_metadata_form(assigns) do
+    ~H"""
+    <div class="space-y-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <form phx-change="update_stream_metadata">
+        <div class="space-y-4">
+          <div>
+            <label for="stream-title" class="block text-sm font-medium text-gray-700 mb-1">
+              Stream Title
+            </label>
+            <input
+              type="text"
+              id="stream-title"
+              name="metadata[title]"
+              value={Map.get(@metadata, :title, "")}
+              placeholder="Enter your stream title..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="stream-description" class="block text-sm font-medium text-gray-700 mb-1">
+              Stream Description
+            </label>
+            <textarea
+              id="stream-description"
+              name="metadata[description]"
+              rows="3"
+              placeholder="Describe your stream..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            >{Map.get(@metadata, :description, "")}</textarea>
+          </div>
+        </div>
+      </form>
+
+      <div>
+        <label for="stream-thumbnail" class="block text-sm font-medium text-gray-700 mb-1">
+          Thumbnail (JPG/PNG, max 2MB)
+        </label>
+        <form phx-change="validate_thumbnail" phx-submit="upload_thumbnail">
+          <input
+            type="file"
+            id="stream-thumbnail"
+            name="thumbnail"
+            accept="image/jpeg,image/png"
+            phx-change="upload_thumbnail"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+          />
+        </form>
+        <%= if Map.get(@metadata, :thumbnail_url) do %>
+          <div class="mt-2">
+            <img
+              src={@metadata.thumbnail_url}
+              alt="Thumbnail preview"
+              class="h-20 rounded border border-gray-200"
+            />
+          </div>
+        <% end %>
       </div>
     </div>
     """

@@ -23,6 +23,12 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:stream_status, stream_status)
       |> assign(:loading, false)
       |> assign(:show_stream_key, false)
+      |> assign(:stream_metadata, %{title: "", description: "", thumbnail_url: nil})
+      |> allow_upload(:thumbnail,
+        accept: ~w(.jpg .jpeg .png),
+        max_entries: 1,
+        max_file_size: 2_000_000
+      )
 
     {:ok, socket, layout: false}
   end
@@ -39,11 +45,16 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_event("start_streaming", _params, socket) do
+    require Logger
+
     user_id = socket.assigns.current_user.id
+    metadata = socket.assigns.stream_metadata
     socket = assign(socket, :loading, true)
 
+    Logger.info("Starting stream with metadata: #{inspect(metadata)}")
+
     try do
-      UserStreamManager.start_stream(user_id)
+      UserStreamManager.start_stream(user_id, metadata)
 
       socket =
         socket
@@ -103,6 +114,38 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
   end
 
+  def handle_event("update_stream_metadata", %{"metadata" => metadata_params}, socket) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_event("validate_thumbnail", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("upload_thumbnail", _params, socket) do
+    uploaded_files =
+      consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, _entry ->
+        # For now, store in a temporary location
+        # In production, you'd upload to S3/Cloudflare Images/etc
+        dest = Path.join(["priv", "static", "uploads", Path.basename(path)])
+        File.cp!(path, dest)
+        {:ok, "/uploads/#{Path.basename(path)}"}
+      end)
+
+    metadata =
+      case uploaded_files do
+        [url | _] -> Map.put(socket.assigns.stream_metadata, :thumbnail_url, url)
+        [] -> socket.assigns.stream_metadata
+      end
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
   # Delegate other events to BaseLive
   def handle_event(event, params, socket) do
     super(event, params, socket)
@@ -130,13 +173,16 @@ defmodule StreampaiWeb.DashboardStreamLive do
               {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}}
             )
 
+          youtube_broadcast_id = get_youtube_broadcast_id(user_id)
+
           %{
             status: cloudflare_config.stream_status,
             input_streaming_status: cloudflare_config.input_streaming_status,
             can_start_streaming: cloudflare_config.can_start_streaming,
             rtmp_url: cloudflare_config.rtmp_url,
             stream_key: cloudflare_config.stream_key,
-            manager_available: true
+            manager_available: true,
+            youtube_broadcast_id: youtube_broadcast_id
           }
         rescue
           _ ->
@@ -151,6 +197,29 @@ defmodule StreampaiWeb.DashboardStreamLive do
     end
   end
 
+  defp get_youtube_broadcast_id(user_id) do
+    case Registry.lookup(
+           Streampai.LivestreamManager.Registry,
+           {:platform_manager, user_id, :youtube}
+         ) do
+      [{_pid, _}] ->
+        case Streampai.LivestreamManager.Platforms.YouTubeManager.get_status(user_id) do
+          {:ok, %{broadcast_id: broadcast_id}} when not is_nil(broadcast_id) ->
+            broadcast_id
+
+          _ ->
+            nil
+        end
+
+      [] ->
+        nil
+    end
+  rescue
+    _ -> nil
+  catch
+    :exit, {:noproc, _} -> nil
+  end
+
   defp get_fallback_status do
     %{
       status: :inactive,
@@ -158,7 +227,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       can_start_streaming: false,
       rtmp_url: nil,
       stream_key: nil,
-      manager_available: false
+      manager_available: false,
+      youtube_broadcast_id: nil
     }
   end
 
@@ -177,6 +247,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
           stream_status={@stream_status}
           loading={@loading}
           show_stream_key={@show_stream_key}
+          stream_metadata={@stream_metadata}
         />
         <.platform_connections_section
           platform_connections={@platform_connections}

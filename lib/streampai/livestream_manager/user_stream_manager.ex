@@ -17,6 +17,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.LivestreamManager.PlatformSupervisor
   alias Streampai.LivestreamManager.StreamStateServer
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.MetadataHelper
 
   require Logger
 
@@ -101,9 +102,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   Generates a stream UUID and starts platform processes.
   Creates a livestream database record.
   """
-  def start_stream(user_id) when is_binary(user_id) do
+  def start_stream(user_id, metadata \\ %{}) when is_binary(user_id) do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
     stream_uuid = Ash.UUID.generate()
+    title = MetadataHelper.get_stream_title(metadata, stream_uuid)
 
     {:ok, _livestream} =
       Livestream.create(
@@ -111,7 +113,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
           id: stream_uuid,
           user_id: user_id,
           started_at: DateTime.utc_now(),
-          title: "Live Stream - #{stream_uuid}"
+          title: title
         },
         actor: user
       )
@@ -123,10 +125,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     CloudflareManager.start_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
 
-    # Start metrics collector for this stream
     start_metrics_collector(user_id, stream_uuid)
 
-    start_platform_streaming(user_id, stream_uuid)
+    start_platform_streaming(user_id, stream_uuid, metadata)
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
@@ -189,48 +190,33 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   # Helper functions
 
-  defp via_tuple(user_id) do
-    {:via, Registry, {get_registry_name(), {:user_stream_manager, user_id}}}
-  end
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
-  end
-
-  defp start_platform_streaming(user_id, stream_uuid) do
+  defp start_platform_streaming(user_id, stream_uuid, metadata) do
     active_platforms = get_active_platforms(user_id)
     Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
 
     Enum.each(active_platforms, fn platform ->
       ensure_platform_manager_started(user_id, platform)
-      start_platform(platform, user_id, stream_uuid)
+      start_platform(platform, user_id, stream_uuid, metadata)
     end)
   end
 
-  defp start_platform(:twitch, user_id, stream_uuid) do
+  defp start_platform(:twitch, user_id, stream_uuid, _metadata) do
     TwitchManager.start_streaming(user_id, stream_uuid)
   end
 
-  defp start_platform(:youtube, user_id, stream_uuid) do
-    YouTubeManager.start_streaming(user_id, stream_uuid)
+  defp start_platform(:youtube, user_id, stream_uuid, metadata) do
+    YouTubeManager.start_streaming(user_id, stream_uuid, metadata)
   end
 
-  defp start_platform(:facebook, user_id, stream_uuid) do
+  defp start_platform(:facebook, user_id, stream_uuid, _metadata) do
     FacebookManager.start_streaming(user_id, stream_uuid)
   end
 
-  defp start_platform(:kick, user_id, stream_uuid) do
+  defp start_platform(:kick, user_id, stream_uuid, _metadata) do
     KickManager.start_streaming(user_id, stream_uuid)
   end
 
-  defp start_platform(platform, _user_id, _stream_uuid) do
+  defp start_platform(platform, _user_id, _stream_uuid, _metadata) do
     Logger.warning("Unknown platform: #{platform}")
   end
 
@@ -346,6 +332,21 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
         Process.delete({:metrics_collector_pid, user_id})
         :ok
+    end
+  end
+
+  defp via_tuple(user_id) do
+    {:via, Registry, {get_registry_name(), {:user_stream_manager, user_id}}}
+  end
+
+  defp get_registry_name do
+    if Application.get_env(:streampai, :test_mode, false) do
+      case Process.get(:test_registry_name) do
+        nil -> Streampai.LivestreamManager.Registry
+        test_registry -> test_registry
+      end
+    else
+      Streampai.LivestreamManager.Registry
     end
   end
 end

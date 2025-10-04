@@ -184,7 +184,21 @@ defmodule Streampai.Dashboard do
   defp get_user_plan(%User{tier: :pro}), do: :paid
   defp get_user_plan(%User{}), do: :free
 
-  defp get_hours_used(%User{}), do: 0.0
+  defp get_hours_used(%User{} = user) do
+    # Load the calculation if it's not already loaded
+    case Map.get(user, :hours_streamed_last_30_days) do
+      %Ash.NotLoaded{} ->
+        user
+        |> Ash.load!(:hours_streamed_last_30_days, authorize?: false)
+        |> Map.get(:hours_streamed_last_30_days)
+
+      hours when is_float(hours) ->
+        hours
+
+      _ ->
+        0.0
+    end
+  end
 
   defp get_hours_limit(%User{tier: :pro}), do: :unlimited
   defp get_hours_limit(_), do: Constants.free_tier_hour_limit()
@@ -196,103 +210,130 @@ defmodule Streampai.Dashboard do
   defp get_platforms_limit(%User{tier: :pro}), do: 99
   defp get_platforms_limit(_plan), do: 1
 
-  @doc "Gets metrics cards for dashboard display with mock data."
+  @doc "Gets metrics cards for dashboard display with real data."
   def get_metrics_cards(%User{} = user) do
-    current_month = Date.beginning_of_month(Date.utc_today())
-
-    seed = :erlang.phash2(user.id, 1000)
-    rand_state = :rand.seed_s(:exsss, {seed, seed + 1, seed + 2})
+    current_month_stats = calculate_month_stats(user, 0)
+    previous_month_stats = calculate_month_stats(user, 1)
 
     [
       %{
-        title: "Donations This Month",
-        value: format_currency(generate_donation_amount(rand_state)),
-        change: generate_percentage_change(rand_state),
-        change_type: :positive,
-        icon: "currency-dollar",
-        description: "Total donations received in #{current_month |> Date.to_string() |> String.slice(0, 7)}"
-      },
-      %{
-        title: "New Subscribers",
-        value: generate_count(5, 150, rand_state),
-        change: generate_percentage_change(rand_state),
-        change_type: :positive,
-        icon: "users",
-        description: "Gained this month across all platforms"
-      },
-      %{
         title: "Live Streams",
-        value: generate_count(3, 25, rand_state),
-        change: generate_percentage_change(rand_state),
-        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.7, do: :negative, else: :positive),
+        value: current_month_stats.stream_count,
+        change:
+          calculate_percentage_change(
+            current_month_stats.stream_count,
+            previous_month_stats.stream_count
+          ),
+        change_type: get_change_type(current_month_stats.stream_count, previous_month_stats.stream_count),
         icon: "play",
         description: "Streams completed this month"
       },
       %{
         title: "Average Viewers",
-        value: generate_count(12, 500, rand_state),
-        change: generate_percentage_change(rand_state),
-        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.6, do: :negative, else: :positive),
+        value: current_month_stats.avg_viewers,
+        change:
+          calculate_percentage_change(
+            current_month_stats.avg_viewers,
+            previous_month_stats.avg_viewers
+          ),
+        change_type: get_change_type(current_month_stats.avg_viewers, previous_month_stats.avg_viewers),
         icon: "eye",
         description: "Per stream this month"
       },
       %{
-        title: "Streaming Hours",
-        value: "#{generate_count(5, 80, rand_state)}h",
-        change: generate_percentage_change(rand_state),
-        change_type: :positive,
-        icon: "clock",
-        description: "Total time streamed this month"
-      },
-      %{
         title: "Chat Messages",
-        value: format_large_number(generate_count(500, 15_000, rand_state)),
-        change: generate_percentage_change(rand_state),
-        change_type: :positive,
+        value: format_large_number(current_month_stats.total_messages),
+        change:
+          calculate_percentage_change(
+            current_month_stats.total_messages,
+            previous_month_stats.total_messages
+          ),
+        change_type: get_change_type(current_month_stats.total_messages, previous_month_stats.total_messages),
         icon: "chat-bubble-left",
         description: "Messages received across all streams"
       },
       %{
-        title: "Patreon Supporters",
-        value: generate_count(8, 200, rand_state),
-        change: generate_percentage_change(rand_state),
-        change_type: if(elem(:rand.uniform_s(rand_state), 0) > 0.8, do: :negative, else: :positive),
-        icon: "heart",
-        description: "Active monthly supporters"
-      },
-      %{
-        title: "Revenue Goal",
-        value: "#{elem(:rand.uniform_s(40, rand_state), 0) + 45}%",
-        change: "+#{elem(:rand.uniform_s(15, rand_state), 0) + 5}%",
-        change_type: :positive,
-        icon: "chart-bar",
-        description: "Progress towards monthly goal"
+        title: "Streaming Hours",
+        value: format_duration_hours_minutes(current_month_stats.streaming_seconds),
+        change:
+          calculate_percentage_change(
+            current_month_stats.streaming_seconds,
+            previous_month_stats.streaming_seconds
+          ),
+        change_type:
+          get_change_type(
+            current_month_stats.streaming_seconds,
+            previous_month_stats.streaming_seconds
+          ),
+        icon: "clock",
+        description: "Total time streamed this month"
       }
     ]
   end
 
-  # Helper functions for generating mock data
-  defp generate_donation_amount(rand_state) do
-    {base_amount, rand_state} = :rand.uniform_s(1500, rand_state)
-    {variation, _rand_state} = :rand.uniform_s(500, rand_state)
-    amount = base_amount + 200 + (variation - 250)
-    Float.round(amount / 1, 2)
+  defp calculate_month_stats(user, months_ago) do
+    alias Streampai.Stream.Livestream
+
+    require Ash.Query
+
+    # Calculate 30-day rolling periods
+    # months_ago = 0: last 30 days (0-30 days ago)
+    # months_ago = 1: previous 30 days (30-60 days ago)
+    now = DateTime.utc_now()
+    period_end = DateTime.add(now, -(months_ago * 30 * 24 * 60 * 60), :second)
+    period_start = DateTime.add(period_end, -(30 * 24 * 60 * 60), :second)
+
+    streams =
+      Livestream
+      |> Ash.Query.for_read(:get_completed_by_user, %{user_id: user.id})
+      |> Ash.Query.filter(started_at >= ^period_start and started_at <= ^period_end)
+      |> Ash.Query.load([
+        :average_viewers,
+        :messages_amount,
+        :duration_seconds
+      ])
+      |> Ash.read!(authorize?: false)
+
+    stream_count = length(streams)
+
+    avg_viewers =
+      if stream_count > 0 do
+        total_avg = Enum.sum(Enum.map(streams, &(&1.average_viewers || 0)))
+        round(total_avg / stream_count)
+      else
+        0
+      end
+
+    total_messages = Enum.sum(Enum.map(streams, &(&1.messages_amount || 0)))
+
+    streaming_seconds =
+      streams
+      |> Enum.map(&(&1.duration_seconds || 0))
+      |> Enum.sum()
+
+    %{
+      stream_count: stream_count,
+      avg_viewers: avg_viewers,
+      total_messages: total_messages,
+      streaming_seconds: streaming_seconds
+    }
   end
 
-  defp generate_count(min, max, rand_state) do
-    {value, _rand_state} = :rand.uniform_s(max - min, rand_state)
-    value + min
+  defp calculate_percentage_change(_current, 0), do: "—"
+  defp calculate_percentage_change(0, _previous), do: "-100%"
+
+  defp calculate_percentage_change(current, previous) do
+    change = round((current - previous) / previous * 100)
+    sign = if change >= 0, do: "+", else: ""
+    "#{sign}#{change}%"
   end
 
-  defp generate_percentage_change(rand_state) do
-    {change, rand_state} = :rand.uniform_s(30, rand_state)
-    {sign_rand, _rand_state} = :rand.uniform_s(rand_state)
-    sign = if sign_rand > 0.3, do: "+", else: "-"
-    "#{sign}#{change + 1}%"
-  end
+  defp get_change_type(current, previous) when current > previous, do: :positive
+  defp get_change_type(current, previous) when current < previous, do: :negative
+  defp get_change_type(_current, _previous), do: :neutral
 
-  defp format_currency(amount) do
-    "$#{:erlang.float_to_binary(amount, decimals: 2)}"
+  defp format_duration_hours_minutes(seconds) do
+    StreampaiWeb.Utils.DateTimeUtils.format_duration(seconds)
   end
 
   defp format_large_number(num) when num >= 1000 do

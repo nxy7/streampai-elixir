@@ -8,6 +8,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.StreamEvents
+  alias Streampai.Stream.MetadataHelper
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
   alias Streampai.YouTube.TokenManager
@@ -65,8 +66,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   # Client API
 
-  def start_streaming(user_id, stream_uuid) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid}, 30_000)
+  def start_streaming(user_id, stream_uuid, metadata \\ %{}) do
+    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid, metadata}, 30_000)
   end
 
   def stop_streaming(user_id) do
@@ -138,11 +139,16 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   # Server callbacks
 
   @impl true
-  def handle_call({:start_streaming, stream_uuid}, _from, state) do
-    Logger.info("Starting stream: #{stream_uuid}")
+  def handle_call({:start_streaming, stream_uuid}, from, state) do
+    handle_call({:start_streaming, stream_uuid, %{}}, from, state)
+  end
+
+  @impl true
+  def handle_call({:start_streaming, stream_uuid, metadata}, _from, state) do
+    Logger.info("Starting stream: #{stream_uuid} with metadata: #{inspect(metadata)}")
 
     with {:create_broadcast, {:ok, broadcast}} <-
-           {:create_broadcast, create_broadcast(state, stream_uuid)},
+           {:create_broadcast, create_broadcast(state, stream_uuid, metadata)},
          {:create_stream, {:ok, stream}} <- {:create_stream, create_stream(state, stream_uuid)},
          {:bind_stream, {:ok, bound_broadcast}} <-
            {:bind_stream, bind_stream(state, broadcast["id"], stream["id"])},
@@ -382,12 +388,18 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   # Private functions
 
-  defp create_broadcast(state, stream_uuid) do
+  defp create_broadcast(state, stream_uuid, metadata) do
+    title = MetadataHelper.get_stream_title(metadata, stream_uuid)
+    description = Map.get(metadata, :description)
+
+    snippet =
+      MetadataHelper.maybe_add_description(
+        %{title: title, scheduledStartTime: DateTime.to_iso8601(DateTime.utc_now())},
+        description
+      )
+
     broadcast_data = %{
-      snippet: %{
-        title: "Live Stream - #{stream_uuid}",
-        scheduledStartTime: DateTime.to_iso8601(DateTime.utc_now())
-      },
+      snippet: snippet,
       status: %{
         privacyStatus: "public",
         selfDeclaredMadeForKids: false
@@ -644,22 +656,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end
   end
 
-  defp via_tuple(user_id) do
-    registry_name = get_registry_name()
-    {:via, Registry, {registry_name, {:platform_manager, user_id, :youtube}}}
-  end
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
-  end
-
   defp broadcast_chat_message(user_id, data) do
     # Data already comes in the correct format from GrpcStreamClient
     chat_event = %{
@@ -704,6 +700,22 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
       result ->
         result
+    end
+  end
+
+  defp via_tuple(user_id) do
+    registry_name = get_registry_name()
+    {:via, Registry, {registry_name, {:platform_manager, user_id, :youtube}}}
+  end
+
+  defp get_registry_name do
+    if Application.get_env(:streampai, :test_mode, false) do
+      case Process.get(:test_registry_name) do
+        nil -> Streampai.LivestreamManager.Registry
+        test_registry -> test_registry
+      end
+    else
+      Streampai.LivestreamManager.Registry
     end
   end
 end

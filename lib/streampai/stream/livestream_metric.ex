@@ -63,4 +63,14 @@ defmodule Streampai.Stream.LivestreamMetric do
       default &DateTime.utc_now/0
     end
   end
+
+  @doc """
+  Calculates total viewers across all platforms for a metric.
+  """
+  def total_viewers(metric) do
+    (metric.youtube_viewers || 0) +
+      (metric.twitch_viewers || 0) +
+      (metric.facebook_viewers || 0) +
+      (metric.kick_viewers || 0)
+  end
 end

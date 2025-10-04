@@ -5,6 +5,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   """
   use GenServer
 
+  alias Streampai.LivestreamManager.RegistryHelper
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamStateServer
 
@@ -26,7 +27,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   ]
 
   def start_link(user_id, config) when is_binary(user_id) do
-    GenServer.start_link(__MODULE__, {user_id, config}, name: via_tuple(user_id))
+    GenServer.start_link(__MODULE__, {user_id, config}, name: RegistryHelper.platform_manager_via(user_id, :twitch))
   end
 
   @impl true
@@ -56,14 +57,17 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   Starts streaming with the given stream UUID.
   """
   def start_streaming(user_id, stream_uuid) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
+    GenServer.call(
+      RegistryHelper.platform_manager_via(user_id, :twitch),
+      {:start_streaming, stream_uuid}
+    )
   end
 
   @doc """
   Stops the current stream.
   """
   def stop_streaming(user_id) do
-    GenServer.call(via_tuple(user_id), :stop_streaming)
+    GenServer.call(RegistryHelper.platform_manager_via(user_id, :twitch), :stop_streaming)
   end
 
   @doc """
@@ -74,7 +78,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   def send_chat_message(user_id, message) when is_binary(user_id) do
-    GenServer.cast(via_tuple(user_id), {:send_chat_message, message})
+    GenServer.cast(
+      RegistryHelper.platform_manager_via(user_id, :twitch),
+      {:send_chat_message, message}
+    )
   end
 
   @doc """
@@ -85,7 +92,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
-    GenServer.cast(via_tuple(user_id), {:update_stream_metadata, metadata})
+    GenServer.cast(
+      RegistryHelper.platform_manager_via(user_id, :twitch),
+      {:update_stream_metadata, metadata}
+    )
   end
 
   @doc """
@@ -226,10 +236,6 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   # Helper functions
-
-  defp via_tuple(user_id) do
-    {:via, Registry, {Streampai.LivestreamManager.Registry, {:platform_manager, user_id, :twitch}}}
-  end
 
   defp authenticate_and_connect(state) do
     # TODO: Implement actual Twitch authentication and WebSocket connection

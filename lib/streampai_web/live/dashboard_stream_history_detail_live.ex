@@ -45,7 +45,14 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
         :peak_viewers,
         :messages_amount,
         :duration_seconds,
-        :platforms
+        :platforms,
+        metrics: [
+          :youtube_viewers,
+          :twitch_viewers,
+          :facebook_viewers,
+          :kick_viewers,
+          :created_at
+        ]
       ])
       |> Ash.read_one!(authorize?: false)
 
@@ -56,7 +63,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       livestream ->
         events = load_stream_events(stream_id)
         chat_messages = load_chat_messages(stream_id)
-        stream = build_stream_data(livestream)
+        viewer_data = build_viewer_data(livestream)
+        stream = build_stream_data(livestream, viewer_data)
         insights = generate_stream_insights(stream, events, chat_messages)
 
         {:ok,
@@ -70,7 +78,34 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
     end
   end
 
-  defp build_stream_data(livestream) do
+  defp build_viewer_data(livestream) do
+    metrics = Map.get(livestream, :metrics, []) || []
+
+    metrics
+    |> Enum.map(&transform_metric(&1, livestream.started_at))
+    |> Enum.sort_by(& &1.offset_seconds)
+  end
+
+  defp transform_metric(metric, started_at) do
+    %{
+      offset_seconds: DateTime.diff(metric.created_at, started_at),
+      total_viewers: calculate_total_viewers(metric),
+      youtube_viewers: metric.youtube_viewers || 0,
+      twitch_viewers: metric.twitch_viewers || 0,
+      facebook_viewers: metric.facebook_viewers || 0,
+      kick_viewers: metric.kick_viewers || 0,
+      timestamp: metric.created_at
+    }
+  end
+
+  defp calculate_total_viewers(metric) do
+    (metric.youtube_viewers || 0) +
+      (metric.twitch_viewers || 0) +
+      (metric.facebook_viewers || 0) +
+      (metric.kick_viewers || 0)
+  end
+
+  defp build_stream_data(livestream, viewer_data) do
     %{
       id: livestream.id,
       title: livestream.title,
@@ -81,7 +116,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       platforms: livestream.platforms || [],
       max_viewers: livestream.peak_viewers || 0,
       avg_viewers: livestream.average_viewers || 0,
-      viewer_data: []
+      viewer_data: viewer_data
     }
   end
 
@@ -146,14 +181,10 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       end
 
     most_active_period = find_most_active_chat_period(chat_messages, stream.duration_seconds)
+    peak_moment = find_peak_viewer_moment(stream)
 
     %{
-      peak_moment: %{
-        time: stream.started_at,
-        timeline_position: 0,
-        viewers: stream.max_viewers,
-        description: "Viewer data not yet available"
-      },
+      peak_moment: peak_moment,
       most_active_chat: most_active_period,
       total_events: length(events),
       chat_activity: %{
@@ -169,6 +200,35 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       },
       engagement_score: calculate_engagement_score(stream, events, chat_messages)
     }
+  end
+
+  defp find_peak_viewer_moment(stream) do
+    case stream.viewer_data do
+      [] ->
+        %{
+          time: stream.started_at,
+          timeline_position: 0,
+          viewers: stream.max_viewers,
+          description: "Viewer data not yet available"
+        }
+
+      viewer_data ->
+        peak_data = Enum.max_by(viewer_data, & &1.total_viewers)
+
+        timeline_position =
+          if stream.duration_seconds > 0 do
+            round(peak_data.offset_seconds / stream.duration_seconds * 100)
+          else
+            0
+          end
+
+        %{
+          time: peak_data.timestamp,
+          timeline_position: timeline_position,
+          viewers: peak_data.total_viewers,
+          description: "Peak viewers reached"
+        }
+    end
   end
 
   defp find_most_active_chat_period(chat_messages, duration_seconds) do
@@ -297,26 +357,66 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
             <!-- Viewer Chart -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Viewer Count Over Time</h3>
-              <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center relative">
-                <div class="text-center text-gray-400">
-                  <svg
-                    class="mx-auto h-16 w-16 mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              <%= if Enum.empty?(@stream.viewer_data) do %>
+                <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center relative">
+                  <div class="text-center text-gray-400">
+                    <svg
+                      class="mx-auto h-16 w-16 mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                    </path>
-                  </svg>
-                  <p class="text-lg font-medium">Viewer Data Not Yet Available</p>
-                  <p class="text-sm">Viewer tracking will be available soon</p>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      >
+                      </path>
+                    </svg>
+                    <p class="text-lg font-medium">Viewer Data Not Yet Available</p>
+                    <p class="text-sm">Viewer tracking will be available soon</p>
+                  </div>
                 </div>
-              </div>
+              <% else %>
+                <div class="h-64 relative">
+                  <svg class="w-full h-full" viewBox="0 0 800 250" preserveAspectRatio="none">
+                    <!-- Grid lines -->
+                    <g class="grid-lines" stroke="#e5e7eb" stroke-width="1">
+                      <%= for i <- 0..4 do %>
+                        <line x1="40" y1={50 * i} x2="800" y2={50 * i} />
+                      <% end %>
+                    </g>
+                    <!-- Data line -->
+                    <polyline
+                      fill="none"
+                      stroke="#8b5cf6"
+                      stroke-width="2"
+                      points={
+                        viewer_chart_points(
+                          @stream.viewer_data,
+                          @stream.duration_seconds,
+                          @stream.max_viewers
+                        )
+                      }
+                    />
+                    <!-- Y-axis labels -->
+                    <g class="y-axis-labels" font-size="12" fill="#6b7280">
+                      <%= for i <- 0..4 do %>
+                        <text x="5" y={250 - 50 * i} text-anchor="start">
+                          {round(@stream.max_viewers * i / 4)}
+                        </text>
+                      <% end %>
+                    </g>
+                  </svg>
+                  <!-- X-axis time labels -->
+                  <div class="flex justify-between text-xs text-gray-500 mt-2 px-10">
+                    <span>0:00</span>
+                    <span>{format_duration(div(@stream.duration_seconds, 2))}</span>
+                    <span>{format_duration(@stream.duration_seconds)}</span>
+                  </div>
+                </div>
+              <% end %>
             </div>
             
     <!-- Stream Playback Placeholder -->
@@ -524,6 +624,25 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       </div>
     </.dashboard_layout>
     """
+  end
+
+  defp viewer_chart_points(viewer_data, duration_seconds, max_viewers) do
+    return =
+      if Enum.empty?(viewer_data) or duration_seconds == 0 or max_viewers == 0 do
+        ""
+      else
+        chart_width = 760
+        chart_height = 250
+        x_offset = 40
+
+        Enum.map_join(viewer_data, " ", fn data_point ->
+          x = x_offset + data_point.offset_seconds / duration_seconds * chart_width
+          y = chart_height - data_point.total_viewers / max_viewers * chart_height
+          "#{x},#{y}"
+        end)
+      end
+
+    return
   end
 
   defp event_color(:donation), do: "#10b981"

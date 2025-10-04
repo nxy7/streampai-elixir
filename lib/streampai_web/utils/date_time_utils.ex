@@ -12,22 +12,28 @@ defmodule StreampaiWeb.Utils.DateTimeUtils do
       iex> format_duration(3661)
       "1h 1m"
 
-      iex> format_duration(45)
-      "< 1m"
+      iex> format_duration(3600)
+      "1h"
 
       iex> format_duration(150)
       "2m"
+
+      iex> format_duration(0)
+      "0m"
   """
   def format_duration(seconds) when is_integer(seconds) do
     hours = div(seconds, 3600)
     minutes = div(rem(seconds, 3600), 60)
 
     cond do
-      hours > 0 -> "#{hours}h #{minutes}m"
+      hours > 0 and minutes > 0 -> "#{hours}h #{minutes}m"
+      hours > 0 -> "#{hours}h"
       minutes > 0 -> "#{minutes}m"
-      true -> "< 1m"
+      true -> "0m"
     end
   end
+
+  def format_duration(nil), do: "0m"
 
   @doc """
   Formats a duration in minutes into a human-readable string with days support.

@@ -154,19 +154,9 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     Enum.map_join(platforms, ", ", &(&1 |> to_string() |> String.capitalize()))
   end
 
-  defp format_duration_hours(seconds) when is_integer(seconds) do
-    hours = div(seconds, 3600)
-    minutes = div(rem(seconds, 3600), 60)
-
-    cond do
-      hours > 0 and minutes > 0 -> "#{hours}h #{minutes}m"
-      hours > 0 -> "#{hours}h"
-      minutes > 0 -> "#{minutes}m"
-      true -> "0m"
-    end
+  defp format_duration_hours(seconds) do
+    StreampaiWeb.Utils.DateTimeUtils.format_duration(seconds)
   end
-
-  defp format_duration_hours(nil), do: "0m"
 
   defp days_for_timeframe(:day), do: 1
   defp days_for_timeframe(:week), do: 7

@@ -18,6 +18,8 @@ defmodule Streampai.Stream.Calculations.PeakViewers do
 
   @impl true
   def calculate(records, _opts, _context) do
+    alias Streampai.Stream.LivestreamMetric
+
     {:ok,
      Enum.map(records, fn record ->
        metrics = Map.get(record, :metrics, []) || []
@@ -28,13 +30,7 @@ defmodule Streampai.Stream.Calculations.PeakViewers do
 
          metrics when is_list(metrics) ->
            Enum.reduce(metrics, 0, fn metric, acc ->
-             total_viewers =
-               (metric.youtube_viewers || 0) +
-                 (metric.twitch_viewers || 0) +
-                 (metric.facebook_viewers || 0) +
-                 (metric.kick_viewers || 0)
-
-             max(acc, total_viewers)
+             max(acc, LivestreamMetric.total_viewers(metric))
            end)
        end
      end)}
