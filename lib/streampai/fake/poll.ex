@@ -83,15 +83,8 @@ defmodule Streampai.Fake.Poll do
   end
 
   def generate_event do
-    # Generate a poll event
     event_type = Enum.random(["poll_started", "poll_updated", "poll_ended", "new_vote"])
-
-    poll_status =
-      case event_type do
-        "poll_started" -> "active"
-        "poll_ended" -> "ended"
-        _ -> Enum.random(["active", "ended"])
-      end
+    poll_status = poll_status_for_event_type(event_type)
 
     %{
       id: "event_#{Base.generate_hex_id()}",
@@ -102,6 +95,10 @@ defmodule Streampai.Fake.Poll do
       platform: Enum.random(["twitch", "youtube", "facebook", "kick"])
     }
   end
+
+  defp poll_status_for_event_type("poll_started"), do: "active"
+  defp poll_status_for_event_type("poll_ended"), do: "ended"
+  defp poll_status_for_event_type(_event_type), do: Enum.random(["active", "ended"])
 
   def generate_poll_status(status \\ nil) do
     poll_status = status || Enum.random(["active", "ended"])
@@ -155,23 +152,8 @@ defmodule Streampai.Fake.Poll do
   defp generate_poll_options(option_texts, status) do
     option_texts
     |> Enum.with_index(fn text, index ->
-      base_votes =
-        case status do
-          "active" -> :rand.uniform(150) + 10
-          "ended" -> :rand.uniform(300) + 50
-          _ -> :rand.uniform(100)
-        end
-
-      # Add some variation to make results more interesting
-      vote_multiplier =
-        case index do
-          # First option gets slight boost
-          0 -> 1.0 + :rand.uniform(50) / 100
-          # Second option gets smaller boost
-          1 -> 1.0 + :rand.uniform(30) / 100
-          _ -> 1.0
-        end
-
+      base_votes = base_votes_for_status(status)
+      vote_multiplier = vote_multiplier_for_index(index)
       votes = round(base_votes * vote_multiplier)
 
       %{
@@ -180,9 +162,16 @@ defmodule Streampai.Fake.Poll do
         votes: votes
       }
     end)
-    # Shuffle so winner isn't always first
     |> Enum.shuffle()
   end
+
+  defp base_votes_for_status("active"), do: :rand.uniform(150) + 10
+  defp base_votes_for_status("ended"), do: :rand.uniform(300) + 50
+  defp base_votes_for_status(_status), do: :rand.uniform(100)
+
+  defp vote_multiplier_for_index(0), do: 1.0 + :rand.uniform(50) / 100
+  defp vote_multiplier_for_index(1), do: 1.0 + :rand.uniform(30) / 100
+  defp vote_multiplier_for_index(_index), do: 1.0
 
   def create_sample_polls do
     [

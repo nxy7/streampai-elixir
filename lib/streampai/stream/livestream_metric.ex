@@ -10,6 +10,11 @@ defmodule Streampai.Stream.LivestreamMetric do
     repo Streampai.Repo
   end
 
+  code_interface do
+    define :create
+    define :read
+  end
+
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
   end

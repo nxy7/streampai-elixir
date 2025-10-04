@@ -111,6 +111,8 @@ defmodule Streampai.YouTube.TokenManager do
   def handle_call(:refresh_token, _from, state) do
     case do_refresh_token(state) do
       {:ok, new_state} ->
+        Logger.info("Returning refreshed token (length: #{String.length(new_state.access_token)})")
+
         {:reply, {:ok, new_state.access_token}, new_state}
 
       {:error, _reason} = error ->
@@ -187,12 +189,19 @@ defmodule Streampai.YouTube.TokenManager do
            }
          ) do
       {:ok, %{status: 200, body: body}} ->
+        new_access_token = body["access_token"]
         new_refresh_token = Map.get(body, "refresh_token", refresh_token)
         expires_at = DateTime.add(DateTime.utc_now(), body["expires_in"], :second)
 
+        token_preview = if new_access_token, do: String.slice(new_access_token, 0..9), else: "nil"
+
+        Logger.info(
+          "Received new access token from Google (length: #{String.length(new_access_token || "")}, preview: #{token_preview}...)"
+        )
+
         {:ok,
          %{
-           access_token: body["access_token"],
+           access_token: new_access_token,
            refresh_token: new_refresh_token,
            expires_at: expires_at
          }}

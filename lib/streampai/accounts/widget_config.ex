@@ -157,17 +157,16 @@ defmodule Streampai.Accounts.WidgetConfig do
     WidgetConfigDefaults.get_required_config_keys(widget_type)
   end
 
-  defp valid_config_values?(widget_type, config) do
-    case widget_type do
-      :chat_widget -> valid_chat_config_values?(config)
-      :alertbox_widget -> valid_alertbox_config_values?(config)
-      :viewer_count_widget -> valid_viewer_count_config_values?(config)
-      :top_donors_widget -> valid_top_donors_config_values?(config)
-      :follower_count_widget -> valid_follower_count_config_values?(config)
-      # Other widget types don't have specific validations yet
-      _ -> true
-    end
-  end
+  defp valid_config_values?(:chat_widget, config), do: valid_chat_config_values?(config)
+  defp valid_config_values?(:alertbox_widget, config), do: valid_alertbox_config_values?(config)
+
+  defp valid_config_values?(:viewer_count_widget, config), do: valid_viewer_count_config_values?(config)
+
+  defp valid_config_values?(:top_donors_widget, config), do: valid_top_donors_config_values?(config)
+
+  defp valid_config_values?(:follower_count_widget, config), do: valid_follower_count_config_values?(config)
+
+  defp valid_config_values?(_widget_type, _config), do: true
 
   defp valid_chat_config_values?(config) do
     max_messages = Map.get(config, :max_messages)

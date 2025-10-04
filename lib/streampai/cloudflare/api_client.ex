@@ -16,6 +16,11 @@ defmodule Streampai.Cloudflare.APIClient do
   defp live_output_url(input_id, output_id) when is_binary(input_id) and is_binary(output_id),
     do: "/accounts/#{account_id()}/stream/live_inputs/#{input_id}/outputs/#{output_id}"
 
+  # URL builders for videos
+  defp videos_url, do: "/accounts/#{account_id()}/stream"
+
+  defp video_url(video_id) when is_binary(video_id), do: "/accounts/#{account_id()}/stream/#{video_id}"
+
   defp api_token, do: Application.get_env(:streampai, :cloudflare_api_token)
   defp account_id, do: Application.get_env(:streampai, :cloudflare_account_id)
   defp base_url, do: "https://api.cloudflare.com/client/v4"
@@ -68,6 +73,45 @@ defmodule Streampai.Cloudflare.APIClient do
     case make_api_request(:delete, path) do
       {:ok, _response} -> :ok
       {:error, reason} -> handle_api_error(reason, :delete_live_input)
+    end
+  end
+
+  @doc """
+  Lists all live inputs for the account.
+
+  ## Options
+  - `:include_counts` - Boolean, include total count in response
+
+  ## Returns
+  - `{:ok, live_inputs, total}` - List of live input objects and total count
+  - `{:error, reason}` - Error tuple
+
+  Each live input object has a "uid" field that can be used with get_live_input/1 or delete_live_input/1.
+
+  ## Example
+      iex> list_live_inputs()
+      {:ok, [%{"uid" => "abc123...", ...}], 42}
+
+      iex> list_live_inputs(include_counts: true)
+      {:ok, [%{"uid" => "...", ...}], 5}
+  """
+  def list_live_inputs(opts \\ []) do
+    query_params =
+      opts
+      |> Enum.map(fn {key, value} -> {Atom.to_string(key), to_string(value)} end)
+      |> URI.encode_query()
+
+    path =
+      if query_params == "", do: live_input_url(), else: "#{live_input_url()}?#{query_params}"
+
+    case make_api_request(:get, path) do
+      {:ok, response} ->
+        live_inputs = response["result"] || []
+        total = length(live_inputs)
+        {:ok, live_inputs, total}
+
+      {:error, reason} ->
+        handle_api_error(reason, :list_live_inputs)
     end
   end
 
@@ -141,6 +185,77 @@ defmodule Streampai.Cloudflare.APIClient do
   end
 
   @doc """
+  Lists videos from Cloudflare Stream.
+
+  ## Options
+  - `:asc` - Boolean, lists videos in ascending order
+  - `:creator` - String, filter by media creator (max 64 characters)
+  - `:start` - DateTime, lists videos created after specified date
+  - `:end` - DateTime, lists videos created before specified date
+  - `:status` - String, filter by processing status
+  - `:type` - String, filter by video type (vod/live)
+  - `:video_name` - String, exact match on video name
+
+  ## Returns
+  - `{:ok, videos, total}` - List of video objects and total count
+  - `{:error, reason}` - Error tuple
+
+  Each video object has a "uid" field that can be used with delete_video/1.
+
+  ## Example
+      iex> list_videos()
+      {:ok, [%{"uid" => "ea95132c...", ...}], 42}
+
+      iex> list_videos(type: "live", asc: true)
+      {:ok, [%{"uid" => "...", ...}], 5}
+  """
+  def list_videos(opts \\ []) do
+    query_params =
+      opts
+      |> Enum.map(fn
+        {:start, %DateTime{} = dt} -> {"start", DateTime.to_iso8601(dt)}
+        {:end, %DateTime{} = dt} -> {"end", DateTime.to_iso8601(dt)}
+        {key, value} -> {Atom.to_string(key), to_string(value)}
+      end)
+      |> URI.encode_query()
+
+    path = if query_params == "", do: videos_url(), else: "#{videos_url()}?#{query_params}"
+
+    case make_api_request(:get, path) do
+      {:ok, response} ->
+        videos = response["result"] || []
+        total = response["total"] || 0
+        {:ok, videos, total}
+
+      {:error, reason} ->
+        handle_api_error(reason, :list_videos)
+    end
+  end
+
+  @doc """
+  Deletes a video from Cloudflare Stream.
+
+  ## Parameters
+  - `video_id` - The Cloudflare-generated video identifier (max 32 characters)
+
+  ## Returns
+  - `:ok` - Video successfully deleted
+  - `{:error, reason}` - Error tuple
+
+  ## Example
+      iex> delete_video("ea95132c15732412d22c1476fa83f27a")
+      :ok
+  """
+  def delete_video(video_id) when is_binary(video_id) do
+    path = video_url(video_id)
+
+    case make_api_request(:delete, path) do
+      {:ok, _response} -> :ok
+      {:error, reason} -> handle_api_error(reason, :delete_video)
+    end
+  end
+
+  @doc """
   Creates the display name for a live input based on environment and user ID.
   """
   def create_live_input_name(user_id) when is_binary(user_id) do
@@ -173,13 +288,7 @@ defmodule Streampai.Cloudflare.APIClient do
   defp make_request(req_opts) do
     case Req.request(req_opts) do
       {:ok, %{status: status, body: body}} when status in 200..299 ->
-        if body["success"] do
-          {:ok, body}
-        else
-          error_msg = get_error_message(body)
-          Logger.error("Cloudflare API error: #{error_msg}")
-          {:error, {:api_error, error_msg}}
-        end
+        handle_success_response(body)
 
       {:ok, %{status: status, body: body}} ->
         Logger.error("Cloudflare API HTTP error #{status}: #{inspect(body)}")
@@ -191,6 +300,20 @@ defmodule Streampai.Cloudflare.APIClient do
     end
   end
 
+  defp handle_success_response(body) when body == "" or body == nil, do: {:ok, %{}}
+
+  defp handle_success_response(body) when is_map(body) do
+    if body["success"] do
+      {:ok, body}
+    else
+      error_msg = get_error_message(body)
+      Logger.error("Cloudflare API error: #{error_msg}")
+      {:error, {:api_error, error_msg}}
+    end
+  end
+
+  defp handle_success_response(_body), do: {:ok, %{}}
+
   defp get_error_message(%{"errors" => errors}) when is_list(errors) do
     Enum.map_join(errors, ", ", fn error -> error["message"] || "Unknown error" end)
   end
@@ -201,19 +324,19 @@ defmodule Streampai.Cloudflare.APIClient do
 
   defp get_error_message(_), do: "Unknown error"
 
-  defp handle_api_error(reason, operation) do
-    case reason do
-      :missing_credentials ->
-        {:error, :missing_credentials, "Cloudflare API credentials not configured"}
+  defp handle_api_error(:missing_credentials, _operation) do
+    {:error, :missing_credentials, "Cloudflare API credentials not configured"}
+  end
 
-      {:api_error, message} ->
-        {:error, :api_error, "Cloudflare API returned error for #{operation}: #{message}"}
+  defp handle_api_error({:api_error, message}, operation) do
+    {:error, :api_error, "Cloudflare API returned error for #{operation}: #{message}"}
+  end
 
-      {:http_error, status, _body} ->
-        {:error, :http_error, "HTTP #{status} error during #{operation}"}
+  defp handle_api_error({:http_error, status, _body}, operation) do
+    {:error, :http_error, "HTTP #{status} error during #{operation}"}
+  end
 
-      {:request_failed, reason} ->
-        {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
-    end
+  defp handle_api_error({:request_failed, reason}, operation) do
+    {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
   end
 end

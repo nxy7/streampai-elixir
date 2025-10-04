@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   use GenServer
 
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
   alias Streampai.YouTube.TokenManager
@@ -21,11 +22,13 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :stream_id,
     :chat_id,
     :chat_pid,
+    :metrics_collector_pid,
     :stream_key,
     :rtmp_url,
     :cloudflare_output_id,
     :is_active,
-    :started_at
+    :started_at,
+    viewer_count: 0
   ]
 
   def start_link(user_id, config) when is_binary(user_id) do
@@ -89,6 +92,13 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @doc """
+  Gets the current viewer count for the stream.
+  """
+  def get_viewer_count(user_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), :get_viewer_count)
+  end
+
+  @doc """
   Deletes a chat message.
   """
   def delete_message(user_id, message_id) when is_binary(user_id) do
@@ -141,7 +151,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
          {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)} do
+           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)},
+         {:start_metrics_collector, {:ok, collector_pid}} <-
+           {:start_metrics_collector, start_metrics_collector(state, broadcast["id"])} do
       new_state = %{
         state
         | is_active: true,
@@ -149,6 +161,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
           stream_id: stream["id"],
           chat_id: active_chat_id,
           chat_pid: chat_pid,
+          metrics_collector_pid: collector_pid,
           stream_key: stream_key,
           rtmp_url: rtmp_url,
           cloudflare_output_id: output_id
@@ -172,6 +185,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       GrpcStreamClient.stop(state.chat_pid)
     end
 
+    if state.metrics_collector_pid do
+      Process.exit(state.metrics_collector_pid, :normal)
+    end
+
     cleanup_cloudflare_output(state)
     cleanup_broadcast(state)
     cleanup_stream(state)
@@ -183,6 +200,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         stream_id: nil,
         chat_id: nil,
         chat_pid: nil,
+        metrics_collector_pid: nil,
         stream_key: nil,
         rtmp_url: nil,
         cloudflare_output_id: nil
@@ -213,6 +231,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     }
 
     {:reply, {:ok, status}, state}
+  end
+
+  @impl true
+  def handle_call(:get_viewer_count, _from, state) do
+    {:reply, state.viewer_count, state}
   end
 
   @impl true
@@ -253,6 +276,12 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   def handle_info({:youtube_message, event_type, data}, state) do
     Logger.debug("YouTube event [#{event_type}]: #{inspect(data)}")
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:viewer_count_update, viewer_count}, state) do
+    Logger.debug("Metrics update - viewer count: #{viewer_count}")
+    {:noreply, %{state | viewer_count: viewer_count}}
   end
 
   @impl true
@@ -316,6 +345,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       GrpcStreamClient.stop(state.chat_pid)
     end
 
+    # Stop metrics collector
+    if state.metrics_collector_pid do
+      Process.exit(state.metrics_collector_pid, :normal)
+    end
+
     # Delete Cloudflare Live Output
     if state.cloudflare_output_id do
       Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
@@ -339,11 +373,15 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       status: %{
         privacyStatus: "public",
         selfDeclaredMadeForKids: false
+      },
+      contentDetails: %{
+        latencyPreference: "low",
+        enableAutoStart: true
       }
     }
 
     with_token_retry(state, fn token ->
-      ApiClient.insert_live_broadcast(token, "snippet,status", broadcast_data)
+      ApiClient.insert_live_broadcast(token, "snippet,status,contentDetails", broadcast_data)
     end)
   end
 
@@ -590,6 +628,17 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     )
   end
 
+  defp start_metrics_collector(state, video_id) do
+    Logger.info("Starting metrics collector for video ID: #{video_id}")
+
+    YouTubeMetricsCollector.start_link(
+      user_id: state.user_id,
+      video_id: video_id,
+      access_token: state.access_token,
+      parent_pid: self()
+    )
+  end
+
   defp create_cloudflare_output(state, rtmp_url, stream_key) do
     registry_name = get_registry_name()
 
@@ -698,7 +747,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
         case TokenManager.refresh_token(state.user_id) do
           {:ok, new_token} ->
-            Logger.info("Token refreshed, retrying API call")
+            Logger.info("Token refreshed (length: #{String.length(new_token)}), retrying API call")
+
             # Retry with new token
             api_call_fn.(new_token)
 

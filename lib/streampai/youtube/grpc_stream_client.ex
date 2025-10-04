@@ -89,8 +89,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
         callback_pid: callback
       }) do
     Logger.metadata(user_id: user_id, component: :youtube_grpc_stream, chat_id: chat_id)
-
-    # Subscribe to token updates from TokenManager
     TokenManager.subscribe(user_id)
 
     state = %__MODULE__{
@@ -109,23 +107,16 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
   @impl true
   def handle_info(:connect, state) do
-    # Logger.info("Connecting to chat")
-
-    # Connect to gRPC channel if not already connected
     result = if state.channel, do: {:ok, state.channel}, else: connect_and_validate(state)
 
     case result do
       {:ok, channel} ->
-        # Spawn a linked process to consume the stream
-        # This keeps the GenServer responsive while listening
         parent_pid = self()
 
         consumer_pid =
           spawn_link(fn ->
             consume_stream_loop(parent_pid, channel, state)
           end)
-
-        # Logger.info("Stream consumer started in PID #{inspect(consumer_pid)}")
 
         new_state = %{
           state
@@ -142,8 +133,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
         case TokenManager.refresh_token(state.user_id) do
           {:ok, new_token} ->
             Logger.info("Token refreshed, reconnecting...")
-
-            # Update state and reconnect
             new_state = %{state | access_token: new_token}
             send(self(), :connect)
             {:noreply, new_state}
@@ -163,8 +152,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   @impl true
   def handle_info({:token_updated, _user_id, new_token}, state) do
     Logger.info("Received updated token from TokenManager")
-
-    # Update token in state (channel will use it on next stream request)
     {:noreply, %{state | access_token: new_token}}
   end
 
@@ -172,7 +159,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   def handle_info({:stream_batch_complete, next_token}, state) do
     Logger.debug("Stream batch completed, reconnecting with next_page_token...")
 
-    # Update state with next_page_token and start new stream (reuse channel)
     new_state = %{
       state
       | next_page_token: next_token,
@@ -180,17 +166,13 @@ defmodule Streampai.YouTube.GrpcStreamClient do
         stream_consumer_pid: nil
     }
 
-    # Small delay before reconnecting to avoid hammering API during quiet periods
     Process.send_after(self(), :connect, 100)
-
     {:noreply, new_state}
   end
 
   @impl true
   def handle_info({:stream_error, reason}, state) do
     Logger.error("Stream error from consumer: #{inspect(reason)}")
-
-    # Close the channel on error and force reconnection
     cleanup_connection(state)
     handle_reconnect(%{state | channel: nil}, reason)
   end
@@ -226,7 +208,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
     if state.reconnect_attempts < state.max_reconnect_attempts do
       Logger.info("Reconnecting (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
 
-      # Close existing channel on reconnect
       cleanup_connection(state)
 
       send(self(), :connect)
@@ -267,8 +248,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   @impl true
   def handle_call({:update_token, new_token}, _from, state) do
     Logger.info("Access token updated")
-
-    # Just update the token in state, channel will use it on next stream
     {:reply, :ok, %{state | access_token: new_token}}
   end
 
@@ -289,7 +268,9 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   defp validate_token(state) do
     alias Streampai.YouTube.ApiClient
 
-    Logger.info("Validating access token...")
+    Logger.info(
+      "Validating access token (length: #{String.length(state.access_token || "")}, is_nil: #{is_nil(state.access_token)})..."
+    )
 
     case ApiClient.validate_token(state.access_token) do
       {:ok, token_info} ->
@@ -408,7 +389,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp extract_message_data(message, :chat_message) do
-    # Extract message text from the oneof field
     message_text =
       case message.snippet.displayed_content do
         {:text_message_details, %{message_text: text}} -> text
@@ -429,7 +409,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp extract_message_data(message, :donation) do
-    # Extract donation details from the oneof field
     details =
       case message.snippet.displayed_content do
         {:super_chat_details, details} -> details
@@ -452,7 +431,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp extract_message_data(message, :subscription) do
-    # Extract subscription details from the oneof field
     details =
       case message.snippet.displayed_content do
         {:new_sponsor_details, details} -> details
