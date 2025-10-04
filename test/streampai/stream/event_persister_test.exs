@@ -23,7 +23,11 @@ defmodule Streampai.Stream.EventPersisterTest do
       # Create test livestream
       {:ok, livestream} =
         Livestream
-        |> Ash.Changeset.for_create(:create, %{user_id: user.id, started_at: DateTime.utc_now()})
+        |> Ash.Changeset.for_create(:create, %{
+          user_id: user.id,
+          started_at: DateTime.utc_now(),
+          title: "Test Stream"
+        })
         |> Ash.create()
 
       # Start the persister process for testing

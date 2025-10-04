@@ -33,6 +33,7 @@ defmodule Streampai.Stream.ChatMessage do
     define :upsert
     define :create
     define :read
+    define :get_for_livestream, args: [:livestream_id]
   end
 
   actions do
@@ -83,6 +84,23 @@ defmodule Streampai.Stream.ChatMessage do
         :livestream_id,
         :viewer_id
       ]
+    end
+
+    read :get_for_livestream do
+      description "Get all chat messages for a livestream, sorted chronologically"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+
+      filter expr(livestream_id == ^arg(:livestream_id))
+      prepare build(sort: [inserted_at: :asc])
+    end
+
+    read :get_count_for_livestream do
+      description "Count chat messages for a livestream"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+
+      filter expr(livestream_id == ^arg(:livestream_id))
     end
   end
 

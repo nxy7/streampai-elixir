@@ -4,13 +4,17 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   import StreampaiWeb.Utils.PlatformUtils
 
-  alias Streampai.Fake.Livestream
-  alias StreampaiWeb.Utils.CacheUtils
+  alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamEvent
   alias StreampaiWeb.Utils.DateTimeUtils
 
+  require Ash.Query
+
   def mount_page(socket, _params, _session) do
-    stream_list = get_cached_streams()
-    monthly_stats = Livestream.generate_monthly_stats()
+    user_id = socket.assigns.current_user.id
+    stream_list = load_streams(user_id)
+    monthly_stats = calculate_monthly_stats(stream_list)
 
     socket =
       socket
@@ -23,8 +27,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
   end
 
   def handle_event("update_filter", %{"filter" => filter_params}, socket) do
+    user_id = socket.assigns.current_user.id
     filters = Map.merge(socket.assigns.filters, filter_params)
-    stream_list = apply_filters(get_cached_streams(), filters)
+    stream_list = user_id |> load_streams() |> apply_filters(filters)
 
     socket =
       socket
@@ -34,10 +39,66 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     {:noreply, socket}
   end
 
-  defp get_cached_streams do
-    CacheUtils.get_cached(:stream_cache, :streams, 300, fn ->
-      Livestream.generate_stream_history(15)
-    end)
+  defp load_streams(user_id) do
+    user_id
+    |> Livestream.get_completed_by_user!(authorize?: false)
+    |> Enum.map(&enrich_stream_data/1)
+  end
+
+  defp enrich_stream_data(livestream) do
+    chat_message_count = count_chat_messages(livestream.id)
+    platforms = get_stream_platforms(livestream.id)
+    duration_seconds = calculate_duration(livestream.started_at, livestream.ended_at)
+
+    %{
+      id: livestream.id,
+      title: livestream.title,
+      thumbnail_url: livestream.thumbnail_url || "/images/placeholder-thumbnail.jpg",
+      started_at: livestream.started_at,
+      ended_at: livestream.ended_at,
+      duration_seconds: duration_seconds,
+      platforms: platforms,
+      max_viewers: "-",
+      avg_viewers: "-",
+      total_chat_messages: chat_message_count
+    }
+  end
+
+  defp count_chat_messages(livestream_id) do
+    ChatMessage
+    |> Ash.Query.for_read(:get_count_for_livestream, %{livestream_id: livestream_id})
+    |> Ash.count!(authorize?: false)
+  end
+
+  defp get_stream_platforms(livestream_id) do
+    livestream_id
+    |> StreamEvent.get_platform_started_for_livestream!(authorize?: false)
+    |> Enum.map(& &1.platform)
+    |> Enum.uniq()
+  end
+
+  defp calculate_duration(started_at, nil), do: DateTime.diff(DateTime.utc_now(), started_at)
+  defp calculate_duration(started_at, ended_at), do: DateTime.diff(ended_at, started_at)
+
+  defp calculate_monthly_stats(streams) do
+    cutoff = DateTime.add(DateTime.utc_now(), -30 * 24 * 60 * 60, :second)
+    recent_streams = Enum.filter(streams, &DateTime.after?(&1.started_at, cutoff))
+
+    total_hours =
+      recent_streams
+      |> Enum.map(& &1.duration_seconds)
+      |> Enum.sum()
+      |> div(3600)
+
+    total_messages = Enum.sum(Enum.map(recent_streams, & &1.total_chat_messages))
+
+    %{
+      total_streams: length(recent_streams),
+      total_hours: total_hours,
+      avg_viewers: "-",
+      total_followers: "-",
+      total_chat_messages: total_messages
+    }
   end
 
   defp apply_filters(streams, filters) do
@@ -51,7 +112,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   defp filter_by_platform(streams, platform) when is_binary(platform) do
     platform_atom = String.to_existing_atom(platform)
-    Enum.filter(streams, &(&1.platform == platform_atom))
+    Enum.filter(streams, &(platform_atom in &1.platforms))
   rescue
     ArgumentError -> streams
   end
@@ -207,7 +268,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Streams</h3>
@@ -256,7 +317,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Stream History List -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
           <div class="px-6 py-4 border-b border-gray-200">
@@ -282,10 +343,12 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                         <h4 class="text-sm font-medium text-gray-900 truncate">
                           {stream.title}
                         </h4>
-                        <div class="flex items-center space-x-4 mt-1">
-                          <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(stream.platform)}"}>
-                            {platform_name(stream.platform)}
-                          </span>
+                        <div class="flex items-center space-x-2 mt-1 flex-wrap">
+                          <%= for platform <- stream.platforms do %>
+                            <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(platform)}"}>
+                              {platform_name(platform)}
+                            </span>
+                          <% end %>
                           <span class="text-xs text-gray-500">
                             {format_date(stream.started_at)}
                           </span>

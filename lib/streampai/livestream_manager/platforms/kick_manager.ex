@@ -5,6 +5,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   """
   use GenServer
 
+  alias Streampai.LivestreamManager.StreamEvents
+
   require Logger
 
   @activity_interval 1_000
@@ -20,6 +22,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
     state = %{
       user_id: user_id,
+      stream_uuid: nil,
       platform: :kick,
       config: config,
       is_active: false,
@@ -79,14 +82,20 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   @impl true
   def handle_call({:start_streaming, stream_uuid}, _from, state) do
     Logger.info("Starting stream: #{stream_uuid}")
-    new_state = %{state | is_active: true}
+    StreamEvents.emit_platform_started(state.user_id, stream_uuid, :kick)
+    new_state = %{state | is_active: true, stream_uuid: stream_uuid}
     {:reply, :ok, new_state}
   end
 
   @impl true
   def handle_call(:stop_streaming, _from, state) do
     Logger.info("Stopping stream")
-    new_state = %{state | is_active: false}
+
+    if state.stream_uuid do
+      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :kick)
+    end
+
+    new_state = %{state | is_active: false, stream_uuid: nil}
     {:reply, :ok, new_state}
   end
 

@@ -44,6 +44,8 @@ defmodule Streampai.Stream.StreamEvent do
     define :for_stream
     define :by_type
     define :destroy
+    define :get_activity_events_for_livestream, args: [:livestream_id]
+    define :get_platform_started_for_livestream, args: [:livestream_id]
   end
 
   actions do
@@ -81,6 +83,28 @@ defmodule Streampai.Stream.StreamEvent do
 
       filter expr(livestream_id == ^arg(:livestream_id) and type == ^arg(:event_type))
       prepare build(sort: [inserted_at: :desc], limit: arg(:limit))
+    end
+
+    read :get_activity_events_for_livestream do
+      description "Get activity events (donations, follows, raids, etc.) for a livestream"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+
+      filter expr(
+               livestream_id == ^arg(:livestream_id) and
+                 (type == :donation or type == :follow or type == :raid or type == :cheer or
+                    type == :patreon)
+             )
+
+      prepare build(sort: [inserted_at: :asc])
+    end
+
+    read :get_platform_started_for_livestream do
+      description "Get platform_started events for a livestream to determine which platforms were used"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+
+      filter expr(livestream_id == ^arg(:livestream_id) and type == :platform_started)
     end
   end
 

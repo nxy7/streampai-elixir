@@ -104,17 +104,18 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   """
   def start_stream(user_id) when is_binary(user_id) do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
+    stream_uuid = Ash.UUID.generate()
 
-    {:ok, livestream} =
+    {:ok, _livestream} =
       Livestream.create(
         %{
+          id: stream_uuid,
           user_id: user_id,
-          started_at: DateTime.utc_now()
+          started_at: DateTime.utc_now(),
+          title: "Live Stream - #{stream_uuid}"
         },
         actor: user
       )
-
-    stream_uuid = livestream.id
 
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},

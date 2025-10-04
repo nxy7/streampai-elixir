@@ -7,6 +7,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
+  alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
   alias Streampai.YouTube.TokenManager
@@ -20,6 +21,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :expires_at,
     :broadcast_id,
     :stream_id,
+    :stream_uuid,
     :chat_id,
     :chat_pid,
     :metrics_collector_pid,
@@ -144,8 +146,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
          {:create_stream, {:ok, stream}} <- {:create_stream, create_stream(state, stream_uuid)},
          {:bind_stream, {:ok, bound_broadcast}} <-
            {:bind_stream, bind_stream(state, broadcast["id"], stream["id"])},
-         {:get_chat_ids, {:ok, broadcast_chat_id, active_chat_id}} <-
-           {:get_chat_ids, get_chat_ids(state, bound_broadcast, broadcast["id"])},
+         {:get_chat_id, {:ok, broadcast_chat_id}} <-
+           {:get_chat_id, get_chat_id(state, bound_broadcast)},
          {:start_chat, {:ok, chat_pid}} <-
            {:start_chat, start_chat_streaming(state, stream_uuid, broadcast_chat_id)},
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
@@ -159,7 +161,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         | is_active: true,
           broadcast_id: broadcast["id"],
           stream_id: stream["id"],
-          chat_id: active_chat_id,
+          stream_uuid: stream_uuid,
+          chat_id: broadcast_chat_id,
           chat_pid: chat_pid,
           metrics_collector_pid: collector_pid,
           stream_key: stream_key,
@@ -168,6 +171,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       }
 
       Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Cloudflare Output: #{output_id}")
+
+      StreamEvents.emit_platform_started(state.user_id, stream_uuid, :youtube)
 
       {:reply, {:ok, %{rtmp_url: rtmp_url, stream_key: stream_key}}, new_state}
     else
@@ -193,11 +198,16 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     cleanup_broadcast(state)
     cleanup_stream(state)
 
+    if state.stream_uuid do
+      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :youtube)
+    end
+
     new_state = %{
       state
       | is_active: false,
         broadcast_id: nil,
         stream_id: nil,
+        stream_uuid: nil,
         chat_id: nil,
         chat_pid: nil,
         metrics_collector_pid: nil,
@@ -535,83 +545,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end)
   end
 
-  defp get_chat_ids(state, broadcast, broadcast_id) do
-    # Get liveChatId from broadcast (REST API method)
-    broadcast_chat_id = get_in(broadcast, ["snippet", "liveChatId"])
-
-    # Get activeLiveChatId from video (gRPC docs method)
-    active_chat_id =
-      case get_video_active_chat_id(state, broadcast_id) do
-        {:ok, chat_id} -> chat_id
-        {:error, _} -> nil
-      end
-
-    Logger.info("""
-    Chat ID comparison:
-      - broadcast.snippet.liveChatId: #{inspect(broadcast_chat_id)}
-      - video.liveStreamingDetails.activeLiveChatId: #{inspect(active_chat_id)}
-      - Using for gRPC: #{inspect(active_chat_id || broadcast_chat_id)}
-    """)
-
-    # Prefer activeLiveChatId for gRPC, fallback to broadcast liveChatId
-    # chat_id_to_use = active_chat_id || broadcast_chat_id
-
-    {:ok, broadcast_chat_id, active_chat_id}
-
-    # case chat_id_to_use do
-    #   nil -> {:error, :no_live_chat_id}
-    #   chat_id -> {:ok, broadcast_chat_id, chat_id}
-    # end
-  end
-
-  defp get_video_active_chat_id(state, video_id) do
-    get_video_active_chat_id_with_retry(state, video_id, 3)
-  end
-
-  defp get_video_active_chat_id_with_retry(_state, _video_id, 0) do
-    Logger.warning("liveStreamingDetails still empty after 3 retries")
-    {:error, :no_active_chat_id}
-  end
-
-  defp get_video_active_chat_id_with_retry(state, video_id, retries_left) do
-    with_token_retry(state, fn token ->
-      do_get_video_active_chat_id(token, video_id, state, retries_left)
-    end)
-  end
-
-  defp do_get_video_active_chat_id(token, video_id, state, retries_left) do
-    case ApiClient.get_video(token, video_id, [
-           "liveStreamingDetails",
-           "contentDetails",
-           "statistics"
-         ]) do
-      {:ok, video} ->
-        handle_video_response(video, state, video_id, retries_left)
-
-      error ->
-        error
-    end
-  end
-
-  defp handle_video_response(video, state, video_id, retries_left) do
-    live_streaming_details = Map.get(video, "liveStreamingDetails", %{})
-
-    if live_streaming_details == %{} do
-      retry_video_fetch(state, video_id, retries_left)
-    else
-      extract_active_chat_id(video)
-    end
-  end
-
-  defp retry_video_fetch(state, video_id, retries_left) do
-    Logger.info("liveStreamingDetails is empty, retrying in 500ms (#{retries_left} retries left)")
-    Process.sleep(1000)
-    get_video_active_chat_id_with_retry(state, video_id, retries_left - 1)
-  end
-
-  defp extract_active_chat_id(video) do
-    case get_in(video, ["liveStreamingDetails", "activeLiveChatId"]) do
-      nil -> {:error, :no_active_chat_id}
+  defp get_chat_id(_state, broadcast) do
+    case get_in(broadcast, ["snippet", "liveChatId"]) do
+      nil -> {:error, :no_live_chat_id}
       chat_id -> {:ok, chat_id}
     end
   end

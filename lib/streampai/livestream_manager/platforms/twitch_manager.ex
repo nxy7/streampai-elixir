@@ -5,12 +5,14 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   """
   use GenServer
 
+  alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamStateServer
 
   require Logger
 
   defstruct [
     :user_id,
+    :stream_uuid,
     :access_token,
     :refresh_token,
     :expires_at,
@@ -195,6 +197,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   @impl true
   def handle_call({:start_streaming, stream_uuid}, _from, state) do
     Logger.info("Starting stream: #{stream_uuid}")
+    StreamEvents.emit_platform_started(state.user_id, stream_uuid, :twitch)
     new_state = %{state | stream_uuid: stream_uuid}
     {:reply, :ok, new_state}
   end
@@ -202,6 +205,11 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   @impl true
   def handle_call(:stop_streaming, _from, state) do
     Logger.info("Stopping stream")
+
+    if state.stream_uuid do
+      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :twitch)
+    end
+
     new_state = %{state | stream_uuid: nil}
     {:reply, :ok, new_state}
   end

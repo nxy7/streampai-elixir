@@ -8,6 +8,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   alias Streampai.Cloudflare.APIClient
   alias Streampai.Cloudflare.LiveInput
   alias Streampai.LivestreamManager.StreamStateServer
+  alias Streampai.LivestreamManager.UserStreamManager
 
   require Logger
 
@@ -193,21 +194,21 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     {:noreply, state}
   end
 
-  # Handle 5-minute disconnect timeout
+  # Handle 30-second disconnect timeout
   @impl true
   def handle_info(:disconnect_timeout, state) do
     Logger.info("Disconnect timeout reached for user #{state.user_id}, stopping stream")
 
-    :ok = disable_live_outputs(state)
-    state = %{state | stream_status: :inactive, disconnect_timer: nil}
-    update_stream_state(state)
+    # Fully stop the stream through UserStreamManager (async to avoid deadlock)
+    Task.start(fn ->
+      UserStreamManager.stop_stream(state.user_id)
+    end)
 
     # Broadcast timeout event
     broadcast_stream_event(state, :stream_auto_stopped, %{reason: :disconnect_timeout})
 
+    state = %{state | disconnect_timer: nil}
     {:noreply, state}
-
-    # TODO: Handle error case
   end
 
   @impl true
@@ -655,10 +656,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         state =
           case state.stream_status do
             :streaming ->
-              # Start 5-minute disconnect timer
+              # Start 30-second disconnect timer
               disconnect_timer = schedule_disconnect_timeout()
               updated_state = %{state | disconnect_timer: disconnect_timer}
-              Logger.info("Started disconnect timeout for user #{state.user_id}")
+              Logger.info("Started 30-second disconnect timeout for user #{state.user_id}")
               updated_state
 
             _ ->
@@ -678,8 +679,8 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp schedule_disconnect_timeout do
-    # 5 minutes
-    timeout = Application.get_env(:streampai, :stream_disconnect_timeout, 300_000)
+    # 30 seconds
+    timeout = Application.get_env(:streampai, :stream_disconnect_timeout, 30_000)
     Process.send_after(self(), :disconnect_timeout, timeout)
   end
 
