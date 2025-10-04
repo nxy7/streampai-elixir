@@ -291,6 +291,14 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   @impl true
   def handle_info({:viewer_count_update, viewer_count}, state) do
     Logger.debug("Metrics update - viewer count: #{viewer_count}")
+
+    # Broadcast viewer count update via PubSub
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "viewer_counts:#{state.user_id}",
+      {:viewer_update, :youtube, viewer_count}
+    )
+
     {:noreply, %{state | viewer_count: viewer_count}}
   end
 

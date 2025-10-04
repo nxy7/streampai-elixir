@@ -119,16 +119,12 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     {:ok, stream_info} = get_stream_info(state)
 
     if stream_info.viewer_count != state.last_viewer_count do
-      # Broadcast viewer count update
-      _event = %{
-        type: :viewer_count_update,
-        user_id: state.user_id,
-        platform: :twitch,
-        count: stream_info.viewer_count,
-        previous_count: state.last_viewer_count
-      }
-
-      # EventBroadcaster.broadcast_event(event)
+      # Broadcast viewer count update via PubSub
+      Phoenix.PubSub.broadcast(
+        Streampai.PubSub,
+        "viewer_counts:#{state.user_id}",
+        {:viewer_update, :twitch, stream_info.viewer_count}
+      )
 
       # Update stream state
       update_platform_status(state, %{viewer_count: stream_info.viewer_count})

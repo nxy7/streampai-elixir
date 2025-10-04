@@ -1,21 +1,25 @@
 defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
   @moduledoc """
-  Periodically collects viewer metrics from all active platform managers
-  and stores them in the livestream_metrics table.
+  Subscribes to viewer count updates from platform managers via PubSub
+  and stores them in the livestream_metrics table every minute.
+
+  Platform managers broadcast updates in the format:
+  {:viewer_update, platform, count} where platform is :youtube, :twitch, etc.
   """
   use GenServer
 
-  alias Streampai.LivestreamManager.Platforms.YouTubeManager
+  alias Phoenix.PubSub
   alias Streampai.LivestreamManager.StreamStateServer
   alias Streampai.Stream.LivestreamMetric
 
   require Logger
 
-  @collect_interval to_timeout(second: 30)
+  @save_interval to_timeout(minute: 1)
 
   defstruct [
     :user_id,
-    :timer_ref
+    :timer_ref,
+    :current_viewers
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -27,18 +31,30 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
     Logger.metadata(user_id: user_id, component: :livestream_metrics_collector)
 
     state = %__MODULE__{
-      user_id: user_id
+      user_id: user_id,
+      current_viewers: %{}
     }
 
-    Logger.info("Starting livestream metrics collector")
+    # Subscribe to viewer count updates for this user
+    :ok = PubSub.subscribe(Streampai.PubSub, "viewer_counts:#{user_id}")
 
-    {:ok, schedule_collection(state)}
+    Logger.info("Starting livestream metrics collector, subscribed to viewer_counts:#{user_id}")
+
+    {:ok, schedule_save(state)}
   end
 
   @impl true
-  def handle_info(:collect_metrics, state) do
-    collect_and_save_metrics(state)
-    {:noreply, schedule_collection(state)}
+  def handle_info({:viewer_update, platform, count}, state) when is_atom(platform) and is_integer(count) do
+    Logger.debug("Received viewer update: #{platform}=#{count}")
+
+    updated_viewers = Map.put(state.current_viewers, platform, count)
+    {:noreply, %{state | current_viewers: updated_viewers}}
+  end
+
+  @impl true
+  def handle_info(:save_metrics, state) do
+    save_current_metrics(state)
+    {:noreply, schedule_save(state)}
   end
 
   @impl true
@@ -52,22 +68,22 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
 
   # Private functions
 
-  defp collect_and_save_metrics(state) do
+  defp save_current_metrics(state) do
     stream_state = get_stream_state(state.user_id)
     stream_uuid = Map.get(stream_state, :stream_uuid)
 
-    if stream_uuid && stream_state.status == :streaming do
-      metrics = collect_platform_metrics(state.user_id)
-
+    if stream_uuid && stream_state.status == :streaming && map_size(state.current_viewers) > 0 do
       %{
         livestream_id: stream_uuid,
-        youtube_viewers: metrics.youtube_viewers,
-        twitch_viewers: metrics.twitch_viewers
+        youtube_viewers: Map.get(state.current_viewers, :youtube, 0),
+        twitch_viewers: Map.get(state.current_viewers, :twitch, 0),
+        facebook_viewers: Map.get(state.current_viewers, :facebook, 0),
+        kick_viewers: Map.get(state.current_viewers, :kick, 0)
       }
       |> LivestreamMetric.create(authorize?: false)
       |> case do
         {:ok, _metric} ->
-          Logger.debug("Saved metrics: YouTube=#{metrics.youtube_viewers}, Twitch=#{metrics.twitch_viewers}")
+          Logger.debug("Saved metrics: #{inspect(state.current_viewers)}")
 
         {:error, reason} ->
           Logger.warning("Failed to save metrics: #{inspect(reason)}")
@@ -75,47 +91,16 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
     end
   end
 
-  defp collect_platform_metrics(user_id) do
-    youtube_viewers = get_youtube_viewers(user_id)
-    twitch_viewers = get_twitch_viewers(user_id)
-
-    %{
-      youtube_viewers: youtube_viewers,
-      twitch_viewers: twitch_viewers
-    }
-  end
-
-  defp get_youtube_viewers(user_id) do
-    case get_platform_manager_pid(user_id, :youtube) do
-      {:ok, _pid} -> YouTubeManager.get_viewer_count(user_id)
-      :error -> 0
-    end
-  catch
-    :exit, _ -> 0
-  end
-
-  defp get_twitch_viewers(_user_id) do
-    # TODO: Implement when TwitchManager has viewer count support
-    0
-  end
-
   defp get_stream_state(user_id) do
     StreamStateServer.get_state({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
   end
 
-  defp get_platform_manager_pid(user_id, platform) do
-    case Registry.lookup(get_registry_name(), {:platform_manager, user_id, platform}) do
-      [{pid, _}] -> {:ok, pid}
-      [] -> :error
-    end
-  end
-
-  defp schedule_collection(state) do
+  defp schedule_save(state) do
     if state.timer_ref do
       Process.cancel_timer(state.timer_ref)
     end
 
-    timer_ref = Process.send_after(self(), :collect_metrics, @collect_interval)
+    timer_ref = Process.send_after(self(), :save_metrics, @save_interval)
     %{state | timer_ref: timer_ref}
   end
 
