@@ -204,13 +204,15 @@ defmodule Streampai.Fake.StreamEvent do
   """
   def generate_random_event(livestream_id) do
     event_type = Enum.random([:chat_message, :donation, :follow, :subscription, :raid])
-
-    case event_type do
-      :chat_message -> generate_chat_message(livestream_id)
-      :donation -> generate_donation(livestream_id)
-      :follow -> generate_follow(livestream_id)
-      :subscription -> generate_subscription(livestream_id)
-      :raid -> generate_raid(livestream_id)
-    end
+    generate_event_by_type(event_type, livestream_id)
   end
+
+  defp generate_event_by_type(:chat_message, livestream_id), do: generate_chat_message(livestream_id)
+
+  defp generate_event_by_type(:donation, livestream_id), do: generate_donation(livestream_id)
+  defp generate_event_by_type(:follow, livestream_id), do: generate_follow(livestream_id)
+
+  defp generate_event_by_type(:subscription, livestream_id), do: generate_subscription(livestream_id)
+
+  defp generate_event_by_type(:raid, livestream_id), do: generate_raid(livestream_id)
 end

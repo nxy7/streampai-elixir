@@ -89,51 +89,26 @@ defmodule Streampai.Fake.Timer do
     end
   end
 
-  def generate_control_event(type) when type in [:start, :stop, :resume, :reset] do
-    base_event = %{
+  def generate_control_event(type) when type in [:start, :reset] do
+    %{
+      id: Base.generate_hex_id(),
+      type: type,
+      timestamp: DateTime.utc_now(),
+      duration: 300
+    }
+  end
+
+  def generate_control_event(type) when type in [:stop, :resume] do
+    %{
       id: Base.generate_hex_id(),
       type: type,
       timestamp: DateTime.utc_now()
     }
-
-    case type do
-      :start ->
-        Map.put(base_event, :duration, 300)
-
-      :reset ->
-        Map.put(base_event, :duration, 300)
-
-      _ ->
-        base_event
-    end
   end
 
   def generate_extension_event(source_type, amount \\ nil) do
     username = Base.generate_username()
-
-    extension_amount =
-      case source_type do
-        :donation ->
-          donation_amount = amount || Base.generate_donation_amount()
-          # 30 seconds per dollar by default
-          round(donation_amount * 30)
-
-        :subscription ->
-          # 1 minute per sub
-          60
-
-        :raid ->
-          viewers = amount || Enum.random(10..200)
-          # 1 second per viewer
-          viewers
-
-        :patreon ->
-          # 2 minutes per patreon
-          120
-
-        _ ->
-          Enum.random(10..60)
-      end
+    extension_amount = calculate_extension_amount(source_type, amount)
 
     %{
       id: Base.generate_hex_id(),
@@ -144,6 +119,21 @@ defmodule Streampai.Fake.Timer do
       timestamp: DateTime.utc_now()
     }
   end
+
+  defp calculate_extension_amount(:donation, amount) do
+    donation_amount = amount || Base.generate_donation_amount()
+    round(donation_amount * 30)
+  end
+
+  defp calculate_extension_amount(:subscription, _amount), do: 60
+
+  defp calculate_extension_amount(:raid, amount) do
+    amount || Enum.random(10..200)
+  end
+
+  defp calculate_extension_amount(:patreon, _amount), do: 120
+
+  defp calculate_extension_amount(_source_type, _amount), do: Enum.random(10..60)
 
   def generate_demo_sequence do
     # Generate a sequence of timer events for demo purposes

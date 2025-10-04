@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   use GenServer
 
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
   alias Streampai.YouTube.TokenManager
@@ -21,6 +22,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :stream_id,
     :chat_id,
     :chat_pid,
+    :metrics_collector_pid,
     :stream_key,
     :rtmp_url,
     :cloudflare_output_id,
@@ -141,7 +143,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
          {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)} do
+           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)},
+         {:start_metrics_collector, {:ok, collector_pid}} <-
+           {:start_metrics_collector, start_metrics_collector(state, broadcast["id"])} do
       new_state = %{
         state
         | is_active: true,
@@ -149,6 +153,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
           stream_id: stream["id"],
           chat_id: active_chat_id,
           chat_pid: chat_pid,
+          metrics_collector_pid: collector_pid,
           stream_key: stream_key,
           rtmp_url: rtmp_url,
           cloudflare_output_id: output_id
@@ -172,6 +177,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       GrpcStreamClient.stop(state.chat_pid)
     end
 
+    if state.metrics_collector_pid do
+      Process.exit(state.metrics_collector_pid, :normal)
+    end
+
     cleanup_cloudflare_output(state)
     cleanup_broadcast(state)
     cleanup_stream(state)
@@ -183,6 +192,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         stream_id: nil,
         chat_id: nil,
         chat_pid: nil,
+        metrics_collector_pid: nil,
         stream_key: nil,
         rtmp_url: nil,
         cloudflare_output_id: nil
@@ -256,6 +266,12 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
+  def handle_info({:viewer_count_update, viewer_count}, state) do
+    Logger.debug("Metrics update - viewer count: #{viewer_count}")
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info({:stream_ended, reason}, state) do
     Logger.info("gRPC stream ended: #{inspect(reason)}")
     new_state = %{state | chat_pid: nil}
@@ -314,6 +330,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     # Stop chat stream
     if state.chat_pid do
       GrpcStreamClient.stop(state.chat_pid)
+    end
+
+    # Stop metrics collector
+    if state.metrics_collector_pid do
+      Process.exit(state.metrics_collector_pid, :normal)
     end
 
     # Delete Cloudflare Live Output
@@ -587,6 +608,17 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       state.access_token,
       chat_id,
       self()
+    )
+  end
+
+  defp start_metrics_collector(state, video_id) do
+    Logger.info("Starting metrics collector for video ID: #{video_id}")
+
+    YouTubeMetricsCollector.start_link(
+      user_id: state.user_id,
+      video_id: video_id,
+      access_token: state.access_token,
+      parent_pid: self()
     )
   end
 

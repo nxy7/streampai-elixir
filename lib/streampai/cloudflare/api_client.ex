@@ -201,19 +201,19 @@ defmodule Streampai.Cloudflare.APIClient do
 
   defp get_error_message(_), do: "Unknown error"
 
-  defp handle_api_error(reason, operation) do
-    case reason do
-      :missing_credentials ->
-        {:error, :missing_credentials, "Cloudflare API credentials not configured"}
+  defp handle_api_error(:missing_credentials, _operation) do
+    {:error, :missing_credentials, "Cloudflare API credentials not configured"}
+  end
 
-      {:api_error, message} ->
-        {:error, :api_error, "Cloudflare API returned error for #{operation}: #{message}"}
+  defp handle_api_error({:api_error, message}, operation) do
+    {:error, :api_error, "Cloudflare API returned error for #{operation}: #{message}"}
+  end
 
-      {:http_error, status, _body} ->
-        {:error, :http_error, "HTTP #{status} error during #{operation}"}
+  defp handle_api_error({:http_error, status, _body}, operation) do
+    {:error, :http_error, "HTTP #{status} error during #{operation}"}
+  end
 
-      {:request_failed, reason} ->
-        {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
-    end
+  defp handle_api_error({:request_failed, reason}, operation) do
+    {:error, :request_failed, "Network request failed for #{operation}: #{inspect(reason)}"}
   end
 end

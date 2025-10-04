@@ -20,17 +20,7 @@ defmodule Streampai.Fake.Chat do
   def generate_message do
     username = Base.generate_username()
     platform = Base.generate_platform()
-
-    # For YouTube platform, maybe add emotes in :shortcode: format
-    content =
-      case platform do
-        %{icon: "youtube"} ->
-          base_message = Enum.random(messages())
-          maybe_add_youtube_emotes(base_message)
-
-        _ ->
-          Enum.random(messages())
-      end
+    content = generate_message_content(platform)
 
     %{
       id: Base.generate_id(),
@@ -88,6 +78,14 @@ defmodule Streampai.Fake.Chat do
   end
 
   # Private helper functions
+
+  defp generate_message_content(%{icon: "youtube"}) do
+    messages()
+    |> Enum.random()
+    |> maybe_add_youtube_emotes()
+  end
+
+  defp generate_message_content(_platform), do: Enum.random(messages())
 
   defp maybe_add_youtube_emotes(message) do
     # 60% chance to add emotes to YouTube messages
