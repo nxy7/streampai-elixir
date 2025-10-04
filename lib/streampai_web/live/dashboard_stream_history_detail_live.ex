@@ -319,7 +319,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 </div>
               </div>
             </div>
-
+            
     <!-- Stream Playback Placeholder -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Stream Playback</h3>
@@ -344,7 +344,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 </div>
               </div>
             </div>
-
+            
     <!-- Timeline with Events -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Stream Timeline</h3>
@@ -356,7 +356,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     style={"width: #{@current_timeline_position}%"}
                   >
                   </div>
-
+                  
     <!-- Event markers -->
                   <%= for event <- @events do %>
                     <div
@@ -369,7 +369,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     </div>
                   <% end %>
                 </div>
-
+                
     <!-- Timeline controls -->
                 <div class="flex items-center space-x-4">
                   <input
@@ -385,7 +385,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                     {format_timeline_time(@stream, @current_timeline_position)}
                   </span>
                 </div>
-
+                
     <!-- Event legend -->
                 <div class="flex items-center space-x-4 mt-4 text-xs">
                   <div class="flex items-center">
@@ -408,7 +408,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
               </div>
             </div>
           </div>
-
+          
     <!-- Sidebar -->
           <div class="space-y-6">
             <!-- Stream Insights -->
@@ -474,7 +474,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 </div>
               </div>
             </div>
-
+            
     <!-- Stream Chat -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200">
               <div class="px-6 py-4 border-b border-gray-200">
