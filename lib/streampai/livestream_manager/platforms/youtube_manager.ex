@@ -27,7 +27,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :rtmp_url,
     :cloudflare_output_id,
     :is_active,
-    :started_at
+    :started_at,
+    viewer_count: 0
   ]
 
   def start_link(user_id, config) when is_binary(user_id) do
@@ -88,6 +89,13 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   def get_status(user_id) when is_binary(user_id) do
     GenServer.call(via_tuple(user_id), :get_status)
+  end
+
+  @doc """
+  Gets the current viewer count for the stream.
+  """
+  def get_viewer_count(user_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), :get_viewer_count)
   end
 
   @doc """
@@ -226,6 +234,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
+  def handle_call(:get_viewer_count, _from, state) do
+    {:reply, state.viewer_count, state}
+  end
+
+  @impl true
   def handle_call({:delete_message, message_id}, _from, state) do
     do_delete_message(message_id, state)
   end
@@ -268,7 +281,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   @impl true
   def handle_info({:viewer_count_update, viewer_count}, state) do
     Logger.debug("Metrics update - viewer count: #{viewer_count}")
-    {:noreply, state}
+    {:noreply, %{state | viewer_count: viewer_count}}
   end
 
   @impl true
@@ -360,11 +373,15 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       status: %{
         privacyStatus: "public",
         selfDeclaredMadeForKids: false
+      },
+      contentDetails: %{
+        latencyPreference: "low",
+        enableAutoStart: true
       }
     }
 
     with_token_retry(state, fn token ->
-      ApiClient.insert_live_broadcast(token, "snippet,status", broadcast_data)
+      ApiClient.insert_live_broadcast(token, "snippet,status,contentDetails", broadcast_data)
     end)
   end
 
@@ -730,7 +747,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
         case TokenManager.refresh_token(state.user_id) do
           {:ok, new_token} ->
-            Logger.info("Token refreshed, retrying API call")
+            Logger.info("Token refreshed (length: #{String.length(new_token)}), retrying API call")
+
             # Retry with new token
             api_call_fn.(new_token)
 

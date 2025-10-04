@@ -14,7 +14,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector do
 
   require Logger
 
-  @poll_interval to_timeout(second: 30)
+  @poll_interval to_timeout(second: 2)
 
   defstruct [
     :user_id,
@@ -61,6 +61,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector do
         Logger.warning("Got 401 error, requesting token refresh")
         handle_token_refresh(state)
 
+      {:error, :video_not_found} ->
+        Logger.info("Video no longer exists, stopping metrics collector")
+        {:stop, :normal, state}
+
       {:error, reason} ->
         Logger.warning("Failed to fetch viewer count: #{inspect(reason)}")
         {:noreply, schedule_poll(state)}
@@ -93,8 +97,14 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector do
   # Private functions
 
   defp fetch_viewer_count(state) do
-    case ApiClient.get_video(state.access_token, state.video_id, "liveStreamingDetails") do
+    case ApiClient.get_video(state.access_token, state.video_id, [
+           "liveStreamingDetails",
+           "statistics",
+           "status",
+           "suggestions"
+         ]) do
       {:ok, video} ->
+        # video |> dbg
         viewer_count = get_in(video, ["liveStreamingDetails", "concurrentViewers"])
 
         case viewer_count do
@@ -116,7 +126,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector do
 
   defp send_update_to_parent(parent_pid, viewer_count) do
     send(parent_pid, {:viewer_count_update, viewer_count})
-    Logger.debug("Sent viewer count update: #{viewer_count}")
+    # Logger.info("Viewer count: #{viewer_count}")
   end
 
   defp schedule_poll(state) do

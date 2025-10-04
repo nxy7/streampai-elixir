@@ -268,7 +268,9 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   defp validate_token(state) do
     alias Streampai.YouTube.ApiClient
 
-    Logger.info("Validating access token...")
+    Logger.info(
+      "Validating access token (length: #{String.length(state.access_token || "")}, is_nil: #{is_nil(state.access_token)})..."
+    )
 
     case ApiClient.validate_token(state.access_token) do
       {:ok, token_info} ->

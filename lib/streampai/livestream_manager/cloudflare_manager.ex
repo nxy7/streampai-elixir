@@ -175,8 +175,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         {:ok, new_streaming_status} ->
           handle_input_status_change(state, new_streaming_status)
 
+        {:error, :input_deleted} ->
+          Logger.warning("Live input was deleted from Cloudflare, recreating...")
+          handle_input_deletion(state)
+
         {:error, _reason} ->
-          # Handle API errors gracefully - keep current status
+          # Handle other API errors gracefully - keep current status
           Logger.debug("Ignoring API error during status check")
 
           state
@@ -571,9 +575,8 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
             {:ok, if(streaming_status, do: :live, else: :offline)}
 
           {:error, :http_error, "HTTP 404 error during get_live_input"} ->
-            Logger.warning("Live input #{input_id} not found")
-
-            {:ok, :offline}
+            Logger.warning("Live input #{input_id} not found (404)")
+            {:error, :input_deleted}
 
           {:error, _error_type, message} ->
             Logger.warning("Failed to check input status: #{inspect(message)}")
@@ -583,6 +586,47 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
       _ ->
         {:ok, :offline}
+    end
+  end
+
+  defp handle_input_deletion(state) do
+    # Delete stale DB record if it exists
+    delete_stale_live_input_record(state.user_id)
+
+    # Clear outputs and reset state
+    state = %{
+      state
+      | live_input: nil,
+        live_outputs: %{},
+        stream_status: :error,
+        input_streaming_status: :offline
+    }
+
+    update_stream_state(state)
+
+    # Trigger re-initialization
+    send(self(), :initialize_live_input)
+
+    state
+  end
+
+  defp delete_stale_live_input_record(user_id) do
+    import Ash.Query
+
+    query = filter(LiveInput, user_id == ^user_id)
+
+    case Ash.read_one(query, actor: %{id: user_id}) do
+      {:ok, live_input} when not is_nil(live_input) ->
+        case Ash.destroy(live_input, actor: %{id: user_id}) do
+          :ok ->
+            Logger.info("Deleted stale live input record for user #{user_id}")
+
+          {:error, reason} ->
+            Logger.warning("Failed to delete stale live input record: #{inspect(reason)}")
+        end
+
+      _ ->
+        :ok
     end
   end
 

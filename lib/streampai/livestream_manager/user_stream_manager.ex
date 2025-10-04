@@ -9,6 +9,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.Jobs.ProcessFinishedLivestreamJob
   alias Streampai.LivestreamManager.AlertQueue
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.LivestreamMetricsCollector
   alias Streampai.LivestreamManager.Platforms.FacebookManager
   alias Streampai.LivestreamManager.Platforms.KickManager
   alias Streampai.LivestreamManager.Platforms.TwitchManager
@@ -33,7 +34,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       {StreamStateServer, user_id},
       {CloudflareManager, user_id},
       {PlatformSupervisor, user_id},
-      {AlertQueue, user_id}
+      {AlertQueue, user_id},
+      {LivestreamMetricsCollector, user_id}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
