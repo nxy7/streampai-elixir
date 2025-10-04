@@ -28,7 +28,13 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   def handle_event("update_filter", %{"filter" => filter_params}, socket) do
     user_id = socket.assigns.current_user.id
-    filters = Map.merge(socket.assigns.filters, filter_params)
+
+    filters = %{
+      platform: Map.get(filter_params, "platform", "all"),
+      date_range: Map.get(filter_params, "date_range", "30days"),
+      sort: Map.get(filter_params, "sort", "recent")
+    }
+
     stream_list = user_id |> load_streams() |> apply_filters(filters)
 
     socket =
@@ -272,50 +278,51 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Streams</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
-              <select
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                phx-change="update_filter"
-                name="filter[platform]"
-              >
-                <option value="all" selected={@filters.platform == "all"}>All Platforms</option>
-                <option value="twitch" selected={@filters.platform == "twitch"}>Twitch</option>
-                <option value="youtube" selected={@filters.platform == "youtube"}>YouTube</option>
-                <option value="facebook" selected={@filters.platform == "facebook"}>Facebook</option>
-                <option value="kick" selected={@filters.platform == "kick"}>Kick</option>
-              </select>
+          <form phx-change="update_filter">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                <select
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  name="filter[platform]"
+                >
+                  <option value="all" selected={@filters.platform == "all"}>All Platforms</option>
+                  <option value="twitch" selected={@filters.platform == "twitch"}>Twitch</option>
+                  <option value="youtube" selected={@filters.platform == "youtube"}>YouTube</option>
+                  <option value="facebook" selected={@filters.platform == "facebook"}>
+                    Facebook
+                  </option>
+                  <option value="kick" selected={@filters.platform == "kick"}>Kick</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <select
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  name="filter[date_range]"
+                >
+                  <option value="7days" selected={@filters.date_range == "7days"}>Last 7 days</option>
+                  <option value="30days" selected={@filters.date_range == "30days"}>
+                    Last 30 days
+                  </option>
+                  <option value="all" selected={@filters.date_range == "all"}>All time</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <select
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  name="filter[sort]"
+                >
+                  <option value="recent" selected={@filters.sort == "recent"}>Most Recent</option>
+                  <option value="duration" selected={@filters.sort == "duration"}>
+                    Longest Duration
+                  </option>
+                  <option value="viewers" selected={@filters.sort == "viewers"}>Most Viewers</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-              <select
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                phx-change="update_filter"
-                name="filter[date_range]"
-              >
-                <option value="7days" selected={@filters.date_range == "7days"}>Last 7 days</option>
-                <option value="30days" selected={@filters.date_range == "30days"}>
-                  Last 30 days
-                </option>
-                <option value="all" selected={@filters.date_range == "all"}>All time</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-              <select
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                phx-change="update_filter"
-                name="filter[sort]"
-              >
-                <option value="recent" selected={@filters.sort == "recent"}>Most Recent</option>
-                <option value="duration" selected={@filters.sort == "duration"}>
-                  Longest Duration
-                </option>
-                <option value="viewers" selected={@filters.sort == "viewers"}>Most Viewers</option>
-              </select>
-            </div>
-          </div>
+          </form>
         </div>
         
     <!-- Stream History List -->
