@@ -66,5 +66,35 @@ defmodule Streampai.Stream.Livestream do
       allow_nil? false
       attribute_writable? true
     end
+
+    has_many :metrics, Streampai.Stream.LivestreamMetric do
+      destination_attribute :livestream_id
+    end
+
+    has_many :chat_messages, Streampai.Stream.ChatMessage do
+      destination_attribute :livestream_id
+    end
+  end
+
+  calculations do
+    calculate :average_viewers, :integer, Streampai.Stream.Calculations.AverageViewers do
+      public? true
+    end
+
+    calculate :peak_viewers, :integer, Streampai.Stream.Calculations.PeakViewers do
+      public? true
+    end
+
+    calculate :messages_amount, :integer, Streampai.Stream.Calculations.MessagesAmount do
+      public? true
+    end
+
+    calculate :duration_seconds, :integer, Streampai.Stream.Calculations.DurationSeconds do
+      public? true
+    end
+
+    calculate :platforms, {:array, :atom}, Streampai.Stream.Calculations.Platforms do
+      public? true
+    end
   end
 end

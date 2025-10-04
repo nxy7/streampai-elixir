@@ -6,9 +6,12 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
 
   import StreampaiWeb.AnalyticsComponents
 
+  alias Streampai.Stream.Livestream
   alias StreampaiWeb.CoreComponents, as: Core
   alias StreampaiWeb.Utils.FakeAnalytics
   alias StreampaiWeb.Utils.FormatHelpers
+
+  require Ash.Query
 
   @update_interval 5_000
 
@@ -82,10 +85,13 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
 
   defp load_analytics_data(socket, timeframe) do
     days = days_for_timeframe(timeframe)
+    user_id = socket.assigns.current_user.id
+
+    stream_list = load_recent_streams(user_id, days)
 
     socket
     |> assign(:overall_stats, FakeAnalytics.generate_overall_stats(timeframe))
-    |> assign(:stream_list, FakeAnalytics.generate_stream_list())
+    |> assign(:stream_list, stream_list)
     |> assign(:viewer_data, FakeAnalytics.generate_time_series_data(:viewers, days))
     |> assign(:income_data, FakeAnalytics.generate_time_series_data(:income, days))
     |> assign(:follower_data, FakeAnalytics.generate_time_series_data(:followers, days))
@@ -94,6 +100,73 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     |> assign(:top_content, FakeAnalytics.generate_top_content())
     |> assign(:demographics, FakeAnalytics.generate_demographics())
   end
+
+  defp load_recent_streams(user_id, days) do
+    cutoff = DateTime.add(DateTime.utc_now(), -days * 24 * 60 * 60, :second)
+
+    Livestream
+    |> Ash.Query.for_read(:get_completed_by_user, %{user_id: user_id})
+    |> Ash.Query.filter(started_at >= ^cutoff)
+    |> Ash.Query.load([
+      :average_viewers,
+      :peak_viewers,
+      :messages_amount,
+      :duration_seconds,
+      :platforms
+    ])
+    |> Ash.Query.sort(started_at: :desc)
+    |> Ash.Query.limit(5)
+    |> Ash.read!(authorize?: false)
+    |> Enum.map(&format_stream_for_analytics/1)
+  end
+
+  defp format_stream_for_analytics(livestream) do
+    %{
+      id: livestream.id,
+      title: livestream.title,
+      platform: format_platforms(livestream.platforms),
+      start_time: livestream.started_at,
+      duration: format_duration_hours(livestream.duration_seconds),
+      game: "N/A",
+      viewers: %{
+        peak: livestream.peak_viewers || 0,
+        average: livestream.average_viewers || 0
+      },
+      income: %{
+        total: 0.0,
+        donations: 0.0,
+        subscriptions: 0.0,
+        bits: 0.0
+      },
+      engagement: %{
+        chat_messages: livestream.messages_amount || 0,
+        follows: 0,
+        subscribers: 0,
+        engagement_rate: 0.0
+      }
+    }
+  end
+
+  defp format_platforms([]), do: "N/A"
+  defp format_platforms([platform]), do: platform |> to_string() |> String.capitalize()
+
+  defp format_platforms(platforms) do
+    Enum.map_join(platforms, ", ", &(&1 |> to_string() |> String.capitalize()))
+  end
+
+  defp format_duration_hours(seconds) when is_integer(seconds) do
+    hours = div(seconds, 3600)
+    minutes = div(rem(seconds, 3600), 60)
+
+    cond do
+      hours > 0 and minutes > 0 -> "#{hours}h #{minutes}m"
+      hours > 0 -> "#{hours}h"
+      minutes > 0 -> "#{minutes}m"
+      true -> "0m"
+    end
+  end
+
+  defp format_duration_hours(nil), do: "0m"
 
   defp days_for_timeframe(:day), do: 1
   defp days_for_timeframe(:week), do: 7

@@ -37,12 +37,26 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   end
 
   defp load_stream_data(stream_id) do
-    case Ash.get(Livestream, stream_id, authorize?: false) do
-      {:ok, livestream} ->
+    livestream =
+      Livestream
+      |> Ash.Query.filter(id == ^stream_id)
+      |> Ash.Query.load([
+        :average_viewers,
+        :peak_viewers,
+        :messages_amount,
+        :duration_seconds,
+        :platforms
+      ])
+      |> Ash.read_one!(authorize?: false)
+
+    case livestream do
+      nil ->
+        {:error, :not_found}
+
+      livestream ->
         events = load_stream_events(stream_id)
         chat_messages = load_chat_messages(stream_id)
-        platforms = get_stream_platforms(stream_id)
-        stream = build_stream_data(livestream, platforms)
+        stream = build_stream_data(livestream)
         insights = generate_stream_insights(stream, events, chat_messages)
 
         {:ok,
@@ -51,33 +65,25 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
            events: events,
            chat_messages: chat_messages,
            insights: insights,
-           platforms: platforms
+           platforms: livestream.platforms || []
          }}
-
-      {:error, _} ->
-        {:error, :not_found}
     end
   end
 
-  defp build_stream_data(livestream, platforms) do
-    duration_seconds = calculate_duration(livestream.started_at, livestream.ended_at)
-
+  defp build_stream_data(livestream) do
     %{
       id: livestream.id,
       title: livestream.title,
       thumbnail_url: livestream.thumbnail_url || "/images/placeholder-thumbnail.jpg",
       started_at: livestream.started_at,
       ended_at: livestream.ended_at,
-      duration_seconds: duration_seconds,
-      platforms: platforms,
-      max_viewers: "-",
-      avg_viewers: "-",
+      duration_seconds: livestream.duration_seconds || 0,
+      platforms: livestream.platforms || [],
+      max_viewers: livestream.peak_viewers || 0,
+      avg_viewers: livestream.average_viewers || 0,
       viewer_data: []
     }
   end
-
-  defp calculate_duration(started_at, nil), do: DateTime.diff(DateTime.utc_now(), started_at)
-  defp calculate_duration(started_at, ended_at), do: DateTime.diff(ended_at, started_at)
 
   defp load_stream_events(livestream_id) do
     livestream_id
@@ -113,13 +119,6 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       is_moderator: chat_message.sender_is_moderator || false,
       is_subscriber: false
     }
-  end
-
-  defp get_stream_platforms(livestream_id) do
-    livestream_id
-    |> StreamEvent.get_platform_started_for_livestream!(authorize?: false)
-    |> Enum.map(& &1.platform)
-    |> Enum.uniq()
   end
 
   def handle_event("seek_timeline", %{"position" => position_str}, socket) do

@@ -4,9 +4,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   import StreampaiWeb.Utils.PlatformUtils
 
-  alias Streampai.Stream.ChatMessage
   alias Streampai.Stream.Livestream
-  alias Streampai.Stream.StreamEvent
   alias StreampaiWeb.Utils.DateTimeUtils
 
   require Ash.Query
@@ -46,45 +44,33 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
   end
 
   defp load_streams(user_id) do
-    user_id
-    |> Livestream.get_completed_by_user!(authorize?: false)
+    Livestream
+    |> Ash.Query.for_read(:get_completed_by_user, %{user_id: user_id})
+    |> Ash.Query.load([
+      :average_viewers,
+      :peak_viewers,
+      :messages_amount,
+      :duration_seconds,
+      :platforms
+    ])
+    |> Ash.read!(authorize?: false)
     |> Enum.map(&enrich_stream_data/1)
   end
 
   defp enrich_stream_data(livestream) do
-    chat_message_count = count_chat_messages(livestream.id)
-    platforms = get_stream_platforms(livestream.id)
-    duration_seconds = calculate_duration(livestream.started_at, livestream.ended_at)
-
     %{
       id: livestream.id,
       title: livestream.title,
       thumbnail_url: livestream.thumbnail_url || "/images/placeholder-thumbnail.jpg",
       started_at: livestream.started_at,
       ended_at: livestream.ended_at,
-      duration_seconds: duration_seconds,
-      platforms: platforms,
-      max_viewers: "-",
-      avg_viewers: "-",
-      total_chat_messages: chat_message_count
+      duration_seconds: livestream.duration_seconds || 0,
+      platforms: livestream.platforms || [],
+      max_viewers: livestream.peak_viewers || 0,
+      avg_viewers: livestream.average_viewers || 0,
+      total_chat_messages: livestream.messages_amount || 0
     }
   end
-
-  defp count_chat_messages(livestream_id) do
-    ChatMessage
-    |> Ash.Query.for_read(:get_count_for_livestream, %{livestream_id: livestream_id})
-    |> Ash.count!(authorize?: false)
-  end
-
-  defp get_stream_platforms(livestream_id) do
-    livestream_id
-    |> StreamEvent.get_platform_started_for_livestream!(authorize?: false)
-    |> Enum.map(& &1.platform)
-    |> Enum.uniq()
-  end
-
-  defp calculate_duration(started_at, nil), do: DateTime.diff(DateTime.utc_now(), started_at)
-  defp calculate_duration(started_at, ended_at), do: DateTime.diff(ended_at, started_at)
 
   defp calculate_monthly_stats(streams) do
     cutoff = DateTime.add(DateTime.utc_now(), -30 * 24 * 60 * 60, :second)
@@ -98,10 +84,20 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
     total_messages = Enum.sum(Enum.map(recent_streams, & &1.total_chat_messages))
 
+    avg_viewers =
+      case recent_streams do
+        [] ->
+          0
+
+        streams ->
+          total_avg = Enum.sum(Enum.map(streams, & &1.avg_viewers))
+          round(total_avg / length(streams))
+      end
+
     %{
       total_streams: length(recent_streams),
       total_hours: total_hours,
-      avg_viewers: "-",
+      avg_viewers: avg_viewers,
       total_followers: "-",
       total_chat_messages: total_messages
     }

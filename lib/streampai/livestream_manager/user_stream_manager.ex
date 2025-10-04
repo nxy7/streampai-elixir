@@ -34,8 +34,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       {StreamStateServer, user_id},
       {CloudflareManager, user_id},
       {PlatformSupervisor, user_id},
-      {AlertQueue, user_id},
-      {LivestreamMetricsCollector, user_id}
+      {AlertQueue, user_id}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -124,6 +123,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     CloudflareManager.start_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
 
+    # Start metrics collector for this stream
+    start_metrics_collector(user_id, stream_uuid)
+
     start_platform_streaming(user_id, stream_uuid)
 
     Phoenix.PubSub.broadcast(
@@ -147,6 +149,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     # Stop platform streaming processes
     stop_platform_streaming(user_id)
+
+    # Stop metrics collector
+    stop_metrics_collector(user_id)
 
     # Stop CloudflareManager streaming (disables live outputs and sets status to :inactive)
     CloudflareManager.stop_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
@@ -312,5 +317,35 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
        expires_at: expires,
        extra_data: extra
      }}
+  end
+
+  defp start_metrics_collector(user_id, stream_id) do
+    case LivestreamMetricsCollector.start_link(user_id: user_id, stream_id: stream_id) do
+      {:ok, pid} ->
+        # Store PID in process dictionary for later cleanup
+        Process.put({:metrics_collector_pid, user_id}, pid)
+        Logger.info("Started metrics collector for stream #{stream_id}")
+        pid
+
+      {:error, reason} ->
+        Logger.error("Failed to start metrics collector: #{inspect(reason)}")
+        nil
+    end
+  end
+
+  defp stop_metrics_collector(user_id) do
+    case Process.get({:metrics_collector_pid, user_id}) do
+      nil ->
+        :ok
+
+      pid when is_pid(pid) ->
+        if Process.alive?(pid) do
+          Process.exit(pid, :normal)
+          Logger.info("Stopped metrics collector for user #{user_id}")
+        end
+
+        Process.delete({:metrics_collector_pid, user_id})
+        :ok
+    end
   end
 end

@@ -16,7 +16,19 @@ defmodule Streampai.Stream.LivestreamMetric do
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      primary? true
+
+      accept [
+        :livestream_id,
+        :youtube_viewers,
+        :twitch_viewers,
+        :facebook_viewers,
+        :kick_viewers
+      ]
+    end
   end
 
   attributes do

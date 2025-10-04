@@ -8,7 +8,6 @@ defmodule StreampaiWeb.AnalyticsComponents do
   """
   use Phoenix.Component
 
-  alias Streampai.Fake.Livestream
   alias StreampaiWeb.CoreComponents, as: Core
   alias StreampaiWeb.Utils.FormatHelpers
 
@@ -298,7 +297,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
                       navigate={get_stream_history_url(stream)}
                       class="block"
                     >
-                      {stream.duration}h
+                      {stream.duration}
                     </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -353,15 +352,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
   defp platform_badge_class(_), do: "bg-gray-100 text-gray-800"
 
   # Helper function to generate stream history URL
-  defp get_stream_history_url(_stream) do
-    # Since analytics streams use different IDs, we'll get a random stream from history
-    # This is a temporary solution until we unify the data structure
-    stream_list = Livestream.generate_stream_history(1)
-
-    case stream_list do
-      [first_stream | _] -> "/dashboard/stream-history/#{first_stream.id}"
-      [] -> "/dashboard/stream-history"
-    end
+  defp get_stream_history_url(stream) do
+    "/dashboard/stream-history/#{stream.id}"
   end
 
   attr :text, :string, required: true
