@@ -63,7 +63,7 @@ defmodule StreampaiWeb.DashboardLive do
         >
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-2 text-sm text-gray-500">
-              <StreampaiWeb.Components.DashboardComponents.icon name="clock" class="w-4 h-4" />
+              <.icon name="hero-clock" class="w-4 h-4" />
               <span>Last login: {Date.utc_today()}</span>
             </div>
           </div>

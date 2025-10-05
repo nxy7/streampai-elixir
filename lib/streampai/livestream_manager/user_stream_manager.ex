@@ -106,17 +106,16 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
     stream_uuid = Ash.UUID.generate()
     title = MetadataHelper.get_stream_title(metadata, stream_uuid)
+    description = Map.get(metadata, :description)
 
-    {:ok, _livestream} =
-      Livestream.create(
-        %{
-          id: stream_uuid,
-          user_id: user_id,
-          started_at: DateTime.utc_now(),
-          title: title
-        },
-        actor: user
+    livestream_attrs =
+      maybe_put(
+        %{id: stream_uuid, user_id: user_id, started_at: DateTime.utc_now(), title: title},
+        :description,
+        description
       )
+
+    {:ok, _livestream} = Livestream.create(livestream_attrs, actor: user)
 
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
@@ -349,4 +348,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       Streampai.LivestreamManager.Registry
     end
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

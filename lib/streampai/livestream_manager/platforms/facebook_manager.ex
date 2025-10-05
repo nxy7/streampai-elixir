@@ -5,7 +5,6 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   """
   use GenServer
 
-  alias Streampai.LivestreamManager.RegistryHelper
   alias Streampai.LivestreamManager.StreamEvents
 
   require Logger
@@ -13,7 +12,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   @activity_interval 1_000
 
   def start_link(user_id, config) when is_binary(user_id) do
-    GenServer.start_link(__MODULE__, {user_id, config}, name: RegistryHelper.platform_manager_via(user_id, :facebook))
+    GenServer.start_link(__MODULE__, {user_id, config}, name: via_tuple(user_id))
   end
 
   @impl true
@@ -37,14 +36,11 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   # Client API
 
   def start_streaming(user_id, stream_uuid) do
-    GenServer.call(
-      RegistryHelper.platform_manager_via(user_id, :facebook),
-      {:start_streaming, stream_uuid}
-    )
+    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
   end
 
   def stop_streaming(user_id) do
-    GenServer.call(RegistryHelper.platform_manager_via(user_id, :facebook), :stop_streaming)
+    GenServer.call(via_tuple(user_id), :stop_streaming)
   end
 
   def send_chat_message(pid, message) when is_pid(pid) do
@@ -52,10 +48,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   end
 
   def send_chat_message(user_id, message) when is_binary(user_id) do
-    GenServer.call(
-      RegistryHelper.platform_manager_via(user_id, :facebook),
-      {:send_chat_message, message}
-    )
+    GenServer.call(via_tuple(user_id), {:send_chat_message, message})
   end
 
   def update_stream_metadata(pid, metadata) when is_pid(pid) do
@@ -63,10 +56,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   end
 
   def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
-    GenServer.call(
-      RegistryHelper.platform_manager_via(user_id, :facebook),
-      {:update_stream_metadata, metadata}
-    )
+    GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata})
   end
 
   # Server callbacks
@@ -137,5 +127,21 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   defp schedule_activity_log do
     Process.send_after(self(), :log_activity, @activity_interval)
+  end
+
+  defp via_tuple(user_id) do
+    registry_name = get_registry_name()
+    {:via, Registry, {registry_name, {:platform_manager, user_id, :facebook}}}
+  end
+
+  defp get_registry_name do
+    if Application.get_env(:streampai, :test_mode, false) do
+      case Process.get(:test_registry_name) do
+        nil -> Streampai.LivestreamManager.Registry
+        test_registry -> test_registry
+      end
+    else
+      Streampai.LivestreamManager.Registry
+    end
   end
 end

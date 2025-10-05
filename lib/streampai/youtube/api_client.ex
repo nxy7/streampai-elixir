@@ -239,6 +239,38 @@ defmodule Streampai.YouTube.ApiClient do
   end
 
   @doc """
+  Gets a single live broadcast by ID.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `id`: The broadcast ID to retrieve
+  - `part`: Resource parts to include (e.g., "snippet,status,contentDetails")
+  - `opts`: Optional parameters
+
+  ## Returns
+  - `{:ok, broadcast}` - Successfully retrieved broadcast
+  - `{:error, reason}` - Failed to retrieve broadcast
+  """
+  @spec get_live_broadcast(access_token, String.t(), part_param, keyword()) :: api_result()
+  def get_live_broadcast(access_token, id, part, opts \\ []) do
+    params =
+      opts
+      |> Keyword.put(:id, id)
+      |> Keyword.put(:part, normalize_part_param(part))
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Map.new()
+      |> normalize_broadcast_params()
+
+    req_opts = base_opts(access_token) ++ [url: "/liveBroadcasts", params: params]
+
+    case req_opts |> Req.get() |> handle_response() do
+      {:ok, %{"items" => [broadcast | _]}} -> {:ok, broadcast}
+      {:ok, %{"items" => []}} -> {:error, :not_found}
+      error -> error
+    end
+  end
+
+  @doc """
   Creates a new live broadcast.
 
   ## Parameters
@@ -569,6 +601,48 @@ defmodule Streampai.YouTube.ApiClient do
     |> handle_response()
   end
 
+  ## Members API
+
+  @doc """
+  Lists members of a YouTube channel (requires membership/sponsors).
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `part`: Resource parts to include (typically "snippet")
+  - `opts`: Optional parameters
+    - `filter_by_member_channel_id`: Filter by specific member channel IDs (comma-separated string)
+    - `has_access_to_level`: Filter by membership level ID
+    - `max_results`: Maximum number of results (0-50, default 5)
+    - `mode`: Filter mode ("all_current" or "updates", default "all_current")
+    - `page_token`: Page token for pagination
+
+  ## Example
+      {:ok, result} = ApiClient.list_members(token, "snippet", max_results: 50)
+      members = result["items"]
+  """
+  @spec list_members(access_token, part_param, keyword()) :: api_result()
+  def list_members(access_token, part, opts \\ []) do
+    params =
+      opts
+      |> Keyword.take([
+        :filter_by_member_channel_id,
+        :has_access_to_level,
+        :max_results,
+        :mode,
+        :page_token
+      ])
+      |> Keyword.put(:part, normalize_part_param(part))
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Map.new()
+      |> normalize_members_params()
+
+    req_opts = base_opts(access_token) ++ [url: "/members", params: params]
+
+    req_opts
+    |> Req.get()
+    |> handle_response()
+  end
+
   ## Utility Functions
 
   @doc """
@@ -608,6 +682,18 @@ defmodule Streampai.YouTube.ApiClient do
       {:on_behalf_of_content_owner_channel, value} -> {"onBehalfOfContentOwnerChannel", value}
       {:page_token, value} -> {"pageToken", value}
       {:stream_id, value} -> {"streamId", value}
+      {key, value} when is_atom(key) -> {Atom.to_string(key), value}
+      {key, value} -> {key, value}
+    end)
+  end
+
+  # Converts snake_case parameter names to camelCase for Members API
+  defp normalize_members_params(params) do
+    Map.new(params, fn
+      {:filter_by_member_channel_id, value} -> {"filterByMemberChannelId", value}
+      {:has_access_to_level, value} -> {"hasAccessToLevel", value}
+      {:max_results, value} -> {"maxResults", value}
+      {:page_token, value} -> {"pageToken", value}
       {key, value} when is_atom(key) -> {Atom.to_string(key), value}
       {key, value} -> {key, value}
     end)

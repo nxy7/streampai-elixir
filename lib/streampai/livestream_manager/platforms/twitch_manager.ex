@@ -5,7 +5,6 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   """
   use GenServer
 
-  alias Streampai.LivestreamManager.RegistryHelper
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamStateServer
 
@@ -27,7 +26,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   ]
 
   def start_link(user_id, config) when is_binary(user_id) do
-    GenServer.start_link(__MODULE__, {user_id, config}, name: RegistryHelper.platform_manager_via(user_id, :twitch))
+    GenServer.start_link(__MODULE__, {user_id, config}, name: via_tuple(user_id))
   end
 
   @impl true
@@ -57,17 +56,14 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   Starts streaming with the given stream UUID.
   """
   def start_streaming(user_id, stream_uuid) do
-    GenServer.call(
-      RegistryHelper.platform_manager_via(user_id, :twitch),
-      {:start_streaming, stream_uuid}
-    )
+    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
   end
 
   @doc """
   Stops the current stream.
   """
   def stop_streaming(user_id) do
-    GenServer.call(RegistryHelper.platform_manager_via(user_id, :twitch), :stop_streaming)
+    GenServer.call(via_tuple(user_id), :stop_streaming)
   end
 
   @doc """
@@ -78,10 +74,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   def send_chat_message(user_id, message) when is_binary(user_id) do
-    GenServer.cast(
-      RegistryHelper.platform_manager_via(user_id, :twitch),
-      {:send_chat_message, message}
-    )
+    GenServer.cast(via_tuple(user_id), {:send_chat_message, message})
   end
 
   @doc """
@@ -92,10 +85,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
-    GenServer.cast(
-      RegistryHelper.platform_manager_via(user_id, :twitch),
-      {:update_stream_metadata, metadata}
-    )
+    GenServer.cast(via_tuple(user_id), {:update_stream_metadata, metadata})
   end
 
   @doc """
@@ -348,5 +338,21 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   defp schedule_token_refresh do
     # Every hour
     Process.send_after(self(), :refresh_token, 3_600_000)
+  end
+
+  defp via_tuple(user_id) do
+    registry_name = get_registry_name()
+    {:via, Registry, {registry_name, {:platform_manager, user_id, :twitch}}}
+  end
+
+  defp get_registry_name do
+    if Application.get_env(:streampai, :test_mode, false) do
+      case Process.get(:test_registry_name) do
+        nil -> Streampai.LivestreamManager.Registry
+        test_registry -> test_registry
+      end
+    else
+      Streampai.LivestreamManager.Registry
+    end
   end
 end

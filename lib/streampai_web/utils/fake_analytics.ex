@@ -2,32 +2,32 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
   @moduledoc false
 
   def generate_overall_stats(timeframe \\ :week) do
-    base_viewers =
-      case timeframe do
-        :day -> 500..2000
-        :week -> 3000..15_000
-        :month -> 10_000..50_000
-        :year -> 100_000..500_000
-        _ -> 1000..5000
-      end
+    {total_income, avg_watch_time, engagement_rate, base_viewers} =
+      get_timeframe_params(timeframe)
 
     %{
       total_viewers: Enum.random(base_viewers),
       unique_viewers: Enum.random(round(base_viewers.first * 0.3)..round(base_viewers.last * 0.4)),
       peak_viewers: Enum.random(round(base_viewers.first * 0.15)..round(base_viewers.last * 0.2)),
-      average_watch_time: Enum.random(15..45),
-      total_income: Float.round(Enum.random(500..5000) + :rand.uniform() * 100, 2),
-      donations: Float.round(Enum.random(100..2000) + :rand.uniform() * 50, 2),
-      subscriptions: Float.round(Enum.random(200..1500) + :rand.uniform() * 30, 2),
-      bits: Float.round(Enum.random(50..500) + :rand.uniform() * 20, 2),
-      ads_revenue: Float.round(Enum.random(100..800) + :rand.uniform() * 40, 2),
+      average_watch_time: avg_watch_time,
+      total_income: total_income,
+      donations: Float.round(total_income * 0.25, 2),
+      subscriptions: Float.round(total_income * 0.45, 2),
+      bits: Float.round(total_income * 0.15, 2),
+      ads_revenue: Float.round(total_income * 0.15, 2),
       total_streams: Enum.random(5..30),
       total_hours_streamed: Enum.random(10..200),
-      engagement_rate: Float.round(2.5 + :rand.uniform() * 3.5, 2),
+      engagement_rate: engagement_rate,
       new_followers: Enum.random(50..500),
       chat_messages: Enum.random(500..5000)
     }
   end
+
+  defp get_timeframe_params(:day), do: {842.50, 28, 3.2, 500..2000}
+  defp get_timeframe_params(:week), do: {2847.25, 36, 3.6, 3000..15_000}
+  defp get_timeframe_params(:month), do: {12_450.75, 42, 4.1, 10_000..50_000}
+  defp get_timeframe_params(:year), do: {156_789.50, 45, 4.5, 100_000..500_000}
+  defp get_timeframe_params(_), do: {1500.00, 30, 3.0, 1000..5000}
 
   def generate_stream_list do
     platforms = ["Twitch", "YouTube", "Facebook", "Kick"]
@@ -99,11 +99,35 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
   end
 
   defp generate_metric_value(:income, hours_ago) do
-    if prime_time?(hours_ago) do
-      Enum.random(20..100) + :rand.uniform() * 20
-    else
-      Enum.random(5..30) + :rand.uniform() * 10
-    end
+    base_pattern = [
+      45,
+      38,
+      52,
+      61,
+      48,
+      72,
+      85,
+      68,
+      55,
+      42,
+      38,
+      35,
+      41,
+      58,
+      67,
+      79,
+      88,
+      92,
+      78,
+      65,
+      52,
+      48,
+      55,
+      62
+    ]
+
+    index = rem(hours_ago, 24)
+    Enum.at(base_pattern, index)
   end
 
   defp generate_metric_value(:followers, hours_ago) do
@@ -115,9 +139,35 @@ defmodule StreampaiWeb.Utils.FakeAnalytics do
   end
 
   defp generate_metric_value(:engagement, hours_ago) do
-    base_engagement = 2.0 + :rand.uniform() * 3.0
-    spike = if rem(hours_ago, 12) == 0, do: 2.0, else: 0
-    base_engagement + spike
+    base_pattern = [
+      2.8,
+      2.5,
+      2.3,
+      2.1,
+      2.4,
+      3.2,
+      3.8,
+      4.2,
+      3.5,
+      3.0,
+      2.7,
+      2.5,
+      2.9,
+      3.4,
+      3.9,
+      4.5,
+      4.8,
+      5.1,
+      4.7,
+      4.2,
+      3.6,
+      3.2,
+      3.1,
+      2.9
+    ]
+
+    index = rem(hours_ago, 24)
+    Enum.at(base_pattern, index)
   end
 
   defp generate_metric_value(_, _hours_ago) do

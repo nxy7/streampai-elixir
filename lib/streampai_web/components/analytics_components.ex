@@ -74,7 +74,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
       <h3 class="text-lg font-medium text-gray-900 mb-4">
         {@title}
       </h3>
-      <div class={[@height, "relative"]}>
+      <div class={[@height, "relative", "pl-12"]}>
         <svg class="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -83,7 +83,22 @@ defmodule StreampaiWeb.AnalyticsComponents do
             </linearGradient>
           </defs>
 
-          <% max_value = @data |> Enum.map(& &1.value) |> Enum.max(fn -> 100 end) %>
+          <% raw_max = @data |> Enum.map(& &1.value) |> Enum.max(fn -> 100 end) %>
+          <% max_value = round_chart_max(raw_max) %>
+          
+    <!-- Horizontal grid lines -->
+          <%= for i <- 0..4 do %>
+            <% y = i * 60 + 10 %>
+            <line
+              x1="0"
+              y1={y}
+              x2="800"
+              y2={y}
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+          <% end %>
+
           <% points =
             @data
             |> Enum.with_index()
@@ -114,8 +129,16 @@ defmodule StreampaiWeb.AnalyticsComponents do
             <circle cx={x} cy={y} r="4" fill="rgb(99, 102, 241)" />
           <% end %>
         </svg>
-
-        <div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500">
+        
+    <!-- Y-axis labels -->
+        <div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-gray-500">
+          <%= for i <- 4..0//-1 do %>
+            <span class="text-right pr-2">{trunc(max_value * i / 4)}</span>
+          <% end %>
+        </div>
+        
+    <!-- X-axis labels -->
+        <div class="absolute bottom-0 left-12 right-0 flex justify-between text-xs text-gray-500">
           <%= for i <- [0, div(length(@data) - 1, 4), div(length(@data) - 1, 2), div(3 * (length(@data) - 1), 4), length(@data) - 1] do %>
             <span>{FormatHelpers.format_chart_date(Enum.at(@data, i).time)}</span>
           <% end %>
@@ -254,6 +277,9 @@ defmodule StreampaiWeb.AnalyticsComponents do
                   Peak Viewers
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                  Avg Viewers
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                   Income
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
@@ -306,6 +332,14 @@ defmodule StreampaiWeb.AnalyticsComponents do
                       class="block"
                     >
                       {FormatHelpers.format_number(stream.viewers.peak)}
+                    </.link>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <.link
+                      navigate={get_stream_history_url(stream)}
+                      class="block"
+                    >
+                      {FormatHelpers.format_number(stream.viewers.average)}
                     </.link>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -442,5 +476,21 @@ defmodule StreampaiWeb.AnalyticsComponents do
       </div>
     </div>
     """
+  end
+
+  # Helper function to round chart max value to nice numbers
+  defp round_chart_max(value) when value <= 0, do: 100
+
+  defp round_chart_max(value) do
+    # Determine rounding factor based on magnitude
+    rounding_factor =
+      if value < 500 do
+        10
+      else
+        100
+      end
+
+    # Round up to nearest rounding factor
+    ceil(value / rounding_factor) * rounding_factor
   end
 end

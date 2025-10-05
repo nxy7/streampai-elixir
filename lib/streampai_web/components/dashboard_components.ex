@@ -5,7 +5,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   This module contains common dashboard elements like cards, status indicators,
   and other UI patterns used across multiple dashboard pages.
   """
-  use Phoenix.Component
+  use StreampaiWeb, :html
 
   alias Streampai.Accounts.StreamingAccount
 
@@ -33,7 +33,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">{@title}</h3>
         <%= if @icon do %>
-          <.icon name={@icon} class="w-5 h-5 text-purple-500" />
+          <.dashboard_icon name={@icon} class="w-5 h-5 text-purple-500" />
         <% end %>
       </div>
       {render_slot(@inner_block)}
@@ -342,17 +342,13 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   def empty_state(assigns) do
     ~H"""
     <div class={@class}>
-      <.icon name={@icon} class="mx-auto h-12 w-12 text-gray-400" />
+      <.dashboard_icon name={@icon} class="mx-auto h-12 w-12 text-gray-400" />
       <h3 class="mt-2 text-lg font-medium text-gray-900">{@title}</h3>
       <p class="mt-1 text-sm text-gray-500">{@message}</p>
     </div>
     """
   end
 
-  @doc """
-  Renders an icon with consistent styling.
-  SVG icons are inlined for better performance and customization.
-  """
   attr :name, :string, required: true, doc: "Icon name"
   attr :class, :string, default: "w-5 h-5", doc: "Icon CSS classes"
 
@@ -385,7 +381,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
   @default_icon_path "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 
-  def icon(assigns) do
+  defp dashboard_icon(assigns) do
     icon_name = Map.get(assigns, :name, "default")
     paths = get_icon_paths(icon_name)
 
@@ -445,7 +441,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="p-2 bg-purple-100 rounded-lg">
-            <.icon name={@icon} class="w-5 h-5 text-purple-600" />
+            <.dashboard_icon name={@icon} class="w-5 h-5 text-purple-600" />
           </div>
           <div>
             <p class="text-sm text-gray-500 font-medium">{@title}</p>
@@ -594,12 +590,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-12 text-center">
         <div class="max-w-md mx-auto">
           <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <.icon name="clock" class="w-8 h-8 text-purple-600" />
+            <.dashboard_icon name="clock" class="w-8 h-8 text-purple-600" />
           </div>
           <h2 class="text-2xl font-bold text-gray-900 mb-4">{@title}</h2>
           <p class="text-gray-600 mb-8">{@description}</p>
           <div class="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-            <.icon name="lightning" class="w-4 h-4 mr-2" /> Coming Soon
+            <.dashboard_icon name="lightning" class="w-4 h-4 mr-2" /> Coming Soon
           </div>
         </div>
       </div>
@@ -805,7 +801,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
             />
 
             <%= if @stream_status.can_start_streaming && @stream_status.status != :streaming do %>
-              <.stream_metadata_form metadata={@stream_metadata} />
+              <.stream_metadata_form metadata={@stream_metadata} socket={@socket} />
             <% end %>
 
             <.stream_action_button stream_status={@stream_status} loading={@loading} />
@@ -865,69 +861,20 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   end
 
   @doc """
-  Stream metadata form for title, description, and thumbnail.
+  Stream metadata form for title, description, and thumbnail (Vue component).
   """
   attr :metadata, :map, required: true
+  attr :socket, :any, default: nil
 
   def stream_metadata_form(assigns) do
     ~H"""
-    <div class="space-y-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <form phx-change="update_stream_metadata">
-        <div class="space-y-4">
-          <div>
-            <label for="stream-title" class="block text-sm font-medium text-gray-700 mb-1">
-              Stream Title
-            </label>
-            <input
-              type="text"
-              id="stream-title"
-              name="metadata[title]"
-              value={Map.get(@metadata, :title, "")}
-              placeholder="Enter your stream title..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label for="stream-description" class="block text-sm font-medium text-gray-700 mb-1">
-              Stream Description
-            </label>
-            <textarea
-              id="stream-description"
-              name="metadata[description]"
-              rows="3"
-              placeholder="Describe your stream..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            >{Map.get(@metadata, :description, "")}</textarea>
-          </div>
-        </div>
-      </form>
-
-      <div>
-        <label for="stream-thumbnail" class="block text-sm font-medium text-gray-700 mb-1">
-          Thumbnail (JPG/PNG, max 2MB)
-        </label>
-        <form phx-change="validate_thumbnail" phx-submit="upload_thumbnail">
-          <input
-            type="file"
-            id="stream-thumbnail"
-            name="thumbnail"
-            accept="image/jpeg,image/png"
-            phx-change="upload_thumbnail"
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-        </form>
-        <%= if Map.get(@metadata, :thumbnail_url) do %>
-          <div class="mt-2">
-            <img
-              src={@metadata.thumbnail_url}
-              alt="Thumbnail preview"
-              class="h-20 rounded border border-gray-200"
-            />
-          </div>
-        <% end %>
-      </div>
-    </div>
+    <.vue
+      v-component="StreamSettingsPreForm"
+      v-socket={@socket}
+      metadata={@metadata}
+      v-on:updateMetadata={JS.push("update_stream_metadata")}
+      v-on:uploadThumbnail={JS.push("upload_thumbnail")}
+    />
     """
   end
 
@@ -992,6 +939,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         value={@stream_key}
         hidden={!@show_stream_key}
         toggle_event="toggle_stream_key_visibility"
+        regenerate_event="regenerate_stream_key"
       />
     </div>
     """
@@ -1004,6 +952,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :value, :string, required: true
   attr :hidden, :boolean, default: false
   attr :toggle_event, :string, default: nil
+  attr :regenerate_event, :string, default: nil
 
   def copy_field(assigns) do
     display_value =
@@ -1015,7 +964,27 @@ defmodule StreampaiWeb.Components.DashboardComponents do
 
     ~H"""
     <div class="mb-3 relative">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{@label}</label>
+      <div class="flex items-center justify-between mb-1">
+        <label class="block text-xs font-medium text-gray-500">{@label}</label>
+        <%= if @regenerate_event do %>
+          <button
+            type="button"
+            phx-click={@regenerate_event}
+            class="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+            title="Regenerate stream key"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Regenerate
+          </button>
+        <% end %>
+      </div>
       <div class="relative">
         <div
           class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm font-mono cursor-pointer hover:bg-gray-100 select-none transition-colors"
@@ -1101,7 +1070,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     ~H"""
     <div class="text-center py-8">
       <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <.icon name="clock" class="w-8 h-8 text-yellow-600" />
+        <.dashboard_icon name="clock" class="w-8 h-8 text-yellow-600" />
       </div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">Streaming Services Starting Up</h3>
       <p class="text-sm text-gray-600 mb-4">
@@ -1127,10 +1096,20 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :current_user, :map, required: true
 
   def platform_connections_section(assigns) do
+    assigns =
+      assign_new(assigns, :active_count, fn ->
+        connected_count = Enum.count(assigns.platform_connections, & &1.connected)
+
+        total_count = length(assigns.platform_connections)
+        "#{connected_count}/#{total_count}"
+      end)
+
     ~H"""
     <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Platform Connections</h3>
+        <h3 class="text-lg font-medium text-gray-900">
+          Platform Connections <span class="text-gray-500 font-normal">({@active_count})</span>
+        </h3>
       </div>
       <div class="p-6">
         <div class="space-y-3">

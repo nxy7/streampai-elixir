@@ -22,7 +22,7 @@ defmodule Streampai.Stream.Livestream do
     defaults [:read, :destroy, update: :*]
 
     create :create do
-      accept [:id, :started_at, :user_id, :title, :thumbnail_url]
+      accept [:id, :started_at, :user_id, :title, :description, :thumbnail_url]
     end
 
     read :get_completed_by_user do
@@ -43,6 +43,11 @@ defmodule Streampai.Stream.Livestream do
     attribute :title, :string do
       public? true
       allow_nil? false
+    end
+
+    attribute :description, :string do
+      public? true
+      allow_nil? true
     end
 
     attribute :thumbnail_url, :string do

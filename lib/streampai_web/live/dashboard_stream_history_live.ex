@@ -76,11 +76,14 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     cutoff = DateTime.add(DateTime.utc_now(), -30 * 24 * 60 * 60, :second)
     recent_streams = Enum.filter(streams, &DateTime.after?(&1.started_at, cutoff))
 
-    total_hours =
+    total_seconds =
       recent_streams
       |> Enum.map(& &1.duration_seconds)
       |> Enum.sum()
-      |> div(3600)
+
+    total_hours = div(total_seconds, 3600)
+    total_minutes = div(rem(total_seconds, 3600), 60)
+    total_time_formatted = "#{total_hours}h #{total_minutes}m"
 
     total_messages = Enum.sum(Enum.map(recent_streams, & &1.total_chat_messages))
 
@@ -96,7 +99,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
     %{
       total_streams: length(recent_streams),
-      total_hours: total_hours,
+      total_time: total_time_formatted,
       avg_viewers: avg_viewers,
       total_followers: "-",
       total_chat_messages: total_messages
@@ -203,7 +206,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                 </div>
               </div>
               <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.total_hours}h</div>
+                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.total_time}</div>
                 <p class="text-sm text-gray-500">Total Stream Time</p>
               </div>
             </div>

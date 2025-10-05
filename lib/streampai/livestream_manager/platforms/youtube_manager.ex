@@ -517,29 +517,36 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp do_update_stream_metadata(metadata, state) do
-    broadcast_data = %{
-      id: state.broadcast_id,
-      snippet:
-        %{
-          title: Map.get(metadata, :title),
-          description: Map.get(metadata, :description)
-        }
-        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-        |> Map.new()
-    }
-
-    case with_token_retry(state, fn token ->
-           ApiClient.update_live_broadcast(token, "snippet", broadcast_data)
-         end) do
-      {:ok, _result} ->
-        Logger.info("Stream metadata updated: #{inspect(metadata)}")
-        {:reply, :ok, state}
-
-      {:error, reason} ->
-        Logger.error("Failed to update metadata: #{inspect(reason)}")
+    with {:get_broadcast, {:ok, current_broadcast}} <-
+           {:get_broadcast,
+            with_token_retry(state, fn token ->
+              ApiClient.get_live_broadcast(token, state.broadcast_id, "snippet")
+            end)},
+         current_snippet = Map.get(current_broadcast, "snippet", %{}),
+         updated_snippet =
+           current_snippet
+           |> maybe_update_field("title", Map.get(metadata, :title))
+           |> maybe_update_field("description", Map.get(metadata, :description)),
+         broadcast_data = %{
+           id: state.broadcast_id,
+           snippet: updated_snippet
+         },
+         {:update_broadcast, {:ok, _result}} <-
+           {:update_broadcast,
+            with_token_retry(state, fn token ->
+              ApiClient.update_live_broadcast(token, "snippet", broadcast_data)
+            end)} do
+      Logger.info("Stream metadata updated: #{inspect(metadata)}")
+      {:reply, :ok, state}
+    else
+      {step, {:error, reason}} ->
+        Logger.error("Failed to update metadata at #{step}: #{inspect(reason)}")
         {:reply, {:error, reason}, state}
     end
   end
+
+  defp maybe_update_field(map, _key, nil), do: map
+  defp maybe_update_field(map, key, value), do: Map.put(map, key, value)
 
   defp create_stream(state, stream_uuid) do
     stream_data = %{

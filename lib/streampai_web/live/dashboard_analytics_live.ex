@@ -7,6 +7,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   import StreampaiWeb.AnalyticsComponents
 
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.LivestreamMetric
   alias StreampaiWeb.CoreComponents, as: Core
   alias StreampaiWeb.Utils.FakeAnalytics
   alias StreampaiWeb.Utils.FormatHelpers
@@ -88,15 +89,23 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     user_id = socket.assigns.current_user.id
 
     stream_list = load_recent_streams(user_id, days)
+    avg_viewers = calculate_average_viewers(stream_list)
+
+    fake_stats = FakeAnalytics.generate_overall_stats(timeframe)
+    overall_stats = Map.put(fake_stats, :avg_viewers, avg_viewers)
+
+    viewer_data = load_viewer_trends(user_id, days)
+
+    platform_breakdown = load_platform_distribution(user_id, days)
 
     socket
-    |> assign(:overall_stats, FakeAnalytics.generate_overall_stats(timeframe))
+    |> assign(:overall_stats, overall_stats)
     |> assign(:stream_list, stream_list)
-    |> assign(:viewer_data, FakeAnalytics.generate_time_series_data(:viewers, days))
+    |> assign(:viewer_data, viewer_data)
     |> assign(:income_data, FakeAnalytics.generate_time_series_data(:income, days))
     |> assign(:follower_data, FakeAnalytics.generate_time_series_data(:followers, days))
     |> assign(:engagement_data, FakeAnalytics.generate_time_series_data(:engagement, days))
-    |> assign(:platform_breakdown, FakeAnalytics.generate_platform_breakdown())
+    |> assign(:platform_breakdown, platform_breakdown)
     |> assign(:top_content, FakeAnalytics.generate_top_content())
     |> assign(:demographics, FakeAnalytics.generate_demographics())
   end
@@ -164,6 +173,139 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   defp days_for_timeframe(:year), do: 365
   defp days_for_timeframe(_), do: 7
 
+  defp calculate_average_viewers([]), do: 0
+
+  defp calculate_average_viewers(streams) do
+    total = Enum.sum(Enum.map(streams, & &1.viewers.average))
+    round(total / length(streams))
+  end
+
+  defp load_viewer_trends(user_id, days) do
+    cutoff = DateTime.add(DateTime.utc_now(), -days * 24 * 60 * 60, :second)
+
+    stream_ids =
+      Livestream
+      |> Ash.Query.for_read(:get_completed_by_user, %{user_id: user_id})
+      |> Ash.Query.filter(started_at >= ^cutoff)
+      |> Ash.read!(authorize?: false)
+      |> Enum.map(& &1.id)
+
+    case stream_ids do
+      [] ->
+        generate_empty_viewer_data(days)
+
+      ids ->
+        LivestreamMetric
+        |> Ash.Query.for_read(:read)
+        |> Ash.Query.filter(livestream_id in ^ids and created_at >= ^cutoff)
+        |> Ash.Query.sort(created_at: :asc)
+        |> Ash.read!(authorize?: false)
+        |> group_metrics_by_hour()
+        |> fill_missing_hours(cutoff, days)
+    end
+  end
+
+  defp group_metrics_by_hour(metrics) do
+    metrics
+    |> Enum.group_by(fn metric ->
+      # Truncate to hour by zeroing out minutes, seconds, and microseconds
+      %{metric.created_at | minute: 0, second: 0, microsecond: {0, 0}}
+    end)
+    |> Enum.map(fn {hour, hour_metrics} ->
+      total_viewers =
+        hour_metrics
+        |> Enum.map(&LivestreamMetric.total_viewers/1)
+        |> Enum.sum()
+        |> div(length(hour_metrics))
+
+      %{time: hour, value: total_viewers}
+    end)
+    |> Enum.sort_by(& &1.time, DateTime)
+  end
+
+  defp fill_missing_hours(data_points, _start_time, days) do
+    now = DateTime.utc_now()
+    current_hour = %{now | minute: 0, second: 0, microsecond: {0, 0}}
+    data_by_hour = Map.new(data_points, &{&1.time, &1.value})
+
+    0..(days * 24 - 1)
+    |> Enum.map(fn hours_ago ->
+      hour = DateTime.add(current_hour, -hours_ago * 3600, :second)
+      value = Map.get(data_by_hour, hour, 0)
+      %{time: hour, value: value}
+    end)
+    |> Enum.reverse()
+  end
+
+  defp generate_empty_viewer_data(days) do
+    now = DateTime.utc_now()
+    current_hour = %{now | minute: 0, second: 0, microsecond: {0, 0}}
+
+    0..(days * 24 - 1)
+    |> Enum.map(fn hours_ago ->
+      hour = DateTime.add(current_hour, -hours_ago * 3600, :second)
+      %{time: hour, value: 0}
+    end)
+    |> Enum.reverse()
+  end
+
+  defp load_platform_distribution(user_id, days) do
+    cutoff = DateTime.add(DateTime.utc_now(), -days * 24 * 60 * 60, :second)
+
+    stream_ids =
+      Livestream
+      |> Ash.Query.for_read(:get_completed_by_user, %{user_id: user_id})
+      |> Ash.Query.filter(started_at >= ^cutoff)
+      |> Ash.read!(authorize?: false)
+      |> Enum.map(& &1.id)
+
+    case stream_ids do
+      [] ->
+        [
+          %{label: "Twitch", value: 0, format: :percentage},
+          %{label: "YouTube", value: 0, format: :percentage},
+          %{label: "Facebook", value: 0, format: :percentage},
+          %{label: "Kick", value: 0, format: :percentage}
+        ]
+
+      ids ->
+        metrics =
+          LivestreamMetric
+          |> Ash.Query.for_read(:read)
+          |> Ash.Query.filter(livestream_id in ^ids and created_at >= ^cutoff)
+          |> Ash.read!(authorize?: false)
+
+        twitch_total = metrics |> Enum.map(& &1.twitch_viewers) |> Enum.sum()
+        youtube_total = metrics |> Enum.map(& &1.youtube_viewers) |> Enum.sum()
+        facebook_total = metrics |> Enum.map(& &1.facebook_viewers) |> Enum.sum()
+        kick_total = metrics |> Enum.map(& &1.kick_viewers) |> Enum.sum()
+
+        grand_total = twitch_total + youtube_total + facebook_total + kick_total
+
+        case grand_total do
+          0 ->
+            [
+              %{label: "Twitch", value: 0, format: :percentage},
+              %{label: "YouTube", value: 0, format: :percentage},
+              %{label: "Facebook", value: 0, format: :percentage},
+              %{label: "Kick", value: 0, format: :percentage}
+            ]
+
+          total ->
+            Enum.sort_by(
+              [
+                %{label: "Twitch", value: twitch_total / total * 100, format: :percentage},
+                %{label: "YouTube", value: youtube_total / total * 100, format: :percentage},
+                %{label: "Facebook", value: facebook_total / total * 100, format: :percentage},
+                %{label: "Kick", value: kick_total / total * 100, format: :percentage}
+              ],
+              & &1.value,
+              :desc
+            )
+        end
+    end
+  end
+
   defp format_number(number), do: FormatHelpers.format_number(number)
 
   def render(assigns) do
@@ -197,10 +339,8 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
         <%= if @view_mode == :overview do %>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <.stat_card
-              title="Total Viewers"
-              value={@overall_stats.total_viewers}
-              change={12.5}
-              change_type={:positive}
+              title="Avg Viewers"
+              value={@overall_stats.avg_viewers}
               icon="hero-users"
             />
             <.stat_card
@@ -236,14 +376,7 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <.bar_chart
-              title="Platform Distribution"
-              data={
-                Enum.map(@platform_breakdown, fn p ->
-                  %{label: p.platform, value: p.viewers}
-                end)
-              }
-            />
+            <.bar_chart title="Platform Distribution" data={@platform_breakdown} />
             <.bar_chart
               title="Top Content"
               data={

@@ -134,39 +134,6 @@ defmodule StreampaiWeb.DashboardWidgetsLive do
             </div>
           </div>
         </div>
-        
-    <!-- Active Widgets -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Active Widgets</h3>
-          </div>
-          <div class="p-6">
-            <div class="text-center py-12">
-              <svg
-                class="mx-auto h-12 w-12 text-gray-400"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 48 48"
-              >
-                <path
-                  d="M19 11H5a2 2 0 00-2 2v14a2 2 0 002 2h14m-6 4h18a2 2 0 002-2V13a2 2 0 00-2-2H23a2 2 0 00-2 2v18z"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No widgets configured</h3>
-              <p class="mt-1 text-sm text-gray-500">
-                Get started by adding widgets from the categories above.
-              </p>
-              <div class="mt-6">
-                <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                  Browse Widget Library
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </.dashboard_layout>
     """

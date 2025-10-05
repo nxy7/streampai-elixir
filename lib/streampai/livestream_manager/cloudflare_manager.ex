@@ -127,6 +127,14 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   @doc """
+  Regenerates the live input by deleting the current one and creating a new one.
+  Returns {:ok, new_stream_status} or {:error, reason}
+  """
+  def regenerate_live_input(user_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), :regenerate_live_input, 15_000)
+  end
+
+  @doc """
   Creates a Cloudflare Live Output for a specific platform.
   Returns {:ok, output_id} or {:error, reason}.
 
@@ -325,6 +333,65 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     new_state = %{state | live_input: updated_input}
     Logger.info("Live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
+  end
+
+  @impl true
+  def handle_call(:regenerate_live_input, _from, state) do
+    Logger.info("Regenerating live input for user #{state.user_id}")
+
+    # Delete the current live input from Cloudflare API if it exists
+    case get_input_id(state.live_input) do
+      nil ->
+        Logger.info("No existing live input to delete")
+
+      input_id ->
+        case APIClient.delete_live_input(input_id) do
+          :ok ->
+            Logger.info("Deleted Cloudflare live input: #{input_id}")
+
+          {:error, _error_type, message} ->
+            Logger.warning("Failed to delete Cloudflare live input: #{message}")
+        end
+    end
+
+    # Delete the database record
+    case Ash.get(LiveInput, state.user_id, authorize?: false) do
+      {:ok, live_input} when not is_nil(live_input) ->
+        Ash.destroy(live_input, authorize?: false)
+
+      _ ->
+        :ok
+    end
+
+    # Create a new live input immediately
+    case create_live_input(state) do
+      {:ok, new_live_input} ->
+        new_state = %{state | live_input: new_live_input, stream_status: :ready}
+
+        # Broadcast the change
+        Phoenix.PubSub.broadcast(
+          Streampai.PubSub,
+          "stream_status:#{state.user_id}",
+          {:stream_status_changed, %{user_id: state.user_id, timestamp: DateTime.utc_now()}}
+        )
+
+        # Build stream config from state
+        stream_config = %{
+          live_input: new_state.live_input,
+          live_outputs: new_state.live_outputs,
+          stream_status: new_state.stream_status,
+          input_streaming_status: new_state.input_streaming_status,
+          rtmp_url: "rtmps://live.streampai.com:443/live/",
+          stream_key: get_stream_key(new_state),
+          can_start_streaming: can_start_streaming_internal(new_state)
+        }
+
+        {:reply, {:ok, stream_config}, new_state}
+
+      {:error, reason} ->
+        Logger.error("Failed to regenerate live input: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
   end
 
   @impl true

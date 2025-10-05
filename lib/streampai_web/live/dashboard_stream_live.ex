@@ -5,7 +5,14 @@ defmodule StreampaiWeb.DashboardStreamLive do
   import StreampaiWeb.LiveHelpers
 
   alias Streampai.Dashboard
+  alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.Stream.Livestream
+
+  require Logger
+
+  @max_chat_messages 50
+  @max_stream_events 20
 
   def mount_page(socket, _params, _session) do
     user_id = socket.assigns.current_user.id
@@ -15,6 +22,12 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
     Phoenix.PubSub.subscribe(Streampai.PubSub, "cloudflare_input:#{user_id}")
     Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_status:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "viewer_counts:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "chat:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_events:#{user_id}")
+
+    stream_data = load_stream_data(user_id, stream_status)
+    stream_metadata = load_last_stream_metadata(user_id)
 
     socket =
       socket
@@ -23,7 +36,10 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:stream_status, stream_status)
       |> assign(:loading, false)
       |> assign(:show_stream_key, false)
-      |> assign(:stream_metadata, %{title: "", description: "", thumbnail_url: nil})
+      |> assign(:stream_metadata, stream_metadata)
+      |> assign(:stream_data, stream_data)
+      |> assign(:chat_messages, [])
+      |> assign(:stream_events, [])
       |> allow_upload(:thumbnail,
         accept: ~w(.jpg .jpeg .png),
         max_entries: 1,
@@ -45,36 +61,30 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_event("start_streaming", _params, socket) do
-    require Logger
-
     user_id = socket.assigns.current_user.id
     metadata = socket.assigns.stream_metadata
     socket = assign(socket, :loading, true)
 
     Logger.info("Starting stream with metadata: #{inspect(metadata)}")
 
-    try do
-      UserStreamManager.start_stream(user_id, metadata)
+    UserStreamManager.start_stream(user_id, metadata)
+
+    socket =
+      socket
+      |> assign(:loading, false)
+      |> put_flash(:info, "Stream started successfully!")
+
+    {:noreply, socket}
+  rescue
+    error ->
+      Logger.error("Failed to start stream for user #{socket.assigns.current_user.id}: #{inspect(error)}")
 
       socket =
         socket
         |> assign(:loading, false)
-        |> put_flash(:info, "Stream started successfully!")
+        |> handle_error(error, "Failed to start stream. Please try again later.")
 
       {:noreply, socket}
-    rescue
-      error ->
-        require Logger
-
-        Logger.error("Failed to start stream for user #{user_id}: #{inspect(error)}")
-
-        socket =
-          socket
-          |> assign(:loading, false)
-          |> handle_error(error, "Failed to start stream. Please try again later.")
-
-        {:noreply, socket}
-    end
   end
 
   def handle_event("stop_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
@@ -86,28 +96,24 @@ defmodule StreampaiWeb.DashboardStreamLive do
     user_id = socket.assigns.current_user.id
     socket = assign(socket, :loading, true)
 
-    try do
-      UserStreamManager.stop_stream(user_id)
+    UserStreamManager.stop_stream(user_id)
+
+    socket =
+      socket
+      |> assign(:loading, false)
+      |> put_flash(:info, "Stream stopped successfully")
+
+    {:noreply, socket}
+  rescue
+    error ->
+      Logger.error("Failed to stop stream for user #{socket.assigns.current_user.id}: #{inspect(error)}")
 
       socket =
         socket
         |> assign(:loading, false)
-        |> put_flash(:info, "Stream stopped successfully")
+        |> handle_error(error, "Failed to stop stream. Please try again later.")
 
       {:noreply, socket}
-    rescue
-      error ->
-        require Logger
-
-        Logger.error("Failed to stop stream for user #{user_id}: #{inspect(error)}")
-
-        socket =
-          socket
-          |> assign(:loading, false)
-          |> handle_error(error, "Failed to stop stream. Please try again later.")
-
-        {:noreply, socket}
-    end
   end
 
   def handle_event("toggle_stream_key_visibility", _params, socket) do
@@ -115,6 +121,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_event("update_stream_metadata", %{"metadata" => metadata_params}, socket) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_event("update_stream_metadata", metadata_params, socket) when is_map(metadata_params) do
     metadata =
       socket.assigns.stream_metadata
       |> Map.put(:title, Map.get(metadata_params, "title", ""))
@@ -147,6 +162,31 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   # Delegate other events to BaseLive
+  def handle_event("regenerate_stream_key", _params, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case CloudflareManager.regenerate_live_input(user_id) do
+      {:ok, _stream_config} ->
+        # Get the full stream status with all required fields
+        stream_status = get_stream_status(user_id)
+
+        socket =
+          socket
+          |> assign(:stream_status, stream_status)
+          |> put_flash(:info, "Stream key regenerated successfully")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to regenerate stream key: #{inspect(reason)}")
+
+        socket = put_flash(socket, :error, "Failed to regenerate stream key")
+
+        {:noreply, socket}
+    end
+  end
+
+  # Delegate other events to BaseLive
   def handle_event(event, params, socket) do
     super(event, params, socket)
   end
@@ -158,61 +198,195 @@ defmodule StreampaiWeb.DashboardStreamLive do
              :input_streaming_started,
              :input_streaming_stopped
            ] do
-    stream_status = get_stream_status(socket.assigns.current_user.id)
-    {:noreply, assign(socket, :stream_status, stream_status)}
+    user_id = socket.assigns.current_user.id
+    stream_status = get_stream_status(user_id)
+    stream_data = load_stream_data(user_id, stream_status)
+
+    socket =
+      socket
+      |> assign(:stream_status, stream_status)
+      |> assign(:stream_data, stream_data)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:toggle_stream_key_visibility}, socket) do
+    {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
+  end
+
+  def handle_info({:update_stream_metadata, %{"metadata" => metadata_params}}, socket) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_info({:start_streaming, _params}, socket) do
+    handle_event("start_streaming", %{}, socket)
+  end
+
+  def handle_info({:stop_streaming, _params}, socket) do
+    handle_event("stop_streaming", %{}, socket)
+  end
+
+  def handle_info({:save_settings, params}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    metadata = %{
+      title: Map.get(params, "title"),
+      description: Map.get(params, "description")
+    }
+
+    UserStreamManager.update_stream_metadata(user_id, metadata, :all)
+
+    update_livestream_metadata(user_id, metadata)
+
+    stream_data =
+      socket.assigns.stream_data
+      |> Map.put(:title, metadata.title)
+      |> Map.put(:description, metadata.description)
+
+    socket =
+      socket
+      |> assign(:stream_data, stream_data)
+      |> put_flash(:info, "Stream settings updated successfully")
+
+    {:noreply, socket}
+  rescue
+    error ->
+      Logger.error("Failed to update stream settings: #{inspect(error)}")
+
+      socket = put_flash(socket, :error, "Failed to update stream settings")
+
+      {:noreply, socket}
+  end
+
+  def handle_info({:send_chat_message, message}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    Logger.info("Sending chat message: #{message}")
+    UserStreamManager.send_chat_message(user_id, message, :all)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:viewer_update, platform, count}, socket) do
+    stream_data = socket.assigns.stream_data
+    viewer_counts = Map.get(stream_data, :viewer_counts, %{})
+    updated_viewer_counts = Map.put(viewer_counts, platform, count)
+    total_viewers = updated_viewer_counts |> Map.values() |> Enum.sum()
+
+    updated_stream_data =
+      stream_data
+      |> Map.put(:viewer_counts, updated_viewer_counts)
+      |> Map.put(:total_viewers, total_viewers)
+
+    {:noreply, assign(socket, :stream_data, updated_stream_data)}
+  end
+
+  def handle_info({:chat_message, chat_event}, socket) do
+    chat_messages = socket.assigns[:chat_messages] || []
+
+    formatted_message = %{
+      id: chat_event.id,
+      sender_username: chat_event.username,
+      message: chat_event.message,
+      platform: to_string(chat_event.platform),
+      timestamp: chat_event.timestamp || DateTime.utc_now()
+    }
+
+    updated_messages = Enum.take([formatted_message | chat_messages], @max_chat_messages)
+
+    {:noreply, assign(socket, :chat_messages, updated_messages)}
+  end
+
+  def handle_info({:platform_event, event}, socket) do
+    if event_should_be_displayed?(event.type) do
+      stream_events = socket.assigns[:stream_events] || []
+
+      formatted_event = %{
+        id: event.id,
+        type: to_string(event.type),
+        username: event.username,
+        amount: Map.get(event, :amount),
+        tier: Map.get(event, :tier),
+        viewers: Map.get(event, :viewers),
+        platform: to_string(event.platform),
+        timestamp: event.timestamp || DateTime.utc_now()
+      }
+
+      updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
+
+      {:noreply, assign(socket, :stream_events, updated_events)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
 
-  defp get_stream_status(user_id) do
-    case Registry.lookup(Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}) do
-      [{_pid, _}] ->
-        try do
-          cloudflare_config =
-            Streampai.LivestreamManager.CloudflareManager.get_stream_config(
-              {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}}
-            )
+  defp event_should_be_displayed?(:donation), do: true
+  defp event_should_be_displayed?(:subscription), do: true
+  defp event_should_be_displayed?(:follow), do: true
+  defp event_should_be_displayed?(:raid), do: true
+  defp event_should_be_displayed?(_), do: false
 
-          youtube_broadcast_id = get_youtube_broadcast_id(user_id)
-
-          %{
-            status: cloudflare_config.stream_status,
-            input_streaming_status: cloudflare_config.input_streaming_status,
-            can_start_streaming: cloudflare_config.can_start_streaming,
-            rtmp_url: cloudflare_config.rtmp_url,
-            stream_key: cloudflare_config.stream_key,
-            manager_available: true,
-            youtube_broadcast_id: youtube_broadcast_id
-          }
-        rescue
-          _ ->
-            get_fallback_status()
-        catch
-          :exit, {:noproc, _} ->
-            get_fallback_status()
-        end
-
-      [] ->
-        get_fallback_status()
+  defp lookup_registry(registry_key) do
+    case Registry.lookup(Streampai.LivestreamManager.Registry, registry_key) do
+      [{pid, _}] -> {:ok, pid}
+      [] -> {:error, :not_found}
     end
   end
 
+  defp default_stream_data do
+    %{
+      started_at: DateTime.utc_now(),
+      viewer_counts: %{twitch: 0, youtube: 0, facebook: 0, kick: 0},
+      total_viewers: 0,
+      initial_message_count: 0,
+      title: "",
+      description: ""
+    }
+  end
+
+  defp get_stream_status(user_id) do
+    case lookup_registry({:cloudflare_manager, user_id}) do
+      {:ok, _pid} ->
+        cloudflare_config =
+          CloudflareManager.get_stream_config(
+            {:via, Registry, {Streampai.LivestreamManager.Registry, {:cloudflare_manager, user_id}}}
+          )
+
+        youtube_broadcast_id = get_youtube_broadcast_id(user_id)
+
+        %{
+          status: cloudflare_config.stream_status,
+          input_streaming_status: cloudflare_config.input_streaming_status,
+          can_start_streaming: cloudflare_config.can_start_streaming,
+          rtmp_url: cloudflare_config.rtmp_url,
+          stream_key: cloudflare_config.stream_key,
+          manager_available: true,
+          youtube_broadcast_id: youtube_broadcast_id
+        }
+
+      _ ->
+        get_fallback_status()
+    end
+  rescue
+    _ -> get_fallback_status()
+  catch
+    :exit, {:noproc, _} -> get_fallback_status()
+  end
+
   defp get_youtube_broadcast_id(user_id) do
-    case Registry.lookup(
-           Streampai.LivestreamManager.Registry,
-           {:platform_manager, user_id, :youtube}
-         ) do
-      [{_pid, _}] ->
-        case Streampai.LivestreamManager.Platforms.YouTubeManager.get_status(user_id) do
-          {:ok, %{broadcast_id: broadcast_id}} when not is_nil(broadcast_id) ->
-            broadcast_id
-
-          _ ->
-            nil
-        end
-
-      [] ->
-        nil
+    with {:ok, _pid} <- lookup_registry({:platform_manager, user_id, :youtube}),
+         {:ok, %{broadcast_id: broadcast_id}} when not is_nil(broadcast_id) <-
+           Streampai.LivestreamManager.Platforms.YouTubeManager.get_status(user_id) do
+      broadcast_id
+    else
+      _ -> nil
     end
   rescue
     _ -> nil
@@ -232,22 +406,98 @@ defmodule StreampaiWeb.DashboardStreamLive do
     }
   end
 
+  defp update_livestream_metadata(user_id, metadata) do
+    require Ash.Query
+
+    case Livestream
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
+         |> Ash.Query.sort(started_at: :desc)
+         |> Ash.Query.limit(1)
+         |> Ash.read(authorize?: false) do
+      {:ok, [livestream]} ->
+        {:ok, user} = Ash.get(Streampai.Accounts.User, user_id, authorize?: false)
+
+        Livestream.update(
+          livestream,
+          %{
+            title: metadata.title,
+            description: metadata.description
+          },
+          actor: user
+        )
+
+      _ ->
+        {:error, :no_active_stream}
+    end
+  end
+
+  defp load_stream_data(user_id, %{status: :streaming}) do
+    require Ash.Query
+
+    case Livestream
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
+         |> Ash.Query.load(:messages_amount)
+         |> Ash.Query.sort(started_at: :desc)
+         |> Ash.Query.limit(1)
+         |> Ash.read(authorize?: false) do
+      {:ok, [stream]} ->
+        default_stream_data()
+        |> Map.put(:started_at, stream.started_at || DateTime.utc_now())
+        |> Map.put(:initial_message_count, stream.messages_amount || 0)
+        |> Map.put(:title, stream.title || "")
+        |> Map.put(:description, stream.description || "")
+
+      _ ->
+        default_stream_data()
+    end
+  end
+
+  defp load_stream_data(_user_id, _stream_status) do
+    default_stream_data()
+  end
+
+  defp load_last_stream_metadata(user_id) do
+    require Ash.Query
+
+    case Livestream
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(user_id == ^user_id)
+         |> Ash.Query.sort(started_at: :desc)
+         |> Ash.Query.limit(1)
+         |> Ash.read(authorize?: false) do
+      {:ok, [stream]} ->
+        %{
+          title: stream.title || "",
+          description: stream.description || "",
+          thumbnail_url: nil
+        }
+
+      _ ->
+        %{title: "", description: "", thumbnail_url: nil}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <.dashboard_layout
       {assigns}
       current_page="stream"
       page_title="Stream"
-      show_action_button={true}
-      action_button_text="New Stream"
     >
-      <div class="max-w-7xl mx-auto">
-        <.stream_status_cards stream_status={@stream_status} current_user={@current_user} />
-        <.stream_controls
+      <div class="max-w-7xl mx-auto space-y-6">
+        <.live_component
+          module={StreampaiWeb.Components.StreamControlsLive}
+          id="stream-controls"
           stream_status={@stream_status}
           loading={@loading}
           show_stream_key={@show_stream_key}
           stream_metadata={@stream_metadata}
+          stream_data={@stream_data}
+          current_user={@current_user}
+          chat_messages={@chat_messages}
+          stream_events={@stream_events}
         />
         <.platform_connections_section
           platform_connections={@platform_connections}
