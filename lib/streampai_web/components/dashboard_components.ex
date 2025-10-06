@@ -64,23 +64,17 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     """
   end
 
-  defp status_badge_class("online"),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+  defp status_badge_class(status) do
+    base = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+    color = status_badge_color(status)
+    "#{base} #{color}"
+  end
 
-  defp status_badge_class("offline"),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-
-  defp status_badge_class("warning"),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
-
-  defp status_badge_class("success"),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-
-  defp status_badge_class("error"),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-
-  defp status_badge_class(_),
-    do: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+  defp status_badge_color("online"), do: "bg-green-100 text-green-800"
+  defp status_badge_color("success"), do: "bg-green-100 text-green-800"
+  defp status_badge_color("warning"), do: "bg-yellow-100 text-yellow-800"
+  defp status_badge_color("error"), do: "bg-red-100 text-red-800"
+  defp status_badge_color(_), do: "bg-gray-100 text-gray-800"
 
   @doc """
   Renders a status indicator with dot and text.
