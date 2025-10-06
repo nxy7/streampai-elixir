@@ -10,7 +10,6 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
   use StreampaiWeb, :live_view
 
   import StreampaiWeb.Components.DashboardLayout
-  import StreampaiWeb.LiveHelpers
 
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPolicy
@@ -22,52 +21,47 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
       Phoenix.PubSub.subscribe(Streampai.PubSub, topic)
     end
 
+    {users, page_info} = load_users_paginated(socket, nil)
+
     {:ok,
      socket
      |> assign(
-       users: [],
+       users: users,
        can_impersonate: UserPolicy.can_impersonate?(socket.assigns.current_user),
        online_users: %{},
        page_title: "User Management",
-       page: 1,
-       page_size: 20,
-       total_count: 0
+       after_cursor: page_info.after_cursor,
+       has_more: page_info.more?,
+       loading_more: false
      )
-     |> load_users()
      |> load_presence(), layout: false}
   end
 
-  defp load_users(socket) do
+  defp load_users_paginated(socket, after_cursor) do
     actor = socket.assigns[:impersonator] || socket.assigns.current_user
-    page = socket.assigns[:page] || 1
-    page_size = socket.assigns[:page_size] || 20
+    page_opts = if after_cursor, do: [after: after_cursor], else: []
 
-    # Get total count for pagination
-    total_count_result =
-      User
-      |> Ash.Query.for_read(:read, %{}, actor: actor)
-      |> Ash.count()
+    case User
+         |> Ash.Query.for_read(:list_all, %{}, actor: actor)
+         |> Ash.Query.page(page_opts)
+         |> Ash.read() do
+      {:ok, page} ->
+        has_more = page.more? && length(page.results) > 0
 
-    case {total_count_result,
-          User
-          |> Ash.Query.for_read(:list_paginated, %{page: page, page_size: page_size}, actor: actor)
-          |> Ash.read()} do
-      {{:ok, total_count}, {:ok, users}} ->
-        socket
-        |> assign(:users, users)
-        |> assign(:total_count, total_count)
+        after_cursor =
+          if has_more && length(page.results) > 0 do
+            page.results |> List.last() |> Map.get(:__metadata__) |> Map.get(:keyset)
+          end
 
-      {{:error, error}, _} ->
-        socket
-        |> assign(:users, [])
-        |> assign(:total_count, 0)
-        |> handle_error(error, "Failed to load users")
+        page_info = %{
+          after_cursor: after_cursor,
+          more?: has_more
+        }
 
-      {_, {:error, error}} ->
-        socket
-        |> assign(:users, [])
-        |> assign(:total_count, 0)
-        |> handle_error(error, "Failed to load users")
+        {page.results, page_info}
+
+      {:error, _error} ->
+        {[], %{after_cursor: nil, more?: false}}
     end
   end
 
@@ -90,37 +84,17 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
   defp tier_display_name(:pro), do: "Pro"
   defp tier_display_name(_), do: "Free"
 
-  def handle_event("next_page", _params, socket) do
-    current_page = socket.assigns.page
-    page_size = socket.assigns.page_size
-    total_count = socket.assigns.total_count
-    max_page = div(total_count - 1, page_size) + 1
+  def handle_event("load_more", _params, socket) do
+    {new_users, page_info} = load_users_paginated(socket, socket.assigns.after_cursor)
 
-    if current_page < max_page do
-      socket =
-        socket
-        |> assign(:page, current_page + 1)
-        |> load_users()
+    socket =
+      socket
+      |> assign(:users, socket.assigns.users ++ new_users)
+      |> assign(:after_cursor, page_info.after_cursor)
+      |> assign(:has_more, page_info.more?)
+      |> assign(:loading_more, false)
 
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
-  end
-
-  def handle_event("prev_page", _params, socket) do
-    current_page = socket.assigns.page
-
-    if current_page > 1 do
-      socket =
-        socket
-        |> assign(:page, current_page - 1)
-        |> load_users()
-
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   def handle_info(%{event: "presence_diff", topic: "users_presence"}, socket) do
@@ -302,32 +276,54 @@ defmodule StreampaiWeb.DashboardAdminUsersLive do
               </div>
             <% end %>
           </div>
-          
-    <!-- Pagination Controls -->
-          <%= if @total_count > @page_size do %>
-            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-              <div class="text-sm text-gray-700">
-                Showing {(@page - 1) * @page_size + 1} to {min(@page * @page_size, @total_count)} of {@total_count} users
-              </div>
-              <div class="flex space-x-2">
-                <%= if @page > 1 do %>
-                  <button
-                    phx-click="prev_page"
-                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+
+          <%= if @has_more do %>
+            <div class="px-6 py-4 border-t border-gray-200 text-center">
+              <button
+                phx-click="load_more"
+                disabled={@loading_more}
+                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                id="load-more-users"
+                phx-hook="InfiniteScroll"
+              >
+                <%= if @loading_more do %>
+                  <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    Previous
-                  </button>
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    >
+                    </circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    >
+                    </path>
+                  </svg>
+                  Loading...
+                <% else %>
+                  Load More Users
                 <% end %>
-                <%= if @page * @page_size < @total_count do %>
-                  <button
-                    phx-click="next_page"
-                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                <% end %>
-              </div>
+              </button>
             </div>
+          <% else %>
+            <%= if length(@users) > 0 do %>
+              <div class="px-6 py-4 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-500">
+                  <.icon name="hero-check-circle" class="inline-block w-4 h-4 mr-1" />
+                  You've reached the end of the list
+                </p>
+              </div>
+            <% end %>
           <% end %>
         </div>
       </div>

@@ -31,7 +31,7 @@ defmodule Streampai.Stream.Livestream do
       end
 
       filter expr(user_id == ^arg(:user_id) and not is_nil(ended_at))
-      prepare build(sort: [started_at: :desc], limit: 50)
+      prepare build(sort: [started_at: :desc])
     end
   end
 

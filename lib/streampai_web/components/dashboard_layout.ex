@@ -417,7 +417,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
         
     <!-- Floating Impersonation Notification -->
         <%= if @impersonator do %>
-          <div class="fixed top-4 right-4 bg-amber-100 border-l-4 border-amber-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
+          <div
+            id="impersonation-notification"
+            phx-hook="SlideOutNotification"
+            class="fixed top-4 right-0 bg-amber-100 border-l-4 border-amber-500 rounded-l-lg p-4 shadow-lg z-50 max-w-sm transition-transform duration-300 ease-in-out cursor-pointer"
+          >
             <div class="flex items-start">
               <div class="flex-shrink-0">
                 <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">

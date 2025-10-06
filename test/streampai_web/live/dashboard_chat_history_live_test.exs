@@ -23,7 +23,6 @@ defmodule StreampaiWeb.DashboardChatHistoryLiveTest do
 
       # Should show message count in pagination
       assert html =~ "messages"
-      assert html =~ "Showing"
     end
 
     test "displays chat messages with real data", %{conn: conn} do
@@ -87,10 +86,10 @@ defmodule StreampaiWeb.DashboardChatHistoryLiveTest do
 
       # Check first message has all required fields
       message = List.first(chat_messages)
-      assert message.username == "test_user"
+      assert message.sender_username == "test_user"
       assert message.message == "Hello world"
       assert message.platform == :twitch
-      assert message.is_moderator == true
+      assert message.sender_is_moderator == true
       assert %DateTime{} = message.inserted_at
     end
   end

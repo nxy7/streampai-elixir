@@ -3,6 +3,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   Manages YouTube platform integration for live streaming.
   Handles broadcast creation, stream binding, chat, and lifecycle management.
   """
+  @behaviour Streampai.LivestreamManager.Platforms.StreamPlatformManager
+
   use GenServer
 
   alias Streampai.LivestreamManager.CloudflareManager
@@ -64,76 +66,73 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     {:ok, state}
   end
 
-  # Client API
+  # Client API - StreamPlatformManager behaviour implementation
 
-  def start_streaming(user_id, stream_uuid, metadata \\ %{}) do
+  @impl true
+  def start_streaming(user_id, stream_uuid, opts \\ []) do
+    metadata = Keyword.get(opts, :metadata, %{})
     GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid, metadata}, 30_000)
   end
 
+  @impl true
   def stop_streaming(user_id) do
-    GenServer.call(via_tuple(user_id), :stop_streaming)
+    case GenServer.call(via_tuple(user_id), :stop_streaming) do
+      :ok -> {:ok, %{stopped_at: DateTime.utc_now()}}
+      error -> error
+    end
   end
 
-  def send_chat_message(pid, message) when is_pid(pid) do
-    GenServer.call(pid, {:send_chat_message, message})
+  @impl true
+  def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
+      :ok -> {:ok, "message_sent"}
+      error -> error
+    end
   end
 
-  def send_chat_message(user_id, message) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:send_chat_message, message})
+  @impl true
+  def update_stream_metadata(user_id, metadata) when is_binary(user_id) and is_map(metadata) do
+    case GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata}) do
+      :ok -> {:ok, metadata}
+      error -> error
+    end
   end
 
-  def update_stream_metadata(pid, metadata) when is_pid(pid) do
-    GenServer.call(pid, {:update_stream_metadata, metadata})
-  end
-
-  def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata})
-  end
-
+  @impl true
   def get_status(user_id) when is_binary(user_id) do
     GenServer.call(via_tuple(user_id), :get_status)
   end
+
+  @impl true
+  def delete_message(user_id, message_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:delete_message, message_id})
+  end
+
+  @impl true
+  def ban_user(user_id, target_user_id, _reason \\ nil) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:ban_user, target_user_id, :permanent})
+  end
+
+  @impl true
+  def timeout_user(user_id, target_user_id, duration_seconds, _reason \\ nil) when is_binary(user_id) do
+    GenServer.call(
+      via_tuple(user_id),
+      {:ban_user, target_user_id, {:temporary, duration_seconds}}
+    )
+  end
+
+  @impl true
+  def unban_user(user_id, ban_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:unban_user, ban_id})
+  end
+
+  # Additional helper functions
 
   @doc """
   Gets the current viewer count for the stream.
   """
   def get_viewer_count(user_id) when is_binary(user_id) do
     GenServer.call(via_tuple(user_id), :get_viewer_count)
-  end
-
-  @doc """
-  Deletes a chat message.
-  """
-  def delete_message(user_id, message_id) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:delete_message, message_id})
-  end
-
-  @doc """
-  Bans a user permanently from the live chat.
-  """
-  def ban_user(user_id, channel_id) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:ban_user, channel_id, :permanent})
-  end
-
-  @doc """
-  Temporarily bans (timeouts) a user from the live chat.
-
-  ## Parameters
-  - `user_id`: The stream owner's user ID
-  - `channel_id`: The channel ID of the user to timeout
-  - `duration_seconds`: Timeout duration in seconds (default: 300)
-  """
-  def timeout_user(user_id, channel_id, duration_seconds \\ 300) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:ban_user, channel_id, {:temporary, duration_seconds}})
-  end
-
-  @doc """
-  Unbans a user from the live chat.
-
-  Note: You need the ban ID, not the channel ID. Ban IDs are returned when creating a ban.
-  """
-  def unban_user(user_id, ban_id) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:unban_user, ban_id})
   end
 
   # Server callbacks

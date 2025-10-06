@@ -261,95 +261,113 @@ defmodule StreampaiWeb.AnalyticsComponents do
         <h3 class="text-lg font-medium text-gray-900">Recent Streams</h3>
       </div>
       <div class="relative rounded-b-lg">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Stream
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Platform
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Duration
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Peak Viewers
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Avg Viewers
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  Income
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <%= for stream <- @streams do %>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      <div>
-                        <div class="text-sm font-medium text-gray-900">
-                          {stream.title}
-                        </div>
-                        <div class="text-xs text-gray-500">
-                          {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
-                        </div>
-                      </div>
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
-                        {stream.platform}
-                      </span>
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      {stream.duration}
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      {FormatHelpers.format_number(stream.viewers.peak)}
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      {FormatHelpers.format_number(stream.viewers.average)}
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      ${Float.round(stream.income.total, 2)}
-                    </.link>
-                  </td>
+        <%= if @streams == [] do %>
+          <div class="px-6 py-12 text-center">
+            <Core.icon name="hero-video-camera" class="mx-auto h-12 w-12 text-gray-400" />
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No streams yet</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Start streaming to see your analytics and performance data here.
+            </p>
+            <div class="mt-6">
+              <.link
+                navigate="/dashboard/stream"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <Core.icon name="hero-play" class="-ml-1 mr-2 h-5 w-5" /> Go to Stream Dashboard
+              </.link>
+            </div>
+          </div>
+        <% else %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Stream
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Platform
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Duration
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Peak Viewers
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Avg Viewers
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    Income
+                  </th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <%= for stream <- @streams do %>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">
+                            {stream.title}
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            {Calendar.strftime(stream.start_time, "%b %d, %Y at %I:%M %p")}
+                          </div>
+                        </div>
+                      </.link>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        <span class={"px-2 py-1 text-xs rounded-full #{platform_badge_class(stream.platform)}"}>
+                          {stream.platform}
+                        </span>
+                      </.link>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        {stream.duration}
+                      </.link>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        {FormatHelpers.format_number(stream.viewers.peak)}
+                      </.link>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        {FormatHelpers.format_number(stream.viewers.average)}
+                      </.link>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <.link
+                        navigate={get_stream_history_url(stream)}
+                        class="block"
+                      >
+                        ${Float.round(stream.income.total, 2)}
+                      </.link>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
       </div>
     </div>
     """

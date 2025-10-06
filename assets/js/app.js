@@ -16,6 +16,7 @@ import { MobileNavigation } from "../../lib/streampai_web/components/landing_nav
 import { DashboardSidebar } from "../../lib/streampai_web/components/dashboard_layout.js";
 import LocalStorage from "./hooks/local_storage_hook.js";
 import AvatarUpload from "./hooks/avatar_upload_hook.js";
+import InfiniteScroll from "./hooks/infinite_scroll_hook.js";
 
 // Hooks for various functionality
 
@@ -285,6 +286,51 @@ const SortableImages = {
   }
 };
 
+// Slide Out Notification Hook
+const SlideOutNotification = {
+  mounted() {
+    this.hideTimeout = null;
+    this.isHovered = false;
+
+    const show = () => {
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+        this.hideTimeout = null;
+      }
+      this.isHovered = true;
+      this.el.style.transform = 'translateX(0)';
+    };
+
+    const hide = () => {
+      this.isHovered = false;
+      // Wait 2 seconds before hiding
+      this.hideTimeout = setTimeout(() => {
+        if (!this.isHovered) {
+          this.el.style.transform = 'translateX(calc(100% - 20px))';
+        }
+      }, 2000);
+    };
+
+    this.el.addEventListener('mouseenter', show);
+    this.el.addEventListener('mouseleave', hide);
+
+    // Start hidden (only showing edge)
+    this.el.style.transform = 'translateX(calc(100% - 20px))';
+
+    this.cleanup = () => {
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+      }
+      this.el.removeEventListener('mouseenter', show);
+      this.el.removeEventListener('mouseleave', hide);
+    };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -297,6 +343,8 @@ let Hooks = {
   AvatarUpload,
   SliderImageUpload,
   SortableImages,
+  SlideOutNotification,
+  InfiniteScroll,
   ...getHooks(liveVueApp),
 };
 

@@ -143,6 +143,19 @@ defmodule Streampai.Accounts.User do
       end
     end
 
+    read :list_all do
+      prepare build(sort: [id: :desc], load: [:role, :display_avatar])
+
+      pagination do
+        required? false
+        offset? false
+        keyset? true
+        countable false
+        default_limit 20
+        max_page_size 100
+      end
+    end
+
     read :get_by_id do
       get? true
 
@@ -349,9 +362,7 @@ defmodule Streampai.Accounts.User do
         description "The URL path to the avatar image"
       end
 
-      change fn changeset, _ ->
-        Ash.Changeset.change_attribute(changeset, :avatar, changeset.arguments.avatar_url)
-      end
+      change Streampai.Accounts.User.Changes.SetAvatarFromArgument
     end
 
     action :reconcile_subscription do

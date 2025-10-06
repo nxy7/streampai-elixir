@@ -89,7 +89,16 @@ defmodule Streampai.Stream.StreamViewer do
       argument :user_id, :uuid, allow_nil?: false
 
       filter expr(user_id == ^arg(:user_id))
-      prepare build(sort: [last_seen_at: :desc])
+      prepare build(sort: [last_seen_at: :desc, viewer_id: :desc])
+
+      pagination do
+        required? false
+        offset? false
+        keyset? true
+        countable false
+        default_limit 20
+        max_page_size 100
+      end
     end
 
     read :by_display_name do

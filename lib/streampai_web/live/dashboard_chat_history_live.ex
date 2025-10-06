@@ -9,13 +9,17 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
   def mount_page(socket, _params, _session) do
     user_id = socket.assigns.current_user.id
     filters = %{platform: "all", date_range: "7days", search: ""}
-    chat_messages = load_chat_messages(user_id, filters)
+
+    {chat_messages, page_info} = load_chat_messages(user_id, filters, nil)
 
     socket =
       socket
       |> assign(:chat_messages, chat_messages)
       |> assign(:page_title, "Chat History")
       |> assign(:filters, filters)
+      |> assign(:after_cursor, page_info.after_cursor)
+      |> assign(:has_more, page_info.more?)
+      |> assign(:loading_more, false)
 
     {:ok, socket, layout: false}
   end
@@ -28,57 +32,74 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
     }
 
     user_id = socket.assigns.current_user.id
-    chat_messages = load_chat_messages(user_id, filters)
+    {chat_messages, page_info} = load_chat_messages(user_id, filters, nil)
 
     socket =
       socket
       |> assign(:filters, filters)
       |> assign(:chat_messages, chat_messages)
+      |> assign(:after_cursor, page_info.after_cursor)
+      |> assign(:has_more, page_info.more?)
 
     {:noreply, socket}
   end
 
-  defp load_chat_messages(user_id, filters) do
-    platform =
-      case filters.platform do
-        "all" -> nil
-        platform_string -> String.to_existing_atom(platform_string)
-      end
+  def handle_event("load_more", _params, socket) do
+    user_id = socket.assigns.current_user.id
 
-    date_range =
-      case filters.date_range do
-        "all" -> nil
-        range -> range
-      end
+    {new_messages, page_info} =
+      load_chat_messages(user_id, socket.assigns.filters, socket.assigns.after_cursor)
 
-    user_id
-    |> ChatMessage.get_for_user!(20, platform, date_range, authorize?: false)
-    |> apply_search_filter(filters.search)
-    |> Enum.map(&format_message/1)
+    socket =
+      socket
+      |> assign(:chat_messages, socket.assigns.chat_messages ++ new_messages)
+      |> assign(:after_cursor, page_info.after_cursor)
+      |> assign(:has_more, page_info.more?)
+      |> assign(:loading_more, false)
+
+    {:noreply, socket}
   end
 
-  defp apply_search_filter(messages, search) when search in ["", nil], do: messages
+  defp load_chat_messages(user_id, filters, after_cursor) do
+    query_args = build_query_args(user_id, filters)
+    page_opts = if after_cursor, do: [after: after_cursor], else: []
 
-  defp apply_search_filter(messages, search_term) do
-    search_lower = String.downcase(search_term)
+    page =
+      ChatMessage
+      |> Ash.Query.for_read(:get_for_user, query_args)
+      |> Ash.Query.page(page_opts)
+      |> Ash.read!(authorize?: false)
 
-    Enum.filter(messages, fn message ->
-      String.contains?(String.downcase(message.message), search_lower) ||
-        String.contains?(String.downcase(message.sender_username), search_lower)
-    end)
+    {page.results, build_page_info(page)}
   end
 
-  defp format_message(chat_message) do
+  defp build_query_args(user_id, filters) do
     %{
-      id: chat_message.id,
-      username: chat_message.sender_username,
-      message: chat_message.message,
-      platform: chat_message.platform,
-      viewer_id: chat_message.viewer_id,
-      inserted_at: chat_message.inserted_at,
-      is_moderator: chat_message.sender_is_moderator,
-      livestream_id: chat_message.livestream_id
+      user_id: user_id,
+      platform: parse_platform(filters.platform),
+      date_range: parse_date_range(filters.date_range),
+      search: parse_search(filters.search)
     }
+  end
+
+  defp parse_platform("all"), do: nil
+  defp parse_platform(platform_string), do: String.to_existing_atom(platform_string)
+
+  defp parse_date_range("all"), do: nil
+  defp parse_date_range(range), do: range
+
+  defp parse_search(""), do: nil
+  defp parse_search(term), do: term
+
+  defp build_page_info(page) do
+    has_more = page.more? && length(page.results) > 0
+
+    after_cursor =
+      if has_more && length(page.results) > 0 do
+        page.results |> List.last() |> Map.get(:__metadata__) |> Map.get(:keyset)
+      end
+
+    %{after_cursor: after_cursor, more?: has_more}
   end
 
   defp format_datetime(datetime) do
@@ -166,78 +187,135 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Recent Messages</h3>
           </div>
-          <div class="divide-y divide-gray-200">
-            <%= for message <- @chat_messages do %>
-              <div class="p-6">
-                <div class="flex items-start space-x-3">
-                  <div class="flex-shrink-0">
-                    <div class={"w-8 h-8 rounded-full flex items-center justify-center #{platform_color(message.platform)}"}>
-                      <span class="text-white font-medium text-xs">
-                        {platform_initial(message.platform)}
-                      </span>
+          <%= if @chat_messages == [] do %>
+            <div class="px-6 py-12 text-center">
+              <.icon name="hero-chat-bubble-left-right" class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No messages found</h3>
+              <p class="mt-1 text-sm text-gray-500">
+                <%= if @filters.search != "" do %>
+                  No messages match your search criteria. Try adjusting your filters.
+                <% else %>
+                  Start streaming to receive chat messages from your viewers.
+                <% end %>
+              </p>
+              <%= if @filters.platform != "all" or @filters.date_range != "7days" or @filters.search != "" do %>
+                <div class="mt-6">
+                  <button
+                    phx-click="update_filter"
+                    phx-value-filter={
+                      Jason.encode!(%{platform: "all", date_range: "7days", search: ""})
+                    }
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="divide-y divide-gray-200">
+              <%= for message <- @chat_messages do %>
+                <div class="p-6">
+                  <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                      <div class={"w-8 h-8 rounded-full flex items-center justify-center #{platform_color(message.platform)}"}>
+                        <span class="text-white font-medium text-xs">
+                          {platform_initial(message.platform)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-2 mb-1">
-                      <%= if message.viewer_id do %>
-                        <.link
-                          navigate={~p"/dashboard/viewers/#{message.viewer_id}"}
-                          class="text-sm font-medium text-gray-900 hover:text-purple-600 hover:underline transition-colors"
-                        >
-                          {message.username}
-                        </.link>
-                      <% else %>
-                        <span class="text-sm font-medium text-gray-900">
-                          {message.username}
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center space-x-2 mb-1">
+                        <%= if message.viewer_id do %>
+                          <.link
+                            navigate={~p"/dashboard/viewers/#{message.viewer_id}"}
+                            class="text-sm font-medium text-gray-900 hover:text-purple-600 hover:underline transition-colors"
+                          >
+                            {message.sender_username}
+                          </.link>
+                        <% else %>
+                          <span class="text-sm font-medium text-gray-900">
+                            {message.sender_username}
+                          </span>
+                        <% end %>
+                        <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(message.platform)}"}>
+                          {platform_name(message.platform)}
                         </span>
-                      <% end %>
-                      <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium #{platform_badge_color(message.platform)}"}>
-                        {platform_name(message.platform)}
-                      </span>
-                      <%= if message.is_moderator do %>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Moderator
-                        </span>
-                      <% end %>
-                      <%= if message.livestream_id do %>
-                        <.link
-                          navigate={~p"/dashboard/stream-history/#{message.livestream_id}"}
-                          class="text-xs text-blue-600 hover:underline"
-                        >
-                          {format_datetime(message.inserted_at)}
-                        </.link>
-                      <% else %>
-                        <span class="text-xs text-gray-500">
-                          {format_datetime(message.inserted_at)}
-                        </span>
-                      <% end %>
+                        <%= if message.sender_is_moderator do %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            Moderator
+                          </span>
+                        <% end %>
+                        <%= if message.livestream_id do %>
+                          <.link
+                            navigate={~p"/dashboard/stream-history/#{message.livestream_id}"}
+                            class="text-xs text-blue-600 hover:underline"
+                          >
+                            {format_datetime(message.inserted_at)}
+                          </.link>
+                        <% else %>
+                          <span class="text-xs text-gray-500">
+                            {format_datetime(message.inserted_at)}
+                          </span>
+                        <% end %>
+                      </div>
+                      <p class="text-sm text-gray-600">{message.message}</p>
                     </div>
-                    <p class="text-sm text-gray-600">{message.message}</p>
                   </div>
                 </div>
-              </div>
-            <% end %>
-          </div>
-          
-    <!-- Pagination -->
-          <div class="px-6 py-4 border-t border-gray-200">
-            <div class="flex items-center justify-between">
-              <p class="text-sm text-gray-700">
-                Showing <span class="font-medium">1</span>
-                to <span class="font-medium">{length(@chat_messages)}</span>
-                of <span class="font-medium">{length(@chat_messages)}</span>
-                messages
-              </p>
-              <div class="flex items-center space-x-2">
-                <button class="bg-gray-100 text-gray-400 px-3 py-2 rounded-lg text-sm cursor-not-allowed">
-                  Previous
-                </button>
-                <button class="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors">
-                  Next
-                </button>
-              </div>
+              <% end %>
             </div>
-          </div>
+            
+    <!-- Load More Button / End of List -->
+            <%= if @has_more do %>
+              <div class="px-6 py-4 border-t border-gray-200 text-center">
+                <button
+                  phx-click="load_more"
+                  disabled={@loading_more}
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  id="load-more-chat"
+                  phx-hook="InfiniteScroll"
+                >
+                  <%= if @loading_more do %>
+                    <svg
+                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      >
+                      </circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      >
+                      </path>
+                    </svg>
+                    Loading...
+                  <% else %>
+                    Load More Messages
+                  <% end %>
+                </button>
+              </div>
+            <% else %>
+              <%= if length(@chat_messages) > 0 do %>
+                <div class="px-6 py-4 border-t border-gray-200 text-center">
+                  <p class="text-sm text-gray-500">
+                    <.icon name="hero-check-circle" class="inline-block w-4 h-4 mr-1" />
+                    You've reached the end of the list
+                  </p>
+                </div>
+              <% end %>
+            <% end %>
+          <% end %>
         </div>
       </div>
     </.dashboard_layout>

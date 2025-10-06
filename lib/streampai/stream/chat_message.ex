@@ -34,7 +34,7 @@ defmodule Streampai.Stream.ChatMessage do
     define :create
     define :read
     define :get_for_livestream, args: [:livestream_id]
-    define :get_for_user, args: [:user_id, :limit, :platform, :date_range]
+    define :get_for_user, args: [:user_id, :platform, :date_range]
     define :get_for_viewer, args: [:viewer_id, :user_id]
   end
 
@@ -109,18 +109,29 @@ defmodule Streampai.Stream.ChatMessage do
       description "Get chat messages for a user across all livestreams, with optional platform and date range filters"
 
       argument :user_id, :uuid, allow_nil?: false
-      argument :limit, :integer, default: 20
       argument :platform, :atom, allow_nil?: true
       argument :date_range, :string, allow_nil?: true
+      argument :search, :string, allow_nil?: true
 
       filter expr(user_id == ^arg(:user_id))
+
+      prepare build(sort: [inserted_at: :desc, id: :desc])
+
+      pagination do
+        required? false
+        offset? false
+        keyset? true
+        countable false
+        default_limit 20
+        max_page_size 100
+      end
 
       prepare fn query, _context ->
         require Ash.Query
 
         platform = Ash.Query.get_argument(query, :platform)
-        limit = Ash.Query.get_argument(query, :limit)
         date_range = Ash.Query.get_argument(query, :date_range)
+        search = Ash.Query.get_argument(query, :search)
 
         query =
           if platform do
@@ -130,26 +141,36 @@ defmodule Streampai.Stream.ChatMessage do
           end
 
         query =
-          case date_range do
-            "7days" ->
-              cutoff = DateTime.add(DateTime.utc_now(), -7, :day)
-              Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
+          if search && String.trim(search) != "" do
+            search_term = String.downcase(search)
 
-            "30days" ->
-              cutoff = DateTime.add(DateTime.utc_now(), -30, :day)
-              Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
-
-            "3months" ->
-              cutoff = DateTime.add(DateTime.utc_now(), -90, :day)
-              Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
-
-            _ ->
-              query
+            Ash.Query.filter(
+              query,
+              expr(
+                contains(fragment("LOWER(?)", message), ^search_term) or
+                  contains(fragment("LOWER(?)", sender_username), ^search_term)
+              )
+            )
+          else
+            query
           end
 
-        query
-        |> Ash.Query.sort(inserted_at: :desc)
-        |> Ash.Query.limit(limit)
+        case date_range do
+          "7days" ->
+            cutoff = DateTime.add(DateTime.utc_now(), -7, :day)
+            Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
+
+          "30days" ->
+            cutoff = DateTime.add(DateTime.utc_now(), -30, :day)
+            Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
+
+          "3months" ->
+            cutoff = DateTime.add(DateTime.utc_now(), -90, :day)
+            Ash.Query.filter(query, expr(inserted_at >= ^cutoff))
+
+          _ ->
+            query
+        end
       end
     end
 
