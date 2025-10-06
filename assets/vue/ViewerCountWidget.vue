@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useNumberAnimation } from '../js/composables/useNumberAnimation'
 
 interface ViewerData {
   id: string
@@ -31,37 +32,18 @@ const props = defineProps<{
 }>()
 
 const widgetId = props.id || 'viewer-count-widget'
+const { animateNumber } = useNumberAnimation()
 
-// Animation state
 const animatedTotalViewers = ref(0)
 const animatedPlatformViewers = ref<Record<string, number>>({})
 
-
-// Watch for data changes and animate
 watch(() => props.data?.total_viewers, (newTotal, oldTotal) => {
   if (props.config.animation_enabled && newTotal !== undefined) {
     if (oldTotal !== undefined && oldTotal !== newTotal) {
-      // Animate from current animated value to new value
       const startValue = animatedTotalViewers.value
-      const difference = newTotal - startValue
-      const duration = 800
-      const start = Date.now()
-
-      const animate = () => {
-        const elapsed = Date.now() - start
-        const progress = Math.min(elapsed / duration, 1)
-        const easeOut = 1 - Math.pow(1 - progress, 3)
-
-        animatedTotalViewers.value = Math.round(startValue + (difference * easeOut))
-
-        if (progress < 1) {
-          requestAnimationFrame(animate)
-        } else {
-          animatedTotalViewers.value = newTotal
-        }
-      }
-
-      animate()
+      animateNumber(startValue, newTotal, (value) => {
+        animatedTotalViewers.value = value
+      })
     } else {
       animatedTotalViewers.value = newTotal
     }
@@ -70,7 +52,6 @@ watch(() => props.data?.total_viewers, (newTotal, oldTotal) => {
   }
 }, { immediate: true })
 
-// Watch for platform data changes and animate
 watch(() => props.data?.platform_breakdown, (newPlatforms) => {
   if (props.config.animation_enabled && newPlatforms) {
     Object.entries(newPlatforms).forEach(([platform, data]) => {
@@ -78,32 +59,12 @@ watch(() => props.data?.platform_breakdown, (newPlatforms) => {
       const newValue = data.viewers
 
       if (startValue !== newValue) {
-        const difference = newValue - startValue
-        const duration = 800
-        const start = Date.now()
-
-        const animate = () => {
-          const elapsed = Date.now() - start
-          const progress = Math.min(elapsed / duration, 1)
-          const easeOut = 1 - Math.pow(1 - progress, 3)
-
-          const currentValue = Math.round(startValue + (difference * easeOut))
+        animateNumber(startValue, newValue, (value) => {
           animatedPlatformViewers.value = {
             ...animatedPlatformViewers.value,
-            [platform]: currentValue
+            [platform]: value
           }
-
-          if (progress < 1) {
-            requestAnimationFrame(animate)
-          } else {
-            animatedPlatformViewers.value = {
-              ...animatedPlatformViewers.value,
-              [platform]: newValue
-            }
-          }
-        }
-
-        animate()
+        })
       } else {
         animatedPlatformViewers.value = {
           ...animatedPlatformViewers.value,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useNumberAnimation } from '../js/composables/useNumberAnimation'
 
 interface FollowerData {
   id: string
@@ -31,6 +32,7 @@ const props = defineProps<{
 }>()
 
 const widgetId = props.id || 'follower-count-widget'
+const { animateNumber } = useNumberAnimation()
 
 const animatedTotalFollowers = ref(0)
 const animatedPlatformFollowers = ref<Record<string, number>>({})
@@ -39,25 +41,9 @@ watch(() => props.data?.total_followers, (newTotal, oldTotal) => {
   if (props.config.animation_enabled && newTotal !== undefined) {
     if (oldTotal !== undefined && oldTotal !== newTotal) {
       const startValue = animatedTotalFollowers.value
-      const difference = newTotal - startValue
-      const duration = 800
-      const start = Date.now()
-
-      const animate = () => {
-        const elapsed = Date.now() - start
-        const progress = Math.min(elapsed / duration, 1)
-        const easeOut = 1 - Math.pow(1 - progress, 3)
-
-        animatedTotalFollowers.value = Math.round(startValue + (difference * easeOut))
-
-        if (progress < 1) {
-          requestAnimationFrame(animate)
-        } else {
-          animatedTotalFollowers.value = newTotal
-        }
-      }
-
-      animate()
+      animateNumber(startValue, newTotal, (value) => {
+        animatedTotalFollowers.value = value
+      })
     } else {
       animatedTotalFollowers.value = newTotal
     }
@@ -73,32 +59,12 @@ watch(() => props.data?.platform_breakdown, (newPlatforms) => {
       const newValue = data.followers
 
       if (startValue !== newValue) {
-        const difference = newValue - startValue
-        const duration = 800
-        const start = Date.now()
-
-        const animate = () => {
-          const elapsed = Date.now() - start
-          const progress = Math.min(elapsed / duration, 1)
-          const easeOut = 1 - Math.pow(1 - progress, 3)
-
-          const currentValue = Math.round(startValue + (difference * easeOut))
+        animateNumber(startValue, newValue, (value) => {
           animatedPlatformFollowers.value = {
             ...animatedPlatformFollowers.value,
-            [platform]: currentValue
+            [platform]: value
           }
-
-          if (progress < 1) {
-            requestAnimationFrame(animate)
-          } else {
-            animatedPlatformFollowers.value = {
-              ...animatedPlatformFollowers.value,
-              [platform]: newValue
-            }
-          }
-        }
-
-        animate()
+        })
       } else {
         animatedPlatformFollowers.value = {
           ...animatedPlatformFollowers.value,

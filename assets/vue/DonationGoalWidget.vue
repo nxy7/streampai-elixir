@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useNumberAnimation } from '../js/composables/useNumberAnimation'
 
 interface DonationEvent {
   id: string
@@ -44,6 +45,7 @@ const progressBarRef = ref<HTMLElement>()
 const floatingBubbles = ref<FloatingBubble[]>([])
 const animatedAmount = ref(props.currentAmount || props.config.starting_amount || 0)
 const lastProcessedDonationId = ref<string | null>(null)
+const { animateNumber } = useNumberAnimation()
 
 const progressPercentage = computed(() => {
   const total = animatedAmount.value
@@ -115,23 +117,9 @@ watch(() => props.donation?.id, (newDonationId) => {
 
 
 function animateAmountChange(from: number, to: number) {
-  const duration = 1000
-  const steps = 60
-  const increment = (to - from) / steps
-  let current = from
-  let step = 0
-
-  const timer = setInterval(() => {
-    step++
-    current += increment
-
-    if (step >= steps) {
-      animatedAmount.value = to
-      clearInterval(timer)
-    } else {
-      animatedAmount.value = Math.round(current * 100) / 100
-    }
-  }, duration / steps)
+  animateNumber(from, to, (value) => {
+    animatedAmount.value = Math.round(value * 100) / 100
+  }, 1000)
 }
 
 function createFloatingBubble(donation: DonationEvent) {
