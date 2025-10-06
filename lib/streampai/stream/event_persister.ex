@@ -10,6 +10,7 @@ defmodule Streampai.Stream.EventPersister do
 
   alias Streampai.Stream.ChatMessage
   alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.StreamViewer
 
   require Logger
 
@@ -19,6 +20,7 @@ defmodule Streampai.Stream.EventPersister do
   defstruct [
     :chat_messages,
     :stream_events,
+    :author_details,
     :last_flush,
     :flush_timer
   ]
@@ -32,6 +34,7 @@ defmodule Streampai.Stream.EventPersister do
     state = %__MODULE__{
       chat_messages: [],
       stream_events: [],
+      author_details: %{},
       last_flush: :os.system_time(:millisecond),
       flush_timer: schedule_flush()
     }
@@ -44,7 +47,7 @@ defmodule Streampai.Stream.EventPersister do
   Adds a chat message to the batch queue.
 
   ## Parameters
-  - `message_data`: Map containing chat message fields
+  - `message_data`: Tuple of {message_attrs, author_attrs} or legacy map
   """
   def add_message(message_data) do
     GenServer.cast(__MODULE__, {:add_message, message_data})
@@ -75,10 +78,18 @@ defmodule Streampai.Stream.EventPersister do
   end
 
   @impl true
-  def handle_cast({:add_message, message_data}, state) do
-    new_messages = [struct(ChatMessage, message_data) | state.chat_messages]
+  def handle_cast({:add_message, {message_attrs, author_attrs}}, state) do
+    new_messages = [struct(ChatMessage, message_attrs) | state.chat_messages]
 
-    maybe_flush_on_batch_size(state, new_messages, state.stream_events, :messages)
+    author_key = {author_attrs.viewer_id, author_attrs.user_id}
+    new_author_details = Map.put(state.author_details, author_key, author_attrs)
+
+    maybe_flush_on_batch_size(
+      %{state | author_details: new_author_details},
+      new_messages,
+      state.stream_events,
+      :messages
+    )
   end
 
   @impl true
@@ -94,7 +105,9 @@ defmodule Streampai.Stream.EventPersister do
         (type == :events and length(events) >= @batch_size)
 
     if should_flush do
-      {_result, new_state} = do_flush(state, messages, events, "batch size reached")
+      {_result, new_state} =
+        do_flush(%{state | chat_messages: messages, stream_events: events}, "batch size reached")
+
       {:noreply, new_state}
     else
       {:noreply, %{state | chat_messages: messages, stream_events: events}}
@@ -104,7 +117,7 @@ defmodule Streampai.Stream.EventPersister do
   @impl true
   def handle_call(:flush_now, _from, state) do
     if has_pending_items?(state) do
-      {result, new_state} = do_flush(state, state.chat_messages, state.stream_events, "manual")
+      {result, new_state} = do_flush(state, "manual")
       {:reply, result, new_state}
     else
       {:reply, {:ok, []}, state}
@@ -131,9 +144,7 @@ defmodule Streampai.Stream.EventPersister do
   def handle_info(:flush_timer, state) do
     new_state =
       if has_pending_items?(state) do
-        {_result, updated_state} =
-          do_flush(state, state.chat_messages, state.stream_events, "timer")
-
+        {_result, updated_state} = do_flush(state, "timer")
         updated_state
       else
         state
@@ -144,29 +155,41 @@ defmodule Streampai.Stream.EventPersister do
 
   @impl true
   def terminate(_reason, state) do
-    flush_on_shutdown(state.chat_messages, &flush_messages/1, "chat messages")
-    flush_on_shutdown(state.stream_events, &flush_stream_events/1, "stream events")
+    if has_pending_items?(state) do
+      Logger.info(
+        "Flushing pending items before shutdown: #{length(state.chat_messages)} messages, #{length(state.stream_events)} events"
+      )
+
+      upsert_viewers_from_author_details(state.author_details)
+
+      if !Enum.empty?(state.chat_messages) do
+        bulk_upsert(state.chat_messages, ChatMessage, &message_to_attrs/1)
+      end
+
+      if !Enum.empty?(state.stream_events) do
+        bulk_upsert(state.stream_events, StreamEvent, &event_to_attrs/1)
+      end
+    end
+
     :ok
   end
 
-  defp flush_on_shutdown([], _flush_fn, _type), do: :ok
+  defp do_flush(state, flush_type) do
+    message_result =
+      flush_if_present(state.chat_messages, state.author_details, &flush_messages/2)
 
-  defp flush_on_shutdown(items, flush_fn, type) do
-    Logger.info("Flushing #{length(items)} #{type} before shutdown")
-    flush_fn.(items)
+    event_result = flush_if_present(state.stream_events, &flush_stream_events/1)
+
+    handle_flush_results(state, message_result, event_result, flush_type)
   end
 
-  defp do_flush(state, messages, events, flush_type) do
-    message_result = flush_if_present(messages, &flush_messages/1)
-    event_result = flush_if_present(events, &flush_stream_events/1)
-
-    handle_flush_results(state, messages, events, message_result, event_result, flush_type)
-  end
+  defp flush_if_present([], _author_details, _flush_fn), do: {:ok, 0}
+  defp flush_if_present(items, author_details, flush_fn), do: flush_fn.(items, author_details)
 
   defp flush_if_present([], _flush_fn), do: {:ok, 0}
   defp flush_if_present(items, flush_fn), do: flush_fn.(items)
 
-  defp handle_flush_results(state, _messages, _events, {:ok, msg_count}, {:ok, event_count}, flush_type) do
+  defp handle_flush_results(state, {:ok, msg_count}, {:ok, event_count}, flush_type) do
     total = msg_count + event_count
 
     Logger.debug("#{String.capitalize(flush_type)} flush completed: #{msg_count} messages, #{event_count} events")
@@ -175,24 +198,32 @@ defmodule Streampai.Stream.EventPersister do
       state
       | chat_messages: [],
         stream_events: [],
+        author_details: %{},
         last_flush: :os.system_time(:millisecond)
     }
 
     {{:ok, total}, new_state}
   end
 
-  defp handle_flush_results(state, messages, _events, {:error, reason}, _, flush_type) do
+  defp handle_flush_results(state, {:error, reason}, _, flush_type) do
     Logger.error("#{String.capitalize(flush_type)} flush failed (messages): #{inspect(reason)}")
-    {{:error, reason}, %{state | chat_messages: messages, stream_events: []}}
+    {{:error, reason}, %{state | stream_events: []}}
   end
 
-  defp handle_flush_results(state, _messages, events, _, {:error, reason}, flush_type) do
+  defp handle_flush_results(state, _, {:error, reason}, flush_type) do
     Logger.error("#{String.capitalize(flush_type)} flush failed (events): #{inspect(reason)}")
-    {{:error, reason}, %{state | chat_messages: [], stream_events: events}}
+    {{:error, reason}, %{state | chat_messages: [], author_details: %{}}}
   end
 
-  defp flush_messages(messages) do
+  defp flush_messages(messages, author_details) do
+    upsert_viewers_from_author_details(author_details)
     bulk_upsert(messages, ChatMessage, &message_to_attrs/1)
+  end
+
+  defp upsert_viewers_from_author_details(author_details) do
+    author_details
+    |> Map.values()
+    |> Ash.bulk_create(StreamViewer, :upsert)
   end
 
   defp flush_stream_events(events) do
@@ -225,7 +256,8 @@ defmodule Streampai.Stream.EventPersister do
       sender_is_moderator: message.sender_is_moderator,
       sender_is_patreon: message.sender_is_patreon,
       user_id: message.user_id,
-      livestream_id: message.livestream_id
+      livestream_id: message.livestream_id,
+      viewer_id: message.sender_channel_id
     }
   end
 

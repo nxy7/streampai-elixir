@@ -6,10 +6,11 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
+  darkMode: 'selector', // Use selector strategy to manually control dark mode
   content: [
     "./js/**/*.js",
     "../lib/streampai_web.ex",
-    "../lib/streampai_web/**/*.*ex", 
+    "../lib/streampai_web/**/*.*ex",
     "./vue/**/*.vue",
     "../lib/**/*.vue",
     // Include test files for development to avoid purging utilities used in tests

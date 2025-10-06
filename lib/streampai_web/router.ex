@@ -160,6 +160,9 @@ defmodule StreampaiWeb.Router do
     get("/system", MonitoringController, :system_info)
     get("/errors", MonitoringController, :errors)
     get("/errors/:id", MonitoringController, :error_detail)
+
+    # Cloudflare Stream webhooks
+    post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

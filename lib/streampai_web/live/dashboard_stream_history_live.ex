@@ -11,15 +11,16 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
 
   def mount_page(socket, _params, _session) do
     user_id = socket.assigns.current_user.id
-    stream_list = load_streams(user_id)
-    monthly_stats = calculate_monthly_stats(stream_list)
+    filters = %{platform: "all", date_range: "30days", sort: "recent"}
+    stream_list = user_id |> load_streams() |> apply_filters(filters)
+    stats = calculate_stats(stream_list, filters)
 
     socket =
       socket
       |> assign(:stream_list, stream_list)
-      |> assign(:monthly_stats, monthly_stats)
+      |> assign(:stats, stats)
       |> assign(:page_title, "Stream History")
-      |> assign(:filters, %{platform: "all", date_range: "30days", sort: "recent"})
+      |> assign(:filters, filters)
 
     {:ok, socket, layout: false}
   end
@@ -34,11 +35,13 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     }
 
     stream_list = user_id |> load_streams() |> apply_filters(filters)
+    stats = calculate_stats(stream_list, filters)
 
     socket =
       socket
       |> assign(:filters, filters)
       |> assign(:stream_list, stream_list)
+      |> assign(:stats, stats)
 
     {:noreply, socket}
   end
@@ -72,12 +75,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     }
   end
 
-  defp calculate_monthly_stats(streams) do
-    cutoff = DateTime.add(DateTime.utc_now(), -30 * 24 * 60 * 60, :second)
-    recent_streams = Enum.filter(streams, &DateTime.after?(&1.started_at, cutoff))
-
+  defp calculate_stats(streams, filters) do
     total_seconds =
-      recent_streams
+      streams
       |> Enum.map(& &1.duration_seconds)
       |> Enum.sum()
 
@@ -85,24 +85,29 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     total_minutes = div(rem(total_seconds, 3600), 60)
     total_time_formatted = "#{total_hours}h #{total_minutes}m"
 
-    total_messages = Enum.sum(Enum.map(recent_streams, & &1.total_chat_messages))
-
     avg_viewers =
-      case recent_streams do
+      case streams do
         [] ->
           0
 
-        streams ->
+        _ ->
           total_avg = Enum.sum(Enum.map(streams, & &1.avg_viewers))
           round(total_avg / length(streams))
       end
 
+    date_range_label =
+      case filters.date_range do
+        "7days" -> "7 days"
+        "30days" -> "30 days"
+        "all" -> "all time"
+        _ -> "30 days"
+      end
+
     %{
-      total_streams: length(recent_streams),
+      total_streams: length(streams),
       total_time: total_time_formatted,
       avg_viewers: avg_viewers,
-      total_followers: "-",
-      total_chat_messages: total_messages
+      date_range_label: date_range_label
     }
   end
 
@@ -156,125 +161,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     ~H"""
     <.dashboard_layout {assigns} current_page="stream-history" page_title="Stream History">
       <div class="max-w-7xl mx-auto">
-        <!-- Stats Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    class="w-4 h-4 text-purple-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    >
-                    </path>
-                  </svg>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.total_streams}</div>
-                <p class="text-sm text-gray-500">Streams (30 days)</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    class="w-4 h-4 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    >
-                    </path>
-                  </svg>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.total_time}</div>
-                <p class="text-sm text-gray-500">Total Stream Time</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    class="w-4 h-4 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    >
-                    </path>
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    >
-                    </path>
-                  </svg>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.avg_viewers}</div>
-                <p class="text-sm text-gray-500">Avg Viewers</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    class="w-4 h-4 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    >
-                    </path>
-                  </svg>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900">{@monthly_stats.total_followers}</div>
-                <p class="text-sm text-gray-500">New Followers</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-    <!-- Filters -->
+        <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Streams</h3>
           <form phx-change="update_filter">
@@ -322,6 +209,97 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
               </div>
             </div>
           </form>
+        </div>
+        
+    <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg
+                    class="w-4 h-4 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    >
+                    </path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4">
+                <div class="text-2xl font-bold text-gray-900">{@stats.total_streams}</div>
+                <p class="text-sm text-gray-500">Streams ({@stats.date_range_label})</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg
+                    class="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    >
+                    </path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4">
+                <div class="text-2xl font-bold text-gray-900">{@stats.total_time}</div>
+                <p class="text-sm text-gray-500">Total Stream Time</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg
+                    class="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    >
+                    </path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    >
+                    </path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4">
+                <div class="text-2xl font-bold text-gray-900">{@stats.avg_viewers}</div>
+                <p class="text-sm text-gray-500">Avg Viewers</p>
+              </div>
+            </div>
+          </div>
         </div>
         
     <!-- Stream History List -->

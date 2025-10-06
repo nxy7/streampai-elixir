@@ -9,8 +9,6 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.LivestreamMetric
   alias StreampaiWeb.CoreComponents, as: Core
-  alias StreampaiWeb.Utils.FakeAnalytics
-  alias StreampaiWeb.Utils.FormatHelpers
 
   require Ash.Query
 
@@ -91,23 +89,16 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     stream_list = load_recent_streams(user_id, days)
     avg_viewers = calculate_average_viewers(stream_list)
 
-    fake_stats = FakeAnalytics.generate_overall_stats(timeframe)
-    overall_stats = Map.put(fake_stats, :avg_viewers, avg_viewers)
+    overall_stats = %{avg_viewers: avg_viewers}
 
     viewer_data = load_viewer_trends(user_id, days)
-
     platform_breakdown = load_platform_distribution(user_id, days)
 
     socket
     |> assign(:overall_stats, overall_stats)
     |> assign(:stream_list, stream_list)
     |> assign(:viewer_data, viewer_data)
-    |> assign(:income_data, FakeAnalytics.generate_time_series_data(:income, days))
-    |> assign(:follower_data, FakeAnalytics.generate_time_series_data(:followers, days))
-    |> assign(:engagement_data, FakeAnalytics.generate_time_series_data(:engagement, days))
     |> assign(:platform_breakdown, platform_breakdown)
-    |> assign(:top_content, FakeAnalytics.generate_top_content())
-    |> assign(:demographics, FakeAnalytics.generate_demographics())
   end
 
   defp load_recent_streams(user_id, days) do
@@ -306,8 +297,6 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
     end
   end
 
-  defp format_number(number), do: FormatHelpers.format_number(number)
-
   def render(assigns) do
     ~H"""
     <.dashboard_layout {assigns} current_page="analytics" page_title="Analytics">
@@ -318,13 +307,12 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
               Stream Analytics
             </h1>
             <p class="mt-1 text-sm text-gray-500">
-              Track your streaming performance and audience engagement
+              Track your streaming performance and audience metrics
             </p>
           </div>
 
-          <div class="flex gap-2">
+          <form phx-change="change_timeframe" class="flex gap-2">
             <select
-              phx-change="change_timeframe"
               name="timeframe"
               class="rounded-md border-gray-300 text-sm"
             >
@@ -333,189 +321,19 @@ defmodule StreampaiWeb.DashboardAnalyticsLive do
               <option value="month" selected={@selected_timeframe == :month}>Last 30 Days</option>
               <option value="year" selected={@selected_timeframe == :year}>Last Year</option>
             </select>
-          </div>
+          </form>
         </div>
 
         <%= if @view_mode == :overview do %>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <.stat_card
-              title="Avg Viewers"
-              value={@overall_stats.avg_viewers}
-              icon="hero-users"
-            />
-            <.stat_card
-              title="Total Income"
-              value={@overall_stats.total_income}
-              format={:currency}
-              change={-5.2}
-              change_type={:negative}
-              icon="hero-currency-dollar"
-            />
-            <.stat_card
-              title="Avg Watch Time"
-              value={@overall_stats.average_watch_time}
-              format={:duration}
-              change={8.3}
-              change_type={:positive}
-              icon="hero-clock"
-            />
-            <.stat_card
-              title="Engagement Rate"
-              value={@overall_stats.engagement_rate}
-              format={:percentage}
-              change={2.1}
-              change_type={:positive}
-              icon="hero-chat-bubble-left-right"
-              tooltip="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count."
-            />
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <.line_chart title="Viewer Trends" data={@viewer_data} />
-            <.line_chart title="Income Trends" data={@income_data} />
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <.bar_chart title="Platform Distribution" data={@platform_breakdown} />
-            <.bar_chart
-              title="Top Content"
-              data={
-                Enum.map(Enum.take(@top_content, 5), fn c ->
-                  %{label: c.game, value: c.average_viewers}
-                end)
-              }
-            />
-            <.pie_chart
-              title="Income Sources"
-              data={[
-                %{label: "Donations", value: @overall_stats.donations},
-                %{label: "Subscriptions", value: @overall_stats.subscriptions},
-                %{label: "Bits", value: @overall_stats.bits},
-                %{label: "Ads", value: @overall_stats.ads_revenue}
-              ]}
-            />
           </div>
 
           <.stream_table streams={Enum.take(@stream_list, 5)} />
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">
-                Audience Demographics
-              </h3>
-              <div class="space-y-4">
-                <div>
-                  <h4 class="text-sm font-medium text-gray-700 mb-2">
-                    Age Distribution
-                  </h4>
-                  <div class="space-y-2">
-                    <%= for age_group <- @demographics.age_groups do %>
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">
-                          {age_group.range}
-                        </span>
-                        <div class="flex items-center gap-2">
-                          <.progress_bar
-                            value={age_group.percentage}
-                            max_value={100.0}
-                            width_class="w-32"
-                            size={:medium}
-                          />
-                          <span class="text-sm font-medium text-gray-900 w-10 text-right">
-                            {age_group.percentage}%
-                          </span>
-                        </div>
-                      </div>
-                    <% end %>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 class="text-sm font-medium text-gray-700 mb-2">
-                    Top Countries
-                  </h4>
-                  <div class="space-y-2">
-                    <%= for country <- Enum.take(@demographics.top_countries, 5) do %>
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">
-                          {country.country}
-                        </span>
-                        <span class="text-sm font-medium text-gray-900">
-                          {format_number(country.viewers)} viewers
-                        </span>
-                      </div>
-                    <% end %>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">
-                Performance Insights
-              </h3>
-              <div class="space-y-3">
-                <div class="p-3 bg-green-50 rounded-lg">
-                  <div class="flex items-start">
-                    <Core.icon name="hero-arrow-trending-up" class="w-5 h-5 text-green-600 mt-0.5" />
-                    <div class="ml-3">
-                      <p class="text-sm font-medium text-green-800">
-                        Strong viewer retention
-                      </p>
-                      <p class="text-xs text-green-600 mt-1">
-                        Your average watch time increased by 15% this period
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="p-3 bg-blue-50 rounded-lg">
-                  <div class="flex items-start">
-                    <Core.icon name="hero-users" class="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div class="ml-3">
-                      <p class="text-sm font-medium text-blue-800">
-                        Growing audience
-                      </p>
-                      <p class="text-xs text-blue-600 mt-1">
-                        {@overall_stats.new_followers} new followers gained
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="p-3 bg-yellow-50 rounded-lg">
-                  <div class="flex items-start">
-                    <Core.icon name="hero-clock" class="w-5 h-5 text-yellow-600 mt-0.5" />
-                    <div class="ml-3">
-                      <p class="text-sm font-medium text-yellow-800">
-                        Peak streaming time
-                      </p>
-                      <p class="text-xs text-yellow-600 mt-1">
-                        Best engagement between 7 PM - 11 PM
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="p-3 bg-purple-50 rounded-lg">
-                  <div class="flex items-start">
-                    <Core.icon
-                      name="hero-chat-bubble-bottom-center-text"
-                      class="w-5 h-5 text-purple-600 mt-0.5"
-                    />
-                    <div class="ml-3">
-                      <p class="text-sm font-medium text-purple-800">
-                        High chat activity
-                      </p>
-                      <p class="text-xs text-purple-600 mt-1">
-                        {format_number(@overall_stats.chat_messages)} chat messages received
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         <% else %>
           <div class="mb-4">
             <button

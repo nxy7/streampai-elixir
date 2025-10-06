@@ -351,21 +351,30 @@ defmodule Streampai.YouTube.GrpcStreamClient do
   end
 
   defp process_message(message, state) do
-    case determine_event_type(message) do
-      {:ok, event_type} ->
-        case extract_message_data(message, event_type) do
-          {:ok, processed_data} ->
-            queue_event_for_persistence(event_type, processed_data, state)
-            send(state.callback_pid, {:youtube_message, event_type, processed_data})
+    Logger.debug("Processing YouTube message: #{inspect(message)}")
+    {:ok, event_type} = determine_event_type(message)
+    {:ok, processed_data} = extract_message_data(message, event_type)
 
-          {:error, reason} ->
-            Logger.warning("Failed to extract message data: #{inspect(reason)}")
-        end
+    queue_event_for_persistence(event_type, processed_data, state)
 
-      {:error, :unsupported_message_type} ->
-        Logger.debug("Skipping unsupported message type: #{inspect(message.snippet.type)}")
-    end
+    broadcast_data = format_for_broadcast(event_type, processed_data)
+    send(state.callback_pid, {:youtube_message, event_type, broadcast_data})
+  catch
+    :error, error ->
+      Logger.error("Skipping unsupported message type: #{inspect(error)}")
   end
+
+  defp format_for_broadcast(:chat_message, {message_data, author_details}) do
+    Map.merge(message_data, %{
+      username: author_details.display_name,
+      channel_id: author_details.channel_id,
+      is_moderator: author_details.is_moderator,
+      is_owner: author_details.is_owner,
+      is_sponsor: author_details.is_patreon
+    })
+  end
+
+  defp format_for_broadcast(_event_type, data), do: data
 
   defp queue_event_for_persistence(:chat_message, data, state) do
     queue_chat_message_for_persistence(data, state)
@@ -395,17 +404,24 @@ defmodule Streampai.YouTube.GrpcStreamClient do
         _ -> message.snippet.display_message || ""
       end
 
-    {:ok,
-     %{
-       id: message.id,
-       username: message.author_details.display_name,
-       message: message_text,
-       channel_id: message.author_details.channel_id,
-       is_moderator: message.author_details.is_chat_moderator || false,
-       is_owner: message.author_details.is_chat_owner || false,
-       is_sponsor: message.author_details.is_chat_sponsor || false,
-       timestamp: message.snippet.published_at
-     }}
+    author_details = %{
+      channel_id: message.author_details.channel_id,
+      display_name: message.author_details.display_name,
+      avatar_url: message.author_details.profile_image_url,
+      channel_url: message.author_details.channel_url,
+      is_verified: message.author_details.is_verified || false,
+      is_owner: message.author_details.is_chat_owner || false,
+      is_moderator: message.author_details.is_chat_moderator || false,
+      is_patreon: message.author_details.is_chat_sponsor || false
+    }
+
+    message_data = %{
+      id: message.id,
+      message: message_text,
+      timestamp: message.snippet.published_at
+    }
+
+    {:ok, {message_data, author_details}}
   end
 
   defp extract_message_data(message, :donation) do
@@ -452,20 +468,32 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
   defp extract_message_data(_message, _type), do: {:error, :unsupported_type}
 
-  defp queue_chat_message_for_persistence(data, state) do
+  defp queue_chat_message_for_persistence({message_data, author_details}, state) do
     message_attrs = %{
-      id: data.id,
-      message: data.message,
-      sender_username: data.username,
+      id: message_data.id,
+      message: message_data.message,
+      sender_username: author_details.display_name,
       platform: :youtube,
-      sender_channel_id: data.channel_id,
-      sender_is_moderator: data.is_moderator,
-      sender_is_patreon: data.is_sponsor,
+      sender_channel_id: author_details.channel_id,
+      sender_is_moderator: author_details.is_moderator,
+      sender_is_patreon: author_details.is_patreon,
       user_id: state.user_id,
       livestream_id: state.livestream_id
     }
 
-    EventPersister.add_message(message_attrs)
+    author_attrs = %{
+      viewer_id: author_details.channel_id,
+      user_id: state.user_id,
+      display_name: author_details.display_name,
+      avatar_url: author_details.avatar_url,
+      channel_url: author_details.channel_url,
+      is_verified: author_details.is_verified,
+      is_owner: author_details.is_owner,
+      is_moderator: author_details.is_moderator,
+      is_patreon: author_details.is_patreon
+    }
+
+    EventPersister.add_message({message_attrs, author_attrs})
   end
 
   defp queue_stream_event_for_persistence(data, event_type, state) do

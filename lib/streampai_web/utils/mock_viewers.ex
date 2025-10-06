@@ -124,7 +124,6 @@ defmodule StreampaiWeb.Utils.MockViewers do
       donation_history: generate_donation_history(),
       top_donations: generate_top_donations(),
       watch_sessions: generate_watch_sessions(),
-      engagement_score: :rand.uniform(100),
       sentiment_score: 50 + :rand.uniform(50),
       favorite_emotes: generate_favorite_emotes(),
       common_chat_times: generate_chat_times(),

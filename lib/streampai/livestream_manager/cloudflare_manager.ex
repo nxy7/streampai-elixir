@@ -154,6 +154,14 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     GenServer.call(server, {:delete_platform_output, platform})
   end
 
+  @doc """
+  Notifies the manager of a Cloudflare webhook event.
+  Used by CloudflareWebhookController to update stream state in real-time.
+  """
+  def handle_webhook_event(user_id, event_type) when is_binary(user_id) do
+    GenServer.cast(via_tuple(user_id), {:webhook_event, event_type})
+  end
+
   # Server callbacks
 
   @impl true
@@ -450,6 +458,21 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     end
   end
 
+  @impl true
+  def handle_cast({:webhook_event, event_type}, state) do
+    Logger.info("Received webhook event: #{event_type}")
+
+    new_streaming_status =
+      case event_type do
+        "stream.live_input.connected" -> :live
+        "stream.live_input.disconnected" -> :offline
+        _ -> state.input_streaming_status
+      end
+
+    state = handle_input_status_change(state, new_streaming_status)
+    {:noreply, state}
+  end
+
   defp delete_output_from_api(state, platform, output_id) do
     case get_input_id(state.live_input) do
       nil ->
@@ -476,7 +499,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     %{
       account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID") || "default_account",
       api_token: System.get_env("CLOUDFLARE_API_TOKEN") || "default_token",
-      poll_interval: Application.get_env(:streampai, :cloudflare_input_poll_interval, 15_000)
+      poll_interval: Application.get_env(:streampai, :cloudflare_input_poll_interval, 5_000)
     }
   end
 

@@ -54,7 +54,8 @@ defmodule StreampaiWeb.Utils.FormatHelpers do
         "$#{format_number(Float.round(value, 2))}"
 
       :percentage ->
-        "#{Float.round(value, 1)}%"
+        formatted_value = if is_float(value), do: Float.round(value, 1), else: value / 1
+        "#{formatted_value}%"
 
       :duration ->
         "#{value} min"

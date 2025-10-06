@@ -4,136 +4,68 @@ defmodule StreampaiWeb.ViewersLive do
 
   import StreampaiWeb.Components.DashboardLayout
 
-  alias StreampaiWeb.Utils.DateTimeUtils
-  alias StreampaiWeb.Utils.MockViewers
+  alias Streampai.Stream.StreamViewer
 
   @impl true
   def mount(_params, _session, socket) do
-    viewers = MockViewers.generate_viewers(100)
+    viewers = load_viewers(socket.assigns.current_user.id)
 
     socket =
       socket
       |> assign(:page_title, "Viewers")
-      |> assign(:all_viewers, viewers)
       |> assign(:viewers, viewers)
-      |> assign(:search_term, "")
-      |> assign(:selected_platform, nil)
-      |> assign(:selected_tags, [])
-      |> assign(:sort_by, :last_seen)
-      |> assign(:sort_order, :desc)
+      |> assign(:search_query, "")
 
     {:ok, socket, layout: false}
   end
 
   @impl true
-  def handle_event("search", %{"search" => %{"term" => term}}, socket) do
-    updated_socket = assign(socket, :search_term, term)
-    filtered_viewers = build_and_filter_viewers(updated_socket)
-    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
+  def handle_event("search", %{"query" => query}, socket) do
+    viewers =
+      if query == "" do
+        load_viewers(socket.assigns.current_user.id)
+      else
+        search_viewers(socket.assigns.current_user.id, query)
+      end
+
+    {:noreply, assign(socket, viewers: viewers, search_query: query)}
   end
 
-  @impl true
-  def handle_event("filter_platform", %{"platform" => platform}, socket) do
-    platform = if platform == "all", do: nil, else: String.to_atom(platform)
-    updated_socket = assign(socket, :selected_platform, platform)
-    filtered_viewers = build_and_filter_viewers(updated_socket)
-    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
+  defp load_viewers(user_id) do
+    StreamViewer
+    |> Ash.Query.for_read(:for_user, %{user_id: user_id})
+    |> Ash.read!()
   end
 
-  @impl true
-  def handle_event("toggle_tag", %{"tag" => tag}, socket) do
-    selected_tags = toggle_tag_in_list(tag, socket.assigns.selected_tags)
-    updated_socket = assign(socket, :selected_tags, selected_tags)
-    filtered_viewers = build_and_filter_viewers(updated_socket)
-    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
+  defp search_viewers(user_id, query) do
+    StreamViewer
+    |> Ash.Query.for_read(:by_display_name, %{
+      user_id: user_id,
+      display_name: query,
+      similarity_threshold: 0.3
+    })
+    |> Ash.read!()
   end
 
-  @impl true
-  def handle_event("sort", %{"by" => sort_by}, socket) do
-    sort_by = String.to_atom(sort_by)
-    sort_order = determine_sort_order(sort_by, socket.assigns.sort_by, socket.assigns.sort_order)
-    updated_socket = assign(socket, sort_by: sort_by, sort_order: sort_order)
-    filtered_viewers = build_and_filter_viewers(updated_socket)
-    {:noreply, assign(updated_socket, :viewers, filtered_viewers)}
-  end
+  defp format_relative_date(datetime) do
+    now = DateTime.utc_now()
+    date_only = DateTime.to_date(datetime)
+    today = DateTime.to_date(now)
+    diff_days = Date.diff(today, date_only)
 
-  defp build_and_filter_viewers(socket) do
-    socket.assigns.all_viewers
-    |> MockViewers.filter_viewers(socket.assigns.search_term)
-    |> filter_by_platform(socket.assigns.selected_platform)
-    |> filter_by_tags(socket.assigns.selected_tags)
-    |> sort_viewers(socket.assigns.sort_by, socket.assigns.sort_order)
-  end
+    cond do
+      diff_days == 0 ->
+        "Today"
 
-  defp toggle_tag_in_list(tag, selected_tags) do
-    if tag in selected_tags do
-      List.delete(selected_tags, tag)
-    else
-      [tag | selected_tags]
+      diff_days == 1 ->
+        "Yesterday"
+
+      diff_days >= 2 and diff_days <= 5 ->
+        "#{diff_days} days ago"
+
+      true ->
+        Calendar.strftime(datetime, "%b %d, %Y %I:%M %p")
     end
-  end
-
-  defp determine_sort_order(new_sort_by, current_sort_by, current_sort_order) do
-    if new_sort_by == current_sort_by do
-      if current_sort_order == :asc, do: :desc, else: :asc
-    else
-      default_sort_order(new_sort_by)
-    end
-  end
-
-  defp filter_by_platform(viewers, nil), do: viewers
-
-  defp filter_by_platform(viewers, platform) do
-    Enum.filter(viewers, fn viewer ->
-      platform in viewer.platforms
-    end)
-  end
-
-  defp filter_by_tags(viewers, []), do: viewers
-
-  defp filter_by_tags(viewers, tags) do
-    Enum.filter(viewers, fn viewer ->
-      Enum.any?(tags, fn tag -> tag in viewer.tags end)
-    end)
-  end
-
-  defp sort_viewers(viewers, sort_by, sort_order) do
-    Enum.sort_by(viewers, &get_sort_value(&1, sort_by), sort_order)
-  end
-
-  defp get_sort_value(viewer, :username), do: viewer.username
-  defp get_sort_value(viewer, :last_seen), do: viewer.last_seen
-  defp get_sort_value(viewer, :total_messages), do: viewer.total_messages
-  defp get_sort_value(viewer, :total_donations), do: viewer.total_donations
-  defp get_sort_value(viewer, :watch_time), do: viewer.total_watch_time
-  defp get_sort_value(viewer, _), do: viewer.last_seen
-
-  defp default_sort_order(:username), do: :asc
-  defp default_sort_order(_), do: :desc
-
-  defp format_duration(minutes), do: DateTimeUtils.format_duration_minutes(minutes)
-
-  defp format_date(datetime) do
-    StreampaiWeb.Utils.FormatHelpers.format_date_relative(datetime)
-  end
-
-  defp platform_color(platform) do
-    StreampaiWeb.Utils.PlatformUtils.platform_badge_color(platform)
-  end
-
-  @tag_colors %{
-    "VIP" => "bg-yellow-100 text-yellow-800",
-    "Subscriber" => "bg-purple-100 text-purple-800",
-    "Moderator" => "bg-green-100 text-green-800",
-    "Regular" => "bg-blue-100 text-blue-800",
-    "New" => "bg-pink-100 text-pink-800",
-    "Turbo" => "bg-indigo-100 text-indigo-800",
-    "Prime" => "bg-orange-100 text-orange-800",
-    "Gifted Sub" => "bg-red-100 text-red-800"
-  }
-
-  defp tag_color(tag) do
-    Map.get(@tag_colors, tag, "bg-gray-100 text-gray-800")
   end
 
   @impl true
@@ -141,369 +73,124 @@ defmodule StreampaiWeb.ViewersLive do
     ~H"""
     <.dashboard_layout current_page={:viewers} current_user={@current_user} page_title="Viewers">
       <div class="space-y-6">
-        <div class="flex flex-col gap-6">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900">Stream Viewers</h1>
-            <p class="mt-2 text-gray-600">
-              Manage and analyze your viewer base across all platforms
-            </p>
-          </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Viewers</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Track all viewers across platforms
+          </p>
+        </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div class="lg:col-span-3 space-y-4">
-              <div class="bg-white rounded-lg shadow p-4">
-                <div class="flex flex-col sm:flex-row gap-4">
-                  <form phx-submit="search" phx-change="search" class="flex-1">
-                    <div class="relative">
-                      <input
-                        type="text"
-                        name="search[term]"
-                        value={@search_term}
-                        placeholder="Search by username, email, or name..."
-                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                      />
-                      <svg
-                        class="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                      </svg>
-                    </div>
-                  </form>
+        <div class="flex items-center gap-4">
+          <form phx-change="search" class="flex-1">
+            <input
+              type="text"
+              name="query"
+              value={@search_query}
+              placeholder="Search viewers..."
+              class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </form>
+        </div>
 
-                  <div class="flex gap-2">
-                    <select
-                      phx-change="filter_platform"
-                      name="platform"
-                      class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                    >
-                      <option value="all" selected={@selected_platform == nil}>All Platforms</option>
-                      <option value="twitch" selected={@selected_platform == :twitch}>Twitch</option>
-                      <option value="youtube" selected={@selected_platform == :youtube}>
-                        YouTube
-                      </option>
-                      <option value="facebook" selected={@selected_platform == :facebook}>
-                        Facebook
-                      </option>
-                      <option value="kick" selected={@selected_platform == :kick}>Kick</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="mt-4 flex flex-wrap gap-2">
-                  <span class="text-sm text-gray-600 mr-2">Filter by tags:</span>
-                  <%= for tag <- ["VIP", "Subscriber", "Moderator", "Regular", "New"] do %>
-                    <button
-                      phx-click="toggle_tag"
-                      phx-value-tag={tag}
-                      class={"inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors " <>
-                        if tag in @selected_tags do
-                          tag_color(tag)
-                        else
-                          "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        end}
-                    >
-                      {tag}
-                      <%= if tag in @selected_tags do %>
-                        <svg class="ml-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      <% end %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-
-              <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th scope="col" class="px-6 py-3 text-left">
-                          <button
-                            phx-click="sort"
-                            phx-value-by="username"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                          >
-                            Viewer
-                            <span class="ml-2 flex-none">
-                              <%= if @sort_by == :username do %>
-                                <%= if @sort_order == :asc do %>
-                                  ↑
-                                <% else %>
-                                  ↓
-                                <% end %>
-                              <% else %>
-                                <span class="text-gray-400">↕</span>
-                              <% end %>
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Viewer
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  First Seen
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Last Seen
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <%= for viewer <- @viewers do %>
+                <tr
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                  phx-click={JS.navigate("/dashboard/viewers/#{viewer.viewer_id}")}
+                >
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <%= if viewer.avatar_url do %>
+                          <img class="h-10 w-10 rounded-full" src={viewer.avatar_url} alt="" />
+                        <% else %>
+                          <div class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                            <span class="text-gray-600 dark:text-gray-300 font-medium">
+                              {String.first(viewer.display_name) |> String.upcase()}
                             </span>
-                          </button>
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Platforms
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Tags
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left">
-                          <button
-                            phx-click="sort"
-                            phx-value-by="total_messages"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                          >
-                            Messages
-                            <span class="ml-2 flex-none">
-                              <%= if @sort_by == :total_messages do %>
-                                <%= if @sort_order == :asc do %>
-                                  ↑
-                                <% else %>
-                                  ↓
-                                <% end %>
-                              <% else %>
-                                <span class="text-gray-400">↕</span>
-                              <% end %>
-                            </span>
-                          </button>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left">
-                          <button
-                            phx-click="sort"
-                            phx-value-by="total_donations"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                          >
-                            Donations
-                            <span class="ml-2 flex-none">
-                              <%= if @sort_by == :total_donations do %>
-                                <%= if @sort_order == :asc do %>
-                                  ↑
-                                <% else %>
-                                  ↓
-                                <% end %>
-                              <% else %>
-                                <span class="text-gray-400">↕</span>
-                              <% end %>
-                            </span>
-                          </button>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left">
-                          <button
-                            phx-click="sort"
-                            phx-value-by="watch_time"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                          >
-                            Watch Time
-                            <span class="ml-2 flex-none">
-                              <%= if @sort_by == :watch_time do %>
-                                <%= if @sort_order == :asc do %>
-                                  ↑
-                                <% else %>
-                                  ↓
-                                <% end %>
-                              <% else %>
-                                <span class="text-gray-400">↕</span>
-                              <% end %>
-                            </span>
-                          </button>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left">
-                          <button
-                            phx-click="sort"
-                            phx-value-by="last_seen"
-                            class="group inline-flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                          >
-                            Last Seen
-                            <span class="ml-2 flex-none">
-                              <%= if @sort_by == :last_seen do %>
-                                <%= if @sort_order == :asc do %>
-                                  ↑
-                                <% else %>
-                                  ↓
-                                <% end %>
-                              <% else %>
-                                <span class="text-gray-400">↕</span>
-                              <% end %>
-                            </span>
-                          </button>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                      <%= for viewer <- @viewers do %>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                          <td class="px-6 py-4 whitespace-nowrap">
-                            <.link
-                              navigate={~p"/dashboard/viewers/#{viewer.id}"}
-                              class="flex items-center group"
-                            >
-                              <img
-                                class="h-10 w-10 rounded-full"
-                                src={viewer.avatar}
-                                alt={viewer.username}
-                              />
-                              <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900 group-hover:text-purple-600">
-                                  {viewer.username}
-                                </div>
-                                <div class="text-sm text-gray-500">
-                                  {viewer.email}
-                                </div>
-                              </div>
-                            </.link>
-                          </td>
-                          <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex flex-wrap gap-1">
-                              <%= for platform <- viewer.platforms do %>
-                                <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium " <> platform_color(platform)}>
-                                  {platform |> Atom.to_string() |> String.capitalize()}
-                                </span>
-                              <% end %>
-                            </div>
-                          </td>
-                          <td class="px-6 py-4">
-                            <div class="flex flex-wrap gap-1">
-                              <%= for tag <- Enum.take(viewer.tags, 3) do %>
-                                <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium " <> tag_color(tag)}>
-                                  {tag}
-                                </span>
-                              <% end %>
-                              <%= if length(viewer.tags) > 3 do %>
-                                <span class="text-xs text-gray-500">
-                                  +{length(viewer.tags) - 3}
-                                </span>
-                              <% end %>
-                            </div>
-                          </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {viewer.total_messages
-                            |> Integer.to_string()
-                            |> String.replace(~r/(\d)(?=(\d{3})+(?!\d))/, "\\1,")}
-                          </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <%= if viewer.total_donations > 0 do %>
-                              ${:erlang.float_to_binary(viewer.total_donations, decimals: 0)}
-                            <% else %>
-                              <span class="text-gray-400">-</span>
-                            <% end %>
-                          </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {format_duration(viewer.total_watch_time)}
-                          </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {format_date(viewer.last_seen)}
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
-
-                <%= if @viewers == [] do %>
-                  <div class="text-center py-12">
-                    <svg
-                      class="mx-auto h-12 w-12 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">
-                      No viewers found
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                      Try adjusting your search or filters
-                    </p>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Statistics</h3>
-                <dl class="space-y-4">
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Total Viewers
-                    </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                      {length(@all_viewers)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Active Subscribers
-                    </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                      {Enum.count(@all_viewers, & &1.is_subscriber)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Total Followers
-                    </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                      {Enum.count(@all_viewers, & &1.is_follower)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Multi-Platform
-                    </dt>
-                    <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                      {Enum.count(@all_viewers, fn v -> length(v.platforms) > 1 end)}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                  Top Contributors
-                </h3>
-                <div class="space-y-3">
-                  <%= for viewer <- @all_viewers |> Enum.sort_by(& &1.total_donations, :desc) |> Enum.take(5) do %>
-                    <.link
-                      navigate={~p"/dashboard/viewers/#{viewer.id}"}
-                      class="flex items-center justify-between group"
-                    >
-                      <div class="flex items-center">
-                        <img class="h-8 w-8 rounded-full" src={viewer.avatar} alt={viewer.username} />
-                        <span class="ml-2 text-sm font-medium text-gray-900 group-hover:text-purple-600">
-                          {viewer.username}
-                        </span>
+                          </div>
+                        <% end %>
                       </div>
-                      <span class="text-sm font-semibold text-gray-900">
-                        ${:erlang.float_to_binary(viewer.total_donations, decimals: 0)}
-                      </span>
-                    </.link>
-                  <% end %>
-                </div>
-              </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                          {viewer.display_name}
+                        </div>
+                        <%= if viewer.channel_url do %>
+                          <a
+                            href={viewer.channel_url}
+                            target="_blank"
+                            class="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            View Channel
+                          </a>
+                        <% end %>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex gap-2">
+                      <%= if viewer.is_verified do %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          Verified
+                        </span>
+                      <% end %>
+                      <%= if viewer.is_owner do %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          Owner
+                        </span>
+                      <% end %>
+                      <%= if viewer.is_moderator do %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          Mod
+                        </span>
+                      <% end %>
+                      <%= if viewer.is_patreon do %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
+                          Patron
+                        </span>
+                      <% end %>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {format_relative_date(viewer.first_seen_at)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {format_relative_date(viewer.last_seen_at)}
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+          <%= if Enum.empty?(@viewers) do %>
+            <div class="text-center py-12">
+              <p class="text-gray-500 dark:text-gray-400">
+                <%= if @search_query != "" do %>
+                  No viewers found matching "{@search_query}"
+                <% else %>
+                  No viewers yet. They'll appear here once someone chats!
+                <% end %>
+              </p>
             </div>
-          </div>
+          <% end %>
         </div>
       </div>
     </.dashboard_layout>

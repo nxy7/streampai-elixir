@@ -168,9 +168,10 @@ defmodule StreampaiWeb.AnalyticsComponents do
               </span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
+              <% width_pct = if max_value > 0, do: item.value / max_value * 100, else: 0 %>
               <div
                 class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                style={"width: #{item.value / max_value * 100}%"}
+                style={"width: #{width_pct}%"}
               />
             </div>
           </div>
@@ -282,12 +283,6 @@ defmodule StreampaiWeb.AnalyticsComponents do
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                   Income
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                  <div class="flex items-center gap-2">
-                    <span>Engagement</span>
-                    <.tooltip text="Engagement rate measures how actively your audience interacts with your content through likes, comments, shares, and chat messages relative to your total viewer count." />
-                  </div>
-                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -348,24 +343,6 @@ defmodule StreampaiWeb.AnalyticsComponents do
                       class="block"
                     >
                       ${Float.round(stream.income.total, 2)}
-                    </.link>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <.link
-                      navigate={get_stream_history_url(stream)}
-                      class="block"
-                    >
-                      <div class="flex items-center text-sm">
-                        <span class={[
-                          "font-medium",
-                          stream.engagement.engagement_rate > 3.0 && "text-green-600",
-                          stream.engagement.engagement_rate <= 3.0 &&
-                            stream.engagement.engagement_rate > 2.0 && "text-yellow-600",
-                          stream.engagement.engagement_rate <= 2.0 && "text-red-600"
-                        ]}>
-                          {Float.round(stream.engagement.engagement_rate, 1)}%
-                        </span>
-                      </div>
                     </.link>
                   </td>
                 </tr>

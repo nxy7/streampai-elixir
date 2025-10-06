@@ -76,7 +76,8 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
       platform: chat_message.platform,
       viewer_id: chat_message.viewer_id,
       inserted_at: chat_message.inserted_at,
-      is_moderator: chat_message.sender_is_moderator
+      is_moderator: chat_message.sender_is_moderator,
+      livestream_id: chat_message.livestream_id
     }
   end
 
@@ -198,9 +199,18 @@ defmodule StreampaiWeb.DashboardChatHistoryLive do
                           Moderator
                         </span>
                       <% end %>
-                      <span class="text-xs text-gray-500">
-                        {format_datetime(message.inserted_at)}
-                      </span>
+                      <%= if message.livestream_id do %>
+                        <.link
+                          navigate={~p"/dashboard/stream-history/#{message.livestream_id}"}
+                          class="text-xs text-blue-600 hover:underline"
+                        >
+                          {format_datetime(message.inserted_at)}
+                        </.link>
+                      <% else %>
+                        <span class="text-xs text-gray-500">
+                          {format_datetime(message.inserted_at)}
+                        </span>
+                      <% end %>
                     </div>
                     <p class="text-sm text-gray-600">{message.message}</p>
                   </div>

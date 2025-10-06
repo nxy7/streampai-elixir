@@ -35,6 +35,7 @@ defmodule Streampai.Stream.ChatMessage do
     define :read
     define :get_for_livestream, args: [:livestream_id]
     define :get_for_user, args: [:user_id, :limit, :platform, :date_range]
+    define :get_for_viewer, args: [:viewer_id, :user_id]
   end
 
   actions do
@@ -151,6 +152,16 @@ defmodule Streampai.Stream.ChatMessage do
         |> Ash.Query.limit(limit)
       end
     end
+
+    read :get_for_viewer do
+      description "Get chat messages for a specific viewer on a user's streams"
+
+      argument :viewer_id, :string, allow_nil?: false
+      argument :user_id, :uuid, allow_nil?: false
+
+      filter expr(viewer_id == ^arg(:viewer_id) and user_id == ^arg(:user_id))
+      prepare build(sort: [inserted_at: :desc], limit: 50)
+    end
   end
 
   attributes do
@@ -186,6 +197,8 @@ defmodule Streampai.Stream.ChatMessage do
       allow_nil? false
       default &DateTime.utc_now/0
     end
+
+    attribute :viewer_id, :string
   end
 
   relationships do
@@ -196,11 +209,6 @@ defmodule Streampai.Stream.ChatMessage do
 
     belongs_to :livestream, Streampai.Stream.Livestream do
       allow_nil? false
-      attribute_writable? true
-    end
-
-    belongs_to :viewer, Streampai.Stream.Viewer do
-      description "The global viewer who sent this message (optional)"
       attribute_writable? true
     end
   end

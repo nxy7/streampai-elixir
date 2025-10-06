@@ -197,8 +197,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
             x when x > 1 -> "Medium"
             _ -> "Low"
           end
-      },
-      engagement_score: calculate_engagement_score(stream, events, chat_messages)
+      }
     }
   end
 
@@ -280,20 +279,6 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
       DateTime.compare(msg.timestamp, window_start) != :lt and
         DateTime.compare(msg.timestamp, window_end) != :gt
     end)
-  end
-
-  defp calculate_engagement_score(stream, events, chat_messages) do
-    base_score =
-      case stream.avg_viewers do
-        avg when is_number(avg) -> avg * 10
-        _ -> 0
-      end
-
-    event_bonus = length(events) * 50
-    chat_bonus = length(chat_messages) * 2
-
-    total = base_score + event_bonus + chat_bonus
-    min(100, round(total / 100))
   end
 
   defp filter_chat_by_timeline(chat_messages, stream, timeline_position) do
@@ -554,22 +539,6 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                       </button>
                     </p>
                   <% end %>
-                </div>
-
-                <div class="bg-green-50 rounded-lg p-4">
-                  <h4 class="font-medium text-green-900 mb-2">Engagement Score</h4>
-                  <div class="flex items-center">
-                    <div class="flex-1 bg-green-200 rounded-full h-2">
-                      <div
-                        class="bg-green-600 h-2 rounded-full"
-                        style={"width: #{@insights.engagement_score}%"}
-                      >
-                      </div>
-                    </div>
-                    <span class="ml-2 text-sm font-medium text-green-900">
-                      {@insights.engagement_score}/100
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>

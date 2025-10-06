@@ -4,6 +4,15 @@
 
 /* This file is for your main application CSS */
 
+/* Force light color scheme across all browsers */
+:root {
+  color-scheme: light;
+}
+
+html {
+  color-scheme: light;
+}
+
 /* Widget-specific animations */
 .animate-fade-in {
   animation: fadeIn 0.5s ease-in-out;

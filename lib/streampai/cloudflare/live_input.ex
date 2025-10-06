@@ -13,6 +13,7 @@ defmodule Streampai.Cloudflare.LiveInput do
 
   code_interface do
     define :get_or_fetch_for_user, args: [:user_id]
+    define :get_by_cloudflare_uid, args: [:cloudflare_uid]
   end
 
   # Test mode override for get_or_fetch_for_user
@@ -63,6 +64,12 @@ defmodule Streampai.Cloudflare.LiveInput do
       argument :user_id, :uuid, allow_nil?: false
 
       prepare Streampai.Cloudflare.LiveInput.Preparations.GetOrFetch
+    end
+
+    read :get_by_cloudflare_uid do
+      argument :cloudflare_uid, :string, allow_nil?: false
+
+      filter expr(fragment("(?)->>'uid' = ?", data, ^arg(:cloudflare_uid)))
     end
   end
 

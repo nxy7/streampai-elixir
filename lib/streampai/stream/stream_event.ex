@@ -46,6 +46,7 @@ defmodule Streampai.Stream.StreamEvent do
     define :destroy
     define :get_activity_events_for_livestream, args: [:livestream_id]
     define :get_platform_started_for_livestream, args: [:livestream_id]
+    define :get_for_viewer, args: [:viewer_id, :user_id]
   end
 
   actions do
@@ -106,6 +107,33 @@ defmodule Streampai.Stream.StreamEvent do
 
       filter expr(livestream_id == ^arg(:livestream_id) and type == :platform_started)
     end
+
+    read :get_for_viewer do
+      description "Get events for a specific viewer on a user's streams"
+
+      argument :viewer_id, :string, allow_nil?: false
+      argument :user_id, :uuid, allow_nil?: false
+
+      filter expr(viewer_id == ^arg(:viewer_id) and user_id == ^arg(:user_id))
+      prepare build(sort: [inserted_at: :desc], limit: 50)
+    end
+
+    create :upsert do
+      accept [
+        :id,
+        :type,
+        :data,
+        :data_raw,
+        :author_id,
+        :livestream_id,
+        :user_id,
+        :platform,
+        :viewer_id
+      ]
+
+      upsert? true
+      upsert_identity :primary_key
+    end
   end
 
   attributes do
@@ -151,6 +179,10 @@ defmodule Streampai.Stream.StreamEvent do
       allow_nil? false
     end
 
+    attribute :viewer_id, :string do
+      public? true
+    end
+
     create_timestamp :inserted_at
   end
 
@@ -162,12 +194,6 @@ defmodule Streampai.Stream.StreamEvent do
 
     belongs_to :livestream, Streampai.Stream.Livestream do
       source_attribute :livestream_id
-      destination_attribute :id
-    end
-
-    belongs_to :viewer, Streampai.Stream.Viewer do
-      description "The global viewer who triggered this event (optional)"
-      source_attribute :viewer_id
       destination_attribute :id
     end
   end
