@@ -18,9 +18,14 @@ defmodule StreampaiWeb.DashboardModerateLive do
     # Get list of users this user moderates for
     moderated_users = load_moderated_users(user_id)
 
-    # Subscribe to presence updates
+    # Subscribe to presence and stream state updates
     if Phoenix.LiveView.connected?(socket) do
       Phoenix.PubSub.subscribe(Streampai.PubSub, "users_presence")
+
+      # Subscribe to stream state changes for each moderated user
+      Enum.each(moderated_users, fn user ->
+        Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user.id}")
+      end)
     end
 
     socket =
@@ -34,6 +39,12 @@ defmodule StreampaiWeb.DashboardModerateLive do
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
     # Reload moderated users with updated presence
+    moderated_users = load_moderated_users(socket.assigns.current_user.id)
+    {:noreply, assign(socket, :moderated_users, moderated_users)}
+  end
+
+  def handle_info({:stream_state_changed, _state}, socket) do
+    # Reload moderated users when any stream state changes
     moderated_users = load_moderated_users(socket.assigns.current_user.id)
     {:noreply, assign(socket, :moderated_users, moderated_users)}
   end
@@ -70,15 +81,22 @@ defmodule StreampaiWeb.DashboardModerateLive do
   end
 
   defp user_streaming?(user_id) do
-    # Check if user has an active stream
-    require Ash.Query
+    # Query the StreamStateServer for real-time streaming status
+    alias Streampai.LivestreamManager.StreamStateServer
 
-    case Streampai.Stream.Livestream
-         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
-         |> Ash.Query.limit(1)
-         |> Ash.read(authorize?: false) do
-      {:ok, [_stream]} -> true
-      _ -> false
+    try do
+      # Build the via tuple to look up the GenServer
+      registry_name = Streampai.LivestreamManager.Registry
+      server = {:via, Registry, {registry_name, {:stream_state, user_id}}}
+
+      # Get the current state from the server
+      case StreamStateServer.get_state(server) do
+        %{status: status} when status in [:live, :starting] -> true
+        _ -> false
+      end
+    catch
+      # If the server doesn't exist or any error occurs, user is not streaming
+      :exit, _ -> false
     end
   end
 
