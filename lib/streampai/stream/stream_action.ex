@@ -267,7 +267,10 @@ defmodule Streampai.Stream.StreamAction do
       Logger.debug("StreamState for user #{user_id_string}: #{inspect(state)}")
 
       if is_nil(state.livestream_id) do
-        Logger.warning("No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}")
+        # Only log in non-test environments to reduce test noise
+        if Application.get_env(:streampai, :env) != :test do
+          Logger.warning("No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}")
+        end
 
         {:error, :not_found}
       else
@@ -276,7 +279,11 @@ defmodule Streampai.Stream.StreamAction do
       end
     catch
       :exit, reason ->
-        Logger.warning("Exit when getting state for user #{user_id_string}: #{inspect(reason)}")
+        # Only log in non-test environments to reduce test noise
+        if Application.get_env(:streampai, :env) != :test do
+          Logger.warning("Exit when getting state for user #{user_id_string}: #{inspect(reason)}")
+        end
+
         {:error, :not_found}
     end
   end
@@ -316,7 +323,11 @@ defmodule Streampai.Stream.StreamAction do
   end
 
   defp persist_metadata_event({:error, :not_found}, user_id, _metadata, _actor) do
-    Logger.warning("No active livestream found for user #{user_id}, skipping event persistence")
+    # Only log in non-test environments to reduce test noise
+    if Application.get_env(:streampai, :env) != :test do
+      Logger.warning("No active livestream found for user #{user_id}, skipping event persistence")
+    end
+
     :ok
   end
 
