@@ -60,7 +60,8 @@ config :streampai, :storage,
   public_url: nil
 
 config :streampai,
-  env: :test
+  env: :test,
+  test_mode: true
 
 config :streampai, token_signing_secret: System.get_env("SECRET_KEY")
 

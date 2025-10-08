@@ -19,10 +19,8 @@ defmodule Streampai.Cloudflare.LiveInput do
   # Test mode override for get_or_fetch_for_user
   def get_or_fetch_for_user_with_test_mode(user_id, opts \\ []) when is_binary(user_id) do
     if Application.get_env(:streampai, :test_mode, false) do
-      # Return mock data directly in test mode
       {:ok, create_test_live_input(user_id)}
     else
-      # Use the normal Ash action
       get_or_fetch_for_user(user_id, opts)
     end
   end
