@@ -14,6 +14,7 @@ defmodule Streampai.Accounts.User do
   alias Streampai.Accounts.User
   alias Streampai.Accounts.User.Changes.SavePlatformData
   alias Streampai.Accounts.User.Changes.ValidateOAuthConfirmation
+  alias Streampai.Accounts.User.Preparations.LoadModeratorStatus
   alias Streampai.Accounts.UserRole
 
   admin do
@@ -163,7 +164,18 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:tier, :connected_platforms, :role, :streaming_accounts, :display_avatar])
+      prepare build(
+                load: [
+                  :tier,
+                  :connected_platforms,
+                  :role,
+                  :streaming_accounts,
+                  :display_avatar,
+                  :granted_roles
+                ]
+              )
+
+      prepare LoadModeratorStatus
 
       filter expr(id == ^arg(:id))
     end
@@ -176,7 +188,8 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      prepare build(load: [:role])
+      prepare build(load: [:role, :granted_roles])
+      prepare LoadModeratorStatus
 
       filter expr(id == ^arg(:id))
     end
@@ -467,6 +480,16 @@ defmodule Streampai.Accounts.User do
               expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
 
     calculate :display_avatar, :string, expr(avatar || extra_data["picture"])
+
+    calculate :is_moderator,
+              :boolean,
+              expr(
+                count(granted_roles,
+                  query: [filter: expr(role_type == :moderator and status == :accepted)]
+                ) > 0
+              ) do
+      public? true
+    end
 
     calculate :hours_streamed_last_30_days,
               :float,

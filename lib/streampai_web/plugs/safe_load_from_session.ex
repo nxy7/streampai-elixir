@@ -20,13 +20,14 @@ defmodule StreampaiWeb.Plugs.SafeLoadFromSession do
       error_string = Exception.message(error)
 
       if auth_related_error?(error_string) do
-        Logger.info("User session invalid in current worktree database - clearing session")
+        Logger.info("User session invalid in current worktree database - clearing session. Error: #{error_string}")
 
         conn
         |> clear_session()
         |> assign(:current_user, nil)
       else
         # Re-raise non-authentication errors
+        Logger.error("Non-auth error in SafeLoadFromSession: #{inspect(error)}")
         reraise error, __STACKTRACE__
       end
   end

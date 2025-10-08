@@ -110,6 +110,8 @@ defmodule StreampaiWeb.Router do
       live("/dashboard/widgets", DashboardWidgetsLive)
       live("/dashboard/analytics", DashboardAnalyticsLive)
       live("/dashboard/settings", DashboardSettingsLive)
+      live("/dashboard/moderate", DashboardModerateLive)
+      live("/dashboard/moderate/:user_id", DashboardModerateStreamLive)
       live("/dashboard/admin/users", DashboardAdminUsersLive)
       live("/dashboard/widgets/chat", ChatWidgetSettingsLive)
       live("/dashboard/widgets/alertbox", AlertboxWidgetSettingsLive)

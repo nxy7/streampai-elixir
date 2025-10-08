@@ -4,10 +4,11 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
   import StreampaiWeb.LiveHelpers
 
+  alias Ash.Error.Forbidden
   alias Streampai.Dashboard
   alias Streampai.LivestreamManager.CloudflareManager
-  alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamAction
 
   require Logger
 
@@ -67,24 +68,42 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
     Logger.info("Starting stream with metadata: #{inspect(metadata)}")
 
-    UserStreamManager.start_stream(user_id, metadata)
+    case StreamAction.start_stream(
+           %{
+             user_id: user_id,
+             title: metadata.title,
+             description: metadata.description
+           },
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:info, "Stream started successfully!")
 
-    socket =
-      socket
-      |> assign(:loading, false)
-      |> put_flash(:info, "Stream started successfully!")
+        {:noreply, socket}
 
-    {:noreply, socket}
-  rescue
-    error ->
-      Logger.error("Failed to start stream for user #{socket.assigns.current_user.id}: #{inspect(error)}")
+      {:error, %Forbidden{}} ->
+        Logger.error("Authorization failed for user #{user_id}")
 
-      socket =
-        socket
-        |> assign(:loading, false)
-        |> handle_error(error, "Failed to start stream. Please try again later.")
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Not authorized to start stream")
 
-      {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to start stream for user #{user_id}: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to start stream. Please try again later.")
+
+        {:noreply, socket}
+    end
   end
 
   def handle_event("stop_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
@@ -96,24 +115,38 @@ defmodule StreampaiWeb.DashboardStreamLive do
     user_id = socket.assigns.current_user.id
     socket = assign(socket, :loading, true)
 
-    UserStreamManager.stop_stream(user_id)
+    case StreamAction.stop_stream(
+           %{user_id: user_id},
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:info, "Stream stopped successfully")
 
-    socket =
-      socket
-      |> assign(:loading, false)
-      |> put_flash(:info, "Stream stopped successfully")
+        {:noreply, socket}
 
-    {:noreply, socket}
-  rescue
-    error ->
-      Logger.error("Failed to stop stream for user #{socket.assigns.current_user.id}: #{inspect(error)}")
+      {:error, %Forbidden{}} ->
+        Logger.error("Authorization failed for user #{user_id}")
 
-      socket =
-        socket
-        |> assign(:loading, false)
-        |> handle_error(error, "Failed to stop stream. Please try again later.")
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Not authorized to stop stream")
 
-      {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to stop stream for user #{user_id}: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to stop stream. Please try again later.")
+
+        {:noreply, socket}
+    end
   end
 
   def handle_event("toggle_stream_key_visibility", _params, socket) do
@@ -239,37 +272,58 @@ defmodule StreampaiWeb.DashboardStreamLive do
       description: Map.get(params, "description")
     }
 
-    UserStreamManager.update_stream_metadata(user_id, metadata, :all)
+    case StreamAction.update_stream_metadata(
+           %{
+             user_id: user_id,
+             title: metadata.title,
+             description: metadata.description,
+             platforms: [:all]
+           },
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        update_livestream_metadata(user_id, metadata)
 
-    update_livestream_metadata(user_id, metadata)
+        stream_data =
+          socket.assigns.stream_data
+          |> Map.put(:title, metadata.title)
+          |> Map.put(:description, metadata.description)
 
-    stream_data =
-      socket.assigns.stream_data
-      |> Map.put(:title, metadata.title)
-      |> Map.put(:description, metadata.description)
+        socket =
+          socket
+          |> assign(:stream_data, stream_data)
+          |> put_flash(:info, "Stream settings updated successfully")
 
-    socket =
-      socket
-      |> assign(:stream_data, stream_data)
-      |> put_flash(:info, "Stream settings updated successfully")
+        {:noreply, socket}
 
-    {:noreply, socket}
-  rescue
-    error ->
-      Logger.error("Failed to update stream settings: #{inspect(error)}")
+      {:error, %Forbidden{}} ->
+        Logger.error("Authorization failed for user #{user_id}")
+        socket = put_flash(socket, :error, "Not authorized to update stream settings")
+        {:noreply, socket}
 
-      socket = put_flash(socket, :error, "Failed to update stream settings")
-
-      {:noreply, socket}
+      {:error, reason} ->
+        Logger.error("Failed to update stream settings: #{inspect(reason)}")
+        socket = put_flash(socket, :error, "Failed to update stream settings")
+        {:noreply, socket}
+    end
   end
 
   def handle_info({:send_chat_message, message}, socket) do
     user_id = socket.assigns.current_user.id
 
     Logger.info("Sending chat message: #{message}")
-    UserStreamManager.send_chat_message(user_id, message, :all)
 
-    {:noreply, socket}
+    case StreamAction.send_message(
+           %{user_id: user_id, message: message, platforms: [:all]},
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to send chat message: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, "Failed to send message")}
+    end
   end
 
   def handle_info({:viewer_update, platform, count}, socket) do
