@@ -43,6 +43,20 @@ defmodule Streampai.DataCase do
   end
 
   @doc """
+  Allows a process to use the test's database connection.
+
+  This is useful when tests spawn GenServer processes that need database access.
+  Call this with the PID of any spawned process.
+
+  ## Example
+
+      allow_process(pid)
+  """
+  def allow_process(pid) do
+    Sandbox.allow(Streampai.Repo, self(), pid)
+  end
+
+  @doc """
   A helper that transforms changeset errors into a map of messages.
 
       assert {:error, changeset} = Accounts.create_user(%{password: "short"})

@@ -16,6 +16,9 @@ defmodule Streampai.Stream.StreamAction do
   alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwner
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
+  alias Streampai.Stream.StreamEvent
+
+  require Logger
 
   code_interface do
     define :start_stream
@@ -88,10 +91,11 @@ defmodule Streampai.Stream.StreamAction do
       argument :description, :string, allow_nil?: true
       argument :platforms, {:array, :atom}, default: [:all]
 
-      run fn input, _context ->
+      run fn input, context ->
         user_id = input.arguments.user_id
         platforms = input.arguments.platforms
         args = input.arguments
+        actor = context.actor
 
         metadata =
           %{}
@@ -101,17 +105,7 @@ defmodule Streampai.Stream.StreamAction do
         if map_size(metadata) == 0 do
           {:error, "No metadata provided to update"}
         else
-          case UserStreamManager.update_stream_metadata(
-                 user_id,
-                 metadata,
-                 platforms
-               ) do
-            :ok ->
-              {:ok, %{success: true, message: "Metadata updated successfully"}}
-
-            {:error, reason} ->
-              {:error, reason}
-          end
+          handle_metadata_update(user_id, metadata, platforms, actor)
         end
       end
     end
@@ -237,4 +231,110 @@ defmodule Streampai.Stream.StreamAction do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp handle_metadata_update(user_id, metadata, platforms, actor) do
+    user_id_string = to_string(user_id)
+
+    # Step 1: Get current livestream from StreamManager (not DB)
+    livestream_id_result = get_livestream_from_manager(user_id_string)
+
+    Logger.info("Livestream ID result for user #{user_id_string}: #{inspect(livestream_id_result)}")
+
+    # Step 2: Update platform settings first
+    case UserStreamManager.update_stream_metadata(user_id_string, metadata, platforms) do
+      :ok ->
+        Logger.info("Successfully updated platform metadata for user #{user_id_string}")
+
+        # Step 3: Persist event to database (if streaming)
+        persist_metadata_event(livestream_id_result, user_id, metadata, actor)
+
+        # Step 4: Broadcast to Phoenix
+        broadcast_metadata_update(user_id_string, metadata, actor)
+
+        {:ok, %{success: true, message: "Metadata updated successfully"}}
+
+      {:error, reason} ->
+        Logger.error("Failed to update platform metadata: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
+  defp get_livestream_from_manager(user_id) do
+    user_id_string = to_string(user_id)
+
+    try do
+      state = UserStreamManager.get_state(user_id_string)
+      Logger.debug("StreamState for user #{user_id_string}: #{inspect(state)}")
+
+      if is_nil(state.livestream_id) do
+        Logger.warning("No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}")
+
+        {:error, :not_found}
+      else
+        Logger.info("Found livestream_id in state: #{state.livestream_id}")
+        {:ok, state.livestream_id}
+      end
+    catch
+      :exit, reason ->
+        Logger.warning("Exit when getting state for user #{user_id_string}: #{inspect(reason)}")
+        {:error, :not_found}
+    end
+  end
+
+  defp persist_metadata_event({:ok, livestream_id}, user_id, metadata, actor) do
+    Logger.info("Persisting stream_updated event for livestream #{livestream_id}")
+    actor_username = actor.email
+    actor_id = to_string(actor.id)
+
+    event_metadata = %{
+      "username" => actor_username,
+      "title" => metadata[:title],
+      "description" => metadata[:description],
+      "user" => %{
+        "id" => actor.id,
+        "email" => actor.email
+      }
+    }
+
+    Logger.debug("Event metadata: #{inspect(event_metadata)}")
+
+    case StreamEvent.create_stream_updated(
+           livestream_id,
+           user_id,
+           actor_id,
+           event_metadata,
+           actor: actor
+         ) do
+      {:ok, event} ->
+        Logger.info("Successfully persisted stream_updated event to database: #{event.id}")
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Failed to persist stream_updated event: #{inspect(reason)}")
+        :ok
+    end
+  end
+
+  defp persist_metadata_event({:error, :not_found}, user_id, _metadata, _actor) do
+    Logger.warning("No active livestream found for user #{user_id}, skipping event persistence")
+    :ok
+  end
+
+  defp broadcast_metadata_update(user_id, metadata, actor) do
+    event = %{
+      id: Ash.UUID.generate(),
+      type: :stream_updated,
+      username: actor.email,
+      metadata: metadata,
+      timestamp: DateTime.utc_now()
+    }
+
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "stream_events:#{user_id}",
+      {:stream_updated, event}
+    )
+
+    Logger.info("Broadcasted stream_updated event via PubSub")
+  end
 end

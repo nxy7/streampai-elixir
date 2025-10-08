@@ -47,6 +47,8 @@ defmodule Streampai.Stream.StreamEvent do
     define :get_activity_events_for_livestream, args: [:livestream_id]
     define :get_platform_started_for_livestream, args: [:livestream_id]
     define :get_for_viewer, args: [:viewer_id, :user_id]
+    define :upsert
+    define :create_stream_updated, args: [:livestream_id, :user_id, :author_id, :metadata]
   end
 
   actions do
@@ -120,7 +122,6 @@ defmodule Streampai.Stream.StreamEvent do
 
     create :upsert do
       accept [
-        :id,
         :type,
         :data,
         :data_raw,
@@ -131,8 +132,65 @@ defmodule Streampai.Stream.StreamEvent do
         :viewer_id
       ]
 
+      argument :id, :uuid do
+        allow_nil? true
+      end
+
+      change set_attribute(:id, arg(:id))
+
       upsert? true
       upsert_identity :primary_key
+
+      upsert_fields [
+        :type,
+        :data,
+        :data_raw,
+        :author_id,
+        :livestream_id,
+        :user_id,
+        :platform,
+        :viewer_id
+      ]
+    end
+
+    create :create_stream_updated do
+      description "Creates a stream_updated event with proper metadata structure"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+      argument :user_id, :uuid, allow_nil?: false
+      argument :author_id, :string, allow_nil?: false
+      argument :metadata, :map, allow_nil?: false
+
+      change set_attribute(:type, :stream_updated)
+      change set_attribute(:livestream_id, arg(:livestream_id))
+      change set_attribute(:user_id, arg(:user_id))
+      change set_attribute(:author_id, arg(:author_id))
+      change set_attribute(:platform, nil)
+
+      change fn changeset, _context ->
+        metadata = Ash.Changeset.get_argument(changeset, :metadata)
+
+        data = %{
+          "username" => metadata["username"],
+          "title" => metadata["title"],
+          "description" => metadata["description"],
+          "user" => metadata["user"]
+        }
+
+        changeset
+        |> Ash.Changeset.change_attribute(:data, data)
+        |> Ash.Changeset.change_attribute(:data_raw, metadata)
+      end
+
+      change fn changeset, _context ->
+        metadata = Ash.Changeset.get_argument(changeset, :metadata)
+
+        viewer_id =
+          get_in(metadata, ["user", "id"]) ||
+            Ash.Changeset.get_attribute(changeset, :author_id)
+
+        Ash.Changeset.change_attribute(changeset, :viewer_id, to_string(viewer_id))
+      end
     end
   end
 
@@ -176,7 +234,7 @@ defmodule Streampai.Stream.StreamEvent do
 
     attribute :platform, Streampai.Stream.Platform do
       public? true
-      allow_nil? false
+      allow_nil? true
     end
 
     attribute :viewer_id, :string do
@@ -196,5 +254,9 @@ defmodule Streampai.Stream.StreamEvent do
       source_attribute :livestream_id
       destination_attribute :id
     end
+  end
+
+  identities do
+    identity :primary_key, [:id]
   end
 end

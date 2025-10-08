@@ -22,7 +22,9 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
     # %{total_viewers: 0, chat_messages: 0, ...}
     :statistics,
     # %{input_id: "...", rtmp_url: "...", stream_key: "..."}
-    :cloudflare_input
+    :cloudflare_input,
+    # UUID of the active Livestream record
+    :livestream_id
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -175,20 +177,25 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   def handle_cast({:start_stream, stream_uuid}, state) do
     Logger.info("Starting stream", stream_uuid: stream_uuid)
 
-    state = %{state | status: :starting, started_at: DateTime.utc_now()}
+    state = %{
+      state
+      | status: :starting,
+        started_at: DateTime.utc_now(),
+        livestream_id: stream_uuid
+    }
 
     broadcast_state_change(state)
-    {:noreply, Map.put(state, :stream_uuid, stream_uuid)}
+    {:noreply, state}
   end
 
   @impl true
   def handle_cast(:stop_stream, state) do
     Logger.info("Stopping stream")
 
-    state = %{state | status: :offline, ended_at: DateTime.utc_now()}
+    state = %{state | status: :offline, ended_at: DateTime.utc_now(), livestream_id: nil}
 
     broadcast_state_change(state)
-    {:noreply, Map.delete(state, :stream_uuid)}
+    {:noreply, state}
   end
 
   @impl true

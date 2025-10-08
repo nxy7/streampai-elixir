@@ -417,9 +417,14 @@ defmodule Streampai.LivestreamManager.PresenceManager do
             Process.monitor(pid)
             Map.put(managers, user_id, pid)
 
-          {:error, reason} ->
-            IO.puts("Failed to start manager for #{user_id}: #{inspect(reason)}")
+          {:error, {:already_started, pid}} ->
+            Process.monitor(pid)
+            Map.put(managers, user_id, pid)
 
+          {:error, reason} ->
+            require Logger
+
+            Logger.error("Failed to start manager for #{user_id}: #{inspect(reason)}")
             managers
         end
 

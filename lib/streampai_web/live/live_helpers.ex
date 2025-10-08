@@ -375,11 +375,12 @@ defmodule StreampaiWeb.LiveHelpers do
   defp format_stream_event(event) do
     username =
       get_in(event.data, ["username"]) || get_in(event.data, ["user", "display_name"]) ||
-        "Unknown"
+        get_in(event.data, ["user", "email"]) || "Unknown"
 
-    platform_name = get_in(event.data, ["platform"]) || to_string(event.platform)
+    platform_name =
+      get_in(event.data, ["platform"]) || (event.platform && to_string(event.platform))
 
-    %{
+    base_event = %{
       id: event.id,
       type: to_string(event.type),
       username: username,
@@ -389,5 +390,15 @@ defmodule StreampaiWeb.LiveHelpers do
       platform: platform_name,
       timestamp: DateTime.to_iso8601(event.inserted_at)
     }
+
+    # Add metadata for stream_updated events
+    if event.type == :stream_updated do
+      Map.put(base_event, :metadata, %{
+        title: get_in(event.data, ["title"]),
+        description: get_in(event.data, ["description"])
+      })
+    else
+      base_event
+    end
   end
 end

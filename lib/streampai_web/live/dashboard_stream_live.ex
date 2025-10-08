@@ -273,46 +273,27 @@ defmodule StreampaiWeb.DashboardStreamLive do
     Logger.info("handle_info save_settings called with params: #{inspect(params)}")
     user_id = socket.assigns.current_user.id
 
-    metadata = %{
-      title: Map.get(params, "title"),
-      description: Map.get(params, "description")
-    }
-
-    Logger.info("Metadata extracted: #{inspect(metadata)}")
-
     case StreamAction.update_stream_metadata(
            %{
              user_id: user_id,
-             title: metadata.title,
-             description: metadata.description,
+             title: Map.get(params, "title"),
+             description: Map.get(params, "description"),
              platforms: [:all]
            },
            actor: socket.assigns.current_user
          ) do
       {:ok, _result} ->
-        update_livestream_metadata(user_id, metadata)
+        # Update livestream record
+        update_livestream_metadata(user_id, %{
+          title: Map.get(params, "title"),
+          description: Map.get(params, "description")
+        })
 
-        # Broadcast stream settings update event
-        event = %{
-          id: Ash.UUID.generate(),
-          type: :stream_settings_updated,
-          username: socket.assigns.current_user.email,
-          metadata: metadata,
-          timestamp: DateTime.utc_now()
-        }
-
-        Logger.info("Broadcasting stream_settings_updated event: #{inspect(event)}")
-
-        Phoenix.PubSub.broadcast(
-          Streampai.PubSub,
-          "stream_events:#{user_id}",
-          {:stream_settings_updated, event}
-        )
-
+        # Update local UI state
         stream_data =
           socket.assigns.stream_data
-          |> Map.put(:title, metadata.title)
-          |> Map.put(:description, metadata.description)
+          |> Map.put(:title, Map.get(params, "title"))
+          |> Map.put(:description, Map.get(params, "description"))
 
         socket =
           socket
@@ -379,13 +360,13 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :chat_messages, updated_messages)}
   end
 
-  def handle_info({:stream_settings_updated, event}, socket) do
-    Logger.info("Received stream_settings_updated event: #{inspect(event)}")
+  def handle_info({:stream_updated, event}, socket) do
+    Logger.info("Received stream_updated event: #{inspect(event)}")
     stream_events = socket.assigns[:stream_events] || []
 
     formatted_event = %{
       id: event.id,
-      type: "stream_settings_updated",
+      type: "stream_updated",
       username: event.username,
       metadata: event.metadata,
       timestamp: event.timestamp

@@ -7,6 +7,7 @@ defmodule Streampai.Stream.EventType do
       :follow,
       :raid,
       :subscription,
+      :stream_updated,
       :platform_started,
       :platform_stopped
     ]

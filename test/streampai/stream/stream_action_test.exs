@@ -7,6 +7,12 @@ defmodule Streampai.Stream.StreamActionTest do
   alias Streampai.Accounts.UserRole
   alias Streampai.Stream.StreamAction
 
+  setup do
+    # Allow spawned manager processes to access the database
+    allow_manager_processes()
+    :ok
+  end
+
   describe "start_stream" do
     @tag :skip
     test "allows stream owner to start their stream" do
@@ -242,5 +248,49 @@ defmodule Streampai.Stream.StreamActionTest do
       })
 
     user
+  end
+
+  defp allow_manager_processes do
+    # Find and allow CloudflareManager and other manager processes
+    # that might be spawned during tests
+    Process.sleep(10)
+
+    # Allow LivestreamManager.Supervisor children
+    catch_call_supervisor(Streampai.LivestreamManager.Supervisor)
+
+    # Allow CloudflareManager processes (if supervisor is running)
+    catch_call_supervisor(Streampai.CloudflareManager.Supervisor)
+  end
+
+  defp catch_call_supervisor(supervisor_name) do
+    for {_name, pid, _type, _modules} <- Supervisor.which_children(supervisor_name) do
+      allow_process_and_children(pid)
+    end
+  catch
+    :exit, _ -> :ok
+  end
+
+  defp allow_process_and_children(pid) when is_pid(pid) do
+    allow_process(pid)
+    allow_linked_processes(pid)
+  rescue
+    _ -> :ok
+  end
+
+  defp allow_process_and_children(_), do: :ok
+
+  defp allow_linked_processes(pid) do
+    case Process.info(pid, :links) do
+      {:links, links} -> Enum.each(links, &try_allow_process/1)
+      _ -> :ok
+    end
+  end
+
+  defp try_allow_process(linked_pid) do
+    if is_pid(linked_pid) and linked_pid != self() do
+      allow_process(linked_pid)
+    end
+  rescue
+    _ -> :ok
   end
 end

@@ -84,11 +84,6 @@ defmodule StreampaiWeb.DashboardModerateStreamLive do
   def handle_event("update_metadata", %{"title" => title, "description" => description}, socket) do
     target_user_id = socket.assigns.target_user_id
 
-    metadata = %{
-      title: title,
-      description: description
-    }
-
     case StreamAction.update_stream_metadata(
            %{
              user_id: target_user_id,
@@ -99,21 +94,6 @@ defmodule StreampaiWeb.DashboardModerateStreamLive do
            actor: socket.assigns.current_user
          ) do
       {:ok, _result} ->
-        # Broadcast stream settings update event
-        event = %{
-          id: Ash.UUID.generate(),
-          type: :stream_settings_updated,
-          username: socket.assigns.current_user.email,
-          metadata: metadata,
-          timestamp: DateTime.utc_now()
-        }
-
-        Phoenix.PubSub.broadcast(
-          Streampai.PubSub,
-          "stream_events:#{target_user_id}",
-          {:stream_settings_updated, event}
-        )
-
         {:noreply, put_flash(socket, :info, "Stream metadata updated successfully")}
 
       {:error, %Forbidden{}} ->
@@ -141,12 +121,12 @@ defmodule StreampaiWeb.DashboardModerateStreamLive do
     {:noreply, assign(socket, :chat_messages, updated_messages)}
   end
 
-  def handle_info({:stream_settings_updated, event}, socket) do
+  def handle_info({:stream_updated, event}, socket) do
     stream_events = socket.assigns[:stream_events] || []
 
     formatted_event = %{
       id: event.id,
-      type: "stream_settings_updated",
+      type: "stream_updated",
       username: event.username,
       metadata: event.metadata,
       timestamp: event.timestamp
@@ -233,46 +213,26 @@ defmodule StreampaiWeb.DashboardModerateStreamLive do
   def handle_info({:save_settings, params}, socket) do
     target_user_id = socket.assigns.target_user_id
 
-    metadata = %{
-      title: Map.get(params, "title"),
-      description: Map.get(params, "description")
-    }
-
     case StreamAction.update_stream_metadata(
            %{
              user_id: target_user_id,
-             title: metadata.title,
-             description: metadata.description,
+             title: Map.get(params, "title"),
+             description: Map.get(params, "description"),
              platforms: [:all]
            },
            actor: socket.assigns.current_user
          ) do
       {:ok, _result} ->
-        # Broadcast stream settings update event
-        event = %{
-          id: Ash.UUID.generate(),
-          type: :stream_settings_updated,
-          username: socket.assigns.current_user.email,
-          metadata: metadata,
-          timestamp: DateTime.utc_now()
-        }
-
-        Phoenix.PubSub.broadcast(
-          Streampai.PubSub,
-          "stream_events:#{target_user_id}",
-          {:stream_settings_updated, event}
-        )
-
         # Update local state
         stream_metadata =
           socket.assigns.stream_metadata
-          |> Map.put(:title, metadata.title)
-          |> Map.put(:description, metadata.description)
+          |> Map.put(:title, Map.get(params, "title"))
+          |> Map.put(:description, Map.get(params, "description"))
 
         stream_data =
           socket.assigns.stream_data
-          |> Map.put(:title, metadata.title)
-          |> Map.put(:description, metadata.description)
+          |> Map.put(:title, Map.get(params, "title"))
+          |> Map.put(:description, Map.get(params, "description"))
 
         socket =
           socket
@@ -427,32 +387,6 @@ defmodule StreampaiWeb.DashboardModerateStreamLive do
       manager_available: false,
       youtube_broadcast_id: nil
     }
-  end
-
-  defp update_livestream_metadata(user_id, metadata) do
-    require Ash.Query
-
-    case Livestream
-         |> Ash.Query.for_read(:read)
-         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
-         |> Ash.Query.sort(started_at: :desc)
-         |> Ash.Query.limit(1)
-         |> Ash.read(authorize?: false) do
-      {:ok, [livestream]} ->
-        {:ok, user} = Ash.get(User, user_id, authorize?: false)
-
-        Livestream.update(
-          livestream,
-          %{
-            title: metadata.title,
-            description: metadata.description
-          },
-          actor: user
-        )
-
-      _ ->
-        {:error, :no_active_stream}
-    end
   end
 
   defp load_stream_data(user_id, %{status: :streaming}) do

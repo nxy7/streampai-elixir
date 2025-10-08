@@ -57,18 +57,27 @@ const streamSettings = ref({
 })
 
 onMounted(() => {
-  // Initialize form with stream data
   streamSettings.value.title = props.streamData.title || ''
   streamSettings.value.description = props.streamData.description || ''
 })
 
-// Watch for streamData changes and update form fields
-watch(() => props.streamData, (newData) => {
-  if (newData.title !== undefined) {
-    streamSettings.value.title = newData.title
-  }
-  if (newData.description !== undefined) {
-    streamSettings.value.description = newData.description
+// Watch for stream_updated events and update form fields
+// Only update when NOT editing (settings panel is closed)
+watch(() => props.streamEvents, (newEvents, oldEvents) => {
+  if (!newEvents || !oldEvents || newEvents.length === 0) return
+
+  // Events are prepended (newest first), so check index 0
+  const latestEvent = newEvents[0]
+  if (!latestEvent) return
+
+  // Only update form fields when settings panel is closed
+  if (latestEvent.type === 'stream_updated' && !props.showSettings) {
+    if (latestEvent.metadata?.title !== undefined) {
+      streamSettings.value.title = latestEvent.metadata.title
+    }
+    if (latestEvent.metadata?.description !== undefined) {
+      streamSettings.value.description = latestEvent.metadata.description
+    }
   }
 }, { deep: true })
 
@@ -123,7 +132,7 @@ const formatEventMessage = (event: any): string => {
       return `raided with ${event.viewers} viewers`
     case 'follow':
       return 'followed'
-    case 'stream_settings_updated':
+    case 'stream_updated':
       return 'updated stream settings'
     case 'platform_started':
       return 'started streaming'
@@ -142,7 +151,7 @@ const getEventIcon = (type: string): string => {
       return '🎯'
     case 'follow':
       return '❤️'
-    case 'stream_settings_updated':
+    case 'stream_updated':
       return '⚙️'
     case 'platform_started':
       return '🚀'
@@ -271,7 +280,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
               <!-- Tooltip for stream settings updates -->
               <div
-                v-if="item.eventType === 'stream_settings_updated' && item.metadata"
+                v-if="item.eventType === 'stream_updated' && item.metadata"
                 class="absolute left-0 bottom-full mb-2 hidden group-hover:block z-10 w-80 p-3 bg-white rounded-lg shadow-lg border border-gray-200"
               >
                 <div class="text-xs font-semibold text-gray-700 mb-2">Updated Settings:</div>
