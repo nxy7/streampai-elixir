@@ -118,7 +118,7 @@ defmodule Streampai.Accounts.User do
   end
 
   code_interface do
-    define :update_avatar, args: [:avatar_url]
+    define :update_avatar, args: [:file_id]
   end
 
   actions do
@@ -366,16 +366,16 @@ defmodule Streampai.Accounts.User do
     end
 
     update :update_avatar do
-      description "Update user's avatar"
-      accept [:avatar]
+      description "Update user's avatar from uploaded file"
+      accept [:avatar_file_id]
       require_atomic? false
 
-      argument :avatar_url, :string do
+      argument :file_id, :uuid do
         allow_nil? false
-        description "The URL path to the avatar image"
+        description "ID of the uploaded avatar file"
       end
 
-      change Streampai.Accounts.User.Changes.SetAvatarFromArgument
+      change Streampai.Accounts.User.Changes.SetAvatarFromFile
     end
 
     action :reconcile_subscription do
@@ -426,12 +426,6 @@ defmodule Streampai.Accounts.User do
       allow_nil? false
     end
 
-    attribute :avatar, :string do
-      public? true
-      allow_nil? true
-      description "User's uploaded avatar URL"
-    end
-
     attribute :hashed_password, :string do
       allow_nil? true
       sensitive? true
@@ -460,6 +454,15 @@ defmodule Streampai.Accounts.User do
     has_many :roles_granted_to_others, UserRole do
       destination_attribute :granter_id
     end
+
+    has_many :files, Streampai.Storage.File do
+      destination_attribute :user_id
+    end
+
+    belongs_to :avatar_file, Streampai.Storage.File do
+      allow_nil? true
+      attribute_public? true
+    end
   end
 
   calculations do
@@ -479,7 +482,11 @@ defmodule Streampai.Accounts.User do
               :atom,
               expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
 
-    calculate :display_avatar, :string, expr(avatar || extra_data["picture"])
+    calculate :display_avatar,
+              :string,
+              Streampai.Accounts.User.Calculations.DisplayAvatar do
+      public? true
+    end
 
     calculate :is_moderator,
               :boolean,
@@ -496,10 +503,36 @@ defmodule Streampai.Accounts.User do
               Streampai.Accounts.User.Calculations.HoursStreamedLast30Days do
       public? true
     end
+
+    calculate :storage_quota,
+              :integer,
+              expr(
+                if tier == :pro do
+                  10_737_418_240
+                else
+                  1_073_741_824
+                end
+              ) do
+      public? true
+      description "Storage quota in bytes. Free: 1GB, Pro: 10GB"
+    end
+
+    calculate :storage_used_percent,
+              :float,
+              expr(total_files_size / storage_quota * 100.0) do
+      public? true
+      description "Percentage of storage quota used"
+    end
   end
 
   aggregates do
     count :connected_platforms, :streaming_accounts
+
+    sum :total_files_size, :files, :size_bytes do
+      filter expr(status == :uploaded and is_nil(deleted_at))
+      default 0
+      description "Total size of all uploaded files in bytes"
+    end
   end
 
   identities do

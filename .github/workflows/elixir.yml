@@ -45,10 +45,33 @@ jobs:
       CLOUDFLARE_API_KEY: "${{ secrets.CLOUDFLARE_API_KEY }}"
       CLOUDFLARE_AUTH_EMAIL: "${{ secrets.CLOUDFLARE_AUTH_EMAIL }}"
       CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      MINIO_HOST: localhost
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
 
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
+
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            --network host \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data
+
+          # Wait for MinIO (should be quick with --network host)
+          echo "Waiting for MinIO..."
+          for i in {1..10}; do
+            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "MinIO is ready!"
+              break
+            fi
+            sleep 1
+          done
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
@@ -80,6 +103,18 @@ jobs:
       - name: Install dependencies
         run: |
           mix deps.get
+
+      - name: Create MinIO bucket
+        run: |
+          # Download MinIO client
+          wget -q https://dl.min.io/client/mc/release/linux-arm64/mc
+          chmod +x mc
+
+          # Configure MinIO client
+          ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
+
+          # Create bucket
+          ./mc mb myminio/streampai-test || echo "Bucket already exists"
 
       - name: Check Formatting
         run: |

@@ -14,6 +14,17 @@ System.put_env("SECRET_KEY", "YeyXMtNCHvBxHG6uILUYTZR9Lm/wud/LpXrk9wSS8q9bCxUnY/
 
 config :ash, disable_async?: true, policies: [show_policy_breakdowns?: true]
 
+# ExAws S3 configuration for MinIO in tests
+config :ex_aws, :s3,
+  scheme: "http://",
+  host: System.get_env("MINIO_HOST") || "localhost",
+  port: String.to_integer(System.get_env("MINIO_PORT") || "9000"),
+  region: "us-east-1"
+
+config :ex_aws,
+  access_key_id: System.get_env("MINIO_ACCESS_KEY") || "minioadmin",
+  secret_access_key: System.get_env("MINIO_SECRET_KEY") || "minioadmin"
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 
@@ -43,6 +54,10 @@ config :streampai, StreampaiWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: System.get_env("SECRET_KEY"),
   server: false
+
+config :streampai, :storage,
+  bucket: "streampai-test",
+  public_url: nil
 
 config :streampai,
   env: :test

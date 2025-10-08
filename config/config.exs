@@ -65,10 +65,13 @@ config :spark,
 config :streampai, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10, donations: 5, media: 3, maintenance: 1],
+  queues: [default: 10, donations: 5, media: 3, maintenance: 1, storage_cleanup: 2],
   repo: Streampai.Repo,
   plugins: [
-    {Oban.Plugins.Cron, crontab: []},
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 3 * * *", Streampai.Storage.CleanupOrphanedFiles}
+     ]},
     {Oban.Plugins.Pruner, max_age: 300},
     {Oban.Plugins.Lifeline, rescue_after: to_timeout(minute: 30)}
   ]

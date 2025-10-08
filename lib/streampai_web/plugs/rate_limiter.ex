@@ -8,7 +8,7 @@ defmodule StreampaiWeb.Plugs.RateLimiter do
   def init(opts), do: opts
 
   def call(conn, opts) do
-    limit = Keyword.get(opts, :limit, 5)
+    limit = Keyword.get(opts, :limit, 50)
     # 1 minute in milliseconds
     window = Keyword.get(opts, :window, 60_000)
 

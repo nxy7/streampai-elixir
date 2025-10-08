@@ -179,6 +179,8 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
      |> assign(:preview_url, nil)
      |> assign(:file_name, nil)
      |> assign(:file_size, nil)
+     |> assign(:file_type, nil)
+     |> assign(:pending_file_id, nil)
      |> assign(:error, nil)
      |> assign(:success, nil)
      |> assign(:dragover, false)}
@@ -211,6 +213,7 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
          |> assign(:preview_url, file_info.data_url)
          |> assign(:file_name, file_info.name)
          |> assign(:file_size, file_info.size)
+         |> assign(:file_type, file_info.type)
          |> assign(:error, nil)}
 
       {:error, reason} ->
@@ -229,10 +232,44 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
   end
 
   @impl true
-  def handle_event("upload_avatar", %{"avatar" => avatar_params}, socket) do
-    case process_avatar_upload(avatar_params, socket.assigns.current_user) do
+  def handle_event("upload_avatar", _params, socket) do
+    user = socket.assigns.current_user
+    file_name = socket.assigns.file_name
+    file_type = socket.assigns.file_type
+    file_size = socket.assigns.file_size
+
+    if file_name && file_type && file_size do
+      case request_s3_upload(user, file_name, file_type, file_size) do
+        {:ok, file_id, upload_url, upload_fields} ->
+          {:noreply,
+           socket
+           |> assign(:uploading, true)
+           |> assign(:pending_file_id, file_id)
+           |> push_event("start_s3_upload", %{
+             url: upload_url,
+             fields: upload_fields,
+             file_id: file_id
+           })}
+
+        {:error, reason} ->
+          Logger.error("Failed to request S3 upload: #{inspect(reason)}")
+
+          {:noreply,
+           socket
+           |> assign(:error, reason)
+           |> assign(:uploading, false)}
+      end
+    else
+      {:noreply, assign(socket, :error, "No file selected for upload")}
+    end
+  end
+
+  @impl true
+  def handle_event("confirm_upload", %{"file_id" => file_id}, socket) do
+    user = socket.assigns.current_user
+
+    case confirm_avatar_upload(file_id, user) do
       {:ok, avatar_url} ->
-        # Send message to parent LiveView
         send(self(), {:avatar_uploaded, avatar_url})
 
         {:noreply,
@@ -242,60 +279,19 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
          |> assign(:preview_url, nil)
          |> assign(:file_name, nil)
          |> assign(:file_size, nil)
+         |> assign(:file_type, nil)
+         |> assign(:pending_file_id, nil)
          |> assign(:current_avatar, avatar_url)
          |> assign(:success, "Avatar updated successfully!")}
 
       {:error, reason} ->
-        Logger.error("Avatar upload failed: #{reason}")
+        Logger.error("Avatar upload confirmation failed: #{inspect(reason)}")
 
         {:noreply,
          socket
          |> assign(:uploading, false)
          |> assign(:upload_progress, 0)
-         |> assign(:error, reason)}
-    end
-  end
-
-  @impl true
-  def handle_event("upload_avatar", _params, socket) do
-    # Handle form-based upload using data from assigns (from validation step)
-    if socket.assigns.preview_url && socket.assigns.file_name do
-      # Extract base64 data from preview URL
-      [_header, data] = String.split(socket.assigns.preview_url, ",", parts: 2)
-
-      avatar_params = %{
-        "data" => data,
-        "name" => socket.assigns.file_name,
-        # Default to PNG since we have the data URL
-        "type" => "image/png"
-      }
-
-      case process_avatar_upload(avatar_params, socket.assigns.current_user) do
-        {:ok, avatar_url} ->
-          # Send message to parent LiveView
-          send(self(), {:avatar_uploaded, avatar_url})
-
-          {:noreply,
-           socket
-           |> assign(:uploading, false)
-           |> assign(:upload_progress, 100)
-           |> assign(:preview_url, nil)
-           |> assign(:file_name, nil)
-           |> assign(:file_size, nil)
-           |> assign(:current_avatar, avatar_url)
-           |> assign(:success, "Avatar updated successfully!")}
-
-        {:error, reason} ->
-          Logger.error("Avatar upload failed: #{reason}")
-
-          {:noreply,
-           socket
-           |> assign(:uploading, false)
-           |> assign(:upload_progress, 0)
-           |> assign(:error, reason)}
-      end
-    else
-      {:noreply, assign(socket, :error, "No file selected for upload")}
+         |> assign(:error, "Failed to confirm upload: #{inspect(reason)}")}
     end
   end
 
@@ -327,11 +323,8 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
   defp get_avatar_url(nil), do: nil
 
   defp get_avatar_url(user) do
-    cond do
-      user.avatar -> user.avatar
-      user.extra_data["picture"] -> user.extra_data["picture"]
-      true -> nil
-    end
+    user = Ash.load!(user, :display_avatar)
+    user.display_avatar
   end
 
   defp validate_file(%{"name" => name, "size" => size, "type" => type} = file_params) do
@@ -358,38 +351,36 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
 
   defp validate_file(_), do: {:error, "Invalid file"}
 
-  defp process_avatar_upload(%{"data" => data, "name" => name, "type" => _type}, user) do
-    # Decode base64 data
-    decoded_data = Base.decode64!(data)
+  defp request_s3_upload(user, filename, content_type, estimated_size) do
+    case Streampai.Storage.File.request_upload(
+           %{
+             filename: filename,
+             content_type: content_type,
+             file_type: :avatar,
+             estimated_size: estimated_size
+           },
+           actor: user
+         ) do
+      {:ok, file} ->
+        {:ok, file.id, file.__metadata__.upload_url, file.__metadata__.upload_fields}
 
-    # Generate unique filename
-    extension = Path.extname(name)
-    filename = "#{user.id}_#{System.system_time(:millisecond)}#{extension}"
+      {:error, %Ash.Error.Invalid{} = error} ->
+        {:error, Exception.message(error)}
 
-    filepath =
-      Path.join([Application.app_dir(:streampai), "priv", "static", "avatars", filename])
-
-    # Ensure directory exists
-    File.mkdir_p!(Path.dirname(filepath))
-
-    # Write file
-    File.write!(filepath, decoded_data)
-
-    # Update user avatar in database
-    update_user_avatar(user, filename)
-
-    {:ok, "/avatars/#{filename}"}
-  rescue
-    e ->
-      {:error, "Failed to upload avatar: #{Exception.message(e)}"}
+      {:error, error} ->
+        {:error, inspect(error)}
+    end
   end
 
-  defp update_user_avatar(user, filename) do
-    avatar_url = "/avatars/#{filename}"
-
-    # Update user with new avatar URL using the update_avatar action
-    user
-    |> Ash.Changeset.for_update(:update_avatar, %{avatar_url: avatar_url})
-    |> Ash.update!(actor: user)
+  defp confirm_avatar_upload(file_id, user) do
+    with {:ok, file} <-
+           Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user),
+         {:ok, _uploaded_file} <-
+           Streampai.Storage.File.mark_uploaded(file, actor: user),
+         {:ok, updated_user} <-
+           Streampai.Accounts.User.update_avatar(user, file_id, actor: user) do
+      updated_user = Ash.load!(updated_user, :display_avatar)
+      {:ok, updated_user.display_avatar}
+    end
   end
 end

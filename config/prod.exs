@@ -18,6 +18,8 @@ config :streampai, StreampaiWeb.Endpoint, cache_static_manifest: "priv/static/ca
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Streampai.Finch
 
+# Storage settings will be configured in runtime.exs with environment variables
+
 # Runtime production configuration, including reading
 
 # Disable Swoosh Local Memory Storage

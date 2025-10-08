@@ -1,8 +1,9 @@
-// Avatar Upload Hook with drag-and-drop and progress tracking
+// Avatar Upload Hook with drag-and-drop, S3 direct upload, and progress tracking
 const AvatarUpload = {
   mounted() {
     this.uploadZone = this.el;
     this.fileInput = this.uploadZone.querySelector('input[type="file"]');
+    this.currentFile = null;
 
     if (!this.fileInput) {
       console.error('File input not found in upload zone');
@@ -14,6 +15,11 @@ const AvatarUpload = {
     this.uploadZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
     this.uploadZone.addEventListener('drop', this.handleDrop.bind(this));
     this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+
+    // Listen for S3 upload event from server
+    this.handleEvent('start_s3_upload', ({ url, fields, file_id }) => {
+      this.uploadToS3(url, fields, file_id);
+    });
   },
 
   destroyed() {
@@ -67,22 +73,21 @@ const AvatarUpload = {
       return;
     }
 
+    // Store file for later upload
+    this.currentFile = file;
+
     // Read file as data URL for preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target.result;
 
-      // Split data URL to get base64 data
-      const [, data] = dataUrl.split(',');
-
-      // Send file info to LiveView component
+      // Send file info to LiveView component for preview
       this.pushEventTo(this.el, 'validate_avatar', {
         avatar: {
           name: file.name,
           size: file.size,
           type: file.type,
-          data_url: dataUrl,
-          data: data // Base64 encoded data without header
+          data_url: dataUrl
         }
       });
     };
@@ -92,6 +97,48 @@ const AvatarUpload = {
     };
 
     reader.readAsDataURL(file);
+  },
+
+  async uploadToS3(url, fields, file_id) {
+    if (!this.currentFile) {
+      this.pushEventTo(this.el, 'file_error', { error: 'No file selected' });
+      return;
+    }
+
+    try {
+      // Create FormData with presigned POST fields
+      const formData = new FormData();
+
+      // Add all fields from presigned POST
+      Object.entries(fields).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      // Add file last (must be last per S3 spec)
+      formData.append('file', this.currentFile);
+
+      // Upload to S3
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok || response.status === 204) {
+        // S3 upload successful, notify server
+        this.pushEventTo(this.el, 'confirm_upload', { file_id });
+      } else {
+        const errorText = await response.text();
+        console.error('S3 upload failed:', response.status, errorText);
+        this.pushEventTo(this.el, 'file_error', {
+          error: `Upload failed: ${response.status}`
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      this.pushEventTo(this.el, 'file_error', {
+        error: 'Failed to upload file'
+      });
+    }
   }
 };
 

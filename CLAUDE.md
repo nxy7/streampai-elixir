@@ -342,3 +342,4 @@ This integration enables comprehensive UI testing directly through Claude Code w
 - memorize "prefer pattern matching to 'with' statement unless 'with' statement makes code more readable/consise"
 - memorize Prefer implicit catch to explicit try-catch
 - memorize "Prefer implicit catch to 'with' statement in short functions"
+- memorize "When using playwright MCP if you need to log in always let user do it - don't log in automatically unless explicitly asked to do it"

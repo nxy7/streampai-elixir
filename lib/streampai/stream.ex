@@ -14,5 +14,6 @@ defmodule Streampai.Stream do
     resource Streampai.Stream.Livestream
     resource Streampai.Stream.StreamSettings
     resource Streampai.Stream.StreamViewer
+    resource Streampai.Storage.File
   end
 end

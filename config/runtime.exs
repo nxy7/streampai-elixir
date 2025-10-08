@@ -108,6 +108,69 @@ if config_env() == :dev do
   config :streampai, StreampaiWeb.Endpoint, secret_key_base: secret_key_base
 end
 
+# S3-compatible storage configuration (works with MinIO, R2, AWS S3, etc.)
+# Defaults for development/test environments
+s3_scheme =
+  System.get_env("S3_SCHEME") ||
+    case env do
+      :prod -> "https://"
+      _ -> "http://"
+    end
+
+s3_host =
+  System.get_env("S3_HOST") ||
+    case env do
+      :prod -> raise "S3_HOST environment variable is missing"
+      _ -> "localhost"
+    end
+
+s3_port =
+  if port_str = System.get_env("S3_PORT") do
+    String.to_integer(port_str)
+  else
+    case env do
+      :prod -> nil
+      _ -> 9000
+    end
+  end
+
+s3_region = System.get_env("S3_REGION") || "us-east-1"
+
+s3_access_key_id =
+  System.get_env("S3_ACCESS_KEY_ID") ||
+    case env do
+      :prod -> raise "S3_ACCESS_KEY_ID environment variable is missing"
+      _ -> "minioadmin"
+    end
+
+s3_secret_access_key =
+  System.get_env("S3_SECRET_ACCESS_KEY") ||
+    case env do
+      :prod -> raise "S3_SECRET_ACCESS_KEY environment variable is missing"
+      _ -> "minioadmin"
+    end
+
+s3_bucket =
+  System.get_env("S3_BUCKET") ||
+    case env do
+      :prod -> raise "S3_BUCKET environment variable is missing"
+      _ -> "streampai-dev"
+    end
+
+config :ex_aws, :s3,
+  scheme: s3_scheme,
+  host: s3_host,
+  port: s3_port,
+  region: s3_region
+
+config :ex_aws,
+  access_key_id: s3_access_key_id,
+  secret_access_key: s3_secret_access_key
+
+config :streampai, :storage,
+  bucket: s3_bucket,
+  public_url: System.get_env("S3_PUBLIC_URL")
+
 if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 

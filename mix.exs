@@ -101,7 +101,11 @@ defmodule Streampai.MixProject do
       {:bandit, "~> 1.5"},
       {:grpc, "~> 0.10"},
       {:protobuf, "~> 0.12"},
-      {:protobuf_generate, "~> 0.1.0"}
+      {:protobuf_generate, "~> 0.1.0"},
+      {:ex_aws, "~> 2.5"},
+      {:ex_aws_s3, "~> 2.5"},
+      {:sweet_xml, "~> 0.7"},
+      {:hackney, "~> 1.20"}
     ]
   end
 
