@@ -14,7 +14,15 @@ defmodule StreampaiWeb.LiveHelpers do
 
   alias Streampai.Accounts.StreamingAccount
   alias Streampai.Accounts.User
+  alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamEvent
   alias StreampaiWeb.Utils.FormatHelpers
+
+  require Logger
+
+  @max_chat_messages 50
+  @max_stream_events 20
 
   @doc """
   Handles errors consistently across LiveViews with user-friendly messages.
@@ -269,7 +277,117 @@ defmodule StreampaiWeb.LiveHelpers do
     )
   end
 
+  @doc """
+  Subscribes to all stream-related PubSub channels for a given user.
+  Should be called in mount/3 after Phoenix.LiveView.connected?/1 check.
+  """
+  def subscribe_to_stream_channels(user_id) do
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "cloudflare_input:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_status:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "viewer_counts:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "chat:#{user_id}")
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_events:#{user_id}")
+    :ok
+  end
+
+  @doc """
+  Gets the current active livestream ID for a user.
+  Returns {:ok, livestream_id} or {:error, :not_found}
+  """
+  def get_current_livestream_id(user_id) do
+    require Ash.Query
+
+    case Livestream
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
+         |> Ash.Query.sort(started_at: :desc)
+         |> Ash.Query.limit(1)
+         |> Ash.read(authorize?: false) do
+      {:ok, [livestream]} -> {:ok, livestream.id}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  @doc """
+  Loads recent chat messages and stream events for a livestream.
+  Returns {chat_messages, stream_events} tuple.
+  """
+  def load_recent_activity(livestream_id) do
+    require Ash.Query
+
+    try do
+      chat_messages =
+        ChatMessage
+        |> Ash.Query.for_read(:read)
+        |> Ash.Query.filter(livestream_id == ^livestream_id)
+        |> Ash.Query.sort(inserted_at: :desc)
+        |> Ash.Query.limit(@max_chat_messages)
+        |> Ash.read!(authorize?: false)
+        |> Enum.reverse()
+        |> Enum.map(&format_chat_message/1)
+
+      stream_events =
+        StreamEvent
+        |> Ash.Query.for_read(:read)
+        |> Ash.Query.filter(livestream_id == ^livestream_id)
+        |> Ash.Query.sort(inserted_at: :desc)
+        |> Ash.Query.limit(@max_stream_events)
+        |> Ash.read!(authorize?: false)
+        |> Enum.reverse()
+        |> Enum.map(&format_stream_event/1)
+
+      Logger.info("Loaded #{length(chat_messages)} messages and #{length(stream_events)} events")
+
+      {chat_messages, stream_events}
+    rescue
+      e ->
+        Logger.error("load_recent_activity: Exception: #{inspect(e)}")
+        {[], []}
+    end
+  end
+
+  @doc """
+  Loads recent activity if stream is active, otherwise returns empty lists.
+  """
+  def load_recent_activity_if_streaming(user_id, %{status: :streaming}) do
+    case get_current_livestream_id(user_id) do
+      {:ok, livestream_id} -> load_recent_activity(livestream_id)
+      _ -> {[], []}
+    end
+  end
+
+  def load_recent_activity_if_streaming(_user_id, _stream_status), do: {[], []}
+
   # Private helpers
 
   defp format_changeset_errors(changeset), do: FormatHelpers.format_changeset_errors(changeset)
+
+  defp format_chat_message(message) do
+    %{
+      id: message.id,
+      sender_username: message.sender_username,
+      message: message.message,
+      platform: to_string(message.platform),
+      timestamp: DateTime.to_iso8601(message.inserted_at)
+    }
+  end
+
+  defp format_stream_event(event) do
+    username =
+      get_in(event.data, ["username"]) || get_in(event.data, ["user", "display_name"]) ||
+        "Unknown"
+
+    platform_name = get_in(event.data, ["platform"]) || to_string(event.platform)
+
+    %{
+      id: event.id,
+      type: to_string(event.type),
+      username: username,
+      amount: get_in(event.data, ["amount"]),
+      tier: get_in(event.data, ["tier"]),
+      viewers: get_in(event.data, ["viewers"]),
+      platform: platform_name,
+      timestamp: DateTime.to_iso8601(event.inserted_at)
+    }
+  end
 end

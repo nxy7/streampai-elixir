@@ -50,7 +50,8 @@ defmodule Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator do
            user_id == ^actor.id and
              granter_id == ^stream_owner_id and
              role_type == :moderator and
-             status == :accepted
+             role_status == :accepted and
+             is_nil(revoked_at)
          )
          |> Ash.read(authorize?: false) do
       {:ok, [_ | _]} -> true

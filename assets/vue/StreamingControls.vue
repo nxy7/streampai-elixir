@@ -45,13 +45,16 @@ interface StreamEvent {
   timestamp: string
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   streamStatus: StreamStatus
   streamData: StreamData
   loading: boolean
   chatMessages: ChatMessage[]
   streamEvents: StreamEvent[]
-}>()
+  hideStopButton?: boolean
+}>(), {
+  hideStopButton: false
+})
 
 const emit = defineEmits<{
   stopStreaming: []
@@ -187,6 +190,7 @@ const handleSaveSettings = (settings: { title: string; description: string }) =>
         </svg>
       </button>
       <button
+        v-if="!hideStopButton"
         @click="handleStopStream"
         :disabled="loading"
         class="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg"

@@ -303,12 +303,12 @@ const SlideOutNotification = {
 
     const hide = () => {
       this.isHovered = false;
-      // Wait 2 seconds before hiding
+      // Wait 250ms before hiding
       this.hideTimeout = setTimeout(() => {
         if (!this.isHovered) {
           this.el.style.transform = 'translateX(calc(100% - 20px))';
         }
-      }, 2000);
+      }, 250);
     };
 
     this.el.addEventListener('mouseenter', show);

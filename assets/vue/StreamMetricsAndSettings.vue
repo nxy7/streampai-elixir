@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import StreamSettingsFormFields from './StreamSettingsFormFields.vue'
+import { formatPlatformName, getPlatformColor } from './utils/platformUtils'
 
 interface ChatMessage {
   id: string
@@ -17,7 +18,12 @@ interface StreamEvent {
   amount?: number
   tier?: string
   viewers?: number
-  platform: string
+  platform?: string
+  metadata?: {
+    title?: string
+    description?: string
+    thumbnail_url?: string
+  }
   timestamp: string
 }
 
@@ -55,6 +61,16 @@ onMounted(() => {
   streamSettings.value.title = props.streamData.title || ''
   streamSettings.value.description = props.streamData.description || ''
 })
+
+// Watch for streamData changes and update form fields
+watch(() => props.streamData, (newData) => {
+  if (newData.title !== undefined) {
+    streamSettings.value.title = newData.title
+  }
+  if (newData.description !== undefined) {
+    streamSettings.value.description = newData.description
+  }
+}, { deep: true })
 
 const allActivity = computed(() => {
   const chatActivity = (props.chatMessages || []).map(msg => ({
@@ -107,6 +123,10 @@ const formatEventMessage = (event: any): string => {
       return `raided with ${event.viewers} viewers`
     case 'follow':
       return 'followed'
+    case 'stream_settings_updated':
+      return 'updated stream settings'
+    case 'platform_started':
+      return 'started streaming'
     default:
       return event.eventType
   }
@@ -122,23 +142,12 @@ const getEventIcon = (type: string): string => {
       return '🎯'
     case 'follow':
       return '❤️'
+    case 'stream_settings_updated':
+      return '⚙️'
+    case 'platform_started':
+      return '🚀'
     default:
       return '🎉'
-  }
-}
-
-const getPlatformColor = (platform: string): string => {
-  switch (platform.toLowerCase()) {
-    case 'twitch':
-      return 'text-purple-600'
-    case 'youtube':
-      return 'text-red-600'
-    case 'facebook':
-      return 'text-blue-600'
-    case 'kick':
-      return 'text-green-600'
-    default:
-      return 'text-gray-600'
   }
 }
 
@@ -210,11 +219,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
             <span class="font-semibold">{{ chatMessageCount }}</span> messages
           </div>
         </div>
-        <div ref="activityContainer" class="h-96 overflow-y-auto p-4 flex flex-col justify-end">
-          <div v-if="allActivity.length === 0" class="flex items-center justify-center flex-1 text-gray-400 text-sm">
+        <div ref="activityContainer" class="h-96 overflow-y-auto p-4">
+          <div v-if="allActivity.length === 0" class="flex items-center justify-center h-full text-gray-400 text-sm">
             No activity yet
           </div>
-          <div v-else class="space-y-2">
+          <div v-else class="space-y-2 min-h-full flex flex-col justify-end">
           <template v-for="item in allActivity" :key="item.id">
             <!-- Chat Message -->
             <div
@@ -238,18 +247,45 @@ const handleKeyPress = (event: KeyboardEvent) => {
             <!-- Stream Event -->
             <div
               v-else
-              class="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 hover:shadow-sm transition-all"
+              class="relative group flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 hover:shadow-sm transition-all"
             >
               <div class="text-2xl flex-shrink-0">{{ getEventIcon(item.eventType) }}</div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2">
-                  <span :class="['font-semibold text-sm', getPlatformColor(item.platform)]">
+                <div v-if="item.eventType === 'platform_started'" class="flex items-center space-x-1">
+                  <span class="text-sm text-gray-600">Stream on</span>
+                  <span :class="['font-semibold text-sm', item.platform ? getPlatformColor(item.platform) : 'text-gray-700']">
+                    {{ formatPlatformName(item.platform) }}
+                  </span>
+                  <span class="text-sm text-gray-600">started!</span>
+                </div>
+                <div v-else class="flex items-center space-x-2">
+                  <span :class="['font-semibold text-sm', item.platform ? getPlatformColor(item.platform) : 'text-gray-700']">
                     {{ item.username }}
                   </span>
                   <span class="text-sm text-gray-600">{{ formatEventMessage(item) }}</span>
                 </div>
                 <div class="text-xs text-gray-400 mt-0.5">
                   {{ formatTimestamp(item.timestamp) }}
+                </div>
+              </div>
+
+              <!-- Tooltip for stream settings updates -->
+              <div
+                v-if="item.eventType === 'stream_settings_updated' && item.metadata"
+                class="absolute left-0 bottom-full mb-2 hidden group-hover:block z-10 w-80 p-3 bg-white rounded-lg shadow-lg border border-gray-200"
+              >
+                <div class="text-xs font-semibold text-gray-700 mb-2">Updated Settings:</div>
+                <div v-if="item.metadata.title" class="mb-2">
+                  <div class="text-xs text-gray-500">Title:</div>
+                  <div class="text-xs text-gray-900 font-medium">{{ item.metadata.title }}</div>
+                </div>
+                <div v-if="item.metadata.description" class="mb-2">
+                  <div class="text-xs text-gray-500">Description:</div>
+                  <div class="text-xs text-gray-900">{{ item.metadata.description }}</div>
+                </div>
+                <div v-if="item.metadata.thumbnail_url" class="mb-1">
+                  <div class="text-xs text-gray-500 mb-1">Thumbnail:</div>
+                  <img :src="item.metadata.thumbnail_url" alt="Stream thumbnail" class="w-full rounded" />
                 </div>
               </div>
             </div>

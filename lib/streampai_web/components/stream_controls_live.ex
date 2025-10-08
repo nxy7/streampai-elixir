@@ -13,10 +13,13 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
 
   @impl true
   def render(assigns) do
+    assigns = assign_new(assigns, :hide_stop_button, fn -> false end)
+    assigns = assign_new(assigns, :moderator_mode, fn -> false end)
+
     ~H"""
     <div class={[
       "bg-white shadow-sm rounded-lg border border-gray-200",
-      @maximized && "fixed inset-0 z-50 m-0 rounded-none overflow-y-auto"
+      @maximized && "!fixed !inset-0 !z-50 !m-0 !rounded-none overflow-y-auto"
     ]}>
       <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <h3 class="text-lg font-medium text-gray-900">Stream Controls</h3>
@@ -44,43 +47,48 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
               loading={@loading}
               chatMessages={Map.get(assigns, :chat_messages, [])}
               streamEvents={Map.get(assigns, :stream_events, [])}
+              hideStopButton={@hide_stop_button}
               id="streaming-controls-vue"
               v-on:stopStreaming={JS.push("stop_streaming", target: @myself)}
               v-on:saveSettings={JS.push("save_settings", target: @myself)}
               v-on:sendChatMessage={JS.push("send_chat_message", target: @myself)}
             />
           <% else %>
-            <div class="flex flex-col space-y-4">
-              <DashboardComponents.stream_input_status
-                status={@stream_status.input_streaming_status}
-                youtube_broadcast_id={Map.get(@stream_status, :youtube_broadcast_id)}
-              />
-
-              <%= if @stream_status.can_start_streaming && @stream_status.status != :streaming do %>
-                <DashboardComponents.stream_metadata_form
-                  metadata={@stream_metadata}
-                  socket={@socket}
+            <%= if not @moderator_mode do %>
+              <div class="flex flex-col space-y-4">
+                <DashboardComponents.stream_input_status
+                  status={@stream_status.input_streaming_status}
+                  youtube_broadcast_id={Map.get(@stream_status, :youtube_broadcast_id)}
                 />
-              <% end %>
 
-              <DashboardComponents.stream_action_button
-                stream_status={@stream_status}
-                loading={@loading}
-              />
-              <%= if @stream_status.rtmp_url && @stream_status.stream_key do %>
-                <DashboardComponents.rtmp_connection_details
-                  rtmp_url={@stream_status.rtmp_url}
-                  stream_key={@stream_status.stream_key}
-                  show_stream_key={@show_stream_key}
+                <%= if @stream_status.can_start_streaming && @stream_status.status != :streaming do %>
+                  <DashboardComponents.stream_metadata_form
+                    metadata={@stream_metadata}
+                    socket={@socket}
+                  />
+                <% end %>
+
+                <DashboardComponents.stream_action_button
+                  stream_status={@stream_status}
+                  loading={@loading}
                 />
-              <% end %>
-              <%= if @stream_status.input_streaming_status != :live do %>
-                <DashboardComponents.stream_status_message />
-              <% end %>
-            </div>
+                <%= if @stream_status.rtmp_url && @stream_status.stream_key do %>
+                  <DashboardComponents.rtmp_connection_details
+                    rtmp_url={@stream_status.rtmp_url}
+                    stream_key={@stream_status.stream_key}
+                    show_stream_key={@show_stream_key}
+                  />
+                <% end %>
+                <%= if @stream_status.input_streaming_status != :live do %>
+                  <DashboardComponents.stream_status_message />
+                <% end %>
+              </div>
+            <% end %>
           <% end %>
         <% else %>
-          <DashboardComponents.stream_service_unavailable />
+          <%= if not @moderator_mode do %>
+            <DashboardComponents.stream_service_unavailable />
+          <% end %>
         <% end %>
       </div>
     </div>
@@ -95,6 +103,8 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
   @impl true
   def update(assigns, socket) do
     socket = assign(socket, assigns)
+    socket = assign_new(socket, :hide_stop_button, fn -> false end)
+    socket = assign_new(socket, :moderator_mode, fn -> false end)
     {:ok, socket}
   end
 

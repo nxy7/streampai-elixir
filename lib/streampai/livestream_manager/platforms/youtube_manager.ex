@@ -69,8 +69,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   # Client API - StreamPlatformManager behaviour implementation
 
   @impl true
-  def start_streaming(user_id, stream_uuid, opts \\ []) do
-    metadata = Keyword.get(opts, :metadata, %{})
+  def start_streaming(user_id, stream_uuid, metadata \\ %{}) do
     GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid, metadata}, 30_000)
   end
 
@@ -83,16 +82,16 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
-  def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
-    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
+  def send_chat_message(pid, message) when is_pid(pid) and is_binary(message) do
+    case GenServer.call(pid, {:send_chat_message, message}) do
       :ok -> {:ok, "message_sent"}
       error -> error
     end
   end
 
   @impl true
-  def update_stream_metadata(user_id, metadata) when is_binary(user_id) and is_map(metadata) do
-    case GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata}) do
+  def update_stream_metadata(pid, metadata) when is_pid(pid) and is_map(metadata) do
+    case GenServer.call(pid, {:update_stream_metadata, metadata}) do
       :ok -> {:ok, metadata}
       error -> error
     end

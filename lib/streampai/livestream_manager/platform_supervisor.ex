@@ -95,6 +95,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   end
 
   defp normalize_platforms(user_id, :all), do: get_active_platforms(user_id)
+  defp normalize_platforms(user_id, [:all]), do: get_active_platforms(user_id)
   defp normalize_platforms(_user_id, platforms) when is_list(platforms), do: platforms
   defp normalize_platforms(_user_id, platform) when is_atom(platform), do: [platform]
 

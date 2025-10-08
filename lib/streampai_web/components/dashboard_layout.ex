@@ -437,7 +437,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
           <div
             id="impersonation-notification"
             phx-hook="SlideOutNotification"
-            class="fixed top-4 right-0 bg-amber-100 border-l-4 border-amber-500 rounded-l-lg p-4 shadow-lg z-50 max-w-sm transition-transform duration-300 ease-in-out cursor-pointer"
+            class="fixed top-20 right-0 bg-amber-100 border-l-4 border-amber-500 rounded-l-lg p-4 shadow-lg z-50 max-w-sm transition-transform duration-300 ease-in-out cursor-pointer"
           >
             <div class="flex items-start">
               <div class="flex-shrink-0">

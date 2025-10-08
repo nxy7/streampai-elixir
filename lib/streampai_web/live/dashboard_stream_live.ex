@@ -17,18 +17,23 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
   def mount_page(socket, _params, _session) do
     user_id = socket.assigns.current_user.id
+
+    # Ensure UserStreamManager exists (but don't create new stream)
+    Streampai.LivestreamManager.start_user_stream(user_id)
+
     platform_connections = Dashboard.get_platform_connections(socket.assigns.current_user)
 
     stream_status = get_stream_status(user_id)
 
-    Phoenix.PubSub.subscribe(Streampai.PubSub, "cloudflare_input:#{user_id}")
-    Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_status:#{user_id}")
-    Phoenix.PubSub.subscribe(Streampai.PubSub, "viewer_counts:#{user_id}")
-    Phoenix.PubSub.subscribe(Streampai.PubSub, "chat:#{user_id}")
-    Phoenix.PubSub.subscribe(Streampai.PubSub, "stream_events:#{user_id}")
+    if Phoenix.LiveView.connected?(socket) do
+      subscribe_to_stream_channels(user_id)
+    end
 
     stream_data = load_stream_data(user_id, stream_status)
     stream_metadata = load_last_stream_metadata(user_id)
+
+    # Load recent chat messages and events if streaming
+    {chat_messages, stream_events} = load_recent_activity_if_streaming(user_id, stream_status)
 
     socket =
       socket
@@ -39,8 +44,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:show_stream_key, false)
       |> assign(:stream_metadata, stream_metadata)
       |> assign(:stream_data, stream_data)
-      |> assign(:chat_messages, [])
-      |> assign(:stream_events, [])
+      |> assign(:chat_messages, chat_messages)
+      |> assign(:stream_events, stream_events)
       |> allow_upload(:thumbnail,
         accept: ~w(.jpg .jpeg .png),
         max_entries: 1,
@@ -265,12 +270,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_info({:save_settings, params}, socket) do
+    Logger.info("handle_info save_settings called with params: #{inspect(params)}")
     user_id = socket.assigns.current_user.id
 
     metadata = %{
       title: Map.get(params, "title"),
       description: Map.get(params, "description")
     }
+
+    Logger.info("Metadata extracted: #{inspect(metadata)}")
 
     case StreamAction.update_stream_metadata(
            %{
@@ -283,6 +291,23 @@ defmodule StreampaiWeb.DashboardStreamLive do
          ) do
       {:ok, _result} ->
         update_livestream_metadata(user_id, metadata)
+
+        # Broadcast stream settings update event
+        event = %{
+          id: Ash.UUID.generate(),
+          type: :stream_settings_updated,
+          username: socket.assigns.current_user.email,
+          metadata: metadata,
+          timestamp: DateTime.utc_now()
+        }
+
+        Logger.info("Broadcasting stream_settings_updated event: #{inspect(event)}")
+
+        Phoenix.PubSub.broadcast(
+          Streampai.PubSub,
+          "stream_events:#{user_id}",
+          {:stream_settings_updated, event}
+        )
 
         stream_data =
           socket.assigns.stream_data
@@ -310,8 +335,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
   def handle_info({:send_chat_message, message}, socket) do
     user_id = socket.assigns.current_user.id
-
-    Logger.info("Sending chat message: #{message}")
 
     case StreamAction.send_message(
            %{user_id: user_id, message: message, platforms: [:all]},
@@ -354,6 +377,25 @@ defmodule StreampaiWeb.DashboardStreamLive do
     updated_messages = Enum.take([formatted_message | chat_messages], @max_chat_messages)
 
     {:noreply, assign(socket, :chat_messages, updated_messages)}
+  end
+
+  def handle_info({:stream_settings_updated, event}, socket) do
+    Logger.info("Received stream_settings_updated event: #{inspect(event)}")
+    stream_events = socket.assigns[:stream_events] || []
+
+    formatted_event = %{
+      id: event.id,
+      type: "stream_settings_updated",
+      username: event.username,
+      metadata: event.metadata,
+      timestamp: event.timestamp
+    }
+
+    Logger.info("Formatted event: #{inspect(formatted_event)}")
+    updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
+    Logger.info("Updated events count: #{length(updated_events)}")
+
+    {:noreply, assign(socket, :stream_events, updated_events)}
   end
 
   def handle_info({:platform_event, event}, socket) do
