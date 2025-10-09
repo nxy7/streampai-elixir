@@ -51,9 +51,14 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
             <label
               for="avatar-upload"
               class={"flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors #{if @dragover, do: "border-purple-500 bg-purple-50", else: "border-gray-300 hover:bg-gray-50"}"}
-              phx-hook="AvatarUpload"
+              phx-hook="FileUpload"
               phx-target={@myself}
               id="avatar-upload-zone"
+              data-max-size="5242880"
+              data-accept="image/*"
+              data-upload-event="upload_avatar"
+              data-validate-event="validate_avatar"
+              data-confirm-event="confirm_upload"
             >
               <div class="flex flex-col items-center justify-center pt-5 pb-6">
                 <svg
@@ -205,8 +210,8 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
   end
 
   @impl true
-  def handle_event("validate_avatar", %{"avatar" => avatar_params}, socket) do
-    case validate_file(avatar_params) do
+  def handle_event("validate_avatar", %{"file" => file_params}, socket) do
+    case validate_file(file_params) do
       {:ok, file_info} ->
         {:noreply,
          socket
@@ -318,6 +323,11 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
   @impl true
   def handle_event("file_error", %{"error" => error}, socket) do
     {:noreply, assign(socket, :error, error)}
+  end
+
+  @impl true
+  def handle_event("upload_progress", %{"progress" => progress}, socket) do
+    {:noreply, assign(socket, :upload_progress, progress)}
   end
 
   defp get_avatar_url(nil), do: nil
