@@ -84,7 +84,7 @@ config :streampai,
   google_redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
   twitch_client_id: System.get_env("TWITCH_CLIENT_ID"),
   twitch_client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
-  twitch_redirect_uri: System.get_env("TWITCH_REDIRECT_URI"),
+  twitch_redirect_uri: System.get_env("TWITCH_AUTH_REDIRECT_URI"),
   token_signing_secret: System.get_env("SECRET_KEY"),
   cloudflare_api_token: System.get_env("CLOUDFLARE_API_KEY"),
   cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID")
@@ -97,7 +97,8 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
 
 config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
   client_id: System.get_env("TWITCH_CLIENT_ID"),
-  client_secret: System.get_env("TWITCH_CLIENT_SECRET")
+  client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
+  redirect_uri: System.get_env("TWITCH_STREAMING_REDIRECT_URI")
 
 # Set secret_key_base for development environment
 if config_env() == :dev do

@@ -64,14 +64,9 @@ defmodule Streampai.Accounts.UserRoleHelpers do
       {:error, :not_found} = find_user_by_username("nonexistent")
   """
   def find_user_by_username(username) when is_binary(username) and username != "" do
-    User
-    |> Ash.Query.new()
-    |> Ash.Query.do_filter(name: username)
-    |> Ash.read(authorize?: false)
-    |> case do
-      {:ok, [user]} -> {:ok, user}
-      {:ok, []} -> {:error, :not_found}
-      {:ok, _users} -> {:error, :multiple_found}
+    case User.get_by_name(username, authorize?: false) do
+      {:ok, user} -> {:ok, user}
+      {:error, %Ash.Error.Query.NotFound{}} -> {:error, :not_found}
       {:error, _} -> {:error, :not_found}
     end
   rescue

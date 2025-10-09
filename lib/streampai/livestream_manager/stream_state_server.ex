@@ -175,7 +175,8 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
 
   @impl true
   def handle_cast({:start_stream, livestream_id}, state) do
-    Logger.info("Starting stream", livestream_id: livestream_id)
+    Logger.metadata(livestream_id: livestream_id)
+    Logger.info("Starting stream")
 
     state = %{
       state

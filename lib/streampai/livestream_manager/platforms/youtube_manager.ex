@@ -82,16 +82,16 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
-  def send_chat_message(pid, message) when is_pid(pid) and is_binary(message) do
-    case GenServer.call(pid, {:send_chat_message, message}) do
+  def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
       :ok -> {:ok, "message_sent"}
       error -> error
     end
   end
 
   @impl true
-  def update_stream_metadata(pid, metadata) when is_pid(pid) and is_map(metadata) do
-    case GenServer.call(pid, {:update_stream_metadata, metadata}) do
+  def update_stream_metadata(user_id, metadata) when is_binary(user_id) and is_map(metadata) do
+    case GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata}) do
       :ok -> {:ok, metadata}
       error -> error
     end
@@ -685,7 +685,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       author_channel_id: data.channel_id,
       is_moderator: data.is_moderator,
       is_owner: data.is_owner,
-      # Not included in gRPC response
+      is_subscriber: data.is_sponsor,
+      is_vip: false,
+      color: nil,
+      badges: [],
       profile_image_url: nil
     }
 
@@ -704,27 +707,34 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     if thumbnail_file_id do
       Logger.info("Setting thumbnail for broadcast #{broadcast_id} using file #{thumbnail_file_id}")
 
-      case fetch_thumbnail_from_storage(thumbnail_file_id) do
-        {:ok, thumbnail_data, content_type} ->
-          case with_token_retry(state, fn token ->
-                 ApiClient.set_thumbnail(token, broadcast_id, thumbnail_data, content_type)
-               end) do
-            {:ok, _result} ->
-              Logger.info("Thumbnail set successfully for broadcast #{broadcast_id}")
-              :ok
-
-            {:error, reason} ->
-              Logger.error("Failed to set thumbnail for broadcast #{broadcast_id}: #{inspect(reason)}")
-
-              :ok
-          end
-
-        {:error, reason} ->
-          Logger.error("Failed to fetch thumbnail from storage: #{inspect(reason)}")
-          :ok
-      end
+      upload_thumbnail_to_broadcast(state, broadcast_id, thumbnail_file_id)
     else
       :ok
+    end
+  end
+
+  defp upload_thumbnail_to_broadcast(state, broadcast_id, thumbnail_file_id) do
+    case fetch_thumbnail_from_storage(thumbnail_file_id) do
+      {:ok, thumbnail_data, content_type} ->
+        set_thumbnail_on_youtube(state, broadcast_id, thumbnail_data, content_type)
+
+      {:error, reason} ->
+        Logger.error("Failed to fetch thumbnail from storage: #{inspect(reason)}")
+        :ok
+    end
+  end
+
+  defp set_thumbnail_on_youtube(state, broadcast_id, thumbnail_data, content_type) do
+    case with_token_retry(state, fn token ->
+           ApiClient.set_thumbnail(token, broadcast_id, thumbnail_data, content_type)
+         end) do
+      {:ok, _result} ->
+        Logger.info("Thumbnail set successfully for broadcast #{broadcast_id}")
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Failed to set thumbnail for broadcast #{broadcast_id}: #{inspect(reason)}")
+        :ok
     end
   end
 

@@ -60,8 +60,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Broadcasts a chat message to specified platforms or all platforms.
   """
   def broadcast_message(user_id, message, platforms \\ :all) do
-    execute_on_platforms(user_id, platforms, fn platform_module, pid ->
-      platform_module.send_chat_message(pid, message)
+    execute_on_platforms(user_id, platforms, fn platform_module, _pid ->
+      platform_module.send_chat_message(user_id, message)
     end)
   end
 
@@ -69,8 +69,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   Updates stream metadata on specified platforms.
   """
   def update_metadata(user_id, metadata, platforms \\ :all) do
-    execute_on_platforms(user_id, platforms, fn platform_module, pid ->
-      platform_module.update_stream_metadata(pid, metadata)
+    execute_on_platforms(user_id, platforms, fn platform_module, _pid ->
+      platform_module.update_stream_metadata(user_id, metadata)
     end)
   end
 

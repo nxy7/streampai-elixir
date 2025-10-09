@@ -160,6 +160,10 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     default: nil,
     doc: "Connected account extra data (nickname, avatar, etc.)"
 
+  attr :disconnecting_platform, :atom,
+    default: nil,
+    doc: "Platform currently being disconnected (for loading state)"
+
   def platform_connection(assigns) do
     ~H"""
     <div
@@ -292,22 +296,54 @@ defmodule StreampaiWeb.Components.DashboardComponents do
               <button
                 phx-click="disconnect_platform"
                 phx-value-platform={@platform}
-                class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md bg-red-500 hover:bg-red-600 text-white font-medium text-sm"
+                disabled={@disconnecting_platform == @platform}
+                class={[
+                  "absolute top-0 left-0 opacity-0 group-hover:opacity-100 inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm",
+                  if(@disconnecting_platform == @platform,
+                    do: "bg-red-400 cursor-not-allowed",
+                    else: "bg-red-500 hover:bg-red-600 text-white"
+                  )
+                ]}
               >
-                <svg
-                  class="w-4 h-4 mr-2 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                <span class="text-white">Disconnect</span>
+                <%= if @disconnecting_platform == @platform do %>
+                  <svg
+                    class="w-4 h-4 mr-2 text-white animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    >
+                    </circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    >
+                    </path>
+                  </svg>
+                  <span class="text-white">Disconnecting...</span>
+                <% else %>
+                  <svg
+                    class="w-4 h-4 mr-2 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  <span class="text-white">Disconnect</span>
+                <% end %>
               </button>
             </div>
           <% end %>
@@ -547,7 +583,14 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       platform when platform in ["kick", :kick] ->
         ~H"""
         <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
+          <path d="M21.014 12.358c0 4.393-1.411 5.646-4.045 5.646-1.969 0-3.044-1.308-3.044-1.308v1.122h-2.77V6h2.77v4.031s1.011-1.173 2.864-1.173c2.696 0 4.225 1.29 4.225 3.5zm-5.818-1.173c-1.319 0-1.757.979-1.757 2.354 0 1.374.438 2.354 1.757 2.354s1.757-.98 1.757-2.354c0-1.375-.438-2.354-1.757-2.354zm-9.196 0c-1.319 0-1.757.979-1.757 2.354 0 1.374.438 2.354 1.757 2.354s1.757-.98 1.757-2.354c0-1.375-.438-2.354-1.757-2.354zM9 12.358c0 4.393-1.411 5.646-4.045 5.646C2.986 18.004 2 16.696 2 16.696v1.122H0V6h2.77v4.031s1.011-1.173 2.864-1.173C8.33 8.858 9 10.148 9 12.358z" />
+        </svg>
+        """
+
+      platform when platform in ["tiktok", :tiktok] ->
+        ~H"""
+        <svg class={@icon_class} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
         </svg>
         """
 
@@ -897,26 +940,26 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <%= if @stream_status.status == :streaming do %>
         <button
           phx-click="stop_streaming"
+          phx-disable-with="⏳ Stopping..."
           disabled={@loading}
-          class="px-8 py-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg text-lg shadow-lg transition-colors duration-200"
+          class="px-8 py-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-lg shadow-lg transition-all duration-200"
         >
-          {if @loading, do: "Stopping...", else: "🔴 STOP STREAM"}
+          🔴 STOP STREAM
         </button>
       <% else %>
         <button
           phx-click="start_streaming"
+          phx-disable-with="⏳ Starting..."
           disabled={@loading || !@stream_status.can_start_streaming}
           class={[
-            "px-8 py-4 font-semibold rounded-lg text-lg shadow-lg transition-colors duration-200",
+            "px-8 py-4 font-semibold rounded-lg text-lg shadow-lg transition-all duration-200 disabled:cursor-not-allowed",
             if(@stream_status.can_start_streaming && !@loading,
               do: "bg-green-600 hover:bg-green-700 text-white",
-              else: "bg-gray-300 text-gray-500 cursor-not-allowed"
+              else: "bg-gray-300 text-gray-500 disabled:opacity-50"
             )
           ]}
         >
           <%= cond do %>
-            <% @loading -> %>
-              "Starting..."
             <% @stream_status.input_streaming_status != :live -> %>
               ⚡ Waiting for Input...
             <% !@stream_status.can_start_streaming -> %>
@@ -1101,6 +1144,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   """
   attr :platform_connections, :list, required: true
   attr :current_user, :map, required: true
+  attr :disconnecting_platform, :atom, default: nil
 
   def platform_connections_section(assigns) do
     assigns =
@@ -1130,6 +1174,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
             current_user={@current_user}
             account_data={connection.account_data}
             show_disconnect={true}
+            disconnecting_platform={@disconnecting_platform}
           />
         </div>
       </div>

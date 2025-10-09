@@ -28,7 +28,18 @@ config :ex_cldr, default_backend: Streampai.Cldr
 config :logger, :console,
   level: :info,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id, :error_id, :user_id, :path, :duration]
+  metadata: [
+    :request_id,
+    :error_id,
+    :user_id,
+    :path,
+    :duration,
+    :livestream_id,
+    :component,
+    :chat_id,
+    :input_status,
+    :stream_id
+  ]
 
 config :phoenix, :json_library, Jason
 
@@ -133,9 +144,8 @@ config :ueberauth, Ueberauth,
     twitch:
       {Ueberauth.Strategy.Twitch,
        [
-         # Configure Tailwind version
-         # config :tailwind, :version, "4.0.9"
-         default_scope: "user:read:email channel:read:subscriptions"
+         default_scope:
+           "user:read:email user:read:chat user:write:chat channel:bot channel:read:subscriptions channel:read:stream_key channel:manage:broadcast"
        ]}
   ]
 

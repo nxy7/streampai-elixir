@@ -10,6 +10,7 @@ interface StreamStatus {
   stream_key: string | null
   manager_available: boolean
   youtube_broadcast_id: string | null
+  twitch_channel_url: string | null
 }
 
 interface StreamData {
@@ -68,6 +69,7 @@ const streamDuration = ref(0)
 const bitrate = ref(0)
 const fps = ref(0)
 const showSettings = ref(false)
+const isStoppingStream = ref(false)
 
 let durationInterval: number | null = null
 
@@ -98,7 +100,7 @@ const formatDuration = computed(() => {
 })
 
 const isTwitchBroadcasting = computed(() => {
-  return false
+  return !!props.streamStatus.twitch_channel_url
 })
 
 const isFacebookBroadcasting = computed(() => {
@@ -134,7 +136,14 @@ onUnmounted(() => {
 })
 
 const handleStopStream = () => {
+  if (isStoppingStream.value) return
+  isStoppingStream.value = true
   emit('stopStreaming')
+
+  // Reset after 5 seconds in case the response doesn't come back
+  setTimeout(() => {
+    isStoppingStream.value = false
+  }, 5000)
 }
 
 const toggleSettings = () => {
@@ -193,10 +202,10 @@ const handleSaveSettings = (settings: { title: string; description: string }) =>
       <button
         v-if="!hideStopButton"
         @click="handleStopStream"
-        :disabled="loading"
-        class="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg"
+        :disabled="loading || isStoppingStream"
+        class="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 shadow-lg"
       >
-        {{ loading ? 'Stopping...' : '🛑 STOP STREAM' }}
+        {{ loading || isStoppingStream ? '⏳ Stopping...' : '🛑 STOP STREAM' }}
       </button>
     </div>
 
@@ -236,15 +245,20 @@ const handleSaveSettings = (settings: { title: string; description: string }) =>
         </a>
 
         <!-- Twitch -->
-        <div
+        <a
           v-if="isTwitchBroadcasting"
-          class="inline-flex items-center px-3 py-1.5 bg-white border border-purple-200 rounded-lg opacity-50"
-          title="Twitch stream link coming soon"
+          :href="streamStatus.twitch_channel_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-3 py-1.5 bg-white border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
         >
           <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
           <span class="text-sm font-medium text-purple-700">Twitch</span>
-          <span class="text-xs text-gray-500 ml-2">({{ streamData.viewer_counts.twitch }})</span>
-        </div>
+          <span class="text-xs text-gray-500 ml-2">({{ streamData?.viewer_counts?.twitch || 0 }})</span>
+          <svg class="w-3 h-3 ml-1.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
 
         <!-- Facebook -->
         <div

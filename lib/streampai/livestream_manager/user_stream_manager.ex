@@ -17,7 +17,6 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.LivestreamManager.PlatformSupervisor
   alias Streampai.LivestreamManager.StreamStateServer
   alias Streampai.Stream.Livestream
-  alias Streampai.Stream.MetadataHelper
 
   require Logger
 
@@ -104,17 +103,15 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   """
   def start_stream(user_id, metadata \\ %{}) when is_binary(user_id) do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
-    livestream_id = Ash.UUID.generate()
-    title = MetadataHelper.get_stream_title(metadata, livestream_id)
+
+    title = Map.get(metadata, :title)
     description = Map.get(metadata, :description)
     thumbnail_file_id = Map.get(metadata, :thumbnail_file_id)
 
-    livestream_attrs =
-      %{id: livestream_id, user_id: user_id, started_at: DateTime.utc_now(), title: title}
-      |> maybe_put(:description, description)
-      |> maybe_put(:thumbnail_file_id, thumbnail_file_id)
+    {:ok, livestream} =
+      Livestream.start_livestream(user_id, title, description, thumbnail_file_id, actor: user)
 
-    {:ok, _livestream} = Livestream.create(livestream_attrs, actor: user)
+    livestream_id = livestream.id
 
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
@@ -168,20 +165,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     # Update livestream record with ended_at timestamp
     if livestream_id do
-      {:ok, user} = Ash.get(User, user_id, authorize?: false)
-      {:ok, livestream} = Ash.get(Livestream, livestream_id, authorize?: false)
-
-      {:ok, _updated_livestream} =
-        Livestream.update(livestream, %{ended_at: DateTime.utc_now()}, actor: user)
-
-      Logger.info("Updated livestream #{livestream_id} with end time")
-
-      # Schedule post-stream processing job
-      %{livestream_id: livestream_id}
-      |> ProcessFinishedLivestreamJob.new()
-      |> Oban.insert()
-
-      Logger.info("Scheduled post-stream processing job for livestream #{livestream_id}")
+      finalize_livestream(user_id, livestream_id)
     end
 
     # Broadcast stream status change
@@ -196,6 +180,43 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   # Helper functions
 
+  defp finalize_livestream(user_id, livestream_id) do
+    {:ok, user} = Ash.get(User, user_id, authorize?: false)
+    {:ok, livestream} = Ash.get(Livestream, livestream_id, authorize?: false)
+
+    case Livestream.end_livestream(livestream, actor: user) do
+      {:ok, _updated_livestream} ->
+        schedule_post_stream_processing(livestream_id)
+
+      {:error, %Ash.Error.Invalid{errors: errors}} ->
+        handle_livestream_end_error(livestream_id, errors)
+    end
+  end
+
+  defp schedule_post_stream_processing(livestream_id) do
+    Logger.info("Updated livestream #{livestream_id} with end time")
+
+    %{livestream_id: livestream_id}
+    |> ProcessFinishedLivestreamJob.new()
+    |> Oban.insert()
+
+    Logger.info("Scheduled post-stream processing job for livestream #{livestream_id}")
+  end
+
+  defp handle_livestream_end_error(livestream_id, errors) do
+    if stream_already_ended?(errors) do
+      Logger.warning("Livestream #{livestream_id} was already ended, skipping update")
+    else
+      Logger.error("Failed to end livestream #{livestream_id}: #{inspect(errors)}")
+    end
+  end
+
+  defp stream_already_ended?(errors) do
+    Enum.any?(errors, fn error ->
+      error.field == :ended_at and error.message =~ "already ended"
+    end)
+  end
+
   defp start_platform_streaming(user_id, livestream_id, metadata) do
     active_platforms = get_active_platforms(user_id)
     Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
@@ -206,8 +227,8 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     end)
   end
 
-  defp start_platform(:twitch, user_id, livestream_id, _metadata) do
-    TwitchManager.start_streaming(user_id, livestream_id)
+  defp start_platform(:twitch, user_id, livestream_id, metadata) do
+    TwitchManager.start_streaming(user_id, livestream_id, metadata)
   end
 
   defp start_platform(:youtube, user_id, livestream_id, metadata) do
@@ -355,7 +376,4 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       Streampai.LivestreamManager.Registry
     end
   end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

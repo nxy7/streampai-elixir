@@ -96,6 +96,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
         socket =
           socket
           |> assign(:loading, false)
+          |> assign(:chat_messages, [])
+          |> assign(:stream_events, [])
           |> put_flash(:info, "Stream stopped successfully")
 
         {:noreply, socket}
@@ -408,105 +410,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
   def handle_info({:settings_thumbnail_upload_complete, file_id}, socket) do
     user = socket.assigns.current_user
-    user_id = user.id
     params = socket.assigns[:pending_settings_params] || %{}
 
-    # Mark file as uploaded
     case Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
       {:ok, file_record} ->
-        case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
-          {:ok, uploaded_file} ->
-            # Update livestream record with thumbnail first
-            update_livestream_metadata(user_id, %{
-              title: Map.get(params, "title"),
-              description: Map.get(params, "description"),
-              thumbnail_file_id: uploaded_file.id
-            })
-
-            # Build metadata with thumbnail for platform managers
-            metadata = %{
-              title: Map.get(params, "title"),
-              description: Map.get(params, "description"),
-              thumbnail_file_id: uploaded_file.id
-            }
-
-            # Call platform managers directly to include thumbnail
-            user_id_string = to_string(user_id)
-
-            case Streampai.LivestreamManager.UserStreamManager.update_stream_metadata(
-                   user_id_string,
-                   metadata,
-                   [:all]
-                 ) do
-              :ok ->
-                # Broadcast stream_updated event manually
-                thumbnail_url = S3.get_url(uploaded_file.storage_key)
-
-                event = %{
-                  id: Ash.UUID.generate(),
-                  type: :stream_updated,
-                  username: user.email,
-                  metadata: %{
-                    title: Map.get(params, "title"),
-                    description: Map.get(params, "description"),
-                    thumbnail_url: thumbnail_url
-                  },
-                  timestamp: DateTime.utc_now()
-                }
-
-                Phoenix.PubSub.broadcast(
-                  Streampai.PubSub,
-                  "stream_events:#{user_id}",
-                  {:stream_updated, event}
-                )
-
-                # Update local UI state
-                stream_data =
-                  socket.assigns.stream_data
-                  |> Map.put(:title, Map.get(params, "title"))
-                  |> Map.put(:description, Map.get(params, "description"))
-                  |> Map.put(:thumbnail_url, thumbnail_url)
-
-                # Update stream metadata
-                stream_metadata =
-                  socket.assigns.stream_metadata
-                  |> Map.put(:thumbnail_file_id, uploaded_file.id)
-                  |> Map.put(:thumbnail_url, thumbnail_url)
-
-                socket =
-                  socket
-                  |> assign(:stream_data, stream_data)
-                  |> assign(:stream_metadata, stream_metadata)
-                  |> assign(:selected_thumbnail_file, nil)
-                  |> assign(:pending_settings_params, nil)
-                  |> put_flash(:info, "Stream settings updated successfully")
-
-                {:noreply, socket}
-
-              {:error, reason} ->
-                Logger.error("Failed to update stream settings: #{inspect(reason)}")
-
-                socket =
-                  put_flash(socket, :error, "Failed to update stream settings")
-
-                {:noreply, socket}
-            end
-
-          {:error, reason} ->
-            Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
-
-            socket =
-              put_flash(socket, :error, "Failed to process thumbnail upload")
-
-            {:noreply, socket}
-        end
+        process_uploaded_settings_thumbnail(socket, user, params, file_record)
 
       {:error, reason} ->
         Logger.error("Failed to get uploaded file: #{inspect(reason)}")
-
-        socket =
-          put_flash(socket, :error, "Failed to process thumbnail upload")
-
+        socket = put_flash(socket, :error, "Failed to process thumbnail upload")
         {:noreply, socket}
     end
   end
@@ -535,6 +447,99 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  defp process_uploaded_settings_thumbnail(socket, user, params, file_record) do
+    case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
+      {:ok, uploaded_file} ->
+        apply_settings_with_thumbnail(socket, user, params, uploaded_file)
+
+      {:error, reason} ->
+        Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
+        socket = put_flash(socket, :error, "Failed to process thumbnail upload")
+        {:noreply, socket}
+    end
+  end
+
+  defp apply_settings_with_thumbnail(socket, user, params, uploaded_file) do
+    user_id = user.id
+
+    # Update livestream record with thumbnail first
+    update_livestream_metadata(user_id, %{
+      title: Map.get(params, "title"),
+      description: Map.get(params, "description"),
+      thumbnail_file_id: uploaded_file.id
+    })
+
+    # Build metadata with thumbnail for platform managers
+    metadata = %{
+      title: Map.get(params, "title"),
+      description: Map.get(params, "description"),
+      thumbnail_file_id: uploaded_file.id
+    }
+
+    user_id_string = to_string(user_id)
+
+    case Streampai.LivestreamManager.UserStreamManager.update_stream_metadata(
+           user_id_string,
+           metadata,
+           [:all]
+         ) do
+      :ok ->
+        thumbnail_url = S3.get_url(uploaded_file.storage_key)
+        broadcast_settings_update(user, params, thumbnail_url)
+        finalize_settings_update(socket, params, uploaded_file, thumbnail_url)
+
+      {:error, reason} ->
+        Logger.error("Failed to update stream settings: #{inspect(reason)}")
+        socket = put_flash(socket, :error, "Failed to update stream settings")
+        {:noreply, socket}
+    end
+  end
+
+  defp broadcast_settings_update(user, params, thumbnail_url) do
+    event = %{
+      id: Ash.UUID.generate(),
+      type: :stream_updated,
+      username: user.email,
+      metadata: %{
+        title: Map.get(params, "title"),
+        description: Map.get(params, "description"),
+        thumbnail_url: thumbnail_url
+      },
+      timestamp: DateTime.utc_now()
+    }
+
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "stream_events:#{user.id}",
+      {:stream_updated, event}
+    )
+  end
+
+  defp finalize_settings_update(socket, params, uploaded_file, thumbnail_url) do
+    # Update local UI state
+    stream_data =
+      socket.assigns.stream_data
+      |> Map.put(:title, Map.get(params, "title"))
+      |> Map.put(:description, Map.get(params, "description"))
+      |> Map.put(:thumbnail_url, thumbnail_url)
+
+    # Update stream metadata
+    stream_metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:thumbnail_file_id, uploaded_file.id)
+      |> Map.put(:thumbnail_url, thumbnail_url)
+
+    socket =
+      socket
+      |> assign(:stream_data, stream_data)
+      |> assign(:stream_metadata, stream_metadata)
+      |> assign(:selected_thumbnail_file, nil)
+      |> assign(:pending_settings_params, nil)
+      |> put_flash(:info, "Stream settings updated successfully")
+
+    {:noreply, socket}
+  end
 
   # Private helper functions
 
@@ -741,6 +746,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
           )
 
         youtube_broadcast_id = get_youtube_broadcast_id(user_id)
+        twitch_channel_url = get_twitch_channel_url(user_id)
 
         %{
           status: cloudflare_config.stream_status,
@@ -749,7 +755,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
           rtmp_url: cloudflare_config.rtmp_url,
           stream_key: cloudflare_config.stream_key,
           manager_available: true,
-          youtube_broadcast_id: youtube_broadcast_id
+          youtube_broadcast_id: youtube_broadcast_id,
+          twitch_channel_url: twitch_channel_url
         }
 
       _ ->
@@ -775,6 +782,33 @@ defmodule StreampaiWeb.DashboardStreamLive do
     :exit, {:noproc, _} -> nil
   end
 
+  defp get_twitch_channel_url(user_id) do
+    with {:ok, _pid} <- lookup_registry({:platform_manager, user_id, :twitch}),
+         {:ok, status} when is_map(status) <-
+           Streampai.LivestreamManager.Platforms.TwitchManager.get_status(user_id),
+         %{channel_url: channel_url, livestream_id: livestream_id}
+         when not is_nil(channel_url) and not is_nil(livestream_id) <- status do
+      channel_url
+    else
+      # Expected when not streaming (livestream_id will be nil)
+      %{livestream_id: nil} ->
+        nil
+
+      # Expected when manager not found or not connected
+      {:error, :not_found} ->
+        nil
+
+      # Unexpected errors
+      error ->
+        Logger.warning("Unexpected error in get_twitch_channel_url: #{inspect(error)}")
+        nil
+    end
+  rescue
+    _ -> nil
+  catch
+    :exit, {:noproc, _} -> nil
+  end
+
   defp get_fallback_status do
     %{
       status: :inactive,
@@ -783,7 +817,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       rtmp_url: nil,
       stream_key: nil,
       manager_available: false,
-      youtube_broadcast_id: nil
+      youtube_broadcast_id: nil,
+      twitch_channel_url: nil
     }
   end
 

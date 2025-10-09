@@ -21,8 +21,8 @@ defmodule StreampaiWeb.AuthController do
     |> redirect(to: return_to)
   end
 
-  def failure(conn, _activity, reason) do
-    Logger.error("Authentication failure: #{inspect(reason)}")
+  def failure(conn, activity, reason) do
+    Logger.error("Authentication failure for #{inspect(activity)}: #{inspect(reason)}")
 
     conn
     |> put_flash(:error, "Authentication failed")

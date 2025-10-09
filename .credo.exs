@@ -23,6 +23,23 @@ alias Credo.Check.Readability.ModuleDoc
       parse_timeout: 5000,
       color: true,
       checks: %{
+        enabled: [
+          {Credo.Check.Warning.MissedMetadataKeyInLoggerConfig,
+           [
+             metadata_keys: [
+               :request_id,
+               :error_id,
+               :user_id,
+               :path,
+               :duration,
+               :livestream_id,
+               :component,
+               :chat_id,
+               :input_status,
+               :stream_id
+             ]
+           ]}
+        ],
         disabled: [
           {Credo.Check.Design.TagTODO, false},
           {Credo.Check.Design.TagFIXME, false},

@@ -86,6 +86,7 @@ defmodule StreampaiWeb.BaseLive do
         |> assign_new(:loading, fn -> false end)
         |> assign_new(:errors, fn -> [] end)
         |> assign_new(:success_message, fn -> nil end)
+        |> assign_new(:disconnecting_platform, fn -> nil end)
       end
 
       defp maybe_assign_page_specific(socket, _params, _session) do

@@ -111,6 +111,8 @@ defmodule Streampai.Accounts.User do
   code_interface do
     define :get_by_id
     define :get_by_id_minimal
+    define :check_name_availability, args: [:name]
+    define :get_by_name, args: [:name]
   end
 
   code_interface do
@@ -145,7 +147,7 @@ defmodule Streampai.Accounts.User do
     end
 
     read :list_all do
-      prepare build(sort: [id: :desc], load: [:role, :display_avatar])
+      prepare build(sort: [id: :desc], load: [:role, :display_avatar, :tier])
 
       pagination do
         required? false
@@ -328,6 +330,87 @@ defmodule Streampai.Accounts.User do
       end
 
       filter expr(email == ^arg(:email))
+    end
+
+    read :get_by_name do
+      description "Looks up a user by their display name"
+      get? true
+
+      argument :name, :string do
+        allow_nil? false
+      end
+
+      filter expr(name == ^arg(:name))
+    end
+
+    read :check_name_availability do
+      description "Check if a name is available for the current actor"
+      get? false
+
+      argument :name, :string do
+        allow_nil? false
+      end
+
+      prepare fn query, context ->
+        require Ash.Query
+
+        name = Ash.Query.get_argument(query, :name)
+        actor = context.actor
+
+        cond do
+          is_nil(actor) ->
+            Ash.Query.add_error(query, "Must be authenticated to check name availability")
+
+          String.length(name) < Streampai.Constants.username_min_length() ->
+            Ash.Query.add_error(
+              query,
+              "Name must be at least #{Streampai.Constants.username_min_length()} characters"
+            )
+
+          String.length(name) > Streampai.Constants.username_max_length() ->
+            Ash.Query.add_error(
+              query,
+              "Name must be no more than #{Streampai.Constants.username_max_length()} characters"
+            )
+
+          !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
+            Ash.Query.add_error(
+              query,
+              "Name can only contain letters, numbers, and underscores"
+            )
+
+          true ->
+            actor_id = actor.id
+
+            query
+            |> Ash.Query.filter(expr(name == ^name and id != ^actor_id))
+            |> Ash.Query.limit(1)
+        end
+      end
+
+      metadata :available, :boolean
+      metadata :message, :string
+      metadata :is_current_name, :boolean
+
+      prepare fn query, context ->
+        name = Ash.Query.get_argument(query, :name)
+        actor = context.actor
+
+        is_current = actor && actor.name == name
+
+        Ash.Query.after_action(query, fn _query, results ->
+          available = Enum.empty?(results) || is_current
+
+          message =
+            cond do
+              is_current -> "This is your current name"
+              available -> "Name is available"
+              true -> "This name is already taken"
+            end
+
+          {:ok, results, %{available: available, message: message, is_current_name: is_current}}
+        end)
+      end
     end
 
     update :password_reset_with_password do

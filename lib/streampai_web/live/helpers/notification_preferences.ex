@@ -40,22 +40,18 @@ defmodule StreampaiWeb.Live.Helpers.NotificationPreferences do
   def handle_notification_toggle(socket) do
     current_preferences = socket.assigns.user_preferences
     current_user = socket.assigns.current_user
-    new_value = not current_preferences.email_notifications
 
-    case UserPreferences.create(
-           %{
-             user_id: current_user.id,
-             email_notifications: new_value
-           },
-           actor: current_user
-         ) do
+    case UserPreferences.toggle_email_notifications(current_preferences, actor: current_user) do
       {:ok, updated_preferences} ->
         {:noreply,
          socket
          |> assign(:user_preferences, updated_preferences)
          |> put_flash(
            :info,
-           if(new_value, do: "Email notifications enabled", else: "Email notifications disabled")
+           if(updated_preferences.email_notifications,
+             do: "Email notifications enabled",
+             else: "Email notifications disabled"
+           )
          )}
 
       {:error, _error} ->

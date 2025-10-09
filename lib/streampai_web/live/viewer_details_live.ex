@@ -13,16 +13,17 @@ defmodule StreampaiWeb.ViewerDetailsLive do
 
   @impl true
   def mount(%{"id" => viewer_id}, _session, socket) do
-    user_id = socket.assigns.current_user.id
+    current_user = socket.assigns.current_user
+    user_id = current_user.id
 
     viewer =
       StreamViewer
       |> Ash.Query.for_read(:read)
       |> Ash.Query.filter(viewer_id == ^viewer_id and user_id == ^user_id)
-      |> Ash.read_one!()
+      |> Ash.read_one!(actor: current_user)
 
-    messages = ChatMessage.get_for_viewer!(viewer_id, user_id)
-    events = StreamEvent.get_for_viewer!(viewer_id, user_id)
+    messages = ChatMessage.get_for_viewer!(viewer_id, user_id, actor: current_user)
+    events = StreamEvent.get_for_viewer!(viewer_id, user_id, actor: current_user)
 
     socket =
       socket
@@ -112,6 +113,7 @@ defmodule StreampaiWeb.ViewerDetailsLive do
           </div>
         </div>
 
+        <%!-- HIDDEN: AI Summary
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
@@ -121,41 +123,42 @@ defmodule StreampaiWeb.ViewerDetailsLive do
               {@viewer.ai_summary || "No AI summary available yet."}
             </p>
           </div>
+        --%>
 
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Activity Info
-            </h3>
-            <dl class="space-y-3">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Activity Info
+          </h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                First Seen
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                {Calendar.strftime(@viewer.first_seen_at, "%b %d, %Y %I:%M %p")}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Last Seen
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                {Calendar.strftime(@viewer.last_seen_at, "%b %d, %Y %I:%M %p")}
+              </dd>
+            </div>
+            <%= if @viewer.notes do %>
               <div>
                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  First Seen
+                  Notes
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                  {Calendar.strftime(@viewer.first_seen_at, "%b %d, %Y %I:%M %p")}
+                  {@viewer.notes}
                 </dd>
               </div>
-              <div>
-                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Last Seen
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                  {Calendar.strftime(@viewer.last_seen_at, "%b %d, %Y %I:%M %p")}
-                </dd>
-              </div>
-              <%= if @viewer.notes do %>
-                <div>
-                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Notes
-                  </dt>
-                  <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                    {@viewer.notes}
-                  </dd>
-                </div>
-              <% end %>
-            </dl>
-          </div>
+            <% end %>
+          </dl>
         </div>
+        <%!-- </div> --%>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">

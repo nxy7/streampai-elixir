@@ -27,12 +27,12 @@ defmodule Streampai.Application do
       {Phoenix.PubSub, name: Streampai.PubSub},
       StreampaiWeb.Presence,
       {Finch, name: Streampai.Finch},
-      StreampaiWeb.Endpoint,
+      {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
       {AshAuthentication.Supervisor, [otp_app: :streampai]},
       {Task.Supervisor, name: Streampai.TaskSupervisor},
       Streampai.Stream.EventPersister,
       Streampai.YouTube.TokenSupervisor,
-      {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]}
+      StreampaiWeb.Endpoint
     ]
 
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]

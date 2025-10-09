@@ -198,6 +198,9 @@ defmodule StreampaiWeb.LiveHelpers do
 
     Logger.debug("Attempting to disconnect platform: #{inspect(platform_atom)} for user: #{current_user.id}")
 
+    # Set disconnecting state immediately
+    socket = assign(socket, :disconnecting_platform, platform_atom)
+
     # First, find the streaming account using the unique index
     user_id = current_user.id
 
@@ -224,25 +227,41 @@ defmodule StreampaiWeb.LiveHelpers do
              |> reload_current_user()
              |> assign(:platform_connections, platform_connections)
              |> assign(:usage, user_data.usage)
+             |> assign(:disconnecting_platform, nil)
              |> show_success("Successfully disconnected #{String.capitalize(to_string(platform_atom))} account")}
 
           {:error, reason} ->
             Logger.error("Failed to destroy account: #{inspect(reason)}")
-            {:noreply, handle_error(socket, reason, "Failed to disconnect account")}
+
+            {:noreply,
+             socket
+             |> assign(:disconnecting_platform, nil)
+             |> handle_error(reason, "Failed to disconnect account")}
         end
 
       {:ok, []} ->
         Logger.warning("No account found for platform: #{inspect(platform_atom)}, user: #{current_user.id}")
 
-        {:noreply, handle_error(socket, :not_found, "Platform account not found")}
+        {:noreply,
+         socket
+         |> assign(:disconnecting_platform, nil)
+         |> handle_error(:not_found, "Platform account not found")}
 
       {:ok, accounts} ->
         Logger.warning("Multiple accounts found (#{length(accounts)}): #{inspect(accounts)}")
-        {:noreply, handle_error(socket, :multiple_found, "Multiple accounts found")}
+
+        {:noreply,
+         socket
+         |> assign(:disconnecting_platform, nil)
+         |> handle_error(:multiple_found, "Multiple accounts found")}
 
       {:error, reason} ->
         Logger.error("Failed to read accounts: #{inspect(reason)}")
-        {:noreply, handle_error(socket, reason, "Failed to find account to disconnect")}
+
+        {:noreply,
+         socket
+         |> assign(:disconnecting_platform, nil)
+         |> handle_error(reason, "Failed to find account to disconnect")}
     end
   end
 

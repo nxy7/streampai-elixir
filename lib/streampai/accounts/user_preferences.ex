@@ -15,6 +15,8 @@ defmodule Streampai.Accounts.UserPreferences do
   code_interface do
     define :get_by_user_id
     define :create
+    define :toggle_email_notifications
+    define :update_donation_settings, args: [:min_amount, :max_amount, :currency]
   end
 
   actions do
@@ -40,6 +42,30 @@ defmodule Streampai.Accounts.UserPreferences do
       filter expr(user_id == ^arg(:user_id))
 
       prepare Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault
+    end
+
+    update :toggle_email_notifications do
+      description "Toggle email notifications on/off for the user"
+      require_atomic? false
+
+      change fn changeset, _context ->
+        current_value = Ash.Changeset.get_attribute(changeset, :email_notifications)
+        Ash.Changeset.change_attribute(changeset, :email_notifications, !current_value)
+      end
+    end
+
+    update :update_donation_settings do
+      description "Update donation min/max amounts and currency"
+      require_atomic? false
+
+      argument :min_amount, :integer, allow_nil?: true
+      argument :max_amount, :integer, allow_nil?: true
+      argument :currency, :string, allow_nil?: false
+
+      change set_attribute(:min_donation_amount, arg(:min_amount))
+      change set_attribute(:max_donation_amount, arg(:max_amount))
+      change set_attribute(:donation_currency, arg(:currency))
+      change Streampai.Accounts.UserPreferences.Changes.ValidateDonationAmounts
     end
   end
 

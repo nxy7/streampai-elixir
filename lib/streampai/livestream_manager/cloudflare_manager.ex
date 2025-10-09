@@ -463,35 +463,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
       input_id ->
         Logger.info("Cleaning up all existing outputs for input #{input_id}")
 
-        case APIClient.get_live_input(input_id) do
-          {:ok, input_data} ->
-            outputs = Map.get(input_data, "outputs", [])
-
-            if Enum.empty?(outputs) do
-              Logger.info("No outputs to clean up")
-            else
-              Logger.info("Found #{length(outputs)} outputs to delete")
-
-              Enum.each(outputs, fn output ->
-                output_id = Map.get(output, "uid")
-
-                if output_id do
-                  case APIClient.delete_live_output(input_id, output_id) do
-                    :ok ->
-                      Logger.info("Deleted leftover output: #{output_id}")
-
-                    {:error, _error_type, message} ->
-                      Logger.warning("Failed to delete output #{output_id}: #{message}")
-                  end
-                end
-              end)
-            end
-
-            # Clear the outputs from state
+        case fetch_and_delete_all_outputs(input_id) do
+          :ok ->
             new_state = %{state | live_outputs: %{}}
             {:reply, :ok, new_state}
 
-          {:error, _error_type, message} ->
+          {:error, message} ->
             Logger.error("Failed to fetch live input for cleanup: #{message}")
             {:reply, {:error, message}, state}
         end
@@ -526,6 +503,44 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
           {:error, _error_type, message} ->
             Logger.warning("Failed to delete output #{output_id}: #{message}")
         end
+    end
+  end
+
+  defp fetch_and_delete_all_outputs(input_id) do
+    case APIClient.get_live_input(input_id) do
+      {:ok, input_data} ->
+        outputs = Map.get(input_data, "outputs", [])
+        delete_outputs_list(input_id, outputs)
+        :ok
+
+      {:error, _error_type, message} ->
+        {:error, message}
+    end
+  end
+
+  defp delete_outputs_list(_input_id, outputs) when outputs == [] do
+    Logger.info("No outputs to clean up")
+  end
+
+  defp delete_outputs_list(input_id, outputs) do
+    Logger.info("Found #{length(outputs)} outputs to delete")
+
+    Enum.each(outputs, fn output ->
+      output_id = Map.get(output, "uid")
+
+      if output_id do
+        delete_single_output(input_id, output_id)
+      end
+    end)
+  end
+
+  defp delete_single_output(input_id, output_id) do
+    case APIClient.delete_live_output(input_id, output_id) do
+      :ok ->
+        Logger.info("Deleted leftover output: #{output_id}")
+
+      {:error, _error_type, message} ->
+        Logger.warning("Failed to delete output #{output_id}: #{message}")
     end
   end
 
@@ -679,7 +694,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     state.live_input && state.live_input.stream_key
   end
 
-  defp get_platform_rtmp_url(:twitch), do: "rtmp://ingest.twitch.tv/live"
+  defp get_platform_rtmp_url(:twitch), do: "rtmp://live.twitch.tv/app"
   defp get_platform_rtmp_url(:youtube), do: "rtmp://a.rtmp.youtube.com/live2"
   defp get_platform_rtmp_url(:facebook), do: "rtmps://live-api-s.facebook.com:443/rtmp"
   defp get_platform_rtmp_url(:kick), do: "rtmp://ingest.kick.com/live"

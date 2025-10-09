@@ -10,6 +10,10 @@ defmodule Streampai.LivestreamManager.Supervisor do
 
   @impl true
   def init(:ok) do
+    require Logger
+
+    Logger.info("Starting LivestreamManager.Supervisor...")
+
     children = [
       {Registry, keys: :unique, name: Streampai.LivestreamManager.Registry},
       {DynamicSupervisor, strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},

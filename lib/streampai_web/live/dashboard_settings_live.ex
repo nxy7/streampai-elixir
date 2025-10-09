@@ -9,7 +9,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   import StreampaiWeb.Live.Helpers.RoleManagementHelpers
   import StreampaiWeb.LiveHelpers.FlashHelpers
 
-  alias Streampai.Accounts.NameValidator
+  alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPreferences
   alias Streampai.Accounts.UserRoleHelpers
   alias Streampai.Billing
@@ -79,16 +79,18 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   def handle_event("check_name_availability", %{"name" => name}, socket) do
     current_user = socket.assigns.current_user
 
-    case NameValidator.validate_availability(name, current_user) do
-      {:ok, :available, message} ->
-        socket = assign(socket, :name_available, true)
-        {:reply, %{available: true, message: message}, socket}
+    case User.check_name_availability(name, actor: current_user) do
+      {:ok, %{metadata: %{available: available, message: message}}} ->
+        socket = assign(socket, :name_available, available)
+        {:reply, %{available: available, message: message}, socket}
 
-      {:ok, :current_name, message} ->
-        socket = assign(socket, :name_available, true)
-        {:reply, %{available: true, message: message}, socket}
+      {:error, error} ->
+        message =
+          case error do
+            %{errors: [%{message: msg} | _]} -> msg
+            _ -> "Error checking name availability"
+          end
 
-      {:error, _reason, message} ->
         socket = assign(socket, :name_available, false)
         {:reply, %{available: false, message: message}, socket}
     end
@@ -202,31 +204,33 @@ defmodule StreampaiWeb.DashboardSettingsLive do
 
   def handle_event("update_donation_preferences", %{"preferences" => params}, socket) do
     current_user = socket.assigns.current_user
+    current_preferences = socket.assigns.user_preferences
 
     min_amount = parse_amount(params["min_donation_amount"])
     max_amount = parse_amount(params["max_donation_amount"])
     currency = params["donation_currency"] || "USD"
 
-    preferences_params = %{
-      user_id: current_user.id,
-      min_donation_amount: min_amount,
-      max_donation_amount: max_amount,
-      donation_currency: currency
-    }
-
-    case UserPreferences.create(preferences_params, actor: current_user) do
+    case UserPreferences.update_donation_settings(
+           current_preferences,
+           min_amount,
+           max_amount,
+           currency,
+           actor: current_user
+         ) do
       {:ok, _preferences} ->
         {:noreply,
          socket
          |> load_user_preferences()
          |> flash_success("Donation preferences updated successfully!")}
 
-      {:error, _changeset} ->
-        {:noreply,
-         flash_error(
-           socket,
-           "Failed to update donation preferences. Please check your values."
-         )}
+      {:error, changeset} ->
+        error_message =
+          case changeset do
+            %{errors: [%{message: msg} | _]} -> msg
+            _ -> "Failed to update donation preferences. Please check your values."
+          end
+
+        {:noreply, flash_error(socket, error_message)}
     end
   end
 
@@ -449,7 +453,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                 </div>
                 <div id="availability-message" class="text-xs mt-1 h-4"></div>
                 <p id="validation-help" class="text-xs text-gray-500 mt-1 hidden">
-                  {NameValidator.validation_help_text()}
+                  Name must be 3-30 characters and contain only letters, numbers, and underscores
                 </p>
                 <%= if @name_success do %>
                   <p class="text-xs text-green-600 mt-1">{@name_success}</p>

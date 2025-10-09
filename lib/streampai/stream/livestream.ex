@@ -16,6 +16,8 @@ defmodule Streampai.Stream.Livestream do
     define :update
     define :destroy
     define :get_completed_by_user, args: [:user_id]
+    define :start_livestream, args: [:user_id, :title, :description, :thumbnail_file_id]
+    define :end_livestream
   end
 
   actions do
@@ -30,6 +32,29 @@ defmodule Streampai.Stream.Livestream do
         :description,
         :thumbnail_file_id
       ]
+    end
+
+    create :start_livestream do
+      description "Start a new livestream with optional metadata"
+      accept [:title, :description, :thumbnail_file_id]
+
+      argument :user_id, :uuid, allow_nil?: false
+
+      change set_attribute(:id, &Ash.UUID.generate/0)
+      change set_attribute(:user_id, arg(:user_id))
+      change set_attribute(:started_at, &DateTime.utc_now/0)
+      change Streampai.Stream.Livestream.Changes.SetDefaultTitle
+    end
+
+    update :end_livestream do
+      description "End an active livestream"
+      require_atomic? false
+
+      change set_attribute(:ended_at, &DateTime.utc_now/0)
+
+      validate attribute_equals(:ended_at, nil) do
+        message "Livestream has already ended"
+      end
     end
 
     read :get_completed_by_user do
