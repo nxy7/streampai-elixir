@@ -48,6 +48,11 @@ const handleThumbnailChange = (event: Event) => {
       thumbnailFile: file
     }
     emit('update:modelValue', newSettings)
+
+    // Notify Phoenix hook about the file selection
+    window.dispatchEvent(new CustomEvent('settings-thumbnail-selected', {
+      detail: { file }
+    }))
   }
   emit('thumbnailChange', event)
 }

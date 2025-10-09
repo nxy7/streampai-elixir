@@ -643,6 +643,58 @@ defmodule Streampai.YouTube.ApiClient do
     |> handle_response()
   end
 
+  ## Thumbnails API
+
+  @doc """
+  Sets a custom thumbnail for a video/broadcast.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `video_id`: The video/broadcast ID to set the thumbnail for
+  - `thumbnail_data`: Binary image data (JPEG, PNG, etc.)
+  - `content_type`: MIME type of the image (e.g., "image/jpeg", "image/png")
+
+  ## Returns
+  - `{:ok, result}` - Successfully uploaded thumbnail
+  - `{:error, reason}` - Failed to upload thumbnail
+
+  ## Example
+      thumbnail_binary = File.read!("thumbnail.jpg")
+      {:ok, result} = ApiClient.set_thumbnail(token, video_id, thumbnail_binary, "image/jpeg")
+
+  ## Notes
+  - Maximum file size: 2MB
+  - Supported formats: JPEG, PNG, GIF, BMP
+  - Minimum resolution: 640x360 pixels
+  - Recommended aspect ratio: 16:9
+  """
+  @spec set_thumbnail(access_token, String.t(), binary(), String.t()) :: api_result()
+  def set_thumbnail(access_token, video_id, thumbnail_data, content_type) do
+    url = "https://www.googleapis.com/upload/youtube/v3/thumbnails/set"
+
+    params = %{videoId: video_id}
+    query_string = URI.encode_query(params)
+    full_url = "#{url}?#{query_string}"
+
+    headers = [
+      {"Authorization", "Bearer #{access_token}"},
+      {"Content-Type", content_type},
+      {"Content-Length", to_string(byte_size(thumbnail_data))}
+    ]
+
+    req_opts = [
+      method: :post,
+      url: full_url,
+      headers: headers,
+      body: thumbnail_data,
+      receive_timeout: @default_timeout
+    ]
+
+    req_opts
+    |> Req.request()
+    |> handle_response()
+  end
+
   ## Utility Functions
 
   @doc """

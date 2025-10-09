@@ -14,7 +14,12 @@ const ThumbnailSelector = {
 
     // Listen for upload trigger from LiveView
     this.handleEvent('start_thumbnail_upload', ({ file_id, upload_url, upload_headers }) => {
-      this.uploadToS3(file_id, upload_url, upload_headers);
+      this.uploadToS3(file_id, upload_url, upload_headers, 'thumbnail_upload_complete');
+    });
+
+    // Listen for settings thumbnail upload trigger from LiveView
+    this.handleEvent('start_settings_thumbnail_upload', ({ file_id, upload_url, upload_headers }) => {
+      this.uploadToS3(file_id, upload_url, upload_headers, 'settings_thumbnail_upload_complete');
     });
   },
 
@@ -97,7 +102,7 @@ const ThumbnailSelector = {
     return hashHex;
   },
 
-  async uploadToS3(fileId, url, headers) {
+  async uploadToS3(fileId, url, headers, completionEventName = 'thumbnail_upload_complete') {
     if (!this.currentFile) {
       console.error('No file to upload');
       return;
@@ -108,8 +113,8 @@ const ThumbnailSelector = {
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200 || xhr.status === 204) {
-          // Upload successful, notify LiveView
-          this.pushEvent('thumbnail_upload_complete', { file_id: fileId });
+          // Upload successful, notify LiveView with the appropriate event
+          this.pushEvent(completionEventName, { file_id: fileId });
         } else {
           console.error('Upload failed:', xhr.status, xhr.responseText);
           alert('Failed to upload thumbnail');

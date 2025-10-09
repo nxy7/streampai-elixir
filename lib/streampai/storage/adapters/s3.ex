@@ -292,6 +292,43 @@ defmodule Streampai.Storage.Adapters.S3 do
   end
 
   @doc """
+  Downloads a file from S3-compatible storage and returns its binary content.
+
+  This is used when you need to fetch a file's content (e.g., to process it,
+  send it to another API, or serve it directly).
+
+  ## Parameters
+
+    * `key` - The storage key of the file to download
+
+  ## Returns
+
+    * `{:ok, binary_data}` - The file content as binary
+    * `{:error, reason}` - Download failed
+
+  ## Examples
+
+      {:ok, image_data} = S3.download_file("uploads/thumbnail.jpg")
+      # => {:ok, <<255, 216, 255, 224, ...>>}
+
+      # Use the binary data
+      File.write!("/tmp/thumbnail.jpg", image_data)
+  """
+  def download_file(key) do
+    bucket = get_bucket()
+
+    case bucket |> ExAws.S3.get_object(key) |> ExAws.request() do
+      {:ok, %{body: body}} ->
+        Logger.debug("Downloaded file from S3: #{key}")
+        {:ok, body}
+
+      {:error, reason} ->
+        Logger.error("Failed to download file from S3: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
+  @doc """
   Gets the size of a file in S3-compatible storage.
 
   Makes a HEAD request to S3 to retrieve the Content-Length header without

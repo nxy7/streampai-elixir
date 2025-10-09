@@ -408,9 +408,19 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       }
     }
 
-    with_token_retry(state, fn token ->
-      ApiClient.insert_live_broadcast(token, "snippet,status,contentDetails", broadcast_data)
-    end)
+    with {:ok, broadcast} <-
+           with_token_retry(state, fn token ->
+             ApiClient.insert_live_broadcast(
+               token,
+               "snippet,status,contentDetails",
+               broadcast_data
+             )
+           end) do
+      # Set thumbnail if provided
+      set_broadcast_thumbnail(state, broadcast["id"], metadata)
+
+      {:ok, broadcast}
+    end
   end
 
   defp do_send_chat_message(_message, %{chat_id: nil} = state) do
@@ -534,6 +544,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
             with_token_retry(state, fn token ->
               ApiClient.update_live_broadcast(token, "snippet", broadcast_data)
             end)} do
+      # Set thumbnail if provided
+      set_broadcast_thumbnail(state, state.broadcast_id, metadata)
+
       Logger.info("Stream metadata updated: #{inspect(metadata)}")
       {:reply, :ok, state}
     else
@@ -681,6 +694,67 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       "chat:#{user_id}",
       {:chat_message, chat_event}
     )
+  end
+
+  defp set_broadcast_thumbnail(_state, _broadcast_id, %{thumbnail_file_id: nil}), do: :ok
+
+  defp set_broadcast_thumbnail(state, broadcast_id, metadata) do
+    thumbnail_file_id = Map.get(metadata, :thumbnail_file_id)
+
+    if thumbnail_file_id do
+      Logger.info("Setting thumbnail for broadcast #{broadcast_id} using file #{thumbnail_file_id}")
+
+      case fetch_thumbnail_from_storage(thumbnail_file_id) do
+        {:ok, thumbnail_data, content_type} ->
+          case with_token_retry(state, fn token ->
+                 ApiClient.set_thumbnail(token, broadcast_id, thumbnail_data, content_type)
+               end) do
+            {:ok, _result} ->
+              Logger.info("Thumbnail set successfully for broadcast #{broadcast_id}")
+              :ok
+
+            {:error, reason} ->
+              Logger.error("Failed to set thumbnail for broadcast #{broadcast_id}: #{inspect(reason)}")
+
+              :ok
+          end
+
+        {:error, reason} ->
+          Logger.error("Failed to fetch thumbnail from storage: #{inspect(reason)}")
+          :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  defp fetch_thumbnail_from_storage(file_id) do
+    require Ash.Query
+
+    case Streampai.Storage.File
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(id == ^file_id)
+         |> Ash.read(authorize?: false) do
+      {:ok, [file]} ->
+        # Get the S3 URL and download the file
+        storage_key = file.storage_key
+        content_type = file.content_type || "image/jpeg"
+
+        case Streampai.Storage.Adapters.S3.download_file(storage_key) do
+          {:ok, binary_data} ->
+            {:ok, binary_data, content_type}
+
+          {:error, reason} ->
+            Logger.error("Failed to download file from S3: #{inspect(reason)}")
+            {:error, reason}
+        end
+
+      {:ok, []} ->
+        {:error, :file_not_found}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   # Token refresh helpers

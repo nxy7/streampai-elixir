@@ -112,10 +112,25 @@ watch(() => allActivity.value.length, () => {
 })
 
 const handleSaveSettings = () => {
-  emit('saveSettings', {
+  // Send file info along with settings if a thumbnail was selected
+  const payload: any = {
     title: streamSettings.value.title,
     description: streamSettings.value.description
-  })
+  }
+
+  // If there's a selected thumbnail file, include its info
+  if (streamSettings.value.thumbnailFile) {
+    payload.thumbnailFile = {
+      name: streamSettings.value.thumbnailFile.name,
+      size: streamSettings.value.thumbnailFile.size,
+      type: streamSettings.value.thumbnailFile.type
+    }
+  }
+
+  console.log('Vue: Emitting saveSettings with payload:', payload)
+  console.log('Vue: streamSettings.value.thumbnailFile:', streamSettings.value.thumbnailFile)
+
+  emit('saveSettings', payload)
   emit('toggleSettings')
 }
 

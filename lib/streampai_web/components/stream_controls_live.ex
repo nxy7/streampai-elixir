@@ -39,20 +39,22 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
       <div class="p-6">
         <%= if @stream_status.manager_available do %>
           <%= if @stream_status.status == :streaming do %>
-            <.vue
-              v-component="StreamingControls"
-              v-socket={@socket}
-              streamStatus={@stream_status}
-              streamData={Map.get(assigns, :stream_data, %{})}
-              loading={@loading}
-              chatMessages={Map.get(assigns, :chat_messages, [])}
-              streamEvents={Map.get(assigns, :stream_events, [])}
-              hideStopButton={@hide_stop_button}
-              id="streaming-controls-vue"
-              v-on:stopStreaming={JS.push("stop_streaming", target: @myself)}
-              v-on:saveSettings={JS.push("save_settings", target: @myself)}
-              v-on:sendChatMessage={JS.push("send_chat_message", target: @myself)}
-            />
+            <div phx-hook="SettingsThumbnailUpload" id="settings-thumbnail-upload">
+              <.vue
+                v-component="StreamingControls"
+                v-socket={@socket}
+                streamStatus={@stream_status}
+                streamData={Map.get(assigns, :stream_data, %{})}
+                loading={@loading}
+                chatMessages={Map.get(assigns, :chat_messages, [])}
+                streamEvents={Map.get(assigns, :stream_events, [])}
+                hideStopButton={@hide_stop_button}
+                id="streaming-controls-vue"
+                v-on:stopStreaming={JS.push("stop_streaming", target: @myself)}
+                v-on:saveSettings={JS.push("save_settings", target: @myself)}
+                v-on:sendChatMessage={JS.push("send_chat_message", target: @myself)}
+              />
+            </div>
           <% else %>
             <%= if not @moderator_mode do %>
               <div class="flex flex-col space-y-4">

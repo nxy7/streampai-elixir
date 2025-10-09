@@ -18,6 +18,7 @@ import LocalStorage from "./hooks/local_storage_hook.js";
 import FileUpload from "./hooks/file_upload_hook.js";
 import InfiniteScroll from "./hooks/infinite_scroll_hook.js";
 import ThumbnailSelector from "./hooks/thumbnail_selector_hook.js";
+import SettingsThumbnailUpload from "./hooks/settings_thumbnail_upload_hook.js";
 
 // Hooks for various functionality
 
@@ -348,6 +349,7 @@ let Hooks = {
   SlideOutNotification,
   InfiniteScroll,
   ThumbnailSelector,
+  SettingsThumbnailUpload,
   ...getHooks(liveVueApp),
 };
 

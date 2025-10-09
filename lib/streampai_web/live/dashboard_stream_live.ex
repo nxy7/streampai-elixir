@@ -79,6 +79,474 @@ defmodule StreampaiWeb.DashboardStreamLive do
     end
   end
 
+  def handle_event("stop_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
+    socket = handle_error(socket, :timeout, "Streaming services not available.")
+    {:noreply, socket}
+  end
+
+  def handle_event("stop_streaming", _params, socket) do
+    user_id = socket.assigns.current_user.id
+    socket = assign(socket, :loading, true)
+
+    case StreamAction.stop_stream(
+           %{user_id: user_id},
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:info, "Stream stopped successfully")
+
+        {:noreply, socket}
+
+      {:error, %Forbidden{}} ->
+        Logger.error("Authorization failed for user #{user_id}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Not authorized to stop stream")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to stop stream for user #{user_id}: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to stop stream. Please try again later.")
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_stream_key_visibility", _params, socket) do
+    {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
+  end
+
+  def handle_event("update_stream_metadata", %{"metadata" => metadata_params}, socket) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_event("update_stream_metadata", metadata_params, socket) when is_map(metadata_params) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_event("thumbnail_upload_complete", %{"file_id" => file_id}, socket) do
+    # Thumbnail upload completed, trigger stream start
+    send(self(), {:thumbnail_upload_complete, file_id})
+    {:noreply, socket}
+  end
+
+  def handle_event("file_upload_complete", %{"file_id" => file_id}, socket) do
+    # Update stream metadata with the new thumbnail file ID
+    metadata = Map.put(socket.assigns.stream_metadata, :thumbnail_file_id, file_id)
+
+    # Reload the metadata to get the thumbnail URL
+    user_id = socket.assigns.current_user.id
+    updated_metadata = load_last_stream_metadata(user_id)
+
+    {:noreply, assign(socket, :stream_metadata, Map.merge(metadata, updated_metadata))}
+  end
+
+  def handle_event("settings_thumbnail_upload_complete", %{"file_id" => file_id}, socket) do
+    # Settings thumbnail upload completed, trigger settings save
+    send(self(), {:settings_thumbnail_upload_complete, file_id})
+    {:noreply, socket}
+  end
+
+  def handle_event("settings_thumbnail_file_selected", file_params, socket) do
+    Logger.info("Phoenix: Received settings_thumbnail_file_selected event with params: #{inspect(file_params)}")
+
+    # Store thumbnail file info for later upload when user saves settings
+    file_info = %{
+      name: file_params["name"],
+      size: file_params["size"],
+      type: file_params["type"]
+    }
+
+    Logger.info("Phoenix: Storing selected_thumbnail_file: #{inspect(file_info)}")
+    {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
+  end
+
+  # Delegate other events to BaseLive
+  def handle_event("regenerate_stream_key", _params, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case CloudflareManager.regenerate_live_input(user_id) do
+      {:ok, _stream_config} ->
+        # Get the full stream status with all required fields
+        stream_status = get_stream_status(user_id)
+
+        socket =
+          socket
+          |> assign(:stream_status, stream_status)
+          |> put_flash(:info, "Stream key regenerated successfully")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to regenerate stream key: #{inspect(reason)}")
+
+        socket = put_flash(socket, :error, "Failed to regenerate stream key")
+
+        {:noreply, socket}
+    end
+  end
+
+  # Delegate other events to BaseLive
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
+  end
+
+  def handle_info({event_type, _event}, socket)
+      when event_type in [
+             :stream_status_changed,
+             :stream_auto_stopped,
+             :input_streaming_started,
+             :input_streaming_stopped
+           ] do
+    user_id = socket.assigns.current_user.id
+    stream_status = get_stream_status(user_id)
+    stream_data = load_stream_data(user_id, stream_status)
+
+    socket =
+      socket
+      |> assign(:stream_status, stream_status)
+      |> assign(:stream_data, stream_data)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:toggle_stream_key_visibility}, socket) do
+    {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
+  end
+
+  def handle_info({:update_stream_metadata, %{"metadata" => metadata_params}}, socket) do
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:title, Map.get(metadata_params, "title", ""))
+      |> Map.put(:description, Map.get(metadata_params, "description", ""))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_info({:start_streaming, _params}, socket) do
+    handle_event("start_streaming", %{}, socket)
+  end
+
+  def handle_info({:stop_streaming, _params}, socket) do
+    handle_event("stop_streaming", %{}, socket)
+  end
+
+  def handle_info({:save_settings, params}, socket) do
+    Logger.info("handle_info save_settings called with params: #{inspect(params)}")
+    user_id = socket.assigns.current_user.id
+
+    selected_thumbnail = socket.assigns[:selected_thumbnail_file]
+    Logger.info("Phoenix: selected_thumbnail_file is: #{inspect(selected_thumbnail)}")
+
+    # Check if there's a selected thumbnail that needs to be uploaded
+    case selected_thumbnail do
+      nil ->
+        Logger.info("Phoenix: No thumbnail selected, saving without upload")
+        # No new thumbnail, just update title and description
+        save_settings_without_thumbnail_upload(socket, user_id, params)
+
+      file_info ->
+        Logger.info("Phoenix: Thumbnail selected, will upload: #{inspect(file_info)}")
+        # Upload thumbnail first, then save settings
+        upload_thumbnail_and_save_settings(socket, user_id, params, file_info)
+    end
+  end
+
+  def handle_info({:send_chat_message, message}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case StreamAction.send_message(
+           %{user_id: user_id, message: message, platforms: [:all]},
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to send chat message: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, "Failed to send message")}
+    end
+  end
+
+  def handle_info({:viewer_update, platform, count}, socket) do
+    stream_data = socket.assigns.stream_data
+    viewer_counts = Map.get(stream_data, :viewer_counts, %{})
+    updated_viewer_counts = Map.put(viewer_counts, platform, count)
+    total_viewers = updated_viewer_counts |> Map.values() |> Enum.sum()
+
+    updated_stream_data =
+      stream_data
+      |> Map.put(:viewer_counts, updated_viewer_counts)
+      |> Map.put(:total_viewers, total_viewers)
+
+    {:noreply, assign(socket, :stream_data, updated_stream_data)}
+  end
+
+  def handle_info({:chat_message, chat_event}, socket) do
+    chat_messages = socket.assigns[:chat_messages] || []
+
+    formatted_message = %{
+      id: chat_event.id,
+      sender_username: chat_event.username,
+      message: chat_event.message,
+      platform: to_string(chat_event.platform),
+      timestamp: chat_event.timestamp || DateTime.utc_now()
+    }
+
+    updated_messages = Enum.take([formatted_message | chat_messages], @max_chat_messages)
+
+    {:noreply, assign(socket, :chat_messages, updated_messages)}
+  end
+
+  def handle_info({:stream_updated, event}, socket) do
+    Logger.info("Received stream_updated event: #{inspect(event)}")
+    stream_events = socket.assigns[:stream_events] || []
+
+    formatted_event = %{
+      id: event.id,
+      type: "stream_updated",
+      username: event.username,
+      metadata: event.metadata,
+      timestamp: event.timestamp
+    }
+
+    Logger.info("Formatted event: #{inspect(formatted_event)}")
+    updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
+    Logger.info("Updated events count: #{length(updated_events)}")
+
+    # Also update stream_data if metadata contains updated values
+    stream_data = socket.assigns.stream_data
+
+    stream_data =
+      stream_data
+      |> maybe_update_field(:title, get_in(event.metadata, [:title]))
+      |> maybe_update_field(:description, get_in(event.metadata, [:description]))
+      |> maybe_update_field(:thumbnail_url, get_in(event.metadata, [:thumbnail_url]))
+
+    socket =
+      socket
+      |> assign(:stream_events, updated_events)
+      |> assign(:stream_data, stream_data)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:thumbnail_selected, _component_id, file_info}, socket) do
+    # Store the selected file info for upload when user clicks GO LIVE
+    {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
+  end
+
+  def handle_info({:thumbnail_cleared, _component_id}, socket) do
+    # Clear the selected file
+    {:noreply, assign(socket, :selected_thumbnail_file, nil)}
+  end
+
+  def handle_info({:thumbnail_upload_complete, file_id}, socket) do
+    user = socket.assigns.current_user
+
+    # Mark file as uploaded
+    case Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
+      {:ok, file_record} ->
+        case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
+          {:ok, uploaded_file} ->
+            # Update metadata with the new thumbnail
+            metadata =
+              socket.assigns.stream_metadata
+              |> Map.put(:thumbnail_file_id, uploaded_file.id)
+              |> Map.put(
+                :thumbnail_url,
+                S3.get_url(uploaded_file.storage_key)
+              )
+
+            # Now start the stream with the uploaded thumbnail
+            user_id = socket.assigns.current_user.id
+            start_stream_with_metadata(socket, user_id, metadata)
+
+          {:error, reason} ->
+            Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
+
+            socket =
+              socket
+              |> assign(:loading, false)
+              |> put_flash(:error, "Failed to process thumbnail upload")
+
+            {:noreply, socket}
+        end
+
+      {:error, reason} ->
+        Logger.error("Failed to get uploaded file: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to process thumbnail upload")
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:file_uploaded, "thumbnail-upload", file}, socket) do
+    # Legacy handler - update stream metadata with the new thumbnail file
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:thumbnail_file_id, file.id)
+      |> Map.put(:thumbnail_url, S3.get_url(file.storage_key))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
+  def handle_info({:settings_thumbnail_upload_complete, file_id}, socket) do
+    user = socket.assigns.current_user
+    user_id = user.id
+    params = socket.assigns[:pending_settings_params] || %{}
+
+    # Mark file as uploaded
+    case Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
+      {:ok, file_record} ->
+        case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
+          {:ok, uploaded_file} ->
+            # Update livestream record with thumbnail first
+            update_livestream_metadata(user_id, %{
+              title: Map.get(params, "title"),
+              description: Map.get(params, "description"),
+              thumbnail_file_id: uploaded_file.id
+            })
+
+            # Build metadata with thumbnail for platform managers
+            metadata = %{
+              title: Map.get(params, "title"),
+              description: Map.get(params, "description"),
+              thumbnail_file_id: uploaded_file.id
+            }
+
+            # Call platform managers directly to include thumbnail
+            user_id_string = to_string(user_id)
+
+            case Streampai.LivestreamManager.UserStreamManager.update_stream_metadata(
+                   user_id_string,
+                   metadata,
+                   [:all]
+                 ) do
+              :ok ->
+                # Broadcast stream_updated event manually
+                thumbnail_url = S3.get_url(uploaded_file.storage_key)
+
+                event = %{
+                  id: Ash.UUID.generate(),
+                  type: :stream_updated,
+                  username: user.email,
+                  metadata: %{
+                    title: Map.get(params, "title"),
+                    description: Map.get(params, "description"),
+                    thumbnail_url: thumbnail_url
+                  },
+                  timestamp: DateTime.utc_now()
+                }
+
+                Phoenix.PubSub.broadcast(
+                  Streampai.PubSub,
+                  "stream_events:#{user_id}",
+                  {:stream_updated, event}
+                )
+
+                # Update local UI state
+                stream_data =
+                  socket.assigns.stream_data
+                  |> Map.put(:title, Map.get(params, "title"))
+                  |> Map.put(:description, Map.get(params, "description"))
+                  |> Map.put(:thumbnail_url, thumbnail_url)
+
+                # Update stream metadata
+                stream_metadata =
+                  socket.assigns.stream_metadata
+                  |> Map.put(:thumbnail_file_id, uploaded_file.id)
+                  |> Map.put(:thumbnail_url, thumbnail_url)
+
+                socket =
+                  socket
+                  |> assign(:stream_data, stream_data)
+                  |> assign(:stream_metadata, stream_metadata)
+                  |> assign(:selected_thumbnail_file, nil)
+                  |> assign(:pending_settings_params, nil)
+                  |> put_flash(:info, "Stream settings updated successfully")
+
+                {:noreply, socket}
+
+              {:error, reason} ->
+                Logger.error("Failed to update stream settings: #{inspect(reason)}")
+
+                socket =
+                  put_flash(socket, :error, "Failed to update stream settings")
+
+                {:noreply, socket}
+            end
+
+          {:error, reason} ->
+            Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
+
+            socket =
+              put_flash(socket, :error, "Failed to process thumbnail upload")
+
+            {:noreply, socket}
+        end
+
+      {:error, reason} ->
+        Logger.error("Failed to get uploaded file: #{inspect(reason)}")
+
+        socket =
+          put_flash(socket, :error, "Failed to process thumbnail upload")
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:platform_event, event}, socket) do
+    if event_should_be_displayed?(event.type) do
+      stream_events = socket.assigns[:stream_events] || []
+
+      formatted_event = %{
+        id: event.id,
+        type: to_string(event.type),
+        username: event.username,
+        amount: Map.get(event, :amount),
+        tier: Map.get(event, :tier),
+        viewers: Map.get(event, :viewers),
+        platform: to_string(event.platform),
+        timestamp: event.timestamp || DateTime.utc_now()
+      }
+
+      updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
+
+      {:noreply, assign(socket, :stream_events, updated_events)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
+  # Private helper functions
+
   defp start_stream_with_metadata(socket, user_id, metadata) do
     Logger.info("Starting stream with metadata: #{inspect(metadata)}")
 
@@ -164,162 +632,10 @@ defmodule StreampaiWeb.DashboardStreamLive do
     end
   end
 
-  def handle_event("stop_streaming", _params, %{assigns: %{stream_status: %{manager_available: false}}} = socket) do
-    socket = handle_error(socket, :timeout, "Streaming services not available.")
-    {:noreply, socket}
-  end
+  defp maybe_update_field(map, _key, nil), do: map
+  defp maybe_update_field(map, key, value), do: Map.put(map, key, value)
 
-  def handle_event("stop_streaming", _params, socket) do
-    user_id = socket.assigns.current_user.id
-    socket = assign(socket, :loading, true)
-
-    case StreamAction.stop_stream(
-           %{user_id: user_id},
-           actor: socket.assigns.current_user
-         ) do
-      {:ok, _result} ->
-        socket =
-          socket
-          |> assign(:loading, false)
-          |> put_flash(:info, "Stream stopped successfully")
-
-        {:noreply, socket}
-
-      {:error, %Forbidden{}} ->
-        Logger.error("Authorization failed for user #{user_id}")
-
-        socket =
-          socket
-          |> assign(:loading, false)
-          |> put_flash(:error, "Not authorized to stop stream")
-
-        {:noreply, socket}
-
-      {:error, reason} ->
-        Logger.error("Failed to stop stream for user #{user_id}: #{inspect(reason)}")
-
-        socket =
-          socket
-          |> assign(:loading, false)
-          |> put_flash(:error, "Failed to stop stream. Please try again later.")
-
-        {:noreply, socket}
-    end
-  end
-
-  def handle_event("toggle_stream_key_visibility", _params, socket) do
-    {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
-  end
-
-  def handle_event("update_stream_metadata", %{"metadata" => metadata_params}, socket) do
-    metadata =
-      socket.assigns.stream_metadata
-      |> Map.put(:title, Map.get(metadata_params, "title", ""))
-      |> Map.put(:description, Map.get(metadata_params, "description", ""))
-
-    {:noreply, assign(socket, :stream_metadata, metadata)}
-  end
-
-  def handle_event("update_stream_metadata", metadata_params, socket) when is_map(metadata_params) do
-    metadata =
-      socket.assigns.stream_metadata
-      |> Map.put(:title, Map.get(metadata_params, "title", ""))
-      |> Map.put(:description, Map.get(metadata_params, "description", ""))
-
-    {:noreply, assign(socket, :stream_metadata, metadata)}
-  end
-
-  def handle_event("thumbnail_upload_complete", %{"file_id" => file_id}, socket) do
-    # Thumbnail upload completed, trigger stream start
-    send(self(), {:thumbnail_upload_complete, file_id})
-    {:noreply, socket}
-  end
-
-  def handle_event("file_upload_complete", %{"file_id" => file_id}, socket) do
-    # Update stream metadata with the new thumbnail file ID
-    metadata = Map.put(socket.assigns.stream_metadata, :thumbnail_file_id, file_id)
-
-    # Reload the metadata to get the thumbnail URL
-    user_id = socket.assigns.current_user.id
-    updated_metadata = load_last_stream_metadata(user_id)
-
-    {:noreply, assign(socket, :stream_metadata, Map.merge(metadata, updated_metadata))}
-  end
-
-  # Delegate other events to BaseLive
-  def handle_event("regenerate_stream_key", _params, socket) do
-    user_id = socket.assigns.current_user.id
-
-    case CloudflareManager.regenerate_live_input(user_id) do
-      {:ok, _stream_config} ->
-        # Get the full stream status with all required fields
-        stream_status = get_stream_status(user_id)
-
-        socket =
-          socket
-          |> assign(:stream_status, stream_status)
-          |> put_flash(:info, "Stream key regenerated successfully")
-
-        {:noreply, socket}
-
-      {:error, reason} ->
-        Logger.error("Failed to regenerate stream key: #{inspect(reason)}")
-
-        socket = put_flash(socket, :error, "Failed to regenerate stream key")
-
-        {:noreply, socket}
-    end
-  end
-
-  # Delegate other events to BaseLive
-  def handle_event(event, params, socket) do
-    super(event, params, socket)
-  end
-
-  def handle_info({event_type, _event}, socket)
-      when event_type in [
-             :stream_status_changed,
-             :stream_auto_stopped,
-             :input_streaming_started,
-             :input_streaming_stopped
-           ] do
-    user_id = socket.assigns.current_user.id
-    stream_status = get_stream_status(user_id)
-    stream_data = load_stream_data(user_id, stream_status)
-
-    socket =
-      socket
-      |> assign(:stream_status, stream_status)
-      |> assign(:stream_data, stream_data)
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:toggle_stream_key_visibility}, socket) do
-    {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
-  end
-
-  def handle_info({:update_stream_metadata, %{"metadata" => metadata_params}}, socket) do
-    metadata =
-      socket.assigns.stream_metadata
-      |> Map.put(:title, Map.get(metadata_params, "title", ""))
-      |> Map.put(:description, Map.get(metadata_params, "description", ""))
-
-    {:noreply, assign(socket, :stream_metadata, metadata)}
-  end
-
-  def handle_info({:start_streaming, _params}, socket) do
-    handle_event("start_streaming", %{}, socket)
-  end
-
-  def handle_info({:stop_streaming, _params}, socket) do
-    handle_event("stop_streaming", %{}, socket)
-  end
-
-  def handle_info({:save_settings, params}, socket) do
-    Logger.info("handle_info save_settings called with params: #{inspect(params)}")
-    user_id = socket.assigns.current_user.id
-
+  defp save_settings_without_thumbnail_upload(socket, user_id, params) do
     case StreamAction.update_stream_metadata(
            %{
              user_id: user_id,
@@ -361,176 +677,44 @@ defmodule StreampaiWeb.DashboardStreamLive do
     end
   end
 
-  def handle_info({:send_chat_message, message}, socket) do
-    user_id = socket.assigns.current_user.id
-
-    case StreamAction.send_message(
-           %{user_id: user_id, message: message, platforms: [:all]},
-           actor: socket.assigns.current_user
-         ) do
-      {:ok, _result} ->
-        {:noreply, socket}
-
-      {:error, reason} ->
-        Logger.error("Failed to send chat message: #{inspect(reason)}")
-        {:noreply, put_flash(socket, :error, "Failed to send message")}
-    end
-  end
-
-  def handle_info({:viewer_update, platform, count}, socket) do
-    stream_data = socket.assigns.stream_data
-    viewer_counts = Map.get(stream_data, :viewer_counts, %{})
-    updated_viewer_counts = Map.put(viewer_counts, platform, count)
-    total_viewers = updated_viewer_counts |> Map.values() |> Enum.sum()
-
-    updated_stream_data =
-      stream_data
-      |> Map.put(:viewer_counts, updated_viewer_counts)
-      |> Map.put(:total_viewers, total_viewers)
-
-    {:noreply, assign(socket, :stream_data, updated_stream_data)}
-  end
-
-  def handle_info({:chat_message, chat_event}, socket) do
-    chat_messages = socket.assigns[:chat_messages] || []
-
-    formatted_message = %{
-      id: chat_event.id,
-      sender_username: chat_event.username,
-      message: chat_event.message,
-      platform: to_string(chat_event.platform),
-      timestamp: chat_event.timestamp || DateTime.utc_now()
-    }
-
-    updated_messages = Enum.take([formatted_message | chat_messages], @max_chat_messages)
-
-    {:noreply, assign(socket, :chat_messages, updated_messages)}
-  end
-
-  def handle_info({:stream_updated, event}, socket) do
-    Logger.info("Received stream_updated event: #{inspect(event)}")
-    stream_events = socket.assigns[:stream_events] || []
-
-    formatted_event = %{
-      id: event.id,
-      type: "stream_updated",
-      username: event.username,
-      metadata: event.metadata,
-      timestamp: event.timestamp
-    }
-
-    Logger.info("Formatted event: #{inspect(formatted_event)}")
-    updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
-    Logger.info("Updated events count: #{length(updated_events)}")
-
-    # Also update stream_data if metadata contains updated values
-    stream_data = socket.assigns.stream_data
-
-    stream_data =
-      stream_data
-      |> maybe_update_field(:title, get_in(event.metadata, [:title]))
-      |> maybe_update_field(:description, get_in(event.metadata, [:description]))
-      |> maybe_update_field(:thumbnail_url, get_in(event.metadata, [:thumbnail_url]))
-
-    socket =
-      socket
-      |> assign(:stream_events, updated_events)
-      |> assign(:stream_data, stream_data)
-
-    {:noreply, socket}
-  end
-
-  defp maybe_update_field(map, _key, nil), do: map
-  defp maybe_update_field(map, key, value), do: Map.put(map, key, value)
-
-  def handle_info({:thumbnail_selected, _component_id, file_info}, socket) do
-    # Store the selected file info for upload when user clicks GO LIVE
-    {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
-  end
-
-  def handle_info({:thumbnail_cleared, _component_id}, socket) do
-    # Clear the selected file
-    {:noreply, assign(socket, :selected_thumbnail_file, nil)}
-  end
-
-  def handle_info({:thumbnail_upload_complete, file_id}, socket) do
+  defp upload_thumbnail_and_save_settings(socket, _user_id, params, file_info) do
     user = socket.assigns.current_user
 
-    # Mark file as uploaded
-    case Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
+    # Request upload URL from backend
+    case Streampai.Storage.File.request_upload(
+           %{
+             filename: file_info.name,
+             content_type: file_info.type,
+             file_type: :thumbnail,
+             estimated_size: file_info.size
+           },
+           actor: user
+         ) do
       {:ok, file_record} ->
-        case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
-          {:ok, uploaded_file} ->
-            # Update metadata with the new thumbnail
-            metadata =
-              socket.assigns.stream_metadata
-              |> Map.put(:thumbnail_file_id, uploaded_file.id)
-              |> Map.put(
-                :thumbnail_url,
-                S3.get_url(uploaded_file.storage_key)
-              )
-
-            # Now start the stream with the uploaded thumbnail
-            user_id = socket.assigns.current_user.id
-            start_stream_with_metadata(socket, user_id, metadata)
-
-          {:error, reason} ->
-            Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
-
-            socket =
-              socket
-              |> assign(:loading, false)
-              |> put_flash(:error, "Failed to process thumbnail upload")
-
-            {:noreply, socket}
-        end
-
-      {:error, reason} ->
-        Logger.error("Failed to get uploaded file: #{inspect(reason)}")
+        # Send upload info to frontend to trigger S3 upload
+        upload_url = file_record.__metadata__.upload_url
+        upload_headers = file_record.__metadata__.upload_headers
 
         socket =
-          socket
-          |> assign(:loading, false)
-          |> put_flash(:error, "Failed to process thumbnail upload")
+          push_event(socket, "start_settings_thumbnail_upload", %{
+            file_id: file_record.id,
+            upload_url: upload_url,
+            upload_headers: upload_headers,
+            params: params
+          })
+
+        # Store params to use after upload completes
+        {:noreply, assign(socket, :pending_settings_params, params)}
+
+      {:error, reason} ->
+        Logger.error("Failed to request thumbnail upload: #{inspect(reason)}")
+
+        socket =
+          put_flash(socket, :error, "Failed to upload thumbnail. Please try again.")
 
         {:noreply, socket}
     end
   end
-
-  def handle_info({:file_uploaded, "thumbnail-upload", file}, socket) do
-    # Legacy handler - update stream metadata with the new thumbnail file
-    metadata =
-      socket.assigns.stream_metadata
-      |> Map.put(:thumbnail_file_id, file.id)
-      |> Map.put(:thumbnail_url, S3.get_url(file.storage_key))
-
-    {:noreply, assign(socket, :stream_metadata, metadata)}
-  end
-
-  def handle_info({:platform_event, event}, socket) do
-    if event_should_be_displayed?(event.type) do
-      stream_events = socket.assigns[:stream_events] || []
-
-      formatted_event = %{
-        id: event.id,
-        type: to_string(event.type),
-        username: event.username,
-        amount: Map.get(event, :amount),
-        tier: Map.get(event, :tier),
-        viewers: Map.get(event, :viewers),
-        platform: to_string(event.platform),
-        timestamp: event.timestamp || DateTime.utc_now()
-      }
-
-      updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
-
-      {:noreply, assign(socket, :stream_events, updated_events)}
-    else
-      {:noreply, socket}
-    end
-  end
-
-  def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp event_should_be_displayed?(:donation), do: true
   defp event_should_be_displayed?(:subscription), do: true
@@ -624,12 +808,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
       {:ok, [livestream]} ->
         {:ok, user} = Ash.get(Streampai.Accounts.User, user_id, authorize?: false)
 
+        update_attrs =
+          maybe_put_thumbnail_file_id(
+            %{title: metadata.title, description: metadata.description},
+            Map.get(metadata, :thumbnail_file_id)
+          )
+
         Livestream.update(
           livestream,
-          %{
-            title: metadata.title,
-            description: metadata.description
-          },
+          update_attrs,
           actor: user
         )
 
@@ -637,6 +824,10 @@ defmodule StreampaiWeb.DashboardStreamLive do
         {:error, :no_active_stream}
     end
   end
+
+  defp maybe_put_thumbnail_file_id(attrs, nil), do: attrs
+
+  defp maybe_put_thumbnail_file_id(attrs, thumbnail_file_id), do: Map.put(attrs, :thumbnail_file_id, thumbnail_file_id)
 
   defp load_stream_data(user_id, %{status: :streaming}) do
     require Ash.Query
