@@ -174,6 +174,7 @@ defmodule Streampai.Stream.StreamEvent do
           "username" => metadata["username"],
           "title" => metadata["title"],
           "description" => metadata["description"],
+          "thumbnail_url" => metadata["thumbnail_url"],
           "user" => metadata["user"]
         }
 

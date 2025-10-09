@@ -24,6 +24,7 @@ interface StreamData {
   initial_message_count: number
   title: string
   description: string
+  thumbnail_url?: string | null
 }
 
 interface ChatMessage {

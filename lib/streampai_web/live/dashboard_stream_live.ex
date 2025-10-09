@@ -423,8 +423,25 @@ defmodule StreampaiWeb.DashboardStreamLive do
     updated_events = Enum.take([formatted_event | stream_events], @max_stream_events)
     Logger.info("Updated events count: #{length(updated_events)}")
 
-    {:noreply, assign(socket, :stream_events, updated_events)}
+    # Also update stream_data if metadata contains updated values
+    stream_data = socket.assigns.stream_data
+
+    stream_data =
+      stream_data
+      |> maybe_update_field(:title, get_in(event.metadata, [:title]))
+      |> maybe_update_field(:description, get_in(event.metadata, [:description]))
+      |> maybe_update_field(:thumbnail_url, get_in(event.metadata, [:thumbnail_url]))
+
+    socket =
+      socket
+      |> assign(:stream_events, updated_events)
+      |> assign(:stream_data, stream_data)
+
+    {:noreply, socket}
   end
+
+  defp maybe_update_field(map, _key, nil), do: map
+  defp maybe_update_field(map, key, value), do: Map.put(map, key, value)
 
   def handle_info({:thumbnail_selected, _component_id, file_info}, socket) do
     # Store the selected file info for upload when user clicks GO LIVE
@@ -535,7 +552,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       total_viewers: 0,
       initial_message_count: 0,
       title: "",
-      description: ""
+      description: "",
+      thumbnail_url: nil
     }
   end
 
@@ -626,7 +644,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
     case Livestream
          |> Ash.Query.for_read(:read)
          |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
-         |> Ash.Query.load(:messages_amount)
+         |> Ash.Query.load([:messages_amount, :thumbnail_url, thumbnail_file: [:url]])
          |> Ash.Query.sort(started_at: :desc)
          |> Ash.Query.limit(1)
          |> Ash.read(authorize?: false) do
@@ -636,6 +654,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
         |> Map.put(:initial_message_count, stream.messages_amount || 0)
         |> Map.put(:title, stream.title || "")
         |> Map.put(:description, stream.description || "")
+        |> Map.put(:thumbnail_url, stream.thumbnail_url)
 
       _ ->
         default_stream_data()

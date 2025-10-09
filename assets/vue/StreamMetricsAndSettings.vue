@@ -31,6 +31,7 @@ interface StreamData {
   initial_message_count: number
   title: string
   description: string
+  thumbnail_url?: string | null
 }
 
 const props = defineProps<{
@@ -201,7 +202,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
     <!-- Stream Settings Form -->
     <div v-if="showSettings" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">Stream Settings</h3>
-      <StreamSettingsFormFields v-model="streamSettings" />
+      <StreamSettingsFormFields v-model="streamSettings" :current-thumbnail-url="streamData.thumbnail_url" />
       <div class="flex space-x-3 mt-4">
         <button
           @click="handleSaveSettings"
@@ -294,7 +295,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
                 </div>
                 <div v-if="item.metadata.thumbnail_url" class="mb-1">
                   <div class="text-xs text-gray-500 mb-1">Thumbnail:</div>
-                  <img :src="item.metadata.thumbnail_url" alt="Stream thumbnail" class="w-full rounded" />
+                  <img :src="item.metadata.thumbnail_url" alt="Stream thumbnail" class="w-48 aspect-video object-cover rounded" />
                 </div>
               </div>
             </div>

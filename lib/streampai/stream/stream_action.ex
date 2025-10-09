@@ -293,10 +293,14 @@ defmodule Streampai.Stream.StreamAction do
     actor_username = actor.email
     actor_id = to_string(actor.id)
 
+    # Get the current thumbnail URL to include in the event
+    thumbnail_url = get_current_thumbnail_url(user_id)
+
     event_metadata = %{
       "username" => actor_username,
       "title" => metadata[:title],
       "description" => metadata[:description],
+      "thumbnail_url" => thumbnail_url,
       "user" => %{
         "id" => actor.id,
         "email" => actor.email
@@ -332,11 +336,17 @@ defmodule Streampai.Stream.StreamAction do
   end
 
   defp broadcast_metadata_update(user_id, metadata, actor) do
+    # Load the current livestream to get the thumbnail_url
+    thumbnail_url = get_current_thumbnail_url(user_id)
+
+    # Include thumbnail_url in the metadata broadcast
+    metadata_with_thumbnail = Map.put(metadata, :thumbnail_url, thumbnail_url)
+
     event = %{
       id: Ash.UUID.generate(),
       type: :stream_updated,
       username: actor.email,
-      metadata: metadata,
+      metadata: metadata_with_thumbnail,
       timestamp: DateTime.utc_now()
     }
 
@@ -346,6 +356,24 @@ defmodule Streampai.Stream.StreamAction do
       {:stream_updated, event}
     )
 
-    Logger.info("Broadcasted stream_updated event via PubSub")
+    Logger.info("Broadcasted stream_updated event via PubSub with thumbnail_url: #{inspect(thumbnail_url)}")
+  end
+
+  defp get_current_thumbnail_url(user_id) do
+    require Ash.Query
+
+    case Streampai.Stream.Livestream
+         |> Ash.Query.for_read(:read)
+         |> Ash.Query.filter(user_id == ^user_id and is_nil(ended_at))
+         |> Ash.Query.load([:thumbnail_url, thumbnail_file: [:url]])
+         |> Ash.Query.sort(started_at: :desc)
+         |> Ash.Query.limit(1)
+         |> Ash.read(authorize?: false) do
+      {:ok, [stream]} ->
+        stream.thumbnail_url
+
+      _ ->
+        nil
+    end
   end
 end

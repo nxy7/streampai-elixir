@@ -395,7 +395,8 @@ defmodule StreampaiWeb.LiveHelpers do
     if event.type == :stream_updated do
       Map.put(base_event, :metadata, %{
         title: get_in(event.data, ["title"]),
-        description: get_in(event.data, ["description"])
+        description: get_in(event.data, ["description"]),
+        thumbnail_url: get_in(event.data, ["thumbnail_url"])
       })
     else
       base_event
