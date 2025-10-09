@@ -168,8 +168,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_event("settings_thumbnail_file_selected", file_params, socket) do
-    Logger.info("Phoenix: Received settings_thumbnail_file_selected event with params: #{inspect(file_params)}")
-
     # Store thumbnail file info for later upload when user saves settings
     file_info = %{
       name: file_params["name"],
@@ -177,7 +175,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
       type: file_params["type"]
     }
 
-    Logger.info("Phoenix: Storing selected_thumbnail_file: #{inspect(file_info)}")
     {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
   end
 
@@ -252,21 +249,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
   end
 
   def handle_info({:save_settings, params}, socket) do
-    Logger.info("handle_info save_settings called with params: #{inspect(params)}")
     user_id = socket.assigns.current_user.id
 
-    selected_thumbnail = socket.assigns[:selected_thumbnail_file]
-    Logger.info("Phoenix: selected_thumbnail_file is: #{inspect(selected_thumbnail)}")
-
     # Check if there's a selected thumbnail that needs to be uploaded
-    case selected_thumbnail do
+    case socket.assigns[:selected_thumbnail_file] do
       nil ->
-        Logger.info("Phoenix: No thumbnail selected, saving without upload")
         # No new thumbnail, just update title and description
         save_settings_without_thumbnail_upload(socket, user_id, params)
 
       file_info ->
-        Logger.info("Phoenix: Thumbnail selected, will upload: #{inspect(file_info)}")
         # Upload thumbnail first, then save settings
         upload_thumbnail_and_save_settings(socket, user_id, params, file_info)
     end

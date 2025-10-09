@@ -127,9 +127,6 @@ const handleSaveSettings = () => {
     }
   }
 
-  console.log('Vue: Emitting saveSettings with payload:', payload)
-  console.log('Vue: streamSettings.value.thumbnailFile:', streamSettings.value.thumbnailFile)
-
   emit('saveSettings', payload)
   emit('toggleSettings')
 }

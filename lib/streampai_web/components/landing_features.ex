@@ -140,9 +140,8 @@ defmodule StreampaiWeb.Components.LandingFeatures do
             </p>
           </div>
           
-    <!-- Streampai Donations - Coming Soon -->
-          <div class="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-lg border-2 border-green-500/30 rounded-2xl p-8 hover:from-green-500/20 hover:to-emerald-500/20 transition-all group relative">
-            <!-- Coming Soon Badge -->
+    <!-- HIDDEN: Streampai Donations - Coming Soon -->
+          <%!-- <div class="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-lg border-2 border-green-500/30 rounded-2xl p-8 hover:from-green-500/20 hover:to-emerald-500/20 transition-all group relative">
             <div class="absolute -top-3 -right-3">
               <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold animate-pulse">
                 Coming Soon
@@ -179,10 +178,7 @@ defmodule StreampaiWeb.Components.LandingFeatures do
                 <span class="font-medium">Lower fees than Twitch, YouTube & other platforms</span>
               </div>
             </div>
-          </div>
-          
-    <!-- Spacer for grid alignment -->
-          <div class="hidden lg:block"></div>
+          </div> --%>
         </div>
       </div>
     </section>

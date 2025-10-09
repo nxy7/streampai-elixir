@@ -20,8 +20,6 @@ const SettingsThumbnailUpload = {
   handleThumbnailSelected(event) {
     const { file } = event.detail;
 
-    console.log('Hook: Received settings-thumbnail-selected event with file:', file);
-
     if (!file) {
       console.warn('No file provided in thumbnail selection event');
       return;
@@ -29,12 +27,6 @@ const SettingsThumbnailUpload = {
 
     // Store the file for later upload
     this.currentFile = file;
-
-    console.log('Hook: Pushing settings_thumbnail_file_selected event to Phoenix:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
 
     // Notify LiveView that a thumbnail has been selected
     this.pushEvent('settings_thumbnail_file_selected', {

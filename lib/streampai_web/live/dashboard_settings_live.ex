@@ -504,8 +504,8 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             </div>
           </div>
         </div>
-        
-    <!-- Donation Page Section -->
+
+        <%!-- HIDDEN: Donation Page Section
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Donation Page</h3>
           <div class="space-y-4">
@@ -532,8 +532,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                 Share this link with your viewers so they can support you with donations
               </p>
             </div>
-            
-    <!-- Quick Preview -->
+
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
               <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
@@ -564,8 +563,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             </div>
           </div>
         </div>
-        
-    <!-- Donation Preferences -->
+
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Donation Settings</h3>
 
@@ -661,6 +659,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             </div>
           </form>
         </div>
+    --%>
         
     <!-- Role Invitations Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
