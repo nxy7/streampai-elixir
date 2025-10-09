@@ -24,7 +24,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :expires_at,
     :broadcast_id,
     :stream_id,
-    :stream_uuid,
+    :livestream_id,
     :chat_id,
     :chat_pid,
     :metrics_collector_pid,
@@ -69,8 +69,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   # Client API - StreamPlatformManager behaviour implementation
 
   @impl true
-  def start_streaming(user_id, stream_uuid, metadata \\ %{}) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid, metadata}, 30_000)
+  def start_streaming(user_id, livestream_id, metadata \\ %{}) do
+    GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id, metadata}, 30_000)
   end
 
   @impl true
@@ -137,23 +137,23 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   # Server callbacks
 
   @impl true
-  def handle_call({:start_streaming, stream_uuid}, from, state) do
-    handle_call({:start_streaming, stream_uuid, %{}}, from, state)
+  def handle_call({:start_streaming, livestream_id}, from, state) do
+    handle_call({:start_streaming, livestream_id, %{}}, from, state)
   end
 
   @impl true
-  def handle_call({:start_streaming, stream_uuid, metadata}, _from, state) do
-    Logger.info("Starting stream: #{stream_uuid} with metadata: #{inspect(metadata)}")
+  def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
+    Logger.info("Starting stream: #{livestream_id} with metadata: #{inspect(metadata)}")
 
     with {:create_broadcast, {:ok, broadcast}} <-
-           {:create_broadcast, create_broadcast(state, stream_uuid, metadata)},
-         {:create_stream, {:ok, stream}} <- {:create_stream, create_stream(state, stream_uuid)},
+           {:create_broadcast, create_broadcast(state, livestream_id, metadata)},
+         {:create_stream, {:ok, stream}} <- {:create_stream, create_stream(state, livestream_id)},
          {:bind_stream, {:ok, bound_broadcast}} <-
            {:bind_stream, bind_stream(state, broadcast["id"], stream["id"])},
          {:get_chat_id, {:ok, broadcast_chat_id}} <-
            {:get_chat_id, get_chat_id(state, bound_broadcast)},
          {:start_chat, {:ok, chat_pid}} <-
-           {:start_chat, start_chat_streaming(state, stream_uuid, broadcast_chat_id)},
+           {:start_chat, start_chat_streaming(state, livestream_id, broadcast_chat_id)},
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
          {:create_output, {:ok, output_id}} <-
@@ -165,7 +165,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         | is_active: true,
           broadcast_id: broadcast["id"],
           stream_id: stream["id"],
-          stream_uuid: stream_uuid,
+          livestream_id: livestream_id,
           chat_id: broadcast_chat_id,
           chat_pid: chat_pid,
           metrics_collector_pid: collector_pid,
@@ -176,7 +176,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
       Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Cloudflare Output: #{output_id}")
 
-      StreamEvents.emit_platform_started(state.user_id, stream_uuid, :youtube)
+      StreamEvents.emit_platform_started(state.user_id, livestream_id, :youtube)
 
       {:reply, {:ok, %{rtmp_url: rtmp_url, stream_key: stream_key}}, new_state}
     else
@@ -202,8 +202,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     cleanup_broadcast(state)
     cleanup_stream(state)
 
-    if state.stream_uuid do
-      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :youtube)
+    if state.livestream_id do
+      StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :youtube)
     end
 
     new_state = %{
@@ -211,7 +211,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       | is_active: false,
         broadcast_id: nil,
         stream_id: nil,
-        stream_uuid: nil,
+        livestream_id: nil,
         chat_id: nil,
         chat_pid: nil,
         metrics_collector_pid: nil,
@@ -386,8 +386,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   # Private functions
 
-  defp create_broadcast(state, stream_uuid, metadata) do
-    title = MetadataHelper.get_stream_title(metadata, stream_uuid)
+  defp create_broadcast(state, livestream_id, metadata) do
+    title = MetadataHelper.get_stream_title(metadata, livestream_id)
     description = Map.get(metadata, :description)
 
     snippet =
@@ -546,10 +546,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   defp maybe_update_field(map, _key, nil), do: map
   defp maybe_update_field(map, key, value), do: Map.put(map, key, value)
 
-  defp create_stream(state, stream_uuid) do
+  defp create_stream(state, livestream_id) do
     stream_data = %{
       snippet: %{
-        title: "Stream - #{stream_uuid}"
+        title: "Stream - #{livestream_id}"
       },
       cdn: %{
         format: "1080p",

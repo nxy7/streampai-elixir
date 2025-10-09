@@ -54,7 +54,9 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
       :peak_viewers,
       :messages_amount,
       :duration_seconds,
-      :platforms
+      :platforms,
+      :thumbnail_url,
+      thumbnail_file: [:url]
     ])
     |> Ash.read!(authorize?: false)
     |> Enum.map(&enrich_stream_data/1)
@@ -318,7 +320,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                     <img
                       src={stream.thumbnail_url}
                       alt="Stream thumbnail"
-                      class="w-24 h-14 object-cover rounded-lg"
+                      class="w-32 aspect-video object-cover rounded-lg"
                     />
                   </div>
                   <div class="flex-1 min-w-0">

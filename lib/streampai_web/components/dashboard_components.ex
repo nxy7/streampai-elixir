@@ -779,6 +779,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :loading, :boolean, required: true
   attr :show_stream_key, :boolean, required: true
   attr :stream_metadata, :map, default: %{}
+  attr :current_user, :map, required: true
 
   def stream_controls(assigns) do
     ~H"""
@@ -795,7 +796,11 @@ defmodule StreampaiWeb.Components.DashboardComponents do
             />
 
             <%= if @stream_status.can_start_streaming && @stream_status.status != :streaming do %>
-              <.stream_metadata_form metadata={@stream_metadata} socket={@socket} />
+              <.stream_metadata_form
+                metadata={@stream_metadata}
+                socket={@socket}
+                current_user={@current_user}
+              />
             <% end %>
 
             <.stream_action_button stream_status={@stream_status} loading={@loading} />
@@ -859,16 +864,24 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   """
   attr :metadata, :map, required: true
   attr :socket, :any, default: nil
+  attr :current_user, :map, required: true
 
   def stream_metadata_form(assigns) do
     ~H"""
-    <.vue
-      v-component="StreamSettingsPreForm"
-      v-socket={@socket}
-      metadata={@metadata}
-      v-on:updateMetadata={JS.push("update_stream_metadata")}
-      v-on:uploadThumbnail={JS.push("upload_thumbnail")}
-    />
+    <div class="space-y-4">
+      <.vue
+        v-component="StreamSettingsPreForm"
+        v-socket={@socket}
+        metadata={@metadata}
+        v-on:updateMetadata={JS.push("update_stream_metadata")}
+      />
+
+      <.live_component
+        module={StreampaiWeb.Components.ThumbnailSelectorComponent}
+        id="thumbnail-selector"
+        current_thumbnail_url={Map.get(@metadata, :thumbnail_url)}
+      />
+    </div>
     """
   end
 

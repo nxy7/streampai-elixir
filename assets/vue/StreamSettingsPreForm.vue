@@ -1,26 +1,25 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import StreamSettingsFormFields from './StreamSettingsFormFields.vue'
 
 interface StreamMetadata {
   title: string
   description: string
   thumbnail_url?: string | null
+  thumbnail_file_id?: string | null
 }
 
 const props = defineProps<{
   metadata: StreamMetadata
+  uploadId: string
 }>()
 
 const emit = defineEmits<{
   updateMetadata: [{ title: string; description: string }]
-  uploadThumbnail: [Event]
 }>()
 
 const streamSettings = ref({
   title: '',
-  description: '',
-  thumbnailFile: null as File | null
+  description: ''
 })
 
 onMounted(() => {
@@ -42,25 +41,27 @@ watch(() => streamSettings.value.description, (newDescription) => {
     description: newDescription
   })
 })
-
-const handleThumbnailChange = (event: Event) => {
-  emit('uploadThumbnail', event)
-}
 </script>
 
 <template>
-  <div class="space-y-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-    <StreamSettingsFormFields
-      v-model="streamSettings"
-      @thumbnail-change="handleThumbnailChange"
-    />
-
-    <div v-if="metadata.thumbnail_url" class="mt-2">
-      <img
-        :src="metadata.thumbnail_url"
-        alt="Thumbnail preview"
-        class="h-20 rounded border border-gray-200"
+  <div class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input
+        v-model="streamSettings.title"
+        type="text"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+        placeholder="Enter stream title"
       />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea
+        v-model="streamSettings.description"
+        rows="3"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+        placeholder="Enter stream description"
+      ></textarea>
     </div>
   </div>
 </template>

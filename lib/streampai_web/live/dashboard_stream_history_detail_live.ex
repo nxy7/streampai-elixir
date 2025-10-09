@@ -46,6 +46,8 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
         :messages_amount,
         :duration_seconds,
         :platforms,
+        :thumbnail_url,
+        thumbnail_file: [:url],
         metrics: [
           :youtube_viewers,
           :twitch_viewers,
@@ -312,7 +314,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
             <img
               src={@stream.thumbnail_url}
               alt="Stream thumbnail"
-              class="w-32 h-18 object-cover rounded-lg"
+              class="w-48 aspect-video object-cover rounded-lg"
             />
             <div class="flex-1">
               <h1 class="text-2xl font-bold text-gray-900 mb-2">{@stream.title}</h1>

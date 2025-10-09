@@ -12,7 +12,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   defstruct [
     :user_id,
-    :stream_uuid,
+    :livestream_id,
     :access_token,
     :refresh_token,
     :expires_at,
@@ -53,10 +53,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   # Client API
 
   @doc """
-  Starts streaming with the given stream UUID.
+  Starts streaming with the given livestream ID.
   """
-  def start_streaming(user_id, stream_uuid) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
+  def start_streaming(user_id, livestream_id) do
+    GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id})
   end
 
   @doc """
@@ -166,10 +166,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   @impl true
-  def handle_call({:start_streaming, stream_uuid}, _from, state) do
-    Logger.info("Starting stream: #{stream_uuid}")
-    StreamEvents.emit_platform_started(state.user_id, stream_uuid, :twitch)
-    new_state = %{state | stream_uuid: stream_uuid}
+  def handle_call({:start_streaming, livestream_id}, _from, state) do
+    Logger.info("Starting stream: #{livestream_id}")
+    StreamEvents.emit_platform_started(state.user_id, livestream_id, :twitch)
+    new_state = %{state | livestream_id: livestream_id}
     {:reply, :ok, new_state}
   end
 
@@ -177,11 +177,11 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   def handle_call(:stop_streaming, _from, state) do
     Logger.info("Stopping stream")
 
-    if state.stream_uuid do
-      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :twitch)
+    if state.livestream_id do
+      StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :twitch)
     end
 
-    new_state = %{state | stream_uuid: nil}
+    new_state = %{state | livestream_id: nil}
     {:reply, :ok, new_state}
   end
 
@@ -194,7 +194,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       channel_id: state.channel_id,
       last_viewer_count: state.last_viewer_count,
       chat_enabled: state.chat_enabled,
-      stream_uuid: Map.get(state, :stream_uuid)
+      livestream_id: Map.get(state, :livestream_id)
     }
 
     {:reply, status, state}

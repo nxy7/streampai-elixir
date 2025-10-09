@@ -65,6 +65,7 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
                   <DashboardComponents.stream_metadata_form
                     metadata={@stream_metadata}
                     socket={@socket}
+                    current_user={@current_user}
                   />
                 <% end %>
 

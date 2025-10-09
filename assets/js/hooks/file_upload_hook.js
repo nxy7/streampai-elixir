@@ -73,7 +73,7 @@ const FileUpload = {
     }
   },
 
-  processFile(file) {
+  async processFile(file) {
     // Validate file type if restrictions are set
     if (this.acceptedTypes !== '*' && !this.isAcceptedType(file)) {
       this.pushEventTo(this.el, 'file_error', {
@@ -94,6 +94,19 @@ const FileUpload = {
     // Store file for later upload
     this.currentFile = file;
 
+    // Compute hash for small files (< 4MB) for deduplication
+    let contentHash = null;
+    const HASH_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB
+
+    if (file.size <= HASH_SIZE_LIMIT) {
+      try {
+        contentHash = await this.computeFileHash(file);
+      } catch (error) {
+        console.warn('Failed to compute file hash:', error);
+        // Continue without hash - deduplication will be skipped
+      }
+    }
+
     // Read file as data URL for preview (optional, can be disabled for large files)
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -105,7 +118,8 @@ const FileUpload = {
           name: file.name,
           size: file.size,
           type: file.type,
-          data_url: dataUrl
+          data_url: dataUrl,
+          content_hash: contentHash
         }
       });
     };
@@ -124,10 +138,25 @@ const FileUpload = {
           name: file.name,
           size: file.size,
           type: file.type,
-          data_url: null
+          data_url: null,
+          content_hash: contentHash
         }
       });
     }
+  },
+
+  async computeFileHash(file) {
+    // Read file as array buffer
+    const buffer = await file.arrayBuffer();
+
+    // Compute SHA-256 hash
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+
+    // Convert to hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return hashHex;
   },
 
   isAcceptedType(file) {

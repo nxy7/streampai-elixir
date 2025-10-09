@@ -22,7 +22,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
     state = %{
       user_id: user_id,
-      stream_uuid: nil,
+      livestream_id: nil,
       platform: :kick,
       config: config,
       is_active: false,
@@ -35,8 +35,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
   # Client API
 
-  def start_streaming(user_id, stream_uuid) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid})
+  def start_streaming(user_id, livestream_id) do
+    GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id})
   end
 
   def stop_streaming(user_id) do
@@ -80,10 +80,10 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   @impl true
-  def handle_call({:start_streaming, stream_uuid}, _from, state) do
-    Logger.info("Starting stream: #{stream_uuid}")
-    StreamEvents.emit_platform_started(state.user_id, stream_uuid, :kick)
-    new_state = %{state | is_active: true, stream_uuid: stream_uuid}
+  def handle_call({:start_streaming, livestream_id}, _from, state) do
+    Logger.info("Starting stream: #{livestream_id}")
+    StreamEvents.emit_platform_started(state.user_id, livestream_id, :kick)
+    new_state = %{state | is_active: true, livestream_id: livestream_id}
     {:reply, :ok, new_state}
   end
 
@@ -91,11 +91,11 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   def handle_call(:stop_streaming, _from, state) do
     Logger.info("Stopping stream")
 
-    if state.stream_uuid do
-      StreamEvents.emit_platform_stopped(state.user_id, state.stream_uuid, :kick)
+    if state.livestream_id do
+      StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :kick)
     end
 
-    new_state = %{state | is_active: false, stream_uuid: nil}
+    new_state = %{state | is_active: false, livestream_id: nil}
     {:reply, :ok, new_state}
   end
 

@@ -19,8 +19,9 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
   """
   use Phoenix.LiveComponent
 
-  import StreampaiWeb.CoreComponents
   import StreampaiWeb.AnalyticsComponents
+  import StreampaiWeb.CoreComponents
+
   alias StreampaiWeb.Utils.FormatHelpers
 
   require Logger
@@ -33,7 +34,7 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
         <%= if @show_preview do %>
           <div class="relative">
             <div class={preview_container_class(@file_type)}>
-              <%= render_preview(assigns) %>
+              {render_preview(assigns)}
             </div>
             <%= if @uploading do %>
               <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
@@ -166,9 +167,7 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> assign_defaults()}
+    {:ok, assign_defaults(socket)}
   end
 
   @impl true
@@ -222,6 +221,7 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
 
         {:error, reason} ->
           Logger.error("Failed to request S3 upload: #{inspect(reason)}")
+
           {:noreply,
            socket
            |> assign(:error, reason)
@@ -251,6 +251,7 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
 
       {:error, reason} ->
         Logger.error("File upload confirmation failed: #{inspect(reason)}")
+
         {:noreply,
          socket
          |> assign(:uploading, false)
@@ -305,7 +306,8 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
     socket
     |> assign_new(:file_type, fn -> :other end)
     |> assign_new(:accept, fn -> "*" end)
-    |> assign_new(:max_size, fn -> 10_000_000 end) # 10MB default
+    # 10MB default
+    |> assign_new(:max_size, fn -> 10_000_000 end)
     |> assign_new(:title, fn -> "Upload File" end)
     |> assign_new(:description, fn -> "Choose a file to upload" end)
     |> assign_new(:show_preview, fn -> false end)
@@ -339,13 +341,13 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
   defp accepted_type?(_type, _name, "*"), do: true
 
   defp accepted_type?(type, name, accept) do
-    accepts = String.split(accept, ",") |> Enum.map(&String.trim/1)
+    accepts = accept |> String.split(",") |> Enum.map(&String.trim/1)
 
     Enum.any?(accepts, fn pattern ->
       cond do
         String.starts_with?(pattern, ".") ->
           # Extension check
-          String.downcase(name) |> String.ends_with?(String.downcase(pattern))
+          name |> String.downcase() |> String.ends_with?(String.downcase(pattern))
 
         String.contains?(pattern, "*") ->
           # Wildcard MIME type (e.g., "image/*")
@@ -381,9 +383,8 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
   end
 
   defp confirm_file_upload(file_id, user) do
-    with {:ok, file} <- Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user),
-         {:ok, uploaded_file} <- Streampai.Storage.File.mark_uploaded(file, actor: user) do
-      {:ok, uploaded_file}
+    with {:ok, file} <- Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
+      Streampai.Storage.File.mark_uploaded(file, actor: user)
     end
   end
 
@@ -401,6 +402,18 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
     """
   end
 
+  defp render_preview(%{file_type: :thumbnail, current_file_url: url} = assigns) when not is_nil(url) do
+    ~H"""
+    <img src={@current_file_url} alt="Current thumbnail" class="w-full h-full object-cover" />
+    """
+  end
+
+  defp render_preview(%{file_type: :thumbnail, file_info: %{data_url: data_url}} = assigns) when not is_nil(data_url) do
+    ~H"""
+    <img src={@file_info.data_url} alt="Selected thumbnail" class="w-full h-full object-cover" />
+    """
+  end
+
   defp render_preview(assigns) do
     ~H"""
     <.icon name={file_type_icon(@file_type)} class="w-8 h-8 text-gray-400" />
@@ -409,6 +422,10 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
 
   defp preview_container_class(:avatar) do
     "w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden"
+  end
+
+  defp preview_container_class(:thumbnail) do
+    "w-32 h-18 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden"
   end
 
   defp preview_container_class(_) do
@@ -422,11 +439,12 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
       String.starts_with?(type, "audio/") -> "bg-green-100 text-green-600"
       type == "application/pdf" -> "bg-red-100 text-red-600"
       true -> "bg-gray-100 text-gray-600"
-    end
-    <> " w-12 h-12 rounded-lg flex items-center justify-center"
+    end <>
+      " w-12 h-12 rounded-lg flex items-center justify-center"
   end
 
   defp upload_icon(:avatar), do: "hero-user-circle"
+  defp upload_icon(:thumbnail), do: "hero-photo"
   defp upload_icon(:document), do: "hero-document-arrow-up"
   defp upload_icon(:video), do: "hero-video-camera"
   defp upload_icon(_), do: "hero-arrow-up-tray"
@@ -446,12 +464,12 @@ defmodule StreampaiWeb.Components.FileUploadComponent do
   defp format_accept_text("audio/*"), do: "Audio files"
   defp format_accept_text("application/pdf"), do: "PDF files"
   defp format_accept_text(".pdf"), do: "PDF files"
+
   defp format_accept_text(accept) do
     accept
     |> String.split(",")
     |> Enum.map(&String.trim/1)
-    |> Enum.map(&format_single_accept/1)
-    |> Enum.join(", ")
+    |> Enum.map_join(", ", &format_single_accept/1)
   end
 
   defp format_single_accept("." <> ext), do: String.upcase(ext)

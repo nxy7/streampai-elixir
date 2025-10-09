@@ -22,7 +22,14 @@ defmodule Streampai.Stream.Livestream do
     defaults [:read, :destroy, update: :*]
 
     create :create do
-      accept [:id, :started_at, :user_id, :title, :description, :thumbnail_url]
+      accept [
+        :id,
+        :started_at,
+        :user_id,
+        :title,
+        :description,
+        :thumbnail_file_id
+      ]
     end
 
     read :get_completed_by_user do
@@ -50,7 +57,15 @@ defmodule Streampai.Stream.Livestream do
       allow_nil? true
     end
 
-    attribute :thumbnail_url, :string do
+    # Legacy field - use thumbnail_file_id instead
+    # This field is kept for backward compatibility but should not be used for new code
+    # Use the thumbnail_url calculation instead which derives from thumbnail_file
+    attribute :legacy_thumbnail_url, :string do
+      public? true
+      allow_nil? true
+    end
+
+    attribute :thumbnail_file_id, :uuid do
       public? true
       allow_nil? true
     end
@@ -69,6 +84,11 @@ defmodule Streampai.Stream.Livestream do
   relationships do
     belongs_to :user, Streampai.Accounts.User do
       allow_nil? false
+      attribute_writable? true
+    end
+
+    belongs_to :thumbnail_file, Streampai.Storage.File do
+      allow_nil? true
       attribute_writable? true
     end
 
@@ -100,6 +120,28 @@ defmodule Streampai.Stream.Livestream do
 
     calculate :platforms, {:array, :atom}, Streampai.Stream.Calculations.Platforms do
       public? true
+    end
+
+    # Derive thumbnail URL from the file relationship
+    calculate :thumbnail_url, :string, fn records, _context ->
+      Enum.map(records, fn record ->
+        case record.thumbnail_file do
+          nil ->
+            # Fall back to legacy thumbnail_url field if no file
+            record.legacy_thumbnail_url
+
+          %{url: url} ->
+            # Use the URL calculation from the File resource
+            url
+
+          file ->
+            # Fallback in case URL wasn't loaded - should not happen in practice
+            Streampai.Storage.Adapters.S3.get_url(file.storage_key)
+        end
+      end)
+    end do
+      public? true
+      load thumbnail_file: [:url]
     end
   end
 end

@@ -6,12 +6,21 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
 
   import StreampaiWeb.AnalyticsComponents
 
+  alias Streampai.Storage.SizeLimits
   alias StreampaiWeb.Utils.FormatHelpers
 
   require Logger
 
+  # Get avatar size limit from centralized configuration
+  @max_avatar_size SizeLimits.max_size(:avatar)
+
   @impl true
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign(:max_size_bytes, @max_avatar_size)
+      |> assign(:max_size_formatted, SizeLimits.format_size(@max_avatar_size))
+
     ~H"""
     <div class="space-y-4">
       <div class="flex items-center space-x-4">
@@ -40,7 +49,7 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
         <div class="flex-1">
           <h4 class="font-medium text-gray-900">Profile Picture</h4>
           <p class="text-sm text-gray-600">
-            Upload a new avatar. JPG, PNG or GIF. Max size 5MB.
+            Upload a new avatar. JPG, PNG or GIF. Max size {@max_size_formatted}.
           </p>
         </div>
       </div>
@@ -54,7 +63,7 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
               phx-hook="FileUpload"
               phx-target={@myself}
               id="avatar-upload-zone"
-              data-max-size="5242880"
+              data-max-size={@max_size_bytes}
               data-accept="image/*"
               data-upload-event="upload_avatar"
               data-validate-event="validate_avatar"
@@ -78,7 +87,7 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
                 <p class="mb-2 text-sm text-gray-500">
                   <span class="font-semibold">Click to upload</span> or drag and drop
                 </p>
-                <p class="text-xs text-gray-500">PNG, JPG or GIF (Max 5MB)</p>
+                <p class="text-xs text-gray-500">PNG, JPG or GIF (Max {@max_size_formatted})</p>
               </div>
               <input
                 id="avatar-upload"
@@ -339,8 +348,8 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
 
   defp validate_file(%{"name" => name, "size" => size, "type" => type} = file_params) do
     cond do
-      size > 5_000_000 ->
-        {:error, "File size must be less than 5MB"}
+      size > @max_avatar_size ->
+        {:error, "File size must be less than #{SizeLimits.format_size(@max_avatar_size)}"}
 
       not String.starts_with?(type, "image/") ->
         {:error, "File must be an image (JPG, PNG, or GIF)"}

@@ -84,10 +84,10 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   end
 
   @doc """
-  Starts a new streaming session with the given stream UUID.
+  Starts a new streaming session with the given livestream ID.
   """
-  def start_stream(server, stream_uuid) do
-    GenServer.cast(server, {:start_stream, stream_uuid})
+  def start_stream(server, livestream_id) do
+    GenServer.cast(server, {:start_stream, livestream_id})
   end
 
   @doc """
@@ -174,14 +174,14 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   end
 
   @impl true
-  def handle_cast({:start_stream, stream_uuid}, state) do
-    Logger.info("Starting stream", stream_uuid: stream_uuid)
+  def handle_cast({:start_stream, livestream_id}, state) do
+    Logger.info("Starting stream", livestream_id: livestream_id)
 
     state = %{
       state
       | status: :starting,
         started_at: DateTime.utc_now(),
-        livestream_id: stream_uuid
+        livestream_id: livestream_id
     }
 
     broadcast_state_change(state)

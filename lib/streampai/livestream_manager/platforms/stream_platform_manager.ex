@@ -31,8 +31,8 @@ defmodule Streampai.LivestreamManager.Platforms.StreamPlatformManager do
         use GenServer
 
         @impl true
-        def start_streaming(user_id, stream_uuid, opts \\\\ []) do
-          GenServer.call(via_tuple(user_id), {:start_streaming, stream_uuid, opts})
+        def start_streaming(user_id, livestream_id, opts \\\\ []) do
+          GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id, opts})
         end
 
         # ... implement other callbacks
@@ -44,7 +44,7 @@ defmodule Streampai.LivestreamManager.Platforms.StreamPlatformManager do
 
   ## Parameters
   - `user_id` - The user ID who owns the stream
-  - `stream_uuid` - Unique identifier for this streaming session
+  - `livestream_id` - Unique identifier for this streaming session
   - `opts` - Optional keyword list with platform-specific options
 
   ## Returns
@@ -59,7 +59,7 @@ defmodule Streampai.LivestreamManager.Platforms.StreamPlatformManager do
       iex> start_streaming("user_123", "stream_456", title: "My Stream")
       {:ok, %{stream_id: "platform_stream_id"}}
   """
-  @callback start_streaming(user_id :: binary(), stream_uuid :: binary(), opts :: keyword()) ::
+  @callback start_streaming(user_id :: binary(), livestream_id :: binary(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}
 
   @doc """

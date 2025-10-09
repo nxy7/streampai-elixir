@@ -7,6 +7,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
   alias Ash.Error.Forbidden
   alias Streampai.Dashboard
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.Storage.Adapters.S3
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamAction
 
@@ -46,11 +47,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:stream_data, stream_data)
       |> assign(:chat_messages, chat_messages)
       |> assign(:stream_events, stream_events)
-      |> allow_upload(:thumbnail,
-        accept: ~w(.jpg .jpeg .png),
-        max_entries: 1,
-        max_file_size: 2_000_000
-      )
 
     {:ok, socket, layout: false}
   end
@@ -71,13 +67,29 @@ defmodule StreampaiWeb.DashboardStreamLive do
     metadata = socket.assigns.stream_metadata
     socket = assign(socket, :loading, true)
 
+    # Check if there's a selected thumbnail that needs to be uploaded
+    case socket.assigns[:selected_thumbnail_file] do
+      nil ->
+        # No thumbnail selected, start stream immediately
+        start_stream_with_metadata(socket, user_id, metadata)
+
+      file_info ->
+        # Upload thumbnail first, then start stream
+        upload_thumbnail_and_start_stream(socket, user_id, metadata, file_info)
+    end
+  end
+
+  defp start_stream_with_metadata(socket, user_id, metadata) do
     Logger.info("Starting stream with metadata: #{inspect(metadata)}")
 
     case StreamAction.start_stream(
            %{
              user_id: user_id,
              title: metadata.title,
-             description: metadata.description
+             description: metadata.description,
+             metadata: %{
+               thumbnail_file_id: metadata.thumbnail_file_id
+             }
            },
            actor: socket.assigns.current_user
          ) do
@@ -85,6 +97,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
         socket =
           socket
           |> assign(:loading, false)
+          |> assign(:selected_thumbnail_file, nil)
           |> put_flash(:info, "Stream started successfully!")
 
         {:noreply, socket}
@@ -106,6 +119,46 @@ defmodule StreampaiWeb.DashboardStreamLive do
           socket
           |> assign(:loading, false)
           |> put_flash(:error, "Failed to start stream. Please try again later.")
+
+        {:noreply, socket}
+    end
+  end
+
+  defp upload_thumbnail_and_start_stream(socket, _user_id, _metadata, file_info) do
+    user = socket.assigns.current_user
+
+    # Request upload URL from backend
+    case Streampai.Storage.File.request_upload(
+           %{
+             filename: file_info.name,
+             content_type: file_info.type,
+             file_type: :thumbnail,
+             estimated_size: file_info.size
+           },
+           actor: user
+         ) do
+      {:ok, file_record} ->
+        # Send upload info to frontend to trigger S3 upload
+        upload_url = file_record.__metadata__.upload_url
+        upload_headers = file_record.__metadata__.upload_headers
+
+        socket =
+          push_event(socket, "start_thumbnail_upload", %{
+            file_id: file_record.id,
+            upload_url: upload_url,
+            upload_headers: upload_headers
+          })
+
+        # Store file ID to use after upload completes
+        {:noreply, assign(socket, :pending_thumbnail_file_id, file_record.id)}
+
+      {:error, reason} ->
+        Logger.error("Failed to request thumbnail upload: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to upload thumbnail. Please try again.")
 
         {:noreply, socket}
     end
@@ -176,27 +229,21 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :stream_metadata, metadata)}
   end
 
-  def handle_event("validate_thumbnail", _params, socket) do
+  def handle_event("thumbnail_upload_complete", %{"file_id" => file_id}, socket) do
+    # Thumbnail upload completed, trigger stream start
+    send(self(), {:thumbnail_upload_complete, file_id})
     {:noreply, socket}
   end
 
-  def handle_event("upload_thumbnail", _params, socket) do
-    uploaded_files =
-      consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, _entry ->
-        # For now, store in a temporary location
-        # In production, you'd upload to S3/Cloudflare Images/etc
-        dest = Path.join(["priv", "static", "uploads", Path.basename(path)])
-        File.cp!(path, dest)
-        {:ok, "/uploads/#{Path.basename(path)}"}
-      end)
+  def handle_event("file_upload_complete", %{"file_id" => file_id}, socket) do
+    # Update stream metadata with the new thumbnail file ID
+    metadata = Map.put(socket.assigns.stream_metadata, :thumbnail_file_id, file_id)
 
-    metadata =
-      case uploaded_files do
-        [url | _] -> Map.put(socket.assigns.stream_metadata, :thumbnail_url, url)
-        [] -> socket.assigns.stream_metadata
-      end
+    # Reload the metadata to get the thumbnail URL
+    user_id = socket.assigns.current_user.id
+    updated_metadata = load_last_stream_metadata(user_id)
 
-    {:noreply, assign(socket, :stream_metadata, metadata)}
+    {:noreply, assign(socket, :stream_metadata, Map.merge(metadata, updated_metadata))}
   end
 
   # Delegate other events to BaseLive
@@ -379,6 +426,70 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :stream_events, updated_events)}
   end
 
+  def handle_info({:thumbnail_selected, _component_id, file_info}, socket) do
+    # Store the selected file info for upload when user clicks GO LIVE
+    {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
+  end
+
+  def handle_info({:thumbnail_cleared, _component_id}, socket) do
+    # Clear the selected file
+    {:noreply, assign(socket, :selected_thumbnail_file, nil)}
+  end
+
+  def handle_info({:thumbnail_upload_complete, file_id}, socket) do
+    user = socket.assigns.current_user
+
+    # Mark file as uploaded
+    case Streampai.Storage.File.get_by_id(%{id: file_id}, actor: user) do
+      {:ok, file_record} ->
+        case Streampai.Storage.File.mark_uploaded(file_record, actor: user) do
+          {:ok, uploaded_file} ->
+            # Update metadata with the new thumbnail
+            metadata =
+              socket.assigns.stream_metadata
+              |> Map.put(:thumbnail_file_id, uploaded_file.id)
+              |> Map.put(
+                :thumbnail_url,
+                S3.get_url(uploaded_file.storage_key)
+              )
+
+            # Now start the stream with the uploaded thumbnail
+            user_id = socket.assigns.current_user.id
+            start_stream_with_metadata(socket, user_id, metadata)
+
+          {:error, reason} ->
+            Logger.error("Failed to mark thumbnail as uploaded: #{inspect(reason)}")
+
+            socket =
+              socket
+              |> assign(:loading, false)
+              |> put_flash(:error, "Failed to process thumbnail upload")
+
+            {:noreply, socket}
+        end
+
+      {:error, reason} ->
+        Logger.error("Failed to get uploaded file: #{inspect(reason)}")
+
+        socket =
+          socket
+          |> assign(:loading, false)
+          |> put_flash(:error, "Failed to process thumbnail upload")
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:file_uploaded, "thumbnail-upload", file}, socket) do
+    # Legacy handler - update stream metadata with the new thumbnail file
+    metadata =
+      socket.assigns.stream_metadata
+      |> Map.put(:thumbnail_file_id, file.id)
+      |> Map.put(:thumbnail_url, S3.get_url(file.storage_key))
+
+    {:noreply, assign(socket, :stream_metadata, metadata)}
+  end
+
   def handle_info({:platform_event, event}, socket) do
     if event_should_be_displayed?(event.type) do
       stream_events = socket.assigns[:stream_events] || []
@@ -541,6 +652,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
     case Livestream
          |> Ash.Query.for_read(:read)
          |> Ash.Query.filter(user_id == ^user_id)
+         |> Ash.Query.load(thumbnail_file: [:url])
+         |> Ash.Query.load(:thumbnail_url)
          |> Ash.Query.sort(started_at: :desc)
          |> Ash.Query.limit(1)
          |> Ash.read(authorize?: false) do
@@ -548,11 +661,12 @@ defmodule StreampaiWeb.DashboardStreamLive do
         %{
           title: stream.title || "",
           description: stream.description || "",
-          thumbnail_url: nil
+          thumbnail_file_id: stream.thumbnail_file_id,
+          thumbnail_url: stream.thumbnail_url
         }
 
       _ ->
-        %{title: "", description: "", thumbnail_url: nil}
+        %{title: "", description: "", thumbnail_file_id: nil, thumbnail_url: nil}
     end
   end
 

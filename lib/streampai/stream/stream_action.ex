@@ -51,11 +51,11 @@ defmodule Streampai.Stream.StreamAction do
           |> maybe_put(:description, Map.get(args, :description))
 
         case UserStreamManager.start_stream(user_id, metadata) do
-          {:ok, stream_uuid} ->
+          {:ok, livestream_id} ->
             {:ok,
              %{
                success: true,
-               stream_uuid: stream_uuid,
+               livestream_id: livestream_id,
                message: "Stream started successfully"
              }}
 

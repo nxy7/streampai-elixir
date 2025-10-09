@@ -4,8 +4,8 @@ defmodule Streampai.Storage.SizeLimits do
   """
 
   @limits %{
-    avatar: 5_000_000,
-    # 5MB
+    avatar: 2_000_000,
+    # 2MB
     thumbnail: 2_000_000,
     # 2MB
     video: 100_000_000,
@@ -20,7 +20,7 @@ defmodule Streampai.Storage.SizeLimits do
   ## Examples
 
       iex> SizeLimits.max_size(:avatar)
-      5_000_000
+      2_000_000
 
       iex> SizeLimits.max_size(:thumbnail)
       2_000_000
@@ -43,7 +43,7 @@ defmodule Streampai.Storage.SizeLimits do
       :ok
 
       iex> SizeLimits.validate_size(:avatar, 10_000_000)
-      {:error, "File size 10000000 bytes exceeds maximum 5000000 bytes for avatar"}
+      {:error, "File size 10000000 bytes exceeds maximum 2000000 bytes for avatar"}
   """
   def validate_size(file_type, size) when is_atom(file_type) and is_integer(size) do
     max = max_size(file_type)

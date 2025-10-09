@@ -99,42 +99,41 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   @doc """
   Starts streaming for all connected platforms.
-  Generates a stream UUID and starts platform processes.
+  Generates a livestream ID and starts platform processes.
   Creates a livestream database record.
   """
   def start_stream(user_id, metadata \\ %{}) when is_binary(user_id) do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
-    stream_uuid = Ash.UUID.generate()
-    title = MetadataHelper.get_stream_title(metadata, stream_uuid)
+    livestream_id = Ash.UUID.generate()
+    title = MetadataHelper.get_stream_title(metadata, livestream_id)
     description = Map.get(metadata, :description)
+    thumbnail_file_id = Map.get(metadata, :thumbnail_file_id)
 
     livestream_attrs =
-      maybe_put(
-        %{id: stream_uuid, user_id: user_id, started_at: DateTime.utc_now(), title: title},
-        :description,
-        description
-      )
+      %{id: livestream_id, user_id: user_id, started_at: DateTime.utc_now(), title: title}
+      |> maybe_put(:description, description)
+      |> maybe_put(:thumbnail_file_id, thumbnail_file_id)
 
     {:ok, _livestream} = Livestream.create(livestream_attrs, actor: user)
 
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
-      stream_uuid
+      livestream_id
     )
 
     CloudflareManager.start_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
 
-    start_metrics_collector(user_id, stream_uuid)
+    start_metrics_collector(user_id, livestream_id)
 
-    start_platform_streaming(user_id, stream_uuid, metadata)
+    start_platform_streaming(user_id, livestream_id, metadata)
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
       "stream_status:#{user_id}",
-      {:stream_status_changed, %{user_id: user_id, status: :streaming, stream_uuid: stream_uuid}}
+      {:stream_status_changed, %{user_id: user_id, status: :streaming, livestream_id: livestream_id}}
     )
 
-    {:ok, stream_uuid}
+    {:ok, livestream_id}
   end
 
   @doc """
@@ -143,9 +142,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   Updates the livestream record's ended_at timestamp.
   """
   def stop_stream(user_id) when is_binary(user_id) do
-    # Get current stream UUID before stopping
+    # Get current livestream ID before stopping
     stream_state = get_state(user_id)
-    stream_uuid = stream_state.stream_uuid
+    livestream_id = stream_state.livestream_id
 
     # Stop platform streaming processes
     stop_platform_streaming(user_id)
@@ -160,21 +159,21 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
 
     # Update livestream record with ended_at timestamp
-    if stream_uuid do
+    if livestream_id do
       {:ok, user} = Ash.get(User, user_id, authorize?: false)
-      {:ok, livestream} = Ash.get(Livestream, stream_uuid, authorize?: false)
+      {:ok, livestream} = Ash.get(Livestream, livestream_id, authorize?: false)
 
       {:ok, _updated_livestream} =
         Livestream.update(livestream, %{ended_at: DateTime.utc_now()}, actor: user)
 
-      Logger.info("Updated livestream #{stream_uuid} with end time")
+      Logger.info("Updated livestream #{livestream_id} with end time")
 
       # Schedule post-stream processing job
-      %{livestream_id: stream_uuid}
+      %{livestream_id: livestream_id}
       |> ProcessFinishedLivestreamJob.new()
       |> Oban.insert()
 
-      Logger.info("Scheduled post-stream processing job for livestream #{stream_uuid}")
+      Logger.info("Scheduled post-stream processing job for livestream #{livestream_id}")
     end
 
     # Broadcast stream status change
@@ -189,33 +188,33 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   # Helper functions
 
-  defp start_platform_streaming(user_id, stream_uuid, metadata) do
+  defp start_platform_streaming(user_id, livestream_id, metadata) do
     active_platforms = get_active_platforms(user_id)
     Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
 
     Enum.each(active_platforms, fn platform ->
       ensure_platform_manager_started(user_id, platform)
-      start_platform(platform, user_id, stream_uuid, metadata)
+      start_platform(platform, user_id, livestream_id, metadata)
     end)
   end
 
-  defp start_platform(:twitch, user_id, stream_uuid, _metadata) do
-    TwitchManager.start_streaming(user_id, stream_uuid)
+  defp start_platform(:twitch, user_id, livestream_id, _metadata) do
+    TwitchManager.start_streaming(user_id, livestream_id)
   end
 
-  defp start_platform(:youtube, user_id, stream_uuid, metadata) do
-    YouTubeManager.start_streaming(user_id, stream_uuid, metadata)
+  defp start_platform(:youtube, user_id, livestream_id, metadata) do
+    YouTubeManager.start_streaming(user_id, livestream_id, metadata)
   end
 
-  defp start_platform(:facebook, user_id, stream_uuid, _metadata) do
-    FacebookManager.start_streaming(user_id, stream_uuid)
+  defp start_platform(:facebook, user_id, livestream_id, _metadata) do
+    FacebookManager.start_streaming(user_id, livestream_id)
   end
 
-  defp start_platform(:kick, user_id, stream_uuid, _metadata) do
-    KickManager.start_streaming(user_id, stream_uuid)
+  defp start_platform(:kick, user_id, livestream_id, _metadata) do
+    KickManager.start_streaming(user_id, livestream_id)
   end
 
-  defp start_platform(platform, _user_id, _stream_uuid, _metadata) do
+  defp start_platform(platform, _user_id, _livestream_id, _metadata) do
     Logger.warning("Unknown platform: #{platform}")
   end
 

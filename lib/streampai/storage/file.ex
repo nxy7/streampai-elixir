@@ -22,6 +22,9 @@ defmodule Streampai.Storage.File do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Streampai.Storage.Adapters.S3
+  alias Streampai.Storage.SizeLimits
+
   postgres do
     table "files"
     repo Streampai.Repo
@@ -40,6 +43,8 @@ defmodule Streampai.Storage.File do
     define :get_by_id
     define :list_pending_old
     define :list_orphans
+    define :check_duplicate
+    define :request_upload_with_hash
   end
 
   actions do
@@ -63,7 +68,7 @@ defmodule Streampai.Storage.File do
         # Generate unique storage key
         filename = Ash.Changeset.get_attribute(changeset, :filename)
         ext = Path.extname(filename)
-        storage_key = "uploads/#{file_type}/#{user_id}/#{Ash.UUID.generate()}#{ext}"
+        storage_key = "uploads/#{user_id}/#{Ash.UUID.generate()}#{ext}"
 
         changeset
         |> Ash.Changeset.change_attribute(:storage_key, storage_key)
@@ -75,11 +80,11 @@ defmodule Streampai.Storage.File do
       change after_action(fn changeset, file, _context ->
                file_type = Ash.Changeset.get_argument(changeset, :file_type) || :other
                content_type = file.content_type || "application/octet-stream"
-               max_size = Streampai.Storage.SizeLimits.max_size(file_type)
+               max_size = SizeLimits.max_size(file_type)
 
                # Generate presigned upload URL (POST or PUT depending on provider)
                upload_info =
-                 Streampai.Storage.Adapters.S3.generate_presigned_upload_url(
+                 S3.generate_presigned_upload_url(
                    file.storage_key,
                    content_type: content_type,
                    max_size: max_size,
@@ -99,6 +104,7 @@ defmodule Streampai.Storage.File do
 
     update :mark_uploaded do
       description "Mark file as successfully uploaded and fetch actual size from S3"
+      accept [:content_hash]
       require_atomic? false
       change set_attribute(:status, :uploaded)
       change Streampai.Storage.File.Changes.FetchSizeFromS3
@@ -137,10 +143,104 @@ defmodule Streampai.Storage.File do
       # For now, just lists uploaded files
       filter expr(status == :uploaded)
     end
+
+    read :check_duplicate do
+      description "Check if a file with the same hash already exists"
+
+      argument :content_hash, :string, allow_nil?: false
+      argument :file_type, :atom, allow_nil?: false
+
+      filter expr(
+               content_hash == ^arg(:content_hash) and
+                 file_type == ^arg(:file_type) and
+                 status == :uploaded
+             )
+
+      prepare build(limit: 1)
+    end
+
+    create :request_upload_with_hash do
+      description "Request upload with deduplication check"
+      accept [:filename, :content_type, :file_type, :content_hash]
+
+      argument :estimated_size, :integer do
+        description "Estimated file size in bytes"
+        allow_nil? false
+      end
+
+      change fn changeset, context ->
+        actor = context.actor
+        user_id = if actor, do: actor.id
+        content_hash = Ash.Changeset.get_attribute(changeset, :content_hash)
+        file_type = Ash.Changeset.get_attribute(changeset, :file_type) || :other
+
+        if content_hash do
+          # Check for existing file with same hash
+          case Streampai.Storage.File.check_duplicate(
+                 %{
+                   content_hash: content_hash,
+                   file_type: file_type
+                 },
+                 actor: actor
+               ) do
+            {:ok, [existing_file | _]} ->
+              # Found duplicate - return existing file instead
+              Ash.Changeset.add_error(changeset,
+                field: :content_hash,
+                message: "duplicate",
+                vars: %{existing_file_id: existing_file.id}
+              )
+
+            _ ->
+              # No duplicate, proceed with normal upload
+              filename = Ash.Changeset.get_attribute(changeset, :filename)
+              ext = Path.extname(filename)
+              storage_key = "uploads/#{user_id}/#{Ash.UUID.generate()}#{ext}"
+
+              changeset
+              |> Ash.Changeset.change_attribute(:storage_key, storage_key)
+              |> Ash.Changeset.change_attribute(:user_id, user_id)
+              |> Ash.Changeset.change_attribute(:status, :pending)
+          end
+        else
+          # No hash provided, proceed normally
+          filename = Ash.Changeset.get_attribute(changeset, :filename)
+          ext = Path.extname(filename)
+          storage_key = "uploads/#{user_id}/#{Ash.UUID.generate()}#{ext}"
+
+          changeset
+          |> Ash.Changeset.change_attribute(:storage_key, storage_key)
+          |> Ash.Changeset.change_attribute(:user_id, user_id)
+          |> Ash.Changeset.change_attribute(:status, :pending)
+        end
+      end
+
+      change after_action(fn changeset, file, _context ->
+               file_type = Ash.Changeset.get_argument(changeset, :file_type) || :other
+               content_type = file.content_type || "application/octet-stream"
+               max_size = SizeLimits.max_size(file_type)
+
+               upload_info =
+                 S3.generate_presigned_upload_url(
+                   file.storage_key,
+                   content_type: content_type,
+                   max_size: max_size,
+                   expires_in: 1800
+                 )
+
+               file_with_metadata =
+                 file
+                 |> Ash.Resource.put_metadata(:upload_url, upload_info.url)
+                 |> Ash.Resource.put_metadata(:upload_headers, upload_info.headers)
+                 |> Ash.Resource.put_metadata(:max_size, max_size)
+
+               {:ok, file_with_metadata}
+             end)
+    end
   end
 
   policies do
-    policy action(:request_upload) do
+    policy action([:request_upload, :request_upload_with_hash]) do
       description "Check storage quota before allowing upload"
       authorize_if Streampai.Storage.File.Checks.HasStorageQuota
     end
@@ -197,13 +297,27 @@ defmodule Streampai.Storage.File do
     attribute :deleted_at, :utc_datetime do
       description "Soft delete timestamp"
     end
+
+    attribute :content_hash, :string do
+      description "SHA256 hash of file content for deduplication"
+      allow_nil? true
+    end
   end
 
   relationships do
     belongs_to :user, Streampai.Accounts.User
   end
 
+  calculations do
+    calculate :url, :string, fn records, _context ->
+      Enum.map(records, fn record ->
+        S3.get_url(record.storage_key)
+      end)
+    end
+  end
+
   identities do
     identity :unique_storage_key, [:storage_key]
+    identity :content_hash, [:content_hash, :file_type]
   end
 end

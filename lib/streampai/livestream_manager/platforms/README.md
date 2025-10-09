@@ -82,12 +82,12 @@ The `StreamPlatformManager` behavior defines the following core operations:
 
 ```elixir
 # Start with default options
-{:ok, result} = TwitchManager.start_streaming(user_id, stream_uuid)
+{:ok, result} = TwitchManager.start_streaming(user_id, livestream_id)
 
 # Start with metadata
 {:ok, result} = YouTubeManager.start_streaming(
   user_id,
-  stream_uuid,
+  livestream_id,
   title: "My Awesome Stream",
   category: "Gaming"
 )
@@ -143,7 +143,7 @@ When adding a new platform manager:
 
      # Implement required callbacks
      @impl true
-     def start_streaming(user_id, stream_uuid, opts \\ []) do
+     def start_streaming(user_id, livestream_id, opts \\ []) do
        # Implementation
      end
 

@@ -5,11 +5,11 @@ defmodule Streampai.Stream.MetadataHelper do
 
   @doc """
   Gets stream title from metadata with fallback to generated title.
-  Returns the provided title if present, otherwise generates a default title using the stream UUID.
+  Returns the provided title if present, otherwise generates a default title using the livestream ID.
   """
-  def get_stream_title(metadata, stream_uuid) do
+  def get_stream_title(metadata, livestream_id) do
     case Map.get(metadata, :title) do
-      title when title in [nil, ""] -> "Live Stream - #{stream_uuid}"
+      title when title in [nil, ""] -> "Live Stream - #{livestream_id}"
       title -> title
     end
   end
