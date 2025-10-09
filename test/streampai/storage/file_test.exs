@@ -9,40 +9,18 @@ defmodule Streampai.Storage.FileTest do
   defp upload_test_file(file, content, opts \\ []) do
     max_size = Keyword.get(opts, :max_size, 10_000_000)
 
-    %{url: upload_url, fields: upload_fields} =
+    %{url: upload_url, headers: upload_headers} =
       Streampai.Storage.Adapters.S3.generate_presigned_upload_url(
         file.storage_key,
         content_type: file.content_type,
         max_size: max_size
       )
 
-    boundary = "----WebKitFormBoundary#{:rand.uniform(1_000_000_000)}"
-
-    body_parts =
-      Enum.map(upload_fields, fn {key, value} ->
-        """
-        --#{boundary}\r
-        Content-Disposition: form-data; name="#{key}"\r
-        \r
-        #{value}\r
-        """
-      end)
-
-    file_part = """
-    --#{boundary}\r
-    Content-Disposition: form-data; name="file"; filename="test.txt"\r
-    Content-Type: #{file.content_type}\r
-    \r
-    #{content}\r
-    """
-
-    final_boundary = "--#{boundary}--\r\n"
-    body = Enum.join(body_parts) <> file_part <> final_boundary
-
+    # Use PUT with direct file upload (simplified from POST)
     {:ok, response} =
-      Req.post(upload_url,
-        body: body,
-        headers: [{"content-type", "multipart/form-data; boundary=#{boundary}"}]
+      Req.put(upload_url,
+        body: content,
+        headers: Enum.map(upload_headers, fn {k, v} -> {k, v} end)
       )
 
     assert response.status in [200, 204]

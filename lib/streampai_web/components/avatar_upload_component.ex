@@ -240,14 +240,14 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
 
     if file_name && file_type && file_size do
       case request_s3_upload(user, file_name, file_type, file_size) do
-        {:ok, file_id, upload_url, upload_fields} ->
+        {:ok, file_id, upload_url, upload_headers} ->
           {:noreply,
            socket
            |> assign(:uploading, true)
            |> assign(:pending_file_id, file_id)
            |> push_event("start_s3_upload", %{
              url: upload_url,
-             fields: upload_fields,
+             headers: upload_headers,
              file_id: file_id
            })}
 
@@ -362,7 +362,7 @@ defmodule StreampaiWeb.Components.AvatarUploadComponent do
            actor: user
          ) do
       {:ok, file} ->
-        {:ok, file.id, file.__metadata__.upload_url, file.__metadata__.upload_fields}
+        {:ok, file.id, file.__metadata__.upload_url, file.__metadata__.upload_headers}
 
       {:error, %Ash.Error.Invalid{} = error} ->
         {:error, Exception.message(error)}

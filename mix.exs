@@ -4,7 +4,7 @@ defmodule Streampai.MixProject do
   def project do
     [
       app: :streampai,
-      version: "0.2.1",
+      version: "0.3.1",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       listeners: [Phoenix.CodeReloader],

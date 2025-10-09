@@ -17,8 +17,8 @@ const AvatarUpload = {
     this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
 
     // Listen for S3 upload event from server
-    this.handleEvent('start_s3_upload', ({ url, fields, file_id }) => {
-      this.uploadToS3(url, fields, file_id);
+    this.handleEvent('start_s3_upload', ({ url, headers, file_id }) => {
+      this.uploadToS3(url, headers, file_id);
     });
   },
 
@@ -99,36 +99,29 @@ const AvatarUpload = {
     reader.readAsDataURL(file);
   },
 
-  async uploadToS3(url, fields, file_id) {
+  async uploadToS3(url, headers, file_id) {
     if (!this.currentFile) {
       this.pushEventTo(this.el, 'file_error', { error: 'No file selected' });
       return;
     }
 
     try {
-      // Create FormData with presigned POST fields
-      const formData = new FormData();
-
-      // Add all fields from presigned POST
-      Object.entries(fields).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
-      // Add file last (must be last per S3 spec)
-      formData.append('file', this.currentFile);
-
-      // Upload to S3
+      // Use PUT with direct file upload for all storage providers
       const response = await fetch(url, {
-        method: 'POST',
-        body: formData
+        method: 'PUT',
+        body: this.currentFile,
+        headers: {
+          ...headers,
+          'Content-Length': this.currentFile.size.toString()
+        }
       });
 
-      if (response.ok || response.status === 204) {
-        // S3 upload successful, notify server
+      if (response.ok || response.status === 204 || response.status === 200) {
+        // Upload successful, notify server
         this.pushEventTo(this.el, 'confirm_upload', { file_id });
       } else {
         const errorText = await response.text();
-        console.error('S3 upload failed:', response.status, errorText);
+        console.error('PUT upload failed:', response.status, errorText);
         this.pushEventTo(this.el, 'file_error', {
           error: `Upload failed: ${response.status}`
         });

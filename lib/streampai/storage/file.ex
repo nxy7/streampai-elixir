@@ -77,8 +77,8 @@ defmodule Streampai.Storage.File do
                content_type = file.content_type || "application/octet-stream"
                max_size = Streampai.Storage.SizeLimits.max_size(file_type)
 
-               # Generate presigned POST form
-               %{url: upload_url, fields: upload_fields} =
+               # Generate presigned upload URL (POST or PUT depending on provider)
+               upload_info =
                  Streampai.Storage.Adapters.S3.generate_presigned_upload_url(
                    file.storage_key,
                    content_type: content_type,
@@ -89,8 +89,8 @@ defmodule Streampai.Storage.File do
                # Add upload info to metadata
                file_with_metadata =
                  file
-                 |> Ash.Resource.put_metadata(:upload_url, upload_url)
-                 |> Ash.Resource.put_metadata(:upload_fields, upload_fields)
+                 |> Ash.Resource.put_metadata(:upload_url, upload_info.url)
+                 |> Ash.Resource.put_metadata(:upload_headers, upload_info.headers)
                  |> Ash.Resource.put_metadata(:max_size, max_size)
 
                {:ok, file_with_metadata}

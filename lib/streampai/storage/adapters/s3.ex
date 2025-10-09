@@ -149,54 +149,47 @@ defmodule Streampai.Storage.Adapters.S3 do
   end
 
   @doc """
-  Generates a presigned POST form for direct browser-to-S3 uploads.
+  Generates a presigned upload URL for direct browser-to-S3 uploads.
 
-  This enables secure client-side uploads without exposing your S3 credentials.
-  The browser uploads using a multipart/form-data POST request with the
-  returned form fields. This method supports S3 policy enforcement including
-  file size limits, which presigned PUT URLs do not support.
+  Uses presigned PUT URLs for all S3-compatible storage providers (R2, MinIO, S3).
+  This provides a unified, simpler approach that works across all providers.
 
   ## Parameters
 
     * `key` - The desired storage key where the file will be uploaded
     * `opts` - Keyword list of options:
-      * `:expires_in` - Seconds until form expires (default: 3600)
+      * `:expires_in` - Seconds until URL expires (default: 3600)
       * `:content_type` - Required MIME type for the upload (default: "application/octet-stream")
-      * `:max_size` - Maximum file size in bytes (default: 10MB)
-      * `:min_size` - Minimum file size in bytes (default: 0)
+      * `:max_size` - Maximum file size in bytes (for client-side validation)
 
   ## Returns
 
   A map with:
-    * `:url` - The S3 endpoint URL to POST to
-    * `:fields` - Map of form fields to include in the POST request
+    * `:url` - The presigned PUT URL
+    * `:headers` - Headers to include in the PUT request
 
   ## Examples
 
-      # Generate upload form for an avatar with 5MB size limit
-      %{url: url, fields: fields} = S3.generate_presigned_upload_url(
+      # Generate upload URL for an avatar
+      %{url: url, headers: headers} = S3.generate_presigned_upload_url(
         "avatars/user-123.jpg",
         content_type: "image/jpeg",
-        max_size: 5_000_000,
         expires_in: 1800  # 30 minutes
       )
 
       # In JavaScript (browser):
-      # const formData = new FormData()
-      # Object.entries(fields).forEach(([key, value]) => {
-      #   formData.append(key, value)
+      # fetch(url, {
+      #   method: 'PUT',
+      #   body: file,
+      #   headers: headers
       # })
-      # formData.append('file', fileInput.files[0])
-      #
-      # fetch(url, { method: 'POST', body: formData })
 
   ## Two-Phase Upload Pattern
 
-  1. Backend creates pending File record and generates presigned POST form
-  2. Browser uploads directly to S3 using multipart/form-data POST
-  3. S3 enforces size limits and rejects oversized files before accepting data
-  4. Browser notifies backend of successful upload
-  5. Backend marks File record as uploaded
+  1. Backend creates pending File record and generates presigned URL
+  2. Browser uploads directly to storage using PUT
+  3. Browser notifies backend of successful upload
+  4. Backend marks File record as uploaded
 
   See `vault/S3_ORPHAN_PREVENTION.md` for details.
   """
@@ -204,74 +197,30 @@ defmodule Streampai.Storage.Adapters.S3 do
     bucket = get_bucket()
     expires_in = Keyword.get(opts, :expires_in, 3600)
     content_type = Keyword.get(opts, :content_type, "application/octet-stream")
-    max_size = Keyword.get(opts, :max_size, 10_000_000)
-    min_size = Keyword.get(opts, :min_size, 0)
 
     config = ExAws.Config.new(:s3)
 
-    # Calculate expiration time
-    expires_at = DateTime.add(DateTime.utc_now(), expires_in, :second)
-    expiration = DateTime.to_iso8601(expires_at)
+    # Use virtual host style for R2, path style for others
+    virtual_host = String.contains?(config.host || "", "r2.cloudflarestorage.com")
 
-    # Build policy document
-    policy = %{
-      "expiration" => expiration,
-      "conditions" => [
-        %{"bucket" => bucket},
-        %{"key" => key},
-        %{"Content-Type" => content_type},
-        ["content-length-range", min_size, max_size],
-        %{"x-amz-algorithm" => "AWS4-HMAC-SHA256"},
-        %{
-          "x-amz-credential" => "#{config.access_key_id}/#{credential_scope(expires_at, config.region)}"
-        },
-        %{"x-amz-date" => amz_date(expires_at)}
-      ]
+    # Generate presigned PUT URL
+    {:ok, presigned_url} =
+      ExAws.S3.presigned_url(
+        config,
+        :put,
+        bucket,
+        key,
+        expires_in: expires_in,
+        virtual_host: virtual_host,
+        query_params: [{"Content-Type", content_type}]
+      )
+
+    %{
+      url: presigned_url,
+      headers: %{
+        "Content-Type" => content_type
+      }
     }
-
-    # Encode and sign policy
-    policy_encoded = policy |> Jason.encode!() |> Base.encode64()
-    signature = sign_policy(policy_encoded, expires_at, config)
-
-    # Build form fields
-    fields = %{
-      "key" => key,
-      "Content-Type" => content_type,
-      "x-amz-algorithm" => "AWS4-HMAC-SHA256",
-      "x-amz-credential" => "#{config.access_key_id}/#{credential_scope(expires_at, config.region)}",
-      "x-amz-date" => amz_date(expires_at),
-      "policy" => policy_encoded,
-      "x-amz-signature" => signature
-    }
-
-    # Build URL with port
-    port_suffix = if config.port, do: ":#{config.port}", else: ""
-    url = "#{config.scheme}#{config.host}#{port_suffix}/#{bucket}"
-
-    %{url: url, fields: fields}
-  end
-
-  defp credential_scope(datetime, region) do
-    date = Calendar.strftime(datetime, "%Y%m%d")
-    "#{date}/#{region}/s3/aws4_request"
-  end
-
-  defp amz_date(datetime) do
-    Calendar.strftime(datetime, "%Y%m%dT%H%M%SZ")
-  end
-
-  defp sign_policy(policy_encoded, datetime, config) do
-    date = Calendar.strftime(datetime, "%Y%m%d")
-
-    k_secret = "AWS4" <> config.secret_access_key
-    k_date = :crypto.mac(:hmac, :sha256, k_secret, date)
-    k_region = :crypto.mac(:hmac, :sha256, k_date, config.region)
-    k_service = :crypto.mac(:hmac, :sha256, k_region, "s3")
-    k_signing = :crypto.mac(:hmac, :sha256, k_service, "aws4_request")
-
-    :hmac
-    |> :crypto.mac(:sha256, k_signing, policy_encoded)
-    |> Base.encode16(case: :lower)
   end
 
   @doc """
