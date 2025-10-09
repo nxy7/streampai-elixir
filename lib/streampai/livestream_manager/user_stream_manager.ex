@@ -121,7 +121,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       livestream_id
     )
 
-    CloudflareManager.start_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
+    # Clean up any leftover outputs from previous streams before starting
+    cloudflare_server = {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}}
+    CloudflareManager.cleanup_all_outputs(cloudflare_server)
+
+    CloudflareManager.start_streaming(cloudflare_server)
 
     start_metrics_collector(user_id, livestream_id)
 
@@ -153,7 +157,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     stop_metrics_collector(user_id)
 
     # Stop CloudflareManager streaming (disables live outputs and sets status to :inactive)
-    CloudflareManager.stop_streaming({:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}})
+    cloudflare_server = {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}}
+    CloudflareManager.stop_streaming(cloudflare_server)
+
+    # Clean up all outputs to ensure they're deleted from Cloudflare
+    CloudflareManager.cleanup_all_outputs(cloudflare_server)
 
     # Update stream state
     StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})

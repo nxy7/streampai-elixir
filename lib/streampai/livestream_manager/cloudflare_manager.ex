@@ -155,6 +155,16 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   @doc """
+  Deletes all existing Cloudflare Live Outputs for the live input.
+
+  This is used before starting a new stream to clean up any leftover outputs
+  from previous streams that may not have been properly cleaned up.
+  """
+  def cleanup_all_outputs(server) do
+    GenServer.call(server, :cleanup_all_outputs, 15_000)
+  end
+
+  @doc """
   Notifies the manager of a Cloudflare webhook event.
   Used by CloudflareWebhookController to update stream state in real-time.
   """
@@ -440,6 +450,51 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         new_outputs = Map.delete(state.live_outputs, platform)
         new_state = %{state | live_outputs: new_outputs}
         {:reply, :ok, new_state}
+    end
+  end
+
+  @impl true
+  def handle_call(:cleanup_all_outputs, _from, state) do
+    case get_input_id(state.live_input) do
+      nil ->
+        Logger.info("No live input to clean up outputs for")
+        {:reply, :ok, state}
+
+      input_id ->
+        Logger.info("Cleaning up all existing outputs for input #{input_id}")
+
+        case APIClient.get_live_input(input_id) do
+          {:ok, input_data} ->
+            outputs = Map.get(input_data, "outputs", [])
+
+            if Enum.empty?(outputs) do
+              Logger.info("No outputs to clean up")
+            else
+              Logger.info("Found #{length(outputs)} outputs to delete")
+
+              Enum.each(outputs, fn output ->
+                output_id = Map.get(output, "uid")
+
+                if output_id do
+                  case APIClient.delete_live_output(input_id, output_id) do
+                    :ok ->
+                      Logger.info("Deleted leftover output: #{output_id}")
+
+                    {:error, _error_type, message} ->
+                      Logger.warning("Failed to delete output #{output_id}: #{message}")
+                  end
+                end
+              end)
+            end
+
+            # Clear the outputs from state
+            new_state = %{state | live_outputs: %{}}
+            {:reply, :ok, new_state}
+
+          {:error, _error_type, message} ->
+            Logger.error("Failed to fetch live input for cleanup: #{message}")
+            {:reply, {:error, message}, state}
+        end
     end
   end
 
