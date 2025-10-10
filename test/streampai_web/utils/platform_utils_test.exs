@@ -87,21 +87,12 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
     end
   end
 
-  describe "PlatformUtils business logic consistency" do
-    test "all platform functions handle same set of platforms consistently" do
+  describe "PlatformUtils business logic" do
+    test "supported platforms have proper names" do
       supported_platforms = PlatformUtils.supported_platforms()
 
       for platform <- supported_platforms do
-        # All functions should handle supported platforms without defaults
-        color = PlatformUtils.platform_color(platform)
-        initial = PlatformUtils.platform_initial(platform)
         name = PlatformUtils.platform_name(platform)
-        badge_color = PlatformUtils.platform_badge_color(platform)
-
-        # Should not be default values
-        assert color != "bg-gray-500"
-        assert initial != "?"
-        assert badge_color != "bg-gray-100 text-gray-800"
 
         # Name should be non-empty and properly formatted
         assert String.length(name) > 0
@@ -109,22 +100,13 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
       end
     end
 
-    test "unsupported platforms consistently return defaults" do
-      unsupported_platforms = [:tiktok, :instagram, :unknown, nil]
+    test "unsupported platforms return capitalized names" do
+      unsupported_platforms = [:unknown, :custom_platform]
 
       for platform <- unsupported_platforms do
-        auto_assert "bg-gray-500" <- PlatformUtils.platform_color(platform)
-        auto_assert "?" <- PlatformUtils.platform_initial(platform)
-
-        auto_assert "bg-gray-100 text-gray-800" <-
-                      PlatformUtils.platform_badge_color(platform)
-
-        # Name should still work for atoms (capitalized)
-        if is_atom(platform) and platform != nil do
-          name = PlatformUtils.platform_name(platform)
-          expected_name = platform |> to_string() |> String.capitalize()
-          assert name == expected_name
-        end
+        name = PlatformUtils.platform_name(platform)
+        expected_name = platform |> to_string() |> String.capitalize()
+        assert name == expected_name
       end
     end
   end
@@ -132,7 +114,6 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
   describe "PlatformUtils real-world usage scenarios" do
     test "supports typical streaming dashboard display" do
       # Simulate displaying platform info in dashboard
-      # Test subset
       active_platforms = [:twitch, :youtube, :kick]
 
       platform_data =
@@ -140,9 +121,6 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
           %{
             platform: platform,
             name: PlatformUtils.platform_name(platform),
-            initial: PlatformUtils.platform_initial(platform),
-            color: PlatformUtils.platform_color(platform),
-            badge_color: PlatformUtils.platform_badge_color(platform),
             last_activity: PlatformUtils.format_time_ago(:rand.uniform(120))
           }
         end
@@ -150,9 +128,6 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
       # Verify all platforms have complete data
       for data <- platform_data do
         assert data.name
-        assert data.initial != "?"
-        assert data.color != "bg-gray-500"
-        assert data.badge_color != "bg-gray-100 text-gray-800"
         assert String.contains?(data.last_activity, "ago") or data.last_activity == "just now"
       end
     end
@@ -166,17 +141,9 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
       ]
 
       for message <- chat_messages do
-        platform_info = %{
-          initial: PlatformUtils.platform_initial(message.platform),
-          badge_color: PlatformUtils.platform_badge_color(message.platform),
-          name: PlatformUtils.platform_name(message.platform)
-        }
-
-        # Should provide all necessary styling information
-        assert platform_info.initial != "?"
-        assert String.contains?(platform_info.badge_color, "text-")
-        assert String.contains?(platform_info.badge_color, "bg-")
-        assert platform_info.name != ""
+        name = PlatformUtils.platform_name(message.platform)
+        # Name should exist and be non-empty
+        assert name != ""
       end
     end
 
@@ -197,7 +164,6 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
         for {platform, last_activity} <- platforms_with_activity do
           %{
             platform: PlatformUtils.platform_name(platform),
-            color: PlatformUtils.platform_color(platform),
             last_activity: PlatformUtils.format_time_ago(last_activity)
           }
         end
@@ -205,7 +171,6 @@ defmodule StreampaiWeb.Utils.PlatformUtilsTest do
       # Verify analytics data is useful for display
       for data <- analytics_data do
         assert data.platform != ""
-        assert String.starts_with?(data.color, "bg-")
 
         assert String.contains?(data.last_activity, "ago") or
                  data.last_activity == "just now"

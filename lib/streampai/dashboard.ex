@@ -28,6 +28,72 @@ defmodule Streampai.Dashboard do
       icon: "youtube",
       connect_color: "red",
       manage_color: "green"
+    },
+    %{
+      platform: :facebook,
+      name: "Facebook",
+      connect_name: "Connect Facebook",
+      manage_name: "Manage Facebook",
+      description: "Link your Facebook account",
+      connect_url: "/streaming/connect/facebook",
+      icon: "facebook",
+      connect_color: "blue",
+      manage_color: "green"
+    },
+    %{
+      platform: :kick,
+      name: "Kick",
+      connect_name: "Connect Kick",
+      manage_name: "Manage Kick",
+      description: "Link your Kick account",
+      connect_url: "/streaming/connect/kick",
+      icon: "kick",
+      connect_color: "green",
+      manage_color: "green"
+    },
+    %{
+      platform: :tiktok,
+      name: "TikTok",
+      connect_name: "Connect TikTok",
+      manage_name: "Manage TikTok",
+      description: "Link your TikTok account",
+      connect_url: "/streaming/connect/tiktok",
+      icon: "tiktok",
+      connect_color: "slate",
+      manage_color: "green"
+    },
+    %{
+      platform: :trovo,
+      name: "Trovo",
+      connect_name: "Connect Trovo",
+      manage_name: "Manage Trovo",
+      description: "Link your Trovo account",
+      connect_url: "/streaming/connect/trovo",
+      icon: "trovo",
+      connect_color: "green",
+      manage_color: "green"
+    },
+    %{
+      platform: :instagram,
+      name: "Instagram Live",
+      connect_name: "Connect Instagram",
+      manage_name: "Manage Instagram",
+      description: "Link your Instagram account",
+      connect_url: "/streaming/connect/instagram",
+      icon: "instagram",
+      connect_color: "pink",
+      manage_color: "green"
+    },
+    %{
+      platform: :rumble,
+      name: "Rumble",
+      connect_name: "Connect Rumble",
+      manage_name: "Manage Rumble",
+      description: "Link your Rumble account",
+      connect_url: "/streaming/connect/rumble",
+      icon: "rumble",
+      connect_color: "emerald",
+      manage_color: "green"
     }
   ]
 
@@ -149,6 +215,7 @@ defmodule Streampai.Dashboard do
     connectable = user.tier == :pro or user.connected_platforms == 0
 
     @platform_configs
+    |> Enum.filter(fn config -> config.platform in [:twitch, :youtube] end)
     |> Enum.reject(fn config -> config.platform in connected_platforms end)
     |> Enum.map(fn config ->
       %{

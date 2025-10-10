@@ -3,6 +3,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   Manages Kick platform integration for live streaming.
   Currently a stub implementation - to be implemented in the future.
   """
+  @behaviour Streampai.LivestreamManager.Platforms.StreamPlatformManager
+
   use GenServer
 
   alias Streampai.LivestreamManager.StreamEvents
@@ -33,30 +35,75 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     {:ok, state}
   end
 
-  # Client API
+  # Client API - StreamPlatformManager behavior implementation
 
-  def start_streaming(user_id, livestream_id) do
-    GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id})
+  @impl true
+  def start_streaming(user_id, livestream_id, _opts \\ []) when is_binary(user_id) do
+    case GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id}) do
+      :ok -> {:ok, %{platform: :kick, livestream_id: livestream_id}}
+      error -> error
+    end
   end
 
-  def stop_streaming(user_id) do
-    GenServer.call(via_tuple(user_id), :stop_streaming)
+  @impl true
+  def stop_streaming(user_id) when is_binary(user_id) do
+    case GenServer.call(via_tuple(user_id), :stop_streaming) do
+      :ok -> {:ok, %{stopped_at: DateTime.utc_now()}}
+      error -> error
+    end
   end
 
-  def send_chat_message(pid, message) when is_pid(pid) do
-    GenServer.call(pid, {:send_chat_message, message})
+  @impl true
+  def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
+      :ok -> {:ok, "message_sent"}
+      error -> error
+    end
   end
 
-  def send_chat_message(user_id, message) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:send_chat_message, message})
+  @impl true
+  def update_stream_metadata(user_id, metadata) when is_binary(user_id) and is_map(metadata) do
+    case GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata}) do
+      :ok -> {:ok, metadata}
+      error -> error
+    end
   end
 
-  def update_stream_metadata(pid, metadata) when is_pid(pid) do
-    GenServer.call(pid, {:update_stream_metadata, metadata})
+  @impl true
+  def delete_message(user_id, message_id) when is_binary(user_id) and is_binary(message_id) do
+    Logger.info("Delete message not implemented for Kick: #{message_id}")
+    {:error, :not_implemented}
   end
 
-  def update_stream_metadata(user_id, metadata) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), {:update_stream_metadata, metadata})
+  @impl true
+  def ban_user(user_id, target_user_id, reason \\ nil) when is_binary(user_id) and is_binary(target_user_id) do
+    Logger.info("Ban user not implemented for Kick: #{target_user_id}, reason: #{inspect(reason)}")
+
+    {:error, :not_implemented}
+  end
+
+  @impl true
+  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil)
+      when is_binary(user_id) and is_binary(target_user_id) and is_integer(duration_seconds) do
+    Logger.info(
+      "Timeout user not implemented for Kick: #{target_user_id}, duration: #{duration_seconds}s, reason: #{inspect(reason)}"
+    )
+
+    {:error, :not_implemented}
+  end
+
+  @impl true
+  def unban_user(user_id, ban_id) when is_binary(user_id) and is_binary(ban_id) do
+    Logger.info("Unban user not implemented for Kick: #{ban_id}")
+    {:error, :not_implemented}
+  end
+
+  @impl true
+  def get_status(user_id) when is_binary(user_id) do
+    case GenServer.call(via_tuple(user_id), :get_status) do
+      status when is_map(status) -> {:ok, status}
+      error -> error
+    end
   end
 
   # Server callbacks
@@ -109,6 +156,20 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   def handle_call({:update_stream_metadata, metadata}, _from, state) do
     Logger.info("Updating metadata: #{inspect(metadata)}")
     {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_call(:get_status, _from, state) do
+    status = %{
+      platform: :kick,
+      connection_status: if(state.is_active, do: :connected, else: :disconnected),
+      authenticated: true,
+      stream_active: state.is_active,
+      livestream_id: state.livestream_id,
+      started_at: state.started_at
+    }
+
+    {:reply, status, state}
   end
 
   @impl true

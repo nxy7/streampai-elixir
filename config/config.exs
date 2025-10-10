@@ -1,6 +1,7 @@
 import Config
 
 alias AshMoney.Types.Money
+alias Ueberauth.Strategy.OAuth2
 
 signing_salt = "WVzcyVtA"
 
@@ -146,6 +147,36 @@ config :ueberauth, Ueberauth,
        [
          default_scope:
            "user:read:email user:read:chat user:write:chat channel:bot channel:read:subscriptions channel:read:stream_key channel:manage:broadcast"
+       ]},
+    facebook:
+      {Ueberauth.Strategy.Facebook,
+       [
+         default_scope: "public_profile,email,pages_show_list,pages_read_engagement"
+       ]},
+    kick:
+      {OAuth2,
+       [
+         default_scope: "user:read chat:read chat:write"
+       ]},
+    tiktok:
+      {OAuth2,
+       [
+         default_scope: "user.info.basic video.list video.upload"
+       ]},
+    trovo:
+      {OAuth2,
+       [
+         default_scope: "user_info_read channel_read chat:read chat:write"
+       ]},
+    instagram:
+      {Ueberauth.Strategy.Instagram,
+       [
+         default_scope: "instagram_basic,instagram_manage_comments,instagram_manage_insights"
+       ]},
+    rumble:
+      {OAuth2,
+       [
+         default_scope: "stream chat"
        ]}
   ]
 

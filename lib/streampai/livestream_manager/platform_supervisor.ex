@@ -27,7 +27,8 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   @doc """
   Starts a platform manager for a specific platform.
   """
-  def start_platform_manager(user_id, platform, config) when platform in ~w(twitch youtube facebook kick)a do
+  def start_platform_manager(user_id, platform, config)
+      when platform in ~w(twitch youtube facebook kick tiktok trovo instagram rumble)a do
     supervisor_pid = via_tuple(user_id)
 
     child_spec = get_platform_manager_spec(user_id, platform, config)
@@ -141,6 +142,10 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   defp get_platform_module(:youtube), do: Platforms.YouTubeManager
   defp get_platform_module(:facebook), do: Platforms.FacebookManager
   defp get_platform_module(:kick), do: Platforms.KickManager
+  defp get_platform_module(:tiktok), do: Platforms.TikTokManager
+  defp get_platform_module(:trovo), do: Platforms.TrovoManager
+  defp get_platform_module(:instagram), do: Platforms.InstagramManager
+  defp get_platform_module(:rumble), do: Platforms.RumbleManager
 
   defp get_active_platforms(user_id) do
     Registry.select(Streampai.LivestreamManager.Registry, [

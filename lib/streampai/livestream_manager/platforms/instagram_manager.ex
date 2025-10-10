@@ -1,6 +1,6 @@
-defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
+defmodule Streampai.LivestreamManager.Platforms.InstagramManager do
   @moduledoc """
-  Manages Facebook/Meta platform integration for live streaming.
+  Manages Instagram Live platform integration for live streaming.
   Currently a stub implementation - to be implemented in the future.
   """
   @behaviour Streampai.LivestreamManager.Platforms.StreamPlatformManager
@@ -19,13 +19,13 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   @impl true
   def init({user_id, config}) do
-    Logger.metadata(component: :facebook_manager, user_id: user_id)
+    Logger.metadata(component: :instagram_manager, user_id: user_id)
     schedule_activity_log()
 
     state = %{
       user_id: user_id,
       livestream_id: nil,
-      platform: :facebook,
+      platform: :instagram,
       config: config,
       is_active: false,
       started_at: DateTime.utc_now()
@@ -40,7 +40,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   @impl true
   def start_streaming(user_id, livestream_id, _opts \\ []) when is_binary(user_id) do
     case GenServer.call(via_tuple(user_id), {:start_streaming, livestream_id}) do
-      :ok -> {:ok, %{platform: :facebook, livestream_id: livestream_id}}
+      :ok -> {:ok, %{platform: :instagram, livestream_id: livestream_id}}
       error -> error
     end
   end
@@ -71,13 +71,13 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   @impl true
   def delete_message(user_id, message_id) when is_binary(user_id) and is_binary(message_id) do
-    Logger.info("Delete message not implemented for Facebook: #{message_id}")
+    Logger.info("Delete message not implemented for Instagram: #{message_id}")
     {:error, :not_implemented}
   end
 
   @impl true
   def ban_user(user_id, target_user_id, reason \\ nil) when is_binary(user_id) and is_binary(target_user_id) do
-    Logger.info("Ban user not implemented for Facebook: #{target_user_id}, reason: #{inspect(reason)}")
+    Logger.info("Ban user not implemented for Instagram: #{target_user_id}, reason: #{inspect(reason)}")
 
     {:error, :not_implemented}
   end
@@ -86,7 +86,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil)
       when is_binary(user_id) and is_binary(target_user_id) and is_integer(duration_seconds) do
     Logger.info(
-      "Timeout user not implemented for Facebook: #{target_user_id}, duration: #{duration_seconds}s, reason: #{inspect(reason)}"
+      "Timeout user not implemented for Instagram: #{target_user_id}, duration: #{duration_seconds}s, reason: #{inspect(reason)}"
     )
 
     {:error, :not_implemented}
@@ -94,7 +94,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   @impl true
   def unban_user(user_id, ban_id) when is_binary(user_id) and is_binary(ban_id) do
-    Logger.info("Unban user not implemented for Facebook: #{ban_id}")
+    Logger.info("Unban user not implemented for Instagram: #{ban_id}")
     {:error, :not_implemented}
   end
 
@@ -129,7 +129,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   @impl true
   def handle_call({:start_streaming, livestream_id}, _from, state) do
     Logger.info("Starting stream: #{livestream_id}")
-    StreamEvents.emit_platform_started(state.user_id, livestream_id, :facebook)
+    StreamEvents.emit_platform_started(state.user_id, livestream_id, :instagram)
     new_state = %{state | is_active: true, livestream_id: livestream_id}
     {:reply, :ok, new_state}
   end
@@ -139,7 +139,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
     Logger.info("Stopping stream")
 
     if state.livestream_id do
-      StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :facebook)
+      StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :instagram)
     end
 
     new_state = %{state | is_active: false, livestream_id: nil}
@@ -161,7 +161,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
   @impl true
   def handle_call(:get_status, _from, state) do
     status = %{
-      platform: :facebook,
+      platform: :instagram,
       connection_status: if(state.is_active, do: :connected, else: :disconnected),
       authenticated: true,
       stream_active: state.is_active,
@@ -192,7 +192,7 @@ defmodule Streampai.LivestreamManager.Platforms.FacebookManager do
 
   defp via_tuple(user_id) do
     registry_name = get_registry_name()
-    {:via, Registry, {registry_name, {:platform_manager, user_id, :facebook}}}
+    {:via, Registry, {registry_name, {:platform_manager, user_id, :instagram}}}
   end
 
   defp get_registry_name do
