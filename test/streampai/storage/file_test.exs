@@ -5,6 +5,30 @@ defmodule Streampai.Storage.FileTest do
   alias Streampai.Storage.File
 
   @moduletag :integration
+  @moduletag :s3
+
+  setup context do
+    # Check if S3/MinIO is accessible
+    bucket = Application.get_env(:streampai, :storage)[:bucket]
+
+    case bucket |> ExAws.S3.list_objects(max_keys: 1) |> ExAws.request() do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        message = """
+        S3/MinIO storage is not accessible: #{inspect(reason)}
+
+        To run these tests:
+        - Locally: Start MinIO (docker-compose up -d minio)
+        - CI: Ensure MinIO service started and bucket '#{bucket}' exists
+
+        Skipping S3 storage integration tests.
+        """
+
+        {:skip, message}
+    end
+  end
 
   defp upload_test_file(file, content, opts \\ []) do
     max_size = Keyword.get(opts, :max_size, 10_000_000)

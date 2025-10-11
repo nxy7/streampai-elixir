@@ -223,10 +223,13 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   # Handle 30-second disconnect timeout
   @impl true
   def handle_info(:disconnect_timeout, state) do
-    Logger.info("Disconnect timeout reached for user #{state.user_id}, stopping stream")
+    Logger.warning(
+      "⚠️  AUTO-STOP: User #{state.user_id} stream disconnected for 30+ seconds, automatically ending livestream"
+    )
 
     # Fully stop the stream through UserStreamManager (async to avoid deadlock)
     Task.start(fn ->
+      Logger.info("AUTO-STOP: Calling UserStreamManager.stop_stream for user #{state.user_id}")
       UserStreamManager.stop_stream(state.user_id)
     end)
 
@@ -507,10 +510,13 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp fetch_and_delete_all_outputs(input_id) do
-    case APIClient.get_live_input(input_id) do
-      {:ok, input_data} ->
-        outputs = Map.get(input_data, "outputs", [])
+    case APIClient.list_live_outputs(input_id) do
+      {:ok, outputs} when is_list(outputs) ->
         delete_outputs_list(input_id, outputs)
+        :ok
+
+      {:ok, _non_list_result} ->
+        Logger.warning("list_live_outputs returned non-list result")
         :ok
 
       {:error, _error_type, message} ->

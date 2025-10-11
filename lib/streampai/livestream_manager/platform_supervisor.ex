@@ -80,19 +80,44 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   defp execute_on_platforms(user_id, platforms, callback) do
     target_platforms = normalize_platforms(user_id, platforms)
 
-    Enum.each(target_platforms, fn platform ->
-      case Registry.lookup(
-             Streampai.LivestreamManager.Registry,
-             {:platform_manager, user_id, platform}
-           ) do
-        [{pid, _}] ->
-          platform_module = get_platform_module(platform)
-          callback.(platform_module, pid)
+    # Execute on all platforms concurrently
+    tasks =
+      Enum.map(target_platforms, fn platform ->
+        Task.async(fn ->
+          try do
+            case Registry.lookup(
+                   Streampai.LivestreamManager.Registry,
+                   {:platform_manager, user_id, platform}
+                 ) do
+              [{pid, _}] ->
+                platform_module = get_platform_module(platform)
+                callback.(platform_module, pid)
+                {platform, :ok}
 
-        [] ->
-          :ok
-      end
-    end)
+              [] ->
+                {platform, {:error, :not_found}}
+            end
+          rescue
+            error ->
+              require Logger
+
+              Logger.error("Error executing on platform #{platform}: #{inspect(error)}")
+              {platform, {:error, error}}
+          catch
+            kind, value ->
+              require Logger
+
+              Logger.error("Caught #{kind} while executing on platform #{platform}: #{inspect(value)}")
+
+              {platform, {:error, {kind, value}}}
+          end
+        end)
+      end)
+
+    # Wait for all platforms to complete (with 10 second timeout per platform)
+    Task.await_many(tasks, 10_000)
+
+    :ok
   end
 
   defp normalize_platforms(user_id, :all), do: get_active_platforms(user_id)

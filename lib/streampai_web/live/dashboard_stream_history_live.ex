@@ -66,7 +66,7 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
     %{
       id: livestream.id,
       title: livestream.title,
-      thumbnail_url: livestream.thumbnail_url || "/images/placeholder-thumbnail.jpg",
+      thumbnail_url: livestream.thumbnail_url,
       started_at: livestream.started_at,
       ended_at: livestream.ended_at,
       duration_seconds: livestream.duration_seconds || 0,
@@ -316,13 +316,16 @@ defmodule StreampaiWeb.DashboardStreamHistoryLive do
                 class="block p-6 hover:bg-gray-50 transition-colors"
               >
                 <div class="flex items-center space-x-4">
-                  <div class="flex-shrink-0">
-                    <img
-                      src={stream.thumbnail_url}
-                      alt="Stream thumbnail"
-                      class="w-32 aspect-video object-cover rounded-lg"
-                    />
-                  </div>
+                  <%= if stream.thumbnail_url do %>
+                    <div class="flex-shrink-0">
+                      <img
+                        src={stream.thumbnail_url}
+                        alt="Stream thumbnail"
+                        class="w-32 aspect-video object-cover rounded-lg"
+                        onerror="this.style.display='none'"
+                      />
+                    </div>
+                  <% end %>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between">
                       <div>

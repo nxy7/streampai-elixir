@@ -23,6 +23,8 @@ config :logger, :console,
   ]
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
+# Note: LiveDebugger can cause ETS errors when tracing LiveView sockets with large assigns
+# If you see frequent gen_server errors, consider disabling it: DISABLE_LIVE_DEBUGGER=true mix phx.server
 if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do
   config :live_debugger, :disabled?, true
 else

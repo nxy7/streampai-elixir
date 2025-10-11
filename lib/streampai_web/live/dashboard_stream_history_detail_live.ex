@@ -111,14 +111,18 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
     %{
       id: livestream.id,
       title: livestream.title,
-      thumbnail_url: livestream.thumbnail_url || "/images/placeholder-thumbnail.jpg",
+      thumbnail_url: livestream.thumbnail_url,
       started_at: livestream.started_at,
       ended_at: livestream.ended_at,
       duration_seconds: livestream.duration_seconds || 0,
       platforms: livestream.platforms || [],
       max_viewers: livestream.peak_viewers || 0,
       avg_viewers: livestream.average_viewers || 0,
-      viewer_data: viewer_data
+      viewer_data: viewer_data,
+      category: livestream.category,
+      subcategory: livestream.subcategory,
+      language: livestream.language,
+      tags: livestream.tags || []
     }
   end
 
@@ -311,14 +315,17 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
         <!-- Stream Header -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div class="flex items-start space-x-4">
-            <img
-              src={@stream.thumbnail_url}
-              alt="Stream thumbnail"
-              class="w-48 aspect-video object-cover rounded-lg"
-            />
+            <%= if @stream.thumbnail_url do %>
+              <img
+                src={@stream.thumbnail_url}
+                alt="Stream thumbnail"
+                class="w-48 aspect-video object-cover rounded-lg"
+                onerror="this.style.display='none'"
+              />
+            <% end %>
             <div class="flex-1">
               <h1 class="text-2xl font-bold text-gray-900 mb-2">{@stream.title}</h1>
-              <div class="flex items-center space-x-2 text-sm text-gray-600 flex-wrap">
+              <div class="flex items-center space-x-2 text-sm text-gray-600 flex-wrap gap-y-2">
                 <%= for platform <- @platforms do %>
                   <span class={"inline-flex items-center px-2 py-1 rounded text-xs font-medium #{platform_badge_color(platform)}"}>
                     {platform_name(platform)}
@@ -327,6 +334,51 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                 <span>{Calendar.strftime(@stream.started_at, "%B %d, %Y at %I:%M %p")}</span>
                 <span>Duration: {format_duration(@stream.duration_seconds)}</span>
                 <span>Peak: {@stream.max_viewers} viewers</span>
+              </div>
+              
+    <!-- Category, Subcategory, Language, Tags -->
+              <div class="mt-3 flex items-center space-x-2 flex-wrap gap-y-2">
+                <%= if @stream.category do %>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      >
+                      </path>
+                    </svg>
+                    {format_category_label(@stream.category)}
+                  </span>
+                <% end %>
+
+                <%= if @stream.subcategory do %>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+                    {format_subcategory_label(@stream.subcategory)}
+                  </span>
+                <% end %>
+
+                <%= if @stream.language do %>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                      >
+                      </path>
+                    </svg>
+                    {language_name(@stream.language)}
+                  </span>
+                <% end %>
+
+                <%= for tag <- @stream.tags do %>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                    #{tag}
+                  </span>
+                <% end %>
               </div>
             </div>
             <.link
@@ -571,6 +623,11 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
                             <span class={"text-xs font-medium #{if message.is_moderator, do: "text-green-600", else: "text-gray-900"}"}>
                               {message.username}
                             </span>
+                            <%= if message.platform do %>
+                              <span class={"inline-flex items-center px-1 py-0.5 rounded text-xs font-medium #{platform_badge_color(message.platform)}"}>
+                                {platform_initial(message.platform)}
+                              </span>
+                            <% end %>
                             <%= if message.is_moderator do %>
                               <span class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                 MOD
@@ -621,4 +678,40 @@ defmodule StreampaiWeb.DashboardStreamHistoryDetailLive do
   defp event_color(:subscription), do: "#8b5cf6"
   defp event_color(:raid), do: "#f59e0b"
   defp event_color(_), do: "#6b7280"
+
+  defp format_category_label(nil), do: nil
+
+  defp format_category_label(category) when is_atom(category) do
+    category
+    |> Atom.to_string()
+    |> String.split("_")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp format_subcategory_label(nil), do: nil
+
+  defp format_subcategory_label(subcategory) when is_atom(subcategory) do
+    subcategory
+    |> Atom.to_string()
+    |> String.split("_")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp language_name(nil), do: nil
+  defp language_name("en"), do: "English"
+  defp language_name("es"), do: "Spanish"
+  defp language_name("fr"), do: "French"
+  defp language_name("de"), do: "German"
+  defp language_name("it"), do: "Italian"
+  defp language_name("pt"), do: "Portuguese"
+  defp language_name("ru"), do: "Russian"
+  defp language_name("ja"), do: "Japanese"
+  defp language_name("ko"), do: "Korean"
+  defp language_name("zh"), do: "Chinese"
+  defp language_name("ar"), do: "Arabic"
+  defp language_name("hi"), do: "Hindi"
+  defp language_name("pl"), do: "Polish"
+  defp language_name("nl"), do: "Dutch"
+  defp language_name("tr"), do: "Turkish"
+  defp language_name(code), do: code
 end

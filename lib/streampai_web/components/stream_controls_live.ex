@@ -53,6 +53,9 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
                 v-on:stopStreaming={JS.push("stop_streaming", target: @myself)}
                 v-on:saveSettings={JS.push("save_settings", target: @myself)}
                 v-on:sendChatMessage={JS.push("send_chat_message", target: @myself)}
+                v-on:deleteMessage={JS.push("delete_message", target: @myself)}
+                v-on:banUser={JS.push("ban_user", target: @myself)}
+                v-on:timeoutUser={JS.push("timeout_user", target: @myself)}
               />
             </div>
           <% else %>
@@ -150,6 +153,24 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
   def handle_event("send_chat_message", params, socket) do
     message = reconstruct_string_from_params(params)
     send(self(), {:send_chat_message, message})
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("delete_message", %{"messageId" => message_id}, socket) do
+    send(self(), {:delete_message, message_id})
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("ban_user", %{"username" => username, "platform" => platform}, socket) do
+    send(self(), {:ban_user, username, platform})
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("timeout_user", %{"username" => username, "platform" => platform, "duration" => duration}, socket) do
+    send(self(), {:timeout_user, username, platform, duration})
     {:noreply, socket}
   end
 

@@ -62,6 +62,9 @@ const emit = defineEmits<{
   stopStreaming: []
   saveSettings: [{ title: string; description: string }]
   sendChatMessage: [string]
+  deleteMessage: [{ messageId: string }]
+  banUser: [{ username: string; platform: string }]
+  timeoutUser: [{ username: string; platform: string; duration: number }]
 }>()
 
 // Client-side state
@@ -222,6 +225,9 @@ const handleSaveSettings = (settings: { title: string; description: string }) =>
       @toggle-settings="toggleSettings"
       @save-settings="handleSaveSettings"
       @send-chat-message="(message) => $emit('sendChatMessage', message)"
+      @delete-message="(data) => $emit('deleteMessage', data)"
+      @ban-user="(data) => $emit('banUser', data)"
+      @timeout-user="(data) => $emit('timeoutUser', data)"
     />
 
     <!-- Platform Status Indicators -->

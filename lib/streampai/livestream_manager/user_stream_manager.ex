@@ -104,12 +104,20 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   def start_stream(user_id, metadata \\ %{}) when is_binary(user_id) do
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
 
-    title = Map.get(metadata, :title)
-    description = Map.get(metadata, :description)
-    thumbnail_file_id = Map.get(metadata, :thumbnail_file_id)
+    params =
+      metadata
+      |> Map.take([
+        :title,
+        :description,
+        :thumbnail_file_id,
+        :category,
+        :subcategory,
+        :language,
+        :tags
+      ])
+      |> Map.put_new(:tags, [])
 
-    {:ok, livestream} =
-      Livestream.start_livestream(user_id, title, description, thumbnail_file_id, actor: user)
+    {:ok, livestream} = Livestream.start_livestream(user_id, params, actor: user)
 
     livestream_id = livestream.id
 
@@ -139,34 +147,54 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   @doc """
   Stops streaming for all connected platforms.
-  Cleans up platform processes and updates stream state.
-  Updates the livestream record's ended_at timestamp.
+  Updates the livestream record's ended_at timestamp FIRST (most important),
+  then cleans up platform processes and updates stream state.
   """
   def stop_stream(user_id) when is_binary(user_id) do
+    Logger.info("stop_stream called for user #{user_id}")
+
     # Get current livestream ID before stopping
     stream_state = get_state(user_id)
     livestream_id = stream_state.livestream_id
 
+    Logger.info("Current livestream_id from state: #{inspect(livestream_id)}")
+
+    # CRITICAL: Update livestream record with ended_at timestamp FIRST
+    # This ensures the stream is marked as ended in the database even if cleanup fails
+    if livestream_id do
+      finalize_livestream(user_id, livestream_id)
+    else
+      Logger.warning("No active livestream_id found in state for user #{user_id}")
+    end
+
+    # Now perform cleanup operations (these can fail without preventing DB update)
     # Stop platform streaming processes
-    stop_platform_streaming(user_id)
+    safe_cleanup(fn -> stop_platform_streaming(user_id) end, "stop platform streaming")
 
     # Stop metrics collector
-    stop_metrics_collector(user_id)
+    safe_cleanup(fn -> stop_metrics_collector(user_id) end, "stop metrics collector")
 
     # Stop CloudflareManager streaming (disables live outputs and sets status to :inactive)
     cloudflare_server = {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}}
-    CloudflareManager.stop_streaming(cloudflare_server)
+
+    safe_cleanup(
+      fn -> CloudflareManager.stop_streaming(cloudflare_server) end,
+      "stop cloudflare streaming"
+    )
 
     # Clean up all outputs to ensure they're deleted from Cloudflare
-    CloudflareManager.cleanup_all_outputs(cloudflare_server)
+    safe_cleanup(
+      fn -> CloudflareManager.cleanup_all_outputs(cloudflare_server) end,
+      "cleanup cloudflare outputs"
+    )
 
     # Update stream state
-    StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
-
-    # Update livestream record with ended_at timestamp
-    if livestream_id do
-      finalize_livestream(user_id, livestream_id)
-    end
+    safe_cleanup(
+      fn ->
+        StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
+      end,
+      "update stream state"
+    )
 
     # Broadcast stream status change
     Phoenix.PubSub.broadcast(
@@ -180,16 +208,67 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   # Helper functions
 
+  defp safe_cleanup(cleanup_fn, operation_name) do
+    cleanup_fn.()
+  rescue
+    error ->
+      Logger.error("Error during cleanup (#{operation_name}): #{inspect(error)}")
+      :ok
+  catch
+    :exit, reason ->
+      Logger.error("Exit during cleanup (#{operation_name}): #{inspect(reason)}")
+      :ok
+
+    kind, value ->
+      Logger.error("Caught #{kind} during cleanup (#{operation_name}): #{inspect(value)}")
+      :ok
+  end
+
   defp finalize_livestream(user_id, livestream_id) do
+    Logger.info("Attempting to finalize livestream #{livestream_id}")
     {:ok, user} = Ash.get(User, user_id, authorize?: false)
     {:ok, livestream} = Ash.get(Livestream, livestream_id, authorize?: false)
 
-    case Livestream.end_livestream(livestream, actor: user) do
-      {:ok, _updated_livestream} ->
-        schedule_post_stream_processing(livestream_id)
+    Logger.info("Livestream #{livestream_id} current ended_at: #{inspect(livestream.ended_at)}")
 
-      {:error, %Ash.Error.Invalid{errors: errors}} ->
-        handle_livestream_end_error(livestream_id, errors)
+    # Check if already ended before attempting to end it
+    if livestream.ended_at do
+      Logger.info(
+        "Livestream #{livestream_id} is already ended at #{inspect(livestream.ended_at)}, skipping duplicate end"
+      )
+
+      # Still schedule post-processing if it hasn't been done yet
+      schedule_post_stream_processing(livestream_id)
+    else
+      # Reload livestream just before ending to catch any race conditions
+      Logger.info("Reloading livestream #{livestream_id} just before ending to ensure fresh data...")
+
+      {:ok, fresh_livestream} = Ash.get(Livestream, livestream_id, authorize?: false)
+
+      Logger.info("Fresh livestream #{livestream_id} ended_at: #{inspect(fresh_livestream.ended_at)}")
+
+      if fresh_livestream.ended_at do
+        Logger.info(
+          "Livestream #{livestream_id} was ended by another process (ended_at: #{inspect(fresh_livestream.ended_at)}), skipping"
+        )
+
+        schedule_post_stream_processing(livestream_id)
+      else
+        case Livestream.end_livestream(fresh_livestream, actor: user) do
+          {:ok, updated_livestream} ->
+            Logger.info(
+              "Successfully ended livestream #{livestream_id}, ended_at: #{inspect(updated_livestream.ended_at)}"
+            )
+
+            schedule_post_stream_processing(livestream_id)
+
+          {:error, %Ash.Error.Invalid{errors: errors}} ->
+            handle_livestream_end_error(livestream_id, errors)
+
+          {:error, error} ->
+            Logger.error("Unexpected error ending livestream #{livestream_id}: #{inspect(error)}")
+        end
+      end
     end
   end
 
@@ -204,10 +283,21 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp handle_livestream_end_error(livestream_id, errors) do
+    # Log ALL error details for debugging
+    Logger.error("Failed to end livestream #{livestream_id}. Full error details:")
+
+    Enum.each(errors, fn error ->
+      Logger.error(
+        "  - Field: #{inspect(error.field)}, Message: #{inspect(error.message)}, Full error: #{inspect(error)}"
+      )
+    end)
+
     if stream_already_ended?(errors) do
-      Logger.warning("Livestream #{livestream_id} was already ended, skipping update")
+      Logger.info(
+        "Livestream #{livestream_id} was already ended (likely by auto-stop on disconnect), skipping duplicate end"
+      )
     else
-      Logger.error("Failed to end livestream #{livestream_id}: #{inspect(errors)}")
+      Logger.error("Failed to end livestream #{livestream_id} with unexpected error: #{inspect(errors)}")
     end
   end
 
@@ -221,9 +311,33 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     active_platforms = get_active_platforms(user_id)
     Logger.info("Starting streaming on platforms: #{inspect(active_platforms)}")
 
-    Enum.each(active_platforms, fn platform ->
-      ensure_platform_manager_started(user_id, platform)
-      start_platform(platform, user_id, livestream_id, metadata)
+    # Start all platforms concurrently
+    tasks =
+      Enum.map(active_platforms, fn platform ->
+        Task.async(fn ->
+          try do
+            ensure_platform_manager_started(user_id, platform)
+            start_platform(platform, user_id, livestream_id, metadata)
+            {platform, :ok}
+          rescue
+            error ->
+              Logger.error("Failed to start platform #{platform}: #{inspect(error)}")
+              {platform, {:error, error}}
+          catch
+            kind, value ->
+              Logger.error("Caught #{kind} while starting platform #{platform}: #{inspect(value)}")
+
+              {platform, {:error, {kind, value}}}
+          end
+        end)
+      end)
+
+    # Wait for all platforms to start (with 30 second timeout per platform)
+    results = Task.await_many(tasks, 30_000)
+
+    # Log results
+    Enum.each(results, fn {platform, result} ->
+      Logger.info("Platform #{platform} start result: #{inspect(result)}")
     end)
   end
 
@@ -251,7 +365,33 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     active_platforms = get_active_platforms(user_id)
     Logger.info("Stopping streaming on platforms: #{inspect(active_platforms)}")
 
-    Enum.each(active_platforms, &stop_platform(&1, user_id))
+    # Stop all platforms concurrently
+    tasks =
+      Enum.map(active_platforms, fn platform ->
+        Task.async(fn ->
+          try do
+            stop_platform(platform, user_id)
+            {platform, :ok}
+          rescue
+            error ->
+              Logger.error("Failed to stop platform #{platform}: #{inspect(error)}")
+              {platform, {:error, error}}
+          catch
+            kind, value ->
+              Logger.error("Caught #{kind} while stopping platform #{platform}: #{inspect(value)}")
+
+              {platform, {:error, {kind, value}}}
+          end
+        end)
+      end)
+
+    # Wait for all platforms to stop (with 30 second timeout per platform)
+    results = Task.await_many(tasks, 30_000)
+
+    # Log results
+    Enum.each(results, fn {platform, result} ->
+      Logger.info("Platform #{platform} stop result: #{inspect(result)}")
+    end)
   end
 
   defp stop_platform(:twitch, user_id), do: TwitchManager.stop_streaming(user_id)

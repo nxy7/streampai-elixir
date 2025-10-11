@@ -128,20 +128,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
   end
 
-  def handle_event("update_stream_metadata", %{"metadata" => metadata_params}, socket) do
-    metadata =
-      socket.assigns.stream_metadata
-      |> Map.put(:title, Map.get(metadata_params, "title", ""))
-      |> Map.put(:description, Map.get(metadata_params, "description", ""))
-
-    {:noreply, assign(socket, :stream_metadata, metadata)}
-  end
-
   def handle_event("update_stream_metadata", metadata_params, socket) when is_map(metadata_params) do
     metadata =
       socket.assigns.stream_metadata
       |> Map.put(:title, Map.get(metadata_params, "title", ""))
       |> Map.put(:description, Map.get(metadata_params, "description", ""))
+      |> Map.put(:category, convert_to_atom(Map.get(metadata_params, "category", "")))
+      |> Map.put(:subcategory, convert_to_atom(Map.get(metadata_params, "subcategory", "")))
+      |> Map.put(:language, Map.get(metadata_params, "language", ""))
+      |> Map.put(:tags, Map.get(metadata_params, "tags", []))
 
     {:noreply, assign(socket, :stream_metadata, metadata)}
   end
@@ -446,6 +441,72 @@ defmodule StreampaiWeb.DashboardStreamLive do
     end
   end
 
+  def handle_info({:delete_message, message_id}, socket) do
+    chat_messages = socket.assigns[:chat_messages] || []
+    updated_messages = Enum.reject(chat_messages, fn msg -> msg.id == message_id end)
+
+    socket =
+      socket
+      |> assign(:chat_messages, updated_messages)
+      |> put_flash(:info, "Message deleted")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:ban_user, username, platform}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case StreamAction.ban_user(
+           %{
+             user_id: user_id,
+             target_username: username,
+             platform: String.to_existing_atom(platform)
+           },
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        chat_messages = socket.assigns[:chat_messages] || []
+
+        updated_messages =
+          Enum.reject(chat_messages, fn msg -> msg.sender_username == username end)
+
+        socket =
+          socket
+          |> assign(:chat_messages, updated_messages)
+          |> put_flash(:info, "User #{username} has been banned")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to ban user #{username}: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, "Failed to ban user")}
+    end
+  end
+
+  def handle_info({:timeout_user, username, platform, duration}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case StreamAction.timeout_user(
+           %{
+             user_id: user_id,
+             target_username: username,
+             platform: String.to_existing_atom(platform),
+             duration_seconds: duration
+           },
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _result} ->
+        socket =
+          put_flash(socket, :info, "User #{username} has been timed out for #{duration} seconds")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error("Failed to timeout user #{username}: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, "Failed to timeout user")}
+    end
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp process_uploaded_settings_thumbnail(socket, user, params, file_record) do
@@ -552,7 +613,11 @@ defmodule StreampaiWeb.DashboardStreamLive do
              title: metadata.title,
              description: metadata.description,
              metadata: %{
-               thumbnail_file_id: metadata.thumbnail_file_id
+               thumbnail_file_id: metadata.thumbnail_file_id,
+               category: Map.get(metadata, :category),
+               subcategory: Map.get(metadata, :subcategory),
+               language: Map.get(metadata, :language),
+               tags: Map.get(metadata, :tags, [])
              }
            },
            actor: socket.assigns.current_user
@@ -898,13 +963,31 @@ defmodule StreampaiWeb.DashboardStreamLive do
           title: stream.title || "",
           description: stream.description || "",
           thumbnail_file_id: stream.thumbnail_file_id,
-          thumbnail_url: stream.thumbnail_url
+          thumbnail_url: stream.thumbnail_url,
+          category: stream.category || "",
+          subcategory: stream.subcategory || "",
+          language: stream.language || "",
+          tags: stream.tags || []
         }
 
       _ ->
-        %{title: "", description: "", thumbnail_file_id: nil, thumbnail_url: nil}
+        %{
+          title: "",
+          description: "",
+          thumbnail_file_id: nil,
+          thumbnail_url: nil,
+          category: "",
+          subcategory: "",
+          language: "",
+          tags: []
+        }
     end
   end
+
+  defp convert_to_atom(""), do: nil
+  defp convert_to_atom(nil), do: nil
+  defp convert_to_atom(value) when is_binary(value), do: String.to_atom(value)
+  defp convert_to_atom(value) when is_atom(value), do: value
 
   def render(assigns) do
     ~H"""

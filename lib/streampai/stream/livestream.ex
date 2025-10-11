@@ -5,6 +5,9 @@ defmodule Streampai.Stream.Livestream do
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer
 
+  alias Streampai.Stream.Livestream.Validations.ValidateNotEnded
+  alias Streampai.Stream.Livestream.Validations.ValidateSubcategory
+
   postgres do
     table "livestreams"
     repo Streampai.Repo
@@ -16,7 +19,9 @@ defmodule Streampai.Stream.Livestream do
     define :update
     define :destroy
     define :get_completed_by_user, args: [:user_id]
-    define :start_livestream, args: [:user_id, :title, :description, :thumbnail_file_id]
+
+    define :start_livestream, args: [:user_id]
+
     define :end_livestream
   end
 
@@ -30,13 +35,19 @@ defmodule Streampai.Stream.Livestream do
         :user_id,
         :title,
         :description,
-        :thumbnail_file_id
+        :thumbnail_file_id,
+        :category,
+        :subcategory,
+        :language,
+        :tags
       ]
+
+      validate ValidateSubcategory
     end
 
     create :start_livestream do
       description "Start a new livestream with optional metadata"
-      accept [:title, :description, :thumbnail_file_id]
+      accept [:title, :description, :thumbnail_file_id, :category, :subcategory, :language, :tags]
 
       argument :user_id, :uuid, allow_nil?: false
 
@@ -44,17 +55,17 @@ defmodule Streampai.Stream.Livestream do
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:started_at, &DateTime.utc_now/0)
       change Streampai.Stream.Livestream.Changes.SetDefaultTitle
+
+      validate ValidateSubcategory
     end
 
     update :end_livestream do
       description "End an active livestream"
       require_atomic? false
 
-      change set_attribute(:ended_at, &DateTime.utc_now/0)
+      validate ValidateNotEnded
 
-      validate attribute_equals(:ended_at, nil) do
-        message "Livestream has already ended"
-      end
+      change set_attribute(:ended_at, &DateTime.utc_now/0)
     end
 
     read :get_completed_by_user do
@@ -80,6 +91,29 @@ defmodule Streampai.Stream.Livestream do
     attribute :description, :string do
       public? true
       allow_nil? true
+    end
+
+    attribute :category, :atom do
+      public? true
+      allow_nil? true
+      constraints one_of: [:gaming, :music, :tech, :art, :talk, :irl, :just_chatting]
+    end
+
+    attribute :subcategory, :atom do
+      public? true
+      allow_nil? true
+    end
+
+    attribute :language, :string do
+      public? true
+      allow_nil? true
+      constraints max_length: 10
+    end
+
+    attribute :tags, {:array, :string} do
+      public? true
+      allow_nil? true
+      default []
     end
 
     # Legacy field - use thumbnail_file_id instead

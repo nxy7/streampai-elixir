@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import StreamSettingsFormFields from './StreamSettingsFormFields.vue'
 import { formatPlatformName, getPlatformColor } from './utils/platformUtils'
 
@@ -47,6 +47,9 @@ const emit = defineEmits<{
   toggleSettings: []
   saveSettings: [{ title: string; description: string }]
   sendChatMessage: [string]
+  deleteMessage: [{ messageId: string }]
+  banUser: [{ username: string; platform: string }]
+  timeoutUser: [{ username: string; platform: string; duration: number }]
 }>()
 
 const activityContainer = ref<HTMLElement | null>(null)
@@ -56,10 +59,31 @@ const streamSettings = ref({
   description: '',
   thumbnailFile: null as File | null
 })
+const contextMenu = ref<{
+  visible: boolean
+  x: number
+  y: number
+  messageId: string | null
+  username: string | null
+  platform: string | null
+}>({
+  visible: false,
+  x: 0,
+  y: 0,
+  messageId: null,
+  username: null,
+  platform: null
+})
 
 onMounted(() => {
   streamSettings.value.title = props.streamData.title || ''
   streamSettings.value.description = props.streamData.description || ''
+
+  document.addEventListener('click', hideContextMenu)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', hideContextMenu)
 })
 
 // Watch for stream_updated events and update form fields
@@ -207,6 +231,50 @@ const handleKeyPress = (event: KeyboardEvent) => {
     handleSendMessage()
   }
 }
+
+const showContextMenu = (event: MouseEvent, message: ChatMessage) => {
+  event.preventDefault()
+  contextMenu.value = {
+    visible: true,
+    x: event.clientX,
+    y: event.clientY,
+    messageId: message.id,
+    username: message.sender_username,
+    platform: message.platform
+  }
+}
+
+const hideContextMenu = () => {
+  contextMenu.value.visible = false
+}
+
+const handleDeleteMessage = () => {
+  if (contextMenu.value.messageId) {
+    emit('deleteMessage', { messageId: contextMenu.value.messageId })
+  }
+  hideContextMenu()
+}
+
+const handleBanUser = () => {
+  if (contextMenu.value.username && contextMenu.value.platform) {
+    emit('banUser', {
+      username: contextMenu.value.username,
+      platform: contextMenu.value.platform
+    })
+  }
+  hideContextMenu()
+}
+
+const handleTimeoutUser = (duration: number) => {
+  if (contextMenu.value.username && contextMenu.value.platform) {
+    emit('timeoutUser', {
+      username: contextMenu.value.username,
+      platform: contextMenu.value.platform,
+      duration
+    })
+  }
+  hideContextMenu()
+}
 </script>
 
 <template>
@@ -250,7 +318,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
             <!-- Chat Message -->
             <div
               v-if="item.type === 'chat'"
-              class="flex items-center space-x-2 text-sm hover:bg-gray-50 p-2 rounded transition-colors"
+              class="relative group flex items-center space-x-2 text-sm hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer"
+              @contextmenu="showContextMenu($event, item)"
             >
               <div class="flex-shrink-0 text-sm">
                 {{ getPlatformIcon(item.platform) }}
@@ -264,6 +333,18 @@ const handleKeyPress = (event: KeyboardEvent) => {
                 </span>
                 <span class="text-gray-700 ml-1">{{ item.message }}</span>
               </div>
+              <!-- Menu button (visible on hover) -->
+              <button
+                @click.stop="showContextMenu($event, item)"
+                class="opacity-0 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-gray-200 rounded transition-opacity"
+                title="More actions"
+              >
+                <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 16 16">
+                  <circle cx="8" cy="3" r="1.5"/>
+                  <circle cx="8" cy="8" r="1.5"/>
+                  <circle cx="8" cy="13" r="1.5"/>
+                </svg>
+              </button>
             </div>
 
             <!-- Stream Event -->
@@ -335,5 +416,59 @@ const handleKeyPress = (event: KeyboardEvent) => {
         </div>
       </div>
     </template>
+
+    <!-- Context Menu -->
+    <Teleport to="body">
+      <div
+        v-if="contextMenu.visible"
+        :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+        class="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[180px]"
+        @click.stop
+      >
+        <button
+          @click="handleDeleteMessage"
+          class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Delete message</span>
+        </button>
+
+        <div class="border-t border-gray-200 my-1"></div>
+
+        <button
+          @click="handleTimeoutUser(60)"
+          class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Timeout (1 min)</span>
+        </button>
+
+        <button
+          @click="handleTimeoutUser(600)"
+          class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Timeout (10 min)</span>
+        </button>
+
+        <div class="border-t border-gray-200 my-1"></div>
+
+        <button
+          @click="handleBanUser"
+          class="w-full px-4 py-2 text-left text-sm hover:bg-red-50 flex items-center space-x-2 text-red-600"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          <span>Ban user</span>
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
