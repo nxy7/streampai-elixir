@@ -19,7 +19,7 @@ defmodule Streampai.Jobs.DonationTtsJobTest do
       }
 
       # Subscribe to PubSub to verify broadcast
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "donations:#{user_id}")
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
 
       # Perform the job directly
       job_args = %{
@@ -62,7 +62,7 @@ defmodule Streampai.Jobs.DonationTtsJobTest do
         "timestamp" => DateTime.to_iso8601(DateTime.utc_now())
       }
 
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "donations:#{user_id}")
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
 
       job_args = %{
         "user_id" => user_id,
@@ -92,7 +92,7 @@ defmodule Streampai.Jobs.DonationTtsJobTest do
         # Missing optional fields like donor_name, message, etc.
       }
 
-      Phoenix.PubSub.subscribe(Streampai.PubSub, "donations:#{user_id}")
+      Phoenix.PubSub.subscribe(Streampai.PubSub, "alertbox:#{user_id}")
 
       job_args = %{
         "user_id" => user_id,

@@ -28,13 +28,13 @@ defmodule Streampai.TtsServiceTest do
     test "generates different paths for different voices" do
       message = "Thank you!"
 
-      assert {:ok, file_path1} = TtsService.get_or_generate_tts(message, "openai_alloy")
-      assert {:ok, file_path2} = TtsService.get_or_generate_tts(message, "openai_echo")
+      assert {:ok, file_path1} = TtsService.get_or_generate_tts(message, "elevenlabs_rachel")
+      assert {:ok, file_path2} = TtsService.get_or_generate_tts(message, "elevenlabs_antoni")
 
       # Different voices should have different filenames (voice prefix differs)
       assert file_path1 != file_path2
-      assert String.contains?(file_path1, "openai_alloy_")
-      assert String.contains?(file_path2, "openai_echo_")
+      assert String.contains?(file_path1, "elevenlabs_rachel_")
+      assert String.contains?(file_path2, "elevenlabs_antoni_")
     end
 
     test "generates different paths for different messages" do

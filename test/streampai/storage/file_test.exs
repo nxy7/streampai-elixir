@@ -7,7 +7,7 @@ defmodule Streampai.Storage.FileTest do
   @moduletag :integration
   @moduletag :s3
 
-  setup context do
+  setup _context do
     # Check if S3/MinIO is accessible
     bucket = Application.get_env(:streampai, :storage)[:bucket]
 
@@ -16,17 +16,16 @@ defmodule Streampai.Storage.FileTest do
         :ok
 
       {:error, reason} ->
-        message = """
+        # Fail with clear message - users should exclude :s3 tag if MinIO not available
+        assert false, """
         S3/MinIO storage is not accessible: #{inspect(reason)}
 
         To run these tests:
         - Locally: Start MinIO (docker-compose up -d minio)
         - CI: Ensure MinIO service started and bucket '#{bucket}' exists
 
-        Skipping S3 storage integration tests.
+        To skip these tests, run: mix test --exclude s3
         """
-
-        ExUnit.Case.skip(message)
     end
   end
 
