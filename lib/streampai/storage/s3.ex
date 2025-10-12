@@ -53,11 +53,11 @@ defmodule Streampai.Storage.S3 do
 
     case bucket |> ExAws.S3.put_object(path, data, upload_opts) |> ExAws.request() do
       {:ok, _} ->
-        Logger.info("File uploaded to S3", %{path: path, size: byte_size(data)})
+        Logger.info("File uploaded to S3", path: path, size: byte_size(data))
         {:ok, path}
 
       {:error, reason} ->
-        Logger.error("S3 upload failed", %{path: path, reason: inspect(reason)})
+        Logger.error("S3 upload failed", path: path, reason: inspect(reason))
         {:error, reason}
     end
   end
@@ -92,11 +92,11 @@ defmodule Streampai.Storage.S3 do
 
     case bucket |> ExAws.S3.delete_object(path) |> ExAws.request() do
       {:ok, _} ->
-        Logger.info("File deleted from S3", %{path: path})
+        Logger.info("File deleted from S3", path: path)
         {:ok, path}
 
       {:error, reason} ->
-        Logger.error("S3 delete failed", %{path: path, reason: inspect(reason)})
+        Logger.error("S3 delete failed", path: path, reason: inspect(reason))
         {:error, reason}
     end
   end
@@ -114,9 +114,26 @@ defmodule Streampai.Storage.S3 do
 
   defp build_s3_url(path) do
     bucket = get_bucket()
-    region = Application.get_env(:ex_aws, :s3)[:region] || "us-east-1"
-    host = Application.get_env(:ex_aws, :s3)[:host] || "s3.amazonaws.com"
+    s3_config = Application.get_env(:ex_aws, :s3) || []
 
-    "https://#{bucket}.#{host}/#{path}"
+    scheme = s3_config[:scheme] || "https://"
+    host = s3_config[:host] || "s3.amazonaws.com"
+    port = s3_config[:port]
+
+    # Build base URL with optional port
+    base_url =
+      if port do
+        "#{scheme}#{host}:#{port}"
+      else
+        "#{scheme}#{host}"
+      end
+
+    # Use path-style URLs for MinIO/local (when port is specified)
+    # Use subdomain-style for AWS S3 (production)
+    if port do
+      "#{base_url}/#{bucket}/#{path}"
+    else
+      "#{scheme}#{bucket}.#{host}/#{path}"
+    end
   end
 end
