@@ -10,6 +10,7 @@ interface AlertEvent {
   currency?: string
   timestamp: Date
   display_time?: number
+  tts_url?: string
   platform: {
     icon: string
     color: string
@@ -35,6 +36,7 @@ const props = defineProps<{
 
 const widgetId = props.id || 'alertbox-widget'
 const alertContainer = ref<HTMLElement>()
+const audioElement = ref<HTMLAudioElement>()
 const currentDisplayTime = ref<number>(0)
 
 const fontClass = computed(() => {
@@ -134,7 +136,24 @@ const eventVisible = ref(false)
 const animationPhase = ref<'in' | 'visible' | 'out' | 'hidden'>('hidden')
 const currentEventId = ref<string | null>(null)
 
-const startEventDisplay = (displayTime: number, eventId?: string) => {
+const playTTS = (ttsUrl?: string) => {
+  if (!ttsUrl || !props.config.sound_enabled) {
+    console.log('Vue: Skipping TTS playback - url:', ttsUrl, 'sound_enabled:', props.config.sound_enabled)
+    return
+  }
+
+  console.log('Vue: Playing TTS audio:', ttsUrl)
+
+  if (audioElement.value) {
+    audioElement.value.src = ttsUrl
+    audioElement.value.volume = (props.config.sound_volume || 100) / 100
+    audioElement.value.play().catch(error => {
+      console.error('Vue: Failed to play TTS audio:', error)
+    })
+  }
+}
+
+const startEventDisplay = (displayTime: number, eventId?: string, ttsUrl?: string) => {
   // Prevent starting animation for the same event that's already playing
   if (eventId && eventId === currentEventId.value && animationPhase.value !== 'hidden') {
     console.log('Vue: Preventing duplicate animation start for event:', eventId)
@@ -154,7 +173,10 @@ const startEventDisplay = (displayTime: number, eventId?: string) => {
   // Start entrance animation
   animationPhase.value = 'in'
   eventVisible.value = true
-  
+
+  // Play TTS audio if available
+  playTTS(ttsUrl)
+
   // Animation sequence handled by CSS
   // After entrance animation, move to visible phase
   setTimeout(() => {
@@ -218,7 +240,7 @@ watch(() => props.event, (newEvent, oldEvent) => {
     }
     
     // Start new display
-    startEventDisplay(rawNewEvent.display_time, rawNewEvent.id)
+    startEventDisplay(rawNewEvent.display_time, rawNewEvent.id, rawNewEvent.tts_url)
   } else if (rawNewEvent) {
     console.log('Vue: Skipping - conditions not met for new animation')
   }
@@ -235,6 +257,9 @@ onMounted(() => {
 
 <template>
   <div class="alertbox-widget h-full w-full relative overflow-hidden">
+    <!-- Hidden audio element for TTS playback -->
+    <audio ref="audioElement" style="display: none;"></audio>
+
     <!-- Alert Display Container -->
     <div
       ref="alertContainer"
