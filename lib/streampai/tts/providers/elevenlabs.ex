@@ -162,11 +162,11 @@ defmodule Streampai.TTS.Providers.ElevenLabs do
       }
     }
 
-    Logger.info("Generating ElevenLabs TTS", %{
+    Logger.info("Generating ElevenLabs TTS",
       voice: voice.id,
       voice_name: voice.name,
       message_length: String.length(message)
-    })
+    )
 
     case Req.post(
            url,
@@ -178,27 +178,27 @@ defmodule Streampai.TTS.Providers.ElevenLabs do
            into: :self
          ) do
       {:ok, %{status: 200, body: audio_data}} ->
-        Logger.info("ElevenLabs TTS generated successfully", %{
+        Logger.info("ElevenLabs TTS generated successfully",
           voice: voice.id,
           audio_size: byte_size(audio_data)
-        })
+        )
 
         {:ok, audio_data}
 
       {:ok, %{status: status, body: body}} ->
-        Logger.error("ElevenLabs TTS API error", %{
+        Logger.error("ElevenLabs TTS API error",
           status: status,
           voice: voice.id,
           body: inspect(body)
-        })
+        )
 
         {:error, {:api_error, status, body}}
 
       {:error, reason} ->
-        Logger.error("ElevenLabs TTS request failed", %{
+        Logger.error("ElevenLabs TTS request failed",
           reason: inspect(reason),
           voice: voice.id
-        })
+        )
 
         {:error, {:request_failed, reason}}
     end

@@ -25,31 +25,31 @@ defmodule Streampai.Jobs.DonationTtsJob do
       "donation_event" => donation_event
     } = args
 
-    Logger.info("Processing donation TTS job", %{
+    Logger.info("Processing donation TTS job",
       user_id: user_id,
       donor_name: donation_event["donor_name"],
       amount: donation_event["amount"],
       attempt: attempt
-    })
+    )
 
     try do
       {:ok, alert_event} = process_donation_with_tts(user_id, donation_event)
       broadcast_alert_event(user_id, alert_event)
-      Logger.info("Successfully processed donation TTS", %{user_id: user_id, attempt: attempt})
+      Logger.info("Successfully processed donation TTS", user_id: user_id, attempt: attempt)
       :ok
     rescue
       error ->
-        Logger.error("Failed to process donation TTS", %{
+        Logger.error("Failed to process donation TTS",
           user_id: user_id,
           error: inspect(error),
           attempt: attempt
-        })
+        )
 
         if attempt >= 3 do
           # Final attempt failed, broadcast without TTS
           fallback_event = create_fallback_alert_event(donation_event)
           broadcast_alert_event(user_id, fallback_event)
-          Logger.warning("Sent fallback donation alert without TTS", %{user_id: user_id})
+          Logger.warning("Sent fallback donation alert without TTS", user_id: user_id)
           :ok
         else
           {:error, error}
@@ -111,11 +111,11 @@ defmodule Streampai.Jobs.DonationTtsJob do
       {:new_donation, alert_event}
     )
 
-    Logger.info("Broadcasted alert event", %{
+    Logger.info("Broadcasted alert event",
       user_id: user_id,
       event_type: alert_event.type,
       has_tts: !is_nil(alert_event.tts_path)
-    })
+    )
   end
 
   defp generate_event_id do

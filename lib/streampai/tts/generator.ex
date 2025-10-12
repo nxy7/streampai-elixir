@@ -35,11 +35,11 @@ defmodule Streampai.TTS.Generator do
 
       case check_cache(s3_path) do
         {:ok, :cached} ->
-          Logger.info("TTS cache hit", %{voice: voice.id, hash: content_hash})
+          Logger.info("TTS cache hit", voice: voice.id, hash: content_hash)
           {:ok, s3_path}
 
         {:ok, :not_cached} ->
-          Logger.info("TTS cache miss, generating", %{voice: voice.id, hash: content_hash})
+          Logger.info("TTS cache miss, generating", voice: voice.id, hash: content_hash)
           generate_and_upload(message, voice, s3_path, content_hash)
       end
     end
@@ -90,20 +90,20 @@ defmodule Streampai.TTS.Generator do
   defp generate_and_upload(message, voice, s3_path, content_hash) do
     with {:ok, audio_data} <- generate_tts(message, voice),
          {:ok, _} <- upload_to_s3(audio_data, s3_path) do
-      Logger.info("TTS generated and uploaded", %{
+      Logger.info("TTS generated and uploaded",
         voice: voice.id,
         hash: content_hash,
         path: s3_path
-      })
+      )
 
       {:ok, s3_path}
     else
       {:error, reason} = error ->
-        Logger.error("TTS generation failed", %{
+        Logger.error("TTS generation failed",
           voice: voice.id,
           hash: content_hash,
           reason: inspect(reason)
-        })
+        )
 
         error
     end

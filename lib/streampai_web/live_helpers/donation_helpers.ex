@@ -45,7 +45,7 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   Processes a donation with TTS scheduling.
   """
   def process_donation(user, params, amount, preferences, test_mode \\ false, sandbox_mode \\ false) do
-    Logger.info("Processing donation", %{
+    Logger.info("Processing donation",
       user_id: user.id,
       username: user.name,
       amount: amount,
@@ -53,24 +53,24 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
       message: params["message"],
       test_mode: test_mode,
       sandbox_mode: sandbox_mode
-    })
+    )
 
     donation_event = create_donation_event(params, amount, preferences, test_mode, sandbox_mode)
 
     case schedule_donation_tts(user.id, donation_event) do
       {:ok, _job} ->
-        Logger.info("Donation TTS job scheduled successfully", %{
+        Logger.info("Donation TTS job scheduled successfully",
           user_id: user.id,
           test_mode: test_mode
-        })
+        )
 
         {:ok, donation_event}
 
       {:error, reason} ->
-        Logger.error("Failed to schedule donation TTS job", %{
+        Logger.error("Failed to schedule donation TTS job",
           user_id: user.id,
           reason: inspect(reason)
-        })
+        )
 
         {:error, reason}
     end
@@ -180,11 +180,11 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   end
 
   defp schedule_donation_tts(user_id, donation_event) do
-    Logger.info("Scheduling donation TTS job", %{
+    Logger.info("Scheduling donation TTS job",
       user_id: user_id,
       donor_name: donation_event["donor_name"],
       amount: donation_event["amount"]
-    })
+    )
 
     DonationTtsJob.schedule_donation_tts(user_id, donation_event)
   end

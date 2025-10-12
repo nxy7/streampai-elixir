@@ -105,11 +105,11 @@ defmodule Streampai.TTS.Providers.OpenAI do
         {:ok, audio_data}
 
       {:ok, %{status: status, body: body}} ->
-        Logger.error("OpenAI TTS API error", %{status: status, body: inspect(body)})
+        Logger.error("OpenAI TTS API error", status: status, body: inspect(body))
         {:error, {:api_error, status, body}}
 
       {:error, reason} ->
-        Logger.error("OpenAI TTS request failed", %{reason: inspect(reason)})
+        Logger.error("OpenAI TTS request failed", reason: inspect(reason))
         {:error, {:request_failed, reason}}
     end
   end
