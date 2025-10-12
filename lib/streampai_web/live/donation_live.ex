@@ -12,7 +12,15 @@ defmodule StreampaiWeb.DonationLive do
 
   require Logger
 
-  def mount(%{"username" => username}, _session, socket) do
+  def mount(%{"username" => username} = params, _session, socket) do
+    # Handle test mode from query parameter
+    test_mode =
+      case params["test"] do
+        "true" -> true
+        "false" -> false
+        _ -> false
+      end
+
     case DonationHelpers.find_user_by_username(username) do
       {:ok, user} ->
         preferences = DonationHelpers.get_user_preferences(user.id)
@@ -28,7 +36,8 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:meta_description, "Support #{user.name} with a donation")
          |> assign(:selected_amount, nil)
          |> assign(:custom_amount, "")
-         |> assign(:processing, false), layout: false}
+         |> assign(:processing, false)
+         |> assign(:test_mode, test_mode), layout: false}
 
       {:error, :not_found} ->
         similar_users = DonationHelpers.find_similar_usernames(username)
@@ -39,7 +48,8 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:searched_username, username)
          |> assign(:similar_users, similar_users)
          |> assign(:page_title, "User Not Found")
-         |> assign(:meta_description, "User not found"), layout: false}
+         |> assign(:meta_description, "User not found")
+         |> assign(:test_mode, test_mode), layout: false}
     end
   end
 
@@ -83,16 +93,21 @@ defmodule StreampaiWeb.DonationLive do
   defp process_donation(socket, params, amount) do
     user = socket.assigns.user
     preferences = socket.assigns.preferences
+    test_mode = socket.assigns.test_mode
 
-    case DonationHelpers.process_donation(user, params, amount, preferences) do
+    case DonationHelpers.process_donation(user, params, amount, preferences, test_mode) do
       {:ok, donation_event} ->
+        message =
+          if test_mode do
+            "Test donation of #{preferences.donation_currency || "USD"} #{amount} created successfully!"
+          else
+            "Thank you for your donation of #{preferences.donation_currency || "USD"} #{amount}!"
+          end
+
         {:noreply,
          socket
          |> assign(:processing, false)
-         |> put_flash(
-           :info,
-           "Thank you for your donation of #{preferences.donation_currency || "USD"} #{amount}!"
-         )
+         |> put_flash(:info, message)
          |> push_event("donation_submitted", donation_event)}
 
       {:error, _reason} ->
@@ -182,6 +197,16 @@ defmodule StreampaiWeb.DonationLive do
             <!-- Donation Form -->
             <div class="lg:col-span-2">
               <div class="bg-black/30 backdrop-blur rounded-xl p-8 border border-purple-500/30">
+                <%= if @test_mode do %>
+                  <div class="mb-6 bg-yellow-500/20 border border-yellow-500 rounded-lg p-4">
+                    <div class="flex items-center">
+                      <.icon name="hero-exclamation-triangle" class="w-5 h-5 text-yellow-400 mr-2" />
+                      <p class="text-yellow-200 font-semibold">
+                        This is a test donation - no actual payment will be processed
+                      </p>
+                    </div>
+                  </div>
+                <% end %>
                 <h2 class="text-2xl font-bold text-white mb-6">Make a Donation</h2>
 
                 <form phx-submit="submit_donation" phx-change="update_form">

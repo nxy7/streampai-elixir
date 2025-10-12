@@ -9,7 +9,7 @@ defmodule Streampai.TtsServiceTest do
       voice = "default"
 
       assert {:ok, file_path} = TtsService.get_or_generate_tts(message, voice)
-      assert String.starts_with?(file_path, "/tts/")
+      assert String.starts_with?(file_path, "tts/")
       assert String.ends_with?(file_path, ".mp3")
     end
 
@@ -28,10 +28,13 @@ defmodule Streampai.TtsServiceTest do
     test "generates different paths for different voices" do
       message = "Thank you!"
 
-      assert {:ok, file_path1} = TtsService.get_or_generate_tts(message, "default")
-      assert {:ok, file_path2} = TtsService.get_or_generate_tts(message, "robotic")
+      assert {:ok, file_path1} = TtsService.get_or_generate_tts(message, "openai_alloy")
+      assert {:ok, file_path2} = TtsService.get_or_generate_tts(message, "openai_echo")
 
+      # Different voices should have different filenames (voice prefix differs)
       assert file_path1 != file_path2
+      assert String.contains?(file_path1, "openai_alloy_")
+      assert String.contains?(file_path2, "openai_echo_")
     end
 
     test "generates different paths for different messages" do
@@ -49,10 +52,10 @@ defmodule Streampai.TtsServiceTest do
     end
   end
 
-  describe "generate_content_hash/2" do
+  describe "generate_content_hash/1" do
     test "generates consistent hash for same inputs" do
-      hash1 = TtsService.generate_content_hash("Hello", "default")
-      hash2 = TtsService.generate_content_hash("Hello", "default")
+      hash1 = TtsService.generate_content_hash("Hello")
+      hash2 = TtsService.generate_content_hash("Hello")
 
       assert hash1 == hash2
       assert is_binary(hash1)
@@ -60,23 +63,21 @@ defmodule Streampai.TtsServiceTest do
       assert String.length(hash1) == 64
     end
 
-    test "generates different hashes for different inputs" do
-      hash1 = TtsService.generate_content_hash("Hello", "default")
-      hash2 = TtsService.generate_content_hash("Hello", "robotic")
-      hash3 = TtsService.generate_content_hash("Goodbye", "default")
+    test "generates different hashes for different messages" do
+      hash1 = TtsService.generate_content_hash("Hello")
+      hash2 = TtsService.generate_content_hash("Goodbye")
 
       assert hash1 != hash2
-      assert hash1 != hash3
-      assert hash2 != hash3
     end
   end
 
   describe "get_tts_public_url/1" do
-    test "returns the path as-is for mock implementation" do
-      file_path = "/tts/abc123.mp3"
+    test "returns full S3 URL for the file path" do
+      file_path = "tts/abc123.mp3"
       url = TtsService.get_tts_public_url(file_path)
 
-      assert url == "/tts/abc123.mp3"
+      assert is_binary(url)
+      assert String.contains?(url, file_path)
     end
 
     test "returns nil for nil input" do

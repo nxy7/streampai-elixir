@@ -14,9 +14,12 @@ defmodule StreampaiWeb.DashboardSettingsLive do
   alias Streampai.Accounts.UserRoleHelpers
   alias Streampai.Billing
   alias Streampai.Dashboard
+  alias Streampai.TTS.VoiceModels
   alias StreampaiWeb.Components.AvatarUploadComponent
   alias StreampaiWeb.LiveHelpers.FormHelpers
   alias StreampaiWeb.LiveHelpers.UserHelpers
+
+  require Logger
 
   def mount_page(socket, _params, _session) do
     current_user = socket.assigns.current_user
@@ -31,6 +34,7 @@ defmodule StreampaiWeb.DashboardSettingsLive do
      |> assign(:usage, user_data.usage)
      |> assign(:platform_connections, platform_connections)
      |> load_user_preferences()
+     |> load_voice_options()
      |> load_role_data(current_user)
      |> assign(
        :name_form,
@@ -209,20 +213,31 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     min_amount = parse_amount(params["min_donation_amount"])
     max_amount = parse_amount(params["max_donation_amount"])
     currency = params["donation_currency"] || "USD"
+    default_voice = parse_voice_preference(params["default_voice"])
 
-    case UserPreferences.update_donation_settings(
-           current_preferences,
-           min_amount,
-           max_amount,
-           currency,
-           actor: current_user
-         ) do
-      {:ok, _preferences} ->
-        {:noreply,
-         socket
-         |> load_user_preferences()
-         |> flash_success("Donation preferences updated successfully!")}
+    Logger.info(
+      "Updating donation preferences: user_id=#{current_user.id}, min=#{inspect(min_amount)}, max=#{inspect(max_amount)}, currency=#{currency}, voice=#{inspect(default_voice)}"
+    )
 
+    with {:ok, preferences} <-
+           UserPreferences.update_donation_settings(
+             current_preferences,
+             min_amount,
+             max_amount,
+             currency,
+             actor: current_user
+           ),
+         {:ok, _preferences} <-
+           UserPreferences.update_voice_settings(
+             preferences,
+             default_voice,
+             actor: current_user
+           ) do
+      {:noreply,
+       socket
+       |> load_user_preferences()
+       |> flash_success("Donation preferences updated successfully!")}
+    else
       {:error, changeset} ->
         error_message =
           case changeset do
@@ -230,7 +245,14 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             _ -> "Failed to update donation preferences. Please check your values."
           end
 
-        {:noreply, flash_error(socket, error_message)}
+        {:noreply,
+         flash_error_with_log(socket, error_message, changeset,
+           user_id: current_user.id,
+           min_amount: min_amount,
+           max_amount: max_amount,
+           currency: currency,
+           voice: default_voice
+         )}
     end
   end
 
@@ -256,7 +278,108 @@ defmodule StreampaiWeb.DashboardSettingsLive do
     {:noreply, socket}
   end
 
+  defp parse_amount(nil), do: nil
+  defp parse_amount(""), do: nil
   defp parse_amount(amount), do: FormHelpers.parse_numeric_setting(amount, min: 1)
+
+  defp parse_voice_preference("" <> voice) when voice in ["", "none"], do: nil
+  defp parse_voice_preference(voice) when is_binary(voice), do: voice
+  defp parse_voice_preference(_), do: nil
+
+  defp load_voice_options(socket) do
+    voice_options = VoiceModels.voice_options(grouped: false)
+    assign(socket, :voice_options, voice_options)
+  end
+
+  defp voice_selector(assigns) do
+    ~H"""
+    <div phx-hook="VoiceSelector" id="voice-selector" class="relative">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Default TTS Voice
+      </label>
+      
+    <!-- Hidden input to store the selected value -->
+      <input
+        type="hidden"
+        name="preferences[default_voice]"
+        id="selected-voice-input"
+        value={@selected_voice || ""}
+      />
+      
+    <!-- Selected voice display / trigger button -->
+      <button
+        type="button"
+        id="voice-selector-button"
+        class="w-full flex items-center justify-between border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white hover:bg-gray-50 transition-colors"
+      >
+        <span id="selected-voice-label" class="text-gray-900">
+          {get_voice_label(@selected_voice, @voice_options)}
+        </span>
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+    <!-- Dropdown menu -->
+      <div
+        id="voice-selector-dropdown"
+        class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
+      >
+        <!-- Default option -->
+        <div
+          data-voice-value="random"
+          class="voice-option flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+        >
+          <div>
+            <div class="text-sm font-medium text-gray-900">🎲 Random</div>
+            <div class="text-xs text-gray-500">Different voice each time</div>
+          </div>
+        </div>
+        
+    <!-- Voice options with play buttons -->
+        <%= for voice <- @voice_options do %>
+          <div
+            data-voice-value={voice.value}
+            class="voice-option flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer group"
+          >
+            <div class="flex-1">
+              <div class="text-sm font-medium text-gray-900">{voice.label}</div>
+              <div class="text-xs text-gray-500">
+                {String.capitalize(voice.value |> String.split("_") |> List.first())} TTS
+              </div>
+            </div>
+            <button
+              type="button"
+              data-voice-preview={voice.value}
+              class="voice-play-btn ml-2 p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+              title="Preview voice"
+              onclick="event.stopPropagation()"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+          </div>
+        <% end %>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-1">
+        This voice will be used when donors don't select a voice, and for donations from streaming platforms (Twitch, YouTube, etc.)
+      </p>
+    </div>
+    """
+  end
+
+  defp get_voice_label(nil, _voice_options), do: "🎲 Random (different voice each time)"
+  defp get_voice_label("", _voice_options), do: "🎲 Random (different voice each time)"
+  defp get_voice_label("random", _voice_options), do: "🎲 Random (different voice each time)"
+
+  defp get_voice_label(voice_value, voice_options) do
+    case Enum.find(voice_options, &(&1.value == voice_value)) do
+      nil -> "🎲 Random (different voice each time)"
+      voice -> voice.label
+    end
+  end
 
   defp role_icon_component(assigns) do
     icon_name =
@@ -509,7 +632,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
           </div>
         </div>
 
-        <%!-- HIDDEN: Donation Page Section
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-6">Donation Page</h3>
           <div class="space-y-4">
@@ -636,6 +758,11 @@ defmodule StreampaiWeb.DashboardSettingsLive do
                 </div>
               </div>
 
+              <.voice_selector
+                selected_voice={@user_preferences.default_voice}
+                voice_options={@voice_options}
+              />
+
               <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
                 <StreampaiWeb.CoreComponents.icon
                   name="hero-information-circle"
@@ -663,7 +790,6 @@ defmodule StreampaiWeb.DashboardSettingsLive do
             </div>
           </form>
         </div>
-    --%>
         
     <!-- Role Invitations Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

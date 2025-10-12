@@ -17,6 +17,7 @@ defmodule Streampai.Accounts.UserPreferences do
     define :create
     define :toggle_email_notifications
     define :update_donation_settings, args: [:min_amount, :max_amount, :currency]
+    define :update_voice_settings, args: [:default_voice]
   end
 
   actions do
@@ -28,7 +29,8 @@ defmodule Streampai.Accounts.UserPreferences do
         :email_notifications,
         :min_donation_amount,
         :max_donation_amount,
-        :donation_currency
+        :donation_currency,
+        :default_voice
       ]
 
       upsert? true
@@ -67,6 +69,15 @@ defmodule Streampai.Accounts.UserPreferences do
       change set_attribute(:donation_currency, arg(:currency))
       change Streampai.Accounts.UserPreferences.Changes.ValidateDonationAmounts
     end
+
+    update :update_voice_settings do
+      description "Update default TTS voice settings"
+      require_atomic? false
+
+      argument :default_voice, :string, allow_nil?: true
+
+      change set_attribute(:default_voice, arg(:default_voice))
+    end
   end
 
   policies do
@@ -79,6 +90,11 @@ defmodule Streampai.Accounts.UserPreferences do
     policy action_type(:create) do
       authorize_if expr(^actor(:role) == :admin)
       authorize_if actor_present()
+    end
+
+    policy action_type(:update) do
+      authorize_if expr(^actor(:role) == :admin)
+      authorize_if expr(user_id == ^actor(:id))
     end
 
     policy action_type(:destroy) do
@@ -100,6 +116,13 @@ defmodule Streampai.Accounts.UserPreferences do
     attribute :min_donation_amount, :integer, allow_nil?: true, public?: true
     attribute :max_donation_amount, :integer, allow_nil?: true, public?: true
     attribute :donation_currency, :string, allow_nil?: false, default: "USD", public?: true
+
+    attribute :default_voice, :string do
+      allow_nil? true
+      public? true
+
+      description "Default TTS voice for donations. Special values: 'random' = random voice per donation, null = use first available voice"
+    end
 
     timestamps()
   end

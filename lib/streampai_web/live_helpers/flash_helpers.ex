@@ -10,6 +10,8 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
 
   alias Ash.Error.Invalid
 
+  require Logger
+
   @doc """
   Shows a success flash message with consistent formatting.
   """
@@ -22,6 +24,112 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   """
   def flash_error(socket, message) when is_binary(message) do
     put_flash(socket, :error, message)
+  end
+
+  @doc """
+  Shows an error flash message and logs the error details.
+
+  This is the preferred way to show errors to users as it ensures all user-facing
+  errors are logged for debugging.
+
+  This is a macro so the log shows the actual call site, not flash_helpers.ex.
+
+  ## Examples
+
+      socket
+      |> flash_error_with_log("Failed to save", changeset)
+
+      socket
+      |> flash_error_with_log("Operation failed", error, context: "update_profile")
+
+  """
+  defmacro flash_error_with_log(socket, message, error \\ nil, opts \\ []) do
+    quote do
+      require Logger
+
+      message = unquote(message)
+      error = unquote(error)
+      opts = unquote(opts)
+
+      context =
+        if opts == [] do
+          ""
+        else
+          context_parts =
+            Enum.map(opts, fn {key, value} ->
+              "#{key}=#{inspect(value)}"
+            end)
+
+          " [" <> Enum.join(context_parts, ", ") <> "]"
+        end
+
+      if error do
+        Logger.error("#{message}#{context}, error: #{inspect(error, pretty: true, limit: :infinity)}")
+      else
+        Logger.error("#{message}#{context}")
+      end
+
+      Phoenix.LiveView.put_flash(unquote(socket), :error, message)
+    end
+  end
+
+  @doc """
+  Logs an error with context. Works like `dbg` but for errors.
+
+  This is useful when you want to log an error without showing a flash message,
+  or when you want to log before doing additional error handling.
+
+  Returns the error unchanged so it can be used in pipelines.
+
+  This is a macro so the log shows the actual call site, not flash_helpers.ex.
+
+  ## Examples
+
+      error
+      |> log_error("Database query failed")
+      |> handle_error()
+
+      log_error("User action failed", error, user_id: user.id, action: :update)
+
+  """
+  defmacro log_error(error_or_message, context_or_error \\ nil, opts \\ []) do
+    quote do
+      require Logger
+
+      error_or_message = unquote(error_or_message)
+      context_or_error = unquote(context_or_error)
+      opts = unquote(opts)
+
+      context =
+        if opts == [] do
+          ""
+        else
+          context_parts =
+            Enum.map(opts, fn {key, value} ->
+              "#{key}=#{inspect(value)}"
+            end)
+
+          " [" <> Enum.join(context_parts, ", ") <> "]"
+        end
+
+      cond do
+        is_binary(error_or_message) and is_nil(context_or_error) ->
+          Logger.error("#{error_or_message}#{context}")
+          nil
+
+        is_binary(error_or_message) ->
+          Logger.error(
+            "#{error_or_message}#{context}, error: #{inspect(context_or_error, pretty: true, limit: :infinity)}"
+          )
+
+          context_or_error
+
+        true ->
+          Logger.error("Error occurred#{context}: #{inspect(error_or_message, pretty: true, limit: :infinity)}")
+
+          error_or_message
+      end
+    end
   end
 
   @doc """
@@ -129,9 +237,7 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_ash_error(error) do
-    require Logger
-
-    Logger.error("Ash error occurred: #{inspect(error)}")
+    Logger.error("Ash error occurred: #{inspect(error, pretty: true)}")
     "An error occurred. Please try again later."
   end
 
@@ -144,9 +250,7 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_individual_error(error) do
-    require Logger
-
-    Logger.error("Individual error formatting fallback: #{inspect(error)}")
+    Logger.error("Individual error formatting fallback: #{inspect(error, pretty: true)}")
     "An error occurred. Please try again."
   end
 
@@ -156,9 +260,7 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   end
 
   defp format_platform_error(base_message, error) do
-    require Logger
-
-    Logger.error("Platform error: #{base_message} - #{inspect(error)}")
+    Logger.error("Platform error: #{base_message} - #{inspect(error, pretty: true)}")
     "#{base_message}. Please try again later."
   end
 

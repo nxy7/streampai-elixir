@@ -45,7 +45,8 @@ defmodule Streampai.Jobs.DonationTtsJobTest do
 
       # Should have TTS path and URL since message is not empty
       assert is_binary(alert_event.tts_path)
-      assert String.starts_with?(alert_event.tts_url, "/tts/")
+      assert is_binary(alert_event.tts_url)
+      assert String.contains?(alert_event.tts_url, "tts/")
     end
 
     test "processes donation without message (no TTS)" do
