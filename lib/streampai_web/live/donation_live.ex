@@ -39,7 +39,7 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:preferences, preferences)
          |> assign(:top_donors, DonationHelpers.get_top_donors_placeholder())
          |> assign(:voice_options, DonationHelpers.get_voice_options())
-         |> assign(:donation_form, DonationHelpers.get_initial_form())
+         |> assign(:donation_form, DonationHelpers.get_initial_form(preferences))
          |> assign(:page_title, "Donate to #{user.name}")
          |> assign(:meta_description, "Support #{user.name} with a donation")
          |> assign(:selected_amount, nil)

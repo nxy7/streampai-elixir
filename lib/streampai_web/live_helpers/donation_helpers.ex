@@ -6,6 +6,7 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   alias Streampai.Accounts.User
   alias Streampai.Accounts.UserPreferences
   alias Streampai.Jobs.DonationTtsJob
+  alias Streampai.TTS.ProviderRegistry
 
   require Logger
 
@@ -137,28 +138,34 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   end
 
   @doc """
-  Gets available voice options for TTS.
+  Gets available voice options for TTS from all providers.
   """
   def get_voice_options do
-    [
-      %{value: "default", label: "Default Voice"},
-      %{value: "robotic", label: "Robotic"},
-      %{value: "cheerful", label: "Cheerful"},
-      %{value: "calm", label: "Calm"},
-      %{value: "excited", label: "Excited"},
-      %{value: "whisper", label: "Whisper"}
-    ]
+    ProviderRegistry.flat_voice_options()
   end
 
   @doc """
-  Gets initial donation form data.
+  Gets initial donation form data with default voice from preferences.
   """
-  def get_initial_form do
+  def get_initial_form(preferences) do
+    default_voice =
+      case preferences.default_voice do
+        nil ->
+          # Use first available voice if no preference set
+          case ProviderRegistry.list_all_voices() do
+            [] -> nil
+            [first | _] -> first.id
+          end
+
+        voice_id ->
+          voice_id
+      end
+
     %{
       donor_name: "",
       donor_email: "",
       message: "",
-      voice: "default"
+      voice: default_voice
     }
   end
 
