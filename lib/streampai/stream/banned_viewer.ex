@@ -21,7 +21,10 @@ defmodule Streampai.Stream.BannedViewer do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
 
   postgres do
     table "banned_viewers"
@@ -135,6 +138,29 @@ defmodule Streampai.Stream.BannedViewer do
 
       filter expr(user_id == ^arg(:user_id) and platform == ^arg(:platform) and is_active == true)
       prepare build(sort: [inserted_at: :desc])
+    end
+  end
+
+  policies do
+    bypass actor_attribute_equals(:is_admin, true) do
+      authorize_if always()
+      description "Admins can do anything"
+    end
+
+    policy action_type(:read) do
+      authorize_if IsStreamOwnerOrModerator
+    end
+
+    policy action_type(:create) do
+      authorize_if IsStreamOwnerOrModerator
+    end
+
+    policy action_type(:update) do
+      authorize_if IsStreamOwnerOrModerator
+    end
+
+    policy action_type(:destroy) do
+      authorize_if IsStreamOwnerOrModerator
     end
   end
 
