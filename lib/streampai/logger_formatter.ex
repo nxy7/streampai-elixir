@@ -1,32 +1,35 @@
 defmodule Streampai.LoggerFormatter do
   @moduledoc """
-  Custom Logger formatter that includes component and user_id metadata.
+  Custom Logger formatter that includes component, user_id, and extra metadata.
 
-  Format: [$level] [$component:$user_id]: $message
+  Format: [$level] filename.ex:line [$component user_id]: $message key=value key2=value2
 
-  - If both component and user_id are present: [info] [youtube_manager:user123]: Starting stream
-  - If only component is present: [info] [youtube_manager]: Starting stream
-  - If only user_id is present: [info] [user123]: Starting stream
-  - If neither are present: [info] Starting stream
+  - With context and metadata: [info] generator.ex:93 [tts_service user123]: TTS generated voice=alloy hash=abc123
+  - Without context: [info] generator.ex:93: TTS generated voice=alloy hash=abc123
+  - Minimal: [info]: Starting stream
 
-  Set LOG_LOCATION=true environment variable to include file and line number:
-  - [info] [youtube_manager:user123] youtube_manager.ex:123: Starting stream
+  All metadata passed to Logger calls (except internal keys like :file, :line, :module, etc.)
+  will be displayed as key=value pairs after the message.
+
+  Set @log_location to false in the module to disable file:line location display.
   """
 
   @log_location true
 
   def format(level, message, _timestamp, metadata) do
-    _context = build_context(metadata)
+    context = build_context(metadata)
     location = if @log_location, do: build_location(metadata), else: ""
+    extra_metadata = build_extra_metadata(metadata)
 
     [
       "[",
       level_to_string(level),
       "]",
       location,
-      # context,
+      context,
       " ",
       message,
+      extra_metadata,
       "\n"
     ]
   rescue
@@ -65,4 +68,43 @@ defmodule Streampai.LoggerFormatter do
 
   defp level_to_string(level) when is_atom(level), do: Atom.to_string(level)
   defp level_to_string(level), do: to_string(level)
+
+  # Keys that are used internally by logger or displayed elsewhere in the format
+  @excluded_keys [
+    :file,
+    :line,
+    :module,
+    :function,
+    :component,
+    :user_id,
+    :chat_id,
+    :mfa,
+    :gl,
+    :time,
+    :pid,
+    :application,
+    :domain,
+    :crash_reason,
+    :initial_call,
+    :registered_name,
+    :request_id,
+    :erl_level
+  ]
+
+  defp build_extra_metadata(metadata) do
+    extra =
+      metadata
+      |> Enum.reject(fn {key, _value} -> key in @excluded_keys end)
+      |> Enum.map(fn {key, value} -> "#{key}=#{inspect_value(value)}" end)
+
+    case extra do
+      [] -> ""
+      list -> " " <> Enum.join(list, " ")
+    end
+  end
+
+  defp inspect_value(value) when is_binary(value), do: value
+  defp inspect_value(value) when is_number(value), do: to_string(value)
+  defp inspect_value(value) when is_atom(value), do: to_string(value)
+  defp inspect_value(value), do: inspect(value, limit: :infinity, printable_limit: :infinity)
 end
