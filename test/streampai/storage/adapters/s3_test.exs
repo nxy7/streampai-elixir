@@ -64,7 +64,7 @@ defmodule Streampai.Storage.Adapters.S3Test do
                     scheme: "http",
                     host: "localhost",
                     port: 9000,
-                    path: "/streampai-dev/test/snapshot/document.pdf",
+                    path: "/streampai-test/test/snapshot/document.pdf",
                     query_param_keys: [
                       "Content-Type",
                       "X-Amz-Algorithm",

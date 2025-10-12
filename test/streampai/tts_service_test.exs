@@ -3,6 +3,9 @@ defmodule Streampai.TtsServiceTest do
 
   alias Streampai.TtsService
 
+  @moduletag :integration
+  @moduletag :s3
+
   describe "get_or_generate_tts/2" do
     test "generates mock TTS path for new message" do
       message = "Hello, thank you for the donation!"

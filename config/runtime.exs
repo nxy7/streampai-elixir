@@ -157,6 +157,7 @@ s3_bucket =
   System.get_env("S3_BUCKET") ||
     case env do
       :prod -> raise "S3_BUCKET environment variable is missing"
+      :test -> "streampai-test"
       _ -> "streampai-dev"
     end
 

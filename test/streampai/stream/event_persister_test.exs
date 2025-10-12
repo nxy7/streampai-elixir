@@ -53,7 +53,11 @@ defmodule Streampai.Stream.EventPersisterTest do
 
       on_exit(fn ->
         if Process.alive?(persister_pid) do
-          GenServer.stop(persister_pid)
+          try do
+            GenServer.stop(persister_pid)
+          catch
+            :exit, _ -> :ok
+          end
         end
       end)
 

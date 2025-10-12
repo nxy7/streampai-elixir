@@ -18,7 +18,7 @@ defmodule Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault do
         case results do
           [] ->
             user_id = Ash.Query.get_argument(query, :user_id)
-            actor = context[:actor]
+            actor = context.actor
 
             case UserPreferences.create(
                    %{
