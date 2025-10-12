@@ -440,6 +440,199 @@ Hooks.ContextMenuButton = {
   }
 };
 
+// Widget Connection Lines Hook
+Hooks.WidgetConnections = {
+  mounted() {
+    this.isUpdating = false;
+    this.updateLines();
+
+    // Listen for custom update events from drag operations
+    const updateHandler = () => this.updateLines();
+    this.el.addEventListener('update-lines', updateHandler);
+
+    this.cleanup = () => {
+      this.el.removeEventListener('update-lines', updateHandler);
+    };
+  },
+
+  updated() {
+    this.updateLines();
+  },
+
+  updateLines() {
+    // Prevent re-entrant calls
+    if (this.isUpdating) return;
+
+    this.isUpdating = true;
+
+    try {
+      const svg = this.el.querySelector('svg');
+      if (!svg) return;
+
+      const widgets = Array.from(this.el.querySelectorAll('.placeholder-widget'));
+
+      // Clear existing lines
+      svg.innerHTML = '';
+
+      if (widgets.length < 2) return;
+
+      // Track which pairs we've already drawn to avoid duplicates
+      const drawnPairs = new Set();
+
+      widgets.forEach(widget => {
+        const closest = this.findClosestWidget(widget, widgets);
+        if (!closest) return;
+
+        // Create a unique pair key (sorted to ensure A-B is same as B-A)
+        const id1 = widget.dataset.widgetId;
+        const id2 = closest.dataset.widgetId;
+        const pairKey = [id1, id2].sort().join('-');
+
+        // Skip if we've already drawn this pair
+        if (drawnPairs.has(pairKey)) return;
+        drawnPairs.add(pairKey);
+
+        const lineData = this.calculateLineBetweenWidgets(widget, closest);
+        if (!lineData) return;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', lineData.x1);
+        line.setAttribute('y1', lineData.y1);
+        line.setAttribute('x2', lineData.x2);
+        line.setAttribute('y2', lineData.y2);
+        line.setAttribute('stroke', this.randomColor(id1));
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.6');
+
+        svg.appendChild(line);
+      });
+    } finally {
+      this.isUpdating = false;
+    }
+  },
+
+  findClosestWidget(widget, widgets) {
+    const rect = widget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    let closest = null;
+    let minDistance = Infinity;
+
+    widgets.forEach(other => {
+      if (other === widget) return;
+
+      const otherRect = other.getBoundingClientRect();
+      const otherCenterX = otherRect.left + otherRect.width / 2;
+      const otherCenterY = otherRect.top + otherRect.height / 2;
+
+      const dx = otherCenterX - centerX;
+      const dy = otherCenterY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = other;
+      }
+    });
+
+    return closest;
+  },
+
+  calculateLineBetweenWidgets(widget1, widget2) {
+    const canvas = this.el.getBoundingClientRect();
+    const rect1 = widget1.getBoundingClientRect();
+    const rect2 = widget2.getBoundingClientRect();
+
+    // Calculate centers relative to canvas
+    const c1x = rect1.left - canvas.left + rect1.width / 2;
+    const c1y = rect1.top - canvas.top + rect1.height / 2;
+    const c2x = rect2.left - canvas.left + rect2.width / 2;
+    const c2y = rect2.top - canvas.top + rect2.height / 2;
+
+    // Find where the center-to-center line intersects each widget's boundary
+    const edge1 = this.lineRectIntersection(
+      c1x, c1y, c2x, c2y,
+      rect1.left - canvas.left,
+      rect1.top - canvas.top,
+      rect1.width,
+      rect1.height
+    );
+
+    const edge2 = this.lineRectIntersection(
+      c2x, c2y, c1x, c1y,
+      rect2.left - canvas.left,
+      rect2.top - canvas.top,
+      rect2.width,
+      rect2.height
+    );
+
+    return {
+      x1: edge1.x,
+      y1: edge1.y,
+      x2: edge2.x,
+      y2: edge2.y
+    };
+  },
+
+  lineRectIntersection(x1, y1, x2, y2, rectX, rectY, rectWidth, rectHeight) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    if (dx === 0 && dy === 0) {
+      return { x: x1, y: y1 };
+    }
+
+    const rectLeft = rectX;
+    const rectRight = rectX + rectWidth;
+    const rectTop = rectY;
+    const rectBottom = rectY + rectHeight;
+
+    let tMin = 0;
+    let tMax = 1;
+
+    // Check intersection with each edge
+    const edges = [
+      { t: (rectLeft - x1) / dx, side: 'left' },
+      { t: (rectRight - x1) / dx, side: 'right' },
+      { t: (rectTop - y1) / dy, side: 'top' },
+      { t: (rectBottom - y1) / dy, side: 'bottom' }
+    ];
+
+    // Find the intersection point on the rectangle boundary
+    for (const edge of edges) {
+      if (!isFinite(edge.t)) continue;
+      if (edge.t < 0) continue;
+
+      const ix = x1 + edge.t * dx;
+      const iy = y1 + edge.t * dy;
+
+      // Check if intersection point is on the rectangle boundary
+      if (ix >= rectLeft - 0.1 && ix <= rectRight + 0.1 &&
+          iy >= rectTop - 0.1 && iy <= rectBottom + 0.1) {
+        return { x: ix, y: iy };
+      }
+    }
+
+    // Fallback to center if no intersection found
+    return { x: x1, y: y1 };
+  },
+
+  randomColor(widgetId) {
+    // Generate consistent color from widget ID
+    let hash = 0;
+    for (let i = 0; i < widgetId.length; i++) {
+      hash = widgetId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 70%, 60%)`;
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
 // Draggable Widget Hook
 Hooks.DraggableWidget = {
   mounted() {
@@ -450,6 +643,7 @@ Hooks.DraggableWidget = {
     let initialY;
     let xOffset = parseInt(this.el.style.left) || 0;
     let yOffset = parseInt(this.el.style.top) || 0;
+    let animationFrameId = null;
 
     const dragStart = (e) => {
       if (e.target.closest('.delete-widget-btn')) {
@@ -472,12 +666,21 @@ Hooks.DraggableWidget = {
         isDragging = false;
         this.el.style.cursor = 'move';
 
+        // Cancel any pending animation frame
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+
         // Send position update to LiveView
         this.pushEvent("update_widget_position", {
           id: this.el.dataset.widgetId,
           x: Math.round(xOffset),
           y: Math.round(yOffset)
         });
+
+        // Final line update
+        this.updateConnectionLines();
       }
     };
 
@@ -500,6 +703,14 @@ Hooks.DraggableWidget = {
 
         this.el.style.left = xOffset + "px";
         this.el.style.top = yOffset + "px";
+
+        // Throttle line updates using requestAnimationFrame
+        if (!animationFrameId) {
+          animationFrameId = requestAnimationFrame(() => {
+            this.updateConnectionLines();
+            animationFrameId = null;
+          });
+        }
       }
     };
 
@@ -509,10 +720,19 @@ Hooks.DraggableWidget = {
 
     // Store cleanup
     this.cleanup = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       this.el.removeEventListener("mousedown", dragStart);
       document.removeEventListener("mousemove", drag);
       document.removeEventListener("mouseup", dragEnd);
     };
+  },
+
+  updateConnectionLines() {
+    const canvas = this.el.parentElement;
+    const event = new CustomEvent('update-lines');
+    canvas.dispatchEvent(event);
   },
 
   destroyed() {

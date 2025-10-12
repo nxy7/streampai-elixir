@@ -174,11 +174,13 @@ defmodule StreampaiWeb.DashboardSmartWidgetsLive do
         <div class="bg-gray-900 rounded-lg shadow-lg p-4">
           <div class="widget-canvas-container" id="widget-canvas">
             <div
+              phx-hook="CanvasContextMenu"
+              id="canvas-area"
               class="widget-canvas"
               style="aspect-ratio: 16 / 9; max-width: 100%; margin: 0 auto; position: relative; background: #0f0f0f; border: 2px solid #333; border-radius: 0.375rem; overflow: hidden;"
             >
               <div
-                phx-hook="CanvasContextMenu"
+                phx-hook="WidgetConnections"
                 id="canvas-grid"
                 class="canvas-grid"
                 style="position: relative; width: 100%; height: 100%; min-height: 400px;"
@@ -186,6 +188,9 @@ defmodule StreampaiWeb.DashboardSmartWidgetsLive do
                 <!-- Grid overlay -->
                 <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0;">
                 </div>
+                <!-- Connection lines between widgets (managed by JavaScript) -->
+                <svg style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+                </svg>
                 
     <!-- Render widgets -->
                 <%= for widget <- @widgets do %>
