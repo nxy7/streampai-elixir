@@ -80,8 +80,8 @@ defmodule Streampai.TTS.Providers.OpenAI do
 
   @impl true
   def enabled? do
-    # Always enabled since we have mock audio fallback
-    true
+    # Disabled - using ElevenLabs for better voice quality
+    false
   end
 
   defp generate_with_api(message, voice, api_key) do
