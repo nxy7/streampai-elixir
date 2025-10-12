@@ -19,7 +19,8 @@ defmodule Streampai.Stream.ModerationAction.Actions.BanViewer do
       viewer_username: input.arguments.viewer_username,
       reason: input.arguments[:reason],
       duration_seconds: input.arguments[:duration_seconds],
-      livestream_id: input.arguments[:livestream_id]
+      livestream_id: input.arguments[:livestream_id],
+      banned_by_user_id: context.actor.id
     }
 
     case BannedViewer.ban_viewer(params, actor: context.actor) do

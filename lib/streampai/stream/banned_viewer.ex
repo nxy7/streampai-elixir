@@ -24,6 +24,7 @@ defmodule Streampai.Stream.BannedViewer do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Streampai.Accounts.User
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformUnban
   alias Streampai.Stream.BannedViewer.Changes.SetBanAttributes
@@ -76,7 +77,8 @@ defmodule Streampai.Stream.BannedViewer do
         :reason,
         :duration_seconds,
         :platform_ban_id,
-        :livestream_id
+        :livestream_id,
+        :banned_by_user_id
       ]
 
       change SetBanAttributes
@@ -213,10 +215,16 @@ defmodule Streampai.Stream.BannedViewer do
   end
 
   relationships do
-    belongs_to :user, Streampai.Accounts.User do
+    belongs_to :user, User do
       allow_nil? false
       attribute_writable? true
       description "The streamer who banned this viewer"
+    end
+
+    belongs_to :banned_by_user, User do
+      allow_nil? true
+      attribute_writable? true
+      description "The user (streamer or moderator) who performed the ban"
     end
 
     belongs_to :livestream, Streampai.Stream.Livestream do
