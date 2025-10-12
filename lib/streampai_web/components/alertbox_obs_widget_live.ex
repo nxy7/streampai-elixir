@@ -85,6 +85,11 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     handle_real_event(socket, {:alert_event, event})
   end
 
+  def handle_info({:new_donation, alert_event}, socket) do
+    transformed_event = transform_alert_event(alert_event)
+    {:noreply, assign(socket, :current_event, transformed_event)}
+  end
+
   def handle_info({:new_alert, donation_event}, socket) do
     event = %{
       type: :donation,
@@ -106,7 +111,7 @@ defmodule StreampaiWeb.Components.AlertboxObsWidgetLive do
     %{
       id: Map.get(event, :id, generate_event_id()),
       type: event.type,
-      username: Map.get(event, :username, "Unknown"),
+      username: Map.get(event, :username) || Map.get(event, :donor_name, "Unknown"),
       message: Map.get(event, :message, ""),
       amount: Map.get(event, :amount),
       currency: Map.get(event, :currency, "USD"),

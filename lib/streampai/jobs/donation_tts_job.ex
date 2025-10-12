@@ -107,7 +107,7 @@ defmodule Streampai.Jobs.DonationTtsJob do
     # Broadcast to the alertbox widget
     PubSub.broadcast(
       Streampai.PubSub,
-      "donations:#{user_id}",
+      "alertbox:#{user_id}",
       {:new_donation, alert_event}
     )
 
