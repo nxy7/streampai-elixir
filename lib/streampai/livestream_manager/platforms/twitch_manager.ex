@@ -125,26 +125,27 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   @doc """
-  Bans a user from the chat (not currently implemented).
+  Bans a user from the chat permanently.
   """
-  def ban_user(_user_id, _target_user_id, _reason \\ nil) do
-    {:error, :not_implemented}
+  def ban_user(user_id, target_user_id, reason \\ nil) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:ban_user, target_user_id, reason})
   end
 
   @impl true
   @doc """
-  Timeouts a user in the chat (not currently implemented).
+  Timeouts a user in the chat for a specified duration.
   """
-  def timeout_user(_user_id, _target_user_id, _duration_seconds, _reason \\ nil) do
-    {:error, :not_implemented}
+  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:timeout_user, target_user_id, duration_seconds, reason})
   end
 
   @impl true
   @doc """
-  Unbans a user from the chat (not currently implemented).
+  Unbans a user from the chat.
+  Note: ban_id parameter is user_id for Twitch API.
   """
-  def unban_user(_user_id, _ban_id) do
-    {:error, :not_implemented}
+  def unban_user(user_id, target_user_id) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:unban_user, target_user_id})
   end
 
   # Server callbacks
@@ -350,6 +351,21 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     }
 
     {:reply, status, state}
+  end
+
+  @impl true
+  def handle_call({:ban_user, target_user_id, reason}, _from, state) do
+    do_ban_user(target_user_id, reason, state)
+  end
+
+  @impl true
+  def handle_call({:timeout_user, target_user_id, duration_seconds, reason}, _from, state) do
+    do_timeout_user(target_user_id, duration_seconds, reason, state)
+  end
+
+  @impl true
+  def handle_call({:unban_user, target_user_id}, _from, state) do
+    do_unban_user(target_user_id, state)
   end
 
   # Helper functions
@@ -650,6 +666,76 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
       {:error, reason} ->
         Logger.warning("Failed to delete Cloudflare output: #{inspect(reason)}")
+    end
+  end
+
+  defp do_ban_user(_target_user_id, _reason, %{channel_id: nil} = state) do
+    {:reply, {:error, :no_channel_id}, state}
+  end
+
+  defp do_ban_user(target_user_id, reason, state) do
+    opts = if reason, do: [reason: reason], else: []
+
+    case ApiClient.ban_user(
+           state.access_token,
+           state.channel_id,
+           state.channel_id,
+           target_user_id,
+           opts
+         ) do
+      {:ok, ban_data} ->
+        Logger.info("User banned: #{target_user_id}")
+        {:reply, {:ok, ban_data}, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to ban user: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_timeout_user(_target_user_id, _duration_seconds, _reason, %{channel_id: nil} = state) do
+    {:reply, {:error, :no_channel_id}, state}
+  end
+
+  defp do_timeout_user(target_user_id, duration_seconds, reason, state) do
+    opts = [duration: duration_seconds]
+    opts = if reason, do: Keyword.put(opts, :reason, reason), else: opts
+
+    case ApiClient.ban_user(
+           state.access_token,
+           state.channel_id,
+           state.channel_id,
+           target_user_id,
+           opts
+         ) do
+      {:ok, ban_data} ->
+        Logger.info("User timed out: #{target_user_id} for #{duration_seconds}s")
+        {:reply, {:ok, ban_data}, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to timeout user: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_unban_user(_target_user_id, %{channel_id: nil} = state) do
+    {:reply, {:error, :no_channel_id}, state}
+  end
+
+  defp do_unban_user(target_user_id, state) do
+    case ApiClient.unban_user(
+           state.access_token,
+           state.channel_id,
+           state.channel_id,
+           target_user_id
+         ) do
+      :ok ->
+        Logger.info("User unbanned: #{target_user_id}")
+        {:reply, :ok, state}
+
+      {:error, reason} ->
+        Logger.error("Failed to unban user: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
     end
   end
 end

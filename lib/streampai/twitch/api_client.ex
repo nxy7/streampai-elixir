@@ -208,6 +208,113 @@ defmodule Streampai.Twitch.ApiClient do
     |> handle_response()
   end
 
+  @doc """
+  Bans a user from the broadcaster's chat room or puts them in a timeout.
+
+  Requires the `moderator:manage:banned_users` scope.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token with moderator:manage:banned_users scope
+  - `broadcaster_id`: The ID of the broadcaster's channel
+  - `moderator_id`: The ID of the moderator performing the ban
+  - `user_id`: The ID of the user to ban
+  - `opts`: Optional keyword list
+    - `:duration` - Duration of the timeout in seconds (omit for permanent ban, max 1209600 = 14 days)
+    - `:reason` - The reason for the ban/timeout
+
+  ## Returns
+  - `{:ok, ban_data}` - Successfully banned user, returns ban details including ban ID
+  - `{:error, reason}` - Failed to ban user
+
+  ## Example
+      # Permanent ban
+      {:ok, ban} = ApiClient.ban_user(token, "12345", "12345", "67890", reason: "Spam")
+
+      # 5 minute timeout
+      {:ok, ban} = ApiClient.ban_user(token, "12345", "12345", "67890", duration: 300)
+  """
+  @spec ban_user(access_token, String.t(), String.t(), String.t(), keyword()) :: api_result()
+  def ban_user(access_token, broadcaster_id, moderator_id, user_id, opts \\ []) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{access_token}"},
+      {"Client-Id", client_id},
+      {"Content-Type", "application/json"}
+    ]
+
+    params = %{
+      broadcaster_id: broadcaster_id,
+      moderator_id: moderator_id
+    }
+
+    body_data =
+      %{user_id: user_id}
+      |> maybe_put(:duration, Keyword.get(opts, :duration))
+      |> maybe_put(:reason, Keyword.get(opts, :reason))
+
+    body = Jason.encode!(%{data: body_data})
+
+    [
+      url: "#{@base_url}/moderation/bans",
+      headers: headers,
+      params: params,
+      body: body,
+      receive_timeout: @default_timeout
+    ]
+    |> Req.post()
+    |> handle_response()
+    |> extract_first_ban()
+  end
+
+  @doc """
+  Removes a ban or timeout on a user.
+
+  Requires the `moderator:manage:banned_users` scope.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token with moderator:manage:banned_users scope
+  - `broadcaster_id`: The ID of the broadcaster's channel
+  - `moderator_id`: The ID of the moderator removing the ban
+  - `user_id`: The ID of the user to unban
+
+  ## Returns
+  - `:ok` - Successfully unbanned user
+  - `{:error, reason}` - Failed to unban user
+
+  ## Example
+      :ok = ApiClient.unban_user(token, "12345", "12345", "67890")
+  """
+  @spec unban_user(access_token, String.t(), String.t(), String.t()) ::
+          :ok | {:error, term()}
+  def unban_user(access_token, broadcaster_id, moderator_id, user_id) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{access_token}"},
+      {"Client-Id", client_id}
+    ]
+
+    params = %{
+      broadcaster_id: broadcaster_id,
+      moderator_id: moderator_id,
+      user_id: user_id
+    }
+
+    [
+      url: "#{@base_url}/moderation/bans",
+      headers: headers,
+      params: params,
+      receive_timeout: @default_timeout
+    ]
+    |> Req.delete()
+    |> case do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, %{status: status, body: body}} -> {:error, {:http_error, status, body}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   ## Private Functions
 
   defp handle_response({:ok, %{status: status, body: body}}) when status in 200..299 do
@@ -246,6 +353,10 @@ defmodule Streampai.Twitch.ApiClient do
   defp extract_first_user({:ok, %{"data" => [user | _]}}), do: {:ok, user}
   defp extract_first_user({:ok, %{"data" => []}}), do: {:error, :user_not_found}
   defp extract_first_user(error), do: error
+
+  defp extract_first_ban({:ok, %{"data" => [ban | _]}}), do: {:ok, ban}
+  defp extract_first_ban({:ok, %{"data" => []}}), do: {:error, :ban_not_created}
+  defp extract_first_ban(error), do: error
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
