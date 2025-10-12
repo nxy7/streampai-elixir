@@ -1166,24 +1166,38 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   attr :platform_connections, :list, required: true
   attr :current_user, :map, required: true
   attr :disconnecting_platform, :atom, default: nil
+  attr :collapsed, :boolean, default: false
 
   def platform_connections_section(assigns) do
     assigns =
-      assign_new(assigns, :active_count, fn ->
+      assigns
+      |> assign_new(:active_count, fn ->
         connected_count = Enum.count(assigns.platform_connections, & &1.connected)
 
         total_count = length(assigns.platform_connections)
         "#{connected_count}/#{total_count}"
       end)
+      |> assign_new(:collapsed, fn -> false end)
 
     ~H"""
     <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
-      <div class="px-6 py-4 border-b border-gray-200">
+      <button
+        phx-click="toggle_platform_connections"
+        class="w-full px-6 py-4 border-b border-gray-200 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
         <h3 class="text-lg font-medium text-gray-900">
           Platform Connections <span class="text-gray-500 font-normal">({@active_count})</span>
         </h3>
-      </div>
-      <div class="p-6">
+        <svg
+          class={"w-5 h-5 text-gray-500 transition-transform #{if @collapsed, do: "-rotate-90", else: ""}"}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div :if={!@collapsed} class="p-6">
         <div class="space-y-3">
           <.platform_connection
             :for={connection <- @platform_connections}

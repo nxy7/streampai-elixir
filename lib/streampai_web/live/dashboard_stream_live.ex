@@ -47,6 +47,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:stream_data, stream_data)
       |> assign(:chat_messages, chat_messages)
       |> assign(:stream_events, stream_events)
+      |> assign(:disconnecting_platform, nil)
+      |> assign(:platform_connections_collapsed, false)
 
     {:ok, socket, layout: false}
   end
@@ -126,6 +128,15 @@ defmodule StreampaiWeb.DashboardStreamLive do
 
   def handle_event("toggle_stream_key_visibility", _params, socket) do
     {:noreply, assign(socket, :show_stream_key, !socket.assigns.show_stream_key)}
+  end
+
+  def handle_event("toggle_platform_connections", _params, socket) do
+    {:noreply,
+     assign(
+       socket,
+       :platform_connections_collapsed,
+       !socket.assigns.platform_connections_collapsed
+     )}
   end
 
   def handle_event("update_stream_metadata", metadata_params, socket) when is_map(metadata_params) do
@@ -1012,6 +1023,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
         <.platform_connections_section
           platform_connections={@platform_connections}
           current_user={@current_user}
+          disconnecting_platform={@disconnecting_platform}
+          collapsed={@platform_connections_collapsed}
         />
       </div>
     </.dashboard_layout>
