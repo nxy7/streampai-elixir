@@ -42,6 +42,8 @@ defmodule Streampai.Jobs.DonationTtsJob do
         Logger.error("Failed to process donation TTS",
           user_id: user_id,
           error: inspect(error),
+          error_type: error.__struct__,
+          stacktrace: Exception.format_stacktrace(__STACKTRACE__),
           attempt: attempt
         )
 
