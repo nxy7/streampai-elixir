@@ -7,20 +7,8 @@ config :live_vue, vite_host: "http://localhost:5173", ssr: false
 # Logging and debugging
 config :logger, :console,
   format: {Streampai.LoggerFormatter, :format},
-  metadata: [
-    :user_id,
-    :component,
-    :chat_id,
-    :platform,
-    :file,
-    :line,
-    :error_id,
-    :duration,
-    :input_status,
-    :stream_uuid,
-    :stream_id,
-    :path
-  ]
+  # Use :all to include all metadata - the formatter will filter what to display
+  metadata: :all
 
 # LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
 # Note: LiveDebugger can cause ETS errors when tracing LiveView sockets with large assigns
