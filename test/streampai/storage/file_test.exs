@@ -26,7 +26,7 @@ defmodule Streampai.Storage.FileTest do
         Skipping S3 storage integration tests.
         """
 
-        {:skip, message}
+        ExUnit.Case.skip(message)
     end
   end
 
