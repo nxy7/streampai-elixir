@@ -36,6 +36,9 @@ defmodule StreampaiWeb.DashboardStreamLive do
     # Load recent chat messages and events if streaming
     {chat_messages, stream_events} = load_recent_activity_if_streaming(user_id, stream_status)
 
+    # Collapse platform connections by default if at least one is connected
+    has_connections = Enum.any?(platform_connections, & &1.connected)
+
     socket =
       socket
       |> assign(:platform_connections, platform_connections)
@@ -48,7 +51,7 @@ defmodule StreampaiWeb.DashboardStreamLive do
       |> assign(:chat_messages, chat_messages)
       |> assign(:stream_events, stream_events)
       |> assign(:disconnecting_platform, nil)
-      |> assign(:platform_connections_collapsed, false)
+      |> assign(:platform_connections_collapsed, has_connections)
 
     {:ok, socket, layout: false}
   end

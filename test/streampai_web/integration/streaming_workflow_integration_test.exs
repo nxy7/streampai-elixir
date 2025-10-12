@@ -35,6 +35,9 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/dashboard/stream")
 
+      # Expand platform connections section (collapsed by default when connections exist)
+      view |> element("button", "Platform Connections") |> render_click()
+
       html = render(view)
       assert html =~ "Connected"
       assert html =~ "Twitch"
