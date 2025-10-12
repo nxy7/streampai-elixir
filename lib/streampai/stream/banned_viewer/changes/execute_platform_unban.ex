@@ -48,18 +48,15 @@ defmodule Streampai.Stream.BannedViewer.Changes.ExecutePlatformUnban do
   end
 
   defp get_platform_manager(user_id, platform) do
-    case PlatformRegistry.get_manager(platform) do
-      {:ok, manager_module} ->
-        case manager_module.get_status(user_id) do
-          {:ok, _status} ->
-            {:ok, manager_module}
+    with {:ok, manager_module} <- PlatformRegistry.get_manager(platform),
+         {:ok, _status} <- manager_module.get_status(user_id) do
+      {:ok, manager_module}
+    else
+      {:error, :unknown_platform} ->
+        {:error, {:platform_manager_unavailable, platform}}
 
-          {:error, _} ->
-            {:error, :manager_not_running}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+      {:error, _status_error} ->
+        {:error, {:manager_not_running, %{user_id: user_id, platform: platform}}}
     end
   end
 end

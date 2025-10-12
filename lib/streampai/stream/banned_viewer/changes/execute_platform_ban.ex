@@ -50,55 +50,34 @@ defmodule Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan do
   end
 
   defp execute_platform_ban(user_id, platform, viewer_platform_id, reason, duration_seconds) do
-    case get_platform_manager(user_id, platform) do
-      {:ok, manager_module} ->
-        if duration_seconds do
-          case manager_module.timeout_user(
-                 user_id,
-                 viewer_platform_id,
-                 duration_seconds,
-                 reason
-               ) do
-            {:ok, ban_data} when is_map(ban_data) ->
-              {:ok, Map.get(ban_data, "id")}
-
-            {:ok, _} ->
-              {:ok, nil}
-
-            {:error, reason} ->
-              {:error, reason}
-          end
-        else
-          case manager_module.ban_user(user_id, viewer_platform_id, reason) do
-            {:ok, ban_data} when is_map(ban_data) ->
-              {:ok, Map.get(ban_data, "id")}
-
-            {:ok, _} ->
-              {:ok, nil}
-
-            {:error, reason} ->
-              {:error, reason}
-          end
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, manager_module} <- get_platform_manager(user_id, platform),
+         {:ok, result} <-
+           call_ban_method(manager_module, user_id, viewer_platform_id, reason, duration_seconds) do
+      extract_ban_id(result)
     end
   end
 
+  defp call_ban_method(manager_module, user_id, viewer_platform_id, reason, nil) do
+    manager_module.ban_user(user_id, viewer_platform_id, reason)
+  end
+
+  defp call_ban_method(manager_module, user_id, viewer_platform_id, reason, duration_seconds) do
+    manager_module.timeout_user(user_id, viewer_platform_id, duration_seconds, reason)
+  end
+
+  defp extract_ban_id(%{"id" => id}), do: {:ok, id}
+  defp extract_ban_id(_), do: {:ok, nil}
+
   defp get_platform_manager(user_id, platform) do
-    case PlatformRegistry.get_manager(platform) do
-      {:ok, manager_module} ->
-        case manager_module.get_status(user_id) do
-          {:ok, _status} ->
-            {:ok, manager_module}
+    with {:ok, manager_module} <- PlatformRegistry.get_manager(platform),
+         {:ok, _status} <- manager_module.get_status(user_id) do
+      {:ok, manager_module}
+    else
+      {:error, :unknown_platform} ->
+        {:error, {:platform_manager_unavailable, platform}}
 
-          {:error, _} ->
-            {:error, :manager_not_running}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+      {:error, _status_error} ->
+        {:error, {:manager_not_running, %{user_id: user_id, platform: platform}}}
     end
   end
 end

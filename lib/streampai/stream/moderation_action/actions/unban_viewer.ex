@@ -18,29 +18,24 @@ defmodule Streampai.Stream.ModerationAction.Actions.UnbanViewer do
     banned_viewer_id = input.arguments.banned_viewer_id
     actor = context.actor
 
+    with {:ok, banned_viewer} <- fetch_banned_viewer(banned_viewer_id, actor),
+         {:ok, updated_viewer} <- BannedViewer.unban_viewer(banned_viewer, %{}, actor: actor) do
+      {:ok,
+       %{
+         success: true,
+         banned_viewer_id: updated_viewer.id,
+         message: "Viewer unbanned successfully"
+       }}
+    end
+  end
+
+  defp fetch_banned_viewer(id, actor) do
     case BannedViewer
          |> Ash.Query.for_read(:read)
-         |> Ash.Query.filter(id == ^banned_viewer_id)
+         |> Ash.Query.filter(id == ^id)
          |> Ash.read_one(actor: actor) do
-      {:ok, nil} ->
-        {:error, :not_found}
-
-      {:ok, banned_viewer} ->
-        case BannedViewer.unban_viewer(banned_viewer, %{}, actor: actor) do
-          {:ok, updated_viewer} ->
-            {:ok,
-             %{
-               success: true,
-               banned_viewer_id: updated_viewer.id,
-               message: "Viewer unbanned successfully"
-             }}
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+      {:ok, nil} -> {:error, :not_found}
+      result -> result
     end
   end
 end

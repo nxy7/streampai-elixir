@@ -26,6 +26,8 @@ defmodule Streampai.Stream.BannedViewer do
 
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformUnban
+  alias Streampai.Stream.BannedViewer.Changes.SetBanAttributes
+  alias Streampai.Stream.BannedViewer.Changes.SetUnbanAttributes
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
 
   postgres do
@@ -77,20 +79,7 @@ defmodule Streampai.Stream.BannedViewer do
         :livestream_id
       ]
 
-      change fn changeset, _context ->
-        duration = Ash.Changeset.get_attribute(changeset, :duration_seconds)
-
-        if duration do
-          expires_at = DateTime.add(DateTime.utc_now(), duration, :second)
-
-          changeset
-          |> Ash.Changeset.force_change_attribute(:expires_at, expires_at)
-          |> Ash.Changeset.force_change_attribute(:is_active, true)
-        else
-          Ash.Changeset.force_change_attribute(changeset, :is_active, true)
-        end
-      end
-
+      change SetBanAttributes
       change ExecutePlatformBan
     end
 
@@ -98,12 +87,7 @@ defmodule Streampai.Stream.BannedViewer do
       description "Mark a ban as inactive (unbanned)"
       require_atomic? false
 
-      change fn changeset, _context ->
-        changeset
-        |> Ash.Changeset.force_change_attribute(:is_active, false)
-        |> Ash.Changeset.force_change_attribute(:unbanned_at, DateTime.utc_now())
-      end
-
+      change SetUnbanAttributes
       change ExecutePlatformUnban
     end
 
