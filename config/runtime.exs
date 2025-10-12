@@ -87,7 +87,9 @@ config :streampai,
   twitch_redirect_uri: System.get_env("TWITCH_AUTH_REDIRECT_URI"),
   token_signing_secret: System.get_env("SECRET_KEY"),
   cloudflare_api_token: System.get_env("CLOUDFLARE_API_KEY"),
-  cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID")
+  cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
+  openai_api_key: System.get_env("OPENAI_API_KEY"),
+  elevenlabs_api_key: System.get_env("ELEVENLABS_API_KEY")
 
 config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET")
 
