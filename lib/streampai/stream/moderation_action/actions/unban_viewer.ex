@@ -26,9 +26,7 @@ defmodule Streampai.Stream.ModerationAction.Actions.UnbanViewer do
         {:error, :not_found}
 
       {:ok, banned_viewer} ->
-        case banned_viewer
-             |> Ash.Changeset.for_update(:unban_viewer)
-             |> Ash.update(actor: actor) do
+        case BannedViewer.unban_viewer(banned_viewer, %{}, actor: actor) do
           {:ok, updated_viewer} ->
             {:ok,
              %{

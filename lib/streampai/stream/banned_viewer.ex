@@ -48,6 +48,8 @@ defmodule Streampai.Stream.BannedViewer do
     define :read
     define :update
     define :destroy
+    define :ban_viewer
+    define :unban_viewer
     define :get_active_bans, args: [:user_id]
     define :get_all_bans, args: [:user_id]
     define :get_platform_bans, args: [:user_id, :platform]

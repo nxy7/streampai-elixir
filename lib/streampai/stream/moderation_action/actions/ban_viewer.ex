@@ -22,9 +22,7 @@ defmodule Streampai.Stream.ModerationAction.Actions.BanViewer do
       livestream_id: input.arguments[:livestream_id]
     }
 
-    case BannedViewer
-         |> Ash.Changeset.for_create(:ban_viewer, params)
-         |> Ash.create(actor: context.actor) do
+    case BannedViewer.ban_viewer(params, actor: context.actor) do
       {:ok, banned_viewer} ->
         {:ok,
          %{
