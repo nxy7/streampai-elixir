@@ -381,6 +381,145 @@ Hooks.CarouselWidget = {
   },
 };
 
+// Canvas Context Menu Hook
+Hooks.CanvasContextMenu = {
+  mounted() {
+    const canvas = this.el;
+    const contextMenu = document.getElementById('widget-context-menu');
+    let hideMenuListener;
+
+    // Prevent default context menu
+    const contextMenuHandler = (e) => {
+      e.preventDefault();
+
+      // Get canvas position
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Store coordinates on the menu
+      contextMenu.dataset.clickX = Math.round(x);
+      contextMenu.dataset.clickY = Math.round(y);
+
+      // Position context menu at click location
+      contextMenu.style.left = e.clientX + 'px';
+      contextMenu.style.top = e.clientY + 'px';
+      contextMenu.classList.remove('hidden');
+    };
+
+    // Hide context menu on click anywhere
+    hideMenuListener = () => {
+      contextMenu.classList.add('hidden');
+    };
+
+    canvas.addEventListener('contextmenu', contextMenuHandler);
+    document.addEventListener('click', hideMenuListener);
+
+    // Store cleanup
+    this.cleanup = () => {
+      canvas.removeEventListener('contextmenu', contextMenuHandler);
+      document.removeEventListener('click', hideMenuListener);
+    };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
+// Context Menu Button Hook
+Hooks.ContextMenuButton = {
+  mounted() {
+    this.el.addEventListener('click', (e) => {
+      const menu = document.getElementById('widget-context-menu');
+      const x = parseInt(menu.dataset.clickX);
+      const y = parseInt(menu.dataset.clickY);
+
+      this.pushEvent('add_widget_at_position', { x, y });
+    });
+  }
+};
+
+// Draggable Widget Hook
+Hooks.DraggableWidget = {
+  mounted() {
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = parseInt(this.el.style.left) || 0;
+    let yOffset = parseInt(this.el.style.top) || 0;
+
+    const dragStart = (e) => {
+      if (e.target.closest('.delete-widget-btn')) {
+        return; // Don't drag when clicking delete button
+      }
+
+      initialX = e.clientX - xOffset;
+      initialY = e.clientY - yOffset;
+
+      if (e.target === this.el || e.target.closest('.widget-header')) {
+        isDragging = true;
+        this.el.style.cursor = 'grabbing';
+      }
+    };
+
+    const dragEnd = (e) => {
+      if (isDragging) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+        this.el.style.cursor = 'move';
+
+        // Send position update to LiveView
+        this.pushEvent("update_widget_position", {
+          id: this.el.dataset.widgetId,
+          x: Math.round(xOffset),
+          y: Math.round(yOffset)
+        });
+      }
+    };
+
+    const drag = (e) => {
+      if (isDragging) {
+        e.preventDefault();
+        currentX = e.clientX - initialX;
+        currentY = e.clientY - initialY;
+        xOffset = currentX;
+        yOffset = currentY;
+
+        // Get canvas bounds
+        const canvas = this.el.parentElement;
+        const canvasRect = canvas.getBoundingClientRect();
+        const widgetRect = this.el.getBoundingClientRect();
+
+        // Constrain to canvas boundaries
+        xOffset = Math.max(0, Math.min(xOffset, canvasRect.width - widgetRect.width));
+        yOffset = Math.max(0, Math.min(yOffset, canvasRect.height - widgetRect.height));
+
+        this.el.style.left = xOffset + "px";
+        this.el.style.top = yOffset + "px";
+      }
+    };
+
+    this.el.addEventListener("mousedown", dragStart);
+    document.addEventListener("mousemove", drag);
+    document.addEventListener("mouseup", dragEnd);
+
+    // Store cleanup
+    this.cleanup = () => {
+      this.el.removeEventListener("mousedown", dragStart);
+      document.removeEventListener("mousemove", drag);
+      document.removeEventListener("mouseup", dragEnd);
+    };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
 // Chat Widget Hook
 Hooks.ChatDisplay = {
   mounted() {
