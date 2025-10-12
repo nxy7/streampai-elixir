@@ -98,8 +98,7 @@ defmodule Streampai.TTS.Providers.OpenAI do
            headers: [
              authorization: "Bearer #{api_key}",
              content_type: "application/json"
-           ],
-           into: :self
+           ]
          ) do
       {:ok, %{status: 200, body: audio_data}} ->
         {:ok, audio_data}

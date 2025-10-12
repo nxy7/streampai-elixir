@@ -174,8 +174,7 @@ defmodule Streampai.TTS.Providers.ElevenLabs do
            headers: [
              {"xi-api-key", api_key},
              {"Content-Type", "application/json"}
-           ],
-           into: :self
+           ]
          ) do
       {:ok, %{status: 200, body: audio_data}} ->
         Logger.info("ElevenLabs TTS generated successfully",
