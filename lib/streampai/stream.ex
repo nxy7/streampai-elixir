@@ -8,6 +8,7 @@ defmodule Streampai.Stream do
   end
 
   resources do
+    resource Streampai.Stream.BannedViewer
     resource Streampai.Stream.ChatMessage
     resource Streampai.Stream.StreamEvent
     resource Streampai.Stream.LivestreamMetric
