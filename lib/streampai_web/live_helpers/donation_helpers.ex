@@ -44,17 +44,18 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
   @doc """
   Processes a donation with TTS scheduling.
   """
-  def process_donation(user, params, amount, preferences, test_mode \\ false) do
+  def process_donation(user, params, amount, preferences, test_mode \\ false, sandbox_mode \\ false) do
     Logger.info("Processing donation", %{
       user_id: user.id,
       username: user.name,
       amount: amount,
       donor_name: params["donor_name"],
       message: params["message"],
-      test_mode: test_mode
+      test_mode: test_mode,
+      sandbox_mode: sandbox_mode
     })
 
-    donation_event = create_donation_event(params, amount, preferences, test_mode)
+    donation_event = create_donation_event(params, amount, preferences, test_mode, sandbox_mode)
 
     case schedule_donation_tts(user.id, donation_event) do
       {:ok, _job} ->
@@ -163,7 +164,7 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
 
   # Private helper functions
 
-  defp create_donation_event(params, amount, preferences, test_mode) do
+  defp create_donation_event(params, amount, preferences, test_mode, sandbox_mode) do
     %{
       "type" => "donation",
       "amount" => amount,
@@ -171,7 +172,9 @@ defmodule StreampaiWeb.LiveHelpers.DonationHelpers do
       "donor_name" => params["donor_name"] || "Anonymous",
       "message" => params["message"] || "",
       "voice" => params["voice"] || "default",
+      "payment_method" => params["payment_method"] || "paypal",
       "provider" => if(test_mode, do: :test, else: :default),
+      "sandbox_mode" => sandbox_mode,
       "timestamp" => DateTime.to_iso8601(DateTime.utc_now())
     }
   end

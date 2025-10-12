@@ -13,9 +13,17 @@ defmodule StreampaiWeb.DonationLive do
   require Logger
 
   def mount(%{"username" => username} = params, _session, socket) do
-    # Handle test mode from query parameter
+    # Handle test mode from query parameter (bypasses payment entirely)
     test_mode =
       case params["test"] do
+        "true" -> true
+        "false" -> false
+        _ -> false
+      end
+
+    # Handle sandbox mode from query parameter (uses sandbox payment environment)
+    sandbox_mode =
+      case params["sandbox"] do
         "true" -> true
         "false" -> false
         _ -> false
@@ -37,7 +45,9 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:selected_amount, nil)
          |> assign(:custom_amount, "")
          |> assign(:processing, false)
-         |> assign(:test_mode, test_mode), layout: false}
+         |> assign(:test_mode, test_mode)
+         |> assign(:sandbox_mode, sandbox_mode)
+         |> assign(:selected_payment_method, "paypal"), layout: false}
 
       {:error, :not_found} ->
         similar_users = DonationHelpers.find_similar_usernames(username)
@@ -49,7 +59,8 @@ defmodule StreampaiWeb.DonationLive do
          |> assign(:similar_users, similar_users)
          |> assign(:page_title, "User Not Found")
          |> assign(:meta_description, "User not found")
-         |> assign(:test_mode, test_mode), layout: false}
+         |> assign(:test_mode, test_mode)
+         |> assign(:sandbox_mode, sandbox_mode), layout: false}
     end
   end
 
@@ -65,6 +76,10 @@ defmodule StreampaiWeb.DonationLive do
      socket
      |> assign(:custom_amount, amount)
      |> assign(:selected_amount, nil)}
+  end
+
+  def handle_event("select_payment_method", %{"method" => method}, socket) do
+    {:noreply, assign(socket, :selected_payment_method, method)}
   end
 
   def handle_event("update_form", %{"donation" => params}, socket) do
@@ -84,8 +99,12 @@ defmodule StreampaiWeb.DonationLive do
     amount = FormHelpers.get_donation_amount(socket.assigns)
     preferences = socket.assigns.preferences
 
+    # Add payment method to params
+    params_with_payment =
+      Map.put(params, "payment_method", socket.assigns.selected_payment_method)
+
     case FormHelpers.validate_donation_amount(amount, preferences) do
-      {:ok, validated_amount} -> process_donation(socket, params, validated_amount)
+      {:ok, validated_amount} -> process_donation(socket, params_with_payment, validated_amount)
       {:error, message} -> {:noreply, flash_error(socket, message)}
     end
   end
@@ -94,8 +113,16 @@ defmodule StreampaiWeb.DonationLive do
     user = socket.assigns.user
     preferences = socket.assigns.preferences
     test_mode = socket.assigns.test_mode
+    sandbox_mode = socket.assigns.sandbox_mode
 
-    case DonationHelpers.process_donation(user, params, amount, preferences, test_mode) do
+    case DonationHelpers.process_donation(
+           user,
+           params,
+           amount,
+           preferences,
+           test_mode,
+           sandbox_mode
+         ) do
       {:ok, donation_event} ->
         message =
           if test_mode do
@@ -207,6 +234,16 @@ defmodule StreampaiWeb.DonationLive do
                     </div>
                   </div>
                 <% end %>
+                <%= if @sandbox_mode and not @test_mode do %>
+                  <div class="mb-6 bg-blue-500/20 border border-blue-500 rounded-lg p-4">
+                    <div class="flex items-center">
+                      <.icon name="hero-information-circle" class="w-5 h-5 text-blue-400 mr-2" />
+                      <p class="text-blue-200 font-semibold">
+                        Sandbox mode - using test payment environment
+                      </p>
+                    </div>
+                  </div>
+                <% end %>
                 <h2 class="text-2xl font-bold text-white mb-6">Make a Donation</h2>
 
                 <form phx-submit="submit_donation" phx-change="update_form">
@@ -263,6 +300,43 @@ defmodule StreampaiWeb.DonationLive do
                         <% end %>
                       </p>
                     <% end %>
+                  </div>
+                  
+    <!-- Payment Method Selection -->
+                  <div class="mb-6">
+                    <label class="block text-lg font-medium text-white mb-4">
+                      Payment Method
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        phx-click="select_payment_method"
+                        phx-value-method="paypal"
+                        class={[
+                          "flex items-center justify-center px-4 py-4 rounded-lg font-semibold transition-all",
+                          if(@selected_payment_method == "paypal",
+                            do: "bg-blue-600 text-white ring-2 ring-blue-400",
+                            else: "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-600"
+                          )
+                        ]}
+                      >
+                        <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.76-4.852a.935.935 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.746-4.46z" />
+                        </svg>
+                        PayPal
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled
+                        class="flex items-center justify-center px-4 py-4 rounded-lg font-semibold bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed opacity-60"
+                        title="Coming soon"
+                      >
+                        <.icon name="hero-credit-card" class="w-6 h-6 mr-2" />
+                        <span>Other Methods</span>
+                        <span class="ml-2 text-xs">(Soon)</span>
+                      </button>
+                    </div>
                   </div>
                   
     <!-- Donor Information -->
