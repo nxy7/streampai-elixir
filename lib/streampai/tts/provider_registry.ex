@@ -12,9 +12,8 @@ defmodule Streampai.TTS.ProviderRegistry do
   """
 
   @providers [
-    Streampai.TTS.Providers.OpenAI
-    # Uncomment when ready to use:
-    # Streampai.TTS.Providers.ElevenLabs
+    Streampai.TTS.Providers.OpenAI,
+    Streampai.TTS.Providers.ElevenLabs
   ]
 
   @doc """
