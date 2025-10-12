@@ -95,6 +95,9 @@ defmodule StreampaiWeb.Router do
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
     get("/streaming/connect/:provider/callback", MultiProviderAuth, :callback)
 
+    # PayPal onboarding callback
+    get("/settings/paypal/callback", PayPalCallbackController, :handle_callback)
+
     ash_authentication_live_session :authentication_required,
       on_mount: [
         {StreampaiWeb.LiveUserAuth, :handle_impersonation},
@@ -167,6 +170,9 @@ defmodule StreampaiWeb.Router do
 
     # Cloudflare Stream webhooks
     post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
+
+    # PayPal webhooks
+    post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

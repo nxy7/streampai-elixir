@@ -67,6 +67,14 @@ config :streampai, StreampaiWeb.Endpoint,
     ]
   ]
 
+# PayPal Configuration (Sandbox for development)
+# See config/paypal.example.exs for setup instructions
+config :streampai, :paypal,
+  mode: :sandbox,
+  client_id: System.get_env("PAYPAL_SANDBOX_CLIENT_ID") || "your_sandbox_client_id",
+  secret: System.get_env("PAYPAL_SANDBOX_SECRET") || "your_sandbox_secret",
+  webhook_id: System.get_env("PAYPAL_SANDBOX_WEBHOOK_ID") || "your_sandbox_webhook_id"
+
 # Development specific settings
 config :streampai,
   dev_routes: true,

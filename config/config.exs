@@ -113,7 +113,13 @@ config :streampai, StreampaiWeb.Endpoint,
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
-  ash_domains: [Streampai.Stream, Streampai.Accounts, Streampai.Cloudflare, Streampai.System],
+  ash_domains: [
+    Streampai.Stream,
+    Streampai.Accounts,
+    Streampai.Cloudflare,
+    Streampai.System,
+    Streampai.Integrations
+  ],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),
   session_options: [

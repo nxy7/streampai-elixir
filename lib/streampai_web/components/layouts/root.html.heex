@@ -25,6 +25,9 @@
       <script type="module" phx-track-static type="text/javascript" src="/assets/app.js">
       </script>
     </LiveVue.Reload.vite_assets>
+    <script>
+      window.S3_BASE_URL = '<%= Streampai.Storage.S3.get_public_url("") %>';
+    </script>
   </head>
   <body class="bg-white">
     {@inner_content}

@@ -333,6 +333,140 @@ const SlideOutNotification = {
   }
 };
 
+// Voice Selector Hook
+const VoiceSelector = {
+  mounted() {
+    const button = this.el.querySelector('#voice-selector-button');
+    const dropdown = this.el.querySelector('#voice-selector-dropdown');
+    const hiddenInput = this.el.querySelector('#selected-voice-input');
+    const label = this.el.querySelector('#selected-voice-label');
+    const options = this.el.querySelectorAll('.voice-option');
+    const playButtons = this.el.querySelectorAll('.voice-play-btn');
+
+    let currentAudio = null;
+    let isDropdownOpen = false;
+
+    // Get S3 base URL from environment or default
+    const s3BaseUrl = window.S3_BASE_URL || 'https://your-s3-bucket.s3.amazonaws.com';
+
+    // Toggle dropdown
+    const toggleDropdown = (e) => {
+      e.preventDefault();
+      isDropdownOpen = !isDropdownOpen;
+
+      if (isDropdownOpen) {
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    };
+
+    // Close dropdown when clicking outside
+    const closeDropdown = (e) => {
+      if (!this.el.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        isDropdownOpen = false;
+      }
+    };
+
+    // Handle voice selection
+    options.forEach(option => {
+      option.addEventListener('click', (e) => {
+        const value = option.dataset.voiceValue;
+        hiddenInput.value = value;
+
+        // Update label text
+        const voiceName = option.querySelector('.text-sm.font-medium')?.textContent || 'Use first available voice';
+        label.textContent = voiceName;
+
+        // Highlight selected option
+        options.forEach(opt => opt.classList.remove('bg-purple-50'));
+        option.classList.add('bg-purple-50');
+
+        // Close dropdown
+        dropdown.classList.add('hidden');
+        isDropdownOpen = false;
+      });
+    });
+
+    // Handle audio preview
+    playButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const voiceValue = btn.dataset.voicePreview;
+
+        // Stop current audio if playing
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+
+        // Play new audio
+        const audioUrl = `${s3BaseUrl}/tts/${voiceValue}_example.mp3`;
+        currentAudio = new Audio(audioUrl);
+
+        // Visual feedback
+        const originalSvg = btn.innerHTML;
+        btn.innerHTML = `
+          <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+          </svg>
+        `;
+        btn.classList.add('bg-purple-200');
+
+        currentAudio.play().catch(err => {
+          console.error('Failed to play audio preview:', err);
+          // Show error feedback
+          btn.innerHTML = `
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          `;
+        });
+
+        // Reset button when audio ends
+        currentAudio.addEventListener('ended', () => {
+          btn.innerHTML = originalSvg;
+          btn.classList.remove('bg-purple-200');
+        });
+
+        // Reset button on error
+        currentAudio.addEventListener('error', () => {
+          setTimeout(() => {
+            btn.innerHTML = originalSvg;
+            btn.classList.remove('bg-purple-200');
+          }, 2000);
+        });
+      });
+    });
+
+    button.addEventListener('click', toggleDropdown);
+    document.addEventListener('click', closeDropdown);
+
+    // Highlight currently selected option
+    const currentValue = hiddenInput.value;
+    options.forEach(opt => {
+      if (opt.dataset.voiceValue === currentValue) {
+        opt.classList.add('bg-purple-50');
+      }
+    });
+
+    // Cleanup
+    this.cleanup = () => {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      button.removeEventListener('click', toggleDropdown);
+      document.removeEventListener('click', closeDropdown);
+    };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -350,6 +484,7 @@ let Hooks = {
   InfiniteScroll,
   ThumbnailSelector,
   SettingsThumbnailUpload,
+  VoiceSelector,
   ...getHooks(liveVueApp),
 };
 
@@ -646,17 +781,23 @@ Hooks.DraggableWidget = {
     let animationFrameId = null;
 
     const dragStart = (e) => {
+      // Don't drag when clicking delete button
       if (e.target.closest('.delete-widget-btn')) {
-        return; // Don't drag when clicking delete button
+        return;
       }
 
       initialX = e.clientX - xOffset;
       initialY = e.clientY - yOffset;
 
-      if (e.target === this.el || e.target.closest('.widget-header')) {
-        isDragging = true;
-        this.el.style.cursor = 'grabbing';
-      }
+      // Allow dragging from anywhere on the widget
+      isDragging = true;
+      this.el.style.cursor = 'grabbing';
+
+      // Add visual feedback - highlight the widget
+      this.el.style.transform = 'scale(1.02)';
+      this.el.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.5)';
+      this.el.style.zIndex = '1000';
+      this.el.style.opacity = '0.95';
     };
 
     const dragEnd = (e) => {
@@ -665,6 +806,12 @@ Hooks.DraggableWidget = {
         initialY = currentY;
         isDragging = false;
         this.el.style.cursor = 'move';
+
+        // Remove visual feedback
+        this.el.style.transform = '';
+        this.el.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.3)';
+        this.el.style.zIndex = '';
+        this.el.style.opacity = '';
 
         // Cancel any pending animation frame
         if (animationFrameId) {

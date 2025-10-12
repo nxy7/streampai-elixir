@@ -199,7 +199,7 @@ defmodule StreampaiWeb.DashboardSmartWidgetsLive do
                     data-widget-id={widget.id}
                     id={"widget-#{widget.id}"}
                     class="placeholder-widget group"
-                    style={"position: absolute; left: #{widget.x}px; top: #{widget.y}px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; padding: 1rem; min-width: 200px; min-height: 120px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); cursor: move; user-select: none;"}
+                    style={"position: absolute; left: #{widget.x}px; top: #{widget.y}px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; padding: 1rem; min-width: 200px; min-height: 120px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); cursor: move; user-select: none; transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;"}
                   >
                     <div
                       class="widget-header"
