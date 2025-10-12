@@ -24,6 +24,8 @@ defmodule Streampai.Stream.BannedViewer do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan
+  alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformUnban
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
 
   postgres do
@@ -86,6 +88,8 @@ defmodule Streampai.Stream.BannedViewer do
           Ash.Changeset.force_change_attribute(changeset, :is_active, true)
         end
       end
+
+      change ExecutePlatformBan
     end
 
     update :unban_viewer do
@@ -97,6 +101,8 @@ defmodule Streampai.Stream.BannedViewer do
         |> Ash.Changeset.force_change_attribute(:is_active, false)
         |> Ash.Changeset.force_change_attribute(:unbanned_at, DateTime.utc_now())
       end
+
+      change ExecutePlatformUnban
     end
 
     read :get_active_bans do
