@@ -1,6 +1,6 @@
-defmodule StreampaiWeb.Components.SmartWidgetsObsLive do
+defmodule StreampaiWeb.Components.SmartCanvasObsLive do
   @moduledoc """
-  LiveView for displaying the Smart Widgets canvas for OBS embedding.
+  LiveView for displaying the Smart Canvas for OBS embedding.
 
   This is the public endpoint that OBS will embed as a browser source.
   Displays widgets in their configured positions on a transparent 16:9 canvas.
@@ -11,12 +11,12 @@ defmodule StreampaiWeb.Components.SmartWidgetsObsLive do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(
         Streampai.PubSub,
-        "smart_widgets:#{user_id}"
+        "smart_canvas:#{user_id}"
       )
     end
 
     widgets =
-      Streampai.Accounts.SmartWidgetLayout
+      Streampai.Accounts.SmartCanvasLayout
       |> Ash.Query.for_read(:get_by_user, %{user_id: user_id}, authorize?: false)
       |> Ash.read_one()
       |> case do

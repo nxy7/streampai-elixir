@@ -89,7 +89,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/slider/display", Components.SliderObsWidgetLive)
     live("/widgets/giveaway/display", Components.GiveawayObsWidgetLive)
     live("/widgets/eventlist/display", Components.EventlistObsWidgetLive)
-    live("/widgets/smart-widgets/display", Components.SmartWidgetsObsLive)
+    live("/widgets/smart-canvas/display", Components.SmartCanvasObsLive)
 
     get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
@@ -112,7 +112,7 @@ defmodule StreampaiWeb.Router do
       live("/dashboard/stream-history", DashboardStreamHistoryLive)
       live("/dashboard/stream-history/:stream_id", DashboardStreamHistoryDetailLive)
       live("/dashboard/widgets", DashboardWidgetsLive)
-      live("/dashboard/smart-widgets", DashboardSmartWidgetsLive)
+      live("/dashboard/smart-canvas", DashboardSmartCanvasLive)
       live("/dashboard/analytics", DashboardAnalyticsLive)
       live("/dashboard/settings", DashboardSettingsLive)
       live("/dashboard/moderate", DashboardModerateLive)

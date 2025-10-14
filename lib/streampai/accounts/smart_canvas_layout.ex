@@ -1,6 +1,6 @@
-defmodule Streampai.Accounts.SmartWidgetLayout do
+defmodule Streampai.Accounts.SmartCanvasLayout do
   @moduledoc """
-  Stores the layout configuration for Smart Widgets - widgets that users can
+  Stores the layout configuration for Smart Canvas - widgets that users can
   position on a 16:9 canvas for their stream overlay.
   """
   use Ash.Resource,
@@ -11,7 +11,7 @@ defmodule Streampai.Accounts.SmartWidgetLayout do
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "smart_widget_layouts"
+    table "smart_canvas_layouts"
     repo Streampai.Repo
   end
 
