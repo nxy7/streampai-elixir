@@ -19,8 +19,8 @@
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
               ffmpeg
-              elixir
-              # elixir_1_19
+              # elixir
+              elixir_1_19
               elixir-ls
               lexical
               next-ls

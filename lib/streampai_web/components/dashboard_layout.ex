@@ -217,8 +217,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </svg>
                     <span class="sidebar-text ml-3">Stream History</span>
                   </.link>
-                  
-    <!-- Widgets -->
+                </div>
+              </div>
+              
+    <!-- Widgets Section -->
+              <div class="px-4 mb-8">
+                <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Widgets
+                </h3>
+                <div class="space-y-2">
+                  <!-- Widgets -->
                   <.link
                     navigate="/dashboard/widgets"
                     class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "widgets", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
@@ -240,11 +248,11 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     <span class="sidebar-text ml-3">Widgets</span>
                   </.link>
                   
-    <!-- Smart Widgets -->
+    <!-- Smart Canvas -->
                   <.link
-                    navigate="/dashboard/smart-widgets"
-                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "smart-widgets", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
-                    title="Smart Widgets"
+                    navigate="/dashboard/smart-canvas"
+                    class={"nav-item flex items-center p-3 rounded-lg transition-colors #{if @current_page == "smart-canvas", do: "bg-purple-600 text-white", else: "text-gray-300 hover:bg-gray-700 hover:text-white"}"}
+                    title="Smart Canvas"
                   >
                     <svg
                       class="sidebar-icon w-6 h-6"
@@ -259,13 +267,13 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                         d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
                       />
                     </svg>
-                    <span class="sidebar-text ml-3">Smart Widgets</span>
+                    <span class="sidebar-text ml-3">Smart Canvas</span>
                   </.link>
                 </div>
               </div>
               
     <!-- Admin Section -->
-              <%= if @current_user && UserPolicy.admin?(@current_user) do %>
+              <%= if Map.get(assigns, :current_user) && UserPolicy.admin?(assigns[:current_user]) do %>
                 <div class="px-4 mb-8">
                   <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                     Admin
@@ -335,7 +343,7 @@ defmodule StreampaiWeb.Components.DashboardLayout do
             
     <!-- Bottom Logout Section -->
             <div class="p-4 border-t border-gray-700 space-y-2">
-              <%= if Map.get(@current_user || %{}, :is_moderator) == true do %>
+              <%= if Map.get(assigns[:current_user] || %{}, :is_moderator) == true do %>
                 <.link
                   navigate="/dashboard/moderate"
                   class="nav-item flex items-center p-3 rounded-lg text-gray-300 hover:bg-blue-600 hover:text-white transition-colors w-full"
@@ -412,16 +420,16 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                       class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden hover:bg-purple-600 transition-colors cursor-pointer"
                       title="Go to Settings"
                     >
-                      <%= if @current_user && @current_user.display_avatar do %>
+                      <%= if assigns[:current_user] && assigns[:current_user].display_avatar do %>
                         <img
-                          src={@current_user.display_avatar}
+                          src={assigns[:current_user].display_avatar}
                           alt="User Avatar"
                           class="w-full h-full object-cover"
                         />
                       <% else %>
                         <span class="text-white font-medium text-sm">
-                          <%= if @current_user && @current_user.email do %>
-                            {String.first(@current_user.email) |> String.upcase()}
+                          <%= if assigns[:current_user] && assigns[:current_user].email do %>
+                            {String.first(assigns[:current_user].email) |> String.upcase()}
                           <% else %>
                             U
                           <% end %>
@@ -430,12 +438,12 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                     </.link>
                     <div class="hidden md:block">
                       <p class="text-sm font-medium text-gray-900">
-                        {if @current_user && @current_user.email,
-                          do: @current_user.email,
+                        {if assigns[:current_user] && assigns[:current_user].email,
+                          do: assigns[:current_user].email,
                           else: "Unknown User"}
                       </p>
                       <p class="text-xs text-gray-500">
-                        {case @current_user && Map.get(@current_user, :tier) do
+                        {case assigns[:current_user] && Map.get(assigns[:current_user], :tier) do
                           :pro -> "Pro Plan"
                           :free -> "Free Plan"
                           _ -> "Free Plan"
@@ -476,7 +484,8 @@ defmodule StreampaiWeb.Components.DashboardLayout do
                   Impersonation Active
                 </p>
                 <p class="text-xs text-amber-700 mt-1">
-                  You are viewing as <strong>{@current_user.email}</strong>
+                  You are viewing as
+                  <strong>{assigns[:current_user] && assigns[:current_user].email}</strong>
                 </p>
                 <p class="text-xs text-amber-600 mt-1">
                   Admin: {@impersonator.email}

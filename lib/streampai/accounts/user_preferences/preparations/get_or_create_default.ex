@@ -27,9 +27,7 @@ defmodule Streampai.Accounts.UserPreferences.Preparations.GetOrCreateDefault do
                      min_donation_amount: nil,
                      max_donation_amount: nil,
                      donation_currency: "USD"
-                   },
-                   actor: actor
-                 ) do
+                   }, actor: actor) do
               {:ok, created} ->
                 {:ok, [created]}
 

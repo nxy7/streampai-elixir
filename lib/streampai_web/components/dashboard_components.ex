@@ -22,10 +22,10 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         <p>Custom content</p>
       </.dashboard_card>
   """
-  attr :title, :string, required: true, doc: "Card title"
-  attr :icon, :string, default: nil, doc: "Icon name for the card header"
-  attr :class, :string, default: "", doc: "Additional CSS classes"
-  slot :inner_block, required: true, doc: "Card content"
+  attr(:title, :string, required: true, doc: "Card title")
+  attr(:icon, :string, default: nil, doc: "Icon name for the card header")
+  attr(:class, :string, default: "", doc: "Additional CSS classes")
+  slot(:inner_block, required: true, doc: "Card content")
 
   def dashboard_card(assigns) do
     ~H"""
@@ -50,11 +50,12 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <.status_badge status="offline">Offline</.status_badge>
       <.status_badge status="warning">Warning</.status_badge>
   """
-  attr :status, :string,
+  attr(:status, :string,
     required: true,
     doc: "Status type: online, offline, warning, success, error"
+  )
 
-  slot :inner_block, required: true, doc: "Badge content"
+  slot(:inner_block, required: true, doc: "Badge content")
 
   def status_badge(assigns) do
     ~H"""
@@ -84,8 +85,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
       <.status_indicator status="online">Online</.status_indicator>
       <.status_indicator status="offline">Offline</.status_indicator>
   """
-  attr :status, :string, required: true, doc: "Status type: online, offline"
-  slot :inner_block, required: true, doc: "Status text"
+  attr(:status, :string, required: true, doc: "Status type: online, offline")
+  slot(:inner_block, required: true, doc: "Status text")
 
   def status_indicator(assigns) do
     ~H"""
@@ -116,10 +117,10 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         <.status_badge status="online">Online</.status_badge>
       </.info_row>
   """
-  attr :label, :string, required: true, doc: "Label text"
-  attr :value, :string, default: nil, doc: "Value text (optional if using slot)"
-  attr :class, :string, default: "", doc: "Additional CSS classes"
-  slot :inner_block, doc: "Custom value content"
+  attr(:label, :string, required: true, doc: "Label text")
+  attr(:value, :string, default: nil, doc: "Value text (optional if using slot)")
+  attr(:class, :string, default: "", doc: "Additional CSS classes")
+  slot(:inner_block, doc: "Custom value content")
 
   def info_row(assigns) do
     ~H"""
@@ -148,21 +149,23 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         current_user={@current_user}
       />
   """
-  attr :name, :string, required: true, doc: "Platform name"
-  attr :platform, :atom, default: nil, doc: "Platform identifier for icon selection"
-  attr :connected, :boolean, required: true, doc: "Connection status"
-  attr :connect_url, :string, required: true, doc: "Connection URL"
-  attr :color, :string, default: "purple", doc: "Platform brand color"
-  attr :show_disconnect, :boolean, default: false, doc: "Show disconnect button when connected"
-  attr :current_user, :map, default: nil, doc: "Current user for permission checks"
+  attr(:name, :string, required: true, doc: "Platform name")
+  attr(:platform, :atom, default: nil, doc: "Platform identifier for icon selection")
+  attr(:connected, :boolean, required: true, doc: "Connection status")
+  attr(:connect_url, :string, required: true, doc: "Connection URL")
+  attr(:color, :string, default: "purple", doc: "Platform brand color")
+  attr(:show_disconnect, :boolean, default: false, doc: "Show disconnect button when connected")
+  attr(:current_user, :map, default: nil, doc: "Current user for permission checks")
 
-  attr :account_data, :map,
+  attr(:account_data, :map,
     default: nil,
     doc: "Connected account extra data (nickname, avatar, etc.)"
+  )
 
-  attr :disconnecting_platform, :atom,
+  attr(:disconnecting_platform, :atom,
     default: nil,
     doc: "Platform currently being disconnected (for loading state)"
+  )
 
   def platform_connection(assigns) do
     ~H"""
@@ -364,10 +367,10 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         message="Analytics will appear here once you start streaming."
       />
   """
-  attr :icon, :string, required: true, doc: "Icon name for the empty state"
-  attr :title, :string, required: true, doc: "Empty state title"
-  attr :message, :string, required: true, doc: "Empty state message"
-  attr :class, :string, default: "text-center py-12", doc: "Container CSS classes"
+  attr(:icon, :string, required: true, doc: "Icon name for the empty state")
+  attr(:title, :string, required: true, doc: "Empty state title")
+  attr(:message, :string, required: true, doc: "Empty state message")
+  attr(:class, :string, default: "text-center py-12", doc: "Container CSS classes")
 
   def empty_state(assigns) do
     ~H"""
@@ -379,8 +382,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
     """
   end
 
-  attr :name, :string, required: true, doc: "Icon name"
-  attr :class, :string, default: "w-5 h-5", doc: "Icon CSS classes"
+  attr(:name, :string, required: true, doc: "Icon name")
+  attr(:class, :string, default: "w-5 h-5", doc: "Icon CSS classes")
 
   @icon_paths %{
     "user" => "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
@@ -457,13 +460,13 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         description="Total donations received in 2024-01"
       />
   """
-  attr :title, :string, required: true, doc: "Metric title"
-  attr :value, :any, required: true, doc: "Metric value (can be string or number)"
-  attr :change, :string, default: nil, doc: "Change percentage"
-  attr :change_type, :atom, default: :neutral, doc: "Change type: :positive, :negative, :neutral"
-  attr :icon, :string, required: true, doc: "Icon name for the metric"
-  attr :description, :string, default: nil, doc: "Optional description"
-  attr :class, :string, default: "", doc: "Additional CSS classes"
+  attr(:title, :string, required: true, doc: "Metric title")
+  attr(:value, :any, required: true, doc: "Metric value (can be string or number)")
+  attr(:change, :string, default: nil, doc: "Change percentage")
+  attr(:change_type, :atom, default: :neutral, doc: "Change type: :positive, :negative, :neutral")
+  attr(:icon, :string, required: true, doc: "Icon name for the metric")
+  attr(:description, :string, default: nil, doc: "Optional description")
+  attr(:class, :string, default: "", doc: "Additional CSS classes")
 
   def metric_card(assigns) do
     ~H"""
@@ -498,8 +501,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Renders a change indicator icon based on change type.
   """
-  attr :change_type, :atom, required: true
-  attr :class, :string, default: "w-4 h-4"
+  attr(:change_type, :atom, required: true)
+  attr(:class, :string, default: "w-4 h-4")
 
   def change_icon(%{change_type: :positive} = assigns) do
     ~H"""
@@ -638,9 +641,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         title="Analytics Dashboard"
         description="Detailed analytics and insights coming soon!" />
   """
-  attr :title, :string, required: true, doc: "Feature title"
-  attr :description, :string, required: true, doc: "Feature description"
-  attr :class, :string, default: "", doc: "Additional CSS classes"
+  attr(:title, :string, required: true, doc: "Feature title")
+  attr(:description, :string, required: true, doc: "Feature description")
+  attr(:class, :string, default: "", doc: "Additional CSS classes")
 
   def coming_soon_placeholder(assigns) do
     ~H"""
@@ -752,8 +755,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Stream status cards showing live status, active platforms, and viewer count.
   """
-  attr :stream_status, :map, required: true
-  attr :current_user, :map, required: true
+  attr(:stream_status, :map, required: true)
+  attr(:current_user, :map, required: true)
 
   def stream_status_cards(assigns) do
     ~H"""
@@ -783,11 +786,11 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Individual stream status card component.
   """
-  attr :title, :string, required: true
-  attr :icon, :string, required: true
-  attr :status, :atom, default: nil
-  attr :value, :string, default: nil
-  attr :color, :string, required: true
+  attr(:title, :string, required: true)
+  attr(:icon, :string, required: true)
+  attr(:status, :atom, default: nil)
+  attr(:value, :string, default: nil)
+  attr(:color, :string, required: true)
 
   def stream_status_card(assigns) do
     ~H"""
@@ -821,7 +824,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Stream status text with emoji indicators.
   """
-  attr :status, :atom, required: true
+  attr(:status, :atom, required: true)
 
   def stream_status_text(assigns) do
     ~H"""
@@ -839,11 +842,11 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Stream controls section with GO LIVE/STOP button and RTMP details.
   """
-  attr :stream_status, :map, required: true
-  attr :loading, :boolean, required: true
-  attr :show_stream_key, :boolean, required: true
-  attr :stream_metadata, :map, default: %{}
-  attr :current_user, :map, required: true
+  attr(:stream_status, :map, required: true)
+  attr(:loading, :boolean, required: true)
+  attr(:show_stream_key, :boolean, required: true)
+  attr(:stream_metadata, :map, default: %{})
+  attr(:current_user, :map, required: true)
 
   def stream_controls(assigns) do
     ~H"""
@@ -890,8 +893,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Input streaming status indicator.
   """
-  attr :status, :atom, required: true
-  attr :youtube_broadcast_id, :string, default: nil
+  attr(:status, :atom, required: true)
+  attr(:youtube_broadcast_id, :string, default: nil)
 
   def stream_input_status(assigns) do
     ~H"""
@@ -926,9 +929,9 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Stream metadata form for title, description, and thumbnail (Vue component).
   """
-  attr :metadata, :map, required: true
-  attr :socket, :any, default: nil
-  attr :current_user, :map, required: true
+  attr(:metadata, :map, required: true)
+  attr(:socket, :any, default: nil)
+  attr(:current_user, :map, required: true)
 
   def stream_metadata_form(assigns) do
     ~H"""
@@ -952,8 +955,8 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   GO LIVE/STOP streaming action button.
   """
-  attr :stream_status, :map, required: true
-  attr :loading, :boolean, required: true
+  attr(:stream_status, :map, required: true)
+  attr(:loading, :boolean, required: true)
 
   def stream_action_button(assigns) do
     ~H"""
@@ -997,11 +1000,20 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   RTMP connection details with copy functionality.
   """
-  attr :rtmp_url, :string, required: true
-  attr :stream_key, :string, required: true
-  attr :show_stream_key, :boolean, required: true
+  attr(:rtmp_url, :string, required: true)
+  attr(:stream_key, :string, required: true)
+  attr(:show_stream_key, :boolean, required: true)
+  attr(:orientation, :atom, default: :horizontal)
 
   def rtmp_connection_details(assigns) do
+    regenerate_event =
+      case assigns.orientation do
+        :vertical -> "regenerate_vertical_stream_key"
+        _ -> "regenerate_horizontal_stream_key"
+      end
+
+    assigns = assign(assigns, :regenerate_event, regenerate_event)
+
     ~H"""
     <div class="mb-4">
       <.copy_field label="RTMP URL" value={@rtmp_url} />
@@ -1010,7 +1022,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
         value={@stream_key}
         hidden={!@show_stream_key}
         toggle_event="toggle_stream_key_visibility"
-        regenerate_event="regenerate_stream_key"
+        regenerate_event={@regenerate_event}
       />
     </div>
     """
@@ -1019,11 +1031,14 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Copyable field with optional visibility toggle.
   """
-  attr :label, :string, required: true
-  attr :value, :string, required: true
-  attr :hidden, :boolean, default: false
-  attr :toggle_event, :string, default: nil
-  attr :regenerate_event, :string, default: nil
+  attr(:label, :string, required: true)
+  attr(:value, :string, required: true)
+  attr(:hidden, :boolean, default: false)
+  attr(:toggle_event, :string, default: nil)
+  attr(:toggle_target, :any, default: nil)
+  attr(:regenerate_event, :string, default: nil)
+  attr(:regenerate_target, :any, default: nil)
+  attr(:regenerating, :boolean, default: false)
 
   def copy_field(assigns) do
     display_value =
@@ -1041,18 +1056,47 @@ defmodule StreampaiWeb.Components.DashboardComponents do
           <button
             type="button"
             phx-click={@regenerate_event}
-            class="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
-            title="Regenerate stream key"
+            phx-target={@regenerate_target}
+            disabled={@regenerating}
+            class={[
+              "text-xs font-medium flex items-center gap-1 transition-colors",
+              if(@regenerating,
+                do: "text-gray-400 cursor-not-allowed",
+                else: "text-red-600 hover:text-red-700"
+              )
+            ]}
+            title={if @regenerating, do: "Regenerating...", else: "Regenerate stream key"}
           >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Regenerate
+            <%= if @regenerating do %>
+              <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                >
+                </circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                >
+                </path>
+              </svg>
+              Regenerating...
+            <% else %>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Regenerate
+            <% end %>
           </button>
         <% end %>
       </div>
@@ -1068,6 +1112,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
           <button
             type="button"
             phx-click={@toggle_event}
+            phx-target={@toggle_target}
             class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
             title={
               if @hidden,
@@ -1089,7 +1134,7 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Visibility toggle icon (eye/eye-slash).
   """
-  attr :hidden, :boolean, required: true
+  attr(:hidden, :boolean, required: true)
 
   def visibility_toggle_icon(assigns) do
     if assigns.hidden do
@@ -1163,10 +1208,10 @@ defmodule StreampaiWeb.Components.DashboardComponents do
   @doc """
   Platform connections section.
   """
-  attr :platform_connections, :list, required: true
-  attr :current_user, :map, required: true
-  attr :disconnecting_platform, :atom, default: nil
-  attr :collapsed, :boolean, default: false
+  attr(:platform_connections, :list, required: true)
+  attr(:current_user, :map, required: true)
+  attr(:disconnecting_platform, :atom, default: nil)
+  attr(:collapsed, :boolean, default: false)
 
   def platform_connections_section(assigns) do
     assigns =

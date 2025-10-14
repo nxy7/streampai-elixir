@@ -6,13 +6,13 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
   use StreampaiWeb, :verified_routes
   use Phoenix.Component
 
-  attr :title, :string, required: true
-  attr :current_user, :map, required: true
-  attr :socket, :map, required: true
-  attr :widget_type, :atom, required: true
-  attr :url_path, :string, required: true
-  attr :dimensions, :string, default: "400x600"
-  attr :copy_button_id, :string, required: true
+  attr(:title, :string, required: true)
+  attr(:current_user, :map, required: true)
+  attr(:socket, :map, required: true)
+  attr(:widget_type, :atom, required: true)
+  attr(:url_path, :string, required: true)
+  attr(:dimensions, :string, default: "400x600")
+  attr(:copy_button_id, :string, required: true)
 
   def widget_preview_header(assigns) do
     ~H"""
@@ -36,17 +36,17 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :current_user, :map, required: true
-  attr :socket, :map, required: true
-  attr :widget_type, :atom, required: true
-  attr :url_path, :string, required: true
-  attr :dimensions, :string, default: "400x600"
-  attr :copy_button_id, :string, required: true
-  attr :vue_component, :string, required: true
-  attr :preview_class, :string, default: nil
-  attr :container_class, :string, default: nil
-  slot :inner_block, required: true
+  attr(:title, :string, required: true)
+  attr(:current_user, :map, required: true)
+  attr(:socket, :map, required: true)
+  attr(:widget_type, :atom, required: true)
+  attr(:url_path, :string, required: true)
+  attr(:dimensions, :string, default: "400x600")
+  attr(:copy_button_id, :string, required: true)
+  attr(:vue_component, :string, required: true)
+  attr(:preview_class, :string, default: nil)
+  attr(:container_class, :string, default: nil)
+  slot(:inner_block, required: true)
 
   def widget_preview(assigns) do
     # Set default container class based on dimensions for common cases
@@ -92,12 +92,12 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :socket, :map, required: true
-  attr :url_path, :string, required: true
-  attr :current_user, :map, required: true
-  attr :dimensions, :string, required: true
-  attr :instructions, :list, default: []
+  attr(:title, :string, required: true)
+  attr(:socket, :map, required: true)
+  attr(:url_path, :string, required: true)
+  attr(:current_user, :map, required: true)
+  attr(:dimensions, :string, required: true)
+  attr(:instructions, :list, default: [])
 
   def obs_usage_instructions(assigns) do
     default_instructions = [
@@ -127,8 +127,8 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :title, :string, required: true
-  slot :inner_block, required: true
+  attr(:title, :string, required: true)
+  slot(:inner_block, required: true)
 
   def settings_section(assigns) do
     ~H"""
@@ -141,9 +141,9 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :checked, :boolean, required: true
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:checked, :boolean, required: true)
 
   def checkbox_setting(assigns) do
     ~H"""
@@ -159,12 +159,12 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :value, :any, required: true
-  attr :min, :integer, default: nil
-  attr :max, :integer, default: nil
-  attr :help_text, :string, default: nil
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:min, :integer, default: nil)
+  attr(:max, :integer, default: nil)
+  attr(:help_text, :string, default: nil)
 
   def number_input_setting(assigns) do
     ~H"""
@@ -185,11 +185,11 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :value, :string, required: true
-  attr :placeholder, :string, default: ""
-  attr :help_text, :string, default: nil
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:value, :string, required: true)
+  attr(:placeholder, :string, default: "")
+  attr(:help_text, :string, default: nil)
 
   def text_input_setting(assigns) do
     ~H"""
@@ -209,10 +209,10 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :value, :any, required: true
-  attr :options, :list, required: true
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:options, :list, required: true)
 
   def select_setting(assigns) do
     ~H"""
@@ -232,11 +232,11 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :value, :integer, required: true
-  attr :min, :integer, default: 0
-  attr :max, :integer, default: 100
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:value, :integer, required: true)
+  attr(:min, :integer, default: 0)
+  attr(:max, :integer, default: 100)
 
   def range_setting(assigns) do
     ~H"""
@@ -255,10 +255,10 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :name, :string, required: true
-  attr :label, :string, required: true
-  attr :value, :string, required: true
-  attr :default_color, :string, default: "#6b46c1"
+  attr(:name, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:value, :string, required: true)
+  attr(:default_color, :string, default: "#6b46c1")
 
   def color_picker_setting(assigns) do
     ~H"""
@@ -287,8 +287,8 @@ defmodule StreampaiWeb.WidgetSettingsComponents do
     """
   end
 
-  attr :widget_config, :map, required: true
-  slot :inner_block, required: true
+  attr(:widget_config, :map, required: true)
+  slot(:inner_block, required: true)
 
   def settings_container(assigns) do
     ~H"""

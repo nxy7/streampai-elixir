@@ -6,5 +6,5 @@ defmodule StreampaiWeb.PageHTML do
   """
   use StreampaiWeb, :html
 
-  embed_templates "page_html/*"
+  embed_templates("page_html/*")
 end

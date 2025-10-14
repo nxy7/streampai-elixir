@@ -13,10 +13,12 @@ defmodule StreampaiWeb.LandingLive do
 
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")
+    current_user = Map.get(socket.assigns, :current_user)
 
     {:ok,
      assign(socket,
        csrf_token: csrf_token,
+       current_user: current_user,
        newsletter_message: nil,
        newsletter_error: nil
      ), layout: false}

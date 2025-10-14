@@ -189,27 +189,27 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
   end
 
-  # Delegate other events to BaseLive
-  def handle_event("regenerate_stream_key", _params, socket) do
+  def handle_info({:regenerate_stream_key, orientation}, socket) do
     user_id = socket.assigns.current_user.id
+    orientation_label = if orientation == :vertical, do: "vertical", else: "horizontal"
 
-    case CloudflareManager.regenerate_live_input(user_id) do
+    case CloudflareManager.regenerate_live_input(user_id, orientation) do
       {:ok, _stream_config} ->
-        # Get the full stream status with all required fields
         stream_status = get_stream_status(user_id)
 
         socket =
           socket
           |> assign(:stream_status, stream_status)
-          |> put_flash(:info, "Stream key regenerated successfully")
+          |> put_flash(
+            :info,
+            "#{String.capitalize(orientation_label)} stream key regenerated successfully"
+          )
 
         {:noreply, socket}
 
       {:error, reason} ->
-        Logger.error("Failed to regenerate stream key: #{inspect(reason)}")
-
-        socket = put_flash(socket, :error, "Failed to regenerate stream key")
-
+        Logger.error("Failed to regenerate #{orientation_label} stream key: #{inspect(reason)}")
+        socket = put_flash(socket, :error, "Failed to regenerate #{orientation_label} stream key")
         {:noreply, socket}
     end
   end
@@ -832,7 +832,9 @@ defmodule StreampaiWeb.DashboardStreamLive do
           input_streaming_status: cloudflare_config.input_streaming_status,
           can_start_streaming: cloudflare_config.can_start_streaming,
           rtmp_url: cloudflare_config.rtmp_url,
-          stream_key: cloudflare_config.stream_key,
+          stream_key: cloudflare_config.horizontal_stream_key,
+          horizontal_stream_key: cloudflare_config.horizontal_stream_key,
+          vertical_stream_key: cloudflare_config.vertical_stream_key,
           manager_available: true,
           youtube_broadcast_id: youtube_broadcast_id,
           twitch_channel_url: twitch_channel_url
@@ -895,6 +897,8 @@ defmodule StreampaiWeb.DashboardStreamLive do
       can_start_streaming: false,
       rtmp_url: nil,
       stream_key: nil,
+      horizontal_stream_key: nil,
+      vertical_stream_key: nil,
       manager_available: false,
       youtube_broadcast_id: nil,
       twitch_channel_url: nil

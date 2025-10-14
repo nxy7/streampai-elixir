@@ -443,9 +443,9 @@ defmodule StreampaiWeb.DashboardPatreonsLive do
 
   defp tier_badge_class(_), do: "bg-gray-100 text-gray-800"
 
-  attr :data, :list, required: true
-  attr :mode, :string, required: true
-  attr :total_patreons, :integer, required: true
+  attr(:data, :list, required: true)
+  attr(:mode, :string, required: true)
+  attr(:total_patreons, :integer, required: true)
 
   def platform_pie_chart(assigns) do
     ~H"""

@@ -89,7 +89,7 @@ defmodule StreampaiWeb.Router do
     live("/widgets/slider/display", Components.SliderObsWidgetLive)
     live("/widgets/giveaway/display", Components.GiveawayObsWidgetLive)
     live("/widgets/eventlist/display", Components.EventlistObsWidgetLive)
-    live("/widgets/smart-widgets/display", Components.SmartWidgetsObsLive)
+    live("/widgets/smart-canvas/display", Components.SmartCanvasObsLive)
 
     get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
@@ -98,11 +98,7 @@ defmodule StreampaiWeb.Router do
     # PayPal onboarding callback
     get("/settings/paypal/callback", PayPalCallbackController, :handle_callback)
 
-    ash_authentication_live_session :authentication_required,
-      on_mount: [
-        {StreampaiWeb.LiveUserAuth, :handle_impersonation},
-        {StreampaiWeb.LiveUserAuth, :dashboard_presence}
-      ] do
+    ash_authentication_live_session :authentication_required do
       live("/dashboard", DashboardLive)
       live("/dashboard/stream", DashboardStreamLive)
       live("/dashboard/chat-history", DashboardChatHistoryLive)
@@ -112,7 +108,7 @@ defmodule StreampaiWeb.Router do
       live("/dashboard/stream-history", DashboardStreamHistoryLive)
       live("/dashboard/stream-history/:stream_id", DashboardStreamHistoryDetailLive)
       live("/dashboard/widgets", DashboardWidgetsLive)
-      live("/dashboard/smart-widgets", DashboardSmartWidgetsLive)
+      live("/dashboard/smart-canvas", DashboardSmartCanvasLive)
       live("/dashboard/analytics", DashboardAnalyticsLive)
       live("/dashboard/settings", DashboardSettingsLive)
       live("/dashboard/moderate", DashboardModerateLive)
@@ -150,11 +146,7 @@ defmodule StreampaiWeb.Router do
     get("/impersonation/stop", ImpersonationController, :stop_impersonation)
     live("/w/:uuid", WidgetDisplayLive)
 
-    scope "/" do
-      pipe_through(:rate_limited_auth)
-
-      auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
-    end
+    auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
   # Echo API for benchmarking

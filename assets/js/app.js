@@ -3,6 +3,7 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "topbar";
+import { Chart, ArcElement, Tooltip, Legend, PieController } from 'chart.js';
 
 // live_vue related imports
 import { getHooks } from "live_vue";
@@ -467,6 +468,115 @@ const VoiceSelector = {
   }
 };
 
+// Platform Distribution Chart Hook
+Chart.register(ArcElement, Tooltip, Legend, PieController);
+
+const PlatformChart = {
+  mounted() {
+    const stats = JSON.parse(this.el.dataset.stats);
+    const canvas = this.el.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const platforms = Object.keys(stats);
+    const counts = Object.values(stats);
+
+    // Define platform colors
+    const platformColors = {
+      twitch: '#9146FF',
+      youtube: '#FF0000',
+      facebook: '#1877F2',
+      kick: '#53FC18'
+    };
+
+    const colors = platforms.map(p => platformColors[p] || '#6B7280');
+
+    this.chart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+        datasets: [{
+          data: counts,
+          backgroundColor: colors,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--tw-bg-opacity') ? '#1F2937' : '#FFFFFF',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: '#9CA3AF',
+              padding: 12,
+              font: {
+                size: 13,
+                family: 'Inter, system-ui, sans-serif'
+              },
+              boxWidth: 15,
+              boxHeight: 15,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+            titleColor: '#F3F4F6',
+            bodyColor: '#F3F4F6',
+            borderColor: '#374151',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} viewers (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Listen for chart updates from LiveView
+    this.handleEvent("update-chart", ({stats}) => {
+      this.updateChart(stats);
+    });
+  },
+
+  updateChart(stats) {
+    if (!this.chart) return;
+
+    const platforms = Object.keys(stats);
+    const counts = Object.values(stats);
+
+    // Define platform colors
+    const platformColors = {
+      twitch: '#9146FF',
+      youtube: '#FF0000',
+      facebook: '#1877F2',
+      kick: '#53FC18'
+    };
+
+    const colors = platforms.map(p => platformColors[p] || '#6B7280');
+
+    this.chart.data.labels = platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1));
+    this.chart.data.datasets[0].data = counts;
+    this.chart.data.datasets[0].backgroundColor = colors;
+    this.chart.update();
+  },
+
+  destroyed() {
+    if (this.chart) {
+      this.chart.destroy();
+    }
+  }
+};
+
 let Hooks = {
   NameAvailabilityChecker,
   CopyToClipboard,
@@ -485,6 +595,7 @@ let Hooks = {
   ThumbnailSelector,
   SettingsThumbnailUpload,
   VoiceSelector,
+  PlatformChart,
   ...getHooks(liveVueApp),
 };
 
@@ -529,14 +640,22 @@ Hooks.CanvasContextMenu = {
 
       // Get canvas position
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
 
-      // Store coordinates on the menu
-      contextMenu.dataset.clickX = Math.round(x);
-      contextMenu.dataset.clickY = Math.round(y);
+      // Get scale factor from canvas scaler
+      const scaler = document.getElementById('canvas-scaler');
+      const scale = parseFloat(scaler?.dataset.scale || 1);
 
-      // Position context menu at click location
+      // Convert scaled coordinates to Full HD coordinates
+      const fullHdX = clickX / scale;
+      const fullHdY = clickY / scale;
+
+      // Store Full HD coordinates on the menu
+      contextMenu.dataset.clickX = Math.round(fullHdX);
+      contextMenu.dataset.clickY = Math.round(fullHdY);
+
+      // Position context menu at click location (visual position)
       contextMenu.style.left = e.clientX + 'px';
       contextMenu.style.top = e.clientY + 'px';
       contextMenu.classList.remove('hidden');
@@ -555,6 +674,78 @@ Hooks.CanvasContextMenu = {
       canvas.removeEventListener('contextmenu', contextMenuHandler);
       document.removeEventListener('click', hideMenuListener);
     };
+  },
+
+  destroyed() {
+    if (this.cleanup) this.cleanup();
+  }
+};
+
+// Canvas Scaler Hook - scales 1920x1080 canvas to fit viewport
+Hooks.CanvasScaler = {
+  mounted() {
+    this.updateScale = () => {
+      const container = this.el.parentElement;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const canvasWidth = 1920;
+      const canvasHeight = 1080;
+
+      // Check if we're in fullscreen mode (container has flex class)
+      const isFullscreen = container.classList.contains('!flex');
+
+      // Calculate scale to fit both width and height, maintaining aspect ratio
+      // Use the smaller scale to ensure canvas fits completely in the container
+      const scaleX = containerWidth / canvasWidth;
+      const scaleY = containerHeight / canvasHeight;
+      const scale = Math.min(scaleX, scaleY, 1);
+
+      // Apply scale transform
+      this.el.style.transform = `scale(${scale})`;
+
+      // In fullscreen mode, center using transform origin center
+      // Otherwise use top left for normal mode
+      if (isFullscreen) {
+        this.el.style.transformOrigin = 'center center';
+      } else {
+        this.el.style.transformOrigin = 'top left';
+      }
+
+      // Store scale factor for other hooks to use
+      this.el.dataset.scale = scale;
+
+      // Only set container height in non-fullscreen mode
+      if (!isFullscreen) {
+        container.style.height = `${canvasHeight * scale}px`;
+      }
+
+      // Show current scale in console for debugging
+      console.log(`Canvas scaled to ${(scale * 100).toFixed(1)}% (${Math.round(canvasWidth * scale)}x${Math.round(canvasHeight * scale)}) - Fullscreen: ${isFullscreen}`);
+    };
+
+    // Initial scale with slight delay to ensure layout is ready
+    setTimeout(() => this.updateScale(), 10);
+
+    // Update on window resize
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateScale();
+    });
+
+    resizeObserver.observe(this.el.parentElement);
+
+    this.cleanup = () => {
+      resizeObserver.disconnect();
+    };
+  },
+
+  updated() {
+    // Re-apply scale after LiveView updates the DOM
+    // Use requestAnimationFrame to ensure DOM is settled
+    requestAnimationFrame(() => {
+      if (this.updateScale) {
+        this.updateScale();
+      }
+    });
   },
 
   destroyed() {
@@ -582,7 +773,10 @@ Hooks.WidgetConnections = {
     this.updateLines();
 
     // Listen for custom update events from drag operations
-    const updateHandler = () => this.updateLines();
+    const updateHandler = (e) => {
+      const widgetId = e.detail?.widgetId || null;
+      this.updateLines(widgetId);
+    };
     this.el.addEventListener('update-lines', updateHandler);
 
     this.cleanup = () => {
@@ -594,7 +788,7 @@ Hooks.WidgetConnections = {
     this.updateLines();
   },
 
-  updateLines() {
+  updateLines(draggedWidgetId = null) {
     // Prevent re-entrant calls
     if (this.isUpdating) return;
 
@@ -609,50 +803,105 @@ Hooks.WidgetConnections = {
       // Clear existing lines
       svg.innerHTML = '';
 
-      if (widgets.length < 2) return;
+      // Track connections for each widget
+      const connections = new Map();
+      widgets.forEach(widget => {
+        connections.set(widget.dataset.widgetId, []);
+      });
+
+      if (widgets.length < 2) {
+        // Update connection displays to show "None"
+        widgets.forEach(widget => {
+          this.updateConnectionDisplay(widget.dataset.widgetId, []);
+        });
+        return;
+      }
 
       // Track which pairs we've already drawn to avoid duplicates
       const drawnPairs = new Set();
 
       widgets.forEach(widget => {
-        const closest = this.findClosestWidget(widget, widgets);
-        if (!closest) return;
+        // Find single nearest widget within reasonable distance (2000px allows full canvas coverage)
+        const nearestWidgets = this.findNearestWidgets(widget, widgets, 1, 2000);
 
-        // Create a unique pair key (sorted to ensure A-B is same as B-A)
-        const id1 = widget.dataset.widgetId;
-        const id2 = closest.dataset.widgetId;
-        const pairKey = [id1, id2].sort().join('-');
+        nearestWidgets.forEach(nearWidget => {
+          const id1 = widget.dataset.widgetId;
+          const id2 = nearWidget.dataset.widgetId;
+          const pairKey = [id1, id2].sort().join('-');
 
-        // Skip if we've already drawn this pair
-        if (drawnPairs.has(pairKey)) return;
-        drawnPairs.add(pairKey);
+          // Skip if we've already drawn this pair
+          if (drawnPairs.has(pairKey)) return;
+          drawnPairs.add(pairKey);
 
-        const lineData = this.calculateLineBetweenWidgets(widget, closest);
-        if (!lineData) return;
+          // Track connections
+          connections.get(id1).push(id2);
+          connections.get(id2).push(id1);
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', lineData.x1);
-        line.setAttribute('y1', lineData.y1);
-        line.setAttribute('x2', lineData.x2);
-        line.setAttribute('y2', lineData.y2);
-        line.setAttribute('stroke', this.randomColor(id1));
-        line.setAttribute('stroke-width', '2');
-        line.setAttribute('opacity', '0.6');
+          const lineData = this.calculateLineBetweenWidgets(widget, nearWidget);
+          if (!lineData) return;
 
-        svg.appendChild(line);
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', lineData.x1);
+          line.setAttribute('y1', lineData.y1);
+          line.setAttribute('x2', lineData.x2);
+          line.setAttribute('y2', lineData.y2);
+
+          // Highlight lines connected to dragged widget
+          const isConnectedToDragged = draggedWidgetId && (id1 === draggedWidgetId || id2 === draggedWidgetId);
+
+          if (isConnectedToDragged) {
+            line.setAttribute('stroke', '#FFD700'); // Gold color for highlighted lines
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('opacity', '1');
+            line.classList.add('highlighted-line');
+          } else {
+            line.setAttribute('stroke', this.randomColor(id1));
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('opacity', '0.6');
+          }
+
+          // Store widget IDs as data attributes for later highlighting
+          line.dataset.widget1 = id1;
+          line.dataset.widget2 = id2;
+
+          svg.appendChild(line);
+        });
+      });
+
+      // Update connection displays
+      connections.forEach((connectedIds, widgetId) => {
+        this.updateConnectionDisplay(widgetId, connectedIds);
       });
     } finally {
       this.isUpdating = false;
     }
   },
 
-  findClosestWidget(widget, widgets) {
+  updateConnectionDisplay(widgetId, connectedIds) {
+    const connectionDiv = document.querySelector(`[data-connections-for="${widgetId}"]`);
+    if (!connectionDiv) return;
+
+    const connectionList = connectionDiv.querySelector('.connections-list');
+    if (!connectionList) return;
+
+    if (connectedIds.length === 0) {
+      connectionList.textContent = 'None';
+      connectionList.classList.add('text-gray-500');
+      connectionList.classList.remove('text-gray-400');
+    } else {
+      connectionList.textContent = connectedIds.join(', ');
+      connectionList.classList.remove('text-gray-500');
+      connectionList.classList.add('text-gray-400');
+    }
+  },
+
+  findNearestWidgets(widget, widgets, maxCount = 3, maxDistance = 2000) {
     const rect = widget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    let closest = null;
-    let minDistance = Infinity;
+    // Calculate distances to all other widgets
+    const widgetDistances = [];
 
     widgets.forEach(other => {
       if (other === widget) return;
@@ -665,41 +914,47 @@ Hooks.WidgetConnections = {
       const dy = otherCenterY - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance < minDistance) {
-        minDistance = distance;
-        closest = other;
-      }
+      widgetDistances.push({ widget: other, distance });
     });
 
-    return closest;
+    // Sort by distance and return nearest widgets within max distance
+    return widgetDistances
+      .sort((a, b) => a.distance - b.distance)
+      .filter(item => item.distance <= maxDistance)
+      .slice(0, maxCount)
+      .map(item => item.widget);
   },
 
   calculateLineBetweenWidgets(widget1, widget2) {
+    // Get canvas scale factor
+    const scaler = document.getElementById('canvas-scaler');
+    const scale = parseFloat(scaler?.dataset.scale || 1);
+
     const canvas = this.el.getBoundingClientRect();
     const rect1 = widget1.getBoundingClientRect();
     const rect2 = widget2.getBoundingClientRect();
 
-    // Calculate centers relative to canvas
-    const c1x = rect1.left - canvas.left + rect1.width / 2;
-    const c1y = rect1.top - canvas.top + rect1.height / 2;
-    const c2x = rect2.left - canvas.left + rect2.width / 2;
-    const c2y = rect2.top - canvas.top + rect2.height / 2;
+    // Calculate centers relative to canvas, accounting for scale
+    const c1x = (rect1.left - canvas.left) / scale + (rect1.width / scale) / 2;
+    const c1y = (rect1.top - canvas.top) / scale + (rect1.height / scale) / 2;
+    const c2x = (rect2.left - canvas.left) / scale + (rect2.width / scale) / 2;
+    const c2y = (rect2.top - canvas.top) / scale + (rect2.height / scale) / 2;
 
     // Find where the center-to-center line intersects each widget's boundary
     const edge1 = this.lineRectIntersection(
       c1x, c1y, c2x, c2y,
-      rect1.left - canvas.left,
-      rect1.top - canvas.top,
-      rect1.width,
-      rect1.height
+      (rect1.left - canvas.left) / scale,
+      (rect1.top - canvas.top) / scale,
+      rect1.width / scale,
+      rect1.height / scale
     );
 
     const edge2 = this.lineRectIntersection(
       c2x, c2y, c1x, c1y,
-      rect2.left - canvas.left,
-      rect2.top - canvas.top,
-      rect2.width,
-      rect2.height
+      (rect2.left - canvas.left) / scale,
+      (rect2.top - canvas.top) / scale,
+      rect2.width / scale,
+      rect2.height / scale
     );
 
     return {
@@ -780,14 +1035,30 @@ Hooks.DraggableWidget = {
     let yOffset = parseInt(this.el.style.top) || 0;
     let animationFrameId = null;
 
+    // Get scale factor helper
+    const getScale = () => {
+      const scaler = document.getElementById('canvas-scaler');
+      return parseFloat(scaler?.dataset.scale || 1);
+    };
+
     const dragStart = (e) => {
       // Don't drag when clicking delete button
       if (e.target.closest('.delete-widget-btn')) {
         return;
       }
 
-      initialX = e.clientX - xOffset;
-      initialY = e.clientY - yOffset;
+      // Get canvas position and scale
+      const canvas = this.el.parentElement;
+      const canvasRect = canvas.getBoundingClientRect();
+      const scale = getScale();
+
+      // Calculate mouse position relative to canvas in Full HD coordinates
+      const mouseCanvasX = (e.clientX - canvasRect.left) / scale;
+      const mouseCanvasY = (e.clientY - canvasRect.top) / scale;
+
+      // Calculate offset from widget's top-left corner
+      initialX = mouseCanvasX - xOffset;
+      initialY = mouseCanvasY - yOffset;
 
       // Allow dragging from anywhere on the widget
       isDragging = true;
@@ -798,6 +1069,9 @@ Hooks.DraggableWidget = {
       this.el.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.5)';
       this.el.style.zIndex = '1000';
       this.el.style.opacity = '0.95';
+
+      // Initial line update with highlighting
+      this.updateConnectionLines(this.el.dataset.widgetId);
     };
 
     const dragEnd = (e) => {
@@ -819,7 +1093,7 @@ Hooks.DraggableWidget = {
           animationFrameId = null;
         }
 
-        // Send position update to LiveView
+        // Send position update to LiveView (in Full HD coordinates)
         this.pushEvent("update_widget_position", {
           id: this.el.dataset.widgetId,
           x: Math.round(xOffset),
@@ -834,27 +1108,39 @@ Hooks.DraggableWidget = {
     const drag = (e) => {
       if (isDragging) {
         e.preventDefault();
-        currentX = e.clientX - initialX;
-        currentY = e.clientY - initialY;
+
+        // Get canvas position and scale
+        const canvas = this.el.parentElement;
+        const canvasRect = canvas.getBoundingClientRect();
+        const scale = getScale();
+
+        // Calculate mouse position relative to canvas in Full HD coordinates
+        const mouseCanvasX = (e.clientX - canvasRect.left) / scale;
+        const mouseCanvasY = (e.clientY - canvasRect.top) / scale;
+
+        // Calculate new widget position in Full HD coordinates
+        currentX = mouseCanvasX - initialX;
+        currentY = mouseCanvasY - initialY;
         xOffset = currentX;
         yOffset = currentY;
 
-        // Get canvas bounds
-        const canvas = this.el.parentElement;
-        const canvasRect = canvas.getBoundingClientRect();
+        // Get widget dimensions in Full HD coordinates
         const widgetRect = this.el.getBoundingClientRect();
+        const widgetWidth = widgetRect.width / scale;
+        const widgetHeight = widgetRect.height / scale;
 
-        // Constrain to canvas boundaries
-        xOffset = Math.max(0, Math.min(xOffset, canvasRect.width - widgetRect.width));
-        yOffset = Math.max(0, Math.min(yOffset, canvasRect.height - widgetRect.height));
+        // Constrain to canvas boundaries (Full HD: 1920x1080)
+        xOffset = Math.max(0, Math.min(xOffset, 1920 - widgetWidth));
+        yOffset = Math.max(0, Math.min(yOffset, 1080 - widgetHeight));
 
+        // Apply position (canvas is 1920x1080, no scaling needed for positioning)
         this.el.style.left = xOffset + "px";
         this.el.style.top = yOffset + "px";
 
         // Throttle line updates using requestAnimationFrame
         if (!animationFrameId) {
           animationFrameId = requestAnimationFrame(() => {
-            this.updateConnectionLines();
+            this.updateConnectionLines(this.el.dataset.widgetId);
             animationFrameId = null;
           });
         }
@@ -876,9 +1162,9 @@ Hooks.DraggableWidget = {
     };
   },
 
-  updateConnectionLines() {
+  updateConnectionLines(widgetId = null) {
     const canvas = this.el.parentElement;
-    const event = new CustomEvent('update-lines');
+    const event = new CustomEvent('update-lines', { detail: { widgetId } });
     canvas.dispatchEvent(event);
   },
 

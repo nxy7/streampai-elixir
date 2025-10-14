@@ -43,6 +43,7 @@ defmodule Streampai.Stream.StreamViewer do
       accept [
         :viewer_id,
         :user_id,
+        :platform,
         :display_name,
         :avatar_url,
         :channel_url,
@@ -58,6 +59,7 @@ defmodule Streampai.Stream.StreamViewer do
       upsert_identity :primary_key
 
       upsert_fields [
+        :platform,
         :display_name,
         :avatar_url,
         :channel_url,
@@ -68,7 +70,7 @@ defmodule Streampai.Stream.StreamViewer do
         :last_seen_at
       ]
 
-      validate present([:viewer_id, :user_id, :display_name])
+      validate present([:viewer_id, :user_id, :platform, :display_name])
 
       change set_attribute(:last_seen_at, &DateTime.utc_now/0)
     end
@@ -130,6 +132,12 @@ defmodule Streampai.Stream.StreamViewer do
       description "Reference to the streamer (user)"
       allow_nil? false
       primary_key? true
+    end
+
+    attribute :platform, :atom do
+      description "Platform where this viewer was seen (twitch, youtube, facebook, kick)"
+      allow_nil? false
+      constraints one_of: [:twitch, :youtube, :facebook, :kick]
     end
 
     attribute :display_name, :string do

@@ -6,7 +6,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
   alias Streampai.Accounts.StreamingAccount
 
-  plug Ueberauth
+  plug(Ueberauth)
 
   @redirect_url "/dashboard/settings"
 

@@ -381,6 +381,9 @@ defmodule StreampaiWeb.DonationLive do
                       </label>
                       <select
                         name="donation[voice]"
+                        id="donor-voice-input"
+                        phx-hook="LocalStorage"
+                        data-storage-key="donation_voice"
                         class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       >
                         <%= for option <- @voice_options do %>
@@ -404,6 +407,9 @@ defmodule StreampaiWeb.DonationLive do
                       name="donation[message]"
                       rows="4"
                       placeholder="Leave a nice message..."
+                      id="donor-message-input"
+                      phx-hook="LocalStorage"
+                      data-storage-key="donation_message"
                       class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                     >{@donation_form.message}</textarea>
                     <p class="text-sm text-gray-400 mt-1">

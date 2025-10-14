@@ -10,7 +10,11 @@ defmodule StreampaiWeb.ViewersLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    viewers = load_viewers(socket.assigns.current_user.id)
+    user_id = socket.assigns.current_user.id
+    platform_filter = nil
+    time_filter = :all_time
+    viewers = load_viewers(user_id, platform_filter, time_filter)
+    platform_distribution = get_platform_distribution(user_id, time_filter)
 
     socket =
       socket
@@ -19,6 +23,10 @@ defmodule StreampaiWeb.ViewersLive do
       |> assign(:viewers, viewers)
       |> assign(:banned_viewers, [])
       |> assign(:search_query, "")
+      |> assign(:platform_filter, platform_filter)
+      |> assign(:time_filter, time_filter)
+      |> assign(:filtered_count, length(viewers))
+      |> assign(:platform_distribution, platform_distribution)
 
     {:ok, socket, layout: false}
   end
@@ -31,7 +39,8 @@ defmodule StreampaiWeb.ViewersLive do
     socket =
       case view_mode do
         :viewers ->
-          viewers = load_viewers(user_id)
+          viewers =
+            load_viewers(user_id, socket.assigns.platform_filter, socket.assigns.time_filter)
 
           socket
           |> assign(:view_mode, :viewers)
@@ -77,18 +86,87 @@ defmodule StreampaiWeb.ViewersLive do
   def handle_event("search", %{"query" => query}, socket) do
     viewers =
       if query == "" do
-        load_viewers(socket.assigns.current_user.id)
+        load_viewers(
+          socket.assigns.current_user.id,
+          socket.assigns.platform_filter,
+          socket.assigns.time_filter
+        )
       else
         search_viewers(socket.assigns.current_user.id, query)
       end
 
-    {:noreply, assign(socket, viewers: viewers, search_query: query)}
+    socket =
+      socket
+      |> assign(:viewers, viewers)
+      |> assign(:search_query, query)
+      |> assign(:filtered_count, length(viewers))
+
+    {:noreply, socket}
   end
 
-  defp load_viewers(user_id) do
-    StreamViewer
-    |> Ash.Query.for_read(:for_user, %{user_id: user_id})
-    |> Ash.read!()
+  @impl true
+  def handle_event("filter_platform", %{"platform" => platform_str}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    platform_filter =
+      case platform_str do
+        "" -> nil
+        "all" -> nil
+        p -> String.to_existing_atom(p)
+      end
+
+    viewers = load_viewers(user_id, platform_filter, socket.assigns.time_filter)
+
+    socket =
+      socket
+      |> assign(:viewers, viewers)
+      |> assign(:platform_filter, platform_filter)
+      |> assign(:filtered_count, length(viewers))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("filter_time", %{"time" => time_str}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    time_filter =
+      case time_str do
+        "last_7d" -> :last_7d
+        "last_30d" -> :last_30d
+        "all_time" -> :all_time
+        _ -> :all_time
+      end
+
+    viewers = load_viewers(user_id, socket.assigns.platform_filter, time_filter)
+    platform_distribution = get_platform_distribution(user_id, time_filter)
+
+    socket =
+      socket
+      |> assign(:viewers, viewers)
+      |> assign(:time_filter, time_filter)
+      |> assign(:filtered_count, length(viewers))
+      |> assign(:platform_distribution, platform_distribution)
+      |> push_event("update-chart", %{stats: platform_distribution})
+
+    {:noreply, socket}
+  end
+
+  defp load_viewers(user_id, platform_filter, time_filter) do
+    require Ash.Query
+
+    query = Ash.Query.for_read(StreamViewer, :for_user, %{user_id: user_id})
+
+    query =
+      if platform_filter do
+        Ash.Query.filter(query, platform == ^platform_filter)
+      else
+        query
+      end
+
+    query = apply_time_filter(query, time_filter)
+
+    Ash.read!(query)
   end
 
   defp search_viewers(user_id, query) do
@@ -108,6 +186,35 @@ defmodule StreampaiWeb.ViewersLive do
     |> Ash.Query.for_read(:get_active_bans, %{user_id: user_id})
     |> Ash.Query.load([:banned_by_user])
     |> Ash.read!(authorize?: false)
+  end
+
+  defp get_platform_distribution(user_id, time_filter) do
+    require Ash.Query
+
+    query = Ash.Query.for_read(StreamViewer, :for_user, %{user_id: user_id})
+    query = apply_time_filter(query, time_filter)
+
+    query
+    |> Ash.read!(authorize?: false)
+    |> Enum.group_by(& &1.platform)
+    |> Map.new(fn {platform, viewers} -> {platform, length(viewers)} end)
+  end
+
+  defp apply_time_filter(query, time_filter) do
+    require Ash.Query
+
+    case time_filter do
+      :last_7d ->
+        cutoff_date = DateTime.add(DateTime.utc_now(), -7, :day)
+        Ash.Query.filter(query, last_seen_at >= ^cutoff_date)
+
+      :last_30d ->
+        cutoff_date = DateTime.add(DateTime.utc_now(), -30, :day)
+        Ash.Query.filter(query, last_seen_at >= ^cutoff_date)
+
+      :all_time ->
+        query
+    end
   end
 
   defp format_relative_date(datetime) do
@@ -143,6 +250,41 @@ defmodule StreampaiWeb.ViewersLive do
           </p>
         </div>
 
+        <%= if @view_mode == :viewers do %>
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div class="lg:col-span-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                  Platform Distribution
+                </h3>
+                <div
+                  phx-hook="PlatformChart"
+                  phx-update="ignore"
+                  id="platform-chart"
+                  data-stats={Jason.encode!(@platform_distribution)}
+                  class="w-full h-[280px]"
+                >
+                  <canvas></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-1">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full flex flex-col justify-center items-center">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                  Filtered Results
+                </p>
+                <p class="text-6xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {@filtered_count}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  viewers
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
         <div class="flex items-center gap-4">
           <div class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
             <button
@@ -176,6 +318,32 @@ defmodule StreampaiWeb.ViewersLive do
           </div>
 
           <%= if @view_mode == :viewers do %>
+            <form phx-change="filter_time">
+              <select
+                name="time"
+                value={@time_filter}
+                class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all_time">All Time</option>
+                <option value="last_7d">Last 7 Days</option>
+                <option value="last_30d">Last 30 Days</option>
+              </select>
+            </form>
+
+            <form phx-change="filter_platform">
+              <select
+                name="platform"
+                value={@platform_filter || "all"}
+                class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Platforms</option>
+                <option value="twitch">Twitch</option>
+                <option value="youtube">YouTube</option>
+                <option value="facebook">Facebook</option>
+                <option value="kick">Kick</option>
+              </select>
+            </form>
+
             <form phx-change="search" class="flex-1">
               <input
                 type="text"
@@ -195,6 +363,9 @@ defmodule StreampaiWeb.ViewersLive do
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Viewer
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Platform
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
@@ -241,6 +412,11 @@ defmodule StreampaiWeb.ViewersLive do
                           <% end %>
                         </div>
                       </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                        {viewer.platform |> to_string() |> String.capitalize()}
+                      </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex gap-2">

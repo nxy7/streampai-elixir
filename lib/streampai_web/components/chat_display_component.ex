@@ -15,9 +15,9 @@ defmodule StreampaiWeb.Components.ChatDisplayComponent do
   * `messages` - List of message maps to display
   * `id` - Optional DOM ID for the widget (defaults to "chat-widget")
   """
-  attr :config, :map, required: true
-  attr :messages, :any, required: true
-  attr :id, :string, default: "chat-widget"
+  attr(:config, :map, required: true)
+  attr(:messages, :any, required: true)
+  attr(:id, :string, default: "chat-widget")
 
   def chat_display(assigns) do
     font_class =

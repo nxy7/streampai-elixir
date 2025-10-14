@@ -9,7 +9,8 @@ defmodule StreampaiWeb.DashboardViewersLive do
   def mount_page(socket, _params, _session) do
     user_id = socket.assigns.current_user.id
     view_mode = :viewers
-    {viewers, page_info} = load_viewers(user_id, nil)
+    platform_filter = nil
+    {viewers, page_info} = load_viewers(user_id, nil, platform_filter)
 
     socket =
       socket
@@ -18,6 +19,7 @@ defmodule StreampaiWeb.DashboardViewersLive do
       |> assign(:viewers, viewers)
       |> assign(:banned_viewers, [])
       |> assign(:search_query, "")
+      |> assign(:platform_filter, platform_filter)
       |> assign(:after_cursor, page_info.after_cursor)
       |> assign(:has_more, page_info.more?)
       |> assign(:loading_more, false)
@@ -32,7 +34,7 @@ defmodule StreampaiWeb.DashboardViewersLive do
     socket =
       case view_mode do
         :viewers ->
-          {viewers, page_info} = load_viewers(user_id, nil)
+          {viewers, page_info} = load_viewers(user_id, nil, socket.assigns.platform_filter)
 
           socket
           |> assign(:view_mode, :viewers)
@@ -80,7 +82,7 @@ defmodule StreampaiWeb.DashboardViewersLive do
 
     {viewers, page_info} =
       if query == "" do
-        load_viewers(user_id, nil)
+        load_viewers(user_id, nil, socket.assigns.platform_filter)
       else
         {search_viewers(user_id, query), %{after_cursor: nil, more?: false}}
       end
@@ -95,9 +97,33 @@ defmodule StreampaiWeb.DashboardViewersLive do
     {:noreply, socket}
   end
 
+  def handle_event("filter_platform", %{"platform" => platform_str}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    platform_filter =
+      case platform_str do
+        "" -> nil
+        "all" -> nil
+        p -> String.to_existing_atom(p)
+      end
+
+    {viewers, page_info} = load_viewers(user_id, nil, platform_filter)
+
+    socket =
+      socket
+      |> assign(:viewers, viewers)
+      |> assign(:platform_filter, platform_filter)
+      |> assign(:after_cursor, page_info.after_cursor)
+      |> assign(:has_more, page_info.more?)
+
+    {:noreply, socket}
+  end
+
   def handle_event("load_more", _params, socket) do
     user_id = socket.assigns.current_user.id
-    {new_viewers, page_info} = load_viewers(user_id, socket.assigns.after_cursor)
+
+    {new_viewers, page_info} =
+      load_viewers(user_id, socket.assigns.after_cursor, socket.assigns.platform_filter)
 
     socket =
       socket
@@ -109,12 +135,22 @@ defmodule StreampaiWeb.DashboardViewersLive do
     {:noreply, socket}
   end
 
-  defp load_viewers(user_id, after_cursor) do
+  defp load_viewers(user_id, after_cursor, platform_filter) do
+    require Ash.Query
+
     page_opts = if after_cursor, do: [after: after_cursor], else: []
 
+    query = Ash.Query.for_read(StreamViewer, :for_user, %{user_id: user_id})
+
+    query =
+      if platform_filter do
+        Ash.Query.filter(query, platform == ^platform_filter)
+      else
+        query
+      end
+
     page =
-      StreamViewer
-      |> Ash.Query.for_read(:for_user, %{user_id: user_id})
+      query
       |> Ash.Query.page(page_opts)
       |> Ash.read!(authorize?: false)
 
@@ -194,6 +230,20 @@ defmodule StreampaiWeb.DashboardViewersLive do
           </div>
 
           <%= if @view_mode == :viewers do %>
+            <form phx-change="filter_platform">
+              <select
+                name="platform"
+                value={@platform_filter || "all"}
+                class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Platforms</option>
+                <option value="twitch">Twitch</option>
+                <option value="youtube">YouTube</option>
+                <option value="facebook">Facebook</option>
+                <option value="kick">Kick</option>
+              </select>
+            </form>
+
             <form phx-change="search" class="flex-1">
               <input
                 type="text"
@@ -213,6 +263,9 @@ defmodule StreampaiWeb.DashboardViewersLive do
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Viewer
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Platform
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
@@ -261,6 +314,11 @@ defmodule StreampaiWeb.DashboardViewersLive do
                           <% end %>
                         </div>
                       </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                        {viewer.platform |> to_string() |> String.capitalize()}
+                      </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex gap-2">

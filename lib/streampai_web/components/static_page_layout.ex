@@ -2,9 +2,9 @@ defmodule StreampaiWeb.Components.StaticPageLayout do
   @moduledoc false
   use StreampaiWeb, :html
 
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-  slot :inner_block, required: true
+  attr(:title, :string, required: true)
+  attr(:description, :string, required: true)
+  slot(:inner_block, required: true)
 
   def static_page_layout(assigns) do
     ~H"""

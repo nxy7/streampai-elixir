@@ -10,5 +10,5 @@ defmodule StreampaiWeb.Layouts do
   """
   use StreampaiWeb, :html
 
-  embed_templates "layouts/*"
+  embed_templates("layouts/*")
 end

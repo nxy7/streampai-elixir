@@ -18,11 +18,13 @@ defmodule StreampaiWeb.DashboardLive do
         ])
       end
 
+    current_user = Map.get(socket.assigns, :current_user)
+
     socket =
       socket
       |> safe_load(
         fn ->
-          Dashboard.get_dashboard_data(socket.assigns.current_user)
+          Dashboard.get_dashboard_data(current_user)
         end,
         :dashboard_data,
         "Failed to load dashboard data"
@@ -91,15 +93,18 @@ defmodule StreampaiWeb.DashboardLive do
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <.dashboard_card title="Account Info" icon="user">
             <div class="space-y-3">
-              <.info_row label="Email" value={@dashboard_data.user_info.email || "Not available"} />
+              <.info_row
+                label="Email"
+                value={Map.get(@dashboard_data.user_info, :email, "Not available")}
+              />
               <.info_row label="User ID">
                 <p class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                  {@dashboard_data.user_info.id || "N/A"}
+                  {Map.get(@dashboard_data.user_info, :id, "N/A")}
                 </p>
               </.info_row>
               <.info_row label="Plan">
                 <.status_badge status="success">
-                  {UserHelpers.get_tier_display(Map.get(@current_user, :tier))}
+                  {UserHelpers.get_tier_display(Map.get(assigns[:current_user] || %{}, :tier))}
                 </.status_badge>
               </.info_row>
             </div>
@@ -112,12 +117,12 @@ defmodule StreampaiWeb.DashboardLive do
               </div>
               <.info_row
                 label="Connected Platforms"
-                value={safe_field_value(@current_user, :connected_platforms, "0")}
+                value={safe_field_value(assigns[:current_user], :connected_platforms, "0")}
               />
               <.info_row label="Hours Used">
                 <span class="text-sm font-medium">
                   {Map.get(@dashboard_data, :usage, %{}) |> Map.get(:hours_used, 0)} / {UserHelpers.get_hours_limit(
-                    Map.get(@current_user || %{}, :tier),
+                    Map.get(assigns[:current_user] || %{}, :tier),
                     Map.get(@dashboard_data, :usage, %{})
                   )}
                 </span>
@@ -168,7 +173,7 @@ defmodule StreampaiWeb.DashboardLive do
         <h3 class="text-sm font-medium text-yellow-800 mb-2">Debug Info (Development Only)</h3>
         <details>
           <summary class="cursor-pointer text-xs text-yellow-700">Current User Data</summary>
-          <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(@current_user, pretty: true, limit: :infinity) %></pre>
+          <pre class="text-xs text-yellow-700 overflow-x-auto mt-2"><%= inspect(assigns[:current_user], pretty: true, limit: :infinity) %></pre>
         </details>
         <details class="mt-2">
           <summary class="cursor-pointer text-xs text-yellow-700">Dashboard Data</summary>

@@ -78,12 +78,32 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
                   stream_status={@stream_status}
                   loading={@loading}
                 />
-                <%= if @stream_status.rtmp_url && @stream_status.stream_key do %>
-                  <DashboardComponents.rtmp_connection_details
-                    rtmp_url={@stream_status.rtmp_url}
-                    stream_key={@stream_status.stream_key}
-                    show_stream_key={@show_stream_key}
-                  />
+                <%= if @stream_status.rtmp_url && @stream_status.horizontal_stream_key do %>
+                  <div class="mb-4">
+                    <DashboardComponents.copy_field label="RTMP URL" value={@stream_status.rtmp_url} />
+                    <DashboardComponents.copy_field
+                      label="Stream Key"
+                      value={@stream_status.horizontal_stream_key}
+                      hidden={!@show_stream_key}
+                      toggle_event="toggle_stream_key_visibility"
+                      toggle_target={@myself}
+                      regenerate_event="regenerate_horizontal_stream_key"
+                      regenerate_target={@myself}
+                      regenerating={@regenerating_horizontal}
+                    />
+                    <%= if @stream_status.vertical_stream_key do %>
+                      <DashboardComponents.copy_field
+                        label="Vertical Stream Key"
+                        value={@stream_status.vertical_stream_key}
+                        hidden={!@show_stream_key}
+                        toggle_event="toggle_stream_key_visibility"
+                        toggle_target={@myself}
+                        regenerate_event="regenerate_vertical_stream_key"
+                        regenerate_target={@myself}
+                        regenerating={@regenerating_vertical}
+                      />
+                    <% end %>
+                  </div>
                 <% end %>
                 <%= if @stream_status.input_streaming_status != :live do %>
                   <DashboardComponents.stream_status_message />
@@ -103,7 +123,12 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, maximized: false)}
+    {:ok,
+     assign(socket,
+       maximized: false,
+       regenerating_horizontal: false,
+       regenerating_vertical: false
+     )}
   end
 
   @impl true
@@ -111,6 +136,18 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
     socket = assign(socket, assigns)
     socket = assign_new(socket, :hide_stop_button, fn -> false end)
     socket = assign_new(socket, :moderator_mode, fn -> false end)
+    socket = assign_new(socket, :regenerating_horizontal, fn -> false end)
+    socket = assign_new(socket, :regenerating_vertical, fn -> false end)
+
+    socket =
+      if Map.has_key?(assigns, :stream_status) do
+        socket
+        |> assign(:regenerating_horizontal, false)
+        |> assign(:regenerating_vertical, false)
+      else
+        socket
+      end
+
     {:ok, socket}
   end
 
@@ -123,6 +160,18 @@ defmodule StreampaiWeb.Components.StreamControlsLive do
   def handle_event("toggle_stream_key_visibility", _params, socket) do
     send(self(), {:toggle_stream_key_visibility})
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("regenerate_horizontal_stream_key", _params, socket) do
+    send(self(), {:regenerate_stream_key, :horizontal})
+    {:noreply, assign(socket, :regenerating_horizontal, true)}
+  end
+
+  @impl true
+  def handle_event("regenerate_vertical_stream_key", _params, socket) do
+    send(self(), {:regenerate_stream_key, :vertical})
+    {:noreply, assign(socket, :regenerating_vertical, true)}
   end
 
   @impl true

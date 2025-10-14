@@ -18,6 +18,7 @@
     "vue-tsc": "^2.0.13"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "live_vue": "file:../deps/live_vue",
     "node-emoji": "^2.2.0",
     "phoenix": "file:../deps/phoenix",

@@ -30,6 +30,7 @@ defmodule StreampaiWeb.BaseLive do
         socket =
           socket
           |> assign_defaults()
+          |> maybe_load_current_user(session)
           |> maybe_assign_page_specific(params, session)
 
         mount_page(socket, params, session)
@@ -87,6 +88,57 @@ defmodule StreampaiWeb.BaseLive do
         |> assign_new(:errors, fn -> [] end)
         |> assign_new(:success_message, fn -> nil end)
         |> assign_new(:disconnecting_platform, fn -> nil end)
+      end
+
+      defp maybe_load_current_user(socket, session) do
+        # If current_user is already assigned (by AshAuthentication), don't reload
+        if Map.has_key?(socket.assigns, :current_user) do
+          socket
+        else
+          # Try to load user from session
+          case Map.get(session, "user") do
+            nil ->
+              socket
+
+            user_token when is_binary(user_token) ->
+              case load_user_from_token(user_token) do
+                {:ok, user} -> assign(socket, :current_user, user)
+                _ -> socket
+              end
+
+            _ ->
+              socket
+          end
+        end
+      end
+
+      defp load_user_from_token(token) do
+        # Parse the token format: "otp_app:resource?id=uuid"
+        case String.split(token, "?") do
+          [_resource_part, params_part] ->
+            params = URI.decode_query(params_part)
+
+            case Map.get(params, "id") do
+              nil ->
+                {:error, :no_id}
+
+              user_id ->
+                import Ash.Query
+
+                alias Streampai.Accounts.User
+
+                case User
+                     |> for_read(:get_by_id_minimal, %{id: user_id}, authorize?: false)
+                     |> Ash.read() do
+                  {:ok, [user]} -> {:ok, user}
+                  {:ok, []} -> {:error, :user_not_found}
+                  {:error, reason} -> {:error, reason}
+                end
+            end
+
+          _ ->
+            {:error, :invalid_token_format}
+        end
       end
 
       defp maybe_assign_page_specific(socket, _params, _session) do

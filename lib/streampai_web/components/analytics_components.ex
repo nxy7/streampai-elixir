@@ -11,13 +11,13 @@ defmodule StreampaiWeb.AnalyticsComponents do
   alias StreampaiWeb.CoreComponents, as: Core
   alias StreampaiWeb.Utils.FormatHelpers
 
-  attr :title, :string, required: true
-  attr :value, :any, required: true
-  attr :change, :float, default: nil
-  attr :change_type, :atom, default: :neutral
-  attr :icon, :string, default: nil
-  attr :format, :atom, default: :number
-  attr :tooltip, :string, default: nil
+  attr(:title, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:change, :float, default: nil)
+  attr(:change_type, :atom, default: :neutral)
+  attr(:icon, :string, default: nil)
+  attr(:format, :atom, default: :number)
+  attr(:tooltip, :string, default: nil)
 
   def stat_card(assigns) do
     ~H"""
@@ -64,9 +64,9 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  attr :data, :list, required: true
-  attr :title, :string, required: true
-  attr :height, :string, default: "h-64"
+  attr(:data, :list, required: true)
+  attr(:title, :string, required: true)
+  attr(:height, :string, default: "h-64")
 
   def line_chart(assigns) do
     ~H"""
@@ -148,8 +148,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  attr :data, :list, required: true
-  attr :title, :string, required: true
+  attr(:data, :list, required: true)
+  attr(:title, :string, required: true)
 
   def bar_chart(assigns) do
     ~H"""
@@ -181,8 +181,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  attr :data, :list, required: true
-  attr :title, :string, required: true
+  attr(:data, :list, required: true)
+  attr(:title, :string, required: true)
 
   def pie_chart(assigns) do
     ~H"""
@@ -252,7 +252,7 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  attr :streams, :list, required: true
+  attr(:streams, :list, required: true)
 
   def stream_table(assigns) do
     ~H"""
@@ -385,8 +385,8 @@ defmodule StreampaiWeb.AnalyticsComponents do
     "/dashboard/stream-history/#{stream.id}"
   end
 
-  attr :text, :string, required: true
-  attr :position, :string, default: "top"
+  attr(:text, :string, required: true)
+  attr(:position, :string, default: "top")
 
   def tooltip(assigns) do
     assigns = assign(assigns, :tooltip_id, "tooltip-#{System.unique_integer([:positive])}")
@@ -418,18 +418,19 @@ defmodule StreampaiWeb.AnalyticsComponents do
     """
   end
 
-  attr :value, :float, required: true, doc: "Progress value between 0.0 and 1.0"
-  attr :max_value, :float, default: 1.0, doc: "Maximum value for percentage calculation"
+  attr(:value, :float, required: true, doc: "Progress value between 0.0 and 1.0")
+  attr(:max_value, :float, default: 1.0, doc: "Maximum value for percentage calculation")
 
-  attr :color_class, :string,
+  attr(:color_class, :string,
     default: "bg-indigo-600",
     doc: "Tailwind color class for the progress bar"
+  )
 
-  attr :size, :atom, default: :medium, values: [:small, :medium, :large], doc: "Size variant"
-  attr :width_class, :string, default: "w-full", doc: "Width class for the container"
-  attr :animate, :boolean, default: true, doc: "Whether to animate transitions"
-  attr :label, :string, default: nil, doc: "Optional label text"
-  attr :show_percentage, :boolean, default: false, doc: "Whether to show percentage text"
+  attr(:size, :atom, default: :medium, values: [:small, :medium, :large], doc: "Size variant")
+  attr(:width_class, :string, default: "w-full", doc: "Width class for the container")
+  attr(:animate, :boolean, default: true, doc: "Whether to animate transitions")
+  attr(:label, :string, default: nil, doc: "Optional label text")
+  attr(:show_percentage, :boolean, default: false, doc: "Whether to show percentage text")
 
   def progress_bar(assigns) do
     height_class =

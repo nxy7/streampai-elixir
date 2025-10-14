@@ -18,8 +18,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     :account_id,
     # Cloudflare API token
     :api_token,
-    # Current live input configuration
-    :live_input,
+    # Horizontal live input configuration
+    :horizontal_input,
+    # Vertical live input configuration
+    :vertical_input,
     # Map of platform => output configuration
     :live_outputs,
     # :inactive, :ready, :streaming, :ending, :error
@@ -130,8 +132,8 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   Regenerates the live input by deleting the current one and creating a new one.
   Returns {:ok, new_stream_status} or {:error, reason}
   """
-  def regenerate_live_input(user_id) when is_binary(user_id) do
-    GenServer.call(via_tuple(user_id), :regenerate_live_input, 15_000)
+  def regenerate_live_input(user_id, orientation \\ :horizontal) when is_binary(user_id) do
+    GenServer.call(via_tuple(user_id), {:regenerate_live_input, orientation}, 15_000)
   end
 
   @doc """
@@ -177,17 +179,23 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   @impl true
   def handle_info(:initialize_live_input, state) do
     case create_live_input(state) do
-      {:ok, live_input} ->
-        state = %{state | live_input: live_input, stream_status: :ready}
+      {:ok, %{horizontal: horizontal, vertical: vertical}} ->
+        state = %{
+          state
+          | horizontal_input: horizontal,
+            vertical_input: vertical,
+            stream_status: :ready
+        }
 
         # Check input status immediately
         send(self(), :poll_input_status)
 
-        Logger.info("Live input ready for user #{state.user_id}: #{live_input.input_id}")
+        Logger.info("Live inputs ready for user #{state.user_id}: H=#{horizontal.input_id}, V=#{vertical.input_id}")
+
         {:noreply, state}
 
       {:error, reason} ->
-        Logger.error("Failed to create live input for user #{state.user_id}: #{inspect(reason)}")
+        Logger.error("Failed to create live inputs for user #{state.user_id}: #{inspect(reason)}")
         # Retry after 30 seconds
         Process.send_after(self(), :initialize_live_input, 30_000)
         {:noreply, %{state | stream_status: :error}}
@@ -243,12 +251,14 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   @impl true
   def handle_call(:get_stream_config, _from, state) do
     config = %{
-      live_input: state.live_input,
+      horizontal_input: state.horizontal_input,
+      vertical_input: state.vertical_input,
       live_outputs: state.live_outputs,
       stream_status: state.stream_status,
       input_streaming_status: state.input_streaming_status,
       rtmp_url: "rtmps://live.streampai.com:443/live/",
-      stream_key: get_stream_key(state),
+      horizontal_stream_key: get_horizontal_stream_key(state),
+      vertical_stream_key: get_vertical_stream_key(state),
       can_start_streaming: can_start_streaming_internal(state)
     }
 
@@ -318,8 +328,10 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     status = %{
       user_id: state.user_id,
       is_streaming: state.input_streaming_status == :live,
-      live_input_id: get_input_id(state.live_input),
-      last_status: state.live_input,
+      live_input_id: get_input_id(get_primary_input(state)),
+      horizontal_input_id: get_input_id(state.horizontal_input),
+      vertical_input_id: get_input_id(state.vertical_input),
+      last_status: get_primary_input(state),
       # Could track this if needed
       poll_count: 0
     }
@@ -328,40 +340,43 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   @impl true
-  def handle_call({:set_live_input_id, input_id}, _from, %{live_input: nil} = state) do
-    new_state = %{state | live_input: %{input_id: input_id}}
-    Logger.info("Live input ID set to: #{input_id}")
+  def handle_call({:set_live_input_id, input_id}, _from, %{horizontal_input: nil} = state) do
+    new_state = %{state | horizontal_input: %{input_id: input_id}}
+    Logger.info("Horizontal live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
   end
 
-  def handle_call({:set_live_input_id, input_id}, _from, %{live_input: live_input} = state) do
+  def handle_call({:set_live_input_id, input_id}, _from, %{horizontal_input: live_input} = state) do
     updated_input = Map.put(live_input, :input_id, input_id)
-    new_state = %{state | live_input: updated_input}
-    Logger.info("Live input ID set to: #{input_id}")
+    new_state = %{state | horizontal_input: updated_input}
+    Logger.info("Horizontal live input ID set to: #{input_id}")
     {:reply, :ok, new_state}
   end
 
   @impl true
-  def handle_call(:regenerate_live_input, _from, state) do
-    Logger.info("Regenerating live input for user #{state.user_id}")
+  def handle_call({:regenerate_live_input, orientation}, _from, state) do
+    Logger.info("Regenerating #{orientation} live input for user #{state.user_id}")
 
-    # Delete the current live input from Cloudflare API if it exists
-    case get_input_id(state.live_input) do
+    # Get the input to delete based on orientation
+    input = if orientation == :vertical, do: state.vertical_input, else: state.horizontal_input
+
+    # Delete from Cloudflare API if it exists
+    case get_input_id(input) do
       nil ->
-        Logger.info("No existing live input to delete")
+        Logger.info("No existing #{orientation} live input to delete")
 
       input_id ->
         case APIClient.delete_live_input(input_id) do
           :ok ->
-            Logger.info("Deleted Cloudflare live input: #{input_id}")
+            Logger.info("Deleted Cloudflare #{orientation} live input: #{input_id}")
 
           {:error, _error_type, message} ->
-            Logger.warning("Failed to delete Cloudflare live input: #{message}")
+            Logger.warning("Failed to delete Cloudflare #{orientation} live input: #{message}")
         end
     end
 
     # Delete the database record
-    case Ash.get(LiveInput, state.user_id, authorize?: false) do
+    case Ash.get(LiveInput, %{user_id: state.user_id, orientation: orientation}, authorize?: false) do
       {:ok, live_input} when not is_nil(live_input) ->
         Ash.destroy(live_input, authorize?: false)
 
@@ -369,10 +384,15 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         :ok
     end
 
-    # Create a new live input immediately
-    case create_live_input(state) do
-      {:ok, new_live_input} ->
-        new_state = %{state | live_input: new_live_input, stream_status: :ready}
+    # Create new live input for this orientation
+    case fetch_input_for_orientation(state, orientation) do
+      {:ok, new_input} ->
+        new_state =
+          if orientation == :vertical do
+            %{state | vertical_input: new_input}
+          else
+            %{state | horizontal_input: new_input}
+          end
 
         # Broadcast the change
         Phoenix.PubSub.broadcast(
@@ -383,26 +403,28 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
         # Build stream config from state
         stream_config = %{
-          live_input: new_state.live_input,
+          horizontal_input: new_state.horizontal_input,
+          vertical_input: new_state.vertical_input,
           live_outputs: new_state.live_outputs,
           stream_status: new_state.stream_status,
           input_streaming_status: new_state.input_streaming_status,
           rtmp_url: "rtmps://live.streampai.com:443/live/",
-          stream_key: get_stream_key(new_state),
+          horizontal_stream_key: get_horizontal_stream_key(new_state),
+          vertical_stream_key: get_vertical_stream_key(new_state),
           can_start_streaming: can_start_streaming_internal(new_state)
         }
 
         {:reply, {:ok, stream_config}, new_state}
 
       {:error, reason} ->
-        Logger.error("Failed to regenerate live input: #{inspect(reason)}")
+        Logger.error("Failed to regenerate #{orientation} live input: #{inspect(reason)}")
         {:reply, {:error, reason}, state}
     end
   end
 
   @impl true
   def handle_call({:create_platform_output, platform, rtmp_url, stream_key}, _from, state) do
-    input_id = get_input_id(state.live_input)
+    input_id = get_input_id(get_primary_input(state))
 
     case input_id do
       nil ->
@@ -458,7 +480,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
   @impl true
   def handle_call(:cleanup_all_outputs, _from, state) do
-    case get_input_id(state.live_input) do
+    case get_input_id(get_primary_input(state)) do
       nil ->
         Logger.info("No live input to clean up outputs for")
         {:reply, :ok, state}
@@ -494,7 +516,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp delete_output_from_api(state, platform, output_id) do
-    case get_input_id(state.live_input) do
+    case get_input_id(get_primary_input(state)) do
       nil ->
         :ok
 
@@ -567,9 +589,18 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   defp create_live_input(state) do
     Logger.info("Starting live input creation...")
 
-    case LiveInput.get_or_fetch_for_user_with_test_mode(state.user_id,
-           actor: %{id: state.user_id}
-         ) do
+    with {:ok, horizontal} <- fetch_input_for_orientation(state, :horizontal),
+         {:ok, vertical} <- fetch_input_for_orientation(state, :vertical) do
+      {:ok, %{horizontal: horizontal, vertical: vertical}}
+    end
+  rescue
+    error ->
+      Logger.error("Exception during live input creation: #{inspect(error)}")
+      {:error, error}
+  end
+
+  defp fetch_input_for_orientation(state, orientation) do
+    case LiveInput.get_or_fetch_for_user_with_test_mode(state.user_id, orientation, actor: %{id: state.user_id}) do
       {:ok, live_input} ->
         case live_input.data do
           %{
@@ -581,6 +612,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
             {:ok,
              %{
                input_id: input_id,
+               orientation: orientation,
                rtmp_url: rtmp_url,
                rtmp_playback_url: rtmp_url,
                srt_url: srt_url,
@@ -589,25 +621,18 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
              }}
 
           invalid_data ->
-            Logger.error("Invalid live input data: #{inspect(invalid_data)}")
-
-            {:error, "Invalid live input data structure"}
+            Logger.error("Invalid #{orientation} live input data: #{inspect(invalid_data)}")
+            {:error, "Invalid #{orientation} live input data structure"}
         end
 
       {:error, reason} ->
-        Logger.error("Failed to get/fetch live input: #{inspect(reason)}")
-
+        Logger.error("Failed to get/fetch #{orientation} live input: #{inspect(reason)}")
         {:error, reason}
     end
-  rescue
-    error ->
-      Logger.error("Exception during live input creation: #{inspect(error)}")
-
-      {:error, error}
   end
 
   defp update_live_outputs(state, platform_configs) do
-    input_id = get_input_id(state.live_input)
+    input_id = get_input_id(get_primary_input(state))
 
     case input_id do
       nil -> {:error, :no_input_id}
@@ -654,7 +679,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp enable_live_outputs(state) do
-    case {get_input_id(state.live_input), state.live_outputs} do
+    case {get_input_id(get_primary_input(state)), state.live_outputs} do
       {nil, _} -> :ok
       {_, nil} -> :ok
       {input_id, outputs} -> toggle_all_outputs(state, input_id, outputs, true)
@@ -662,7 +687,7 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp disable_live_outputs(state) do
-    case {get_input_id(state.live_input), state.live_outputs} do
+    case {get_input_id(get_primary_input(state)), state.live_outputs} do
       {nil, _} -> :ok
       {_, nil} -> :ok
       {input_id, outputs} -> toggle_all_outputs(state, input_id, outputs, false)
@@ -693,11 +718,25 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp get_rtmp_url(state) do
-    state.live_input && state.live_input.rtmp_url
+    state.horizontal_input && state.horizontal_input.rtmp_url
   end
 
+  defp get_input_id(nil), do: nil
+  defp get_input_id(%{input_id: input_id}), do: input_id
+  defp get_input_id(_), do: nil
+
+  defp get_primary_input(state), do: state.horizontal_input
+
   defp get_stream_key(state) do
-    state.live_input && state.live_input.stream_key
+    get_horizontal_stream_key(state)
+  end
+
+  defp get_horizontal_stream_key(state) do
+    state.horizontal_input && state.horizontal_input.stream_key
+  end
+
+  defp get_vertical_stream_key(state) do
+    state.vertical_input && state.vertical_input.stream_key
   end
 
   defp get_platform_rtmp_url(:twitch), do: "rtmp://live.twitch.tv/app"
@@ -712,43 +751,52 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   end
 
   defp check_input_streaming_status(state) do
-    case state.live_input do
-      nil ->
-        {:ok, :offline}
+    horizontal_status = check_single_input_status(state.horizontal_input)
+    vertical_status = check_single_input_status(state.vertical_input)
 
-      %{input_id: nil} ->
-        {:ok, :offline}
-
-      %{input_id: input_id} when is_binary(input_id) ->
-        # Use same API client as CloudflareLiveInputMonitor
-        case APIClient.get_live_input(input_id) do
-          {:ok, input_data} ->
-            streaming_status = extract_streaming_status(input_data)
-            {:ok, if(streaming_status, do: :live, else: :offline)}
-
-          {:error, :http_error, "HTTP 404 error during get_live_input"} ->
-            Logger.warning("Live input #{input_id} not found (404)")
-            {:error, :input_deleted}
-
-          {:error, _error_type, message} ->
-            Logger.warning("Failed to check input status: #{inspect(message)}")
-
-            {:error, message}
-        end
-
-      _ ->
-        {:ok, :offline}
+    case {horizontal_status, vertical_status} do
+      {{:ok, :live}, _} -> {:ok, :live}
+      {_, {:ok, :live}} -> {:ok, :live}
+      {{:error, :input_deleted}, _} -> {:error, :input_deleted}
+      {_, {:error, :input_deleted}} -> {:error, :input_deleted}
+      {{:error, reason}, _} -> {:error, reason}
+      {_, {:error, reason}} -> {:error, reason}
+      _ -> {:ok, :offline}
     end
   end
 
+  defp check_single_input_status(nil), do: {:ok, :offline}
+  defp check_single_input_status(%{input_id: nil}), do: {:ok, :offline}
+
+  defp check_single_input_status(%{input_id: input_id}) when is_binary(input_id) do
+    case APIClient.get_live_input(input_id) do
+      {:ok, input_data} ->
+        streaming_status = extract_streaming_status(input_data)
+        {:ok, if(streaming_status, do: :live, else: :offline)}
+
+      {:error, :http_error, "HTTP 404 error during get_live_input"} ->
+        Logger.warning("Live input #{input_id} not found (404)")
+        {:error, :input_deleted}
+
+      {:error, _error_type, message} ->
+        Logger.warning("Failed to check input status: #{inspect(message)}")
+        {:error, message}
+    end
+  end
+
+  defp check_single_input_status(_), do: {:ok, :offline}
+
   defp handle_input_deletion(state) do
-    # Delete stale DB record if it exists
-    delete_stale_live_input_record(state.user_id)
+    # Delete stale DB records if they exist
+    for orientation <- [:horizontal, :vertical] do
+      delete_stale_live_input_record(state.user_id, orientation)
+    end
 
     # Clear outputs and reset state
     state = %{
       state
-      | live_input: nil,
+      | horizontal_input: nil,
+        vertical_input: nil,
         live_outputs: %{},
         stream_status: :error,
         input_streaming_status: :offline
@@ -762,19 +810,19 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     state
   end
 
-  defp delete_stale_live_input_record(user_id) do
+  defp delete_stale_live_input_record(user_id, orientation) do
     import Ash.Query
 
-    query = filter(LiveInput, user_id == ^user_id)
+    query = filter(LiveInput, user_id == ^user_id and orientation == ^orientation)
 
     case Ash.read_one(query, actor: %{id: user_id}) do
       {:ok, live_input} when not is_nil(live_input) ->
         case Ash.destroy(live_input, actor: %{id: user_id}) do
           :ok ->
-            Logger.info("Deleted stale live input record for user #{user_id}")
+            Logger.info("Deleted stale #{orientation} live input record for user #{user_id}")
 
           {:error, reason} ->
-            Logger.warning("Failed to delete stale live input record: #{inspect(reason)}")
+            Logger.warning("Failed to delete stale #{orientation} live input record: #{inspect(reason)}")
         end
 
       _ ->
@@ -858,9 +906,13 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
     case Registry.lookup(Streampai.LivestreamManager.Registry, {:stream_state, state.user_id}) do
       [{pid, _}] ->
         cloudflare_config = %{
-          input_id: get_input_id(state.live_input),
+          input_id: get_input_id(get_primary_input(state)),
+          horizontal_input_id: get_input_id(state.horizontal_input),
+          vertical_input_id: get_input_id(state.vertical_input),
           rtmp_url: get_rtmp_url(state),
           stream_key: get_stream_key(state),
+          horizontal_stream_key: get_horizontal_stream_key(state),
+          vertical_stream_key: get_vertical_stream_key(state),
           status: state.stream_status,
           input_streaming_status: state.input_streaming_status,
           can_start_streaming: can_start_streaming_internal(state),
@@ -873,10 +925,6 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         :ok
     end
   end
-
-  defp get_input_id(nil), do: nil
-  defp get_input_id(%{input_id: input_id}), do: input_id
-  defp get_input_id(_), do: nil
 
   defp extract_streaming_status(%{"status" => %{"current" => %{"state" => state}}}) do
     # Cloudflare statuses: "connected", "live", "live_input_disconnected", etc.
