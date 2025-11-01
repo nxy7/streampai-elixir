@@ -11,15 +11,15 @@ defmodule StreampaiWeb.LiveUserAuth do
   alias StreampaiWeb.Presence
 
   def on_mount(:handle_impersonation, _params, session, socket) do
-    if socket.assigns.current_user do
+    if Map.get(socket.assigns, :current_user) do
       {:cont, handle_impersonation(socket, session)}
     else
-      {:cont, assign(socket, :current_user, nil)}
+      {:cont, socket}
     end
   end
 
   def on_mount(:dashboard_presence, _params, _session, socket) do
-    if socket.assigns.current_user do
+    if Map.get(socket.assigns, :current_user) do
       # Track user presence when they connect to any dashboard page
       if Phoenix.LiveView.connected?(socket) do
         topic = "users_presence"

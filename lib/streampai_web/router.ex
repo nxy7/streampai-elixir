@@ -37,7 +37,15 @@ defmodule StreampaiWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug(:fetch_session)
     plug(:load_from_bearer)
+    plug(ErrorTracker)
+  end
+
+  pipeline :rpc do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(SafeLoadFromSession)
     plug(ErrorTracker)
   end
 
@@ -45,7 +53,6 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(StreampaiWeb.Plugs.RegistrationLogger)
-    # 3 attempts per 5 minutes
     plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
   end
@@ -147,6 +154,13 @@ defmodule StreampaiWeb.Router do
     live("/w/:uuid", WidgetDisplayLive)
 
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
+  end
+
+  scope "/rpc", StreampaiWeb do
+    pipe_through(:rpc)
+
+    post("/run", AshTypescriptRpcController, :run)
+    post("/validate", AshTypescriptRpcController, :validate)
   end
 
   # Echo API for benchmarking

@@ -58,5 +58,35 @@ defmodule StreampaiWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug :cors
   plug StreampaiWeb.Router
+
+  defp cors(conn, _opts) do
+    allowed_origins = ["http://localhost:3000", "http://localhost:3001"]
+    origin = conn |> get_req_header("origin") |> List.first()
+
+    conn =
+      if origin in allowed_origins do
+        put_resp_header(conn, "access-control-allow-origin", origin)
+      else
+        conn
+      end
+
+    conn
+    |> put_resp_header("access-control-allow-credentials", "true")
+    |> put_resp_header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS")
+    |> put_resp_header(
+      "access-control-allow-headers",
+      "content-type, authorization, x-csrf-token"
+    )
+    |> handle_preflight()
+  end
+
+  defp handle_preflight(%{method: "OPTIONS"} = conn) do
+    conn
+    |> send_resp(200, "")
+    |> halt()
+  end
+
+  defp handle_preflight(conn), do: conn
 end

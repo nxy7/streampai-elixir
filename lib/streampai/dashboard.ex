@@ -253,11 +253,11 @@ defmodule Streampai.Dashboard do
 
   defp get_hours_used(%User{} = user) do
     # Load the calculation if it's not already loaded
-    case Map.get(user, :hours_streamed_last_30_days) do
+    case Map.get(user, :hours_streamed_last30_days) do
       %Ash.NotLoaded{} ->
         user
-        |> Ash.load!(:hours_streamed_last_30_days, authorize?: false)
-        |> Map.get(:hours_streamed_last_30_days)
+        |> Ash.load!(:hours_streamed_last30_days, authorize?: false)
+        |> Map.get(:hours_streamed_last30_days)
 
       hours when is_float(hours) ->
         hours

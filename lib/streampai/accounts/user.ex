@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.User do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication, AshAdmin.Resource, AshOban],
+    extensions: [AshAuthentication, AshAdmin.Resource, AshOban, AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   alias AshAuthentication.Strategy.OAuth2.IdentityChange
@@ -14,6 +14,7 @@ defmodule Streampai.Accounts.User do
   alias Streampai.Accounts.User
   alias Streampai.Accounts.User.Changes.SavePlatformData
   alias Streampai.Accounts.User.Changes.ValidateOAuthConfirmation
+  alias Streampai.Accounts.User.Preparations.ExtendUserData
   alias Streampai.Accounts.User.Preparations.LoadModeratorStatus
   alias Streampai.Accounts.UserRole
 
@@ -106,6 +107,10 @@ defmodule Streampai.Accounts.User do
         scheduler_module_name User.AshOban.Scheduler.ReconcileSubscriptions
       end
     end
+  end
+
+  typescript do
+    type_name "User"
   end
 
   code_interface do
@@ -204,7 +209,15 @@ defmodule Streampai.Accounts.User do
 
       prepare AshAuthentication.Preparations.FilterBySubject
 
-      prepare Streampai.Accounts.User.Preparations.ExtendUserData
+      prepare ExtendUserData
+    end
+
+    read :current_user do
+      description "Get the current authenticated user"
+      get? true
+      filter expr(id == ^actor(:id))
+
+      prepare ExtendUserData
     end
 
     create :register_with_google do
@@ -581,7 +594,7 @@ defmodule Streampai.Accounts.User do
       public? true
     end
 
-    calculate :hours_streamed_last_30_days,
+    calculate :hours_streamed_last30_days,
               :float,
               Streampai.Accounts.User.Calculations.HoursStreamedLast30Days do
       public? true

@@ -13,7 +13,7 @@ defmodule StreampaiWeb.LandingLive do
 
   def mount(_params, session, socket) do
     csrf_token = Map.get(session, "_csrf_token", "")
-    current_user = Map.get(socket.assigns, :current_user)
+    current_user = load_current_user(socket, session)
 
     {:ok,
      assign(socket,
@@ -22,6 +22,57 @@ defmodule StreampaiWeb.LandingLive do
        newsletter_message: nil,
        newsletter_error: nil
      ), layout: false}
+  end
+
+  defp load_current_user(socket, session) do
+    # Check if already assigned by AshAuthentication
+    case Map.get(socket.assigns, :current_user) do
+      nil ->
+        # Try to load from session
+        case Map.get(session, "user") do
+          nil ->
+            nil
+
+          user_token when is_binary(user_token) ->
+            case load_user_from_token(user_token) do
+              {:ok, user} -> user
+              _ -> nil
+            end
+
+          _ ->
+            nil
+        end
+
+      user ->
+        user
+    end
+  end
+
+  defp load_user_from_token(token) do
+    # Parse the token format: "otp_app:resource?id=uuid"
+    case String.split(token, "?") do
+      [_resource_part, params_part] ->
+        params = URI.decode_query(params_part)
+
+        case Map.get(params, "id") do
+          nil ->
+            {:error, :no_id}
+
+          user_id ->
+            alias Streampai.Accounts.User
+
+            case User
+                 |> Ash.Query.for_read(:get_by_id_minimal, %{id: user_id}, authorize?: false)
+                 |> Ash.read() do
+              {:ok, [user]} -> {:ok, user}
+              {:ok, []} -> {:error, :user_not_found}
+              {:error, reason} -> {:error, reason}
+            end
+        end
+
+      _ ->
+        {:error, :invalid_token_format}
+    end
   end
 
   def handle_event("newsletter_signup", %{"email" => email}, socket) do

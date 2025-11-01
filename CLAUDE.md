@@ -1,17 +1,43 @@
 # CLAUDE.md
 ALWAYS SEE AGENTS.md with USAGE RULES BEFORE IMPLEMENTING ANYTHING.
-After implementing changes make sure the app compliles.
+After implementing changes make sure the app compiles.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🏗️ Architecture Overview (Quick Reference)
+
+**Current Architecture**: SolidJS SPA Frontend + Elixir/Ash Backend
+
+- **Frontend**: SolidJS SPA in `frontend/` directory (port 3000-3003)
+  - Start: `cd frontend && npm run dev`
+  - File-based routing, Tailwind CSS v4, TypeScript
+  - Design system in `src/styles/design-system.ts`
+
+- **Backend**: Elixir/Phoenix/Ash API server (port 4000)
+  - Start: `mix phx.server`
+  - Exposes Ash resources via RPC endpoints
+  - Session-based authentication with cookies
+
+- **Communication**: Type-safe RPC via AshTypescript
+  - SDK auto-generated at `frontend/src/sdk/ash_rpc.ts`
+  - Run `mix ash.codegen` after Ash changes
+
+**Legacy Note**: Some LiveView pages still exist (admin, legacy widgets). Gradual migration to SolidJS in progress.
+
 ## Development Commands
 
-### Setup and Development
+### Backend (Elixir/Phoenix) Setup and Development
 - `mix setup` - Install dependencies, setup database, build assets (complete setup)
 - `mix phx.server` - Start Phoenix development server at http://localhost:4000
 - `PORT=4001 mix phx.server` - Start server on custom port (useful for multiple instances)
 - `iex -S mix phx.server` - Start server with interactive Elixir shell
 - `just elixir-start` - Alternative way to start server (uses Justfile)
+
+### Frontend (SolidJS) Setup and Development
+- `cd frontend && npm install` - Install frontend dependencies
+- `cd frontend && npm run dev` - Start frontend dev server (port 3000-3003)
+- `cd frontend && npm run build` - Build frontend for production
+- Frontend will auto-reload on changes (Vite HMR)
 
 ### Multiple Development Instances
 When running multiple Claude Code instances or development servers simultaneously:
@@ -27,9 +53,11 @@ When running multiple Claude Code instances or development servers simultaneousl
 - `mix ecto.reset` - Drop, recreate, and migrate database
 - `mix ash.setup` - Setup Ash resources and run seeds
 
-### Asset Building
-- `mix assets.build` - Build CSS/JS assets for development
-- `mix assets.deploy` - Build minified assets for production
+### Code Generation
+- `mix ash.codegen` - **CRITICAL**: Regenerate TypeScript SDK after Ash changes
+  - Run this after: adding/modifying Ash resources, actions, or fields
+  - Generates: `frontend/src/sdk/ash_rpc.ts`
+  - Required for type safety between backend and frontend
 
 ### Testing
 - `mix test` - Run test suite (includes `ash.setup --quiet`)
@@ -40,45 +68,73 @@ When running multiple Claude Code instances or development servers simultaneousl
 ## Architecture Overview
 
 ### Core Framework Stack
-- **Phoenix 1.7.14** with LiveView for real-time web interface
+
+**Backend (Elixir/Phoenix):**
+- **Phoenix 1.7.14** as backend API server
 - **Ash Framework** for resource modeling and business logic
 - **AshAuthentication** with multiple OAuth providers (Google, Twitch) + password auth
 - **AshPostgres** for database operations with PostgreSQL
-- **LiveSvelte** integration for Svelte components within LiveView
+- **AshTypescript** for generating type-safe RPC clients from Ash resources
+
+**Frontend (SolidJS SPA):**
+- **SolidJS Start** - Meta-framework with SSR support
+- **Tailwind CSS v4** - Styling with CSS-based configuration
+- **TypeScript** - Full type safety
+- **Vite** - Fast build tooling
+- Runs on separate port (default 3000-3003) from backend (4000)
+
+### Architecture Pattern
+- **Backend**: Headless API server exposing Ash resources via RPC endpoints
+- **Frontend**: Fully independent SPA with its own routing, state management, and SSR
+- **Communication**: Type-safe RPC calls via AshTypescript-generated SDK
+- **Authentication**: Session-based with cookies, requires `credentials: "include"` for cross-origin
 
 ### Authentication Architecture
-- Multi-provider OAuth: Google, GitHub, Twitch via Ueberauth
-- Password authentication with confirmation emails
-- JWT tokens managed by AshAuthentication
-- Route protection via `ash_authentication_live_session`
-- User sessions handled through `StreampaiWeb.LiveUserAuth`
+- **Backend**: Phoenix session-based authentication with cookies
+- **Multi-provider OAuth**: Google, GitHub, Twitch via Ueberauth
+- **Password authentication** with confirmation emails
+- **Session management**: Cookies handled by Phoenix
+- **Frontend auth check**: RPC call to `currentUser` endpoint
+- **Route protection**: Implemented in SolidJS with auth state management
 
 ### Domain Structure
 - **Streampai.Accounts** - User management and authentication
 - **Streampai.Stream** - Streaming platform integration and events
 - Resources: ChatMessage, StreamDonation, Raid, Patreon, StreamEvent, StreamMetric
 
-### Web Interface Architecture
-- **Landing page** (`LandingLive`) - Unauthenticated homepage
-- **Dashboard system** with shared layout component (`DashboardLayout`)
-- Dashboard pages: Stream, Analytics, Chat History, Widgets, Settings
-- **Admin interface** via AshAdmin at `/admin`
+### Frontend Structure
+- **Directory**: `frontend/` (separate from Phoenix)
+- **Routing**: File-based routing in `frontend/src/routes/`
+- **Components**: Reusable components in `frontend/src/components/`
+- **State**: Auth state in `frontend/src/lib/auth.ts`
+- **SDK**: Auto-generated RPC client in `frontend/src/sdk/ash_rpc.ts`
+- **Styling**: Design system in `frontend/src/styles/design-system.ts`
 
-### Key Components
+### Key Frontend Components
 - `DashboardLayout` - Shared layout with collapsible sidebar for all dashboard pages
-- `SubscriptionWidget` - Complete subscription management with plan comparison and billing
-- Authentication components with custom overrides (`AuthOverrides`)
+- `Nav` - Navigation component for public pages
+- Landing page with sections (Hero, Features, CTA, Footer)
+- Dashboard pages: Dashboard, Settings (more to be added)
+
+### Backend Structure (Phoenix LiveView - Legacy)
+- **Note**: LiveView pages still exist for admin and legacy features
+- **Admin interface** via AshAdmin at `/admin` (still uses LiveView)
+- Some widget configuration pages may still use LiveView
+- Gradual migration to SolidJS frontend in progress
 
 ### Database & Migrations
 - Uses both Ecto migrations (`priv/repo/migrations/`) and legacy SQL migrations (`../db/migrations/`)
 - Ash resource snapshots in `priv/resource_snapshots/`
 - Supports hypertables (TimescaleDB extensions)
 
-### Asset Pipeline
-- **Tailwind CSS** for styling with custom config
-- **esbuild** for JavaScript bundling
-- **Svelte components** integrated via LiveSvelte
-- Assets in `/assets` with build scripts for dev/production
+### Frontend Development
+- **Directory**: `frontend/`
+- **Start dev server**: `cd frontend && npm run dev`
+- **Build**: `npm run build`
+- **Port**: Usually 3000-3003 (auto-assigned if taken)
+- **Tailwind CSS v4** with CSS-based theme configuration in `src/app.css`
+- **Design system**: Component utilities in `src/styles/design-system.ts`
+- **Hot reloading**: Enabled via Vite
 
 ### Development Environment
 - Docker Compose setup available (`docker-compose.yml`)
@@ -97,14 +153,26 @@ When running multiple Claude Code instances or development servers simultaneousl
 - Platform-specific tokens and configurations stored per user
 
 ### Key File Locations
-- LiveView pages: `lib/streampai_web/live/`
-- Shared components: `lib/streampai_web/components/`
+
+**Frontend (SolidJS):**
+- Routes: `frontend/src/routes/`
+- Components: `frontend/src/components/`
+- Auth logic: `frontend/src/lib/auth.ts`
+- RPC SDK: `frontend/src/sdk/ash_rpc.ts`
+- Design system: `frontend/src/styles/design-system.ts`
+- App config: `frontend/app.config.ts`
+- Styles: `frontend/src/app.css`
+
+**Backend (Elixir/Phoenix):**
 - Ash resources: `lib/streampai/stream/` and `lib/streampai/accounts/`
-- Authentication logic: `lib/streampai_web/live_user_auth.ex`
+- RPC controller: `lib/streampai_web/controllers/ash_typescript_rpc_controller.ex`
 - Router configuration: `lib/streampai_web/router.ex`
+- LiveView pages (legacy): `lib/streampai_web/live/`
+- LiveView components (legacy): `lib/streampai_web/components/`
 
 ### Environment Notes
-- Development runs on port 4000
+- **Backend** runs on port 4000
+- **Frontend** runs on port 3000-3003 (auto-assigned)
 - Uses environment-based configuration (`config/dev.exs`, `config/prod.exs`)
 - Secrets managed via `Streampai.Secrets` module
 - Background job processing ready (button server example)
@@ -172,18 +240,205 @@ end
 This pattern ensures robust external API testing while maintaining flexibility for dynamic values and providing clear contract change detection.
 
 ### When working with this codebase:
-- All dashboard pages should use the shared `DashboardLayout` component to avoid code duplication
+
+**Frontend (SolidJS):**
+- All dashboard pages should use the shared `DashboardLayout` component
+- Use the design system from `~/styles/design-system` for consistent styling
+- File-based routing: files in `frontend/src/routes/` become routes automatically
+- Auth state is managed globally in `~/lib/auth`
+- Always use `fetchOptions: { credentials: "include" }` for authenticated RPC calls
+- Run `cd frontend && npm run dev` to start the frontend dev server
+
+**Backend (Elixir/Ash):**
 - New Ash resources require both resource definition and domain registration
-- LiveView pages need `layout: false` when using custom layouts
-- Authentication is handled through Ash - use existing patterns for protected routes
-- Asset changes require running `mix assets.build` to see updates
-- Write reusable code that follows best practises
-- Regularly update CLAUDE.md file to keep it up to date wit the project
+- Run `mix ash.codegen` after changing Ash resources to regenerate TypeScript SDK
+- Authentication is handled through Ash - sessions are managed by Phoenix
+- Actor must be set in RPC controller for authorization to work
+- Write reusable code that follows best practices
+
+**General:**
+- Regularly update CLAUDE.md file to keep it up to date with the project
+- Backend (port 4000) and Frontend (port 3000-3003) run as separate processes
 
 ### Additional notes
 - we have ./tasks file that holds tasks that need to be done
 
-### Widget Creation Pattern
+## Ash TypeScript Integration
+
+This project uses **AshTypescript** to generate type-safe TypeScript RPC clients from Ash resources. This enables full-stack type safety and eliminates the need for manual API client code.
+
+### Configuration
+
+**Elixir Configuration** (`config/config.exs`):
+```elixir
+config :ash_typescript,
+  output_file: "frontend/src/sdk/ash_rpc.ts",
+  run_endpoint: "http://localhost:4000/rpc/run",
+  validate_endpoint: "http://localhost:4000/rpc/validate",
+  input_field_formatter: :camel_case,
+  output_field_formatter: :camel_case
+```
+
+### Resource Setup
+
+**1. Add Extension to Resource:**
+```elixir
+defmodule Streampai.Accounts.User do
+  use Ash.Resource,
+    extensions: [AshTypescript.Resource]
+
+  typescript do
+    type_name "User"
+  end
+end
+```
+
+**2. Expose Actions via Domain RPC:**
+```elixir
+defmodule Streampai.Accounts do
+  use Ash.Domain,
+    extensions: [AshTypescript.Rpc]
+
+  typescript_rpc do
+    resource User do
+      rpc_action :current_user, :current_user
+      rpc_action :list_accounts, :list_all
+      rpc_action :update_name, :update_name
+    end
+  end
+end
+```
+
+### Code Generation
+
+Run code generation to create TypeScript SDK:
+```bash
+mix ash.codegen
+```
+
+This generates `frontend/src/sdk/ash_rpc.ts` with fully typed functions.
+
+### Backend RPC Controller Setup
+
+**Router Pipeline** (`lib/streampai_web/router.ex`):
+```elixir
+pipeline :rpc do
+  plug(:accepts, ["json"])
+  plug(:fetch_session)
+  plug(SafeLoadFromSession)  # CRITICAL: Load user from session
+  plug(ErrorTracker)
+end
+
+scope "/rpc", StreampaiWeb do
+  pipe_through(:rpc)
+
+  post("/run", AshTypescriptRpcController, :run)
+  post("/validate", AshTypescriptRpcController, :validate)
+end
+```
+
+**RPC Controller** (`lib/streampai_web/controllers/ash_typescript_rpc_controller.ex`):
+```elixir
+defmodule StreampaiWeb.AshTypescriptRpcController do
+  use StreampaiWeb, :controller
+
+  def run(conn, params) do
+    # SafeLoadFromSession already loaded the user
+    actor = conn.assigns[:current_user]
+    conn = Plug.Conn.assign(conn, :actor, actor)
+
+    result = AshTypescript.Rpc.run_action(:streampai, conn, params)
+    json(conn, result)
+  end
+
+  def validate(conn, params) do
+    result = AshTypescript.Rpc.validate_action(:streampai, conn, params)
+    json(conn, result)
+  end
+end
+```
+
+### Frontend Usage
+
+**Basic Usage:**
+```typescript
+import { currentUser, listAccounts } from "~/sdk/ash_rpc";
+
+// Fetch current user with specific fields
+const result = await currentUser({
+  fields: ["id", "email", "name", "displayAvatar"]
+});
+
+if (result.success) {
+  console.log(result.data); // Fully typed!
+}
+```
+
+**CRITICAL: Authentication with Cross-Origin Requests**
+
+When frontend runs on different port (e.g., localhost:3001) than backend (localhost:4000):
+
+```typescript
+// WRONG - cookies won't be sent:
+const result = await currentUser({ fields: ["id"] });
+
+// CORRECT - include credentials for cross-origin requests:
+const result = await currentUser({
+  fields: ["id"],
+  fetchOptions: { credentials: "include" }
+});
+```
+
+**With Filtering and Pagination:**
+```typescript
+const result = await listAccounts({
+  fields: ["id", "name", "email"],
+  filter: {
+    name: { eq: "john" }
+  },
+  page: {
+    limit: 20,
+    after: "cursor_here"
+  },
+  fetchOptions: { credentials: "include" }
+});
+```
+
+### Authentication Flow
+
+1. **Session-based Auth**: User logs in via Phoenix → session cookie set
+2. **RPC Pipeline**: `:rpc` pipeline must include `SafeLoadFromSession` plug
+3. **Controller**: Sets `current_user` as actor for Ash authorization
+4. **Frontend**: Must pass `credentials: "include"` in `fetchOptions` for cross-origin
+
+**Common Pitfall**: Forgetting `credentials: "include"` means cookies won't be sent, so `current_user` will be nil and actor-dependent actions will fail.
+
+### Best Practices
+
+1. **Always regenerate SDK after Ash changes**: Run `mix ash.codegen` after modifying resources or actions
+2. **Use field selection**: Only request needed fields for optimal performance
+3. **Handle errors properly**: Check `result.success` before accessing `result.data`
+4. **Type safety**: Let TypeScript infer types - don't manually type results
+5. **Authentication**: Always use `fetchOptions: { credentials: "include" }` for authenticated requests in cross-origin setups
+6. **Actor context**: Ensure RPC controller sets `actor` in `conn.assigns` before calling `AshTypescript.Rpc.run_action`
+
+### Common Issues
+
+**Issue**: "actor is required" error
+- **Cause**: Action requires actor but RPC controller didn't set it
+- **Fix**: Ensure `SafeLoadFromSession` is in `:rpc` pipeline and controller assigns actor
+
+**Issue**: User always null on frontend
+- **Cause**: Cookies not sent due to missing `credentials: "include"`
+- **Fix**: Add `fetchOptions: { credentials: "include" }` to RPC calls
+
+**Issue**: TypeScript types out of sync
+- **Cause**: Forgot to regenerate after Ash changes
+- **Fix**: Run `mix ash.codegen` after any resource/action changes
+
+### Widget Creation Pattern (Legacy LiveView)
+
+**Note**: This describes the legacy widget system using Vue + LiveView. New widgets should be considered for implementation in the SolidJS frontend.
 
 This codebase uses a consistent pattern for creating interactive widgets that can be embedded in OBS for streaming. The pattern consists of 4 main components:
 
@@ -273,6 +528,40 @@ This pattern ensures consistency across all widgets while maintaining clean sepa
 - memorize "When you're using ash remember to always (unless necessary) to pass correct actor to the action"
 - memorize, for complex logic prefer Module preparations, changes over inline function version
 - memorize "if app PORT is taken, then use another port to launch the app instead of killing currently running app"
+
+### Frontend Design System (SolidJS)
+- **Always use the design system** for consistent styling across the frontend
+- **Import design utilities**: `import { button, card, text, input } from "~/styles/design-system"`
+- **Use design system patterns** instead of hardcoding Tailwind classes
+- **Theme colors** are centralized in `frontend/src/app.css` within `@theme { }` block
+- **See** `frontend/DESIGN_SYSTEM.md` for full documentation and examples
+
+Examples:
+```tsx
+// ❌ Don't do this
+<button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+  Save
+</button>
+
+// ✅ Do this instead
+import { button } from "~/styles/design-system";
+<button class={button.primary}>Save</button>
+
+// ✅ Cards
+<div class={card.default}>
+  <h3 class={text.h3}>Title</h3>
+  <p class={text.body}>Content</p>
+</div>
+
+// ✅ Form inputs
+<input type="email" class={input.text} />
+```
+
+**Benefits:**
+- Change colors globally by updating `app.css` theme variables
+- Consistent styling across all components
+- Easier maintenance and updates
+- Self-documenting component patterns
 
 ## Playwright Testing Integration
 

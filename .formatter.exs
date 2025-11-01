@@ -1,5 +1,6 @@
 [
   import_deps: [
+    :ash_typescript,
     :ash_ai,
     :ash_events,
     :ash_state_machine,
