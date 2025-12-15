@@ -22,7 +22,8 @@ defmodule Streampai.Stream.BannedViewer do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshGraphql.Resource]
 
   alias Streampai.Accounts.User
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan
@@ -44,6 +45,10 @@ defmodule Streampai.Stream.BannedViewer do
       index [:user_id, :is_active], name: "idx_banned_viewers_user_active"
       index [:expires_at], name: "idx_banned_viewers_expires_at"
     end
+  end
+
+  graphql do
+    type :banned_viewer
   end
 
   code_interface do
@@ -159,59 +164,68 @@ defmodule Streampai.Stream.BannedViewer do
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key :id, public?: true
 
     attribute :platform, Streampai.Stream.Platform do
       allow_nil? false
+      public? true
       description "Platform where the ban occurred"
     end
 
     attribute :viewer_username, :string do
       allow_nil? false
+      public? true
       constraints max_length: 100
       description "Username of the banned viewer (may change over time)"
     end
 
     attribute :viewer_platform_id, :string do
       allow_nil? false
+      public? true
       constraints max_length: 100
       description "Platform-specific user ID (stable identifier)"
     end
 
     attribute :reason, :string do
       allow_nil? true
+      public? true
       constraints max_length: 500
       description "Reason for the ban"
     end
 
     attribute :duration_seconds, :integer do
       allow_nil? true
+      public? true
       description "Duration of timeout in seconds (null for permanent ban)"
     end
 
     attribute :expires_at, :utc_datetime_usec do
       allow_nil? true
+      public? true
       description "When the timeout expires (null for permanent ban)"
     end
 
     attribute :is_active, :boolean do
       allow_nil? false
+      public? true
       default true
       description "Whether the ban is currently active"
     end
 
     attribute :platform_ban_id, :string do
       allow_nil? true
+      public? true
       constraints max_length: 100
       description "Platform-specific ban ID (used by some platforms like YouTube for unbanning)"
     end
 
     attribute :unbanned_at, :utc_datetime_usec do
       allow_nil? true
+      public? true
       description "When the viewer was unbanned (if manually unbanned)"
     end
 
-    timestamps()
+    timestamps(public?: true)
   end
 
   relationships do

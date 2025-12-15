@@ -40,7 +40,10 @@ defmodule Streampai.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:ash_typescript, "~> 0.6"},
+      {:ash_graphql, "~> 1.0"},
+      {:absinthe_plug, "~> 1.5"},
+      {:absinthe_phoenix, "~> 2.0"},
+      {:absinthe, "~> 1.7"},
       {:styler, "~> 1.8", only: [:dev, :test], runtime: false},
       {:live_vue, "~> 0.7"},
       {:stripity_stripe, "~> 3.2"},

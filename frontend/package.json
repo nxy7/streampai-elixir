@@ -4,18 +4,27 @@
   "scripts": {
     "dev": "vinxi dev",
     "build": "vinxi build",
-    "start": "vinxi start"
+    "start": "vinxi start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "@urql/solid": "^1.0.0",
+    "gql.tada": "^1.8.13",
+    "graphql-ws": "^6.0.6",
+    "phoenix": "^1.8.1",
     "solid-js": "^1.9.5",
-    "vinxi": "^0.5.7"
+    "urql": "^5.0.1",
+    "vinxi": "^0.5.7",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",
-    "tailwindcss": "^4.0.7"
+    "@types/node": "^24.9.2",
+    "tailwindcss": "^4.0.7",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=22"

@@ -1,17 +1,39 @@
-import { A } from "@solidjs/router";
-import { createSignal, Show, JSX } from "solid-js";
+import { A, useLocation } from "@solidjs/router";
+import { createSignal, createMemo, Show, For, JSX } from "solid-js";
 import { useCurrentUser, getLogoutUrl } from "~/lib/auth";
 
 interface DashboardLayoutProps {
   children: JSX.Element;
-  currentPage?: string;
-  pageTitle: string;
 }
 
 export default function DashboardLayout(props: DashboardLayoutProps) {
   const { user } = useCurrentUser();
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
+
+  // Auto-detect current page from URL
+  const currentPage = createMemo(() => {
+    const path = location.pathname;
+    if (path === "/dashboard") return "dashboard";
+    if (path.startsWith("/dashboard/analytics")) return "analytics";
+    if (path.startsWith("/dashboard/stream-history")) return "stream-history";
+    if (path.startsWith("/dashboard/stream")) return "stream";
+    if (path.startsWith("/dashboard/chat-history")) return "chat-history";
+    if (path.startsWith("/dashboard/viewers")) return "viewers";
+    if (path.startsWith("/dashboard/widgets")) return "widgets";
+    if (path.startsWith("/dashboard/smart-canvas")) return "smart-canvas";
+    if (path.startsWith("/dashboard/settings")) return "settings";
+    if (path.startsWith("/dashboard/admin/users")) return "users";
+    return "";
+  });
+
+  // Extract page title from current page
+  const pageTitle = createMemo(() => {
+    const page = currentPage();
+    if (!page) return "Dashboard";
+    return page.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  });
 
   const navSections = [
     {
@@ -120,6 +142,23 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
     },
   ];
 
+  const adminSections = [
+    {
+      title: "Admin",
+      items: [
+        {
+          url: "/dashboard/admin/users",
+          label: "Users",
+          icon: (
+            <svg class="sidebar-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ),
+        },
+      ],
+    },
+  ];
+
   return (
     <div class="flex h-screen">
       {/* Mobile sidebar backdrop */}
@@ -146,56 +185,116 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
         <div class="flex items-center justify-center p-4 border-b border-gray-700 relative">
           <A href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <img src="/images/logo-white.png" alt="Streampai Logo" class="w-8 h-8" />
-            <Show when={!sidebarCollapsed()}>
-              <span class="text-xl font-bold text-white">Streampai</span>
-            </Show>
+            <span
+              class={`text-xl font-bold text-white transition-opacity ${
+                sidebarCollapsed() ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+              }`}
+            >
+              Streampai
+            </span>
           </A>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed())}
             class="hidden md:block absolute right-2 p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <Show
-                when={!sidebarCollapsed()}
-                fallback={
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                }
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-              </Show>
+              <path
+                class={sidebarCollapsed() ? "block" : "hidden"}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 5l7 7-7 7M5 5l7 7-7 7"
+              />
+              <path
+                class={sidebarCollapsed() ? "hidden" : "block"}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
             </svg>
           </button>
         </div>
 
         {/* Main Navigation */}
         <nav class="flex-1 mt-6">
-          {navSections.map((section) => (
-            <div class="px-4 mb-8">
-              <Show when={!sidebarCollapsed()}>
-                <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+          <For each={navSections}>
+            {(section) => (
+              <div class="px-4 mb-8">
+                <h3
+                  class={`text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 transition-opacity ${
+                    sidebarCollapsed() ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+                  }`}
+                >
                   {section.title}
                 </h3>
-              </Show>
-              <div class="space-y-2">
-                {section.items.map((item) => (
-                  <A
-                    href={item.url}
-                    class={`nav-item flex items-center p-3 rounded-lg transition-colors ${
-                      props.currentPage === item.label.toLowerCase().replace(" ", "-")
-                        ? "bg-purple-600 text-white"
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                    } ${sidebarCollapsed() ? "justify-center" : ""}`}
-                    title={item.label}
-                  >
-                    {item.icon}
-                    <Show when={!sidebarCollapsed()}>
-                      <span class="sidebar-text ml-3">{item.label}</span>
-                    </Show>
-                  </A>
-                ))}
+                <div class="space-y-2">
+                  <For each={section.items}>
+                    {(item) => (
+                      <A
+                        href={item.url}
+                        class={`nav-item flex items-center p-3 rounded-lg transition-colors ${
+                          currentPage() === item.label.toLowerCase().replace(" ", "-")
+                            ? "bg-purple-600 text-white"
+                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        } ${sidebarCollapsed() ? "justify-center" : ""}`}
+                        title={item.label}
+                      >
+                        {item.icon}
+                        <span
+                          class={`ml-3 transition-opacity ${
+                            sidebarCollapsed() ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                      </A>
+                    )}
+                  </For>
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+          </For>
+
+          <Show when={user()?.role === "admin"}>
+            <For each={adminSections}>
+              {(section) => (
+                <div class="px-4 mb-8">
+                  <h3
+                    class={`text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 transition-opacity ${
+                      sidebarCollapsed() ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+                    }`}
+                  >
+                    {section.title}
+                  </h3>
+                  <div class="space-y-2">
+                    <For each={section.items}>
+                      {(item) => (
+                        <A
+                          href={item.url}
+                          class={`nav-item flex items-center p-3 rounded-lg transition-colors ${
+                            currentPage() === item.label.toLowerCase().replace(" ", "-")
+                              ? "bg-purple-600 text-white"
+                              : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                          } ${sidebarCollapsed() ? "justify-center" : ""}`}
+                          title={item.label}
+                        >
+                          {item.icon}
+                          <span
+                            class={`ml-3 transition-opacity ${
+                              sidebarCollapsed() ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </A>
+                      )}
+                    </For>
+                  </div>
+                </div>
+              )}
+            </For>
+          </Show>
         </nav>
 
         {/* Bottom Logout Section */}
@@ -215,9 +314,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
                   d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                 />
               </svg>
-              <Show when={!sidebarCollapsed()}>
-                <span class="sidebar-text ml-3">Moderate</span>
-              </Show>
+              <span
+                class={`ml-3 transition-opacity ${
+                  sidebarCollapsed() ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                }`}
+              >
+                Moderate
+              </span>
             </A>
           </Show>
 
@@ -235,9 +338,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
-            <Show when={!sidebarCollapsed()}>
-              <span class="sidebar-text ml-3">Sign Out</span>
-            </Show>
+            <span
+              class={`ml-3 transition-opacity ${
+                sidebarCollapsed() ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+              }`}
+            >
+              Sign Out
+            </span>
           </a>
         </div>
       </div>
@@ -265,7 +372,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
                   />
                 </svg>
               </button>
-              <h1 class="text-2xl font-semibold text-gray-900">{props.pageTitle}</h1>
+              <h1 class="text-2xl font-semibold text-gray-900">{pageTitle()}</h1>
             </div>
 
             <div class="flex items-center space-x-4">

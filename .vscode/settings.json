@@ -1,3 +1,7 @@
 {
-  "CodeGPT.apiKey": "Perplexity"
+  "typescript.tsdk": "./frontend/node_modules/typescript/lib",
+  // "typescript.enablePromptUseWorkspaceTsdk": true,
+  "CodeGPT.apiKey": "Perplexity",
+  "oxc.enable": false,
+  "editor.formatOnSave": true
 }

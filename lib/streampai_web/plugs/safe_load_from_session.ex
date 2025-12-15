@@ -13,7 +13,13 @@ defmodule StreampaiWeb.Plugs.SafeLoadFromSession do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    StreampaiWeb.AuthPlug.load_from_session(conn, [])
+    conn = StreampaiWeb.AuthPlug.load_from_session(conn, [])
+
+    # Set actor for Ash using PlugHelpers if current_user is present
+    case conn.assigns[:current_user] do
+      nil -> conn
+      user -> Ash.PlugHelpers.set_actor(conn, user)
+    end
   rescue
     error ->
       # Check if this is an authentication-related error

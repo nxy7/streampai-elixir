@@ -15,7 +15,8 @@ defmodule Streampai.Stream.ChatMessage do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshGraphql.Resource]
 
   postgres do
     table "chat_messages"
@@ -27,6 +28,10 @@ defmodule Streampai.Stream.ChatMessage do
       index [:inserted_at], name: "idx_chat_messages_inserted_at"
       index [:livestream_id, :inserted_at], name: "idx_chat_messages_stream_chrono"
     end
+  end
+
+  graphql do
+    type :chat_message
   end
 
   code_interface do
@@ -186,51 +191,66 @@ defmodule Streampai.Stream.ChatMessage do
   end
 
   attributes do
-    attribute :id, :string, primary_key?: true, allow_nil?: false
+    attribute :id, :string do
+      primary_key? true
+      allow_nil? false
+      public? true
+    end
 
     attribute :message, :string do
       allow_nil? false
+      public? true
       constraints max_length: 500
     end
 
     attribute :platform, Streampai.Stream.Platform do
       allow_nil? false
+      public? true
     end
 
     attribute :sender_username, :string do
       allow_nil? false
+      public? true
       constraints max_length: 100
     end
 
     attribute :sender_channel_id, :string do
       allow_nil? false
+      public? true
     end
 
     attribute :sender_is_moderator, :boolean do
       default false
+      public? true
     end
 
     attribute :sender_is_patreon, :boolean do
       default false
+      public? true
     end
 
     attribute :inserted_at, :utc_datetime_usec do
       allow_nil? false
+      public? true
       default &DateTime.utc_now/0
     end
 
-    attribute :viewer_id, :string
+    attribute :viewer_id, :string do
+      public? true
+    end
   end
 
   relationships do
     belongs_to :user, Streampai.Accounts.User do
       allow_nil? false
       attribute_writable? true
+      public? true
     end
 
     belongs_to :livestream, Streampai.Stream.Livestream do
       allow_nil? false
       attribute_writable? true
+      public? true
     end
   end
 

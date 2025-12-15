@@ -1,19 +1,35 @@
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
+import { Match, Suspense, Switch } from "solid-js";
 import { MetaProvider } from "@solidjs/meta";
+import { Provider as UrqlProvider } from "@urql/solid";
+import { client } from "./lib/urql";
 import "./app.css";
+import { useCurrentUser } from "./lib/auth";
+import LoadingIndicator from "./components/LoadingIndicator";
 
 export default function App() {
+  const { user, isLoading } = useCurrentUser();
+
   return (
-    <Router
-      root={props => (
-        <MetaProvider>
-          <Suspense>{props.children}</Suspense>
-        </MetaProvider>
-      )}
-    >
-      <FileRoutes />
-    </Router>
+    <UrqlProvider value={client}>
+      <Switch>
+        <Match when={isLoading()}>
+          <LoadingIndicator />
+        </Match>
+        <Match when={user()}>
+          <Router
+            root={(props) => (
+              <MetaProvider>
+                <Suspense>{props.children}</Suspense>
+              </MetaProvider>
+            )}
+          >
+            <FileRoutes />
+          </Router>
+        </Match>
+        <Match when={!user()}>No loggerino</Match>
+      </Switch>
+    </UrqlProvider>
   );
 }

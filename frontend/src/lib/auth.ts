@@ -1,15 +1,28 @@
 import { createSignal } from "solid-js";
-import { currentUser as getCurrentUser } from "~/sdk/ash_rpc";
+import { client } from "./urql";
+import { graphql, type ResultOf } from "gql.tada";
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  displayAvatar?: string | null;
-  tier?: string | null;
-  isModerator?: boolean;
-}
+
+const CURRENT_USER_QUERY = graphql(`
+  query GetCurrentUser {
+    currentUser {
+      id
+      email
+      name
+      displayAvatar
+      hoursStreamedLast30Days
+      extraData
+      isModerator
+      storageQuota
+      storageUsedPercent
+      avatarFileId
+      role
+      tier
+    }
+  }
+`);
+
+export type User = NonNullable<ResultOf<typeof CURRENT_USER_QUERY>['currentUser']>;
 
 const [currentUser, setCurrentUser] = createSignal<User | null>(null);
 const [isLoading, setIsLoading] = createSignal(true);
@@ -25,20 +38,11 @@ export function useCurrentUser() {
 export async function fetchCurrentUser() {
   setIsLoading(true);
   try {
-    const result = await getCurrentUser({
-      fields: ["id", "email", "name", "displayAvatar", 'extraData' ],
-      fetchOptions: { credentials: "include" },
-    });
+    const result = await client.query(CURRENT_USER_QUERY, {});
 
-    if (result.success && result.data) {
-      setCurrentUser({
-        id: result.data.id,
-        email: result.data.email,
-        name: result.data.name,
-        role: "user",
-        displayAvatar: result.data.displayAvatar,
-        tier: null,
-      });
+    if (result.data?.currentUser) {
+      const user = result.data.currentUser;
+      setCurrentUser(user);
     } else {
       setCurrentUser(null);
     }

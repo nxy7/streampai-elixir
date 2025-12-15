@@ -7,12 +7,25 @@ defmodule Streampai.Accounts.SmartCanvasLayout do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource],
+    extensions: [AshAdmin.Resource, AshGraphql.Resource],
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "smart_canvas_layouts"
     repo Streampai.Repo
+  end
+
+  graphql do
+    type :smart_canvas_layout
+
+    queries do
+      read_one :smart_canvas_layout, :get_by_user
+    end
+
+    mutations do
+      create :save_smart_canvas_layout, :create
+      update :update_smart_canvas_layout, :update
+    end
   end
 
   code_interface do

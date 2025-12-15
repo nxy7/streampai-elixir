@@ -49,12 +49,28 @@ defmodule StreampaiWeb.Router do
     plug(ErrorTracker)
   end
 
+  pipeline :graphql do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(SafeLoadFromSession)
+    plug(AshGraphql.Plug)
+    plug(ErrorTracker)
+  end
+
   pipeline :rate_limited_auth do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(StreampaiWeb.Plugs.RegistrationLogger)
     plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
+  end
+
+  pipeline :widget do
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, false)
+    plug(SafeLoadFromSession)
   end
 
   scope "/admin" do
@@ -84,19 +100,6 @@ defmodule StreampaiWeb.Router do
       live("/contact", ContactLive)
       live("/u/:username", DonationLive)
     end
-
-    live("/widgets/chat/display", Components.ChatObsWidgetLive)
-    live("/widgets/alertbox/display", Components.AlertboxObsWidgetLive)
-    live("/widgets/donation-goal/display", Components.DonationGoalObsWidgetLive)
-    live("/widgets/top-donors/display", Components.TopDonorsObsWidgetLive)
-    live("/widgets/viewer-count/display", Components.ViewerCountObsWidgetLive)
-    live("/widgets/follower-count/display", Components.FollowerCountObsWidgetLive)
-    live("/widgets/timer/display", Components.TimerObsWidgetLive)
-    live("/widgets/poll/display", Components.PollObsWidgetLive)
-    live("/widgets/slider/display", Components.SliderObsWidgetLive)
-    live("/widgets/giveaway/display", Components.GiveawayObsWidgetLive)
-    live("/widgets/eventlist/display", Components.EventlistObsWidgetLive)
-    live("/widgets/smart-canvas/display", Components.SmartCanvasObsLive)
 
     get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
@@ -156,11 +159,17 @@ defmodule StreampaiWeb.Router do
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
-  scope "/rpc", StreampaiWeb do
-    pipe_through(:rpc)
+  scope "/graphql" do
+    pipe_through(:graphql)
 
-    post("/run", AshTypescriptRpcController, :run)
-    post("/validate", AshTypescriptRpcController, :validate)
+    forward "/playground",
+            Absinthe.Plug.GraphiQL,
+            schema: Module.concat(["StreampaiWeb.GraphQL.Schema"]),
+            interface: :playground
+
+    forward "/",
+            Absinthe.Plug,
+            schema: Module.concat(["StreampaiWeb.GraphQL.Schema"])
   end
 
   # Echo API for benchmarking
@@ -179,6 +188,24 @@ defmodule StreampaiWeb.Router do
 
     # PayPal webhooks
     post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
+  end
+
+  # Widget display routes - no layout, accessible by user_id
+  scope "/w", StreampaiWeb.Components do
+    pipe_through(:widget)
+
+    live("/chat/:user_id", ChatObsWidgetLive)
+    live("/alertbox/:user_id", AlertboxObsWidgetLive)
+    live("/donation-goal/:user_id", DonationGoalObsWidgetLive)
+    live("/top-donors/:user_id", TopDonorsObsWidgetLive)
+    live("/viewer-count/:user_id", ViewerCountObsWidgetLive)
+    live("/follower-count/:user_id", FollowerCountObsWidgetLive)
+    live("/timer/:user_id", TimerObsWidgetLive)
+    live("/poll/:user_id", PollObsWidgetLive)
+    live("/slider/:user_id", SliderObsWidgetLive)
+    live("/giveaway/:user_id", GiveawayObsWidgetLive)
+    live("/eventlist/:user_id", EventlistObsWidgetLive)
+    live("/smart-canvas/:user_id", SmartCanvasObsLive)
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

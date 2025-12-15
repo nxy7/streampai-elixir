@@ -27,6 +27,10 @@ defmodule StreampaiWeb.Endpoint do
       transport_log: :debug
     ]
 
+  socket "/graphql/websocket", StreampaiWeb.GraphQL.Socket,
+    websocket: true,
+    longpoll: false
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
@@ -57,8 +61,8 @@ defmodule StreampaiWeb.Endpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
-  plug Plug.Session, @session_options
   plug :cors
+  plug Plug.Session, @session_options
   plug StreampaiWeb.Router
 
   defp cors(conn, _opts) do
@@ -77,8 +81,9 @@ defmodule StreampaiWeb.Endpoint do
     |> put_resp_header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS")
     |> put_resp_header(
       "access-control-allow-headers",
-      "content-type, authorization, x-csrf-token"
+      "content-type, authorization, x-csrf-token, x-request-id"
     )
+    |> put_resp_header("access-control-max-age", "86400")
     |> handle_preflight()
   end
 

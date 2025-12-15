@@ -8,7 +8,8 @@ defmodule Streampai.Stream.StreamEvent do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshGraphql.Resource]
 
   postgres do
     table "stream_events"
@@ -36,6 +37,10 @@ defmodule Streampai.Stream.StreamEvent do
       index [:viewer_id, :inserted_at],
         name: "idx_stream_events_viewer_chrono"
     end
+  end
+
+  graphql do
+    type :stream_event
   end
 
   code_interface do
@@ -93,11 +98,14 @@ defmodule Streampai.Stream.StreamEvent do
 
       argument :livestream_id, :uuid, allow_nil?: false
 
-      filter expr(
-               livestream_id == ^arg(:livestream_id) and
-                 (type == :donation or type == :follow or type == :raid or type == :cheer or
-                    type == :patreon)
-             )
+      filter expr(livestream_id == ^arg(:livestream_id))
+
+      prepare fn query, _context ->
+        import Ash.Expr
+
+        activity_types = [:donation, :follow, :raid, :cheer, :patreon]
+        Ash.Query.filter(query, expr(type in ^activity_types))
+      end
 
       prepare build(sort: [inserted_at: :asc])
     end
@@ -196,7 +204,7 @@ defmodule Streampai.Stream.StreamEvent do
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key :id, public?: true
 
     attribute :type, Streampai.Stream.EventType do
       public? true
@@ -242,7 +250,7 @@ defmodule Streampai.Stream.StreamEvent do
       public? true
     end
 
-    create_timestamp :inserted_at
+    create_timestamp :inserted_at, public?: true
   end
 
   relationships do

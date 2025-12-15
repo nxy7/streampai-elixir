@@ -1,4 +1,4 @@
-import { useLocation } from "@solidjs/router";
+import { useLocation, A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useCurrentUser, getLoginUrl, getLogoutUrl, getDashboardUrl } from "~/lib/auth";
 
@@ -14,10 +14,10 @@ export default function Nav() {
       <div class="container flex items-center justify-between p-3 text-gray-200">
         <ul class="flex items-center">
           <li class={`border-b-2 ${active("/")} mx-1.5 sm:mx-6`}>
-            <a href="/">Home</a>
+            <A href="/">Home</A>
           </li>
           <li class={`border-b-2 ${active("/about")} mx-1.5 sm:mx-6`}>
-            <a href="/about">About</a>
+            <A href="/about">About</A>
           </li>
         </ul>
 
@@ -74,12 +74,12 @@ export default function Nav() {
                   <span class="text-sm">
                     Welcome, <strong>{currentUser().name || currentUser().email}</strong>!
                   </span>
-                  <a
+                  <A
                     href={getDashboardUrl()}
                     class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-white transition-colors"
                   >
                     Dashboard
-                  </a>
+                  </A>
                   <a
                     href={getLogoutUrl()}
                     class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition-colors"

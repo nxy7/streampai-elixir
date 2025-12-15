@@ -9,7 +9,8 @@ defmodule Streampai.Stream.StreamViewer do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshGraphql.Resource]
 
   require Ash.Query
 
@@ -22,6 +23,10 @@ defmodule Streampai.Stream.StreamViewer do
       index [:user_id, :last_seen_at], name: "idx_stream_viewers_user_last_seen"
       index [:display_name], name: "idx_stream_viewers_display_name_gin", using: "gin"
     end
+  end
+
+  graphql do
+    type :stream_viewer
   end
 
   code_interface do
@@ -126,63 +131,75 @@ defmodule Streampai.Stream.StreamViewer do
       description "Reference to the global viewer"
       allow_nil? false
       primary_key? true
+      public? true
     end
 
     attribute :user_id, :uuid do
       description "Reference to the streamer (user)"
       allow_nil? false
       primary_key? true
+      public? true
     end
 
     attribute :platform, :atom do
       description "Platform where this viewer was seen (twitch, youtube, facebook, kick)"
       allow_nil? false
+      public? true
       constraints one_of: [:twitch, :youtube, :facebook, :kick]
     end
 
     attribute :display_name, :string do
       description "The preferred name to display for this viewer in this streamer's context"
       allow_nil? false
+      public? true
       constraints max_length: 100
     end
 
     attribute :avatar_url, :string do
       description "URL to the viewer's profile/avatar image"
+      public? true
       constraints max_length: 500
     end
 
     attribute :channel_url, :string do
       description "Platform channel/profile URL for this viewer"
+      public? true
       constraints max_length: 500
     end
 
     attribute :is_verified, :boolean do
       description "Whether the viewer has a verified badge on the platform"
       default false
+      public? true
     end
 
     attribute :is_owner, :boolean do
       description "Whether the viewer is the channel owner"
       default false
+      public? true
     end
 
     attribute :is_moderator, :boolean do
       description "Whether the viewer is a moderator"
       default false
+      public? true
     end
 
     attribute :is_patreon, :boolean do
       description "Whether the viewer is a patron/subscriber"
       default false
+      public? true
     end
 
     attribute :notes, :string do
       description "Optional notes about this viewer (e.g., VIP status, special recognition)"
+      public? true
       constraints max_length: 1000
     end
 
     attribute :ai_summary, :string do
       description "AI-generated summary of viewer behavior and characteristics"
+      public? true
       constraints max_length: 2000
     end
 
@@ -190,12 +207,14 @@ defmodule Streampai.Stream.StreamViewer do
       description "When this viewer was first seen by this streamer"
       allow_nil? false
       writable? false
+      public? true
       default &DateTime.utc_now/0
     end
 
     attribute :last_seen_at, :utc_datetime_usec do
       description "When this viewer was last seen by this streamer"
       allow_nil? false
+      public? true
       default &DateTime.utc_now/0
     end
 

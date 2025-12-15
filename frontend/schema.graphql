@@ -1,0 +1,1829 @@
+schema {
+  subscription: RootSubscriptionType
+  mutation: RootMutationType
+  query: RootQueryType
+}
+
+"The result of the :update_smart_canvas_layout mutation"
+type UpdateSmartCanvasLayoutResult {
+  "The successful result of the mutation"
+  result: SmartCanvasLayout
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateSmartCanvasLayoutInput {
+  widgets: [JsonString!]
+}
+
+"The result of the :save_smart_canvas_layout mutation"
+type SaveSmartCanvasLayoutResult {
+  "The successful result of the mutation"
+  result: SmartCanvasLayout
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input SaveSmartCanvasLayoutInput {
+  userId: ID!
+  widgets: [JsonString!]
+}
+
+input SmartCanvasLayoutFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SmartCanvasLayoutFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SmartCanvasLayoutFilterInput {
+  and: [SmartCanvasLayoutFilterInput!]
+  or: [SmartCanvasLayoutFilterInput!]
+  not: [SmartCanvasLayoutFilterInput!]
+  id: SmartCanvasLayoutFilterId
+  userId: SmartCanvasLayoutFilterUserId
+  user: UserFilterInput
+}
+
+type SmartCanvasLayout {
+  id: ID!
+  userId: ID!
+  widgets: [JsonString!]!
+  user: User!
+}
+
+"The result of the :save_widget_config mutation"
+type SaveWidgetConfigResult {
+  "The successful result of the mutation"
+  result: WidgetConfig
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input SaveWidgetConfigInput {
+  userId: ID!
+  type: String!
+  config: JsonString
+}
+
+type WidgetConfig {
+  id: ID!
+  userId: ID!
+  type: String!
+  config: JsonString!
+  user: User!
+}
+
+"The result of the :disconnect_streaming_account mutation"
+type DisconnectStreamingAccountResult {
+  "The record that was successfully deleted"
+  result: StreamingAccount
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+type StreamingAccount {
+  "A unique identifier"
+  id: ID!
+}
+
+"The result of the :revoke_pro_access mutation"
+type RevokeProAccessResult {
+  "The successful result of the mutation"
+  result: User
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :grant_pro_access mutation"
+type GrantProAccessResult {
+  "The successful result of the mutation"
+  result: User
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input GrantProAccessInput {
+  "Number of days to grant PRO access"
+  durationDays: Int!
+
+  "Reason for granting PRO access"
+  reason: String!
+}
+
+enum UserSortField {
+  ID
+  EMAIL
+  NAME
+  EXTRA_DATA
+  CONFIRMED_AT
+  AVATAR_FILE_ID
+  TIER
+  ROLE
+  IS_MODERATOR
+  STORAGE_QUOTA
+  STORAGE_USED_PERCENT
+}
+
+"A keyset page of :user"
+type KeysetPageOfUser {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [User!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input UserFilterStorageUsedPercent {
+  isNil: Boolean
+  eq: Float
+  notEq: Float
+  in: [Float!]
+  lessThan: Float
+  greaterThan: Float
+  lessThanOrEqual: Float
+  greaterThanOrEqual: Float
+}
+
+input UserFilterStorageQuota {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input UserFilterIsModerator {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input UserFilterRole {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input UserFilterTier {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input UserFilterAvatarFileId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input UserFilterConfirmedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input UserFilterExtraData {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+}
+
+input UserFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input UserFilterEmail {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input UserFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input UserFilterInput {
+  and: [UserFilterInput!]
+
+  or: [UserFilterInput!]
+
+  not: [UserFilterInput!]
+
+  id: UserFilterId
+
+  email: UserFilterEmail
+
+  name: UserFilterName
+
+  extraData: UserFilterExtraData
+
+  "Timestamp when the user confirmed their account"
+  confirmedAt: UserFilterConfirmedAt
+
+  avatarFileId: UserFilterAvatarFileId
+
+  "User subscription tier: pro or free"
+  tier: UserFilterTier
+
+  "User role: admin or regular"
+  role: UserFilterRole
+
+  isModerator: UserFilterIsModerator
+
+  "Storage quota in bytes. Free: 1GB, Pro: 10GB"
+  storageQuota: UserFilterStorageQuota
+
+  "Percentage of storage quota used"
+  storageUsedPercent: UserFilterStorageUsedPercent
+}
+
+input UserSortInput {
+  order: SortOrder
+  field: UserSortField!
+}
+
+type User {
+  id: ID!
+
+  email: String!
+
+  name: String!
+
+  extraData: JsonString
+
+  "Timestamp when the user confirmed their account"
+  confirmedAt: DateTime
+
+  avatarFileId: ID
+
+  "User subscription tier: pro or free"
+  tier: String
+
+  "User role: admin or regular"
+  role: String
+
+  displayAvatar: String
+
+  isModerator: Boolean
+
+  hoursStreamedLast30Days: Float
+
+  "Storage quota in bytes. Free: 1GB, Pro: 10GB"
+  storageQuota: Int
+
+  "Percentage of storage quota used"
+  storageUsedPercent: Float
+}
+
+enum SortOrder {
+  DESC
+  DESC_NULLS_FIRST
+  DESC_NULLS_LAST
+  ASC
+  ASC_NULLS_FIRST
+  ASC_NULLS_LAST
+}
+
+"An error generated by a failed mutation"
+type MutationError {
+  "The human readable error message"
+  message: String
+
+  "A shorter error message, with vars not replaced"
+  shortMessage: String
+
+  "Replacements for the short message"
+  vars: Json
+
+  "An error code for the given error"
+  code: String
+
+  "The field or fields that produced the error"
+  fields: [String!]
+}
+
+enum StreamViewerSortField {
+  VIEWER_ID
+  USER_ID
+  PLATFORM
+  DISPLAY_NAME
+  AVATAR_URL
+  CHANNEL_URL
+  IS_VERIFIED
+  IS_OWNER
+  IS_MODERATOR
+  IS_PATREON
+  NOTES
+  AI_SUMMARY
+  FIRST_SEEN_AT
+  LAST_SEEN_AT
+}
+
+"A keyset page of :stream_viewer"
+type KeysetPageOfStreamViewer {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [StreamViewer!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input StreamViewerFilterLastSeenAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input StreamViewerFilterFirstSeenAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input StreamViewerFilterAiSummary {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterNotes {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterIsPatreon {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input StreamViewerFilterIsModerator {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input StreamViewerFilterIsOwner {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input StreamViewerFilterIsVerified {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input StreamViewerFilterChannelUrl {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterAvatarUrl {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterDisplayName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterPlatform {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input StreamViewerFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input StreamViewerFilterViewerId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamViewerFilterInput {
+  and: [StreamViewerFilterInput!]
+
+  or: [StreamViewerFilterInput!]
+
+  not: [StreamViewerFilterInput!]
+
+  "Reference to the global viewer"
+  viewerId: StreamViewerFilterViewerId
+
+  "Reference to the streamer (user)"
+  userId: StreamViewerFilterUserId
+
+  "Platform where this viewer was seen (twitch, youtube, facebook, kick)"
+  platform: StreamViewerFilterPlatform
+
+  "The preferred name to display for this viewer in this streamer's context"
+  displayName: StreamViewerFilterDisplayName
+
+  "URL to the viewer's profile\/avatar image"
+  avatarUrl: StreamViewerFilterAvatarUrl
+
+  "Platform channel\/profile URL for this viewer"
+  channelUrl: StreamViewerFilterChannelUrl
+
+  "Whether the viewer has a verified badge on the platform"
+  isVerified: StreamViewerFilterIsVerified
+
+  "Whether the viewer is the channel owner"
+  isOwner: StreamViewerFilterIsOwner
+
+  "Whether the viewer is a moderator"
+  isModerator: StreamViewerFilterIsModerator
+
+  "Whether the viewer is a patron\/subscriber"
+  isPatreon: StreamViewerFilterIsPatreon
+
+  "Optional notes about this viewer (e.g., VIP status, special recognition)"
+  notes: StreamViewerFilterNotes
+
+  "AI-generated summary of viewer behavior and characteristics"
+  aiSummary: StreamViewerFilterAiSummary
+
+  "When this viewer was first seen by this streamer"
+  firstSeenAt: StreamViewerFilterFirstSeenAt
+
+  "When this viewer was last seen by this streamer"
+  lastSeenAt: StreamViewerFilterLastSeenAt
+}
+
+input StreamViewerSortInput {
+  order: SortOrder
+  field: StreamViewerSortField!
+}
+
+type StreamViewer {
+  "A unique identifier"
+  id: ID!
+
+  "Reference to the global viewer"
+  viewerId: String!
+
+  "Reference to the streamer (user)"
+  userId: ID!
+
+  "Platform where this viewer was seen (twitch, youtube, facebook, kick)"
+  platform: String!
+
+  "The preferred name to display for this viewer in this streamer's context"
+  displayName: String!
+
+  "URL to the viewer's profile\/avatar image"
+  avatarUrl: String
+
+  "Platform channel\/profile URL for this viewer"
+  channelUrl: String
+
+  "Whether the viewer has a verified badge on the platform"
+  isVerified: Boolean
+
+  "Whether the viewer is the channel owner"
+  isOwner: Boolean
+
+  "Whether the viewer is a moderator"
+  isModerator: Boolean
+
+  "Whether the viewer is a patron\/subscriber"
+  isPatreon: Boolean
+
+  "Optional notes about this viewer (e.g., VIP status, special recognition)"
+  notes: String
+
+  "AI-generated summary of viewer behavior and characteristics"
+  aiSummary: String
+
+  "When this viewer was first seen by this streamer"
+  firstSeenAt: DateTime!
+
+  "When this viewer was last seen by this streamer"
+  lastSeenAt: DateTime!
+}
+
+enum LivestreamSortField {
+  ID
+  TITLE
+  DESCRIPTION
+  CATEGORY
+  SUBCATEGORY
+  LANGUAGE
+  LEGACY_THUMBNAIL_URL
+  THUMBNAIL_FILE_ID
+  STARTED_AT
+  ENDED_AT
+  USER_ID
+}
+
+input LivestreamFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input LivestreamFilterEndedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input LivestreamFilterStartedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input LivestreamFilterThumbnailFileId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input LivestreamFilterLegacyThumbnailUrl {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input LivestreamFilterLanguage {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input LivestreamFilterSubcategory {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input LivestreamFilterCategory {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input LivestreamFilterDescription {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input LivestreamFilterTitle {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input LivestreamFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input LivestreamFilterInput {
+  and: [LivestreamFilterInput!]
+  or: [LivestreamFilterInput!]
+  not: [LivestreamFilterInput!]
+  id: LivestreamFilterId
+  title: LivestreamFilterTitle
+  description: LivestreamFilterDescription
+  category: LivestreamFilterCategory
+  subcategory: LivestreamFilterSubcategory
+  language: LivestreamFilterLanguage
+  legacyThumbnailUrl: LivestreamFilterLegacyThumbnailUrl
+  thumbnailFileId: LivestreamFilterThumbnailFileId
+  startedAt: LivestreamFilterStartedAt
+  endedAt: LivestreamFilterEndedAt
+  userId: LivestreamFilterUserId
+  chatMessages: ChatMessageFilterInput
+  streamEvents: StreamEventFilterInput
+}
+
+input LivestreamSortInput {
+  order: SortOrder
+  field: LivestreamSortField!
+}
+
+type Livestream {
+  id: ID!
+  title: String!
+  description: String
+  category: String
+  subcategory: String
+  language: String
+  tags: [String!]
+  legacyThumbnailUrl: String
+  thumbnailFileId: ID
+  startedAt: DateTime!
+  endedAt: DateTime
+  userId: ID!
+  chatMessages(
+    "How to sort the records in the response"
+    sort: [ChatMessageSortInput]
+
+    "A filter to limit the results"
+    filter: ChatMessageFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ChatMessage!]!
+  streamEvents(
+    "How to sort the records in the response"
+    sort: [StreamEventSortInput]
+
+    "A filter to limit the results"
+    filter: StreamEventFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [StreamEvent!]!
+  averageViewers: Int
+  peakViewers: Int
+  messagesAmount: Int
+  durationSeconds: Int
+  platforms: [String!]
+  thumbnailUrl: String
+}
+
+enum StreamEventSortField {
+  ID
+  TYPE
+  DATA
+  DATA_RAW
+  AUTHOR_ID
+  LIVESTREAM_ID
+  USER_ID
+  PLATFORM
+  VIEWER_ID
+  INSERTED_AT
+}
+
+input StreamEventFilterInsertedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input StreamEventFilterViewerId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamEventFilterPlatform {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input StreamEventFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input StreamEventFilterLivestreamId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input StreamEventFilterAuthorId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input StreamEventFilterDataRaw {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString!]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+}
+
+input StreamEventFilterData {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString!]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+}
+
+input StreamEventFilterType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input StreamEventFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input StreamEventFilterInput {
+  and: [StreamEventFilterInput!]
+
+  or: [StreamEventFilterInput!]
+
+  not: [StreamEventFilterInput!]
+
+  id: StreamEventFilterId
+
+  type: StreamEventFilterType
+
+  """
+  Event-specific data stored as JSONB, unlike RAW data
+        this should be pre-processed into a consistent format.
+  """
+  data: StreamEventFilterData
+
+  "Raw data as received from platform, unprocessed"
+  dataRaw: StreamEventFilterDataRaw
+
+  authorId: StreamEventFilterAuthorId
+
+  livestreamId: StreamEventFilterLivestreamId
+
+  userId: StreamEventFilterUserId
+
+  platform: StreamEventFilterPlatform
+
+  viewerId: StreamEventFilterViewerId
+
+  insertedAt: StreamEventFilterInsertedAt
+}
+
+input StreamEventSortInput {
+  order: SortOrder
+  field: StreamEventSortField!
+}
+
+type StreamEvent {
+  id: ID!
+
+  type: String!
+
+  """
+  Event-specific data stored as JSONB, unlike RAW data
+        this should be pre-processed into a consistent format.
+  """
+  data: JsonString!
+
+  "Raw data as received from platform, unprocessed"
+  dataRaw: JsonString!
+
+  authorId: String!
+
+  livestreamId: ID!
+
+  userId: ID!
+
+  platform: String
+
+  viewerId: String
+
+  insertedAt: DateTime!
+}
+
+enum ChatMessageSortField {
+  ID
+  MESSAGE
+  PLATFORM
+  SENDER_USERNAME
+  SENDER_CHANNEL_ID
+  SENDER_IS_MODERATOR
+  SENDER_IS_PATREON
+  INSERTED_AT
+  VIEWER_ID
+  USER_ID
+  LIVESTREAM_ID
+}
+
+"A keyset page of :chat_message"
+type KeysetPageOfChatMessage {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [ChatMessage!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input ChatMessageFilterLivestreamId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ChatMessageFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ChatMessageFilterViewerId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ChatMessageFilterInsertedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input ChatMessageFilterSenderIsPatreon {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input ChatMessageFilterSenderIsModerator {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input ChatMessageFilterSenderChannelId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ChatMessageFilterSenderUsername {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ChatMessageFilterPlatform {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input ChatMessageFilterMessage {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ChatMessageFilterId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ChatMessageFilterInput {
+  and: [ChatMessageFilterInput!]
+  or: [ChatMessageFilterInput!]
+  not: [ChatMessageFilterInput!]
+  id: ChatMessageFilterId
+  message: ChatMessageFilterMessage
+  platform: ChatMessageFilterPlatform
+  senderUsername: ChatMessageFilterSenderUsername
+  senderChannelId: ChatMessageFilterSenderChannelId
+  senderIsModerator: ChatMessageFilterSenderIsModerator
+  senderIsPatreon: ChatMessageFilterSenderIsPatreon
+  insertedAt: ChatMessageFilterInsertedAt
+  viewerId: ChatMessageFilterViewerId
+  userId: ChatMessageFilterUserId
+  livestreamId: ChatMessageFilterLivestreamId
+  user: UserFilterInput
+  livestream: LivestreamFilterInput
+}
+
+input ChatMessageSortInput {
+  order: SortOrder
+  field: ChatMessageSortField!
+}
+
+type ChatMessage {
+  id: ID!
+  message: String!
+  platform: String!
+  senderUsername: String!
+  senderChannelId: String!
+  senderIsModerator: Boolean
+  senderIsPatreon: Boolean
+  insertedAt: DateTime!
+  viewerId: String
+  userId: ID!
+  livestreamId: ID!
+  user: User!
+  livestream: Livestream!
+}
+
+enum BannedViewerSortField {
+  ID
+  PLATFORM
+  VIEWER_USERNAME
+  VIEWER_PLATFORM_ID
+  REASON
+  DURATION_SECONDS
+  EXPIRES_AT
+  IS_ACTIVE
+  PLATFORM_BAN_ID
+  UNBANNED_AT
+  INSERTED_AT
+  UPDATED_AT
+}
+
+input BannedViewerFilterUpdatedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input BannedViewerFilterInsertedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input BannedViewerFilterUnbannedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input BannedViewerFilterPlatformBanId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BannedViewerFilterIsActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input BannedViewerFilterExpiresAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input BannedViewerFilterDurationSeconds {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input BannedViewerFilterReason {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BannedViewerFilterViewerPlatformId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BannedViewerFilterViewerUsername {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input BannedViewerFilterPlatform {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input BannedViewerFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input BannedViewerFilterInput {
+  and: [BannedViewerFilterInput!]
+
+  or: [BannedViewerFilterInput!]
+
+  not: [BannedViewerFilterInput!]
+
+  id: BannedViewerFilterId
+
+  "Platform where the ban occurred"
+  platform: BannedViewerFilterPlatform
+
+  "Username of the banned viewer (may change over time)"
+  viewerUsername: BannedViewerFilterViewerUsername
+
+  "Platform-specific user ID (stable identifier)"
+  viewerPlatformId: BannedViewerFilterViewerPlatformId
+
+  "Reason for the ban"
+  reason: BannedViewerFilterReason
+
+  "Duration of timeout in seconds (null for permanent ban)"
+  durationSeconds: BannedViewerFilterDurationSeconds
+
+  "When the timeout expires (null for permanent ban)"
+  expiresAt: BannedViewerFilterExpiresAt
+
+  "Whether the ban is currently active"
+  isActive: BannedViewerFilterIsActive
+
+  "Platform-specific ban ID (used by some platforms like YouTube for unbanning)"
+  platformBanId: BannedViewerFilterPlatformBanId
+
+  "When the viewer was unbanned (if manually unbanned)"
+  unbannedAt: BannedViewerFilterUnbannedAt
+
+  insertedAt: BannedViewerFilterInsertedAt
+
+  updatedAt: BannedViewerFilterUpdatedAt
+}
+
+input BannedViewerSortInput {
+  order: SortOrder
+  field: BannedViewerSortField!
+}
+
+type BannedViewer {
+  id: ID!
+
+  "Platform where the ban occurred"
+  platform: String!
+
+  "Username of the banned viewer (may change over time)"
+  viewerUsername: String!
+
+  "Platform-specific user ID (stable identifier)"
+  viewerPlatformId: String!
+
+  "Reason for the ban"
+  reason: String
+
+  "Duration of timeout in seconds (null for permanent ban)"
+  durationSeconds: Int
+
+  "When the timeout expires (null for permanent ban)"
+  expiresAt: DateTime
+
+  "Whether the ban is currently active"
+  isActive: Boolean!
+
+  "Platform-specific ban ID (used by some platforms like YouTube for unbanning)"
+  platformBanId: String
+
+  "When the viewer was unbanned (if manually unbanned)"
+  unbannedAt: DateTime
+
+  insertedAt: DateTime!
+
+  updatedAt: DateTime!
+}
+
+type DonationEvent {
+  id: ID
+  amount: Float
+  currency: String
+  username: String
+  message: String
+  timestamp: DateTime
+  platform: String
+}
+
+type FollowerEvent {
+  id: ID
+  username: String
+  timestamp: DateTime
+  platform: String
+}
+
+type SubscriberEvent {
+  id: ID
+  username: String
+  tier: String
+  months: Int
+  message: String
+  timestamp: DateTime
+  platform: String
+}
+
+type RaidEvent {
+  id: ID
+  username: String
+  viewerCount: Int
+  timestamp: DateTime
+  platform: String
+}
+
+type CheerEvent {
+  id: ID
+  username: String
+  bits: Int
+  message: String
+  timestamp: DateTime
+  platform: String
+}
+
+type ChatMessageEvent {
+  id: ID
+  username: String
+  message: String
+  timestamp: DateTime
+  platform: String
+  isModerator: Boolean
+  isSubscriber: Boolean
+}
+
+type ViewerCountEvent {
+  count: Int
+  timestamp: DateTime
+  platform: String
+}
+
+type GoalProgressEvent {
+  goalId: ID
+  currentAmount: Float
+  targetAmount: Float
+  percentage: Float
+  timestamp: DateTime
+}
+
+type RootQueryType {
+  "Get all currently active bans for a user"
+  bannedViewers(
+    "How to sort the records in the response"
+    sort: [BannedViewerSortInput]
+
+    "A filter to limit the results"
+    filter: BannedViewerFilterInput
+
+    userId: ID!
+  ): [BannedViewer!]!
+
+  "Get chat messages for a user across all livestreams, with optional platform and date range filters"
+  chatHistory(
+    "How to sort the records in the response"
+    sort: [ChatMessageSortInput]
+
+    "A filter to limit the results"
+    filter: ChatMessageFilterInput
+
+    "The number of records to return from the beginning. Maximum 100"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 100"
+    last: Int
+
+    userId: ID!
+
+    platform: String
+
+    dateRange: String
+
+    search: String
+  ): KeysetPageOfChatMessage
+
+  "Get all chat messages for a livestream, sorted chronologically"
+  livestreamChat(
+    "How to sort the records in the response"
+    sort: [ChatMessageSortInput]
+
+    "A filter to limit the results"
+    filter: ChatMessageFilterInput
+
+    livestreamId: ID!
+  ): [ChatMessage!]!
+
+  "Get chat messages for a specific viewer on a user's streams"
+  viewerChat(
+    "How to sort the records in the response"
+    sort: [ChatMessageSortInput]
+
+    "A filter to limit the results"
+    filter: ChatMessageFilterInput
+
+    viewerId: String!
+
+    userId: ID!
+  ): [ChatMessage!]!
+
+  "Get activity events (donations, follows, raids, etc.) for a livestream"
+  livestreamEvents(
+    "How to sort the records in the response"
+    sort: [StreamEventSortInput]
+
+    "A filter to limit the results"
+    filter: StreamEventFilterInput
+
+    livestreamId: ID!
+  ): [StreamEvent!]!
+
+  "Get events for a specific viewer on a user's streams"
+  viewerEvents(
+    "How to sort the records in the response"
+    sort: [StreamEventSortInput]
+
+    "A filter to limit the results"
+    filter: StreamEventFilterInput
+
+    viewerId: String!
+
+    userId: ID!
+  ): [StreamEvent!]!
+
+  streamHistory(
+    "How to sort the records in the response"
+    sort: [LivestreamSortInput]
+
+    "A filter to limit the results"
+    filter: LivestreamFilterInput
+
+    userId: ID!
+  ): [Livestream!]!
+
+  livestream(
+    "The id of the record"
+    id: ID!
+  ): Livestream
+
+  viewers(
+    "How to sort the records in the response"
+    sort: [StreamViewerSortInput]
+
+    "A filter to limit the results"
+    filter: StreamViewerFilterInput
+
+    "The number of records to return from the beginning. Maximum 100"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 100"
+    last: Int
+
+    userId: ID!
+  ): KeysetPageOfStreamViewer
+
+  searchViewers(
+    "How to sort the records in the response"
+    sort: [StreamViewerSortInput]
+
+    "A filter to limit the results"
+    filter: StreamViewerFilterInput
+
+    userId: ID!
+
+    displayName: String!
+
+    similarityThreshold: Float
+  ): [StreamViewer!]!
+
+  "Get the current authenticated user"
+  currentUser(
+    "A filter to limit the results"
+    filter: UserFilterInput
+  ): User
+
+  listUsers(
+    "How to sort the records in the response"
+    sort: [UserSortInput]
+
+    "A filter to limit the results"
+    filter: UserFilterInput
+
+    "The number of records to return from the beginning. Maximum 100"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 100"
+    last: Int
+  ): KeysetPageOfUser
+
+  widgetConfig(
+    "The id of the record"
+    id: ID!
+
+    userId: ID!
+
+    type: String!
+  ): WidgetConfig
+
+  smartCanvasLayout(
+    "A filter to limit the results"
+    filter: SmartCanvasLayoutFilterInput
+
+    userId: ID!
+  ): SmartCanvasLayout
+}
+
+type RootMutationType {
+  "Grant PRO access to a user for a specified duration"
+  grantProAccess(id: ID!, input: GrantProAccessInput!): GrantProAccessResult!
+
+  "Revoke all active PRO access grants for a user"
+  revokeProAccess(id: ID!): RevokeProAccessResult!
+
+  disconnectStreamingAccount(id: ID!): DisconnectStreamingAccountResult!
+
+  saveWidgetConfig(input: SaveWidgetConfigInput!): SaveWidgetConfigResult!
+
+  saveSmartCanvasLayout(input: SaveSmartCanvasLayoutInput!): SaveSmartCanvasLayoutResult!
+
+  updateSmartCanvasLayout(id: ID!, input: UpdateSmartCanvasLayoutInput): UpdateSmartCanvasLayoutResult!
+}
+
+type RootSubscriptionType {
+  donationReceived(userId: ID!): DonationEvent
+  followerAdded(userId: ID!): FollowerEvent
+  subscriberAdded(userId: ID!): SubscriberEvent
+  raidReceived(userId: ID!): RaidEvent
+  cheerReceived(userId: ID!): CheerEvent
+  chatMessage(userId: ID!): ChatMessageEvent
+  viewerCountUpdated(userId: ID!): ViewerCountEvent
+  goalProgress(userId: ID!, goalId: ID): GoalProgressEvent
+}
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar JsonString
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar Json
+
+"""
+The `DateTime` scalar type represents a date and time in the UTC
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string, including UTC timezone ("Z"). The parsed date and time string will
+be converted to UTC if there is an offset.
+"""
+scalar DateTime

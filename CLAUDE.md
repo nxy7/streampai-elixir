@@ -39,6 +39,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cd frontend && npm run build` - Build frontend for production
 - Frontend will auto-reload on changes (Vite HMR)
 
+**IMPORTANT: SolidJS File-Based Routing Rules:**
+- If you have both `route-name.tsx` AND `route-name/` directory, the routing will break (404)
+- Solution: Move `route-name.tsx` to `route-name/index.tsx`
+- Example: `dashboard/smart-canvas.tsx` + `dashboard/smart-canvas/` directory → Move to `dashboard/smart-canvas/index.tsx`
+- This applies to any route that needs both a page and sub-routes
+
 ### Multiple Development Instances
 When running multiple Claude Code instances or development servers simultaneously:
 - Use `PORT=4001 mix phx.server` (or other ports) to avoid main app conflicts

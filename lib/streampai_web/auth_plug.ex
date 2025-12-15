@@ -14,6 +14,7 @@ defmodule StreampaiWeb.AuthPlug do
       send_resp(conn, 200, Jason.encode!(%{authentication: %{success: true, token: token}}))
     else
       conn
+      |> set_actor(user)
       |> store_in_session(user)
       |> send_resp(
         200,

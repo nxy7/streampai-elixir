@@ -91,6 +91,9 @@ export const text = {
   // Body text
   body: "text-gray-700",
 
+  // Form label
+  label: "block text-sm font-medium text-gray-700 mb-1",
+
   // Secondary/muted text
   muted: "text-gray-600 text-sm",
 

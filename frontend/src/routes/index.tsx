@@ -520,18 +520,18 @@ function LandingFooter() {
           </div>
 
           <div class="flex space-x-6 text-gray-300">
-            <a href="/privacy" class="hover:text-white transition-colors">
+            <A href="/privacy" class="hover:text-white transition-colors">
               Privacy
-            </a>
-            <a href="/terms" class="hover:text-white transition-colors">
+            </A>
+            <A href="/terms" class="hover:text-white transition-colors">
               Terms
-            </a>
-            <a href="/support" class="hover:text-white transition-colors">
+            </A>
+            <A href="/support" class="hover:text-white transition-colors">
               Support
-            </a>
-            <a href="/contact" class="hover:text-white transition-colors">
+            </A>
+            <A href="/contact" class="hover:text-white transition-colors">
               Contact
-            </a>
+            </A>
           </div>
         </div>
 

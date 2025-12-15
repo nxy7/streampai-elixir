@@ -24,20 +24,6 @@ config :ash,
 
 config :ash_oban, pro?: false
 
-config :ash_typescript,
-  output_file: "frontend/src/sdk/ash_rpc.ts",
-  run_endpoint: "http://localhost:4000/rpc/run",
-  validate_endpoint: "http://localhost:4000/rpc/validate",
-  input_field_formatter: :camel_case,
-  output_field_formatter: :camel_case,
-  require_tenant_parameters: false,
-  generate_zod_schemas: false,
-  generate_phx_channel_rpc_actions: false,
-  generate_validation_functions: true,
-  zod_import_path: "zod",
-  zod_schema_suffix: "ZodSchema",
-  phoenix_import_path: "phoenix"
-
 config :ex_cldr, default_backend: Streampai.Cldr
 
 config :logger, :console,

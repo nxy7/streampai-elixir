@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource],
+    extensions: [AshAdmin.Resource, AshGraphql.Resource],
     data_layer: AshPostgres.DataLayer
 
   alias Streampai.Accounts.WidgetConfigDefaults
@@ -12,6 +12,18 @@ defmodule Streampai.Accounts.WidgetConfig do
   postgres do
     table "widget_configs"
     repo Streampai.Repo
+  end
+
+  graphql do
+    type :widget_config
+
+    queries do
+      get(:widget_config, :get_by_user_and_type)
+    end
+
+    mutations do
+      create :save_widget_config, :create
+    end
   end
 
   code_interface do
@@ -26,6 +38,8 @@ defmodule Streampai.Accounts.WidgetConfig do
       accept [:user_id, :type, :config]
       upsert? true
       upsert_identity :user_type_unique
+
+      change Streampai.Accounts.WidgetConfig.Changes.AtomizeConfigKeys
     end
 
     read :get_by_user_and_type do
@@ -81,6 +95,7 @@ defmodule Streampai.Accounts.WidgetConfig do
 
   validations do
     validate one_of(:type, [
+               :placeholder_widget,
                :chat_widget,
                :alertbox_widget,
                :viewer_count_widget,

@@ -1,18 +1,25 @@
 defmodule Streampai.Accounts do
   @moduledoc false
   use Ash.Domain,
-    extensions: [AshAdmin.Domain, AshTypescript.Rpc]
+    extensions: [AshAdmin.Domain, AshGraphql.Domain]
 
+  alias Streampai.Accounts.StreamingAccount
   alias Streampai.Accounts.User
 
   admin do
     show? true
   end
 
-  typescript_rpc do
-    resource User do
-      rpc_action :list_accounts, :list_all
-      rpc_action :current_user, :current_user
+  graphql do
+    queries do
+      read_one User, :current_user, :current_user
+      list User, :list_users, :list_all
+    end
+
+    mutations do
+      update User, :grant_pro_access, :grant_pro_access
+      update User, :revoke_pro_access, :revoke_pro_access
+      destroy StreamingAccount, :disconnect_streaming_account, :destroy
     end
   end
 
@@ -20,7 +27,7 @@ defmodule Streampai.Accounts do
     resource Streampai.Accounts.Token
     resource User
     resource Streampai.Accounts.UserPremiumGrant
-    resource Streampai.Accounts.StreamingAccount
+    resource StreamingAccount
     resource Streampai.Accounts.WidgetConfig
     resource Streampai.Accounts.SmartCanvasLayout
     resource Streampai.Accounts.NewsletterEmail

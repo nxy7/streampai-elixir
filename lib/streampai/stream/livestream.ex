@@ -3,7 +3,8 @@ defmodule Streampai.Stream.Livestream do
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshGraphql.Resource]
 
   alias Streampai.Stream.Livestream.Validations.ValidateNotEnded
   alias Streampai.Stream.Livestream.Validations.ValidateSubcategory
@@ -11,6 +12,13 @@ defmodule Streampai.Stream.Livestream do
   postgres do
     table "livestreams"
     repo Streampai.Repo
+  end
+
+  graphql do
+    type :livestream
+
+    # Expose relationships in GraphQL for efficient data fetching
+    relationships([:chat_messages, :metrics, :stream_events])
   end
 
   code_interface do
@@ -74,7 +82,11 @@ defmodule Streampai.Stream.Livestream do
       end
 
       filter expr(user_id == ^arg(:user_id) and not is_nil(ended_at))
-      prepare build(sort: [started_at: :desc])
+
+      prepare build(
+                sort: [started_at: :desc],
+                load: [:thumbnail_url, :thumbnail_file]
+              )
     end
   end
 
@@ -144,19 +156,28 @@ defmodule Streampai.Stream.Livestream do
     belongs_to :user, Streampai.Accounts.User do
       allow_nil? false
       attribute_writable? true
+      public? true
     end
 
     belongs_to :thumbnail_file, Streampai.Storage.File do
       allow_nil? true
       attribute_writable? true
+      public? true
     end
 
     has_many :metrics, Streampai.Stream.LivestreamMetric do
       destination_attribute :livestream_id
+      public? true
     end
 
     has_many :chat_messages, Streampai.Stream.ChatMessage do
       destination_attribute :livestream_id
+      public? true
+    end
+
+    has_many :stream_events, Streampai.Stream.StreamEvent do
+      destination_attribute :livestream_id
+      public? true
     end
   end
 
@@ -200,7 +221,7 @@ defmodule Streampai.Stream.Livestream do
       end)
     end do
       public? true
-      load thumbnail_file: [:url]
+      load [:legacy_thumbnail_url, thumbnail_file: [:url, :storage_key]]
     end
   end
 end

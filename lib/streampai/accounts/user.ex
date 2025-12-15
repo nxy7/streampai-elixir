@@ -4,7 +4,12 @@ defmodule Streampai.Accounts.User do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication, AshAdmin.Resource, AshOban, AshTypescript.Resource],
+    extensions: [
+      AshAuthentication,
+      AshAdmin.Resource,
+      AshOban,
+      AshGraphql.Resource
+    ],
     data_layer: AshPostgres.DataLayer
 
   alias AshAuthentication.Strategy.OAuth2.IdentityChange
@@ -109,8 +114,8 @@ defmodule Streampai.Accounts.User do
     end
   end
 
-  typescript do
-    type_name "User"
+  graphql do
+    type :user
   end
 
   code_interface do
@@ -178,7 +183,11 @@ defmodule Streampai.Accounts.User do
                   :role,
                   :streaming_accounts,
                   :display_avatar,
-                  :granted_roles
+                  :granted_roles,
+                  :storage_quota,
+                  :storage_used_percent,
+                  :hours_streamed_last30_days,
+                  :is_moderator
                 ]
               )
 
@@ -479,6 +488,30 @@ defmodule Streampai.Accounts.User do
 
       run Streampai.Accounts.User.Actions.ReconcileSubscription
     end
+
+    update :grant_pro_access do
+      description "Grant PRO access to a user for a specified duration"
+      require_atomic? false
+
+      argument :duration_days, :integer do
+        allow_nil? false
+        description "Number of days to grant PRO access"
+      end
+
+      argument :reason, :string do
+        allow_nil? false
+        description "Reason for granting PRO access"
+      end
+
+      change Streampai.Accounts.User.Changes.GrantProAccess
+    end
+
+    update :revoke_pro_access do
+      description "Revoke all active PRO access grants for a user"
+      require_atomic? false
+
+      change Streampai.Accounts.User.Changes.RevokeProAccess
+    end
   end
 
   policies do
@@ -532,6 +565,12 @@ defmodule Streampai.Accounts.User do
       allow_nil? true
       default %{}
     end
+
+    attribute :confirmed_at, :utc_datetime_usec do
+      public? true
+      allow_nil? true
+      description "Timestamp when the user confirmed their account"
+    end
   end
 
   relationships do
@@ -572,11 +611,17 @@ defmodule Streampai.Accounts.User do
                    ) > 0,
                    do: :pro,
                    else: :free
-              )
+              ) do
+      public? true
+      description "User subscription tier: pro or free"
+    end
 
     calculate :role,
               :atom,
-              expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular)
+              expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular) do
+      public? true
+      description "User role: admin or regular"
+    end
 
     calculate :display_avatar,
               :string,
@@ -588,7 +633,7 @@ defmodule Streampai.Accounts.User do
               :boolean,
               expr(
                 count(granted_roles,
-                  query: [filter: expr(role_type == :moderator and status == :accepted)]
+                  query: [filter: expr(role_type == :moderator and role_status == :accepted)]
                 ) > 0
               ) do
       public? true
