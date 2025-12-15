@@ -9,11 +9,12 @@
   outputs =
     { flake-parts, nixpkgs, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" ];
+      systems = [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem =
         { config, system, ... }:
         let
           pkgs = import nixpkgs { inherit system; };
+          isLinux = pkgs.stdenv.isLinux;
         in
         {
           devShells.default = pkgs.mkShell {
@@ -25,7 +26,6 @@
               lexical
               next-ls
               erlang_28
-              inotify-tools
               just
               nodejs
               bun
@@ -35,6 +35,8 @@
               # telepresence2
               # cilium-cli
               # kubernetes-helm
+            ] ++ pkgs.lib.optionals isLinux [
+              inotify-tools
             ];
           };
         };
