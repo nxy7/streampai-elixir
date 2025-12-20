@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { client } from "./urql";
 import { graphql, type ResultOf } from "gql.tada";
+import { BACKEND_URL } from "./constants";
 
 
 const CURRENT_USER_QUERY = graphql(`
@@ -54,16 +55,12 @@ export async function fetchCurrentUser() {
   }
 }
 
-export function getLoginUrl(provider?: "google" | "twitch") {
-  const baseUrl = "http://localhost:4000";
-  if (provider) {
-    return `${baseUrl}/auth/user/${provider}`;
-  }
-  return `${baseUrl}/auth/sign-in`;
+export function getLoginUrl() {
+  return "/login";
 }
 
 export function getLogoutUrl() {
-  return "http://localhost:4000/auth/sign-out";
+  return `${BACKEND_URL}/auth/sign-out`;
 }
 
 export function getDashboardUrl() {

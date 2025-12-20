@@ -4,21 +4,31 @@ defmodule StreampaiWeb.AuthController do
 
   require Logger
 
+  @frontend_url Application.compile_env(:streampai, :frontend_url, "http://localhost:3000")
+
   def success(conn, _activity, user, _token) do
     # Check for stored redirect URL from either password auth or OAuth
     return_to =
       get_session(conn, :return_to) ||
-        get_session(conn, :oauth_redirect_to) ||
-        ~p"/dashboard"
+        get_session(conn, :oauth_redirect_to)
+
+    redirect_url =
+      case return_to do
+        nil -> "#{frontend_url()}/dashboard"
+        "/" <> _ = path -> "#{frontend_url()}#{path}"
+        url -> url
+      end
 
     conn
-    # Clean up password auth redirect
     |> delete_session(:return_to)
-    # Clean up OAuth redirect
     |> delete_session(:oauth_redirect_to)
     |> store_in_session(user)
     |> assign(:current_user, user)
-    |> redirect(to: return_to)
+    |> redirect(external: redirect_url)
+  end
+
+  defp frontend_url do
+    Application.get_env(:streampai, :frontend_url, @frontend_url)
   end
 
   def failure(conn, activity, reason) do
@@ -32,6 +42,6 @@ defmodule StreampaiWeb.AuthController do
   def sign_out(conn, _params) do
     conn
     |> clear_session(:streampai)
-    |> redirect(to: ~p"/")
+    |> redirect(external: frontend_url())
   end
 end

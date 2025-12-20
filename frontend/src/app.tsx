@@ -9,7 +9,7 @@ import { useCurrentUser } from "./lib/auth";
 import LoadingIndicator from "./components/LoadingIndicator";
 
 export default function App() {
-  const { user, isLoading } = useCurrentUser();
+  const { isLoading } = useCurrentUser();
 
   return (
     <UrqlProvider value={client}>
@@ -17,7 +17,7 @@ export default function App() {
         <Match when={isLoading()}>
           <LoadingIndicator />
         </Match>
-        <Match when={user()}>
+        <Match when={true}>
           <Router
             root={(props) => (
               <MetaProvider>
@@ -28,7 +28,6 @@ export default function App() {
             <FileRoutes />
           </Router>
         </Match>
-        <Match when={!user()}>No loggerino</Match>
       </Switch>
     </UrqlProvider>
   );

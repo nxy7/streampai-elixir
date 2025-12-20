@@ -70,21 +70,29 @@ if System.get_env("DEBUG_SQL") == "true" do
     stacktrace: true
 end
 
+google_redirect_uri =
+  System.get_env("GOOGLE_REDIRECT_URI") ||
+    if config_env() == :dev, do: "http://localhost:4000/auth/user/google/callback"
+
+twitch_redirect_uri =
+  System.get_env("TWITCH_AUTH_REDIRECT_URI") ||
+    if config_env() == :dev, do: "http://localhost:4000/auth/user/twitch/callback"
+
 config :streampai, :strategies,
   google: [
     client_id: System.get_env("GOOGLE_CLIENT_ID"),
     client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
-    redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
+    redirect_uri: google_redirect_uri,
     strategy: Assent.Strategy.Google
   ]
 
 config :streampai,
   google_client_id: System.get_env("GOOGLE_CLIENT_ID"),
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
-  google_redirect_uri: System.get_env("GOOGLE_REDIRECT_URI"),
+  google_redirect_uri: google_redirect_uri,
   twitch_client_id: System.get_env("TWITCH_CLIENT_ID"),
   twitch_client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
-  twitch_redirect_uri: System.get_env("TWITCH_AUTH_REDIRECT_URI"),
+  twitch_redirect_uri: twitch_redirect_uri,
   token_signing_secret: System.get_env("SECRET_KEY"),
   cloudflare_api_token: System.get_env("CLOUDFLARE_API_KEY"),
   cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),

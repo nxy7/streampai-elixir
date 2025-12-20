@@ -5,9 +5,7 @@ import {
   Client,
 } from "@urql/solid";
 import { createClient as createWSClient } from "graphql-ws";
-
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
-const WS_ENDPOINT = "ws://localhost:4000/graphql/websocket";
+import { GRAPHQL_ENDPOINT, WS_ENDPOINT } from "./constants";
 
 const wsClient = createWSClient({
   url: WS_ENDPOINT,

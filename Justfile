@@ -3,7 +3,6 @@ _default:
 
 # starts development cluster and applies kubernetes manifests
 init-dev:
-	code .
 	docker compose up
 
 format:

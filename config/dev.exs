@@ -42,9 +42,7 @@ config :streampai, StreampaiWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  watchers: [
-    npm: ["--silent", "run", "dev", cd: Path.expand("../assets", __DIR__)]
-  ]
+  watchers: []
 
 # Live reload configuration
 config :streampai, StreampaiWeb.Endpoint,
@@ -66,7 +64,8 @@ config :streampai, :paypal,
 # Development specific settings
 config :streampai,
   dev_routes: true,
-  token_signing_secret: System.get_env("SECRET_KEY")
+  token_signing_secret: System.get_env("SECRET_KEY"),
+  frontend_url: System.get_env("FRONTEND_URL", "http://localhost:3000")
 
 # External services (disabled in dev)
 config :swoosh, :api_client, false
