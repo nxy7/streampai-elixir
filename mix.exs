@@ -12,9 +12,12 @@ defmodule Streampai.MixProject do
       consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
       deps: deps(),
-      releases: releases(),
-      preferred_cli_env: ["mneme.test": :test, "mneme.watch": :test]
+      releases: releases()
     ]
+  end
+
+  def cli do
+    [preferred_envs: ["mneme.test": :test, "mneme.watch": :test]]
   end
 
   # Configuration for the OTP application.
@@ -87,7 +90,7 @@ defmodule Streampai.MixProject do
       {:ssl_verify_fun, "~> 1.1"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
-      {:dotenvy, "~> 1.1.0", only: [:dev, :test]},
+      {:dotenvy, "~> 1.1.0"},
       {:postgrex, ">= 0.0.0"},
       {:floki, ">= 0.30.0"},
       {:rewrite, "~> 1.1", override: true},
@@ -109,7 +112,9 @@ defmodule Streampai.MixProject do
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
       {:sweet_xml, "~> 0.7"},
-      {:hackney, "~> 1.20"}
+      {:hackney, "~> 1.20"},
+      {:electric, "~> 1.0"},
+      {:phoenix_sync, "== 0.6.0"}
     ]
   end
 
