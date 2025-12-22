@@ -1,5 +1,6 @@
 defmodule StreampaiWeb.SyncController do
   use Phoenix.Controller, formats: [:json]
+
   import Phoenix.Sync.Controller
 
   def stream_events(conn, params) do

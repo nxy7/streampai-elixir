@@ -90,3 +90,4 @@ pids
 assets/.vite/deps
 tasks
 .playwright-mcp
+.elixir_ls

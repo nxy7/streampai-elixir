@@ -2,31 +2,14 @@ import Config
 
 config :ash, policies: [show_policy_breakdowns?: true]
 
-config :live_vue, vite_host: "http://localhost:5173", ssr: false
-
 # Logging and debugging
 config :logger, :console,
   format: {Streampai.LoggerFormatter, :format},
   # Use :all to include all metadata - the formatter will filter what to display
   metadata: :all
 
-# LiveDebugger configuration - disable if DISABLE_LIVE_DEBUGGER=true to avoid port conflicts
-# Note: LiveDebugger can cause ETS errors when tracing LiveView sockets with large assigns
-# If you see frequent gen_server errors, consider disabling it: DISABLE_LIVE_DEBUGGER=true mix phx.server
-if System.get_env("DISABLE_LIVE_DEBUGGER") == "true" do
-  config :live_debugger, :disabled?, true
-else
-  config :live_debugger, LiveDebugger.App.Web.Endpoint,
-    http: [port: "LIVE_DEBUGGER_PORT" |> System.get_env("4008") |> String.to_integer()]
-end
-
 config :phoenix, :plug_init_mode, :runtime
 config :phoenix, :stacktrace_depth, 20
-
-# LiveView development settings
-config :phoenix_live_view,
-  debug_heex_annotations: true,
-  enable_expensive_runtime_checks: true
 
 # Database configuration is now handled entirely in runtime.exs
 

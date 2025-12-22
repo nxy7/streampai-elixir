@@ -8,9 +8,7 @@ defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
   def save_donation_settings(_parent, args, resolution) do
     actor = resolution.context[:actor]
 
-    unless actor do
-      {:error, "Not authenticated"}
-    else
+    if actor do
       case UserPreferences.get_by_user_id(%{user_id: actor.id}, actor: actor) do
         {:ok, preferences} ->
           update_preferences(preferences, args, actor)
@@ -18,15 +16,15 @@ defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
         {:error, _} ->
           create_preferences(args, actor)
       end
+    else
+      {:error, "Not authenticated"}
     end
   end
 
   def toggle_email_notifications(_parent, _args, resolution) do
     actor = resolution.context[:actor]
 
-    unless actor do
-      {:error, "Not authenticated"}
-    else
+    if actor do
       case UserPreferences.get_by_user_id(%{user_id: actor.id}, actor: actor) do
         {:ok, preferences} ->
           UserPreferences.toggle_email_notifications(preferences, actor: actor)
@@ -34,6 +32,8 @@ defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
         {:error, _} ->
           {:error, "Preferences not found"}
       end
+    else
+      {:error, "Not authenticated"}
     end
   end
 
@@ -77,9 +77,7 @@ defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
   end
 
   defp format_error(%Ash.Error.Invalid{} = error) do
-    error.errors
-    |> Enum.map(fn e -> e.message end)
-    |> Enum.join(", ")
+    Enum.map_join(error.errors, ", ", fn e -> e.message end)
   end
 
   defp format_error(error) when is_binary(error), do: error

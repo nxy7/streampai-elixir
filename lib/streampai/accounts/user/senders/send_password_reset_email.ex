@@ -6,18 +6,16 @@ defmodule Streampai.Accounts.User.Senders.SendPasswordResetEmail do
   use AshAuthentication.Sender
   use StreampaiWeb, :verified_routes
 
+  @frontend_url Application.compile_env(:streampai, :frontend_url, "http://localhost:3000")
+
   @impl true
   def send(_user, token, _) do
-    # Example of how you might send this email
-    # Streampai.Accounts.Emails.send_password_reset_email(
-    #   user,
-    #   token
-    # )
+    frontend_url = Application.get_env(:streampai, :frontend_url, @frontend_url)
 
     IO.puts("""
     Click this link to reset your password:
 
-    #{url(~p"/auth/reset?#{[token: token]}")}
+    #{frontend_url}/auth/reset-password?token=#{token}
     """)
   end
 end

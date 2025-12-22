@@ -35,9 +35,6 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
   @doc """
   Parses and validates numeric settings from form parameters.
 
-  Delegates to StreampaiWeb.LiveHelpers.FormHelpers.parse_numeric_setting/2
-  for consistent behavior across the application.
-
   ## Examples
 
       iex> parse_numeric_setting("5", min: 1, max: 10)
@@ -50,7 +47,19 @@ defmodule StreampaiWeb.Utils.WidgetHelpers do
       5
   """
   def parse_numeric_setting(value, opts \\ []) do
-    StreampaiWeb.LiveHelpers.FormHelpers.parse_numeric_setting(value, opts)
+    min = Keyword.get(opts, :min)
+    max = Keyword.get(opts, :max)
+    default = Keyword.get(opts, :default, min)
+
+    case Integer.parse(to_string(value)) do
+      {num, _} ->
+        num
+        |> then(fn n -> if min, do: max(n, min), else: n end)
+        |> then(fn n -> if max, do: min(n, max), else: n end)
+
+      :error ->
+        default
+    end
   end
 
   @doc """

@@ -35,8 +35,7 @@ defmodule StreampaiWeb.AuthController do
     Logger.error("Authentication failure for #{inspect(activity)}: #{inspect(reason)}")
 
     conn
-    |> put_flash(:error, "Authentication failed")
-    |> redirect(to: ~p"/auth/sign-in")
+    |> redirect(external: "#{frontend_url()}/auth/sign-in?error=authentication_failed")
   end
 
   def sign_out(conn, _params) do

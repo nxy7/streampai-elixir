@@ -9,6 +9,9 @@ defmodule StreampaiWeb.GraphQL.Schema do
     generate_sdl_file: "./frontend/schema.graphql",
     auto_generate_sdl_file?: true
 
+  alias StreampaiWeb.GraphQL.Resolvers.FileResolver
+  alias StreampaiWeb.GraphQL.Resolvers.PreferencesResolver
+
   object :donation_event do
     field :id, :id
     field :amount, :float
@@ -126,7 +129,7 @@ defmodule StreampaiWeb.GraphQL.Schema do
       arg(:file_type, non_null(:string))
       arg(:estimated_size, non_null(:integer))
 
-      resolve(&StreampaiWeb.GraphQL.Resolvers.FileResolver.request_upload/3)
+      resolve(&FileResolver.request_upload/3)
     end
 
     @desc "Confirm a file was uploaded successfully"
@@ -134,7 +137,7 @@ defmodule StreampaiWeb.GraphQL.Schema do
       arg(:file_id, non_null(:id))
       arg(:content_hash, :string)
 
-      resolve(&StreampaiWeb.GraphQL.Resolvers.FileResolver.confirm_upload/3)
+      resolve(&FileResolver.confirm_upload/3)
     end
 
     @desc "Save donation settings (creates preferences if they don't exist)"
@@ -144,12 +147,12 @@ defmodule StreampaiWeb.GraphQL.Schema do
       arg(:currency, :string)
       arg(:default_voice, :string)
 
-      resolve(&StreampaiWeb.GraphQL.Resolvers.PreferencesResolver.save_donation_settings/3)
+      resolve(&PreferencesResolver.save_donation_settings/3)
     end
 
     @desc "Toggle email notifications on/off"
     field :toggle_email_notifications, :user_preferences do
-      resolve(&StreampaiWeb.GraphQL.Resolvers.PreferencesResolver.toggle_email_notifications/3)
+      resolve(&PreferencesResolver.toggle_email_notifications/3)
     end
 
     @desc "Update user display name"

@@ -23,10 +23,6 @@ defmodule Streampai.Storage.File do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource]
 
-  graphql do
-    type :file
-  end
-
   alias Streampai.Storage.Adapters.S3
   alias Streampai.Storage.SizeLimits
 
@@ -39,6 +35,10 @@ defmodule Streampai.Storage.File do
     references do
       reference :user, on_delete: :delete
     end
+  end
+
+  graphql do
+    type :file
   end
 
   code_interface do

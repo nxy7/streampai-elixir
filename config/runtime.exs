@@ -99,8 +99,6 @@ config :streampai,
   openai_api_key: System.get_env("OPENAI_API_KEY"),
   elevenlabs_api_key: System.get_env("ELEVENLABS_API_KEY")
 
-config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET")
-
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")

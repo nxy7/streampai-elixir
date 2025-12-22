@@ -17,14 +17,13 @@ defmodule StreampaiWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images tts avatars favicon.ico robots.txt favicon.png favicon-32x32.png)
+  def static_paths, do: ~w(fonts images tts avatars favicon.ico robots.txt favicon.png favicon-32x32.png)
 
   def router do
     quote do
       use Phoenix.Router, helpers: false, copy_opts_to_assign: :phoenix_sync
 
       import Phoenix.Controller
-      import Phoenix.LiveView.Router
 
       # Import common connection and controller functions to use in pipelines
       import Plug.Conn
@@ -50,23 +49,6 @@ defmodule StreampaiWeb do
     end
   end
 
-  def live_view do
-    quote do
-      use Phoenix.LiveView,
-        layout: {StreampaiWeb.Layouts, :app}
-
-      unquote(html_helpers())
-    end
-  end
-
-  def live_component do
-    quote do
-      use Phoenix.LiveComponent
-
-      unquote(html_helpers())
-    end
-  end
-
   def html do
     quote do
       use Phoenix.Component
@@ -82,16 +64,11 @@ defmodule StreampaiWeb do
 
   defp html_helpers do
     quote do
-      use LiveVue
-      use LiveVue.Components, vue_root: ["./assets/vue", "./lib/my_app_web"]
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
       import StreampaiWeb.CoreComponents
       import StreampaiWeb.Gettext
-
-      # Shortcut for generating JS commands
-      alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

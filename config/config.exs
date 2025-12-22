@@ -3,8 +3,6 @@ import Config
 alias AshMoney.Types.Money
 alias Ueberauth.Strategy.OAuth2
 
-signing_salt = "WVzcyVtA"
-
 config :ash,
   include_embedded_source_by_default?: false,
   default_page_type: :keyset,
@@ -43,6 +41,12 @@ config :logger, :console,
   ]
 
 config :phoenix, :json_library, Jason
+
+# Phoenix.Sync configuration (embedded Electric)
+config :phoenix_sync,
+  env: Mix.env(),
+  mode: :embedded,
+  repo: Streampai.Repo
 
 config :spark,
   formatter: [
@@ -108,8 +112,7 @@ config :streampai, StreampaiWeb.Endpoint,
     ],
     layout: false
   ],
-  pubsub_server: Streampai.PubSub,
-  live_view: [signing_salt: signing_salt]
+  pubsub_server: Streampai.PubSub
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
@@ -128,9 +131,6 @@ config :streampai,
     signing_salt: "streampai_session_salt",
     same_site: "Lax"
   ]
-
-# Configure esbuild version (even though we're using Vite)
-# config :esbuild, :version, "0.25.0"
 
 # Configure Tesla to disable deprecated builder warnings
 config :tesla, disable_deprecated_builder_warning: true
@@ -185,11 +185,5 @@ config :ueberauth, Ueberauth,
          default_scope: "stream chat"
        ]}
   ]
-
-# Phoenix.Sync configuration (embedded Electric)
-config :phoenix_sync,
-  env: Mix.env(),
-  mode: :embedded,
-  repo: Streampai.Repo
 
 import_config "#{config_env()}.exs"
