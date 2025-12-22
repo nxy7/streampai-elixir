@@ -1,16 +1,16 @@
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "./urql";
 
-export const GET_WIDGET_CONFIG = gql`
+export const GET_WIDGET_CONFIG = graphql(`
   query GetWidgetConfig($userId: ID!, $type: String!) {
     widgetConfig(userId: $userId, type: $type) {
       id
       config
     }
   }
-`;
+`);
 
-export const SAVE_WIDGET_CONFIG = gql`
+export const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
     saveWidgetConfig(input: $input) {
       result {
@@ -22,15 +22,15 @@ export const SAVE_WIDGET_CONFIG = gql`
       }
     }
   }
-`;
+`);
 
-export const GET_CURRENT_USER = gql`
+export const GET_CURRENT_USER = graphql(`
   query GetCurrentUser {
     currentUser {
       id
     }
   }
-`;
+`);
 
 interface SaveWidgetConfigParams<T> {
   userId: string;

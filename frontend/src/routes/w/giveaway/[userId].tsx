@@ -1,6 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import GiveawayWidget from "~/components/widgets/GiveawayWidget";
 
@@ -27,14 +27,14 @@ interface GiveawayConfig {
   showPatreonInfo: boolean;
 }
 
-const GET_WIDGET_CONFIG = gql`
+const GET_WIDGET_CONFIG = graphql(`
   query GetWidgetConfig($userId: ID!, $type: String!) {
     widgetConfig(userId: $userId, type: $type) {
       id
       config
     }
   }
-`;
+`);
 
 const DEFAULT_CONFIG: GiveawayConfig = {
   showTitle: true,

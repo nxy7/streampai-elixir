@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const GOAL_PROGRESS_SUBSCRIPTION = gql`
+const GOAL_PROGRESS_SUBSCRIPTION = graphql(`
   subscription GoalProgress($userId: ID!, $goalId: ID) {
     goalProgress(userId: $userId, goalId: $goalId) {
       goalId
@@ -12,7 +13,7 @@ const GOAL_PROGRESS_SUBSCRIPTION = gql`
       timestamp
     }
   }
-`;
+`);
 
 export default function DonationGoalOBS() {
   const [params] = useSearchParams();

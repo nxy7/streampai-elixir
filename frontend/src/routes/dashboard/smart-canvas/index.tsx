@@ -2,7 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, onMount, createEffect } from "solid-js";
 import { useCurrentUser } from "~/lib/auth";
 import { card, text, button } from "~/styles/design-system";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 
 interface CanvasWidget {
@@ -36,7 +36,7 @@ const AVAILABLE_WIDGETS = [
   { type: "slider", name: "Slider", icon: "🎠", defaultWidth: 600, defaultHeight: 200 },
 ];
 
-const GET_SMART_CANVAS_LAYOUT = gql`
+const GET_SMART_CANVAS_LAYOUT = graphql(`
   query GetSmartCanvasLayout($userId: ID!) {
     smartCanvasLayout(userId: $userId) {
       id
@@ -44,9 +44,9 @@ const GET_SMART_CANVAS_LAYOUT = gql`
       widgets
     }
   }
-`;
+`);
 
-const SAVE_SMART_CANVAS_LAYOUT = gql`
+const SAVE_SMART_CANVAS_LAYOUT = graphql(`
   mutation SaveSmartCanvasLayout($input: SaveSmartCanvasLayoutInput!) {
     saveSmartCanvasLayout(input: $input) {
       result {
@@ -58,9 +58,9 @@ const SAVE_SMART_CANVAS_LAYOUT = gql`
       }
     }
   }
-`;
+`);
 
-const UPDATE_SMART_CANVAS_LAYOUT = gql`
+const UPDATE_SMART_CANVAS_LAYOUT = graphql(`
   mutation UpdateSmartCanvasLayout($id: ID!, $input: UpdateSmartCanvasLayoutInput!) {
     updateSmartCanvasLayout(id: $id, input: $input) {
       result {
@@ -72,7 +72,7 @@ const UPDATE_SMART_CANVAS_LAYOUT = gql`
       }
     }
   }
-`;
+`);
 
 function PaletteWidgetItem(props: { widgetDef: typeof AVAILABLE_WIDGETS[number] }) {
   return (

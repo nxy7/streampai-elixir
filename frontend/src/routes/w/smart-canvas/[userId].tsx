@@ -1,6 +1,6 @@
 import { createSignal, onMount, onCleanup, Show, For } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
 
@@ -14,7 +14,7 @@ interface CanvasWidget {
   config?: any;
 }
 
-const GET_SMART_CANVAS_LAYOUT = gql`
+const GET_SMART_CANVAS_LAYOUT = graphql(`
   query GetSmartCanvasLayout($userId: ID!) {
     smartCanvasLayout(userId: $userId) {
       id
@@ -22,7 +22,7 @@ const GET_SMART_CANVAS_LAYOUT = gql`
       widgets
     }
   }
-`;
+`);
 
 export default function SmartCanvasDisplay() {
   const params = useParams<{ userId: string }>();

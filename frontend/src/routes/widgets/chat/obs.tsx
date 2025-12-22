@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const CHAT_MESSAGE_SUBSCRIPTION = gql`
+const CHAT_MESSAGE_SUBSCRIPTION = graphql(`
   subscription ChatMessage($userId: ID!) {
     chatMessage(userId: $userId) {
       id
@@ -14,7 +15,7 @@ const CHAT_MESSAGE_SUBSCRIPTION = gql`
       isSubscriber
     }
   }
-`;
+`);
 
 type ChatMessage = {
   id: string;

@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const FOLLOWER_SUBSCRIPTION = gql`
+const FOLLOWER_SUBSCRIPTION = graphql(`
   subscription FollowerAdded($userId: ID!) {
     followerAdded(userId: $userId) {
       id
@@ -11,7 +12,7 @@ const FOLLOWER_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
 export default function FollowerCountOBS() {
   const [params] = useSearchParams();

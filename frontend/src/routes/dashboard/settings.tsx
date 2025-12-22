@@ -1,10 +1,266 @@
 import { Title } from "@solidjs/meta";
-import { Show, For } from "solid-js";
-import { useCurrentUser, getLoginUrl } from "~/lib/auth";
+import { Show, For, createSignal } from "solid-js";
+import { useCurrentUser, getLoginUrl, fetchCurrentUser } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
+import { graphql } from "gql.tada";
+import { client } from "~/lib/urql";
+import { useUserPreferencesForUser } from "~/lib/useElectric";
+
+const REQUEST_FILE_UPLOAD = graphql(`
+  mutation RequestFileUpload($filename: String!, $contentType: String, $fileType: String!, $estimatedSize: Int!) {
+    requestFileUpload(filename: $filename, contentType: $contentType, fileType: $fileType, estimatedSize: $estimatedSize) {
+      id
+      uploadUrl
+      uploadHeaders {
+        key
+        value
+      }
+      maxSize
+    }
+  }
+`);
+
+const CONFIRM_FILE_UPLOAD = graphql(`
+  mutation ConfirmFileUpload($fileId: ID!) {
+    confirmFileUpload(fileId: $fileId) {
+      id
+      url
+    }
+  }
+`);
+
+const UPDATE_AVATAR = graphql(`
+  mutation UpdateAvatar($id: ID!, $fileId: ID!) {
+    updateAvatar(id: $id, input: { fileId: $fileId }) {
+      result {
+        id
+        displayAvatar
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const SAVE_DONATION_SETTINGS = graphql(`
+  mutation SaveDonationSettings($min_amount: Int, $max_amount: Int, $currency: String, $default_voice: String) {
+    saveDonationSettings(min_amount: $min_amount, max_amount: $max_amount, currency: $currency, default_voice: $default_voice) {
+      user_id
+      email_notifications
+      min_donation_amount
+      max_donation_amount
+      donation_currency
+      default_voice
+      updated_at
+    }
+  }
+`);
+
+const TOGGLE_EMAIL_NOTIFICATIONS = graphql(`
+  mutation ToggleEmailNotifications {
+    toggleEmailNotifications {
+      user_id
+      email_notifications
+      updated_at
+    }
+  }
+`);
+
+const UPDATE_NAME = graphql(`
+  mutation UpdateName($name: String!) {
+    updateName(name: $name) {
+      id
+      name
+    }
+  }
+`);
 
 export default function Settings() {
   const { user, isLoading } = useCurrentUser();
+  const [isUploading, setIsUploading] = createSignal(false);
+  const [uploadError, setUploadError] = createSignal<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = createSignal(false);
+  let fileInputRef: HTMLInputElement | undefined;
+
+  // Donation settings form state
+  const [minAmount, setMinAmount] = createSignal<number | null>(null);
+  const [maxAmount, setMaxAmount] = createSignal<number | null>(null);
+  const [currency, setCurrency] = createSignal("USD");
+  const [defaultVoice, setDefaultVoice] = createSignal("random");
+  const [isSavingSettings, setIsSavingSettings] = createSignal(false);
+  const [saveError, setSaveError] = createSignal<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = createSignal(false);
+
+  // Display name state
+  const [displayName, setDisplayName] = createSignal("");
+  const [isUpdatingName, setIsUpdatingName] = createSignal(false);
+  const [nameError, setNameError] = createSignal<string | null>(null);
+  const [nameSuccess, setNameSuccess] = createSignal(false);
+
+  // Email notifications state
+  const [isTogglingNotifications, setIsTogglingNotifications] = createSignal(false);
+
+  const handleSaveDonationSettings = async (e: Event) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const result = await client.mutation(SAVE_DONATION_SETTINGS, {
+        min_amount: minAmount(),
+        max_amount: maxAmount(),
+        currency: currency(),
+        default_voice: defaultVoice(),
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Save donation settings error:", error);
+      setSaveError(error instanceof Error ? error.message : "Failed to save settings");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleUpdateName = async () => {
+    const name = displayName().trim();
+    if (!name) {
+      setNameError("Name is required");
+      return;
+    }
+
+    setIsUpdatingName(true);
+    setNameError(null);
+    setNameSuccess(false);
+
+    try {
+      const result = await client.mutation(UPDATE_NAME, { name });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      setNameSuccess(true);
+      setTimeout(() => setNameSuccess(false), 3000);
+      await fetchCurrentUser();
+    } catch (error) {
+      console.error("Update name error:", error);
+      setNameError(error instanceof Error ? error.message : "Failed to update name");
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+
+  const handleToggleEmailNotifications = async () => {
+    setIsTogglingNotifications(true);
+
+    try {
+      const result = await client.mutation(TOGGLE_EMAIL_NOTIFICATIONS, {});
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      console.error("Toggle notifications error:", error);
+    } finally {
+      setIsTogglingNotifications(false);
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    const currentUser = user();
+    if (!currentUser) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(false);
+
+    try {
+      // Step 1: Request presigned upload URL
+      const requestResult = await client.mutation(REQUEST_FILE_UPLOAD, {
+        filename: file.name,
+        contentType: file.type,
+        fileType: "avatar",
+        estimatedSize: file.size,
+      });
+
+      if (requestResult.error || !requestResult.data?.requestFileUpload) {
+        throw new Error(requestResult.error?.message || "Failed to get upload URL");
+      }
+
+      const { id: fileId, uploadUrl, uploadHeaders } = requestResult.data.requestFileUpload;
+
+      // Step 2: Upload directly to S3
+      const headers: Record<string, string> = {};
+      for (const header of uploadHeaders) {
+        headers[header.key] = header.value;
+      }
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers,
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+
+      // Step 3: Confirm upload
+      const confirmResult = await client.mutation(CONFIRM_FILE_UPLOAD, {
+        fileId,
+      });
+
+      if (confirmResult.error || !confirmResult.data?.confirmFileUpload) {
+        throw new Error(confirmResult.error?.message || "Failed to confirm upload");
+      }
+
+      // Step 4: Update user avatar
+      const updateResult = await client.mutation(UPDATE_AVATAR, {
+        id: currentUser.id,
+        fileId,
+      });
+
+      if (updateResult.error || updateResult.data?.updateAvatar?.errors?.length > 0) {
+        const errorMsg = updateResult.data?.updateAvatar?.errors?.[0]?.message || updateResult.error?.message || "Failed to update avatar";
+        throw new Error(errorMsg);
+      }
+
+      setUploadSuccess(true);
+      // Refresh user data to show new avatar
+      await fetchCurrentUser();
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      setUploadError(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setUploadError("Please select an image file");
+        return;
+      }
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadError("File size must be less than 5MB");
+        return;
+      }
+      handleAvatarUpload(file);
+    }
+  };
 
   const platformConnections = [
     {
@@ -84,6 +340,78 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Live Preferences (Electric Sync Demo) */}
+              <Show when={user()}>
+                {(currentUser) => {
+                  const prefs = useUserPreferencesForUser(currentUser().id);
+                  return (
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                          Live Preferences (Electric Sync)
+                        </h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span class="w-2 h-2 mr-1.5 bg-green-400 rounded-full animate-pulse" />
+                          Real-time
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-500 mb-4">
+                        This data syncs in real-time from PostgreSQL via Electric. Try updating your preferences in the database or via the forms below to see changes instantly.
+                      </p>
+                      <Show
+                        when={prefs.data()}
+                        fallback={
+                          <div class="p-4 bg-gray-50 rounded-lg text-gray-500 text-sm">
+                            No preferences found. They will be created when you save settings.
+                          </div>
+                        }
+                      >
+                        {(preferences) => (
+                          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Email Notifications</p>
+                              <p class="text-lg font-semibold text-gray-900">
+                                {preferences().email_notifications ? "On" : "Off"}
+                              </p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Currency</p>
+                              <p class="text-lg font-semibold text-gray-900">
+                                {preferences().donation_currency}
+                              </p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Min Donation</p>
+                              <p class="text-lg font-semibold text-gray-900">
+                                {preferences().min_donation_amount != null ? String(preferences().min_donation_amount) : "None"}
+                              </p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Max Donation</p>
+                              <p class="text-lg font-semibold text-gray-900">
+                                {preferences().max_donation_amount != null ? String(preferences().max_donation_amount) : "None"}
+                              </p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg col-span-2">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Default Voice</p>
+                              <p class="text-lg font-semibold text-gray-900">
+                                {preferences().default_voice ?? "Not set"}
+                              </p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg col-span-2">
+                              <p class="text-xs text-gray-500 uppercase tracking-wide">Last Updated</p>
+                              <p class="text-sm font-medium text-gray-900">
+                                {new Date(preferences().updated_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </Show>
+                    </div>
+                  );
+                }}
+              </Show>
+
               {/* Account Settings */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
@@ -114,7 +442,8 @@ export default function Settings() {
                     <div class="relative">
                       <input
                         type="text"
-                        value={user()?.name || ""}
+                        value={displayName() || user()?.name || ""}
+                        onInput={(e) => setDisplayName(e.currentTarget.value)}
                         placeholder="Enter display name"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10"
                       />
@@ -123,10 +452,23 @@ export default function Settings() {
                       Name must be 3-30 characters and contain only letters,
                       numbers, and underscores
                     </p>
-                    <div class="mt-3">
-                      <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                        Update Name
+                    <div class="mt-3 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleUpdateName}
+                        disabled={isUpdatingName()}
+                        class={`bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm ${
+                          isUpdatingName() ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+                        }`}
+                      >
+                        {isUpdatingName() ? "Updating..." : "Update Name"}
                       </button>
+                      <Show when={nameSuccess()}>
+                        <span class="text-green-600 text-sm">Name updated!</span>
+                      </Show>
+                      <Show when={nameError()}>
+                        <span class="text-red-600 text-sm">{nameError()}</span>
+                      </Show>
                     </div>
                   </div>
 
@@ -136,29 +478,57 @@ export default function Settings() {
                       Profile Avatar
                     </label>
                     <div class="flex items-center space-x-4">
-                      <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
-                        <Show
-                          when={user()?.displayAvatar}
-                          fallback={
-                            <span class="text-white font-bold text-2xl">
-                              {user()?.name?.[0]?.toUpperCase() || "U"}
-                            </span>
-                          }
-                        >
-                          <img
-                            src={user()!.displayAvatar!}
-                            alt="Avatar"
-                            class="w-full h-full object-cover"
-                          />
+                      <div class="relative w-20 h-20">
+                        <div class="w-20 h-20 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                          <Show
+                            when={user()?.displayAvatar}
+                            fallback={
+                              <span class="text-white font-bold text-2xl">
+                                {user()?.name?.[0]?.toUpperCase() || "U"}
+                              </span>
+                            }
+                          >
+                            <img
+                              src={user()!.displayAvatar!}
+                              alt="Avatar"
+                              class="w-full h-full object-cover"
+                            />
+                          </Show>
+                        </div>
+                        <Show when={isUploading()}>
+                          <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                            <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          </div>
                         </Show>
                       </div>
                       <div class="flex-1">
-                        <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                          Upload New Avatar
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          class="hidden"
+                          id="avatar-upload"
+                          onChange={handleFileSelect}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef?.click()}
+                          disabled={isUploading()}
+                          class={`bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm ${
+                            isUploading() ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+                          }`}
+                        >
+                          {isUploading() ? "Uploading..." : "Upload New Avatar"}
                         </button>
                         <p class="text-xs text-gray-500 mt-1">
                           JPG, PNG or GIF. Max size 5MB. Recommended: 256x256px
                         </p>
+                        <Show when={uploadError()}>
+                          <p class="text-xs text-red-600 mt-1">{uploadError()}</p>
+                        </Show>
+                        <Show when={uploadSuccess()}>
+                          <p class="text-xs text-green-600 mt-1">Avatar updated successfully!</p>
+                        </Show>
                       </div>
                     </div>
                   </div>
@@ -278,7 +648,7 @@ export default function Settings() {
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Donation Settings
                 </h3>
-                <form class="space-y-4">
+                <form class="space-y-4" onSubmit={handleSaveDonationSettings}>
                   <div class="grid md:grid-cols-3 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -286,11 +656,16 @@ export default function Settings() {
                       </label>
                       <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span class="text-gray-500 text-sm">USD</span>
+                          <span class="text-gray-500 text-sm">{currency()}</span>
                         </div>
                         <input
                           type="number"
                           placeholder="No minimum"
+                          value={minAmount() ?? ""}
+                          onInput={(e) => {
+                            const val = e.currentTarget.value;
+                            setMinAmount(val ? parseInt(val, 10) : null);
+                          }}
                           class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -305,11 +680,16 @@ export default function Settings() {
                       </label>
                       <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span class="text-gray-500 text-sm">USD</span>
+                          <span class="text-gray-500 text-sm">{currency()}</span>
                         </div>
                         <input
                           type="number"
                           placeholder="No maximum"
+                          value={maxAmount() ?? ""}
+                          onInput={(e) => {
+                            const val = e.currentTarget.value;
+                            setMaxAmount(val ? parseInt(val, 10) : null);
+                          }}
                           class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -322,10 +702,14 @@ export default function Settings() {
                       <label class="block text-sm font-medium text-gray-700 mb-2">
                         Currency
                       </label>
-                      <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                      <select
+                        value={currency()}
+                        onChange={(e) => setCurrency(e.currentTarget.value)}
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
                         <For each={currencies}>
-                          {(currency) => (
-                            <option value={currency}>{currency}</option>
+                          {(curr) => (
+                            <option value={curr}>{curr}</option>
                           )}
                         </For>
                       </select>
@@ -337,9 +721,13 @@ export default function Settings() {
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Default TTS Voice
                     </label>
-                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <select
+                      value={defaultVoice()}
+                      onChange={(e) => setDefaultVoice(e.currentTarget.value)}
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
                       <option value="random">
-                        🎲 Random (different voice each time)
+                        Random (different voice each time)
                       </option>
                       <option value="google_en_us_male">
                         Google TTS - English (US) Male
@@ -391,13 +779,22 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  <div class="pt-4">
+                  <div class="pt-4 flex items-center gap-4">
                     <button
                       type="submit"
-                      class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      disabled={isSavingSettings()}
+                      class={`bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                        isSavingSettings() ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+                      }`}
                     >
-                      Save Donation Settings
+                      {isSavingSettings() ? "Saving..." : "Save Donation Settings"}
                     </button>
+                    <Show when={saveSuccess()}>
+                      <span class="text-green-600 text-sm">Settings saved successfully!</span>
+                    </Show>
+                    <Show when={saveError()}>
+                      <span class="text-red-600 text-sm">{saveError()}</span>
+                    </Show>
                   </div>
                 </form>
               </div>
@@ -558,26 +955,44 @@ export default function Settings() {
               </div>
 
               {/* Notification Preferences */}
-              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-6">
-                  Notification Preferences
-                </h3>
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div>
-                      <p class="font-medium text-gray-900">
-                        Email Notifications
-                      </p>
-                      <p class="text-sm text-gray-600">
-                        Receive notifications about important events
-                      </p>
+              <Show when={user()}>
+                {(currentUser) => {
+                  const prefs = useUserPreferencesForUser(currentUser().id);
+                  return (
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <h3 class="text-lg font-medium text-gray-900 mb-6">
+                        Notification Preferences
+                      </h3>
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div>
+                            <p class="font-medium text-gray-900">
+                              Email Notifications
+                            </p>
+                            <p class="text-sm text-gray-600">
+                              Receive notifications about important events
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleToggleEmailNotifications}
+                            disabled={isTogglingNotifications()}
+                            class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              prefs.data()?.email_notifications ? "bg-purple-600" : "bg-gray-300"
+                            } ${isTogglingNotifications() ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          >
+                            <span
+                              class={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                                prefs.data()?.email_notifications ? "translate-x-6" : "translate-x-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <button class="relative inline-flex h-6 w-11 items-center rounded-full bg-purple-600">
-                      <span class="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                  );
+                }}
+              </Show>
             </div>
           </>
         </Show>

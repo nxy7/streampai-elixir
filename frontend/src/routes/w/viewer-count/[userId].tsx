@@ -1,19 +1,19 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import { Title } from "@solidjs/meta";
 import { defaultConfig, generateViewerData, generateViewerUpdate, type ViewerCountConfig, type ViewerData } from "~/lib/fake/viewer-count";
 
-const GET_WIDGET_CONFIG = gql`
+const GET_WIDGET_CONFIG = graphql(`
   query GetWidgetConfig($userId: ID!, $type: String!) {
     widgetConfig(userId: $userId, type: $type) {
       id
       config
     }
   }
-`;
+`);
 
 export default function ViewerCountDisplay() {
   const params = useParams<{ userId: string }>();

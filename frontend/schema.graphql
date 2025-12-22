@@ -106,6 +106,22 @@ type StreamingAccount {
   id: ID!
 }
 
+"The result of the :update_avatar mutation"
+type UpdateAvatarResult {
+  "The successful result of the mutation"
+  result: User
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateAvatarInput {
+  avatarFileId: ID
+
+  "ID of the uploaded avatar file"
+  fileId: ID!
+}
+
 "The result of the :revoke_pro_access mutation"
 type RevokeProAccessResult {
   "The successful result of the mutation"
@@ -1596,6 +1612,39 @@ type GoalProgressEvent {
   timestamp: DateTime
 }
 
+type FileUploadResponse {
+  id: ID!
+  uploadUrl: String!
+  uploadHeaders: [UploadHeaderOutput]!
+  maxSize: Int!
+}
+
+type UploadHeaderOutput {
+  key: String!
+  value: String!
+}
+
+type ConfirmUploadResponse {
+  id: ID!
+  url: String!
+}
+
+type UserPreferences {
+  userId: ID!
+  emailNotifications: Boolean!
+  minDonationAmount: Int
+  maxDonationAmount: Int
+  donationCurrency: String!
+  defaultVoice: String
+  insertedAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type UpdateNameResult {
+  id: ID!
+  name: String!
+}
+
 type RootQueryType {
   "Get all currently active bans for a user"
   bannedViewers(
@@ -1780,11 +1829,29 @@ type RootQueryType {
 }
 
 type RootMutationType {
+  "Request a presigned URL for file upload"
+  requestFileUpload(filename: String!, contentType: String, fileType: String!, estimatedSize: Int!): FileUploadResponse
+
+  "Confirm a file was uploaded successfully"
+  confirmFileUpload(fileId: ID!, contentHash: String): ConfirmUploadResponse
+
+  "Save donation settings (creates preferences if they don't exist)"
+  saveDonationSettings(minAmount: Int, maxAmount: Int, currency: String, defaultVoice: String): UserPreferences
+
+  "Toggle email notifications on\/off"
+  toggleEmailNotifications: UserPreferences
+
+  "Update user display name"
+  updateName(name: String!): UpdateNameResult
+
   "Grant PRO access to a user for a specified duration"
   grantProAccess(id: ID!, input: GrantProAccessInput!): GrantProAccessResult!
 
   "Revoke all active PRO access grants for a user"
   revokeProAccess(id: ID!): RevokeProAccessResult!
+
+  "Update user's avatar from uploaded file"
+  updateAvatar(id: ID!, input: UpdateAvatarInput!): UpdateAvatarResult!
 
   disconnectStreamingAccount(id: ID!): DisconnectStreamingAccountResult!
 

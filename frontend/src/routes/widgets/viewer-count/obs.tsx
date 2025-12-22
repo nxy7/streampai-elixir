@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const VIEWER_COUNT_SUBSCRIPTION = gql`
+const VIEWER_COUNT_SUBSCRIPTION = graphql(`
   subscription ViewerCountUpdated($userId: ID!) {
     viewerCountUpdated(userId: $userId) {
       count
@@ -10,7 +11,7 @@ const VIEWER_COUNT_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
 export default function ViewerCountOBS() {
   const [params] = useSearchParams();

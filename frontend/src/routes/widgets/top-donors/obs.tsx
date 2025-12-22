@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const DONATION_SUBSCRIPTION = gql`
+const DONATION_SUBSCRIPTION = graphql(`
   subscription DonationReceived($userId: ID!) {
     donationReceived(userId: $userId) {
       id
@@ -14,7 +15,7 @@ const DONATION_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
 type Donor = {
   username: string;

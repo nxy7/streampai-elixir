@@ -1,6 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import PollWidget from "~/components/widgets/PollWidget";
 
@@ -20,14 +20,14 @@ interface PollConfig {
   hideDelay: number;
 }
 
-const GET_WIDGET_CONFIG = gql`
+const GET_WIDGET_CONFIG = graphql(`
   query GetWidgetConfig($userId: ID!, $type: String!) {
     widgetConfig(userId: $userId, type: $type) {
       id
       config
     }
   }
-`;
+`);
 
 const DEFAULT_CONFIG: PollConfig = {
   showTitle: true,

@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onMount, Show, createEffect } from "solid-js";
-import { gql } from "@urql/solid";
+import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import ChatWidget from "~/components/widgets/ChatWidget";
 import { button, card, text, input } from "~/styles/design-system";
@@ -25,16 +25,16 @@ interface ChatConfig {
   maxMessages: number;
 }
 
-const GET_WIDGET_CONFIG = gql`
+const GET_WIDGET_CONFIG = graphql(`
   query GetWidgetConfig($userId: ID!, $type: String!) {
     widgetConfig(userId: $userId, type: $type) {
       id
       config
     }
   }
-`;
+`);
 
-const SAVE_WIDGET_CONFIG = gql`
+const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
     saveWidgetConfig(input: $input) {
       result {
@@ -46,15 +46,15 @@ const SAVE_WIDGET_CONFIG = gql`
       }
     }
   }
-`;
+`);
 
-const GET_CURRENT_USER = gql`
+const GET_CURRENT_USER = graphql(`
   query GetCurrentUser {
     currentUser {
       id
     }
   }
-`;
+`);
 
 const DEFAULT_CONFIG: ChatConfig = {
   fontSize: "medium",

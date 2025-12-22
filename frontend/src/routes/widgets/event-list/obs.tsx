@@ -1,8 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For } from "solid-js";
-import { gql, createSubscription } from "@urql/solid";
+import { createSubscription } from "@urql/solid";
+import { graphql } from "gql.tada";
 
-const DONATION_SUBSCRIPTION = gql`
+const DONATION_SUBSCRIPTION = graphql(`
   subscription DonationReceived($userId: ID!) {
     donationReceived(userId: $userId) {
       id
@@ -14,9 +15,9 @@ const DONATION_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
-const FOLLOWER_SUBSCRIPTION = gql`
+const FOLLOWER_SUBSCRIPTION = graphql(`
   subscription FollowerAdded($userId: ID!) {
     followerAdded(userId: $userId) {
       id
@@ -25,9 +26,9 @@ const FOLLOWER_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
-const SUBSCRIBER_SUBSCRIPTION = gql`
+const SUBSCRIBER_SUBSCRIPTION = graphql(`
   subscription SubscriberAdded($userId: ID!) {
     subscriberAdded(userId: $userId) {
       id
@@ -39,9 +40,9 @@ const SUBSCRIBER_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
-const RAID_SUBSCRIPTION = gql`
+const RAID_SUBSCRIPTION = graphql(`
   subscription RaidReceived($userId: ID!) {
     raidReceived(userId: $userId) {
       id
@@ -51,9 +52,9 @@ const RAID_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
-const CHEER_SUBSCRIPTION = gql`
+const CHEER_SUBSCRIPTION = graphql(`
   subscription CheerReceived($userId: ID!) {
     cheerReceived(userId: $userId) {
       id
@@ -64,7 +65,7 @@ const CHEER_SUBSCRIPTION = gql`
       platform
     }
   }
-`;
+`);
 
 type Event = {
   id: string;
