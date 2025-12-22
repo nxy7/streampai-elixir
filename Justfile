@@ -1,7 +1,6 @@
 _default:
   @just --unstable --list
 
-# starts development cluster and applies kubernetes manifests
 init-dev:
 	docker compose up
 
