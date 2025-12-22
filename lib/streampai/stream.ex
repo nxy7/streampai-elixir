@@ -31,6 +31,7 @@ defmodule Streampai.Stream do
 
       list StreamEvent, :viewer_events, :get_for_viewer
     end
+
   end
 
   resources do

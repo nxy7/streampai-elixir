@@ -21,7 +21,7 @@ defmodule StreampaiWeb do
 
   def router do
     quote do
-      use Phoenix.Router, helpers: false
+      use Phoenix.Router, helpers: false, copy_opts_to_assign: :phoenix_sync
 
       import Phoenix.Controller
       import Phoenix.LiveView.Router

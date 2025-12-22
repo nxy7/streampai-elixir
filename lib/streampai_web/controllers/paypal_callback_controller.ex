@@ -11,18 +11,15 @@ defmodule StreampaiWeb.PayPalCallbackController do
 
   def handle_callback(conn, params) do
     user_id = params["user_id"]
-    merchant_id = params["merchantId"]
     merchant_id_in_paypal = params["merchantIdInPayPal"]
-    permissions_granted = params["permissionsGranted"] == "true"
-    consent_status = params["consentStatus"]
-    is_email_confirmed = params["isEmailConfirmed"] == "true"
-    account_status = params["accountStatus"]
-
-    # Get auth code from params
-    # Note: PayPal doesn't directly send authCode in callback params
-    # You need to handle this based on their actual implementation
     auth_code = params["authCode"]
     shared_id = merchant_id_in_paypal
+
+    _merchant_id = params["merchantId"]
+    _permissions_granted = params["permissionsGranted"] == "true"
+    _consent_status = params["consentStatus"]
+    _is_email_confirmed = params["isEmailConfirmed"] == "true"
+    _account_status = params["accountStatus"]
 
     with {:ok, user} <- get_user(user_id),
          {:ok, _connection} <-

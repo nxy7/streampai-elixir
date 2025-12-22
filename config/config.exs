@@ -186,4 +186,10 @@ config :ueberauth, Ueberauth,
        ]}
   ]
 
+# Phoenix.Sync configuration (embedded Electric)
+config :phoenix_sync,
+  env: Mix.env(),
+  mode: :embedded,
+  repo: Streampai.Repo
+
 import_config "#{config_env()}.exs"

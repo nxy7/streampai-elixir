@@ -131,6 +131,7 @@ defmodule Streampai.Accounts.User do
 
   code_interface do
     define :update_avatar, args: [:file_id]
+    define :update_name
   end
 
   actions do

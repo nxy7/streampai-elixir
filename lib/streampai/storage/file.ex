@@ -20,7 +20,12 @@ defmodule Streampai.Storage.File do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshGraphql.Resource]
+
+  graphql do
+    type :file
+  end
 
   alias Streampai.Storage.Adapters.S3
   alias Streampai.Storage.SizeLimits

@@ -19,6 +19,7 @@ defmodule Streampai.Accounts do
     mutations do
       update User, :grant_pro_access, :grant_pro_access
       update User, :revoke_pro_access, :revoke_pro_access
+      update User, :update_avatar, :update_avatar
       destroy StreamingAccount, :disconnect_streaming_account, :destroy
     end
   end

@@ -189,6 +189,11 @@ defmodule StreampaiWeb.DashboardStreamLive do
     {:noreply, assign(socket, :selected_thumbnail_file, file_info)}
   end
 
+  # Delegate other events to BaseLive
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
+  end
+
   def handle_info({:regenerate_stream_key, orientation}, socket) do
     user_id = socket.assigns.current_user.id
     orientation_label = if orientation == :vertical, do: "vertical", else: "horizontal"
@@ -212,11 +217,6 @@ defmodule StreampaiWeb.DashboardStreamLive do
         socket = put_flash(socket, :error, "Failed to regenerate #{orientation_label} stream key")
         {:noreply, socket}
     end
-  end
-
-  # Delegate other events to BaseLive
-  def handle_event(event, params, socket) do
-    super(event, params, socket)
   end
 
   def handle_info({event_type, _event}, socket)

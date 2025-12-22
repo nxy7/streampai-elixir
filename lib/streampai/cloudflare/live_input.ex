@@ -9,6 +9,8 @@ defmodule Streampai.Cloudflare.LiveInput do
   postgres do
     table "cloudflare_live_inputs"
     repo Streampai.Repo
+
+    identity_index_names one_live_input_per_user_orientation: "cf_live_inputs_user_orientation_idx"
   end
 
   code_interface do

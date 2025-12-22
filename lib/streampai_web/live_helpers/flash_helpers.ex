@@ -52,15 +52,17 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
       opts = unquote(opts)
 
       context =
-        if opts == [] do
-          ""
-        else
-          context_parts =
-            Enum.map(opts, fn {key, value} ->
-              "#{key}=#{inspect(value)}"
-            end)
+        case opts do
+          [] ->
+            ""
 
-          " [" <> Enum.join(context_parts, ", ") <> "]"
+          _ ->
+            context_parts =
+              Enum.map(opts, fn {key, value} ->
+                "#{key}=#{inspect(value)}"
+              end)
+
+            " [" <> Enum.join(context_parts, ", ") <> "]"
         end
 
       if error do
@@ -101,15 +103,17 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
       opts = unquote(opts)
 
       context =
-        if opts == [] do
-          ""
-        else
-          context_parts =
-            Enum.map(opts, fn {key, value} ->
-              "#{key}=#{inspect(value)}"
-            end)
+        case opts do
+          [] ->
+            ""
 
-          " [" <> Enum.join(context_parts, ", ") <> "]"
+          _ ->
+            context_parts =
+              Enum.map(opts, fn {key, value} ->
+                "#{key}=#{inspect(value)}"
+              end)
+
+            " [" <> Enum.join(context_parts, ", ") <> "]"
         end
 
       cond do

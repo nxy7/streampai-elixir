@@ -32,7 +32,7 @@ defmodule Streampai.Application do
       {Task.Supervisor, name: Streampai.TaskSupervisor},
       Streampai.Stream.EventPersister,
       Streampai.YouTube.TokenSupervisor,
-      StreampaiWeb.Endpoint
+      {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
     ]
 
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]

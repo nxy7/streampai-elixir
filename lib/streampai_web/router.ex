@@ -73,6 +73,10 @@ defmodule StreampaiWeb.Router do
     plug(SafeLoadFromSession)
   end
 
+  pipeline :electric_sync do
+    plug(:accepts, ["json"])
+  end
+
   scope "/admin" do
     pipe_through(:admin)
 
@@ -206,6 +210,17 @@ defmodule StreampaiWeb.Router do
     live("/giveaway/:user_id", GiveawayObsWidgetLive)
     live("/eventlist/:user_id", EventlistObsWidgetLive)
     live("/smart-canvas/:user_id", SmartCanvasObsLive)
+  end
+
+  # Phoenix.Sync shape endpoints for Electric real-time sync
+  scope "/shapes", StreampaiWeb do
+    pipe_through(:electric_sync)
+
+    get "/stream_events", SyncController, :stream_events
+    get "/chat_messages", SyncController, :chat_messages
+    get "/livestreams", SyncController, :livestreams
+    get "/viewers", SyncController, :viewers
+    get "/user_preferences", SyncController, :user_preferences
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

@@ -83,7 +83,7 @@ defmodule Streampai.TTS.Generator do
     case S3.file_exists?(s3_path) do
       {:ok, true} -> {:ok, :cached}
       {:ok, false} -> {:ok, :not_cached}
-      {:error, reason} -> {:ok, :not_cached}
+      {:error, _reason} -> {:ok, :not_cached}
     end
   end
 
