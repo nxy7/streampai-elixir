@@ -350,6 +350,7 @@ defmodule Streampai.Storage.Adapters.S3 do
   """
   def get_file_size(key) do
     bucket = get_bucket()
+    Logger.info("Getting file size from S3 for key: #{key} in bucket: #{bucket}")
 
     case bucket |> ExAws.S3.head_object(key) |> ExAws.request() do
       {:ok, %{headers: headers}} ->
@@ -361,10 +362,11 @@ defmodule Streampai.Storage.Adapters.S3 do
             nil -> 0
           end
 
+        Logger.info("Got file size from S3: #{content_length} bytes")
         {:ok, content_length}
 
       {:error, reason} ->
-        Logger.error("Failed to get file size from S3: #{inspect(reason)}")
+        Logger.error("Failed to get file size from S3 for #{key}: #{inspect(reason)}")
         {:error, reason}
     end
   end

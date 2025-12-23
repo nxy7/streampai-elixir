@@ -214,6 +214,7 @@ enum UserSortField {
   MAX_DONATION_AMOUNT
   DONATION_CURRENCY
   DEFAULT_VOICE
+  AVATAR_URL
   AVATAR_FILE_ID
   TIER
   ROLE
@@ -301,6 +302,19 @@ input UserFilterAvatarFileId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+}
+
+input UserFilterAvatarUrl {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
 }
 
 input UserFilterDefaultVoice {
@@ -450,6 +464,9 @@ input UserFilterInput {
   "Default TTS voice for donations"
   defaultVoice: UserFilterDefaultVoice
 
+  "Direct URL to user's avatar image (denormalized for Electric sync)"
+  avatarUrl: UserFilterAvatarUrl
+
   avatarFileId: UserFilterAvatarFileId
 
   "User subscription tier: pro or free"
@@ -494,6 +511,9 @@ type User {
 
   "Default TTS voice for donations"
   defaultVoice: String
+
+  "Direct URL to user's avatar image (denormalized for Electric sync)"
+  avatarUrl: String
 
   avatarFileId: ID
 

@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createEffect } from "solid-js";
-import { useCurrentUser, getLoginUrl, fetchCurrentUser } from "~/lib/auth";
+import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
@@ -251,8 +251,6 @@ export default function Settings() {
       }
 
       setUploadSuccess(true);
-      // Refresh user data to show new avatar
-      await fetchCurrentUser();
     } catch (error) {
       console.error("Avatar upload error:", error);
       setUploadError(error instanceof Error ? error.message : "Upload failed");
@@ -499,15 +497,15 @@ export default function Settings() {
                       <div class="relative w-20 h-20">
                         <div class="w-20 h-20 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
                           <Show
-                            when={user()?.displayAvatar}
+                            when={prefs.data()?.avatar_url}
                             fallback={
                               <span class="text-white font-bold text-2xl">
-                                {user()?.name?.[0]?.toUpperCase() || "U"}
+                                {prefs.data()?.name?.[0]?.toUpperCase() || "U"}
                               </span>
                             }
                           >
                             <img
-                              src={user()!.displayAvatar!}
+                              src={prefs.data()!.avatar_url!}
                               alt="Avatar"
                               class="w-full h-full object-cover"
                             />
@@ -632,7 +630,7 @@ export default function Settings() {
                     <div class="flex items-center space-x-3">
                       <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
                         <Show
-                          when={user()?.displayAvatar}
+                          when={prefs.data()?.avatar_url}
                           fallback={
                             <span class="text-white font-bold">
                               {prefs.data()?.name?.[0]?.toUpperCase() || "U"}
@@ -640,7 +638,7 @@ export default function Settings() {
                           }
                         >
                           <img
-                            src={user()!.displayAvatar!}
+                            src={prefs.data()!.avatar_url!}
                             alt="Avatar"
                             class="w-10 h-10 rounded-full object-cover"
                           />

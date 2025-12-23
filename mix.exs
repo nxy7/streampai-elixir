@@ -90,6 +90,8 @@ defmodule Streampai.MixProject do
       {:protobuf_generate, "~> 0.1.0"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
+      {:hackney, "~> 1.18"},
+      {:sweet_xml, "~> 0.7"},
       {:electric, "~> 1.0"},
       {:phoenix_sync, "== 0.6.0"}
     ]

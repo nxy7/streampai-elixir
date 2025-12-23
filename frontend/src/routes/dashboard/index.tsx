@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { Show } from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
+import { useUserPreferencesForUser } from "~/lib/useElectric";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -11,6 +12,7 @@ function getGreeting() {
 
 export default function Dashboard() {
   const { user, isLoading } = useCurrentUser();
+  const prefs = useUserPreferencesForUser(() => user()?.id);
   const greeting = getGreeting();
 
   return (
@@ -49,7 +51,7 @@ export default function Dashboard() {
             <div class="space-y-6">
               <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                  {greeting}, {user()?.name || "Streamer"}!
+                  {greeting}, {prefs.data()?.name || user()?.name || "Streamer"}!
                 </h1>
                 <p class="text-gray-600">
                   Welcome to your Streampai dashboard.
@@ -86,7 +88,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <span class="text-gray-600">Name:</span>
-                      <span class="text-gray-900 ml-2">{user()?.name}</span>
+                      <span class="text-gray-900 ml-2">{prefs.data()?.name || user()?.name}</span>
                     </div>
                     <Show
                       when={

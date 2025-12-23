@@ -27,7 +27,6 @@ type StreamerPrefs = {
 export default function DonationPage() {
   const params = useParams<{ username: string }>();
   const [userId, setUserId] = createSignal<string | null>(null);
-  const [initialAvatar, setInitialAvatar] = createSignal<string | null>(null);
   const [error, setError] = createSignal<string | null>(null);
   const [graphqlDone, setGraphqlDone] = createSignal(false);
 
@@ -67,7 +66,6 @@ export default function DonationPage() {
       }
 
       setUserId(user.id);
-      setInitialAvatar(user.displayAvatar ?? null);
       setPreferencesCollection(createUserPreferencesCollection(user.id));
       setGraphqlDone(true);
     } catch (e) {
@@ -103,10 +101,9 @@ export default function DonationPage() {
     return !(query.isLoading?.() ?? true) || prefs() !== null;
   };
 
-  // Use Electric-synced name for real-time updates
+  // Use Electric-synced values for real-time updates
   const userName = () => prefs()?.name ?? null;
-  // Avatar is not in Electric shape, use initial value from GraphQL
-  const userAvatar = () => initialAvatar();
+  const userAvatar = () => prefs()?.avatar_url ?? null;
 
   // Get current streamer's preferences
   const currentStreamerPrefs = createMemo(() => {

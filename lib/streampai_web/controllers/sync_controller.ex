@@ -12,6 +12,7 @@ defmodule StreampaiWeb.SyncController do
     "max_donation_amount",
     "donation_currency",
     "default_voice",
+    "avatar_url",
     "inserted_at",
     "updated_at"
   ]

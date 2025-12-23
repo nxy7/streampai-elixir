@@ -673,6 +673,12 @@ defmodule Streampai.Accounts.User do
       description "Default TTS voice for donations"
     end
 
+    attribute :avatar_url, :string do
+      public? true
+      allow_nil? true
+      description "Direct URL to user's avatar image (denormalized for Electric sync)"
+    end
+
     timestamps()
   end
 

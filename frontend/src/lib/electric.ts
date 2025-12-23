@@ -60,6 +60,7 @@ export type UserPreferences = Row & {
   max_donation_amount: number | null;
   donation_currency: string;
   default_voice: string | null;
+  avatar_url: string | null;
   inserted_at: string;
   updated_at: string;
 };

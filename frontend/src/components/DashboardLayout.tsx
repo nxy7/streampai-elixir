@@ -1,6 +1,7 @@
 import { A, useLocation } from "@solidjs/router";
 import { createSignal, createMemo, Show, For, JSX } from "solid-js";
 import { useCurrentUser, getLogoutUrl } from "~/lib/auth";
+import { useUserPreferencesForUser } from "~/lib/useElectric";
 
 interface DashboardLayoutProps {
   children: JSX.Element;
@@ -11,6 +12,9 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
+
+  // Use Electric-synced preferences for real-time avatar/name updates
+  const prefs = useUserPreferencesForUser(() => user()?.id);
 
   // Auto-detect current page from URL
   const currentPage = createMemo(() => {
@@ -383,15 +387,15 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
                   title="Go to Settings"
                 >
                   <Show
-                    when={user()?.displayAvatar}
+                    when={prefs.data()?.avatar_url}
                     fallback={
                       <span class="text-white font-medium text-sm">
-                        {user()?.email?.[0]?.toUpperCase() || "U"}
+                        {prefs.data()?.name?.[0]?.toUpperCase() || user()?.email?.[0]?.toUpperCase() || "U"}
                       </span>
                     }
                   >
                     <img
-                      src={user()!.displayAvatar!}
+                      src={prefs.data()!.avatar_url!}
                       alt="User Avatar"
                       class="w-full h-full object-cover"
                     />
@@ -399,7 +403,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
                 </A>
                 <div class="hidden md:block">
                   <p class="text-sm font-medium text-gray-900">
-                    {user()?.email || "Unknown User"}
+                    {prefs.data()?.name || user()?.email || "Unknown User"}
                   </p>
                   <p class="text-xs text-gray-500">Free Plan</p>
                 </div>
