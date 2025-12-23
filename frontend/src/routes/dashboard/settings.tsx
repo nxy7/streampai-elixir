@@ -78,6 +78,7 @@ const UPDATE_NAME = graphql(`
 
 export default function Settings() {
   const { user, isLoading } = useCurrentUser();
+  const prefs = useUserPreferencesForUser(() => user()?.id);
   const [isUploading, setIsUploading] = createSignal(false);
   const [uploadError, setUploadError] = createSignal<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = createSignal(false);
@@ -148,8 +149,8 @@ export default function Settings() {
       }
 
       setNameSuccess(true);
+      setDisplayName(""); // Clear local override so Electric-synced value shows
       setTimeout(() => setNameSuccess(false), 3000);
-      await fetchCurrentUser();
     } catch (error) {
       console.error("Update name error:", error);
       setNameError(error instanceof Error ? error.message : "Failed to update name");
@@ -342,74 +343,75 @@ export default function Settings() {
 
               {/* Live Preferences (Electric Sync Demo) */}
               <Show when={user()}>
-                {(currentUser) => {
-                  const prefs = useUserPreferencesForUser(currentUser().id);
-                  return (
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                      <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">
-                          Live Preferences (Electric Sync)
-                        </h3>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <span class="w-2 h-2 mr-1.5 bg-green-400 rounded-full animate-pulse" />
-                          Real-time
-                        </span>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">
+                      Live Preferences (Electric Sync)
+                    </h3>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span class="w-2 h-2 mr-1.5 bg-green-400 rounded-full animate-pulse" />
+                      Real-time
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-500 mb-4">
+                    This data syncs in real-time from PostgreSQL via Electric. Try updating your preferences in the database or via the forms below to see changes instantly.
+                  </p>
+                  <Show
+                    when={prefs.data()}
+                    fallback={
+                      <div class="p-4 bg-gray-50 rounded-lg text-gray-500 text-sm">
+                        No preferences found. They will be created when you save settings.
                       </div>
-                      <p class="text-sm text-gray-500 mb-4">
-                        This data syncs in real-time from PostgreSQL via Electric. Try updating your preferences in the database or via the forms below to see changes instantly.
-                      </p>
-                      <Show
-                        when={prefs.data()}
-                        fallback={
-                          <div class="p-4 bg-gray-50 rounded-lg text-gray-500 text-sm">
-                            No preferences found. They will be created when you save settings.
-                          </div>
-                        }
-                      >
-                        {(preferences) => (
-                          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Email Notifications</p>
-                              <p class="text-lg font-semibold text-gray-900">
-                                {preferences().email_notifications ? "On" : "Off"}
-                              </p>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Currency</p>
-                              <p class="text-lg font-semibold text-gray-900">
-                                {preferences().donation_currency}
-                              </p>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Min Donation</p>
-                              <p class="text-lg font-semibold text-gray-900">
-                                {preferences().min_donation_amount != null ? String(preferences().min_donation_amount) : "None"}
-                              </p>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Max Donation</p>
-                              <p class="text-lg font-semibold text-gray-900">
-                                {preferences().max_donation_amount != null ? String(preferences().max_donation_amount) : "None"}
-                              </p>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded-lg col-span-2">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Default Voice</p>
-                              <p class="text-lg font-semibold text-gray-900">
-                                {preferences().default_voice ?? "Not set"}
-                              </p>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded-lg col-span-2">
-                              <p class="text-xs text-gray-500 uppercase tracking-wide">Last Updated</p>
-                              <p class="text-sm font-medium text-gray-900">
-                                {new Date(preferences().updated_at).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </Show>
-                    </div>
-                  );
-                }}
+                    }
+                  >
+                    {(preferences) => (
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-3 bg-gray-50 rounded-lg col-span-2">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Username</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().name}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Email Notifications</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().email_notifications ? "On" : "Off"}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Currency</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().donation_currency}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Min Donation</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().min_donation_amount != null ? String(preferences().min_donation_amount) : "None"}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Max Donation</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().max_donation_amount != null ? String(preferences().max_donation_amount) : "None"}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg col-span-2">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Default Voice</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {preferences().default_voice ?? "Not set"}
+                          </p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg col-span-2">
+                          <p class="text-xs text-gray-500 uppercase tracking-wide">Last Updated</p>
+                          <p class="text-sm font-medium text-gray-900">
+                            {new Date(preferences().updated_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </Show>
+                </div>
               </Show>
 
               {/* Account Settings */}
@@ -442,7 +444,7 @@ export default function Settings() {
                     <div class="relative">
                       <input
                         type="text"
-                        value={displayName() || user()?.name || ""}
+                        value={displayName() || prefs.data()?.name || ""}
                         onInput={(e) => setDisplayName(e.currentTarget.value)}
                         placeholder="Enter display name"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10"
@@ -591,7 +593,7 @@ export default function Settings() {
                     <div class="flex items-center space-x-3">
                       <input
                         type="text"
-                        value={`http://localhost:4000/u/${user()?.name || ""}`}
+                        value={`http://localhost:4000/u/${prefs.data()?.name || ""}`}
                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50"
                         readonly
                       />
@@ -612,7 +614,7 @@ export default function Settings() {
                           when={user()?.displayAvatar}
                           fallback={
                             <span class="text-white font-bold">
-                              {user()?.name?.[0]?.toUpperCase() || "U"}
+                              {prefs.data()?.name?.[0]?.toUpperCase() || "U"}
                             </span>
                           }
                         >
@@ -625,7 +627,7 @@ export default function Settings() {
                       </div>
                       <div>
                         <h4 class="font-medium text-gray-900">
-                          Support {user()?.name}
+                          Support {prefs.data()?.name}
                         </h4>
                         <p class="text-sm text-gray-600">
                           Public donation page
@@ -633,7 +635,7 @@ export default function Settings() {
                       </div>
                     </div>
                     <a
-                      href={`http://localhost:4000/u/${user()?.name || ""}`}
+                      href={`http://localhost:4000/u/${prefs.data()?.name || ""}`}
                       target="_blank"
                       class="text-purple-600 hover:text-purple-700 font-medium text-sm"
                     >
@@ -956,42 +958,37 @@ export default function Settings() {
 
               {/* Notification Preferences */}
               <Show when={user()}>
-                {(currentUser) => {
-                  const prefs = useUserPreferencesForUser(currentUser().id);
-                  return (
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                      <h3 class="text-lg font-medium text-gray-900 mb-6">
-                        Notification Preferences
-                      </h3>
-                      <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                          <div>
-                            <p class="font-medium text-gray-900">
-                              Email Notifications
-                            </p>
-                            <p class="text-sm text-gray-600">
-                              Receive notifications about important events
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleToggleEmailNotifications}
-                            disabled={isTogglingNotifications()}
-                            class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              prefs.data()?.email_notifications ? "bg-purple-600" : "bg-gray-300"
-                            } ${isTogglingNotifications() ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                          >
-                            <span
-                              class={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                                prefs.data()?.email_notifications ? "translate-x-6" : "translate-x-1"
-                              }`}
-                            />
-                          </button>
-                        </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-6">
+                    Notification Preferences
+                  </h3>
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div>
+                        <p class="font-medium text-gray-900">
+                          Email Notifications
+                        </p>
+                        <p class="text-sm text-gray-600">
+                          Receive notifications about important events
+                        </p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={handleToggleEmailNotifications}
+                        disabled={isTogglingNotifications()}
+                        class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          prefs.data()?.email_notifications ? "bg-purple-600" : "bg-gray-300"
+                        } ${isTogglingNotifications() ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                      >
+                        <span
+                          class={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                            prefs.data()?.email_notifications ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
                     </div>
-                  );
-                }}
+                  </div>
+                </div>
               </Show>
             </div>
           </>

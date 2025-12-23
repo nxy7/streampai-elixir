@@ -6,7 +6,6 @@ import {
   livestreamsCollection,
   viewersCollection,
   userPreferencesCollection,
-  createUserPreferencesCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
@@ -131,15 +130,16 @@ export function useUserPreferences() {
   return useLiveQuery(() => userPreferencesCollection);
 }
 
-export function useUserPreferencesForUser(userId: string) {
-  const collection = createUserPreferencesCollection(userId);
-  const query = useLiveQuery(() => collection);
+export function useUserPreferencesForUser(userId: () => string | undefined) {
+  const query = useLiveQuery(() => userPreferencesCollection);
 
   return {
     ...query,
     data: createMemo(() => {
+      const id = userId();
+      if (!id) return null;
       const data = query.data || [];
-      return data[0] || null;
+      return data.find((p) => p.id === id) || null;
     }),
   };
 }

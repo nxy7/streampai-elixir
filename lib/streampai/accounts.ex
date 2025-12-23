@@ -32,7 +32,6 @@ defmodule Streampai.Accounts do
     resource Streampai.Accounts.WidgetConfig
     resource Streampai.Accounts.SmartCanvasLayout
     resource Streampai.Accounts.NewsletterEmail
-    resource Streampai.Accounts.UserPreferences
     resource Streampai.Accounts.UserRole
   end
 end

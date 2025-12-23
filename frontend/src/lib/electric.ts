@@ -53,7 +53,8 @@ export type Viewer = Row & {
 };
 
 export type UserPreferences = Row & {
-  user_id: string;
+  id: string;  // User ID (primary key from users table)
+  name: string;
   email_notifications: boolean;
   min_donation_amount: number | null;
   max_donation_amount: number | null;
@@ -111,7 +112,7 @@ export const userPreferencesCollection = createCollection(
     shapeOptions: {
       url: `${SHAPES_URL}/user_preferences`,
     },
-    getKey: (item) => item.user_id,
+    getKey: (item) => item.id,
   })
 );
 
@@ -122,10 +123,10 @@ export function createUserPreferencesCollection(userId: string) {
       shapeOptions: {
         url: `${SHAPES_URL}/user_preferences`,
         params: {
-          where: `user_id='${userId}'`,
+          where: `id='${userId}'`,
         },
       },
-      getKey: (item) => item.user_id,
+      getKey: (item) => item.id,
     })
   );
 }

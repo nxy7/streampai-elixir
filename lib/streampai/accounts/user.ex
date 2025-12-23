@@ -132,6 +132,8 @@ defmodule Streampai.Accounts.User do
   code_interface do
     define :update_avatar, args: [:file_id]
     define :update_name
+    define :toggle_email_notifications
+    define :update_donation_settings, args: [:min_amount, :max_amount, :currency, :default_voice]
   end
 
   actions do
@@ -513,6 +515,50 @@ defmodule Streampai.Accounts.User do
 
       change Streampai.Accounts.User.Changes.RevokeProAccess
     end
+
+    update :toggle_email_notifications do
+      description "Toggle email notifications on/off"
+      require_atomic? false
+
+      change fn changeset, _context ->
+        current_value = Ash.Changeset.get_attribute(changeset, :email_notifications)
+        Ash.Changeset.change_attribute(changeset, :email_notifications, !current_value)
+      end
+    end
+
+    update :update_donation_settings do
+      description "Update donation min/max amounts, currency, and default voice"
+      require_atomic? false
+
+      argument :min_amount, :integer, allow_nil?: true
+      argument :max_amount, :integer, allow_nil?: true
+      argument :currency, :string, allow_nil?: true
+      argument :default_voice, :string, allow_nil?: true
+
+      change fn changeset, _context ->
+        changeset
+        |> Ash.Changeset.change_attribute(
+          :min_donation_amount,
+          Ash.Changeset.get_argument(changeset, :min_amount)
+        )
+        |> Ash.Changeset.change_attribute(
+          :max_donation_amount,
+          Ash.Changeset.get_argument(changeset, :max_amount)
+        )
+        |> then(fn cs ->
+          case Ash.Changeset.get_argument(cs, :currency) do
+            nil -> cs
+            currency -> Ash.Changeset.change_attribute(cs, :donation_currency, currency)
+          end
+        end)
+        |> then(fn cs ->
+          case Ash.Changeset.get_argument(cs, :default_voice) do
+            nil -> cs
+            voice -> Ash.Changeset.change_attribute(cs, :default_voice, voice)
+          end
+        end)
+      end
+    end
   end
 
   policies do
@@ -572,6 +618,36 @@ defmodule Streampai.Accounts.User do
       allow_nil? true
       description "Timestamp when the user confirmed their account"
     end
+
+    attribute :email_notifications, :boolean do
+      public? true
+      allow_nil? false
+      default true
+    end
+
+    attribute :min_donation_amount, :integer do
+      public? true
+      allow_nil? true
+    end
+
+    attribute :max_donation_amount, :integer do
+      public? true
+      allow_nil? true
+    end
+
+    attribute :donation_currency, :string do
+      public? true
+      allow_nil? false
+      default "USD"
+    end
+
+    attribute :default_voice, :string do
+      public? true
+      allow_nil? true
+      description "Default TTS voice for donations"
+    end
+
+    timestamps()
   end
 
   relationships do

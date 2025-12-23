@@ -34,8 +34,7 @@ defmodule StreampaiWeb.AuthController do
   def failure(conn, activity, reason) do
     Logger.error("Authentication failure for #{inspect(activity)}: #{inspect(reason)}")
 
-    conn
-    |> redirect(external: "#{frontend_url()}/auth/sign-in?error=authentication_failed")
+    redirect(conn, external: "#{frontend_url()}/auth/sign-in?error=authentication_failed")
   end
 
   def sign_out(conn, _params) do

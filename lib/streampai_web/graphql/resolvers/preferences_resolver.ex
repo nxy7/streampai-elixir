@@ -1,20 +1,28 @@
 defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
   @moduledoc """
   GraphQL resolver for user preferences operations.
+  Preferences are now stored directly on the User resource.
   """
 
-  alias Streampai.Accounts.UserPreferences
+  alias Streampai.Accounts.User
 
   def save_donation_settings(_parent, args, resolution) do
     actor = resolution.context[:actor]
 
     if actor do
-      case UserPreferences.get_by_user_id(%{user_id: actor.id}, actor: actor) do
-        {:ok, preferences} ->
-          update_preferences(preferences, args, actor)
+      case User.update_donation_settings(
+             actor,
+             args[:min_amount],
+             args[:max_amount],
+             args[:currency],
+             args[:default_voice],
+             actor: actor
+           ) do
+        {:ok, user} ->
+          {:ok, user_to_preferences_format(user)}
 
-        {:error, _} ->
-          create_preferences(args, actor)
+        {:error, error} ->
+          {:error, format_error(error)}
       end
     else
       {:error, "Not authenticated"}
@@ -25,55 +33,29 @@ defmodule StreampaiWeb.GraphQL.Resolvers.PreferencesResolver do
     actor = resolution.context[:actor]
 
     if actor do
-      case UserPreferences.get_by_user_id(%{user_id: actor.id}, actor: actor) do
-        {:ok, preferences} ->
-          UserPreferences.toggle_email_notifications(preferences, actor: actor)
+      case User.toggle_email_notifications(actor, actor: actor) do
+        {:ok, user} ->
+          {:ok, user_to_preferences_format(user)}
 
-        {:error, _} ->
-          {:error, "Preferences not found"}
+        {:error, error} ->
+          {:error, format_error(error)}
       end
     else
       {:error, "Not authenticated"}
     end
   end
 
-  defp update_preferences(preferences, args, actor) do
-    case UserPreferences.update_donation_settings(
-           preferences,
-           args[:min_amount],
-           args[:max_amount],
-           args[:currency] || "USD",
-           actor: actor
-         ) do
-      {:ok, updated} ->
-        if args[:default_voice] do
-          UserPreferences.update_voice_settings(updated, args[:default_voice], actor: actor)
-        else
-          {:ok, updated}
-        end
-
-      {:error, error} ->
-        {:error, format_error(error)}
-    end
-  end
-
-  defp create_preferences(args, actor) do
-    case UserPreferences.create(
-           %{
-             user_id: actor.id,
-             min_donation_amount: args[:min_amount],
-             max_donation_amount: args[:max_amount],
-             donation_currency: args[:currency] || "USD",
-             default_voice: args[:default_voice]
-           },
-           actor: actor
-         ) do
-      {:ok, preferences} ->
-        {:ok, preferences}
-
-      {:error, error} ->
-        {:error, format_error(error)}
-    end
+  defp user_to_preferences_format(user) do
+    %{
+      user_id: user.id,
+      email_notifications: user.email_notifications,
+      min_donation_amount: user.min_donation_amount,
+      max_donation_amount: user.max_donation_amount,
+      donation_currency: user.donation_currency,
+      default_voice: user.default_voice,
+      inserted_at: user.inserted_at,
+      updated_at: user.updated_at
+    }
   end
 
   defp format_error(%Ash.Error.Invalid{} = error) do

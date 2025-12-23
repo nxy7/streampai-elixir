@@ -154,6 +154,11 @@ enum UserSortField {
   NAME
   EXTRA_DATA
   CONFIRMED_AT
+  EMAIL_NOTIFICATIONS
+  MIN_DONATION_AMOUNT
+  MAX_DONATION_AMOUNT
+  DONATION_CURRENCY
+  DEFAULT_VOICE
   AVATAR_FILE_ID
   TIER
   ROLE
@@ -243,6 +248,65 @@ input UserFilterAvatarFileId {
   greaterThanOrEqual: ID
 }
 
+input UserFilterDefaultVoice {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input UserFilterDonationCurrency {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input UserFilterMaxDonationAmount {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input UserFilterMinDonationAmount {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input UserFilterEmailNotifications {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
 input UserFilterConfirmedAt {
   isNil: Boolean
   eq: DateTime
@@ -320,6 +384,17 @@ input UserFilterInput {
   "Timestamp when the user confirmed their account"
   confirmedAt: UserFilterConfirmedAt
 
+  emailNotifications: UserFilterEmailNotifications
+
+  minDonationAmount: UserFilterMinDonationAmount
+
+  maxDonationAmount: UserFilterMaxDonationAmount
+
+  donationCurrency: UserFilterDonationCurrency
+
+  "Default TTS voice for donations"
+  defaultVoice: UserFilterDefaultVoice
+
   avatarFileId: UserFilterAvatarFileId
 
   "User subscription tier: pro or free"
@@ -353,6 +428,17 @@ type User {
 
   "Timestamp when the user confirmed their account"
   confirmedAt: DateTime
+
+  emailNotifications: Boolean!
+
+  minDonationAmount: Int
+
+  maxDonationAmount: Int
+
+  donationCurrency: String!
+
+  "Default TTS voice for donations"
+  defaultVoice: String
 
   avatarFileId: ID
 
