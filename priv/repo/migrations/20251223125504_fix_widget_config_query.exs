@@ -1,4 +1,4 @@
-defmodule Streampai.Repo.Migrations.MigrateResources1 do
+defmodule Streampai.Repo.Migrations.FixWidgetConfigQuery do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 

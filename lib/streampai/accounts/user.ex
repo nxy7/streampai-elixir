@@ -368,6 +368,28 @@ defmodule Streampai.Accounts.User do
       filter expr(name == ^arg(:name))
     end
 
+    read :get_public_profile do
+      description "Get public profile info for a user by username (for donation pages)"
+      get? true
+
+      argument :username, :string do
+        allow_nil? false
+      end
+
+      prepare build(
+                load: [:display_avatar],
+                select: [
+                  :id,
+                  :name,
+                  :min_donation_amount,
+                  :max_donation_amount,
+                  :donation_currency
+                ]
+              )
+
+      filter expr(name == ^arg(:username))
+    end
+
     read :check_name_availability do
       description "Check if a name is available for the current actor"
       get? false
@@ -567,6 +589,10 @@ defmodule Streampai.Accounts.User do
     end
 
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
+
+    bypass action(:get_public_profile) do
       authorize_if always()
     end
 

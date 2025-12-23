@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal } from "solid-js";
+import { Show, For, createSignal, createEffect } from "solid-js";
 import { useCurrentUser, getLoginUrl, fetchCurrentUser } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
 import { graphql } from "gql.tada";
@@ -44,15 +44,15 @@ const UPDATE_AVATAR = graphql(`
 `);
 
 const SAVE_DONATION_SETTINGS = graphql(`
-  mutation SaveDonationSettings($min_amount: Int, $max_amount: Int, $currency: String, $default_voice: String) {
-    saveDonationSettings(min_amount: $min_amount, max_amount: $max_amount, currency: $currency, default_voice: $default_voice) {
-      user_id
-      email_notifications
-      min_donation_amount
-      max_donation_amount
-      donation_currency
-      default_voice
-      updated_at
+  mutation SaveDonationSettings($minAmount: Int, $maxAmount: Int, $currency: String, $defaultVoice: String) {
+    saveDonationSettings(minAmount: $minAmount, maxAmount: $maxAmount, currency: $currency, defaultVoice: $defaultVoice) {
+      userId
+      emailNotifications
+      minDonationAmount
+      maxDonationAmount
+      donationCurrency
+      defaultVoice
+      updatedAt
     }
   }
 `);
@@ -60,9 +60,9 @@ const SAVE_DONATION_SETTINGS = graphql(`
 const TOGGLE_EMAIL_NOTIFICATIONS = graphql(`
   mutation ToggleEmailNotifications {
     toggleEmailNotifications {
-      user_id
-      email_notifications
-      updated_at
+      userId
+      emailNotifications
+      updatedAt
     }
   }
 `);
@@ -102,6 +102,22 @@ export default function Settings() {
   // Email notifications state
   const [isTogglingNotifications, setIsTogglingNotifications] = createSignal(false);
 
+  // Track if we've initialized form state from preferences
+  const [formInitialized, setFormInitialized] = createSignal(false);
+
+  // Populate form state from Electric preferences when they load
+  createEffect(() => {
+    const data = prefs.data();
+    if (data && !formInitialized()) {
+      setMinAmount(data.min_donation_amount);
+      setMaxAmount(data.max_donation_amount);
+      setCurrency(data.donation_currency || "USD");
+      setDefaultVoice(data.default_voice || "random");
+      setDisplayName(data.name || "");
+      setFormInitialized(true);
+    }
+  });
+
   const handleSaveDonationSettings = async (e: Event) => {
     e.preventDefault();
     setIsSavingSettings(true);
@@ -110,10 +126,10 @@ export default function Settings() {
 
     try {
       const result = await client.mutation(SAVE_DONATION_SETTINGS, {
-        min_amount: minAmount(),
-        max_amount: maxAmount(),
+        minAmount: minAmount(),
+        maxAmount: maxAmount(),
         currency: currency(),
-        default_voice: defaultVoice(),
+        defaultVoice: defaultVoice(),
       });
 
       if (result.error) {
@@ -593,11 +609,16 @@ export default function Settings() {
                     <div class="flex items-center space-x-3">
                       <input
                         type="text"
-                        value={`http://localhost:4000/u/${prefs.data()?.name || ""}`}
+                        value={`${window.location.origin}/u/${prefs.data()?.name || ""}`}
                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50"
                         readonly
                       />
-                      <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/u/${prefs.data()?.name || ""}`);
+                        }}
+                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      >
                         Copy URL
                       </button>
                     </div>
@@ -635,7 +656,7 @@ export default function Settings() {
                       </div>
                     </div>
                     <a
-                      href={`http://localhost:4000/u/${prefs.data()?.name || ""}`}
+                      href={`/u/${prefs.data()?.name || ""}`}
                       target="_blank"
                       class="text-purple-600 hover:text-purple-700 font-medium text-sm"
                     >

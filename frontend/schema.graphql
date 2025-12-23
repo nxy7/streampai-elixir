@@ -84,6 +84,61 @@ input SaveWidgetConfigInput {
   config: JsonString
 }
 
+input WidgetConfigFilterConfig {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString!]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+}
+
+input WidgetConfigFilterType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input WidgetConfigFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input WidgetConfigFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input WidgetConfigFilterInput {
+  and: [WidgetConfigFilterInput!]
+  or: [WidgetConfigFilterInput!]
+  not: [WidgetConfigFilterInput!]
+  id: WidgetConfigFilterId
+  userId: WidgetConfigFilterUserId
+  type: WidgetConfigFilterType
+  config: WidgetConfigFilterConfig
+  user: UserFilterInput
+}
+
 type WidgetConfig {
   id: ID!
   userId: ID!
@@ -1877,6 +1932,14 @@ type RootQueryType {
     filter: UserFilterInput
   ): User
 
+  "Get public profile info for a user by username (for donation pages)"
+  publicProfile(
+    "A filter to limit the results"
+    filter: UserFilterInput
+
+    username: String!
+  ): User
+
   listUsers(
     "How to sort the records in the response"
     sort: [UserSortInput]
@@ -1898,8 +1961,8 @@ type RootQueryType {
   ): KeysetPageOfUser
 
   widgetConfig(
-    "The id of the record"
-    id: ID!
+    "A filter to limit the results"
+    filter: WidgetConfigFilterInput
 
     userId: ID!
 

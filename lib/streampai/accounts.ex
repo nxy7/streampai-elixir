@@ -13,6 +13,7 @@ defmodule Streampai.Accounts do
   graphql do
     queries do
       read_one User, :current_user, :current_user
+      read_one User, :public_profile, :get_public_profile
       list User, :list_users, :list_all
     end
 

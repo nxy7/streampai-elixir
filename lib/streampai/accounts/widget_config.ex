@@ -18,7 +18,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     type :widget_config
 
     queries do
-      get(:widget_config, :get_by_user_and_type)
+      read_one(:widget_config, :get_by_user_and_type)
     end
 
     mutations do
