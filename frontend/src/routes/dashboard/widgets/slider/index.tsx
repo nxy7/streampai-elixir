@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show, For } from "solid-js";
+import { createSignal, Show, For, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import SliderWidget from "~/components/widgets/SliderWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface SliderImage {
   id: string;
@@ -21,14 +23,14 @@ interface SliderConfig {
   images?: SliderImage[];
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendSliderConfig {
+  slide_duration?: number;
+  transition_duration?: number;
+  transition_type?: string;
+  fit_mode?: string;
+  background_color?: string;
+  images?: SliderImage[];
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -40,14 +42,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
       errors {
         message
       }
-    }
-  }
-`);
-
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
     }
   }
 `);
@@ -67,40 +61,39 @@ const DEFAULT_CONFIG: SliderConfig = {
   images: SAMPLE_IMAGES,
 };
 
+function parseBackendConfig(backendConfig: BackendSliderConfig): SliderConfig {
+  return {
+    slideDuration: backendConfig.slide_duration || DEFAULT_CONFIG.slideDuration,
+    transitionDuration: backendConfig.transition_duration || DEFAULT_CONFIG.transitionDuration,
+    transitionType: (backendConfig.transition_type as SliderConfig["transitionType"]) || DEFAULT_CONFIG.transitionType,
+    fitMode: (backendConfig.fit_mode as SliderConfig["fitMode"]) || DEFAULT_CONFIG.fitMode,
+    backgroundColor: backendConfig.background_color || DEFAULT_CONFIG.backgroundColor,
+    images: backendConfig.images || DEFAULT_CONFIG.images,
+  };
+}
+
 export default function SliderSettings() {
-  const [config, setConfig] = createSignal<SliderConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendSliderConfig>(
+    userId,
+    () => "slider_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<SliderConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "slider_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          slideDuration: loadedConfig.slide_duration || DEFAULT_CONFIG.slideDuration,
-          transitionDuration: loadedConfig.transition_duration || DEFAULT_CONFIG.transitionDuration,
-          transitionType: loadedConfig.transition_type || DEFAULT_CONFIG.transitionType,
-          fitMode: loadedConfig.fit_mode || DEFAULT_CONFIG.fitMode,
-          backgroundColor: loadedConfig.background_color || DEFAULT_CONFIG.backgroundColor,
-          images: loadedConfig.images || DEFAULT_CONFIG.images,
-        });
-      }
-    }
-
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
+
+  const loading = createMemo(() => isLoading());
 
   async function handleSave() {
     if (!userId()) {
@@ -111,21 +104,23 @@ export default function SliderSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      slide_duration: config().slideDuration,
-      transition_duration: config().transitionDuration,
-      transition_type: config().transitionType,
-      fit_mode: config().fitMode,
-      background_color: config().backgroundColor,
-      images: config().images || [],
+      slide_duration: currentConfig.slideDuration,
+      transition_duration: currentConfig.transitionDuration,
+      transition_type: currentConfig.transitionType,
+      fit_mode: currentConfig.fitMode,
+      background_color: currentConfig.backgroundColor,
+      images: currentConfig.images || [],
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "slider_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -133,6 +128,7 @@ export default function SliderSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -143,7 +139,7 @@ export default function SliderSettings() {
     field: K,
     value: SliderConfig[K]
   ) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   function addImageUrl(url: string) {

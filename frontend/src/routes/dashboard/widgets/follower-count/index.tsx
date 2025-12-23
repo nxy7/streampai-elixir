@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import FollowerCountWidget from "~/components/widgets/FollowerCountWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface FollowerCountConfig {
   label: string;
@@ -14,14 +16,14 @@ interface FollowerCountConfig {
   animateOnChange: boolean;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendFollowerCountConfig {
+  label?: string;
+  font_size?: number;
+  text_color?: string;
+  background_color?: string;
+  show_icon?: boolean;
+  animate_on_change?: boolean;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -37,14 +39,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: FollowerCountConfig = {
   label: "followers",
   fontSize: 32,
@@ -54,40 +48,39 @@ const DEFAULT_CONFIG: FollowerCountConfig = {
   animateOnChange: true,
 };
 
+function parseBackendConfig(backendConfig: BackendFollowerCountConfig): FollowerCountConfig {
+  return {
+    label: backendConfig.label || DEFAULT_CONFIG.label,
+    fontSize: backendConfig.font_size || DEFAULT_CONFIG.fontSize,
+    textColor: backendConfig.text_color || DEFAULT_CONFIG.textColor,
+    backgroundColor: backendConfig.background_color || DEFAULT_CONFIG.backgroundColor,
+    showIcon: backendConfig.show_icon ?? DEFAULT_CONFIG.showIcon,
+    animateOnChange: backendConfig.animate_on_change ?? DEFAULT_CONFIG.animateOnChange,
+  };
+}
+
 export default function FollowerCountSettings() {
-  const [config, setConfig] = createSignal<FollowerCountConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendFollowerCountConfig>(
+    userId,
+    () => "follower_count_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<FollowerCountConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "follower_count_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          label: loadedConfig.label || DEFAULT_CONFIG.label,
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          textColor: loadedConfig.text_color || DEFAULT_CONFIG.textColor,
-          backgroundColor: loadedConfig.background_color || DEFAULT_CONFIG.backgroundColor,
-          showIcon: loadedConfig.show_icon ?? DEFAULT_CONFIG.showIcon,
-          animateOnChange: loadedConfig.animate_on_change ?? DEFAULT_CONFIG.animateOnChange,
-        });
-      }
-    }
-
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
+
+  const loading = createMemo(() => isLoading());
 
   async function handleSave() {
     if (!userId()) {
@@ -98,21 +91,23 @@ export default function FollowerCountSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      label: config().label,
-      font_size: config().fontSize,
-      text_color: config().textColor,
-      background_color: config().backgroundColor,
-      show_icon: config().showIcon,
-      animate_on_change: config().animateOnChange,
+      label: currentConfig.label,
+      font_size: currentConfig.fontSize,
+      text_color: currentConfig.textColor,
+      background_color: currentConfig.backgroundColor,
+      show_icon: currentConfig.showIcon,
+      animate_on_change: currentConfig.animateOnChange,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "follower_count_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -120,6 +115,7 @@ export default function FollowerCountSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -127,7 +123,7 @@ export default function FollowerCountSettings() {
   }
 
   function updateConfig(field: keyof FollowerCountConfig, value: string | number | boolean) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (

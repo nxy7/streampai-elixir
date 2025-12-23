@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import TopDonorsWidget from "~/components/widgets/TopDonorsWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface Donor {
   id: string;
@@ -23,14 +25,16 @@ interface TopDonorsConfig {
   highlightColor: string;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendTopDonorsConfig {
+  title?: string;
+  top_count?: number;
+  font_size?: number;
+  show_amounts?: boolean;
+  show_ranking?: boolean;
+  background_color?: string;
+  text_color?: string;
+  highlight_color?: string;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -46,14 +50,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: TopDonorsConfig = {
   title: "🏆 Top Donors",
   topCount: 10,
@@ -64,6 +60,19 @@ const DEFAULT_CONFIG: TopDonorsConfig = {
   textColor: "#ffffff",
   highlightColor: "#ffd700",
 };
+
+function parseBackendConfig(backendConfig: BackendTopDonorsConfig): TopDonorsConfig {
+  return {
+    title: backendConfig.title || DEFAULT_CONFIG.title,
+    topCount: backendConfig.top_count || DEFAULT_CONFIG.topCount,
+    fontSize: backendConfig.font_size || DEFAULT_CONFIG.fontSize,
+    showAmounts: backendConfig.show_amounts ?? DEFAULT_CONFIG.showAmounts,
+    showRanking: backendConfig.show_ranking ?? DEFAULT_CONFIG.showRanking,
+    backgroundColor: backendConfig.background_color || DEFAULT_CONFIG.backgroundColor,
+    textColor: backendConfig.text_color || DEFAULT_CONFIG.textColor,
+    highlightColor: backendConfig.highlight_color || DEFAULT_CONFIG.highlightColor,
+  };
+}
 
 const MOCK_DONORS: Donor[] = [
   { id: "1", username: "GeneroussUser", amount: 2500.0, currency: "$" },
@@ -79,42 +88,28 @@ const MOCK_DONORS: Donor[] = [
 ];
 
 export default function TopDonorsSettings() {
-  const [config, setConfig] = createSignal<TopDonorsConfig>(DEFAULT_CONFIG);
-  const [donors, setDonors] = createSignal<Donor[]>(MOCK_DONORS);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendTopDonorsConfig>(
+    userId,
+    () => "top_donors_widget"
+  );
+
+  const [donors] = createSignal<Donor[]>(MOCK_DONORS);
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<TopDonorsConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "top_donors_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          title: loadedConfig.title || DEFAULT_CONFIG.title,
-          topCount: loadedConfig.top_count || DEFAULT_CONFIG.topCount,
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          showAmounts: loadedConfig.show_amounts ?? DEFAULT_CONFIG.showAmounts,
-          showRanking: loadedConfig.show_ranking ?? DEFAULT_CONFIG.showRanking,
-          backgroundColor: loadedConfig.background_color || DEFAULT_CONFIG.backgroundColor,
-          textColor: loadedConfig.text_color || DEFAULT_CONFIG.textColor,
-          highlightColor: loadedConfig.highlight_color || DEFAULT_CONFIG.highlightColor,
-        });
-      }
-    }
-
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
+
+  const loading = createMemo(() => isLoading());
 
   async function handleSave() {
     if (!userId()) {
@@ -125,23 +120,25 @@ export default function TopDonorsSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      title: config().title,
-      top_count: config().topCount,
-      font_size: config().fontSize,
-      show_amounts: config().showAmounts,
-      show_ranking: config().showRanking,
-      background_color: config().backgroundColor,
-      text_color: config().textColor,
-      highlight_color: config().highlightColor,
+      title: currentConfig.title,
+      top_count: currentConfig.topCount,
+      font_size: currentConfig.fontSize,
+      show_amounts: currentConfig.showAmounts,
+      show_ranking: currentConfig.showRanking,
+      background_color: currentConfig.backgroundColor,
+      text_color: currentConfig.textColor,
+      highlight_color: currentConfig.highlightColor,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "top_donors_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -149,6 +146,7 @@ export default function TopDonorsSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -156,7 +154,7 @@ export default function TopDonorsSettings() {
   }
 
   function updateConfig<K extends keyof TopDonorsConfig>(field: K, value: TopDonorsConfig[K]) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (

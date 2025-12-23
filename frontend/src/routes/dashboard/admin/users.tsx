@@ -1,26 +1,12 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, createEffect, Show, For } from "solid-js";
+import { createSignal, createEffect, Show, For, createMemo } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
 import { client } from "~/lib/urql";
 import { graphql } from "gql.tada";
 import { button, card, text, badge, input } from "~/styles/design-system";
-
-const ListUsersQuery = graphql(`
-  query ListUsers($sort: [UserSortInput!], $filter: UserFilterInput) {
-    listUsers(sort: $sort, filter: $filter) {
-      results {
-        id
-        email
-        name
-        tier
-        role
-        confirmedAt
-        displayAvatar
-      }
-    }
-  }
-`);
+import { useLiveQuery } from "@tanstack/solid-db";
+import { adminUsersCollection, type AdminUser } from "~/lib/electric";
 
 const GrantProAccessMutation = graphql(`
   mutation GrantProAccess($id: ID!, $input: GrantProAccessInput!) {
@@ -50,33 +36,28 @@ const RevokeProAccessMutation = graphql(`
   }
 `);
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  tier: string | null;
-  role: string | null;
-  confirmedAt: string | null;
-  displayAvatar: string | null;
-}
-
 export default function AdminUsers() {
   const navigate = useNavigate();
   const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 
-  const [users, setUsers] = createSignal<User[]>([]);
-  const [loading, setLoading] = createSignal(true);
+  const usersQuery = useLiveQuery(() => adminUsersCollection);
+
+  const users = createMemo(() => {
+    const allUsers = usersQuery.data ?? [];
+    return allUsers.sort((a, b) => a.email.localeCompare(b.email));
+  });
+
   const [error, setError] = createSignal<string | null>(null);
   const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
 
   const [showGrantModal, setShowGrantModal] = createSignal(false);
-  const [selectedUser, setSelectedUser] = createSignal<User | null>(null);
+  const [selectedUser, setSelectedUser] = createSignal<AdminUser | null>(null);
   const [grantDuration, setGrantDuration] = createSignal("30");
   const [grantReason, setGrantReason] = createSignal("");
   const [grantingPro, setGrantingPro] = createSignal(false);
 
   const [showRevokeConfirm, setShowRevokeConfirm] = createSignal(false);
-  const [userToRevoke, setUserToRevoke] = createSignal<User | null>(null);
+  const [userToRevoke, setUserToRevoke] = createSignal<AdminUser | null>(null);
   const [revokingPro, setRevokingPro] = createSignal(false);
 
   createEffect(() => {
@@ -86,36 +67,7 @@ export default function AdminUsers() {
     }
   });
 
-  const loadUsers = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await client.query(ListUsersQuery, {
-        sort: [{ field: "EMAIL", order: "ASC" }],
-      });
-
-      if (result.error) {
-        setError("Failed to load users. Please try again.");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.listUsers?.results) {
-        setUsers(result.data.listUsers.results);
-      }
-    } catch (err) {
-      setError("Failed to load users. Please try again.");
-      console.error("Error loading users:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  createEffect(() => {
-    if (!authLoading() && currentUser()?.role === "admin") {
-      loadUsers();
-    }
-  });
-
-  const openGrantModal = (user: User) => {
+  const openGrantModal = (user: AdminUser) => {
     setSelectedUser(user);
     setGrantDuration("30");
     setGrantReason("");
@@ -160,7 +112,6 @@ export default function AdminUsers() {
       } else {
         setSuccessMessage(`PRO access granted to ${user.email} for ${grantDuration()} days`);
         closeGrantModal();
-        await loadUsers();
 
         setTimeout(() => setSuccessMessage(null), 5000);
       }
@@ -172,7 +123,7 @@ export default function AdminUsers() {
     }
   };
 
-  const openRevokeConfirm = (user: User) => {
+  const openRevokeConfirm = (user: AdminUser) => {
     setUserToRevoke(user);
     setShowRevokeConfirm(true);
     setError(null);
@@ -204,7 +155,6 @@ export default function AdminUsers() {
       } else {
         setSuccessMessage(`PRO access revoked for ${user.email}`);
         closeRevokeConfirm();
-        await loadUsers();
 
         setTimeout(() => setSuccessMessage(null), 5000);
       }
@@ -214,22 +164,6 @@ export default function AdminUsers() {
     } finally {
       setRevokingPro(false);
     }
-  };
-
-  const getRoleBadgeClass = (role: string | null) => {
-    if (role === "admin") return badge.error;
-    return badge.neutral;
-  };
-
-  const getTierBadgeClass = (tier: string | null) => {
-    if (tier === "pro") return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800";
-    return badge.neutral;
-  };
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   };
 
   return (
@@ -290,116 +224,88 @@ export default function AdminUsers() {
                   <p class={text.muted}>Manage user accounts and PRO access</p>
                 </div>
 
-                <Show
-                  when={!loading()}
-                  fallback={
-                    <div class="px-6 py-12 text-center">
-                      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                      <p class="mt-4 text-gray-500">Loading users...</p>
-                    </div>
-                  }
-                >
-                  <div class="overflow-x-auto">
-                    <table class="w-full">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tier</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody class="bg-white divide-y divide-gray-200">
-                        <For each={users()}>
-                          {(user) => (
-                            <tr class={currentUser()?.id === user.id ? "bg-purple-50" : "hover:bg-gray-50"}>
-                              <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                  <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
-                                    <Show
-                                      when={user.displayAvatar}
-                                      fallback={
-                                        <span class="text-white font-medium text-sm">
-                                          {user.email[0].toUpperCase()}
-                                        </span>
-                                      }
-                                    >
-                                      <img
-                                        src={user.displayAvatar!}
-                                        alt={user.name}
-                                        class="w-10 h-10 rounded-full object-cover"
-                                      />
+                <div class="overflow-x-auto">
+                  <table class="w-full">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                      <For each={users()}>
+                        {(user) => (
+                          <tr class={currentUser()?.id === user.id ? "bg-purple-50" : "hover:bg-gray-50"}>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                              <div class="flex items-center">
+                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
+                                  <Show
+                                    when={user.avatar_url}
+                                    fallback={
+                                      <span class="text-white font-medium text-sm">
+                                        {user.email[0].toUpperCase()}
+                                      </span>
+                                    }
+                                  >
+                                    <img
+                                      src={user.avatar_url!}
+                                      alt={user.name}
+                                      class="w-10 h-10 rounded-full object-cover"
+                                    />
+                                  </Show>
+                                </div>
+                                <div class="ml-3">
+                                  <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-medium text-gray-900">{user.name}</span>
+                                    <Show when={currentUser()?.id === user.id}>
+                                      <span class={badge.info}>Current User</span>
                                     </Show>
                                   </div>
-                                  <div class="ml-3">
-                                    <div class="flex items-center space-x-2">
-                                      <span class="text-sm font-medium text-gray-900">{user.name}</span>
-                                      <Show when={currentUser()?.id === user.id}>
-                                        <span class={badge.info}>Current User</span>
-                                      </Show>
-                                    </div>
-                                  </div>
                                 </div>
-                              </td>
-                              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
-                              <td class="px-6 py-4 whitespace-nowrap">
-                                <span class={getRoleBadgeClass(user.role)}>
-                                  {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Regular"}
-                                </span>
-                              </td>
-                              <td class="px-6 py-4 whitespace-nowrap">
-                                <span class={getTierBadgeClass(user.tier)}>
-                                  {user.tier === "pro" ? "Pro" : "Free"}
-                                </span>
-                              </td>
-                              <td class="px-6 py-4 whitespace-nowrap">
-                                <Show
-                                  when={user.confirmedAt}
-                                  fallback={
-                                    <span class={badge.warning}>Pending</span>
-                                  }
+                              </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                              <Show
+                                when={user.confirmed_at}
+                                fallback={
+                                  <span class={badge.warning}>Pending</span>
+                                }
+                              >
+                                <span class={badge.success}>Confirmed</span>
+                              </Show>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(user.inserted_at).toLocaleDateString()}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div class="flex items-center space-x-3">
+                                <button
+                                  onClick={() => openGrantModal(user)}
+                                  class="text-green-600 hover:text-green-900 hover:underline"
                                 >
-                                  <span class={badge.success}>Confirmed</span>
-                                </Show>
-                              </td>
-                              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex items-center space-x-3">
-                                  <Show when={user.tier === "pro"}>
-                                    <button
-                                      onClick={() => openRevokeConfirm(user)}
-                                      class="text-red-600 hover:text-red-900 hover:underline"
-                                    >
-                                      Revoke PRO
-                                    </button>
-                                  </Show>
-                                  <Show when={user.tier !== "pro"}>
-                                    <button
-                                      onClick={() => openGrantModal(user)}
-                                      class="text-green-600 hover:text-green-900 hover:underline"
-                                    >
-                                      Grant PRO
-                                    </button>
-                                  </Show>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
+                                  Grant PRO
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                  </table>
 
-                    <Show when={users().length === 0}>
-                      <div class="text-center py-12">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z" />
-                        </svg>
-                        <p class="mt-4 text-sm text-gray-500">No users found</p>
-                      </div>
-                    </Show>
-                  </div>
-                </Show>
+                  <Show when={users().length === 0}>
+                    <div class="text-center py-12">
+                      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z" />
+                      </svg>
+                      <p class="mt-4 text-sm text-gray-500">No users found</p>
+                    </div>
+                  </Show>
+                </div>
               </div>
             </div>
           </>

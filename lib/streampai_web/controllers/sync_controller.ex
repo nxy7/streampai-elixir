@@ -17,6 +17,17 @@ defmodule StreampaiWeb.SyncController do
     "updated_at"
   ]
 
+  # Admin-only columns for user management (includes email for identification)
+  @admin_user_columns [
+    "id",
+    "email",
+    "name",
+    "confirmed_at",
+    "avatar_url",
+    "inserted_at",
+    "updated_at"
+  ]
+
   def stream_events(conn, params) do
     sync_render(conn, params, table: "stream_events")
   end
@@ -36,5 +47,19 @@ defmodule StreampaiWeb.SyncController do
   def user_preferences(conn, params) do
     # Sync preference fields from users table instead of separate user_preferences table
     sync_render(conn, params, table: "users", columns: @user_sync_columns)
+  end
+
+  def admin_users(conn, params) do
+    # Admin-only endpoint: sync all users for admin management
+    # Authorization is handled by the router pipeline
+    sync_render(conn, params, table: "users", columns: @admin_user_columns)
+  end
+
+  def widget_configs(conn, %{"user_id" => user_id} = params) do
+    # User-scoped widget configs - syncs all widget configs for a specific user
+    sync_render(conn, params,
+      table: "widget_configs",
+      where: "user_id = '#{user_id}'"
+    )
   end
 end

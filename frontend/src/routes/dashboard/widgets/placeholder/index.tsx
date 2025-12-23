@@ -1,9 +1,10 @@
-import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createEffect, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import PlaceholderWidget from "~/components/widgets/PlaceholderWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface PlaceholderConfig {
   message: string;
@@ -16,14 +17,16 @@ interface PlaceholderConfig {
   borderRadius: number;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendPlaceholderConfig {
+  message?: string;
+  font_size?: number;
+  text_color?: string;
+  background_color?: string;
+  border_color?: string;
+  border_width?: number;
+  padding?: number;
+  border_radius?: number;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -39,14 +42,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: PlaceholderConfig = {
   message: "Placeholder Widget",
   fontSize: 24,
@@ -58,42 +53,42 @@ const DEFAULT_CONFIG: PlaceholderConfig = {
   borderRadius: 8,
 };
 
+function parseBackendConfig(backendConfig: BackendPlaceholderConfig): PlaceholderConfig {
+  return {
+    message: backendConfig.message || DEFAULT_CONFIG.message,
+    fontSize: backendConfig.font_size || DEFAULT_CONFIG.fontSize,
+    textColor: backendConfig.text_color || DEFAULT_CONFIG.textColor,
+    backgroundColor: backendConfig.background_color || DEFAULT_CONFIG.backgroundColor,
+    borderColor: backendConfig.border_color || DEFAULT_CONFIG.borderColor,
+    borderWidth: backendConfig.border_width || DEFAULT_CONFIG.borderWidth,
+    padding: backendConfig.padding || DEFAULT_CONFIG.padding,
+    borderRadius: backendConfig.border_radius || DEFAULT_CONFIG.borderRadius,
+  };
+}
+
 export default function PlaceholderSettings() {
-  const [config, setConfig] = createSignal<PlaceholderConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendPlaceholderConfig>(
+    userId,
+    () => "placeholder_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<PlaceholderConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "placeholder_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          message: loadedConfig.message || DEFAULT_CONFIG.message,
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          textColor: loadedConfig.text_color || DEFAULT_CONFIG.textColor,
-          backgroundColor: loadedConfig.background_color || DEFAULT_CONFIG.backgroundColor,
-          borderColor: loadedConfig.border_color || DEFAULT_CONFIG.borderColor,
-          borderWidth: loadedConfig.border_width || DEFAULT_CONFIG.borderWidth,
-          padding: loadedConfig.padding || DEFAULT_CONFIG.padding,
-          borderRadius: loadedConfig.border_radius || DEFAULT_CONFIG.borderRadius,
-        });
-      }
-    }
-
-    setLoading(false);
+  // Config is synced from Electric, with local overrides applied on top
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
+
+  const loading = createMemo(() => isLoading());
 
   async function handleSave() {
     if (!userId()) {
@@ -104,23 +99,25 @@ export default function PlaceholderSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      message: config().message,
-      font_size: config().fontSize,
-      text_color: config().textColor,
-      background_color: config().backgroundColor,
-      border_color: config().borderColor,
-      border_width: config().borderWidth,
-      padding: config().padding,
-      border_radius: config().borderRadius,
+      message: currentConfig.message,
+      font_size: currentConfig.fontSize,
+      text_color: currentConfig.textColor,
+      background_color: currentConfig.backgroundColor,
+      border_color: currentConfig.borderColor,
+      border_width: currentConfig.borderWidth,
+      padding: currentConfig.padding,
+      border_radius: currentConfig.borderRadius,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "placeholder_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -128,6 +125,7 @@ export default function PlaceholderSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -135,7 +133,7 @@ export default function PlaceholderSettings() {
   }
 
   function updateConfig(field: keyof PlaceholderConfig, value: string | number) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (

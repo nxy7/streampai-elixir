@@ -1,8 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createMemo } from "solid-js";
+import { graphql } from "gql.tada";
+import { client } from "~/lib/urql";
 import GiveawayWidget from "~/components/widgets/GiveawayWidget";
 import { button, card, text, input } from "~/styles/design-system";
-import { getCurrentUserId, loadWidgetConfig, saveWidgetConfig } from "~/lib/widget-config";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface GiveawayConfig {
   showTitle: boolean;
@@ -27,6 +30,43 @@ interface GiveawayConfig {
   showPatreonInfo: boolean;
 }
 
+interface BackendGiveawayConfig {
+  show_title?: boolean;
+  title?: string;
+  show_description?: boolean;
+  description?: string;
+  active_label?: string;
+  inactive_label?: string;
+  winner_label?: string;
+  entry_method_text?: string;
+  show_entry_method?: boolean;
+  show_progress_bar?: boolean;
+  target_participants?: number;
+  patreon_multiplier?: number;
+  patreon_badge_text?: string;
+  winner_animation?: string;
+  title_color?: string;
+  text_color?: string;
+  background_color?: string;
+  accent_color?: string;
+  font_size?: string;
+  show_patreon_info?: boolean;
+}
+
+const SAVE_WIDGET_CONFIG = graphql(`
+  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
+    saveWidgetConfig(input: $input) {
+      result {
+        id
+        config
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const DEFAULT_CONFIG: GiveawayConfig = {
   showTitle: true,
   title: "🎉 Giveaway",
@@ -50,101 +90,125 @@ const DEFAULT_CONFIG: GiveawayConfig = {
   showPatreonInfo: true
 };
 
+function parseBackendConfig(backendConfig: BackendGiveawayConfig): GiveawayConfig {
+  return {
+    showTitle: backendConfig.show_title ?? DEFAULT_CONFIG.showTitle,
+    title: backendConfig.title ?? DEFAULT_CONFIG.title,
+    showDescription: backendConfig.show_description ?? DEFAULT_CONFIG.showDescription,
+    description: backendConfig.description ?? DEFAULT_CONFIG.description,
+    activeLabel: backendConfig.active_label ?? DEFAULT_CONFIG.activeLabel,
+    inactiveLabel: backendConfig.inactive_label ?? DEFAULT_CONFIG.inactiveLabel,
+    winnerLabel: backendConfig.winner_label ?? DEFAULT_CONFIG.winnerLabel,
+    entryMethodText: backendConfig.entry_method_text ?? DEFAULT_CONFIG.entryMethodText,
+    showEntryMethod: backendConfig.show_entry_method ?? DEFAULT_CONFIG.showEntryMethod,
+    showProgressBar: backendConfig.show_progress_bar ?? DEFAULT_CONFIG.showProgressBar,
+    targetParticipants: backendConfig.target_participants ?? DEFAULT_CONFIG.targetParticipants,
+    patreonMultiplier: backendConfig.patreon_multiplier ?? DEFAULT_CONFIG.patreonMultiplier,
+    patreonBadgeText: backendConfig.patreon_badge_text ?? DEFAULT_CONFIG.patreonBadgeText,
+    winnerAnimation: (backendConfig.winner_animation as GiveawayConfig['winnerAnimation']) ?? DEFAULT_CONFIG.winnerAnimation,
+    titleColor: backendConfig.title_color ?? DEFAULT_CONFIG.titleColor,
+    textColor: backendConfig.text_color ?? DEFAULT_CONFIG.textColor,
+    backgroundColor: backendConfig.background_color ?? DEFAULT_CONFIG.backgroundColor,
+    accentColor: backendConfig.accent_color ?? DEFAULT_CONFIG.accentColor,
+    fontSize: (backendConfig.font_size as GiveawayConfig['fontSize']) ?? DEFAULT_CONFIG.fontSize,
+    showPatreonInfo: backendConfig.show_patreon_info ?? DEFAULT_CONFIG.showPatreonInfo
+  };
+}
+
+const DEMO_ACTIVE = {
+  type: 'update' as const,
+  participants: 47,
+  patreons: 12,
+  isActive: true
+};
+
+const DEMO_WINNER = {
+  type: 'result' as const,
+  winner: { username: 'StreamLegend42', isPatreon: true },
+  totalParticipants: 89,
+  patreonParticipants: 15
+};
+
 export default function GiveawayWidgetSettings() {
-  const [config, setConfig] = createSignal<GiveawayConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendGiveawayConfig>(
+    userId,
+    () => "giveaway_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
-  const [userId, setUserId] = createSignal<string | null>(null);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<GiveawayConfig>>({});
   const [demoMode, setDemoMode] = createSignal<'active' | 'winner'>('active');
 
-  const DEMO_ACTIVE = {
-    type: 'update' as const,
-    participants: 47,
-    patreons: 12,
-    isActive: true
-  };
-
-  const DEMO_WINNER = {
-    type: 'result' as const,
-    winner: { username: 'StreamLegend42', isPatreon: true },
-    totalParticipants: 89,
-    patreonParticipants: 15
-  };
-
-  onMount(async () => {
-    const uid = await getCurrentUserId();
-    if (uid) {
-      setUserId(uid);
-      const loadedConfig = await loadWidgetConfig<any>({ userId: uid, type: "giveaway_widget" });
-      if (loadedConfig) {
-        setConfig({
-          showTitle: loadedConfig.show_title ?? DEFAULT_CONFIG.showTitle,
-          title: loadedConfig.title ?? DEFAULT_CONFIG.title,
-          showDescription: loadedConfig.show_description ?? DEFAULT_CONFIG.showDescription,
-          description: loadedConfig.description ?? DEFAULT_CONFIG.description,
-          activeLabel: loadedConfig.active_label ?? DEFAULT_CONFIG.activeLabel,
-          inactiveLabel: loadedConfig.inactive_label ?? DEFAULT_CONFIG.inactiveLabel,
-          winnerLabel: loadedConfig.winner_label ?? DEFAULT_CONFIG.winnerLabel,
-          entryMethodText: loadedConfig.entry_method_text ?? DEFAULT_CONFIG.entryMethodText,
-          showEntryMethod: loadedConfig.show_entry_method ?? DEFAULT_CONFIG.showEntryMethod,
-          showProgressBar: loadedConfig.show_progress_bar ?? DEFAULT_CONFIG.showProgressBar,
-          targetParticipants: loadedConfig.target_participants ?? DEFAULT_CONFIG.targetParticipants,
-          patreonMultiplier: loadedConfig.patreon_multiplier ?? DEFAULT_CONFIG.patreonMultiplier,
-          patreonBadgeText: loadedConfig.patreon_badge_text ?? DEFAULT_CONFIG.patreonBadgeText,
-          winnerAnimation: loadedConfig.winner_animation ?? DEFAULT_CONFIG.winnerAnimation,
-          titleColor: loadedConfig.title_color ?? DEFAULT_CONFIG.titleColor,
-          textColor: loadedConfig.text_color ?? DEFAULT_CONFIG.textColor,
-          backgroundColor: loadedConfig.background_color ?? DEFAULT_CONFIG.backgroundColor,
-          accentColor: loadedConfig.accent_color ?? DEFAULT_CONFIG.accentColor,
-          fontSize: loadedConfig.font_size ?? DEFAULT_CONFIG.fontSize,
-          showPatreonInfo: loadedConfig.show_patreon_info ?? DEFAULT_CONFIG.showPatreonInfo
-        });
-      }
-    }
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
 
+  const loading = createMemo(() => isLoading());
+
   async function handleSave() {
-    if (!userId()) return;
+    if (!userId()) {
+      setSaveMessage("Error: Not logged in");
+      return;
+    }
+
     setSaving(true);
     setSaveMessage(null);
 
-    const result = await saveWidgetConfig({
-      userId: userId()!,
-      type: "giveaway_widget",
-      config: {
-        show_title: config().showTitle,
-        title: config().title,
-        show_description: config().showDescription,
-        description: config().description,
-        active_label: config().activeLabel,
-        inactive_label: config().inactiveLabel,
-        winner_label: config().winnerLabel,
-        entry_method_text: config().entryMethodText,
-        show_entry_method: config().showEntryMethod,
-        show_progress_bar: config().showProgressBar,
-        target_participants: config().targetParticipants,
-        patreon_multiplier: config().patreonMultiplier,
-        patreon_badge_text: config().patreonBadgeText,
-        winner_animation: config().winnerAnimation,
-        title_color: config().titleColor,
-        text_color: config().textColor,
-        background_color: config().backgroundColor,
-        accent_color: config().accentColor,
-        font_size: config().fontSize,
-        show_patreon_info: config().showPatreonInfo
-      }
-    });
+    const currentConfig = config();
+    const backendConfig = {
+      show_title: currentConfig.showTitle,
+      title: currentConfig.title,
+      show_description: currentConfig.showDescription,
+      description: currentConfig.description,
+      active_label: currentConfig.activeLabel,
+      inactive_label: currentConfig.inactiveLabel,
+      winner_label: currentConfig.winnerLabel,
+      entry_method_text: currentConfig.entryMethodText,
+      show_entry_method: currentConfig.showEntryMethod,
+      show_progress_bar: currentConfig.showProgressBar,
+      target_participants: currentConfig.targetParticipants,
+      patreon_multiplier: currentConfig.patreonMultiplier,
+      patreon_badge_text: currentConfig.patreonBadgeText,
+      winner_animation: currentConfig.winnerAnimation,
+      title_color: currentConfig.titleColor,
+      text_color: currentConfig.textColor,
+      background_color: currentConfig.backgroundColor,
+      accent_color: currentConfig.accentColor,
+      font_size: currentConfig.fontSize,
+      show_patreon_info: currentConfig.showPatreonInfo
+    };
+
+    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+      input: {
+        userId: userId(),
+        type: "giveaway_widget",
+        config: JSON.stringify(backendConfig),
+      },
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
-    if (result.data?.saveWidgetConfig?.result) {
+    if (result.data?.saveWidgetConfig?.errors?.length > 0) {
+      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
+    } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
-      setSaveMessage("Error saving configuration");
+      setSaveMessage("Error: Failed to save configuration");
     }
+  }
+
+  function updateConfig<K extends keyof GiveawayConfig>(field: K, value: GiveawayConfig[K]) {
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (
@@ -168,7 +232,7 @@ export default function GiveawayWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showTitle}
-                        onChange={(e) => setConfig({ ...config(), showTitle: e.target.checked })}
+                        onChange={(e) => updateConfig("showTitle", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Title</span>
@@ -177,7 +241,7 @@ export default function GiveawayWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showDescription}
-                        onChange={(e) => setConfig({ ...config(), showDescription: e.target.checked })}
+                        onChange={(e) => updateConfig("showDescription", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Description</span>
@@ -186,7 +250,7 @@ export default function GiveawayWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showEntryMethod}
-                        onChange={(e) => setConfig({ ...config(), showEntryMethod: e.target.checked })}
+                        onChange={(e) => updateConfig("showEntryMethod", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Entry Method</span>
@@ -195,7 +259,7 @@ export default function GiveawayWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showProgressBar}
-                        onChange={(e) => setConfig({ ...config(), showProgressBar: e.target.checked })}
+                        onChange={(e) => updateConfig("showProgressBar", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Progress Bar</span>
@@ -210,7 +274,7 @@ export default function GiveawayWidgetSettings() {
                       type="text"
                       class={input.text + " mt-1"}
                       value={config().title}
-                      onInput={(e) => setConfig({ ...config(), title: e.target.value })}
+                      onInput={(e) => updateConfig("title", e.target.value)}
                     />
                   </label>
                 </div>
@@ -221,7 +285,7 @@ export default function GiveawayWidgetSettings() {
                     <textarea
                       class={input.text + " mt-1"}
                       value={config().description}
-                      onInput={(e) => setConfig({ ...config(), description: e.target.value })}
+                      onInput={(e) => updateConfig("description", e.target.value)}
                       rows={2}
                     />
                   </label>
@@ -233,7 +297,7 @@ export default function GiveawayWidgetSettings() {
                     <select
                       class={input.select + " mt-1"}
                       value={config().winnerAnimation}
-                      onChange={(e) => setConfig({ ...config(), winnerAnimation: e.target.value as any })}
+                      onChange={(e) => updateConfig("winnerAnimation", e.target.value as any)}
                     >
                       <option value="fade">Fade</option>
                       <option value="slide">Slide</option>

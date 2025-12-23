@@ -1,19 +1,12 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, onCleanup, Show } from "solid-js";
+import { createSignal, onMount, onCleanup, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import { button, card, text, input as designInput } from "~/styles/design-system";
 import { defaultConfig, generateViewerData, generateViewerUpdate, type ViewerCountConfig, type ViewerData } from "~/lib/fake/viewer-count";
-
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -29,44 +22,31 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 export default function ViewerCountSettings() {
-  const [config, setConfig] = createSignal<ViewerCountConfig>(defaultConfig());
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<ViewerCountConfig>(
+    userId,
+    () => "viewer_count_widget"
+  );
+
   const [currentData, setCurrentData] = createSignal<ViewerData>(generateViewerData());
-  const [loading, setLoading] = createSignal(true);
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<ViewerCountConfig>>({});
+
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config || defaultConfig();
+    return { ...baseConfig, ...localOverrides() };
+  });
+
+  const loading = createMemo(() => isLoading());
 
   let demoInterval: number | undefined;
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "viewer_count_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig(loadedConfig);
-      }
-    }
-
-    setLoading(false);
-
+  onMount(() => {
     demoInterval = window.setInterval(() => {
       const current = currentData();
       setCurrentData(generateViewerUpdate(current));
@@ -94,7 +74,7 @@ export default function ViewerCountSettings() {
         type: "viewer_count_widget",
         config: JSON.stringify(config()),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -102,6 +82,7 @@ export default function ViewerCountSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -109,7 +90,7 @@ export default function ViewerCountSettings() {
   }
 
   function updateConfig(updates: Partial<ViewerCountConfig>) {
-    setConfig((prev) => ({ ...prev, ...updates }));
+    setLocalOverrides((prev) => ({ ...prev, ...updates }));
   }
 
   function copyUrlToClipboard() {

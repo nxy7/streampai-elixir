@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show, createEffect } from "solid-js";
+import { createSignal, onMount, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import ChatWidget from "~/components/widgets/ChatWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface ChatMessage {
   id: string;
@@ -25,14 +27,14 @@ interface ChatConfig {
   maxMessages: number;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendChatConfig {
+  font_size?: string;
+  show_timestamps?: boolean;
+  show_badges?: boolean;
+  show_platform?: boolean;
+  show_emotes?: boolean;
+  max_messages?: number;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -48,14 +50,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: ChatConfig = {
   fontSize: "medium",
   showTimestamps: false,
@@ -64,6 +58,17 @@ const DEFAULT_CONFIG: ChatConfig = {
   showEmotes: true,
   maxMessages: 25,
 };
+
+function parseBackendConfig(backendConfig: BackendChatConfig): ChatConfig {
+  return {
+    fontSize: (backendConfig.font_size as ChatConfig["fontSize"]) || DEFAULT_CONFIG.fontSize,
+    showTimestamps: backendConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
+    showBadges: backendConfig.show_badges ?? DEFAULT_CONFIG.showBadges,
+    showPlatform: backendConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
+    showEmotes: backendConfig.show_emotes ?? DEFAULT_CONFIG.showEmotes,
+    maxMessages: backendConfig.max_messages || DEFAULT_CONFIG.maxMessages,
+  };
+}
 
 const MOCK_MESSAGES: ChatMessage[] = [
   {
@@ -97,40 +102,30 @@ const MOCK_MESSAGES: ChatMessage[] = [
 ];
 
 export default function ChatSettings() {
-  const [config, setConfig] = createSignal<ChatConfig>(DEFAULT_CONFIG);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendChatConfig>(
+    userId,
+    () => "chat_widget"
+  );
+
   const [messages, setMessages] = createSignal<ChatMessage[]>(MOCK_MESSAGES);
-  const [loading, setLoading] = createSignal(true);
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<ChatConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
+  });
 
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
+  const loading = createMemo(() => isLoading());
 
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "chat_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          showTimestamps: loadedConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
-          showBadges: loadedConfig.show_badges ?? DEFAULT_CONFIG.showBadges,
-          showPlatform: loadedConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
-          showEmotes: loadedConfig.show_emotes ?? DEFAULT_CONFIG.showEmotes,
-          maxMessages: loadedConfig.max_messages || DEFAULT_CONFIG.maxMessages,
-        });
-      }
-    }
-
-    setLoading(false);
-
+  onMount(() => {
     const interval = setInterval(() => {
       const newMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
@@ -163,21 +158,23 @@ export default function ChatSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      font_size: config().fontSize,
-      show_timestamps: config().showTimestamps,
-      show_badges: config().showBadges,
-      show_platform: config().showPlatform,
-      show_emotes: config().showEmotes,
-      max_messages: config().maxMessages,
+      font_size: currentConfig.fontSize,
+      show_timestamps: currentConfig.showTimestamps,
+      show_badges: currentConfig.showBadges,
+      show_platform: currentConfig.showPlatform,
+      show_emotes: currentConfig.showEmotes,
+      max_messages: currentConfig.maxMessages,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "chat_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -185,6 +182,7 @@ export default function ChatSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -192,7 +190,7 @@ export default function ChatSettings() {
   }
 
   function updateConfig<K extends keyof ChatConfig>(field: K, value: ChatConfig[K]) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (

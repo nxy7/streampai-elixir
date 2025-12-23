@@ -1,8 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createMemo } from "solid-js";
+import { graphql } from "gql.tada";
+import { client } from "~/lib/urql";
 import PollWidget from "~/components/widgets/PollWidget";
 import { button, card, text, input } from "~/styles/design-system";
-import { getCurrentUserId, loadWidgetConfig, saveWidgetConfig } from "~/lib/widget-config";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface PollConfig {
   showTitle: boolean;
@@ -20,6 +23,36 @@ interface PollConfig {
   hideDelay: number;
 }
 
+interface BackendPollConfig {
+  show_title?: boolean;
+  show_percentages?: boolean;
+  show_vote_counts?: boolean;
+  font_size?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  background_color?: string;
+  text_color?: string;
+  winner_color?: string;
+  animation_type?: string;
+  highlight_winner?: boolean;
+  auto_hide_after_end?: boolean;
+  hide_delay?: number;
+}
+
+const SAVE_WIDGET_CONFIG = graphql(`
+  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
+    saveWidgetConfig(input: $input) {
+      result {
+        id
+        config
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const DEFAULT_CONFIG: PollConfig = {
   showTitle: true,
   showPercentages: true,
@@ -35,6 +68,24 @@ const DEFAULT_CONFIG: PollConfig = {
   autoHideAfterEnd: false,
   hideDelay: 10
 };
+
+function parseBackendConfig(backendConfig: BackendPollConfig): PollConfig {
+  return {
+    showTitle: backendConfig.show_title ?? DEFAULT_CONFIG.showTitle,
+    showPercentages: backendConfig.show_percentages ?? DEFAULT_CONFIG.showPercentages,
+    showVoteCounts: backendConfig.show_vote_counts ?? DEFAULT_CONFIG.showVoteCounts,
+    fontSize: (backendConfig.font_size as PollConfig['fontSize']) ?? DEFAULT_CONFIG.fontSize,
+    primaryColor: backendConfig.primary_color ?? DEFAULT_CONFIG.primaryColor,
+    secondaryColor: backendConfig.secondary_color ?? DEFAULT_CONFIG.secondaryColor,
+    backgroundColor: backendConfig.background_color ?? DEFAULT_CONFIG.backgroundColor,
+    textColor: backendConfig.text_color ?? DEFAULT_CONFIG.textColor,
+    winnerColor: backendConfig.winner_color ?? DEFAULT_CONFIG.winnerColor,
+    animationType: (backendConfig.animation_type as PollConfig['animationType']) ?? DEFAULT_CONFIG.animationType,
+    highlightWinner: backendConfig.highlight_winner ?? DEFAULT_CONFIG.highlightWinner,
+    autoHideAfterEnd: backendConfig.auto_hide_after_end ?? DEFAULT_CONFIG.autoHideAfterEnd,
+    hideDelay: backendConfig.hide_delay ?? DEFAULT_CONFIG.hideDelay
+  };
+}
 
 const DEMO_POLL_ACTIVE = {
   id: 'demo-1',
@@ -66,75 +117,78 @@ const DEMO_POLL_ENDED = {
 };
 
 export default function PollWidgetSettings() {
-  const [config, setConfig] = createSignal<PollConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendPollConfig>(
+    userId,
+    () => "poll_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
-  const [userId, setUserId] = createSignal<string | null>(null);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<PollConfig>>({});
   const [demoMode, setDemoMode] = createSignal<'active' | 'ended'>('active');
 
-  onMount(async () => {
-    const uid = await getCurrentUserId();
-    if (uid) {
-      setUserId(uid);
-      const loadedConfig = await loadWidgetConfig<any>({ userId: uid, type: "poll_widget" });
-      if (loadedConfig) {
-        setConfig({
-          showTitle: loadedConfig.show_title ?? DEFAULT_CONFIG.showTitle,
-          showPercentages: loadedConfig.show_percentages ?? DEFAULT_CONFIG.showPercentages,
-          showVoteCounts: loadedConfig.show_vote_counts ?? DEFAULT_CONFIG.showVoteCounts,
-          fontSize: loadedConfig.font_size ?? DEFAULT_CONFIG.fontSize,
-          primaryColor: loadedConfig.primary_color ?? DEFAULT_CONFIG.primaryColor,
-          secondaryColor: loadedConfig.secondary_color ?? DEFAULT_CONFIG.secondaryColor,
-          backgroundColor: loadedConfig.background_color ?? DEFAULT_CONFIG.backgroundColor,
-          textColor: loadedConfig.text_color ?? DEFAULT_CONFIG.textColor,
-          winnerColor: loadedConfig.winner_color ?? DEFAULT_CONFIG.winnerColor,
-          animationType: loadedConfig.animation_type ?? DEFAULT_CONFIG.animationType,
-          highlightWinner: loadedConfig.highlight_winner ?? DEFAULT_CONFIG.highlightWinner,
-          autoHideAfterEnd: loadedConfig.auto_hide_after_end ?? DEFAULT_CONFIG.autoHideAfterEnd,
-          hideDelay: loadedConfig.hide_delay ?? DEFAULT_CONFIG.hideDelay
-        });
-      }
-    }
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
 
+  const loading = createMemo(() => isLoading());
+
   async function handleSave() {
-    if (!userId()) return;
+    if (!userId()) {
+      setSaveMessage("Error: Not logged in");
+      return;
+    }
 
     setSaving(true);
     setSaveMessage(null);
 
-    const result = await saveWidgetConfig({
-      userId: userId()!,
-      type: "poll_widget",
-      config: {
-        show_title: config().showTitle,
-        show_percentages: config().showPercentages,
-        show_vote_counts: config().showVoteCounts,
-        font_size: config().fontSize,
-        primary_color: config().primaryColor,
-        secondary_color: config().secondaryColor,
-        background_color: config().backgroundColor,
-        text_color: config().textColor,
-        winner_color: config().winnerColor,
-        animation_type: config().animationType,
-        highlight_winner: config().highlightWinner,
-        auto_hide_after_end: config().autoHideAfterEnd,
-        hide_delay: config().hideDelay
-      }
-    });
+    const currentConfig = config();
+    const backendConfig = {
+      show_title: currentConfig.showTitle,
+      show_percentages: currentConfig.showPercentages,
+      show_vote_counts: currentConfig.showVoteCounts,
+      font_size: currentConfig.fontSize,
+      primary_color: currentConfig.primaryColor,
+      secondary_color: currentConfig.secondaryColor,
+      background_color: currentConfig.backgroundColor,
+      text_color: currentConfig.textColor,
+      winner_color: currentConfig.winnerColor,
+      animation_type: currentConfig.animationType,
+      highlight_winner: currentConfig.highlightWinner,
+      auto_hide_after_end: currentConfig.autoHideAfterEnd,
+      hide_delay: currentConfig.hideDelay
+    };
+
+    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+      input: {
+        userId: userId(),
+        type: "poll_widget",
+        config: JSON.stringify(backendConfig),
+      },
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
-    if (result.data?.saveWidgetConfig?.result) {
+    if (result.data?.saveWidgetConfig?.errors?.length > 0) {
+      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
+    } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
-    } else if (result.data?.saveWidgetConfig?.errors) {
-      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0]?.message}`);
     } else {
-      setSaveMessage("Error saving configuration");
+      setSaveMessage("Error: Failed to save configuration");
     }
+  }
+
+  function updateConfig<K extends keyof PollConfig>(field: K, value: PollConfig[K]) {
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (
@@ -147,12 +201,10 @@ export default function PollWidgetSettings() {
 
         <Show when={!loading()} fallback={<div>Loading configuration...</div>}>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column: Configuration */}
             <div class={card.default}>
               <h2 class={text.h2 + " mb-6"}>Configuration</h2>
 
               <div class="space-y-6">
-                {/* Display Options */}
                 <div>
                   <h3 class={text.h3 + " mb-3"}>Display Options</h3>
                   <div class="space-y-3">
@@ -160,7 +212,7 @@ export default function PollWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showTitle}
-                        onChange={(e) => setConfig({ ...config(), showTitle: e.target.checked })}
+                        onChange={(e) => updateConfig("showTitle", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Poll Title</span>
@@ -170,7 +222,7 @@ export default function PollWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showPercentages}
-                        onChange={(e) => setConfig({ ...config(), showPercentages: e.target.checked })}
+                        onChange={(e) => updateConfig("showPercentages", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Percentages</span>
@@ -180,7 +232,7 @@ export default function PollWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().showVoteCounts}
-                        onChange={(e) => setConfig({ ...config(), showVoteCounts: e.target.checked })}
+                        onChange={(e) => updateConfig("showVoteCounts", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Show Vote Counts</span>
@@ -190,7 +242,7 @@ export default function PollWidgetSettings() {
                       <input
                         type="checkbox"
                         checked={config().highlightWinner}
-                        onChange={(e) => setConfig({ ...config(), highlightWinner: e.target.checked })}
+                        onChange={(e) => updateConfig("highlightWinner", e.target.checked)}
                         class="mr-2"
                       />
                       <span>Highlight Leading Option</span>
@@ -198,14 +250,13 @@ export default function PollWidgetSettings() {
                   </div>
                 </div>
 
-                {/* Font Size */}
                 <div>
                   <label class="block mb-2">
                     <span class={text.label}>Font Size</span>
                     <select
                       class={input.select + " mt-1"}
                       value={config().fontSize}
-                      onChange={(e) => setConfig({ ...config(), fontSize: e.target.value as any })}
+                      onChange={(e) => updateConfig("fontSize", e.target.value as any)}
                     >
                       <option value="small">Small</option>
                       <option value="medium">Medium</option>
@@ -215,14 +266,13 @@ export default function PollWidgetSettings() {
                   </label>
                 </div>
 
-                {/* Animation Type */}
                 <div>
                   <label class="block mb-2">
                     <span class={text.label}>Animation Type</span>
                     <select
                       class={input.select + " mt-1"}
                       value={config().animationType}
-                      onChange={(e) => setConfig({ ...config(), animationType: e.target.value as any })}
+                      onChange={(e) => updateConfig("animationType", e.target.value as any)}
                     >
                       <option value="none">None</option>
                       <option value="smooth">Smooth</option>
@@ -231,7 +281,6 @@ export default function PollWidgetSettings() {
                   </label>
                 </div>
 
-                {/* Colors */}
                 <div>
                   <h3 class={text.h3 + " mb-3"}>Colors</h3>
                   <div class="space-y-3">
@@ -241,7 +290,7 @@ export default function PollWidgetSettings() {
                         type="color"
                         class={input.text + " mt-1"}
                         value={config().primaryColor}
-                        onInput={(e) => setConfig({ ...config(), primaryColor: e.target.value })}
+                        onInput={(e) => updateConfig("primaryColor", e.target.value)}
                       />
                     </label>
 
@@ -251,7 +300,7 @@ export default function PollWidgetSettings() {
                         type="color"
                         class={input.text + " mt-1"}
                         value={config().secondaryColor}
-                        onInput={(e) => setConfig({ ...config(), secondaryColor: e.target.value })}
+                        onInput={(e) => updateConfig("secondaryColor", e.target.value)}
                       />
                     </label>
 
@@ -261,7 +310,7 @@ export default function PollWidgetSettings() {
                         type="color"
                         class={input.text + " mt-1"}
                         value={config().winnerColor}
-                        onInput={(e) => setConfig({ ...config(), winnerColor: e.target.value })}
+                        onInput={(e) => updateConfig("winnerColor", e.target.value)}
                       />
                     </label>
 
@@ -271,7 +320,7 @@ export default function PollWidgetSettings() {
                         type="color"
                         class={input.text + " mt-1"}
                         value={config().backgroundColor}
-                        onInput={(e) => setConfig({ ...config(), backgroundColor: e.target.value })}
+                        onInput={(e) => updateConfig("backgroundColor", e.target.value)}
                       />
                     </label>
 
@@ -281,13 +330,12 @@ export default function PollWidgetSettings() {
                         type="color"
                         class={input.text + " mt-1"}
                         value={config().textColor}
-                        onInput={(e) => setConfig({ ...config(), textColor: e.target.value })}
+                        onInput={(e) => updateConfig("textColor", e.target.value)}
                       />
                     </label>
                   </div>
                 </div>
 
-                {/* Save Button */}
                 <div class="pt-4 border-t border-gray-200">
                   <button
                     class={button.primary}
@@ -309,12 +357,10 @@ export default function PollWidgetSettings() {
               </div>
             </div>
 
-            {/* Right Column: Preview */}
             <div class="space-y-6">
               <div class={card.default}>
                 <h2 class={text.h2 + " mb-4"}>Preview</h2>
 
-                {/* Demo Mode Toggle */}
                 <div class="mb-4">
                   <label class="block mb-2">
                     <span class={text.label}>Preview Mode</span>

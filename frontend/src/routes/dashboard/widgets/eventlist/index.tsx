@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, onMount, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import EventListWidget from "~/components/widgets/EventListWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface StreamEvent {
   id: string;
@@ -27,14 +29,16 @@ interface EventListConfig {
   compactMode: boolean;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendEventListConfig {
+  animation_type?: string;
+  max_events?: number;
+  event_types?: string[];
+  show_timestamps?: boolean;
+  show_platform?: boolean;
+  show_amounts?: boolean;
+  font_size?: string;
+  compact_mode?: boolean;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -50,14 +54,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: EventListConfig = {
   animationType: "fade",
   maxEvents: 10,
@@ -68,6 +64,19 @@ const DEFAULT_CONFIG: EventListConfig = {
   fontSize: "medium",
   compactMode: true,
 };
+
+function parseBackendConfig(backendConfig: BackendEventListConfig): EventListConfig {
+  return {
+    animationType: (backendConfig.animation_type as EventListConfig["animationType"]) || DEFAULT_CONFIG.animationType,
+    maxEvents: backendConfig.max_events || DEFAULT_CONFIG.maxEvents,
+    eventTypes: backendConfig.event_types || DEFAULT_CONFIG.eventTypes,
+    showTimestamps: backendConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
+    showPlatform: backendConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
+    showAmounts: backendConfig.show_amounts ?? DEFAULT_CONFIG.showAmounts,
+    fontSize: (backendConfig.font_size as EventListConfig["fontSize"]) || DEFAULT_CONFIG.fontSize,
+    compactMode: backendConfig.compact_mode ?? DEFAULT_CONFIG.compactMode,
+  };
+}
 
 const MOCK_EVENTS: StreamEvent[] = [
   {
@@ -99,42 +108,30 @@ const MOCK_EVENTS: StreamEvent[] = [
 ];
 
 export default function EventListSettings() {
-  const [config, setConfig] = createSignal<EventListConfig>(DEFAULT_CONFIG);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendEventListConfig>(
+    userId,
+    () => "eventlist_widget"
+  );
+
   const [events, setEvents] = createSignal<StreamEvent[]>(MOCK_EVENTS);
-  const [loading, setLoading] = createSignal(true);
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<EventListConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
+  });
 
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
+  const loading = createMemo(() => isLoading());
 
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "eventlist_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          animationType: loadedConfig.animation_type || DEFAULT_CONFIG.animationType,
-          maxEvents: loadedConfig.max_events || DEFAULT_CONFIG.maxEvents,
-          eventTypes: loadedConfig.event_types || DEFAULT_CONFIG.eventTypes,
-          showTimestamps: loadedConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
-          showPlatform: loadedConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
-          showAmounts: loadedConfig.show_amounts ?? DEFAULT_CONFIG.showAmounts,
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          compactMode: loadedConfig.compact_mode ?? DEFAULT_CONFIG.compactMode,
-        });
-      }
-    }
-
-    setLoading(false);
-
+  onMount(() => {
     const interval = setInterval(() => {
       const eventTypes: ("donation" | "follow" | "subscription" | "raid")[] = ["donation", "follow", "subscription", "raid"];
       const newEvent: StreamEvent = {
@@ -162,23 +159,25 @@ export default function EventListSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      animation_type: config().animationType,
-      max_events: config().maxEvents,
-      event_types: config().eventTypes,
-      show_timestamps: config().showTimestamps,
-      show_platform: config().showPlatform,
-      show_amounts: config().showAmounts,
-      font_size: config().fontSize,
-      compact_mode: config().compactMode,
+      animation_type: currentConfig.animationType,
+      max_events: currentConfig.maxEvents,
+      event_types: currentConfig.eventTypes,
+      show_timestamps: currentConfig.showTimestamps,
+      show_platform: currentConfig.showPlatform,
+      show_amounts: currentConfig.showAmounts,
+      font_size: currentConfig.fontSize,
+      compact_mode: currentConfig.compactMode,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "eventlist_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -186,6 +185,7 @@ export default function EventListSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -193,7 +193,7 @@ export default function EventListSettings() {
   }
 
   function updateConfig<K extends keyof EventListConfig>(field: K, value: EventListConfig[K]) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   function toggleEventType(type: string) {

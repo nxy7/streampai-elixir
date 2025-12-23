@@ -66,6 +66,13 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  pipeline :admin_electric_sync do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(SafeLoadFromSession)
+    plug(:require_admin_user)
+  end
+
   scope "/admin" do
     pipe_through(:admin)
 
@@ -124,6 +131,13 @@ defmodule StreampaiWeb.Router do
     get "/livestreams", SyncController, :livestreams
     get "/viewers", SyncController, :viewers
     get "/user_preferences", SyncController, :user_preferences
+    get "/widget_configs/:user_id", SyncController, :widget_configs
+  end
+
+  scope "/shapes", StreampaiWeb do
+    pipe_through(:admin_electric_sync)
+
+    get "/admin_users", SyncController, :admin_users
   end
 
   scope "/rpc", StreampaiWeb do
@@ -163,4 +177,27 @@ defmodule StreampaiWeb.Router do
         conn.remote_ip |> :inet.ntoa() |> to_string()
     end
   end
+
+  def require_admin_user(conn, _opts) do
+    alias Streampai.Accounts.UserPolicy
+
+    case conn.assigns[:current_user] do
+      nil ->
+        conn
+        |> put_status(:unauthorized)
+        |> Phoenix.Controller.json(%{error: "Authentication required"})
+        |> halt()
+
+      user ->
+        if UserPolicy.admin?(user) do
+          conn
+        else
+          conn
+          |> put_status(:forbidden)
+          |> Phoenix.Controller.json(%{error: "Admin access required"})
+          |> halt()
+        end
+    end
+  end
+
 end

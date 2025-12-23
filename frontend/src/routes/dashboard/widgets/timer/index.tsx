@@ -1,9 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, Show, createMemo } from "solid-js";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
 import TimerWidget from "~/components/widgets/TimerWidget";
 import { button, card, text, input } from "~/styles/design-system";
+import { useCurrentUser } from "~/lib/auth";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 interface TimerConfig {
   label: string;
@@ -14,14 +16,14 @@ interface TimerConfig {
   autoStart: boolean;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
+interface BackendTimerConfig {
+  label?: string;
+  font_size?: number;
+  text_color?: string;
+  background_color?: string;
+  countdown_minutes?: number;
+  auto_start?: boolean;
+}
 
 const SAVE_WIDGET_CONFIG = graphql(`
   mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
@@ -37,14 +39,6 @@ const SAVE_WIDGET_CONFIG = graphql(`
   }
 `);
 
-const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: TimerConfig = {
   label: "TIMER",
   fontSize: 48,
@@ -54,40 +48,39 @@ const DEFAULT_CONFIG: TimerConfig = {
   autoStart: false,
 };
 
+function parseBackendConfig(backendConfig: BackendTimerConfig): TimerConfig {
+  return {
+    label: backendConfig.label || DEFAULT_CONFIG.label,
+    fontSize: backendConfig.font_size || DEFAULT_CONFIG.fontSize,
+    textColor: backendConfig.text_color || DEFAULT_CONFIG.textColor,
+    backgroundColor: backendConfig.background_color || DEFAULT_CONFIG.backgroundColor,
+    countdownMinutes: backendConfig.countdown_minutes || DEFAULT_CONFIG.countdownMinutes,
+    autoStart: backendConfig.auto_start ?? DEFAULT_CONFIG.autoStart,
+  };
+}
+
 export default function TimerSettings() {
-  const [config, setConfig] = createSignal<TimerConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = createSignal(true);
+  const { user, isLoading } = useCurrentUser();
+  const userId = createMemo(() => user()?.id);
+
+  const widgetConfigQuery = useWidgetConfig<BackendTimerConfig>(
+    userId,
+    () => "timer_widget"
+  );
+
   const [saving, setSaving] = createSignal(false);
   const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-  const [userId, setUserId] = createSignal<string | null>(null);
+  const [localOverrides, setLocalOverrides] = createSignal<Partial<TimerConfig>>({});
 
-  onMount(async () => {
-    const userResult = await client.query(GET_CURRENT_USER, {});
-
-    if (userResult.data?.currentUser?.id) {
-      const currentUserId = userResult.data.currentUser.id;
-      setUserId(currentUserId);
-
-      const result = await client.query(GET_WIDGET_CONFIG, {
-        userId: currentUserId,
-        type: "timer_widget",
-      });
-
-      if (result.data?.widgetConfig?.config) {
-        const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-        setConfig({
-          label: loadedConfig.label || DEFAULT_CONFIG.label,
-          fontSize: loadedConfig.font_size || DEFAULT_CONFIG.fontSize,
-          textColor: loadedConfig.text_color || DEFAULT_CONFIG.textColor,
-          backgroundColor: loadedConfig.background_color || DEFAULT_CONFIG.backgroundColor,
-          countdownMinutes: loadedConfig.countdown_minutes || DEFAULT_CONFIG.countdownMinutes,
-          autoStart: loadedConfig.auto_start ?? DEFAULT_CONFIG.autoStart,
-        });
-      }
-    }
-
-    setLoading(false);
+  const config = createMemo(() => {
+    const syncedConfig = widgetConfigQuery.data();
+    const baseConfig = syncedConfig?.config
+      ? parseBackendConfig(syncedConfig.config)
+      : DEFAULT_CONFIG;
+    return { ...baseConfig, ...localOverrides() };
   });
+
+  const loading = createMemo(() => isLoading());
 
   async function handleSave() {
     if (!userId()) {
@@ -98,21 +91,23 @@ export default function TimerSettings() {
     setSaving(true);
     setSaveMessage(null);
 
+    const currentConfig = config();
     const backendConfig = {
-      label: config().label,
-      font_size: config().fontSize,
-      text_color: config().textColor,
-      background_color: config().backgroundColor,
-      countdown_minutes: config().countdownMinutes,
-      auto_start: config().autoStart,
+      label: currentConfig.label,
+      font_size: currentConfig.fontSize,
+      text_color: currentConfig.textColor,
+      background_color: currentConfig.backgroundColor,
+      countdown_minutes: currentConfig.countdownMinutes,
+      auto_start: currentConfig.autoStart,
     };
 
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
+        userId: userId(),
         type: "timer_widget",
         config: JSON.stringify(backendConfig),
       },
-    });
+    }, { fetchOptions: { credentials: "include" } });
 
     setSaving(false);
 
@@ -120,6 +115,7 @@ export default function TimerSettings() {
       setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
     } else if (result.data?.saveWidgetConfig?.result) {
       setSaveMessage("Configuration saved successfully!");
+      setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
     } else {
       setSaveMessage("Error: Failed to save configuration");
@@ -127,7 +123,7 @@ export default function TimerSettings() {
   }
 
   function updateConfig(field: keyof TimerConfig, value: string | number | boolean) {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }
 
   return (

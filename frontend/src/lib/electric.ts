@@ -65,6 +65,46 @@ export type UserPreferences = Row & {
   updated_at: string;
 };
 
+export type AdminUser = Row & {
+  id: string;
+  email: string;
+  name: string;
+  confirmed_at: string | null;
+  avatar_url: string | null;
+  inserted_at: string;
+  updated_at: string;
+};
+
+export type WidgetConfig = Row & {
+  id: string;
+  user_id: string;
+  type: string;
+  config: Record<string, unknown>;
+  inserted_at: string;
+  updated_at: string;
+};
+
+export type WidgetType =
+  | "placeholder_widget"
+  | "chat_widget"
+  | "alertbox_widget"
+  | "viewer_count_widget"
+  | "follower_count_widget"
+  | "donation_widget"
+  | "donation_goal_widget"
+  | "top_donors_widget"
+  | "follow_widget"
+  | "subscriber_widget"
+  | "overlay_widget"
+  | "alert_widget"
+  | "goal_widget"
+  | "leaderboard_widget"
+  | "timer_widget"
+  | "poll_widget"
+  | "slider_widget"
+  | "giveaway_widget"
+  | "eventlist_widget";
+
 const SHAPES_URL = `${BACKEND_URL}/shapes`;
 
 export const streamEventsCollection = createCollection(
@@ -186,6 +226,30 @@ export function createLivestreamEventsCollection(livestreamId: string) {
         params: {
           where: `livestream_id='${livestreamId}'`,
         },
+      },
+      getKey: (item) => item.id,
+    })
+  );
+}
+
+export const adminUsersCollection = createCollection(
+  electricCollectionOptions<AdminUser>({
+    id: "admin_users",
+    shapeOptions: {
+      url: `${SHAPES_URL}/admin_users`,
+      fetchClient: (input, init) =>
+        fetch(input, { ...init, credentials: "include" }),
+    },
+    getKey: (item) => item.id,
+  })
+);
+
+export function createWidgetConfigsCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<WidgetConfig>({
+      id: `widget_configs_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/widget_configs/${userId}`,
       },
       getKey: (item) => item.id,
     })

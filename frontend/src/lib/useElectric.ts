@@ -6,11 +6,14 @@ import {
   livestreamsCollection,
   viewersCollection,
   userPreferencesCollection,
+  createWidgetConfigsCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
   type Viewer,
   type UserPreferences,
+  type WidgetConfig,
+  type WidgetType,
 } from "./electric";
 
 export function useStreamEvents() {
@@ -144,4 +147,58 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
   };
 }
 
-export { type StreamEvent, type ChatMessage, type Livestream, type Viewer, type UserPreferences };
+// Cache for widget config collections by user ID
+const widgetConfigCollections = new Map<string, ReturnType<typeof createWidgetConfigsCollection>>();
+
+function getWidgetConfigsCollection(userId: string) {
+  let collection = widgetConfigCollections.get(userId);
+  if (!collection) {
+    collection = createWidgetConfigsCollection(userId);
+    widgetConfigCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+export function useWidgetConfigs(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getWidgetConfigsCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useWidgetConfig<T = Record<string, unknown>>(
+  userId: () => string | undefined,
+  widgetType: () => WidgetType
+) {
+  const query = useWidgetConfigs(userId);
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return null;
+      const type = widgetType();
+      const configs = query.data();
+      const config = configs.find((c) => c.type === type);
+      return config ? { ...config, config: config.config as T } : null;
+    }),
+  };
+}
+
+export {
+  type StreamEvent,
+  type ChatMessage,
+  type Livestream,
+  type Viewer,
+  type UserPreferences,
+  type WidgetConfig,
+  type WidgetType,
+};
