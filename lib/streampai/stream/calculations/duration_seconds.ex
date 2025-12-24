@@ -5,6 +5,11 @@ defmodule Streampai.Stream.Calculations.DurationSeconds do
   use Ash.Resource.Calculation
 
   @impl true
+  def load(_query, _opts, _context) do
+    [:started_at, :ended_at]
+  end
+
+  @impl true
   def calculate(records, _opts, _context) do
     {:ok,
      Enum.map(records, fn record ->

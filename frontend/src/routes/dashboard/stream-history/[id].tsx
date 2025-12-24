@@ -598,10 +598,12 @@ function StreamDetailContent(props: { streamId: string }) {
                         class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                       />
                       <span class="text-sm font-medium text-gray-600 min-w-[60px]">
-                        {formatTimelineTime(
-                          stream()!,
-                          currentTimelinePosition()
-                        )}
+                        <Show when={stream()} fallback="0:00">
+                          {formatTimelineTime(
+                            stream()!,
+                            currentTimelinePosition()
+                          )}
+                        </Show>
                       </span>
                     </div>
 
@@ -652,10 +654,12 @@ function StreamDetailContent(props: { streamId: string }) {
                           }
                           class="font-medium text-purple-800 hover:text-purple-900 underline"
                         >
-                          {formatTimelineTime(
-                            stream()!,
-                            insights().peakMoment.timelinePosition
-                          )}
+                          <Show when={stream()} fallback="0:00">
+                            {formatTimelineTime(
+                              stream()!,
+                              insights().peakMoment.timelinePosition
+                            )}
+                          </Show>
                         </button>
                       </p>
                       <p class="text-xs text-purple-600 mt-1">
@@ -691,7 +695,9 @@ function StreamDetailContent(props: { streamId: string }) {
                     </h3>
                     <p class="text-xs text-gray-500 mt-1">
                       Showing messages up to{" "}
-                      {formatTimelineTime(stream()!, currentTimelinePosition())}
+                      <Show when={stream()} fallback="0:00">
+                        {formatTimelineTime(stream()!, currentTimelinePosition())}
+                      </Show>
                     </p>
                   </div>
 
