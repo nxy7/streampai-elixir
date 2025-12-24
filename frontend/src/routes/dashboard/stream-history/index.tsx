@@ -2,7 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createMemo, Suspense, ErrorBoundary } from "solid-js";
 import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
-import { button, card, text, badge } from "~/styles/design-system";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Alert, Stat } from "~/components/ui";
 import { createQuery } from "@urql/solid";
 import { graphql, ResultOf } from "gql.tada";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -73,9 +73,9 @@ export default function StreamHistory() {
         <ErrorBoundary
           fallback={(err) => (
             <div class="max-w-7xl mx-auto mt-8">
-              <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+              <Alert variant="error">
                 Error loading streams: {err.message}
-              </div>
+              </Alert>
             </div>
           )}
         >
@@ -196,24 +196,21 @@ function StreamHistoryContent(props: {
     return `${minutes}m`;
   };
 
-  const getPlatformBadgeColor = (platformName: string) => {
-    const colors = {
-      twitch: "bg-purple-100 text-purple-800",
-      youtube: "bg-red-100 text-red-800",
-      facebook: "bg-blue-100 text-blue-800",
-      kick: "bg-green-100 text-green-800",
+  const getPlatformBadgeVariant = (platformName: string): "purple" | "error" | "info" | "success" | "neutral" => {
+    const variants: Record<string, "purple" | "error" | "info" | "success" | "neutral"> = {
+      twitch: "purple",
+      youtube: "error",
+      facebook: "info",
+      kick: "success",
     };
-    return (
-      colors[platformName.toLowerCase() as keyof typeof colors] ||
-      "bg-gray-100 text-gray-800"
-    );
+    return variants[platformName.toLowerCase()] || "neutral";
   };
 
   return (
     <div class="max-w-7xl mx-auto space-y-6">
       {/* Filters */}
-      <div class={card.default}>
-        <h3 class={text.h3 + " mb-4"}>Filter Streams</h3>
+      <Card>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Filter Streams</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -266,17 +263,18 @@ function StreamHistoryContent(props: {
             </select>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Stats Overview - only show when data is loaded */}
       <Show when={!streamsQuery.fetching && streams().length >= 0}>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class={card.default}>
-          <div class="flex items-center">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+          <Card>
+            <Stat
+              value={String(stats().totalStreams)}
+              label={`Streams (${stats().dateRangeLabel})`}
+              icon={
                 <svg
-                  class="w-4 h-4 text-purple-600"
+                  class="w-8 h-8 text-purple-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -288,25 +286,17 @@ function StreamHistoryContent(props: {
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="text-2xl font-bold text-gray-900">
-                {stats().totalStreams}
-              </div>
-              <p class="text-sm text-gray-500">
-                Streams ({stats().dateRangeLabel})
-              </p>
-            </div>
-          </div>
-        </div>
+              }
+            />
+          </Card>
 
-        <div class={card.default}>
-          <div class="flex items-center">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Card>
+            <Stat
+              value={stats().totalTime}
+              label="Total Stream Time"
+              icon={
                 <svg
-                  class="w-4 h-4 text-blue-600"
+                  class="w-8 h-8 text-blue-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -318,23 +308,17 @@ function StreamHistoryContent(props: {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="text-2xl font-bold text-gray-900">
-                {stats().totalTime}
-              </div>
-              <p class="text-sm text-gray-500">Total Stream Time</p>
-            </div>
-          </div>
-        </div>
+              }
+            />
+          </Card>
 
-        <div class={card.default}>
-          <div class="flex items-center">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+          <Card>
+            <Stat
+              value={String(stats().avgViewers)}
+              label="Avg Viewers"
+              icon={
                 <svg
-                  class="w-4 h-4 text-green-600"
+                  class="w-8 h-8 text-green-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -352,135 +336,123 @@ function StreamHistoryContent(props: {
                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                   />
                 </svg>
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="text-2xl font-bold text-gray-900">
-                {stats().avgViewers}
-              </div>
-              <p class="text-sm text-gray-500">Avg Viewers</p>
-            </div>
-          </div>
-        </div>
+              }
+            />
+          </Card>
         </div>
       </Show>
 
       {/* Stream History List */}
-      <div class={card.default}>
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">
-            Recent Streams
-          </h3>
-        </div>
-
-        <Show
-          when={filteredAndSortedStreams().length > 0}
-          fallback={
-            <div class="text-center py-12">
-              <svg
-                class="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">
-                No streams found
-              </h3>
-              <p class="mt-1 text-sm text-gray-500">
-                No streams match your current filters.
-              </p>
-            </div>
-          }
-        >
-          <div class="divide-y divide-gray-200">
-            <For each={filteredAndSortedStreams()}>
-              {(stream) => (
-                <A
-                  href={`/dashboard/stream-history/${stream.id}`}
-                  class="block p-6 hover:bg-gray-50 transition-colors"
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Streams</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Show
+            when={filteredAndSortedStreams().length > 0}
+            fallback={
+              <div class="text-center py-12">
+                <svg
+                  class="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <div class="flex items-center space-x-4">
-                    <Show when={stream.thumbnailUrl}>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">
+                  No streams found
+                </h3>
+                <p class="mt-1 text-sm text-gray-500">
+                  No streams match your current filters.
+                </p>
+              </div>
+            }
+          >
+            <div class="divide-y divide-gray-200 -mx-6">
+              <For each={filteredAndSortedStreams()}>
+                {(stream) => (
+                  <A
+                    href={`/dashboard/stream-history/${stream.id}`}
+                    class="block p-6 hover:bg-gray-50 transition-colors"
+                  >
+                    <div class="flex items-center space-x-4">
+                      <Show when={stream.thumbnailUrl}>
+                        <div class="shrink-0">
+                          <img
+                            src={stream.thumbnailUrl!}
+                            alt="Stream thumbnail"
+                            class="w-32 aspect-video object-cover rounded-lg"
+                            onError={(e) =>
+                              (e.currentTarget.style.display = "none")
+                            }
+                          />
+                        </div>
+                      </Show>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between">
+                          <div>
+                            <h4 class="text-sm font-medium text-gray-900 truncate">
+                              {stream.title || "Untitled Stream"}
+                            </h4>
+                            <div class="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                              <For each={stream.platforms || []}>
+                                {(platform) => (
+                                  <Badge variant={getPlatformBadgeVariant(platform)}>
+                                    {platform.charAt(0).toUpperCase() +
+                                      platform.slice(1)}
+                                  </Badge>
+                                )}
+                              </For>
+                              <span class="text-xs text-gray-500">
+                                {formatDate(stream.startedAt)}
+                              </span>
+                              <span class="text-xs text-gray-500">
+                                {formatDuration(
+                                  stream.durationSeconds!
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div class="text-right ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                              {stream.peakViewers || 0} peak viewers
+                            </div>
+                            <div class="text-xs text-gray-500">
+                              {stream.averageViewers || 0} avg •{" "}
+                              {stream.messagesAmount || 0} messages
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div class="shrink-0">
-                        <img
-                          src={stream.thumbnailUrl!}
-                          alt="Stream thumbnail"
-                          class="w-32 aspect-video object-cover rounded-lg"
-                          onError={(e) =>
-                            (e.currentTarget.style.display = "none")
-                          }
-                        />
-                      </div>
-                    </Show>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-start justify-between">
-                        <div>
-                          <h4 class="text-sm font-medium text-gray-900 truncate">
-                            {stream.title || "Untitled Stream"}
-                          </h4>
-                          <div class="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                            <For each={stream.platforms || []}>
-                              {(platform) => (
-                                <span
-                                  class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPlatformBadgeColor(
-                                    platform
-                                  )}`}
-                                >
-                                  {platform.charAt(0).toUpperCase() +
-                                    platform.slice(1)}
-                                </span>
-                              )}
-                            </For>
-                            <span class="text-xs text-gray-500">
-                              {formatDate(stream.startedAt)}
-                            </span>
-                            <span class="text-xs text-gray-500">
-                              {formatDuration(
-                                stream.durationSeconds!
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                        <div class="text-right ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            {stream.peakViewers || 0} peak viewers
-                          </div>
-                          <div class="text-xs text-gray-500">
-                            {stream.averageViewers || 0} avg •{" "}
-                            {stream.messagesAmount || 0} messages
-                          </div>
-                        </div>
+                        <svg
+                          class="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
                       </div>
                     </div>
-                    <div class="shrink-0">
-                      <svg
-                        class="w-5 h-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </A>
-              )}
-            </For>
-          </div>
-        </Show>
-      </div>
+                  </A>
+                )}
+              </For>
+            </div>
+          </Show>
+        </CardContent>
+      </Card>
     </div>
   );
 }

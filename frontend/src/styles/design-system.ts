@@ -146,6 +146,111 @@ export const layout = {
   sectionLarge: "space-y-8",
 };
 
+export const chart = {
+  // Chart container
+  container: "h-64 relative pl-12",
+
+  // Chart header with title and legend
+  header: "flex items-center justify-between mb-4",
+  title: "text-lg font-medium text-gray-900",
+
+  // Legend styles
+  legend: "flex items-center gap-4 text-xs text-gray-500",
+  legendItem: "flex items-center gap-1",
+  legendDotPrimary: "w-3 h-3 rounded-full bg-indigo-500",
+  legendDotSecondary: "w-3 h-3 rounded-full bg-indigo-300",
+
+  // Axis labels
+  yAxisLabels:
+    "absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-gray-500",
+  xAxisLabels:
+    "absolute bottom-0 left-12 right-0 flex justify-between text-xs text-gray-500",
+
+  // Empty state
+  emptyState: "h-64 flex items-center justify-center",
+  emptyContent: "text-center text-gray-400",
+  emptyIcon: "mx-auto h-12 w-12 mb-3",
+  emptyTitle: "text-sm font-medium",
+  emptyDescription: "text-xs mt-1",
+
+  // Summary stats
+  summaryContainer:
+    "mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-4 text-center",
+  summaryValue: "text-2xl font-semibold text-gray-900",
+  summaryValueHighlight: "text-2xl font-semibold text-indigo-600",
+  summaryLabel: "text-xs text-gray-500",
+
+  // SVG colors (for inline use)
+  colors: {
+    primary: "rgb(99, 102, 241)",
+    primaryLight: "rgb(165, 180, 252)",
+    primaryDark: "rgb(79, 70, 229)",
+    gridLine: "#e5e7eb",
+    baseline: "#d1d5db",
+  },
+};
+
+export const progressBar = {
+  // Progress bar track
+  track: "w-full bg-gray-200 rounded-full",
+
+  // Progress bar sizes
+  sm: "h-1",
+  md: "h-2",
+  lg: "h-3",
+
+  // Progress bar fill variants
+  primary: "bg-indigo-600 rounded-full transition-all duration-500",
+  success: "bg-green-600 rounded-full transition-all duration-500",
+  warning: "bg-yellow-500 rounded-full transition-all duration-500",
+  danger: "bg-red-600 rounded-full transition-all duration-500",
+
+  // With label
+  labelContainer: "flex justify-between text-sm mb-1",
+  labelText: "text-gray-600",
+  labelValue: "font-medium text-gray-900",
+};
+
+export const stat = {
+  // Stat card container
+  container: "text-center",
+
+  // Stat values
+  valueSm: "text-lg font-semibold text-gray-900",
+  valueMd: "text-2xl font-semibold text-gray-900",
+  valueLg: "text-3xl font-bold text-gray-900",
+
+  // Highlighted values
+  valueHighlightSm: "text-lg font-semibold text-indigo-600",
+  valueHighlightMd: "text-2xl font-semibold text-indigo-600",
+  valueHighlightLg: "text-3xl font-bold text-indigo-600",
+
+  // Stat labels
+  label: "text-xs text-gray-500",
+  labelMd: "text-sm text-gray-500",
+};
+
+export const table = {
+  // Table container
+  container: "overflow-x-auto",
+
+  // Table element
+  table: "min-w-full divide-y divide-gray-200",
+
+  // Table header
+  thead: "bg-gray-50",
+  th: "px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider",
+
+  // Table body
+  tbody: "bg-white divide-y divide-gray-200",
+  tr: "hover:bg-gray-50",
+  td: "px-6 py-4 whitespace-nowrap text-sm text-gray-900",
+  tdMuted: "px-6 py-4 whitespace-nowrap text-sm text-gray-500",
+
+  // Empty state
+  empty: "px-6 py-12 text-center",
+};
+
 /**
  * Helper function to merge class names
  * Usage: cn(button.primary, "text-lg") => "bg-purple-600 ... text-lg"

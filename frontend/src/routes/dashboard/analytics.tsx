@@ -2,7 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createEffect, createMemo, onCleanup } from "solid-js";
 import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
-import { card, text } from "~/styles/design-system";
+import { Card, CardHeader, CardTitle, CardContent, Stat, StatGroup, ProgressBar, Badge, Alert, Button, Select } from "~/components/ui";
 import { client } from "~/lib/urql";
 import { graphql, ResultOf } from "gql.tada";
 
@@ -118,7 +118,7 @@ export default function Analytics() {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     return streams().filter(stream => {
-      const startDate = new Date(stream.startedAt);
+      const startDate = new Date(stream.startedAt as string);
       return startDate >= cutoff && stream.endedAt;
     });
   });
@@ -139,8 +139,8 @@ export default function Analytics() {
     const dataByHour = new Map<number, number[]>();
 
     filteredStreams().forEach(stream => {
-      const startDate = new Date(stream.startedAt);
-      const endDate = stream.endedAt ? new Date(stream.endedAt) : now;
+      const startDate = new Date(stream.startedAt as string);
+      const endDate = stream.endedAt ? new Date(stream.endedAt as string) : now;
       const durationHours = Math.max(1, Math.floor((stream.durationSeconds || 0) / 3600));
 
       for (let i = 0; i < durationHours; i++) {
@@ -203,7 +203,7 @@ export default function Analytics() {
         id: stream.id,
         title: stream.title || "Untitled Stream",
         platform: formatPlatforms(stream.platforms || []),
-        startTime: new Date(stream.startedAt),
+        startTime: new Date(stream.startedAt as string),
         duration: formatDuration(stream.durationSeconds || 0),
         viewers: {
           peak: stream.peakViewers || 0,
@@ -251,7 +251,7 @@ export default function Analytics() {
       <Show
         when={!isLoading()}
         fallback={
-          <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <div class="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
             <div class="text-white text-xl">Loading...</div>
           </div>
         }
@@ -259,7 +259,7 @@ export default function Analytics() {
         <Show
           when={user()}
           fallback={
-            <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+            <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
               <div class="text-center py-12">
                 <h2 class="text-2xl font-bold text-white mb-4">Not Authenticated</h2>
                 <p class="text-gray-300 mb-6">Please sign in to view analytics.</p>
@@ -296,9 +296,7 @@ export default function Analytics() {
               </div>
 
               <Show when={error()}>
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
-                  {error()}
-                </div>
+                <Alert variant="error">{error()}</Alert>
               </Show>
 
               <Show
@@ -333,23 +331,62 @@ interface LineChartProps {
   data: ViewerDataPoint[];
 }
 
+interface DailyStreamData {
+  date: Date;
+  dateKey: string;
+  peakViewers: number;
+  avgViewers: number;
+  streamCount: number;
+  totalHours: number;
+}
+
 function LineChart(props: LineChartProps) {
-  const maxValue = createMemo(() => {
-    const rawMax = Math.max(...props.data.map(d => d.value), 100);
-    const roundingFactor = rawMax < 500 ? 10 : 100;
-    return Math.ceil(rawMax / roundingFactor) * roundingFactor;
+  // Aggregate hourly data into daily summaries
+  const dailyData = createMemo((): DailyStreamData[] => {
+    const dailyMap = new Map<string, {
+      date: Date;
+      values: number[];
+      hours: number;
+    }>();
+
+    props.data.forEach(point => {
+      const dateKey = point.time.toISOString().split('T')[0];
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, {
+          date: new Date(point.time.getFullYear(), point.time.getMonth(), point.time.getDate()),
+          values: [],
+          hours: 0
+        });
+      }
+      if (point.value > 0) {
+        dailyMap.get(dateKey)!.values.push(point.value);
+        dailyMap.get(dateKey)!.hours++;
+      }
+    });
+
+    const result: DailyStreamData[] = [];
+    dailyMap.forEach((data, dateKey) => {
+      const values = data.values;
+      result.push({
+        date: data.date,
+        dateKey,
+        peakViewers: values.length > 0 ? Math.max(...values) : 0,
+        avgViewers: values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0,
+        streamCount: values.length > 0 ? 1 : 0, // Simplified - actual count would need stream boundaries
+        totalHours: data.hours,
+      });
+    });
+
+    return result.sort((a, b) => a.date.getTime() - b.date.getTime());
   });
 
-  const points = createMemo(() => {
-    if (props.data.length === 0) return "";
+  const daysWithData = createMemo(() => dailyData().filter(d => d.peakViewers > 0));
+  const hasAnyData = createMemo(() => daysWithData().length > 0);
 
-    return props.data
-      .map((item, i) => {
-        const x = (i / (props.data.length - 1)) * 800;
-        const y = 300 - (item.value / maxValue()) * 280;
-        return `${x},${y}`;
-      })
-      .join(" ");
+  const maxValue = createMemo(() => {
+    const rawMax = Math.max(...dailyData().map(d => d.peakViewers), 100);
+    const roundingFactor = rawMax < 500 ? 10 : 100;
+    return Math.ceil(rawMax / roundingFactor) * roundingFactor;
   });
 
   const formatChartDate = (date: Date): string => {
@@ -357,79 +394,157 @@ function LineChart(props: LineChartProps) {
   };
 
   const labelIndices = createMemo(() => {
-    const len = props.data.length - 1;
-    return [0, Math.floor(len / 4), Math.floor(len / 2), Math.floor(3 * len / 4), len];
+    const len = dailyData().length;
+    if (len <= 5) return dailyData().map((_, i) => i);
+    return [0, Math.floor(len / 4), Math.floor(len / 2), Math.floor(3 * len / 4), len - 1];
   });
 
+  const chartColors = {
+    primary: "rgb(99, 102, 241)",
+    primaryLight: "rgb(165, 180, 252)",
+    primaryDark: "rgb(79, 70, 229)",
+    gridLine: "#e5e7eb",
+    baseline: "#d1d5db",
+  };
+
   return (
-    <div class={card.default}>
-      <h3 class="text-lg font-medium text-gray-900 mb-4">{props.title}</h3>
-      <div class="h-64 relative pl-12">
-        <svg class="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:rgb(99, 102, 241);stop-opacity:0.3" />
-              <stop offset="100%" style="stop-color:rgb(99, 102, 241);stop-opacity:0" />
-            </linearGradient>
-          </defs>
+    <Card>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">{props.title}</h3>
+        <Show when={hasAnyData()}>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <div class="flex items-center gap-1">
+              <div class="w-3 h-3 rounded-full bg-indigo-500" />
+              <span>Peak viewers</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="w-3 h-3 rounded-full bg-indigo-300" />
+              <span>Avg viewers</span>
+            </div>
+          </div>
+        </Show>
+      </div>
 
-          <For each={[0, 1, 2, 3, 4]}>
-            {(i) => {
-              const y = i * 60 + 10;
-              return (
-                <line
-                  x1="0"
-                  y1={y}
-                  x2="800"
-                  y2={y}
-                  stroke="#e5e7eb"
-                  stroke-width="1"
-                />
-              );
-            }}
-          </For>
-
-          <Show when={points().length > 0}>
-            <polyline
-              fill="url(#gradient)"
-              stroke="none"
-              points={`0,300 ${points()} 800,300`}
-            />
-
-            <polyline
-              fill="none"
-              stroke="rgb(99, 102, 241)"
-              stroke-width="2"
-              points={points()}
-            />
-
-            <For each={props.data}>
-              {(item, i) => {
-                const x = (i() / (props.data.length - 1)) * 800;
-                const y = 300 - (item.value / maxValue()) * 280;
-                return <circle cx={x} cy={y} r="4" fill="rgb(99, 102, 241)" />;
+      <Show
+        when={hasAnyData()}
+        fallback={
+          <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div class="text-center">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p class="mt-2 text-sm font-medium text-gray-900">No streaming data for this period</p>
+              <p class="mt-1 text-xs text-gray-500">Stream to see your viewer trends here</p>
+            </div>
+          </div>
+        }
+      >
+        <div class="h-64 relative pl-12">
+          <svg class="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
+            {/* Grid lines */}
+            <For each={[0, 1, 2, 3, 4]}>
+              {(i) => {
+                const y = i * 60 + 10;
+                return (
+                  <line
+                    x1="0"
+                    y1={y}
+                    x2="800"
+                    y2={y}
+                    stroke={chartColors.gridLine}
+                    stroke-width="1"
+                  />
+                );
               }}
             </For>
-          </Show>
-        </svg>
 
-        <div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-gray-500">
-          <For each={[4, 3, 2, 1, 0]}>
-            {(i) => (
-              <span class="text-right pr-2">{Math.floor((maxValue() * i) / 4)}</span>
-            )}
-          </For>
+            {/* Baseline */}
+            <line x1="0" y1="290" x2="800" y2="290" stroke={chartColors.baseline} stroke-width="1" />
+
+            {/* Bars for each day */}
+            <For each={dailyData()}>
+              {(day, i) => {
+                const barWidth = Math.max(8, Math.min(40, 780 / dailyData().length - 4));
+                const x = (i() / Math.max(dailyData().length - 1, 1)) * (800 - barWidth);
+                const peakHeight = (day.peakViewers / maxValue()) * 280;
+                const avgHeight = (day.avgViewers / maxValue()) * 280;
+
+                return (
+                  <Show when={day.peakViewers > 0}>
+                    <g>
+                      {/* Peak viewers bar (background) */}
+                      <rect
+                        x={x}
+                        y={290 - peakHeight}
+                        width={barWidth}
+                        height={peakHeight}
+                        fill={chartColors.primary}
+                        rx="2"
+                        opacity="0.9"
+                      />
+                      {/* Average viewers bar (overlay) */}
+                      <rect
+                        x={x}
+                        y={290 - avgHeight}
+                        width={barWidth}
+                        height={avgHeight}
+                        fill={chartColors.primaryLight}
+                        rx="2"
+                      />
+                      {/* Peak dot on top */}
+                      <circle
+                        cx={x + barWidth / 2}
+                        cy={290 - peakHeight}
+                        r="4"
+                        fill={chartColors.primaryDark}
+                        stroke="white"
+                        stroke-width="2"
+                      />
+                    </g>
+                  </Show>
+                );
+              }}
+            </For>
+          </svg>
+
+          {/* Y-axis labels */}
+          <div class="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2">
+            <For each={[4, 3, 2, 1, 0]}>
+              {(i) => (
+                <span class="text-right pr-2">{Math.floor((maxValue() * i) / 4)}</span>
+              )}
+            </For>
+          </div>
+
+          {/* X-axis labels */}
+          <div class="absolute bottom-0 left-12 right-0 flex justify-between text-xs text-gray-500 transform translate-y-5">
+            <For each={labelIndices()}>
+              {(idx) => (
+                <span>{dailyData()[idx] ? formatChartDate(dailyData()[idx].date) : ""}</span>
+              )}
+            </For>
+          </div>
         </div>
 
-        <div class="absolute bottom-0 left-12 right-0 flex justify-between text-xs text-gray-500">
-          <For each={labelIndices()}>
-            {(idx) => (
-              <span>{props.data[idx] ? formatChartDate(props.data[idx].time) : ""}</span>
-            )}
-          </For>
+        {/* Summary stats below chart */}
+        <div class="mt-8">
+          <StatGroup columns={3}>
+            <Stat value={String(daysWithData().length)} label="Days streamed" />
+            <Stat
+              value={String(hasAnyData() ? Math.max(...daysWithData().map(d => d.peakViewers)) : 0)}
+              label="Peak viewers"
+              highlight
+            />
+            <Stat
+              value={String(hasAnyData()
+                ? Math.round(daysWithData().reduce((sum, d) => sum + d.avgViewers, 0) / daysWithData().length)
+                : 0)}
+              label="Avg viewers"
+            />
+          </StatGroup>
         </div>
-      </div>
-    </div>
+      </Show>
+    </Card>
   );
 }
 
@@ -443,35 +558,22 @@ function BarChart(props: BarChartProps) {
     return Math.max(...props.data.map(d => d.value), 100);
   });
 
-  const formatValue = (value: number): string => {
-    return `${value.toFixed(1)}%`;
-  };
-
   return (
-    <div class={card.default}>
+    <Card>
       <h3 class="text-lg font-medium text-gray-900 mb-4">{props.title}</h3>
       <div class="space-y-3">
         <For each={props.data}>
-          {(item) => {
-            const widthPct = maxValue() > 0 ? (item.value / maxValue()) * 100 : 0;
-            return (
-              <div>
-                <div class="flex justify-between text-sm mb-1">
-                  <span class="text-gray-600">{item.label}</span>
-                  <span class="font-medium text-gray-900">{formatValue(item.value)}</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${widthPct}%` }}
-                  />
-                </div>
-              </div>
-            );
-          }}
+          {(item) => (
+            <ProgressBar
+              value={item.value}
+              max={maxValue()}
+              label={item.label}
+              showValue
+            />
+          )}
         </For>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -494,25 +596,25 @@ function StreamTable(props: StreamTableProps) {
     });
   };
 
-  const getPlatformBadgeClass = (platformName: string): string => {
+  const getPlatformBadgeVariant = (platformName: string): "purple" | "error" | "info" | "success" | "neutral" => {
     const lower = platformName.toLowerCase();
-    if (lower.includes("twitch")) return "bg-purple-100 text-purple-800";
-    if (lower.includes("youtube")) return "bg-red-100 text-red-800";
-    if (lower.includes("facebook")) return "bg-blue-100 text-blue-800";
-    if (lower.includes("kick")) return "bg-green-100 text-green-800";
-    return "bg-gray-100 text-gray-800";
+    if (lower.includes("twitch")) return "purple";
+    if (lower.includes("youtube")) return "error";
+    if (lower.includes("facebook")) return "info";
+    if (lower.includes("kick")) return "success";
+    return "neutral";
   };
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="px-6 py-4 border-b border-gray-200 rounded-t-lg">
-        <h3 class="text-lg font-medium text-gray-900">Recent Streams</h3>
-      </div>
-      <div class="relative rounded-b-lg">
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Streams</CardTitle>
+      </CardHeader>
+      <CardContent>
         <Show
           when={props.streams.length > 0}
           fallback={
-            <div class="px-6 py-12 text-center">
+            <div class="py-12 text-center">
               <svg
                 class="mx-auto h-12 w-12 text-gray-400"
                 fill="none"
@@ -533,7 +635,7 @@ function StreamTable(props: StreamTableProps) {
             </div>
           }
         >
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto -mx-6">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
@@ -575,9 +677,9 @@ function StreamTable(props: StreamTableProps) {
                         </A>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <span class={`px-2 py-1 text-xs rounded-full ${getPlatformBadgeClass(stream.platform)}`}>
+                        <Badge variant={getPlatformBadgeVariant(stream.platform)}>
                           {stream.platform}
-                        </span>
+                        </Badge>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {stream.duration}
@@ -598,7 +700,7 @@ function StreamTable(props: StreamTableProps) {
             </table>
           </div>
         </Show>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
