@@ -95,4 +95,36 @@ defmodule StreampaiWeb.SyncController do
       where: "(user_id = '#{user_id}' OR granter_id = '#{user_id}') AND revoked_at IS NULL"
     )
   end
+
+  def user_livestreams(conn, %{"user_id" => user_id} = params) do
+    # User-scoped livestreams - syncs completed streams for a specific user
+    sync_render(conn, params,
+      table: "livestreams",
+      where: "user_id = '#{user_id}' AND ended_at IS NOT NULL"
+    )
+  end
+
+  def user_stream_viewers(conn, %{"user_id" => user_id} = params) do
+    # User-scoped stream viewers - syncs all viewers for a specific streamer
+    sync_render(conn, params,
+      table: "stream_viewers",
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
+  def user_chat_messages(conn, %{"user_id" => user_id} = params) do
+    # User-scoped chat messages - syncs all chat messages for a specific streamer
+    sync_render(conn, params,
+      table: "chat_messages",
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
+  def livestream_metrics(conn, %{"user_id" => user_id} = params) do
+    # User-scoped livestream metrics - syncs metrics for all streams of a specific user
+    sync_render(conn, params,
+      table: "livestream_metrics",
+      where: "livestream_id IN (SELECT id FROM livestreams WHERE user_id = '#{user_id}')"
+    )
+  end
 end
