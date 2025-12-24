@@ -1705,6 +1705,224 @@ type BannedViewer {
   updatedAt: DateTime!
 }
 
+input MarkNotificationUnreadInput {
+  notificationId: ID!
+}
+
+"The result of the :mark_notification_read mutation"
+type MarkNotificationReadResult {
+  "The successful result of the mutation"
+  result: NotificationRead
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input MarkNotificationReadInput {
+  notificationId: ID!
+}
+
+enum NotificationReadSortField {
+  USER_ID
+  NOTIFICATION_ID
+  SEEN_AT
+}
+
+input NotificationReadFilterSeenAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input NotificationReadFilterNotificationId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NotificationReadFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NotificationReadFilterInput {
+  and: [NotificationReadFilterInput!]
+  or: [NotificationReadFilterInput!]
+  not: [NotificationReadFilterInput!]
+  userId: NotificationReadFilterUserId
+  notificationId: NotificationReadFilterNotificationId
+  seenAt: NotificationReadFilterSeenAt
+  user: UserFilterInput
+  notification: NotificationFilterInput
+}
+
+input NotificationReadSortInput {
+  order: SortOrder
+  field: NotificationReadSortField!
+}
+
+type NotificationRead {
+  "A unique identifier"
+  id: ID!
+
+  userId: ID!
+
+  notificationId: ID!
+
+  seenAt: DateTime!
+
+  user: User!
+
+  notification: Notification!
+}
+
+"The result of the :delete_notification mutation"
+type DeleteNotificationResult {
+  "The record that was successfully deleted"
+  result: Notification
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :create_notification mutation"
+type CreateNotificationResult {
+  "The successful result of the mutation"
+  result: Notification
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateNotificationInput {
+  "NULL for global notifications, set for user-specific"
+  userId: ID
+
+  content: String!
+}
+
+enum NotificationSortField {
+  ID
+  USER_ID
+  CONTENT
+  INSERTED_AT
+}
+
+input NotificationFilterInsertedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input NotificationFilterContent {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input NotificationFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NotificationFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NotificationFilterInput {
+  and: [NotificationFilterInput!]
+
+  or: [NotificationFilterInput!]
+
+  not: [NotificationFilterInput!]
+
+  id: NotificationFilterId
+
+  "NULL for global notifications, set for user-specific"
+  userId: NotificationFilterUserId
+
+  content: NotificationFilterContent
+
+  insertedAt: NotificationFilterInsertedAt
+
+  user: UserFilterInput
+
+  reads: NotificationReadFilterInput
+}
+
+input NotificationSortInput {
+  order: SortOrder
+  field: NotificationSortField!
+}
+
+type Notification {
+  id: ID!
+
+  "NULL for global notifications, set for user-specific"
+  userId: ID
+
+  content: String!
+
+  insertedAt: DateTime!
+
+  user: User
+
+  reads(
+    "How to sort the records in the response"
+    sort: [NotificationReadSortInput]
+
+    "A filter to limit the results"
+    filter: NotificationReadFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [NotificationRead!]!
+}
+
 type DonationEvent {
   id: ID
   amount: Float
@@ -1807,6 +2025,37 @@ type UpdateNameResult {
 }
 
 type RootQueryType {
+  "Get notifications for a specific user (user-specific + global)"
+  listNotifications(
+    "How to sort the records in the response"
+    sort: [NotificationSortInput]
+
+    "A filter to limit the results"
+    filter: NotificationFilterInput
+
+    userId: ID!
+  ): [Notification!]!
+
+  "Get only global notifications (user_id is NULL)"
+  listGlobalNotifications(
+    "How to sort the records in the response"
+    sort: [NotificationSortInput]
+
+    "A filter to limit the results"
+    filter: NotificationFilterInput
+  ): [Notification!]!
+
+  "Get all read notifications for a user"
+  listNotificationReads(
+    "How to sort the records in the response"
+    sort: [NotificationReadSortInput]
+
+    "A filter to limit the results"
+    filter: NotificationReadFilterInput
+
+    userId: ID!
+  ): [NotificationRead!]!
+
   "Get all currently active bans for a user"
   bannedViewers(
     "How to sort the records in the response"
@@ -2012,6 +2261,16 @@ type RootMutationType {
 
   "Update user display name"
   updateName(name: String!): UpdateNameResult
+
+  createNotification(input: CreateNotificationInput!): CreateNotificationResult!
+
+  deleteNotification(id: ID!): DeleteNotificationResult!
+
+  "Mark a notification as read for a user"
+  markNotificationRead(input: MarkNotificationReadInput!): MarkNotificationReadResult!
+
+  "Mark a notification as unread for the current user"
+  markNotificationUnread(input: MarkNotificationUnreadInput!): JsonString!
 
   "Grant PRO access to a user for a specified duration"
   grantProAccess(id: ID!, input: GrantProAccessInput!): GrantProAccessResult!

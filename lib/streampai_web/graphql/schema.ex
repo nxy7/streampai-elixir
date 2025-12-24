@@ -5,7 +5,7 @@ defmodule StreampaiWeb.GraphQL.Schema do
   use Absinthe.Schema
 
   use AshGraphql,
-    domains: [Streampai.Accounts, Streampai.Stream],
+    domains: [Streampai.Accounts, Streampai.Stream, Streampai.Notifications],
     generate_sdl_file: "./frontend/schema.graphql",
     auto_generate_sdl_file?: true
 

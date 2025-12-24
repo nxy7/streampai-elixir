@@ -132,6 +132,9 @@ defmodule StreampaiWeb.Router do
     get "/viewers", SyncController, :viewers
     get "/user_preferences", SyncController, :user_preferences
     get "/widget_configs/:user_id", SyncController, :widget_configs
+    get "/notifications/:user_id", SyncController, :notifications
+    get "/notification_reads/:user_id", SyncController, :notification_reads
+    get "/global_notifications", SyncController, :global_notifications
   end
 
   scope "/shapes", StreampaiWeb do
@@ -199,5 +202,4 @@ defmodule StreampaiWeb.Router do
         end
     end
   end
-
 end

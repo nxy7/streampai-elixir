@@ -84,6 +84,19 @@ export type WidgetConfig = Row & {
   updated_at: string;
 };
 
+export type Notification = Row & {
+  id: string;
+  user_id: string | null;
+  content: string;
+  inserted_at: string;
+};
+
+export type NotificationRead = Row & {
+  user_id: string;
+  notification_id: string;
+  seen_at: string;
+};
+
 export type WidgetType =
   | "placeholder_widget"
   | "chat_widget"
@@ -255,3 +268,37 @@ export function createWidgetConfigsCollection(userId: string) {
     })
   );
 }
+
+export function createNotificationsCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<Notification>({
+      id: `notifications_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/notifications/${userId}`,
+      },
+      getKey: (item) => item.id,
+    })
+  );
+}
+
+export function createNotificationReadsCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<NotificationRead>({
+      id: `notification_reads_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/notification_reads/${userId}`,
+      },
+      getKey: (item) => `${item.user_id}_${item.notification_id}`,
+    })
+  );
+}
+
+export const globalNotificationsCollection = createCollection(
+  electricCollectionOptions<Notification>({
+    id: "global_notifications",
+    shapeOptions: {
+      url: `${SHAPES_URL}/global_notifications`,
+    },
+    getKey: (item) => item.id,
+  })
+);

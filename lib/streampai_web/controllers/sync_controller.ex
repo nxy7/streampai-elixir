@@ -62,4 +62,28 @@ defmodule StreampaiWeb.SyncController do
       where: "user_id = '#{user_id}'"
     )
   end
+
+  def notifications(conn, %{"user_id" => user_id} = params) do
+    # Syncs notifications visible to a user: global (user_id IS NULL) OR user-specific
+    sync_render(conn, params,
+      table: "notifications",
+      where: "user_id IS NULL OR user_id = '#{user_id}'"
+    )
+  end
+
+  def notification_reads(conn, %{"user_id" => user_id} = params) do
+    # Syncs notification read status for a specific user
+    sync_render(conn, params,
+      table: "notification_reads",
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
+  def global_notifications(conn, params) do
+    # Syncs only global notifications (user_id IS NULL)
+    sync_render(conn, params,
+      table: "notifications",
+      where: "user_id IS NULL"
+    )
+  end
 end

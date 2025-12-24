@@ -7,6 +7,9 @@ import {
   viewersCollection,
   userPreferencesCollection,
   createWidgetConfigsCollection,
+  createNotificationsCollection,
+  createNotificationReadsCollection,
+  globalNotificationsCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
@@ -14,6 +17,8 @@ import {
   type UserPreferences,
   type WidgetConfig,
   type WidgetType,
+  type Notification,
+  type NotificationRead,
 } from "./electric";
 
 export function useStreamEvents() {
@@ -193,6 +198,109 @@ export function useWidgetConfig<T = Record<string, unknown>>(
   };
 }
 
+// Cache for notification collections by user ID
+const notificationCollections = new Map<string, ReturnType<typeof createNotificationsCollection>>();
+const notificationReadCollections = new Map<string, ReturnType<typeof createNotificationReadsCollection>>();
+
+function getNotificationsCollection(userId: string) {
+  let collection = notificationCollections.get(userId);
+  if (!collection) {
+    collection = createNotificationsCollection(userId);
+    notificationCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+function getNotificationReadsCollection(userId: string) {
+  let collection = notificationReadCollections.get(userId);
+  if (!collection) {
+    collection = createNotificationReadsCollection(userId);
+    notificationReadCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+export function useNotifications(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getNotificationsCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useNotificationReads(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getNotificationReadsCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export type NotificationWithReadStatus = Notification & {
+  wasSeen: boolean;
+  seenAt: string | null;
+};
+
+export function useNotificationsWithReadStatus(userId: () => string | undefined): {
+  data: () => NotificationWithReadStatus[];
+  unreadCount: () => number;
+} {
+  const notificationsQuery = useNotifications(userId);
+  const readsQuery = useNotificationReads(userId);
+
+  return {
+    data: createMemo((): NotificationWithReadStatus[] => {
+      const notifications = notificationsQuery.data();
+      const reads = readsQuery.data();
+      const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
+
+      return notifications
+        .map((n): NotificationWithReadStatus => ({
+          ...n,
+          wasSeen: readMap.has(n.id),
+          seenAt: readMap.get(n.id) || null,
+        }))
+        .sort((a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime());
+    }),
+    unreadCount: createMemo(() => {
+      const notifications = notificationsQuery.data();
+      const reads = readsQuery.data();
+      const readIds = new Set(reads.map((r) => r.notification_id));
+      return notifications.filter((n) => !readIds.has(n.id)).length;
+    }),
+  };
+}
+
+export function useGlobalNotifications() {
+  const query = useLiveQuery(() => globalNotificationsCollection);
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      const data = query.data || [];
+      return [...data].sort(
+        (a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime()
+      );
+    }),
+  };
+}
+
 export {
   type StreamEvent,
   type ChatMessage,
@@ -201,4 +309,6 @@ export {
   type UserPreferences,
   type WidgetConfig,
   type WidgetType,
+  type Notification,
+  type NotificationRead,
 };
