@@ -97,6 +97,7 @@ cd frontend
 bun dev                     # Start dev server
 bun run build               # Production build
 bun run typecheck           # TypeScript check
+bun run storybook           # Start Storybook at http://localhost:6006
 ```
 
 ### Justfile (recommended)
@@ -200,6 +201,42 @@ import { graphql } from "gql.tada";
 
 const MyQuery = graphql(`query GetData { ... }`);
 const [result] = createQuery({ query: MyQuery });
+```
+
+## Storybook
+
+Widget components have Storybook stories for visual testing and documentation.
+
+**Location**: `frontend/src/components/widgets/*.stories.tsx`
+
+**Available Widget Stories** (12 total):
+- Alertbox, Chat, DonationGoal, EventList, FollowerCount, Giveaway
+- Placeholder, Poll, Slider, Timer, TopDonors, ViewerCount
+
+**Run Storybook**:
+```bash
+cd frontend && bun run storybook
+```
+Opens at http://localhost:6006
+
+**Creating New Stories**:
+```tsx
+// ComponentName.stories.tsx
+import type { Meta, StoryObj } from "storybook-solidjs-vite";
+import MyWidget from "./MyWidget";
+
+const meta = {
+  title: "Widgets/MyWidget",
+  component: MyWidget,
+  tags: ["autodocs"],
+} satisfies Meta<typeof MyWidget>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: { config: {...}, data: {...} },
+};
 ```
 
 ## Notes

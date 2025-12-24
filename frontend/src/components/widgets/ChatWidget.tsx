@@ -109,8 +109,15 @@ export default function ChatWidget(props: ChatWidgetProps) {
             {(message) => (
               <div class={`flex items-start space-x-2 ${fontClass()}`}>
                 <Show when={props.config.showPlatform}>
-                  <div class={`w-5 h-5 rounded flex items-center justify-center ${message.platform.color}`}>
-                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <div
+                    class={`rounded flex items-center justify-center flex-shrink-0 ${message.platform.color}`}
+                    style={{ width: "20px", height: "20px" }}
+                  >
+                    <svg
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      style={{ width: "12px", height: "12px", color: "white" }}
+                    >
                       <path d={getPlatformIcon(message.platform)} />
                     </svg>
                   </div>
