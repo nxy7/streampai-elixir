@@ -2,8 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, onMount, createEffect } from "solid-js";
 import { useCurrentUser } from "~/lib/auth";
 import { card, text, button } from "~/styles/design-system";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
 
 interface CanvasWidget {
   id: string;
@@ -36,43 +35,7 @@ const AVAILABLE_WIDGETS = [
   { type: "slider", name: "Slider", icon: "🎠", defaultWidth: 600, defaultHeight: 200 },
 ];
 
-const GET_SMART_CANVAS_LAYOUT = graphql(`
-  query GetSmartCanvasLayout($userId: ID!) {
-    smartCanvasLayout(userId: $userId) {
-      id
-      userId
-      widgets
-    }
-  }
-`);
-
-const SAVE_SMART_CANVAS_LAYOUT = graphql(`
-  mutation SaveSmartCanvasLayout($input: SaveSmartCanvasLayoutInput!) {
-    saveSmartCanvasLayout(input: $input) {
-      result {
-        id
-        widgets
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const UPDATE_SMART_CANVAS_LAYOUT = graphql(`
-  mutation UpdateSmartCanvasLayout($id: ID!, $input: UpdateSmartCanvasLayoutInput!) {
-    updateSmartCanvasLayout(id: $id, input: $input) {
-      result {
-        id
-        widgets
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
+const layoutFields: ("id" | "userId" | "widgets")[] = ["id", "userId", "widgets"];
 
 function PaletteWidgetItem(props: { widgetDef: typeof AVAILABLE_WIDGETS[number] }) {
   return (
@@ -243,12 +206,14 @@ export default function SmartCanvas() {
   async function loadLayout() {
     if (!user()?.id) return;
 
-    const result = await client.query(GET_SMART_CANVAS_LAYOUT, {
-      userId: user()!.id,
+    const result = await getSmartCanvasLayout({
+      input: { userId: user()!.id },
+      fields: [...layoutFields],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.smartCanvasLayout) {
-      const layout = result.data.smartCanvasLayout;
+    if (result.success && result.data) {
+      const layout = result.data;
       setLayoutId(layout.id);
 
       if (layout.widgets && Array.isArray(layout.widgets)) {
@@ -283,27 +248,16 @@ export default function SmartCanvas() {
       config: w.config,
     }));
 
-    if (layoutId()) {
-      const result = await client.mutation(UPDATE_SMART_CANVAS_LAYOUT, {
-        id: layoutId()!,
-        input: { widgets: widgetsData },
-      });
+    // The create action uses upsert, so we can use it for both create and update
+    const result = await saveSmartCanvasLayout({
+      input: { widgets: widgetsData },
+      fields: [...layoutFields],
+      fetchOptions: { credentials: "include" },
+    });
 
-      if (result.data?.updateSmartCanvasLayout?.result) {
-        setLayoutSaved(true);
-      }
-    } else {
-      const result = await client.mutation(SAVE_SMART_CANVAS_LAYOUT, {
-        input: {
-          userId: user()!.id,
-          widgets: widgetsData,
-        },
-      });
-
-      if (result.data?.saveSmartCanvasLayout?.result) {
-        setLayoutId(result.data.saveSmartCanvasLayout.result.id);
-        setLayoutSaved(true);
-      }
+    if (result.success && result.data) {
+      setLayoutId(result.data.id);
+      setLayoutSaved(true);
     }
   }
 

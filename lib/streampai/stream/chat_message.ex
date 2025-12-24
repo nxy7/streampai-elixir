@@ -16,7 +16,7 @@ defmodule Streampai.Stream.ChatMessage do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
 
   postgres do
     table "chat_messages"
@@ -30,8 +30,8 @@ defmodule Streampai.Stream.ChatMessage do
     end
   end
 
-  graphql do
-    type :chat_message
+  typescript do
+    type_name "ChatMessage"
   end
 
   code_interface do

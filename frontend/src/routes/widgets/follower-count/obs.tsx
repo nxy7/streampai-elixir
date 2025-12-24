@@ -1,18 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const FOLLOWER_SUBSCRIPTION = graphql(`
-  subscription FollowerAdded($userId: ID!) {
-    followerAdded(userId: $userId) {
-      id
-      username
-      timestamp
-      platform
-    }
-  }
-`);
+import { createEffect, createSignal, Show, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 export default function FollowerCountOBS() {
   const [params] = useSearchParams();
@@ -21,24 +10,38 @@ export default function FollowerCountOBS() {
   const [followerCount, setFollowerCount] = createSignal(0);
   const [isAnimating, setIsAnimating] = createSignal(false);
   const [latestFollower, setLatestFollower] = createSignal<string | null>(null);
+  const [processedFollowerIds, setProcessedFollowerIds] = createSignal<Set<string>>(new Set());
 
-  const result = createSubscription({
-    query: FOLLOWER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
+  });
+
+  const followEvents = createMemo(() => {
+    const data = eventsQuery.data || [];
+    return data.filter((e) => e.type === "follow")
+      .sort((a, b) => new Date(a.inserted_at).getTime() - new Date(b.inserted_at).getTime());
   });
 
   createEffect(() => {
-    if (result()?.data?.followerAdded) {
-      const follower = result.data.followerAdded;
+    const events = followEvents();
+    const processed = processedFollowerIds();
+
+    events.forEach((event) => {
+      if (processed.has(event.id)) return;
+
+      const username = (event.data?.username as string) || event.author_id;
       setFollowerCount(prev => prev + 1);
-      setLatestFollower(follower.username);
+      setLatestFollower(username);
       setIsAnimating(true);
       setTimeout(() => {
         setIsAnimating(false);
         setTimeout(() => setLatestFollower(null), 3000);
       }, 300);
-    }
+
+      setProcessedFollowerIds((prev) => new Set([...prev, event.id]));
+    });
   });
 
   return (

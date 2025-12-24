@@ -1,7 +1,6 @@
 import { createSignal, onMount, onCleanup, Show, For } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getSmartCanvasLayout } from "~/sdk/ash_rpc";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
 
 interface CanvasWidget {
@@ -14,16 +13,6 @@ interface CanvasWidget {
   config?: any;
 }
 
-const GET_SMART_CANVAS_LAYOUT = graphql(`
-  query GetSmartCanvasLayout($userId: ID!) {
-    smartCanvasLayout(userId: $userId) {
-      id
-      userId
-      widgets
-    }
-  }
-`);
-
 export default function SmartCanvasDisplay() {
   const params = useParams<{ userId: string }>();
   const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
@@ -32,28 +21,26 @@ export default function SmartCanvasDisplay() {
     const userId = params.userId;
     if (!userId) return;
 
-    const result = await client.query(GET_SMART_CANVAS_LAYOUT, {
-      userId,
+    const result = await getSmartCanvasLayout({
+      input: { userId },
+      fields: ["id", "userId", "widgets"],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.smartCanvasLayout?.widgets) {
-      const layout = result.data.smartCanvasLayout;
-
-      if (layout.widgets && Array.isArray(layout.widgets)) {
-        const parsedWidgets = layout.widgets.map((w: any) => {
-          const widget = typeof w === 'string' ? JSON.parse(w) : w;
-          return {
-            id: widget.id,
-            widgetType: widget.type || widget.widgetType,
-            x: widget.x || 0,
-            y: widget.y || 0,
-            width: widget.width || 200,
-            height: widget.height || 120,
-            config: widget.config,
-          };
-        });
-        setWidgets(parsedWidgets);
-      }
+    if (result.success && result.data.widgets && Array.isArray(result.data.widgets)) {
+      const parsedWidgets = result.data.widgets.map((w: any) => {
+        const widget = typeof w === 'string' ? JSON.parse(w) : w;
+        return {
+          id: widget.id,
+          widgetType: widget.type || widget.widgetType,
+          x: widget.x || 0,
+          y: widget.y || 0,
+          width: widget.width || 200,
+          height: widget.height || 120,
+          config: widget.config,
+        };
+      });
+      setWidgets(parsedWidgets);
     }
   }
 

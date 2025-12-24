@@ -1,26 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onMount, onCleanup, Show, createMemo } from "solid-js";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import { button, card, text, input as designInput } from "~/styles/design-system";
 import { defaultConfig, generateViewerData, generateViewerUpdate, type ViewerCountConfig, type ViewerData } from "~/lib/fake/viewer-count";
 import { useCurrentUser } from "~/lib/auth";
 import { useWidgetConfig } from "~/lib/useElectric";
 
-const SAVE_WIDGET_CONFIG = graphql(`
-  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
-    saveWidgetConfig(input: $input) {
-      result {
-        id
-        config
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 export default function ViewerCountSettings() {
   const { user, isLoading } = useCurrentUser();
@@ -68,24 +54,24 @@ export default function ViewerCountSettings() {
     setSaving(true);
     setSaveMessage(null);
 
-    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+    const result = await saveWidgetConfig({
       input: {
         userId: userId()!,
         type: "viewer_count_widget",
-        config: JSON.stringify(config()),
+        config: config(),
       },
-    }, { fetchOptions: { credentials: "include" } });
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
+    });
 
     setSaving(false);
 
-    if (result.data?.saveWidgetConfig?.errors?.length > 0) {
-      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
-    } else if (result.data?.saveWidgetConfig?.result) {
+    if (!result.success) {
+      setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
+    } else {
       setSaveMessage("Configuration saved successfully!");
       setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage("Error: Failed to save configuration");
     }
   }
 

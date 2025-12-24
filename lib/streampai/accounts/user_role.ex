@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.UserRole do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource, AshGraphql.Resource],
+    extensions: [AshAdmin.Resource, AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   alias Streampai.Accounts.User
@@ -35,8 +35,8 @@ defmodule Streampai.Accounts.UserRole do
     end
   end
 
-  graphql do
-    type :user_role
+  typescript do
+    type_name "UserRole"
   end
 
   code_interface do

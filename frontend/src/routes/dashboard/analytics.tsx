@@ -2,9 +2,8 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createEffect, createMemo, onCleanup } from "solid-js";
 import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
-import { Card, CardHeader, CardTitle, CardContent, Stat, StatGroup, ProgressBar, Badge, Alert, Button, Select } from "~/components/ui";
-import { client } from "~/lib/urql";
-import { graphql, ResultOf } from "~/lib/graphql";
+import { Card, CardHeader, CardTitle, CardContent, Stat, StatGroup, ProgressBar, Badge, Alert } from "~/components/ui";
+import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
 
@@ -33,25 +32,29 @@ interface StreamData {
   };
 }
 
-const StreamHistoryQuery = graphql(`
-  query StreamHistory($userId: ID!) {
-    streamHistory(userId: $userId) {
-      id
-      title
-      startedAt
-      endedAt
-      durationSeconds
-      platforms
-      averageViewers
-      peakViewers
-      messagesAmount
-    }
-  }
-`);
+const analyticsFields: (
+  | "id"
+  | "title"
+  | "startedAt"
+  | "endedAt"
+  | "durationSeconds"
+  | "platforms"
+  | "averageViewers"
+  | "peakViewers"
+  | "messagesAmount"
+)[] = [
+  "id",
+  "title",
+  "startedAt",
+  "endedAt",
+  "durationSeconds",
+  "platforms",
+  "averageViewers",
+  "peakViewers",
+  "messagesAmount",
+];
 
-type Livestream = NonNullable<
-  ResultOf<typeof StreamHistoryQuery>
->["streamHistory"][number];
+type Livestream = SuccessDataFunc<typeof getStreamHistory<typeof analyticsFields>>[number];
 
 export default function Analytics() {
   const { user, isLoading } = useCurrentUser();
@@ -69,17 +72,17 @@ export default function Analytics() {
     setError(null);
 
     try {
-      const result = await client.query(StreamHistoryQuery, {
-        userId: currentUser.id,
+      const result = await getStreamHistory({
+        input: { userId: currentUser.id },
+        fields: [...analyticsFields],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
+      if (!result.success) {
         setError("Failed to load analytics data");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.streamHistory) {
-        setStreams(result.data.streamHistory);
+        console.error("RPC error:", result.errors);
       } else {
-        setStreams([]);
+        setStreams(result.data);
       }
     } catch (err) {
       setError("Failed to load analytics data");

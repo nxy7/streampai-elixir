@@ -1,7 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, Show, For, createMemo } from "solid-js";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import SliderWidget from "~/components/widgets/SliderWidget";
 import { button, card, text, input } from "~/styles/design-system";
 import { useCurrentUser } from "~/lib/auth";
@@ -32,19 +31,6 @@ interface BackendSliderConfig {
   images?: SliderImage[];
 }
 
-const SAVE_WIDGET_CONFIG = graphql(`
-  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
-    saveWidgetConfig(input: $input) {
-      result {
-        id
-        config
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 const SAMPLE_IMAGES: SliderImage[] = [
   { id: "1", url: "https://picsum.photos/800/450?random=1", alt: "Sample 1", index: 0 },
@@ -114,24 +100,24 @@ export default function SliderSettings() {
       images: currentConfig.images || [],
     };
 
-    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+    const result = await saveWidgetConfig({
       input: {
-        userId: userId(),
+        userId: userId()!,
         type: "slider_widget",
-        config: JSON.stringify(backendConfig),
+        config: backendConfig,
       },
-    }, { fetchOptions: { credentials: "include" } });
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
+    });
 
     setSaving(false);
 
-    if (result.data?.saveWidgetConfig?.errors?.length > 0) {
-      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
-    } else if (result.data?.saveWidgetConfig?.result) {
+    if (!result.success) {
+      setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
+    } else {
       setSaveMessage("Configuration saved successfully!");
       setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage("Error: Failed to save configuration");
     }
   }
 

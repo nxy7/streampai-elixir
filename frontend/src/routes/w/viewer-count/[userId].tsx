@@ -1,19 +1,9 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getWidgetConfig } from "~/sdk/ash_rpc";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import { Title } from "@solidjs/meta";
 import { defaultConfig, generateViewerData, generateViewerUpdate, type ViewerCountConfig, type ViewerData } from "~/lib/fake/viewer-count";
-
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
 
 export default function ViewerCountDisplay() {
   const params = useParams<{ userId: string }>();
@@ -27,14 +17,14 @@ export default function ViewerCountDisplay() {
     const userId = params.userId;
     if (!userId) return;
 
-    const result = await client.query(GET_WIDGET_CONFIG, {
-      userId,
-      type: "viewer_count_widget",
+    const result = await getWidgetConfig({
+      input: { userId, type: "viewer_count_widget" },
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.widgetConfig?.config) {
-      const loadedConfig = JSON.parse(result.data.widgetConfig.config);
-      setConfig(loadedConfig);
+    if (result.success && result.data.config) {
+      setConfig(result.data.config as ViewerCountConfig);
     } else {
       setConfig(defaultConfig());
     }

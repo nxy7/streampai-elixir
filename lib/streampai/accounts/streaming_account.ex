@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource],
+    extensions: [AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   require Ash.Query
@@ -25,8 +25,8 @@ defmodule Streampai.Accounts.StreamingAccount do
     end
   end
 
-  graphql do
-    type :streaming_account
+  typescript do
+    type_name "StreamingAccount"
   end
 
   code_interface do

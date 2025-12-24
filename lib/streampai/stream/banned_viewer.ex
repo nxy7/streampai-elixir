@@ -23,7 +23,7 @@ defmodule Streampai.Stream.BannedViewer do
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
 
   alias Streampai.Accounts.User
   alias Streampai.Stream.BannedViewer.Changes.ExecutePlatformBan
@@ -47,8 +47,8 @@ defmodule Streampai.Stream.BannedViewer do
     end
   end
 
-  graphql do
-    type :banned_viewer
+  typescript do
+    type_name "BannedViewer"
   end
 
   code_interface do

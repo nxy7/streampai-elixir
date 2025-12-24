@@ -1,17 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const VIEWER_COUNT_SUBSCRIPTION = graphql(`
-  subscription ViewerCountUpdated($userId: ID!) {
-    viewerCountUpdated(userId: $userId) {
-      count
-      timestamp
-      platform
-    }
-  }
-`);
+import { createEffect, createSignal, Show, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 export default function ViewerCountOBS() {
   const [params] = useSearchParams();
@@ -20,15 +10,22 @@ export default function ViewerCountOBS() {
   const [viewerCount, setViewerCount] = createSignal(0);
   const [isAnimating, setIsAnimating] = createSignal(false);
 
-  const result = createSubscription({
-    query: VIEWER_COUNT_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
+  });
+
+  const viewerEvents = createMemo(() => {
+    const data = eventsQuery.data || [];
+    return data.filter((e) => e.type === "viewer_count_update");
   });
 
   createEffect(() => {
-    if (result()?.data?.viewerCountUpdated) {
-      const newCount = result.data.viewerCountUpdated.count;
+    const events = viewerEvents();
+    if (events.length > 0) {
+      const latestEvent = events[events.length - 1];
+      const newCount = (latestEvent.data?.count as number) || 0;
       setIsAnimating(true);
       setViewerCount(newCount);
       setTimeout(() => setIsAnimating(false), 300);

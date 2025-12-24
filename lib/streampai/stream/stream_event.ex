@@ -9,7 +9,7 @@ defmodule Streampai.Stream.StreamEvent do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
 
   postgres do
     table "stream_events"
@@ -39,8 +39,8 @@ defmodule Streampai.Stream.StreamEvent do
     end
   end
 
-  graphql do
-    type :stream_event
+  typescript do
+    type_name "StreamEvent"
   end
 
   code_interface do

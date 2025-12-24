@@ -3,8 +3,7 @@ import { Show, For, createSignal, createEffect } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input, badge } from "~/styles/design-system";
-import { client } from "~/lib/urql";
-import { graphql } from "~/lib/graphql";
+import { listViewers, searchViewers, listBannedViewers } from "~/sdk/ash_rpc";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type ViewMode = "viewers" | "banned";
@@ -39,33 +38,6 @@ interface BannedViewer {
   insertedAt: string;
 }
 
-const ViewersQuery = graphql(`
-  query Viewers(
-    $userId: ID!
-    $filter: StreamViewerFilterInput
-    $first: Int
-    $after: String
-  ) {
-    viewers(userId: $userId, filter: $filter, first: $first, after: $after) {
-      results {
-        viewerId
-        userId
-        platform
-        displayName
-        avatarUrl
-        channelUrl
-        isVerified
-        isOwner
-        isModerator
-        isPatreon
-        notes
-        aiSummary
-        firstSeenAt
-        lastSeenAt
-      }
-    }
-  }
-`);
 
 export default function Viewers() {
   const { user, isLoading } = useCurrentUser();
@@ -90,43 +62,23 @@ export default function Viewers() {
     kick: "from-green-600 to-green-700",
   };
 
-  const SearchViewersQuery = graphql(`
-    query SearchViewers($userId: ID!, $displayName: String!) {
-      searchViewers(userId: $userId, displayName: $displayName) {
-        viewerId
-        userId
-        platform
-        displayName
-        avatarUrl
-        channelUrl
-        isVerified
-        isOwner
-        isModerator
-        isPatreon
-        notes
-        aiSummary
-        firstSeenAt
-        lastSeenAt
-      }
-    }
-  `);
+  const viewerFields: (
+    | "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl"
+    | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon"
+    | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt"
+  )[] = [
+    "viewerId", "userId", "platform", "displayName", "avatarUrl",
+    "channelUrl", "isVerified", "isOwner", "isModerator", "isPatreon",
+    "notes", "aiSummary", "firstSeenAt", "lastSeenAt",
+  ];
 
-  const BannedViewersQuery = graphql(`
-    query BannedViewers($userId: ID!) {
-      bannedViewers(userId: $userId) {
-        id
-        platform
-        viewerUsername
-        viewerPlatformId
-        reason
-        durationSeconds
-        expiresAt
-        isActive
-        platformBanId
-        insertedAt
-      }
-    }
-  `);
+  const bannedViewerFields: (
+    | "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason"
+    | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "insertedAt"
+  )[] = [
+    "id", "platform", "viewerUsername", "viewerPlatformId", "reason",
+    "durationSeconds", "expiresAt", "isActive", "platformBanId", "insertedAt",
+  ];
 
   const loadViewers = async (append = false) => {
     const currentUser = user();
@@ -139,36 +91,34 @@ export default function Viewers() {
       const searchTerm = search();
 
       if (searchTerm && searchTerm.trim()) {
-        const result = await client.query(SearchViewersQuery, {
-          userId: currentUser.id,
-          displayName: searchTerm,
+        const result = await searchViewers({
+          input: { userId: currentUser.id, displayName: searchTerm },
+          fields: [...viewerFields],
+          fetchOptions: { credentials: "include" },
         });
 
-        if (result.error) {
+        if (!result.success) {
           setError("Failed to search viewers");
-          console.error("GraphQL error:", result.error);
-        } else if (result.data?.searchViewers) {
-          setViewers(result.data.searchViewers as Viewer[]);
+          console.error("RPC error:", result.errors);
+        } else if (result.data) {
+          setViewers(result.data as Viewer[]);
           setHasMore(false);
         } else {
           setViewers([]);
         }
       } else {
-        const result = await client.query(ViewersQuery, {
-          userId: currentUser.id,
-          // platform: platform() || null,
-          first: 20,
-          after: append && afterCursor() ? afterCursor() : null,
+        const result = await listViewers({
+          input: { userId: currentUser.id },
+          fields: [...viewerFields],
+          fetchOptions: { credentials: "include" },
         });
 
-        if (result.error) {
+        if (!result.success) {
           setError("Failed to load viewers");
-          console.error("GraphQL error:", result.error);
-        } else if (result.data?.viewers) {
-          const newViewers = result.data.viewers.results as Viewer[];
+          console.error("RPC error:", result.errors);
+        } else if (result.data) {
+          const newViewers = result.data as Viewer[];
           setViewers(append ? [...viewers(), ...newViewers] : newViewers);
-          // setHasMore(result.data.viewers.pageInfo.hasNextPage);
-          // setAfterCursor(result.data.viewers.pageInfo.endCursor);
         } else {
           setViewers([]);
         }
@@ -189,15 +139,17 @@ export default function Viewers() {
     setError(null);
 
     try {
-      const result = await client.query(BannedViewersQuery, {
-        userId: currentUser.id,
+      const result = await listBannedViewers({
+        input: { userId: currentUser.id },
+        fields: [...bannedViewerFields],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
+      if (!result.success) {
         setError("Failed to load banned viewers");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.bannedViewers) {
-        setBannedViewers(result.data.bannedViewers as BannedViewer[]);
+        console.error("RPC error:", result.errors);
+      } else if (result.data) {
+        setBannedViewers(result.data as BannedViewer[]);
       } else {
         setBannedViewers([]);
       }

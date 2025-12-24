@@ -36,10 +36,6 @@ defmodule Streampai.MixProject do
 
   defp deps do
     [
-      {:ash_graphql, "~> 1.0"},
-      {:absinthe_plug, "~> 1.5"},
-      {:absinthe_phoenix, "~> 2.0"},
-      {:absinthe, "~> 1.7"},
       {:styler, "~> 1.8", only: [:dev, :test], runtime: false},
       {:ex_money_sql, "~> 1.0"},
       {:ex_cldr, "~> 2.0"},

@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.WidgetConfig do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource, AshGraphql.Resource],
+    extensions: [AshAdmin.Resource, AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   alias Streampai.Accounts.WidgetConfigDefaults
@@ -14,16 +14,8 @@ defmodule Streampai.Accounts.WidgetConfig do
     repo Streampai.Repo
   end
 
-  graphql do
-    type :widget_config
-
-    queries do
-      read_one :widget_config, :get_by_user_and_type
-    end
-
-    mutations do
-      create :save_widget_config, :create
-    end
+  typescript do
+    type_name "WidgetConfig"
   end
 
   code_interface do

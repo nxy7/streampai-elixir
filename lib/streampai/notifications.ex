@@ -6,7 +6,7 @@ defmodule Streampai.Notifications do
   Uses a separate notification_reads table to track which notifications have been seen.
   """
   use Ash.Domain,
-    extensions: [AshAdmin.Domain, AshGraphql.Domain]
+    extensions: [AshAdmin.Domain, AshTypescript.Rpc]
 
   alias Streampai.Notifications.Notification
   alias Streampai.Notifications.NotificationRead
@@ -15,18 +15,15 @@ defmodule Streampai.Notifications do
     show? true
   end
 
-  graphql do
-    queries do
-      list Notification, :list_notifications, :list_for_user
-      list Notification, :list_global_notifications, :list_global
-      list NotificationRead, :list_notification_reads, :list_for_user
+  typescript_rpc do
+    resource Notification do
+      rpc_action :create_notification, :create
+      rpc_action :delete_notification, :destroy
     end
 
-    mutations do
-      create Notification, :create_notification, :create
-      create NotificationRead, :mark_notification_read, :mark_as_read
-      destroy Notification, :delete_notification, :destroy
-      action NotificationRead, :mark_notification_unread, :mark_as_unread
+    resource NotificationRead do
+      rpc_action :mark_notification_read, :mark_as_read
+      rpc_action :mark_notification_unread, :mark_as_unread
     end
   end
 

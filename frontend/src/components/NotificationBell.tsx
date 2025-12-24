@@ -2,29 +2,7 @@ import { createSignal, Show, For, createMemo } from "solid-js";
 import { useCurrentUser } from "~/lib/auth";
 import { useNotificationsWithReadStatus } from "~/lib/useElectric";
 import { createLocalStorageSignal } from "~/lib/useLocalStorage";
-import { client } from "~/lib/urql";
-import { graphql } from "~/lib/graphql";
-
-const MarkNotificationReadMutation = graphql(`
-  mutation MarkNotificationRead($input: MarkNotificationReadInput!) {
-    markNotificationRead(input: $input) {
-      result {
-        notificationId
-        userId
-        seenAt
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const MarkNotificationUnreadMutation = graphql(`
-  mutation MarkNotificationUnread($input: MarkNotificationUnreadInput!) {
-    markNotificationUnread(input: $input)
-  }
-`);
+import { markNotificationRead, markNotificationUnread } from "~/sdk/ash_rpc";
 
 export default function NotificationBell() {
   const { user } = useCurrentUser();
@@ -46,9 +24,9 @@ export default function NotificationBell() {
   const handleMarkAsRead = async (notificationId: string) => {
     setMarkingRead(notificationId);
     try {
-      await client.mutation(MarkNotificationReadMutation, {
+      await markNotificationRead({
         input: { notificationId },
-      }, {
+        fields: ["notificationId", "userId", "seenAt"],
         fetchOptions: { credentials: "include" },
       });
     } catch (err) {
@@ -61,9 +39,8 @@ export default function NotificationBell() {
   const handleMarkAsUnread = async (notificationId: string) => {
     setMarkingRead(notificationId);
     try {
-      await client.mutation(MarkNotificationUnreadMutation, {
+      await markNotificationUnread({
         input: { notificationId },
-      }, {
         fetchOptions: { credentials: "include" },
       });
     } catch (err) {

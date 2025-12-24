@@ -1,7 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onMount, Show, createMemo } from "solid-js";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import EventListWidget from "~/components/widgets/EventListWidget";
 import { button, card, text, input } from "~/styles/design-system";
 import { useCurrentUser } from "~/lib/auth";
@@ -40,19 +39,6 @@ interface BackendEventListConfig {
   compact_mode?: boolean;
 }
 
-const SAVE_WIDGET_CONFIG = graphql(`
-  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
-    saveWidgetConfig(input: $input) {
-      result {
-        id
-        config
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 const DEFAULT_CONFIG: EventListConfig = {
   animationType: "fade",
@@ -171,24 +157,24 @@ export default function EventListSettings() {
       compact_mode: currentConfig.compactMode,
     };
 
-    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+    const result = await saveWidgetConfig({
       input: {
-        userId: userId(),
+        userId: userId()!,
         type: "eventlist_widget",
-        config: JSON.stringify(backendConfig),
+        config: backendConfig,
       },
-    }, { fetchOptions: { credentials: "include" } });
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
+    });
 
     setSaving(false);
 
-    if (result.data?.saveWidgetConfig?.errors?.length > 0) {
-      setSaveMessage(`Error: ${result.data.saveWidgetConfig.errors[0].message}`);
-    } else if (result.data?.saveWidgetConfig?.result) {
+    if (!result.success) {
+      setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
+    } else {
       setSaveMessage("Configuration saved successfully!");
       setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage("Error: Failed to save configuration");
     }
   }
 

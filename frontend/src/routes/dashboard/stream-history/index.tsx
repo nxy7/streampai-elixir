@@ -1,11 +1,10 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal, createMemo, Suspense, ErrorBoundary } from "solid-js";
+import { Show, For, createSignal, createMemo, Suspense, ErrorBoundary, createResource } from "solid-js";
 import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Alert, Stat } from "~/components/ui";
-import { createQuery } from "@urql/solid";
-import { graphql, ResultOf } from "~/lib/graphql";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
 type DateRange = "7days" | "30days" | "all";
@@ -18,29 +17,34 @@ interface StreamStats {
   dateRangeLabel: string;
 }
 
-const StreamHistoryQuery = graphql(`
-  query StreamHistory($userId: ID!) {
-    streamHistory(userId: $userId) {
-      id
-      title
-      thumbnailUrl
-      startedAt
-      endedAt
-      durationSeconds
-      platforms
-      averageViewers
-      peakViewers
-      messagesAmount
-    }
-  }
-`);
+const streamHistoryFields: (
+  | "id"
+  | "title"
+  | "thumbnailUrl"
+  | "startedAt"
+  | "endedAt"
+  | "durationSeconds"
+  | "platforms"
+  | "averageViewers"
+  | "peakViewers"
+  | "messagesAmount"
+)[] = [
+  "id",
+  "title",
+  "thumbnailUrl",
+  "startedAt",
+  "endedAt",
+  "durationSeconds",
+  "platforms",
+  "averageViewers",
+  "peakViewers",
+  "messagesAmount",
+];
 
-type Livestream = NonNullable<
-  ResultOf<typeof StreamHistoryQuery>
->["streamHistory"][number];
+type Livestream = SuccessDataFunc<typeof getStreamHistory<typeof streamHistoryFields>>[number];
 
 export default function StreamHistory() {
-  const { user } = useCurrentUser();
+  const { user, isLoading } = useCurrentUser();
 
   const [platform, setPlatform] = createSignal<Platform>("all");
   const [dateRange, setDateRange] = createSignal<DateRange>("30days");
@@ -50,26 +54,30 @@ export default function StreamHistory() {
     <>
       <Title>Stream History - Streampai</Title>
       <Show
-        when={user()}
-        fallback={
-          <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-            <div class="text-center py-12">
-              <h2 class="text-2xl font-bold text-white mb-4">
-                Not Authenticated
-              </h2>
-              <p class="text-gray-300 mb-6">
-                Please sign in to view stream history.
-              </p>
-              <a
-                href={getLoginUrl()}
-                class="inline-block px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
-              >
-                Sign In
-              </a>
-            </div>
-          </div>
-        }
+        when={!isLoading()}
+        fallback={<LoadingIndicator />}
       >
+        <Show
+          when={user()}
+          fallback={
+            <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+              <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-white mb-4">
+                  Not Authenticated
+                </h2>
+                <p class="text-gray-300 mb-6">
+                  Please sign in to view stream history.
+                </p>
+                <a
+                  href={getLoginUrl()}
+                  class="inline-block px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                >
+                  Sign In
+                </a>
+              </div>
+            </div>
+          }
+        >
         <ErrorBoundary
           fallback={(err) => (
             <div class="max-w-7xl mx-auto mt-8">
@@ -91,6 +99,7 @@ export default function StreamHistory() {
             />
           </Suspense>
         </ErrorBoundary>
+        </Show>
       </Show>
     </>
   );
@@ -105,12 +114,23 @@ function StreamHistoryContent(props: {
   sortBy: () => SortBy;
   setSortBy: (s: SortBy) => void;
 }) {
-  const [streamsQuery] = createQuery({
-    query: StreamHistoryQuery,
-    variables: () => ({ userId: props.userId }),
-  });
+  const [streamsData] = createResource(
+    () => props.userId,
+    async (userId) => {
+      const result = await getStreamHistory({
+        input: { userId },
+        fields: [...streamHistoryFields],
+        fetchOptions: { credentials: "include" },
+      });
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to fetch streams");
+      }
+      return result.data;
+    }
+  );
 
-  const streams = () => streamsQuery.data?.streamHistory ?? [];
+  const streams = () => streamsData() ?? [];
+  const isFetching = () => streamsData.loading;
 
   const filteredAndSortedStreams = createMemo(() => {
     let result = [...streams()];
@@ -266,7 +286,7 @@ function StreamHistoryContent(props: {
       </Card>
 
       {/* Stats Overview - only show when data is loaded */}
-      <Show when={!streamsQuery.fetching && streams().length >= 0}>
+      <Show when={!isFetching() && streams().length >= 0}>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <Stat

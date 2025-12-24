@@ -3,38 +3,8 @@ import { createSignal, createEffect, Show, For } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
 import { useGlobalNotifications, type Notification } from "~/lib/useElectric";
-import { client } from "~/lib/urql";
-import { graphql } from "~/lib/graphql";
+import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
 import { button, card, text, badge, input } from "~/styles/design-system";
-
-const CreateNotificationMutation = graphql(`
-  mutation CreateNotification($input: CreateNotificationInput!) {
-    createNotification(input: $input) {
-      result {
-        id
-        content
-        userId
-        insertedAt
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const DeleteNotificationMutation = graphql(`
-  mutation DeleteNotification($id: ID!) {
-    deleteNotification(id: $id) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 export default function AdminNotifications() {
   const navigate = useNavigate();
@@ -92,20 +62,19 @@ export default function AdminNotifications() {
     setError(null);
 
     try {
-      const input: { content: string; userId?: string } = { content };
+      const input: { content: string; userId?: string | null } = { content };
       if (notificationType() === "user") {
         input.userId = targetUserId().trim();
       }
 
-      const result = await client.mutation(CreateNotificationMutation, { input }, {
+      const result = await createNotification({
+        input,
+        fields: ["id", "content", "userId", "insertedAt"],
         fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
-        setError("Failed to create notification. Please try again.");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.createNotification?.errors?.length > 0) {
-        setError(result.data.createNotification.errors[0].message || "Failed to create notification");
+      if (!result.success) {
+        setError(result.errors[0]?.message || "Failed to create notification");
       } else {
         setSuccessMessage("Notification created successfully!");
         closeCreateModal();
@@ -139,17 +108,13 @@ export default function AdminNotifications() {
     setError(null);
 
     try {
-      const result = await client.mutation(DeleteNotificationMutation, {
-        id: notification.id,
-      }, {
+      const result = await deleteNotification({
+        identity: notification.id,
         fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
-        setError("Failed to delete notification. Please try again.");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.deleteNotification?.errors?.length > 0) {
-        setError(result.data.deleteNotification.errors[0].message || "Failed to delete notification");
+      if (!result.success) {
+        setError(result.errors[0]?.message || "Failed to delete notification");
       } else {
         setSuccessMessage("Notification deleted successfully!");
         closeDeleteConfirm();

@@ -2,76 +2,66 @@ import { Title } from "@solidjs/meta";
 import { createSignal, Show, For, onMount } from "solid-js";
 import { useParams, useNavigate, A } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
-import { client } from "~/lib/urql";
-import { graphql, type ResultOf } from "~/lib/graphql";
+import { listViewers, getViewerChat, getViewerEvents } from "~/sdk/ash_rpc";
 
-const GetViewerQuery = graphql(`
-  query GetViewer($userId: ID!, $viewerId: String!) {
-    viewers(
-      userId: $userId
-      filter: { viewerId: { eq: $viewerId } }
-      first: 1
-    ) {
-      results {
-        id
-        viewerId
-        userId
-        platform
-        displayName
-        avatarUrl
-        channelUrl
-        isVerified
-        isOwner
-        isModerator
-        isPatreon
-        notes
-        aiSummary
-        firstSeenAt
-        lastSeenAt
-      }
-    }
-  }
-`);
+const viewerFields: (
+  | "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl"
+  | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon"
+  | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt"
+)[] = [
+  "viewerId", "userId", "platform", "displayName", "avatarUrl",
+  "channelUrl", "isVerified", "isOwner", "isModerator", "isPatreon",
+  "notes", "aiSummary", "firstSeenAt", "lastSeenAt",
+];
 
-const ViewerChatQuery = graphql(`
-  query ViewerChat($viewerId: String!, $userId: ID!) {
-    viewerChat(viewerId: $viewerId, userId: $userId) {
-      id
-      message
-      senderUsername
-      platform
-      senderIsModerator
-      senderIsPatreon
-      livestreamId
-      insertedAt
-    }
-  }
-`);
+const chatFields: (
+  | "id" | "message" | "senderUsername" | "platform"
+  | "senderIsModerator" | "senderIsPatreon" | "livestreamId" | "insertedAt"
+)[] = [
+  "id", "message", "senderUsername", "platform",
+  "senderIsModerator", "senderIsPatreon", "livestreamId", "insertedAt",
+];
 
-const ViewerEventsQuery = graphql(`
-  query ViewerEvents($viewerId: String!, $userId: ID!) {
-    viewerEvents(viewerId: $viewerId, userId: $userId) {
-      id
-      type
-      data
-      platform
-      livestreamId
-      insertedAt
-    }
-  }
-`);
+const eventFields: (
+  | "id" | "type" | "data" | "platform" | "livestreamId" | "insertedAt"
+)[] = ["id", "type", "data", "platform", "livestreamId", "insertedAt"];
 
-type StreamViewer = NonNullable<
-  NonNullable<ResultOf<typeof GetViewerQuery>["viewers"]>["results"]
->[number];
+interface StreamViewer {
+  viewerId: string;
+  userId: string;
+  platform: string;
+  displayName: string;
+  avatarUrl: string | null;
+  channelUrl: string | null;
+  isVerified: boolean | null;
+  isOwner: boolean | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  notes: string | null;
+  aiSummary: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
 
-type ChatMessage = NonNullable<
-  ResultOf<typeof ViewerChatQuery>["viewerChat"]
->[number];
+interface ChatMessage {
+  id: string;
+  message: string;
+  senderUsername: string;
+  platform: string;
+  senderIsModerator: boolean | null;
+  senderIsPatreon: boolean | null;
+  livestreamId: string;
+  insertedAt: string;
+}
 
-type StreamEvent = NonNullable<
-  ResultOf<typeof ViewerEventsQuery>["viewerEvents"]
->[number];
+interface StreamEvent {
+  id: string;
+  type: string;
+  data: Record<string, any>;
+  platform: string | null;
+  livestreamId: string;
+  insertedAt: string;
+}
 
 // Helper functions
 const platformBadgeColor = (platform: string) => {
@@ -169,19 +159,20 @@ export default function ViewerDetail() {
     try {
       setLoading(true);
 
-      const viewerResult = await client.query(GetViewerQuery, {
-        userId: user.id,
-        viewerId: vId,
+      const viewerResult = await listViewers({
+        input: { userId: user.id },
+        fields: [...viewerFields],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (viewerResult.error) {
+      if (!viewerResult.success) {
         setError("Failed to load viewer data");
-        console.error("GraphQL error:", viewerResult.error);
+        console.error("RPC error:", viewerResult.errors);
         setLoading(false);
         return;
       }
 
-      const foundViewer = viewerResult.data?.viewers?.results?.[0];
+      const foundViewer = viewerResult.data?.find((v: StreamViewer) => v.viewerId === vId);
 
       if (!foundViewer) {
         setError("Viewer not found");
@@ -189,29 +180,31 @@ export default function ViewerDetail() {
         return;
       }
 
-      setViewer(foundViewer);
+      setViewer(foundViewer as StreamViewer);
 
       const [messagesResult, eventsResult] = await Promise.all([
-        client.query(ViewerChatQuery, {
-          viewerId: vId,
-          userId: user.id,
+        getViewerChat({
+          input: { viewerId: vId, userId: user.id },
+          fields: [...chatFields],
+          fetchOptions: { credentials: "include" },
         }),
-        client.query(ViewerEventsQuery, {
-          viewerId: vId,
-          userId: user.id,
+        getViewerEvents({
+          input: { viewerId: vId, userId: user.id },
+          fields: [...eventFields],
+          fetchOptions: { credentials: "include" },
         }),
       ]);
 
-      if (messagesResult.error) {
-        console.error("Error loading messages:", messagesResult.error);
+      if (!messagesResult.success) {
+        console.error("Error loading messages:", messagesResult.errors);
       } else {
-        setMessages(messagesResult.data?.viewerChat || []);
+        setMessages((messagesResult.data || []) as ChatMessage[]);
       }
 
-      if (eventsResult.error) {
-        console.error("Error loading events:", eventsResult.error);
+      if (!eventsResult.success) {
+        console.error("Error loading events:", eventsResult.errors);
       } else {
-        setEvents(eventsResult.data?.viewerEvents || []);
+        setEvents((eventsResult.data || []) as StreamEvent[]);
       }
     } catch (err) {
       console.error("Error loading viewer details:", err);

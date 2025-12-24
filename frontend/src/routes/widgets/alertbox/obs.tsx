@@ -1,58 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show, For } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const DONATION_SUBSCRIPTION = graphql(`
-  subscription DonationReceived($userId: ID!) {
-    donationReceived(userId: $userId) {
-      id
-      amount
-      currency
-      username
-      message
-      timestamp
-      platform
-    }
-  }
-`);
-
-const FOLLOWER_SUBSCRIPTION = graphql(`
-  subscription FollowerAdded($userId: ID!) {
-    followerAdded(userId: $userId) {
-      id
-      username
-      timestamp
-      platform
-    }
-  }
-`);
-
-const SUBSCRIBER_SUBSCRIPTION = graphql(`
-  subscription SubscriberAdded($userId: ID!) {
-    subscriberAdded(userId: $userId) {
-      id
-      username
-      tier
-      months
-      message
-      timestamp
-      platform
-    }
-  }
-`);
-
-const RAID_SUBSCRIPTION = graphql(`
-  subscription RaidReceived($userId: ID!) {
-    raidReceived(userId: $userId) {
-      id
-      username
-      viewerCount
-      timestamp
-      platform
-    }
-  }
-`);
+import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 type AlertEvent = {
   id: string;
@@ -68,77 +17,50 @@ export default function AlertboxOBS() {
   const [alertQueue, setAlertQueue] = createSignal<AlertEvent[]>([]);
   const [currentAlert, setCurrentAlert] = createSignal<AlertEvent | null>(null);
   const [isAnimating, setIsAnimating] = createSignal(false);
+  const [processedEventIds, setProcessedEventIds] = createSignal<Set<string>>(new Set());
 
-  const [donationResult] = createSubscription({
-    query: DONATION_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
   });
 
-  const [followerResult] = createSubscription({
-    query: FOLLOWER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
-
-  const [subscriberResult] = createSubscription({
-    query: SUBSCRIBER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
-
-  const [raidResult] = createSubscription({
-    query: RAID_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const relevantEvents = createMemo(() => {
+    const data = eventsQuery.data || [];
+    return data.filter((e) =>
+      e.type === "donation" ||
+      e.type === "follow" ||
+      e.type === "subscription" ||
+      e.type === "raid"
+    ).sort((a, b) => new Date(a.inserted_at).getTime() - new Date(b.inserted_at).getTime());
   });
 
   createEffect(() => {
-    if (donationResult.data?.donationReceived) {
-      const event: AlertEvent = {
-        id: donationResult.data.donationReceived.id,
-        type: 'donation',
-        data: donationResult.data.donationReceived,
-        timestamp: new Date(),
-      };
-      addToQueue(event);
-    }
-  });
+    const events = relevantEvents();
+    const processed = processedEventIds();
 
-  createEffect(() => {
-    if (followerResult.data?.followerAdded) {
-      const event: AlertEvent = {
-        id: followerResult.data.followerAdded.id,
-        type: 'follower',
-        data: followerResult.data.followerAdded,
-        timestamp: new Date(),
-      };
-      addToQueue(event);
-    }
-  });
+    events.forEach((streamEvent) => {
+      if (processed.has(streamEvent.id)) return;
 
-  createEffect(() => {
-    if (subscriberResult.data?.subscriberAdded) {
-      const event: AlertEvent = {
-        id: subscriberResult.data.subscriberAdded.id,
-        type: 'subscriber',
-        data: subscriberResult.data.subscriberAdded,
-        timestamp: new Date(),
-      };
-      addToQueue(event);
-    }
-  });
+      let alertType: 'donation' | 'follower' | 'subscriber' | 'raid';
+      if (streamEvent.type === "follow") {
+        alertType = 'follower';
+      } else if (streamEvent.type === "subscription") {
+        alertType = 'subscriber';
+      } else {
+        alertType = streamEvent.type as 'donation' | 'raid';
+      }
 
-  createEffect(() => {
-    if (raidResult.data?.raidReceived) {
       const event: AlertEvent = {
-        id: raidResult.data.raidReceived.id,
-        type: 'raid',
-        data: raidResult.data.raidReceived,
-        timestamp: new Date(),
+        id: streamEvent.id,
+        type: alertType,
+        data: streamEvent.data,
+        timestamp: new Date(streamEvent.inserted_at),
       };
+
       addToQueue(event);
-    }
+      setProcessedEventIds((prev) => new Set([...prev, streamEvent.id]));
+    });
   });
 
   function addToQueue(event: AlertEvent) {

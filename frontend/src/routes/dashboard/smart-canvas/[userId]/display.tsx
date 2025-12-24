@@ -1,8 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, onMount, onCleanup } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getSmartCanvasLayout } from "~/sdk/ash_rpc";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
 
 interface CanvasWidget {
@@ -15,27 +14,21 @@ interface CanvasWidget {
   config?: any;
 }
 
-const GET_SMART_CANVAS_LAYOUT = graphql(`
-  query GetSmartCanvasLayout($userId: ID!) {
-    smartCanvasLayout(userId: $userId) {
-      id
-      userId
-      widgets
-    }
-  }
-`);
+const layoutFields: ("id" | "userId" | "widgets")[] = ["id", "userId", "widgets"];
 
 export default function SmartCanvasDisplay() {
   const params = useParams();
   const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
 
   async function loadLayout() {
-    const result = await client.query(GET_SMART_CANVAS_LAYOUT, {
-      userId: params.userId,
+    const result = await getSmartCanvasLayout({
+      input: { userId: params.userId },
+      fields: [...layoutFields],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.smartCanvasLayout?.widgets) {
-      const parsedWidgets = result.data.smartCanvasLayout.widgets.map((w: any) => {
+    if (result.success && result.data?.widgets) {
+      const parsedWidgets = result.data.widgets.map((w: any) => {
         const widget = typeof w === 'string' ? JSON.parse(w) : w;
         return {
           id: widget.id,

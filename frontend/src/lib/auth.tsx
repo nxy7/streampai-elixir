@@ -1,27 +1,35 @@
 import { createSignal, useContext, onMount, type ParentComponent } from "solid-js";
-import { client } from "./urql";
-import { graphql } from "~/lib/graphql";
 import { BACKEND_URL } from "./constants";
 import { AuthContext, type User } from "./AuthContext";
+import { getCurrentUser } from "~/sdk/ash_rpc";
 
-const CURRENT_USER_QUERY = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-      email
-      name
-      displayAvatar
-      hoursStreamedLast30Days
-      extraData
-      isModerator
-      storageQuota
-      storageUsedPercent
-      avatarFileId
-      role
-      tier
-    }
-  }
-`);
+const currentUserFields: (
+  | "id"
+  | "email"
+  | "name"
+  | "displayAvatar"
+  | "hoursStreamedLast30Days"
+  | "extraData"
+  | "isModerator"
+  | "storageQuota"
+  | "storageUsedPercent"
+  | "avatarFileId"
+  | "role"
+  | "tier"
+)[] = [
+  "id",
+  "email",
+  "name",
+  "displayAvatar",
+  "hoursStreamedLast30Days",
+  "extraData",
+  "isModerator",
+  "storageQuota",
+  "storageUsedPercent",
+  "avatarFileId",
+  "role",
+  "tier",
+];
 
 export type { User } from "./AuthContext";
 
@@ -32,10 +40,13 @@ export const AuthProvider: ParentComponent = (props) => {
   async function fetchCurrentUser() {
     setIsLoading(true);
     try {
-      const result = await client.query(CURRENT_USER_QUERY, {});
+      const result = await getCurrentUser({
+        fields: [...currentUserFields],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.data?.currentUser) {
-        setCurrentUser(result.data.currentUser as User);
+      if (result.success && result.data) {
+        setCurrentUser(result.data as User);
       } else {
         setCurrentUser(null);
       }

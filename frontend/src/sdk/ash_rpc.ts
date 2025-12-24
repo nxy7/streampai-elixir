@@ -5,12 +5,1127 @@
 
 
 
+export type UUID = string;
+export type UtcDateTime = string;
+export type UtcDateTimeUsec = string;
+
+// Livestream Schema
+export type LivestreamResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "legacyThumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId" | "averageViewers" | "peakViewers" | "messagesAmount" | "durationSeconds" | "platforms" | "thumbnailUrl";
+  id: UUID;
+  title: string;
+  description: string | null;
+  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
+  subcategory: string | null;
+  language: string | null;
+  tags: Array<string> | null;
+  legacyThumbnailUrl: string | null;
+  thumbnailFileId: UUID | null;
+  startedAt: UtcDateTime;
+  endedAt: UtcDateTime | null;
+  userId: UUID;
+  averageViewers: number | null;
+  peakViewers: number | null;
+  messagesAmount: number | null;
+  durationSeconds: number | null;
+  platforms: Array<string> | null;
+  thumbnailUrl: string | null;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  thumbnailFile: { __type: "Relationship"; __resource: FileResourceSchema | null; };
+  chatMessages: { __type: "Relationship"; __array: true; __resource: ChatMessageResourceSchema; };
+  streamEvents: { __type: "Relationship"; __array: true; __resource: StreamEventResourceSchema; };
+};
+
+
+
+// ChatMessage Schema
+export type ChatMessageResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "message" | "platform" | "senderUsername" | "senderChannelId" | "senderIsModerator" | "senderIsPatreon" | "insertedAt" | "viewerId" | "userId" | "livestreamId";
+  id: string;
+  message: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  senderUsername: string;
+  senderChannelId: string;
+  senderIsModerator: boolean | null;
+  senderIsPatreon: boolean | null;
+  insertedAt: UtcDateTimeUsec;
+  viewerId: string | null;
+  userId: UUID;
+  livestreamId: UUID;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  livestream: { __type: "Relationship"; __resource: LivestreamResourceSchema; };
+};
+
+
+
+// StreamEvent Schema
+export type StreamEventResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "data" | "dataRaw" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "insertedAt";
+  id: UUID;
+  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+  data: Record<string, any>;
+  dataRaw: Record<string, any>;
+  authorId: string;
+  livestreamId: UUID;
+  userId: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
+  viewerId: string | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
+
+// StreamViewer Schema
+export type StreamViewerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
+  viewerId: string;
+  userId: UUID;
+  platform: "twitch" | "youtube" | "facebook" | "kick";
+  displayName: string;
+  avatarUrl: string | null;
+  channelUrl: string | null;
+  isVerified: boolean | null;
+  isOwner: boolean | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  notes: string | null;
+  aiSummary: string | null;
+  firstSeenAt: UtcDateTimeUsec;
+  lastSeenAt: UtcDateTimeUsec;
+};
+
+
+
+// BannedViewer Schema
+export type BannedViewerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerUsername: string;
+  viewerPlatformId: string;
+  reason: string | null;
+  durationSeconds: number | null;
+  expiresAt: UtcDateTimeUsec | null;
+  isActive: boolean;
+  platformBanId: string | null;
+  unbannedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
+// File Schema
+export type FileResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "url" | "uploadUrl" | "uploadHeaders" | "maxSize";
+  id: UUID;
+  url: string | null;
+  uploadUrl: string | null;
+  uploadHeaders: Array<Record<string, any>> | null;
+  maxSize: number | null;
+};
+
+
+
+// User Schema
+export type UserResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
+  id: UUID;
+  email: string;
+  name: string;
+  extraData: Record<string, any> | null;
+  confirmedAt: UtcDateTimeUsec | null;
+  emailNotifications: boolean;
+  minDonationAmount: number | null;
+  maxDonationAmount: number | null;
+  donationCurrency: string;
+  defaultVoice: string | null;
+  avatarUrl: string | null;
+  avatarFileId: UUID | null;
+  tier: string | null;
+  role: string | null;
+  displayAvatar: string | null;
+  isModerator: boolean | null;
+  hoursStreamedLast30Days: number | null;
+  storageQuota: number | null;
+  storageUsedPercent: number | null;
+};
+
+
+
+// UserRole Schema
+export type UserRoleResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "granterId" | "roleType" | "roleStatus" | "grantedAt" | "acceptedAt" | "revokedAt";
+  id: UUID;
+  userId: UUID;
+  granterId: UUID;
+  roleType: "moderator" | "manager";
+  roleStatus: "pending" | "accepted" | "declined";
+  grantedAt: UtcDateTimeUsec;
+  acceptedAt: UtcDateTimeUsec | null;
+  revokedAt: UtcDateTimeUsec | null;
+};
+
+
+
+// WidgetConfig Schema
+export type WidgetConfigResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "type" | "config";
+  id: UUID;
+  userId: UUID;
+  type: string;
+  config: Record<string, any>;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
+// StreamingAccount Schema
+export type StreamingAccountResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
+
+
+
+// SmartCanvasLayout Schema
+export type SmartCanvasLayoutResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "widgets";
+  id: UUID;
+  userId: UUID;
+  widgets: Array<Record<string, any>>;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
+// Notification Schema
+export type NotificationResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "content" | "insertedAt";
+  id: UUID;
+  userId: UUID | null;
+  content: string;
+  insertedAt: UtcDateTimeUsec;
+  user: { __type: "Relationship"; __resource: UserResourceSchema | null; };
+  reads: { __type: "Relationship"; __array: true; __resource: NotificationReadResourceSchema; };
+};
+
+
+
+// NotificationRead Schema
+export type NotificationReadResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "userId" | "notificationId" | "seenAt";
+  userId: UUID;
+  notificationId: UUID;
+  seenAt: UtcDateTimeUsec;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  notification: { __type: "Relationship"; __resource: NotificationResourceSchema; };
+};
 
 
 
 
 
+export type LivestreamFilterInput = {
+  and?: Array<LivestreamFilterInput>;
+  or?: Array<LivestreamFilterInput>;
+  not?: Array<LivestreamFilterInput>;
 
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  title?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  description?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  category?: {
+    eq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
+    notEq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
+    in?: Array<"gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting">;
+  };
+
+  subcategory?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  language?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  tags?: {
+    eq?: Array<string>;
+    notEq?: Array<string>;
+    in?: Array<Array<string>>;
+  };
+
+  legacyThumbnailUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  thumbnailFileId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  startedAt?: {
+    eq?: UtcDateTime;
+    notEq?: UtcDateTime;
+    greaterThan?: UtcDateTime;
+    greaterThanOrEqual?: UtcDateTime;
+    lessThan?: UtcDateTime;
+    lessThanOrEqual?: UtcDateTime;
+    in?: Array<UtcDateTime>;
+  };
+
+  endedAt?: {
+    eq?: UtcDateTime;
+    notEq?: UtcDateTime;
+    greaterThan?: UtcDateTime;
+    greaterThanOrEqual?: UtcDateTime;
+    lessThan?: UtcDateTime;
+    lessThanOrEqual?: UtcDateTime;
+    in?: Array<UtcDateTime>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  averageViewers?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  peakViewers?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  messagesAmount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  durationSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  platforms?: {
+    eq?: Array<string>;
+    notEq?: Array<string>;
+    in?: Array<Array<string>>;
+  };
+
+  thumbnailUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+
+  user?: UserFilterInput;
+
+  thumbnailFile?: FileFilterInput;
+
+  chatMessages?: ChatMessageFilterInput;
+
+  streamEvents?: StreamEventFilterInput;
+
+};
+export type ChatMessageFilterInput = {
+  and?: Array<ChatMessageFilterInput>;
+  or?: Array<ChatMessageFilterInput>;
+  not?: Array<ChatMessageFilterInput>;
+
+  id?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  senderUsername?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderChannelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderIsModerator?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  senderIsPatreon?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  livestreamId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  user?: UserFilterInput;
+
+  livestream?: LivestreamFilterInput;
+
+};
+export type StreamEventFilterInput = {
+  and?: Array<StreamEventFilterInput>;
+  or?: Array<StreamEventFilterInput>;
+  not?: Array<StreamEventFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  type?: {
+    eq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+    notEq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+    in?: Array<"chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped">;
+  };
+
+  data?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  dataRaw?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  authorId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  livestreamId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamViewerFilterInput = {
+  and?: Array<StreamViewerFilterInput>;
+  or?: Array<StreamViewerFilterInput>;
+  not?: Array<StreamViewerFilterInput>;
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  platform?: {
+    eq?: "twitch" | "youtube" | "facebook" | "kick";
+    notEq?: "twitch" | "youtube" | "facebook" | "kick";
+    in?: Array<"twitch" | "youtube" | "facebook" | "kick">;
+  };
+
+  displayName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  avatarUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  channelUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  isVerified?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isOwner?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isModerator?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isPatreon?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  notes?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiSummary?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  firstSeenAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  lastSeenAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type BannedViewerFilterInput = {
+  and?: Array<BannedViewerFilterInput>;
+  or?: Array<BannedViewerFilterInput>;
+  not?: Array<BannedViewerFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerUsername?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  viewerPlatformId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  reason?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  durationSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  expiresAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  isActive?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  platformBanId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  unbannedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type FileFilterInput = {
+  and?: Array<FileFilterInput>;
+  or?: Array<FileFilterInput>;
+  not?: Array<FileFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  url?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  uploadUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  uploadHeaders?: {
+    eq?: Array<Record<string, any>>;
+    notEq?: Array<Record<string, any>>;
+    in?: Array<Array<Record<string, any>>>;
+  };
+
+  maxSize?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+
+
+};
+export type UserFilterInput = {
+  and?: Array<UserFilterInput>;
+  or?: Array<UserFilterInput>;
+  not?: Array<UserFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  email?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  name?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  extraData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  confirmedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  emailNotifications?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  minDonationAmount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  maxDonationAmount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  donationCurrency?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  defaultVoice?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  avatarUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  avatarFileId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  tier?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  role?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  displayAvatar?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  isModerator?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  hoursStreamedLast30Days?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  storageQuota?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  storageUsedPercent?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+
+
+};
+export type UserRoleFilterInput = {
+  and?: Array<UserRoleFilterInput>;
+  or?: Array<UserRoleFilterInput>;
+  not?: Array<UserRoleFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  granterId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  roleType?: {
+    eq?: "moderator" | "manager";
+    notEq?: "moderator" | "manager";
+    in?: Array<"moderator" | "manager">;
+  };
+
+  roleStatus?: {
+    eq?: "pending" | "accepted" | "declined";
+    notEq?: "pending" | "accepted" | "declined";
+    in?: Array<"pending" | "accepted" | "declined">;
+  };
+
+  grantedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  acceptedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  revokedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type WidgetConfigFilterInput = {
+  and?: Array<WidgetConfigFilterInput>;
+  or?: Array<WidgetConfigFilterInput>;
+  not?: Array<WidgetConfigFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  type?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  config?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
+  user?: UserFilterInput;
+
+};
+export type StreamingAccountFilterInput = {
+  and?: Array<StreamingAccountFilterInput>;
+  or?: Array<StreamingAccountFilterInput>;
+  not?: Array<StreamingAccountFilterInput>;
+
+
+
+
+};
+export type SmartCanvasLayoutFilterInput = {
+  and?: Array<SmartCanvasLayoutFilterInput>;
+  or?: Array<SmartCanvasLayoutFilterInput>;
+  not?: Array<SmartCanvasLayoutFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  widgets?: {
+    eq?: Array<Record<string, any>>;
+    notEq?: Array<Record<string, any>>;
+    in?: Array<Array<Record<string, any>>>;
+  };
+
+
+  user?: UserFilterInput;
+
+};
+export type NotificationFilterInput = {
+  and?: Array<NotificationFilterInput>;
+  or?: Array<NotificationFilterInput>;
+  not?: Array<NotificationFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  content?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+  user?: UserFilterInput;
+
+  reads?: NotificationReadFilterInput;
+
+};
+export type NotificationReadFilterInput = {
+  and?: Array<NotificationReadFilterInput>;
+  or?: Array<NotificationReadFilterInput>;
+  not?: Array<NotificationReadFilterInput>;
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  notificationId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  seenAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+  user?: UserFilterInput;
+
+  notification?: NotificationFilterInput;
+
+};
 
 
 // Utility Types
@@ -569,5 +1684,1507 @@ async function executeActionRpcRequest<T>(
 
 
 
+export type GetStreamHistoryInput = {
+  userId: UUID;
+};
+
+export type GetStreamHistoryFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
+export type InferGetStreamHistoryResult<
+  Fields extends GetStreamHistoryFields,
+> = Array<InferResult<LivestreamResourceSchema, Fields>>;
+
+export type GetStreamHistoryResult<Fields extends GetStreamHistoryFields> = | { success: true; data: InferGetStreamHistoryResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
+  config: {
+  input: GetStreamHistoryInput;
+  fields: Fields;
+  filter?: LivestreamFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHistoryResult<Fields>> {
+  const payload = {
+    action: "get_stream_history",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHistoryResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetLivestreamFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
+export type InferGetLivestreamResult<
+  Fields extends GetLivestreamFields,
+> = InferResult<LivestreamResourceSchema, Fields>;
+
+export type GetLivestreamResult<Fields extends GetLivestreamFields> = | { success: true; data: InferGetLivestreamResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getLivestream<Fields extends GetLivestreamFields>(
+  config: {
+  getBy: {
+    id: UUID;
+  };
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamResult<Fields>> {
+  const payload = {
+    action: "get_livestream",
+    getBy: config.getBy,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetLivestreamResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetLivestreamChatInput = {
+  livestreamId: UUID;
+};
+
+export type GetLivestreamChatFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
+export type InferGetLivestreamChatResult<
+  Fields extends GetLivestreamChatFields,
+> = Array<InferResult<ChatMessageResourceSchema, Fields>>;
+
+export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | { success: true; data: InferGetLivestreamChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
+  config: {
+  input: GetLivestreamChatInput;
+  fields: Fields;
+  filter?: ChatMessageFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamChatResult<Fields>> {
+  const payload = {
+    action: "get_livestream_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetLivestreamChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetChatHistoryInput = {
+  userId: UUID;
+  platform?: string;
+  dateRange?: string;
+  search?: string;
+};
+
+export type GetChatHistoryFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
+
+
+export type InferGetChatHistoryResult<
+  Fields extends GetChatHistoryFields | undefined,
+  Page extends GetChatHistoryConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<ChatMessageResourceSchema, Fields>>, {
+  results: Array<InferResult<ChatMessageResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type GetChatHistoryConfig = {
+  input: GetChatHistoryInput;
+  fields: GetChatHistoryFields;
+  filter?: ChatMessageFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page extends GetChatHistoryConfig["page"] = undefined> = | { success: true; data: InferGetChatHistoryResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
+  config: Config & { fields: Fields }
+): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "get_chat_history",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<GetChatHistoryResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetViewerChatInput = {
+  viewerId: string;
+  userId: UUID;
+};
+
+export type GetViewerChatFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
+export type InferGetViewerChatResult<
+  Fields extends GetViewerChatFields,
+> = Array<InferResult<ChatMessageResourceSchema, Fields>>;
+
+export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { success: true; data: InferGetViewerChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getViewerChat<Fields extends GetViewerChatFields>(
+  config: {
+  input: GetViewerChatInput;
+  fields: Fields;
+  filter?: ChatMessageFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetViewerChatResult<Fields>> {
+  const payload = {
+    action: "get_viewer_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetViewerChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetLivestreamEventsInput = {
+  livestreamId: UUID;
+};
+
+export type GetLivestreamEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetLivestreamEventsResult<
+  Fields extends GetLivestreamEventsFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetLivestreamEventsResult<Fields extends GetLivestreamEventsFields> = | { success: true; data: InferGetLivestreamEventsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getLivestreamEvents<Fields extends GetLivestreamEventsFields>(
+  config: {
+  input: GetLivestreamEventsInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamEventsResult<Fields>> {
+  const payload = {
+    action: "get_livestream_events",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetLivestreamEventsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetViewerEventsInput = {
+  viewerId: string;
+  userId: UUID;
+};
+
+export type GetViewerEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetViewerEventsResult<
+  Fields extends GetViewerEventsFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetViewerEventsResult<Fields extends GetViewerEventsFields> = | { success: true; data: InferGetViewerEventsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getViewerEvents<Fields extends GetViewerEventsFields>(
+  config: {
+  input: GetViewerEventsInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetViewerEventsResult<Fields>> {
+  const payload = {
+    action: "get_viewer_events",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetViewerEventsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ListViewersInput = {
+  userId: UUID;
+};
+
+export type ListViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
+
+
+export type InferListViewersResult<
+  Fields extends ListViewersFields | undefined,
+  Page extends ListViewersConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<StreamViewerResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamViewerResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListViewersConfig = {
+  input: ListViewersInput;
+  fields: ListViewersFields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type ListViewersResult<Fields extends ListViewersFields, Page extends ListViewersConfig["page"] = undefined> = | { success: true; data: InferListViewersResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function listViewers<Fields extends ListViewersFields, Config extends ListViewersConfig = ListViewersConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListViewersResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "list_viewers",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<ListViewersResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export type SearchViewersInput = {
+  userId: UUID;
+  displayName: string;
+  similarityThreshold?: number;
+};
+
+export type SearchViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
+export type InferSearchViewersResult<
+  Fields extends SearchViewersFields,
+> = Array<InferResult<StreamViewerResourceSchema, Fields>>;
+
+export type SearchViewersResult<Fields extends SearchViewersFields> = | { success: true; data: InferSearchViewersResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function searchViewers<Fields extends SearchViewersFields>(
+  config: {
+  input: SearchViewersInput;
+  fields: Fields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SearchViewersResult<Fields>> {
+  const payload = {
+    action: "search_viewers",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<SearchViewersResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ListBannedViewersInput = {
+  userId: UUID;
+};
+
+export type ListBannedViewersFields = UnifiedFieldSelection<BannedViewerResourceSchema>[];
+export type InferListBannedViewersResult<
+  Fields extends ListBannedViewersFields,
+> = Array<InferResult<BannedViewerResourceSchema, Fields>>;
+
+export type ListBannedViewersResult<Fields extends ListBannedViewersFields> = | { success: true; data: InferListBannedViewersResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function listBannedViewers<Fields extends ListBannedViewersFields>(
+  config: {
+  input: ListBannedViewersInput;
+  fields: Fields;
+  filter?: BannedViewerFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ListBannedViewersResult<Fields>> {
+  const payload = {
+    action: "list_banned_viewers",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<ListBannedViewersResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type RequestFileUploadInput = {
+  filename: string;
+  contentType?: string;
+  fileType: "thumbnail" | "avatar" | "video" | "other";
+  estimatedSize: number;
+};
+
+export type RequestFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+
+export type InferRequestFileUploadResult<
+  Fields extends RequestFileUploadFields | undefined,
+> = InferResult<FileResourceSchema, Fields>;
+
+export type RequestFileUploadResult<Fields extends RequestFileUploadFields | undefined = undefined> = | { success: true; data: InferRequestFileUploadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function requestFileUpload<Fields extends RequestFileUploadFields | undefined = undefined>(
+  config: {
+  input: RequestFileUploadInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RequestFileUploadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "request_file_upload",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RequestFileUploadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ConfirmFileUploadInput = {
+  contentHash?: string | null;
+};
+
+export type ConfirmFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+
+export type InferConfirmFileUploadResult<
+  Fields extends ConfirmFileUploadFields | undefined,
+> = InferResult<FileResourceSchema, Fields>;
+
+export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | undefined = undefined> = | { success: true; data: InferConfirmFileUploadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input?: ConfirmFileUploadInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "confirm_file_upload",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetCurrentUserFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type InferGetCurrentUserResult<
+  Fields extends GetCurrentUserFields,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type GetCurrentUserResult<Fields extends GetCurrentUserFields> = | { success: true; data: InferGetCurrentUserResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getCurrentUser<Fields extends GetCurrentUserFields>(
+  config: {
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetCurrentUserResult<Fields>> {
+  const payload = {
+    action: "get_current_user",
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetCurrentUserResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetPublicProfileInput = {
+  username: string;
+};
+
+export type GetPublicProfileFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type InferGetPublicProfileResult<
+  Fields extends GetPublicProfileFields,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type GetPublicProfileResult<Fields extends GetPublicProfileFields> = | { success: true; data: InferGetPublicProfileResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getPublicProfile<Fields extends GetPublicProfileFields>(
+  config: {
+  input: GetPublicProfileInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetPublicProfileResult<Fields>> {
+  const payload = {
+    action: "get_public_profile",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetPublicProfileResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ListUsersFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+
+export type InferListUsersResult<
+  Fields extends ListUsersFields | undefined,
+  Page extends ListUsersConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<UserResourceSchema, Fields>>, {
+  results: Array<InferResult<UserResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListUsersConfig = {
+  fields: ListUsersFields;
+  filter?: UserFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type ListUsersResult<Fields extends ListUsersFields, Page extends ListUsersConfig["page"] = undefined> = | { success: true; data: InferListUsersResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function listUsers<Fields extends ListUsersFields, Config extends ListUsersConfig = ListUsersConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListUsersResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "list_users",
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<ListUsersResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetUserByNameInput = {
+  name: string;
+};
+
+export type GetUserByNameFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type InferGetUserByNameResult<
+  Fields extends GetUserByNameFields,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type GetUserByNameResult<Fields extends GetUserByNameFields> = | { success: true; data: InferGetUserByNameResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getUserByName<Fields extends GetUserByNameFields>(
+  config: {
+  input: GetUserByNameInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetUserByNameResult<Fields>> {
+  const payload = {
+    action: "get_user_by_name",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetUserByNameResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetUserInfoInput = {
+  id: string;
+};
+
+export type GetUserInfoFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type InferGetUserInfoResult<
+  Fields extends GetUserInfoFields,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type GetUserInfoResult<Fields extends GetUserInfoFields> = | { success: true; data: InferGetUserInfoResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getUserInfo<Fields extends GetUserInfoFields>(
+  config: {
+  input: GetUserInfoInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetUserInfoResult<Fields>> {
+  const payload = {
+    action: "get_user_info",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetUserInfoResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type UpdateNameInput = {
+  name?: string;
+};
+
+export type UpdateNameFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferUpdateNameResult<
+  Fields extends UpdateNameFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type UpdateNameResult<Fields extends UpdateNameFields | undefined = undefined> = | { success: true; data: InferUpdateNameResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function updateName<Fields extends UpdateNameFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: UpdateNameInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateNameResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_name",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateNameResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type UpdateAvatarInput = {
+  avatarFileId?: UUID | null;
+  fileId: UUID;
+};
+
+export type UpdateAvatarFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferUpdateAvatarResult<
+  Fields extends UpdateAvatarFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type UpdateAvatarResult<Fields extends UpdateAvatarFields | undefined = undefined> = | { success: true; data: InferUpdateAvatarResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function updateAvatar<Fields extends UpdateAvatarFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: UpdateAvatarInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateAvatarResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_avatar",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateAvatarResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ToggleEmailNotificationsFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferToggleEmailNotificationsResult<
+  Fields extends ToggleEmailNotificationsFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type ToggleEmailNotificationsResult<Fields extends ToggleEmailNotificationsFields | undefined = undefined> = | { success: true; data: InferToggleEmailNotificationsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function toggleEmailNotifications<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "toggle_email_notifications",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type SaveDonationSettingsInput = {
+  minAmount?: number;
+  maxAmount?: number;
+  currency?: string;
+  defaultVoice?: string;
+};
+
+export type SaveDonationSettingsFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferSaveDonationSettingsResult<
+  Fields extends SaveDonationSettingsFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type SaveDonationSettingsResult<Fields extends SaveDonationSettingsFields | undefined = undefined> = | { success: true; data: InferSaveDonationSettingsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveDonationSettings<Fields extends SaveDonationSettingsFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input?: SaveDonationSettingsInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveDonationSettingsResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_donation_settings",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveDonationSettingsResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GrantProAccessInput = {
+  durationDays: number;
+  reason: string;
+};
+
+export type GrantProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferGrantProAccessResult<
+  Fields extends GrantProAccessFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type GrantProAccessResult<Fields extends GrantProAccessFields | undefined = undefined> = | { success: true; data: InferGrantProAccessResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function grantProAccess<Fields extends GrantProAccessFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: GrantProAccessInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GrantProAccessResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "grant_pro_access",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GrantProAccessResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type RevokeProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferRevokeProAccessResult<
+  Fields extends RevokeProAccessFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type RevokeProAccessResult<Fields extends RevokeProAccessFields | undefined = undefined> = | { success: true; data: InferRevokeProAccessResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function revokeProAccess<Fields extends RevokeProAccessFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RevokeProAccessResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "revoke_pro_access",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RevokeProAccessResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type InviteUserRoleInput = {
+  userId: UUID;
+  granterId: UUID;
+  roleType: string;
+};
+
+export type InviteUserRoleFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+
+export type InferInviteUserRoleResult<
+  Fields extends InviteUserRoleFields | undefined,
+> = InferResult<UserRoleResourceSchema, Fields>;
+
+export type InviteUserRoleResult<Fields extends InviteUserRoleFields | undefined = undefined> = | { success: true; data: InferInviteUserRoleResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function inviteUserRole<Fields extends InviteUserRoleFields | undefined = undefined>(
+  config: {
+  input: InviteUserRoleInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<InviteUserRoleResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "invite_user_role",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<InviteUserRoleResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type AcceptRoleInvitationFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+
+export type InferAcceptRoleInvitationResult<
+  Fields extends AcceptRoleInvitationFields | undefined,
+> = InferResult<UserRoleResourceSchema, Fields>;
+
+export type AcceptRoleInvitationResult<Fields extends AcceptRoleInvitationFields | undefined = undefined> = | { success: true; data: InferAcceptRoleInvitationResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function acceptRoleInvitation<Fields extends AcceptRoleInvitationFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<AcceptRoleInvitationResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "accept_role_invitation",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<AcceptRoleInvitationResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type DeclineRoleInvitationFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+
+export type InferDeclineRoleInvitationResult<
+  Fields extends DeclineRoleInvitationFields | undefined,
+> = InferResult<UserRoleResourceSchema, Fields>;
+
+export type DeclineRoleInvitationResult<Fields extends DeclineRoleInvitationFields | undefined = undefined> = | { success: true; data: InferDeclineRoleInvitationResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function declineRoleInvitation<Fields extends DeclineRoleInvitationFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeclineRoleInvitationResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "decline_role_invitation",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<DeclineRoleInvitationResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type RevokeUserRoleFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+
+export type InferRevokeUserRoleResult<
+  Fields extends RevokeUserRoleFields | undefined,
+> = InferResult<UserRoleResourceSchema, Fields>;
+
+export type RevokeUserRoleResult<Fields extends RevokeUserRoleFields | undefined = undefined> = | { success: true; data: InferRevokeUserRoleResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function revokeUserRole<Fields extends RevokeUserRoleFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RevokeUserRoleResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "revoke_user_role",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RevokeUserRoleResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetWidgetConfigInput = {
+  userId: UUID;
+  type: string;
+};
+
+export type GetWidgetConfigFields = UnifiedFieldSelection<WidgetConfigResourceSchema>[];
+export type InferGetWidgetConfigResult<
+  Fields extends GetWidgetConfigFields,
+> = InferResult<WidgetConfigResourceSchema, Fields>;
+
+export type GetWidgetConfigResult<Fields extends GetWidgetConfigFields> = | { success: true; data: InferGetWidgetConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getWidgetConfig<Fields extends GetWidgetConfigFields>(
+  config: {
+  input: GetWidgetConfigInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetWidgetConfigResult<Fields>> {
+  const payload = {
+    action: "get_widget_config",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetWidgetConfigResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ListWidgetConfigsFields = UnifiedFieldSelection<WidgetConfigResourceSchema>[];
+
+
+export type InferListWidgetConfigsResult<
+  Fields extends ListWidgetConfigsFields | undefined,
+  Page extends ListWidgetConfigsConfig["page"] = undefined
+> = ConditionalPaginatedResultMixed<Page, Array<InferResult<WidgetConfigResourceSchema, Fields>>, {
+  results: Array<InferResult<WidgetConfigResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  offset: number;
+  count?: number | null;
+  type: "offset";
+}, {
+  results: Array<InferResult<WidgetConfigResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListWidgetConfigsConfig = {
+  fields: ListWidgetConfigsFields;
+  filter?: WidgetConfigFilterInput;
+  sort?: string;
+  page?: (
+    {
+      limit?: number;
+      offset?: number;
+      count?: boolean;
+    } | {
+      limit?: number;
+      after?: string;
+      before?: string;
+    }
+  );
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type ListWidgetConfigsResult<Fields extends ListWidgetConfigsFields, Page extends ListWidgetConfigsConfig["page"] = undefined> = | { success: true; data: InferListWidgetConfigsResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function listWidgetConfigs<Fields extends ListWidgetConfigsFields, Config extends ListWidgetConfigsConfig = ListWidgetConfigsConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListWidgetConfigsResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "list_widget_configs",
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<ListWidgetConfigsResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export type SaveWidgetConfigInput = {
+  userId: UUID;
+  type: string;
+  config?: Record<string, any>;
+};
+
+export type SaveWidgetConfigFields = UnifiedFieldSelection<WidgetConfigResourceSchema>[];
+
+export type InferSaveWidgetConfigResult<
+  Fields extends SaveWidgetConfigFields | undefined,
+> = InferResult<WidgetConfigResourceSchema, Fields>;
+
+export type SaveWidgetConfigResult<Fields extends SaveWidgetConfigFields | undefined = undefined> = | { success: true; data: InferSaveWidgetConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveWidgetConfig<Fields extends SaveWidgetConfigFields | undefined = undefined>(
+  config: {
+  input: SaveWidgetConfigInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveWidgetConfigResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_widget_config",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveWidgetConfigResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type ListStreamingAccountsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
+
+
+export type InferListStreamingAccountsResult<
+  Fields extends ListStreamingAccountsFields | undefined,
+  Page extends ListStreamingAccountsConfig["page"] = undefined
+> = ConditionalPaginatedResultMixed<Page, Array<InferResult<StreamingAccountResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  offset: number;
+  count?: number | null;
+  type: "offset";
+}, {
+  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListStreamingAccountsConfig = {
+  fields: ListStreamingAccountsFields;
+  filter?: StreamingAccountFilterInput;
+  sort?: string;
+  page?: (
+    {
+      limit?: number;
+      offset?: number;
+      count?: boolean;
+    } | {
+      limit?: number;
+      after?: string;
+      before?: string;
+    }
+  );
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type ListStreamingAccountsResult<Fields extends ListStreamingAccountsFields, Page extends ListStreamingAccountsConfig["page"] = undefined> = | { success: true; data: InferListStreamingAccountsResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function listStreamingAccounts<Fields extends ListStreamingAccountsFields, Config extends ListStreamingAccountsConfig = ListStreamingAccountsConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListStreamingAccountsResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "list_streaming_accounts",
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<ListStreamingAccountsResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export type GetSmartCanvasLayoutInput = {
+  userId: UUID;
+};
+
+export type GetSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
+export type InferGetSmartCanvasLayoutResult<
+  Fields extends GetSmartCanvasLayoutFields,
+> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
+
+export type GetSmartCanvasLayoutResult<Fields extends GetSmartCanvasLayoutFields> = | { success: true; data: InferGetSmartCanvasLayoutResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFields>(
+  config: {
+  input: GetSmartCanvasLayoutInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetSmartCanvasLayoutResult<Fields>> {
+  const payload = {
+    action: "get_smart_canvas_layout",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetSmartCanvasLayoutResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type SaveSmartCanvasLayoutInput = {
+  userId: UUID;
+  widgets?: Array<Record<string, any>>;
+};
+
+export type SaveSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
+
+export type InferSaveSmartCanvasLayoutResult<
+  Fields extends SaveSmartCanvasLayoutFields | undefined,
+> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
+
+export type SaveSmartCanvasLayoutResult<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined> = | { success: true; data: InferSaveSmartCanvasLayoutResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(
+  config: {
+  input: SaveSmartCanvasLayoutInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_smart_canvas_layout",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type CreateNotificationInput = {
+  userId?: UUID | null;
+  content: string;
+};
+
+export type CreateNotificationFields = UnifiedFieldSelection<NotificationResourceSchema>[];
+
+export type InferCreateNotificationResult<
+  Fields extends CreateNotificationFields | undefined,
+> = InferResult<NotificationResourceSchema, Fields>;
+
+export type CreateNotificationResult<Fields extends CreateNotificationFields | undefined = undefined> = | { success: true; data: InferCreateNotificationResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function createNotification<Fields extends CreateNotificationFields | undefined = undefined>(
+  config: {
+  input: CreateNotificationInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateNotificationResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_notification",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateNotificationResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+
+export type DeleteNotificationResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function deleteNotification(
+  config: {
+  identity: UUID;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteNotificationResult> {
+  const payload = {
+    action: "delete_notification",
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DeleteNotificationResult>(
+    payload,
+    config
+  );
+}
+
+
+export type MarkNotificationReadInput = {
+  notificationId: UUID;
+};
+
+export type MarkNotificationReadFields = UnifiedFieldSelection<NotificationReadResourceSchema>[];
+
+export type InferMarkNotificationReadResult<
+  Fields extends MarkNotificationReadFields | undefined,
+> = InferResult<NotificationReadResourceSchema, Fields>;
+
+export type MarkNotificationReadResult<Fields extends MarkNotificationReadFields | undefined = undefined> = | { success: true; data: InferMarkNotificationReadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function markNotificationRead<Fields extends MarkNotificationReadFields | undefined = undefined>(
+  config: {
+  input: MarkNotificationReadInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<MarkNotificationReadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "mark_notification_read",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<MarkNotificationReadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export type MarkNotificationUnreadInput = {
+  notificationId: UUID;
+};
+
+export type InferMarkNotificationUnreadResult = Record<string, any>;
+
+export type MarkNotificationUnreadResult = | { success: true; data: InferMarkNotificationUnreadResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function markNotificationUnread(
+  config: {
+  input: MarkNotificationUnreadInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<MarkNotificationUnreadResult> {
+  const payload = {
+    action: "mark_notification_unread",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<MarkNotificationUnreadResult>(
+    payload,
+    config
+  );
+}
 
 

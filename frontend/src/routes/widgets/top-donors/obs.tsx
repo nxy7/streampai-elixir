@@ -1,21 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show, For } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const DONATION_SUBSCRIPTION = graphql(`
-  subscription DonationReceived($userId: ID!) {
-    donationReceived(userId: $userId) {
-      id
-      amount
-      currency
-      username
-      message
-      timestamp
-      platform
-    }
-  }
-`);
+import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 type Donor = {
   username: string;
@@ -29,43 +15,39 @@ export default function TopDonorsOBS() {
   const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
   const maxDonors = () => parseInt(params.maxDonors || "5");
 
-  const [donors, setDonors] = createSignal<Donor[]>([]);
-
-  const result = createSubscription({
-    query: DONATION_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
   });
 
-  createEffect(() => {
-    if (result()?.data?.donationReceived) {
-      const data = result.data.donationReceived;
+  const donors = createMemo(() => {
+    const data = eventsQuery.data || [];
+    const donations = data.filter((e) => e.type === "donation");
+    const donationsByUser = new Map<string, Donor>();
 
-      setDonors(prev => {
-        const existingIndex = prev.findIndex(d => d.username === data.username);
+    donations.forEach((donation) => {
+      const username = (donation.data?.username as string) || donation.author_id;
+      const amount = (donation.data?.amount as number) || 0;
+      const currency = (donation.data?.currency as string) || "$";
 
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            totalAmount: updated[existingIndex].totalAmount + data.amount,
-            donationCount: updated[existingIndex].donationCount + 1
-          };
-          return updated.sort((a, b) => b.totalAmount - a.totalAmount).slice(0, maxDonors());
-        } else {
-          const newDonors = [
-            ...prev,
-            {
-              username: data.username,
-              totalAmount: data.amount,
-              currency: data.currency,
-              donationCount: 1
-            }
-          ];
-          return newDonors.sort((a, b) => b.totalAmount - a.totalAmount).slice(0, maxDonors());
-        }
-      });
-    }
+      const existing = donationsByUser.get(username);
+      if (existing) {
+        existing.totalAmount += amount;
+        existing.donationCount += 1;
+      } else {
+        donationsByUser.set(username, {
+          username,
+          totalAmount: amount,
+          currency,
+          donationCount: 1
+        });
+      }
+    });
+
+    return Array.from(donationsByUser.values())
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+      .slice(0, maxDonors());
   });
 
   function getMedalEmoji(index: number) {

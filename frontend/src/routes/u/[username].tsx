@@ -1,22 +1,11 @@
 import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, createEffect, createMemo, For } from "solid-js";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
 import { createUserPreferencesCollection, type UserPreferences } from "~/lib/electric";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { createLocalStorageStore } from "~/lib/useLocalStorage";
 import LoadingIndicator from "~/components/LoadingIndicator";
-
-const GET_USER_BY_NAME = graphql(`
-  query GetPublicProfile($username: String!) {
-    publicProfile(username: $username) {
-      id
-      name
-      displayAvatar
-    }
-  }
-`);
+import { getPublicProfile } from "~/sdk/ash_rpc";
 
 type StreamerPrefs = {
   selectedAmount: number | null;
@@ -50,21 +39,19 @@ export default function DonationPage() {
     }
 
     try {
-      const result = await client.query(GET_USER_BY_NAME, { username });
+      const result = await getPublicProfile({
+        input: { username },
+        fields: ["id", "name", "displayAvatar"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
+      if (!result.success) {
         setError("User not found");
         setGraphqlDone(true);
         return;
       }
 
-      const user = result.data?.publicProfile;
-      if (!user) {
-        setError("User not found");
-        setGraphqlDone(true);
-        return;
-      }
-
+      const user = result.data;
       setUserId(user.id);
       setPreferencesCollection(createUserPreferencesCollection(user.id));
       setGraphqlDone(true);

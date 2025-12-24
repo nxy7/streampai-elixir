@@ -1,7 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getWidgetConfig } from "~/sdk/ash_rpc";
 import EventListWidget from "~/components/widgets/EventListWidget";
 
 interface StreamEvent {
@@ -26,15 +25,6 @@ interface EventListConfig {
   compactMode: boolean;
 }
 
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
-
 const DEFAULT_CONFIG: EventListConfig = {
   animationType: "fade",
   maxEvents: 10,
@@ -55,13 +45,14 @@ export default function EventListDisplay() {
     const userId = params.userId;
     if (!userId) return;
 
-    const result = await client.query(GET_WIDGET_CONFIG, {
-      userId,
-      type: "eventlist_widget",
+    const result = await getWidgetConfig({
+      input: { userId, type: "eventlist_widget" },
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.widgetConfig?.config) {
-      const loadedConfig = JSON.parse(result.data.widgetConfig.config);
+    if (result.success && result.data.config) {
+      const loadedConfig = result.data.config;
       setConfig({
         animationType: loadedConfig.animation_type || DEFAULT_CONFIG.animationType,
         maxEvents: loadedConfig.max_events || DEFAULT_CONFIG.maxEvents,

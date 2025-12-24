@@ -21,7 +21,11 @@ defmodule Streampai.Storage.File do
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
+
+  typescript do
+    type_name "File"
+  end
 
   alias Streampai.Storage.Adapters.S3
   alias Streampai.Storage.SizeLimits
@@ -35,10 +39,6 @@ defmodule Streampai.Storage.File do
     references do
       reference :user, on_delete: :delete
     end
-  end
-
-  graphql do
-    type :file
   end
 
   code_interface do
@@ -314,10 +314,48 @@ defmodule Streampai.Storage.File do
   end
 
   calculations do
-    calculate :url, :string, fn records, _context ->
-      Enum.map(records, fn record ->
-        S3.get_url(record.storage_key)
-      end)
+    calculate :url, :string do
+      public? true
+      description "Public URL to access the file"
+      calculation fn records, _context ->
+        Enum.map(records, fn record ->
+          S3.get_url(record.storage_key)
+        end)
+      end
+    end
+
+    calculate :upload_url, :string do
+      public? true
+      description "Presigned upload URL (only available immediately after request_upload)"
+      calculation fn records, _context ->
+        Enum.map(records, fn record ->
+          record.__metadata__[:upload_url]
+        end)
+      end
+    end
+
+    calculate :upload_headers, {:array, :map} do
+      public? true
+      description "Headers to include when uploading (only available immediately after request_upload)"
+      calculation fn records, _context ->
+        Enum.map(records, fn record ->
+          case record.__metadata__[:upload_headers] do
+            nil -> nil
+            headers when is_map(headers) ->
+              Enum.map(headers, fn {k, v} -> %{"key" => k, "value" => v} end)
+          end
+        end)
+      end
+    end
+
+    calculate :max_size, :integer do
+      public? true
+      description "Maximum allowed file size (only available immediately after request_upload)"
+      calculation fn records, _context ->
+        Enum.map(records, fn record ->
+          record.__metadata__[:max_size]
+        end)
+      end
     end
   end
 

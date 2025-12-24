@@ -4,7 +4,7 @@ defmodule Streampai.Notifications.Notification do
     otp_app: :streampai,
     domain: Streampai.Notifications,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource, AshGraphql.Resource],
+    extensions: [AshAdmin.Resource, AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   admin do
@@ -16,8 +16,8 @@ defmodule Streampai.Notifications.Notification do
     repo Streampai.Repo
   end
 
-  graphql do
-    type :notification
+  typescript do
+    type_name "Notification"
   end
 
   code_interface do

@@ -1,46 +1,37 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const GOAL_PROGRESS_SUBSCRIPTION = graphql(`
-  subscription GoalProgress($userId: ID!, $goalId: ID) {
-    goalProgress(userId: $userId, goalId: $goalId) {
-      goalId
-      currentAmount
-      targetAmount
-      percentage
-      timestamp
-    }
-  }
-`);
+import { createEffect, createSignal, Show, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 export default function DonationGoalOBS() {
   const [params] = useSearchParams();
   const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
   const goalId = () => params.goalId;
+  const targetAmount = () => parseFloat(params.targetAmount || "100");
 
-  const [goalData, setGoalData] = createSignal({
-    currentAmount: 0,
-    targetAmount: 100,
-    percentage: 0
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
   });
 
-  const result = createSubscription({
-    query: GOAL_PROGRESS_SUBSCRIPTION,
-    variables: { userId: userId(), goalId: goalId() },
-    pause: !userId(),
-  });
+  const goalData = createMemo(() => {
+    const data = eventsQuery.data || [];
+    const donations = data.filter((e) => e.type === "donation");
 
-  createEffect(() => {
-    if (result()?.data?.goalProgress) {
-      const data = result.data.goalProgress;
-      setGoalData({
-        currentAmount: data.currentAmount,
-        targetAmount: data.targetAmount,
-        percentage: data.percentage
-      });
-    }
+    const currentAmount = donations.reduce((sum, d) => {
+      const amount = (d.data?.amount as number) || 0;
+      return sum + amount;
+    }, 0);
+
+    const target = targetAmount();
+    const percentage = target > 0 ? (currentAmount / target) * 100 : 0;
+
+    return {
+      currentAmount,
+      targetAmount: target,
+      percentage
+    };
   });
 
   return (

@@ -1,21 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show, For } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const CHAT_MESSAGE_SUBSCRIPTION = graphql(`
-  subscription ChatMessage($userId: ID!) {
-    chatMessage(userId: $userId) {
-      id
-      username
-      message
-      timestamp
-      platform
-      isModerator
-      isSubscriber
-    }
-  }
-`);
+import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedChatMessagesCollection } from "~/lib/electric";
 
 type ChatMessage = {
   id: string;
@@ -32,22 +18,26 @@ export default function ChatOBS() {
   const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
   const maxMessages = () => parseInt(params.maxMessages || "10");
 
-  const [messages, setMessages] = createSignal<ChatMessage[]>([]);
-
-  const result = createSubscription({
-    query: CHAT_MESSAGE_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const chatQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedChatMessagesCollection(id);
   });
 
-  createEffect(() => {
-    if (result()?.data?.chatMessage) {
-      const newMessage = result.data.chatMessage;
-      setMessages(prev => {
-        const updated = [...prev, newMessage];
-        return updated.slice(-maxMessages());
-      });
-    }
+  const messages = createMemo(() => {
+    const data = chatQuery.data || [];
+    return data
+      .map((msg): ChatMessage => ({
+        id: msg.id,
+        username: msg.sender_username,
+        message: msg.message,
+        timestamp: new Date(msg.inserted_at),
+        platform: msg.platform,
+        isModerator: msg.sender_is_moderator || false,
+        isSubscriber: msg.sender_is_patreon || false,
+      }))
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+      .slice(-maxMessages());
   });
 
   function getPlatformColor(platform: string) {

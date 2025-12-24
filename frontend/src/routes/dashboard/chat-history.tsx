@@ -1,52 +1,33 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal, Suspense, ErrorBoundary } from "solid-js";
+import { Show, For, createSignal, Suspense, ErrorBoundary, createResource, createEffect } from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { A } from "@solidjs/router";
 import { card, text, input, badge } from "~/styles/design-system";
-import { createQuery } from "@urql/solid";
-import { graphql, ResultOf } from "~/lib/graphql";
+import { getChatHistory } from "~/sdk/ash_rpc";
 import LoadingIndicator from "~/components/LoadingIndicator";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type DateRange = "7days" | "30days" | "3months" | "";
 
-const ChatHistoryQuery = graphql(`
-  query ChatHistory(
-    $userId: ID!
-    $platform: String
-    $dateRange: String
-    $search: String
-    $first: Int
-    $after: String
-  ) {
-    chatHistory(
-      userId: $userId
-      platform: $platform
-      dateRange: $dateRange
-      search: $search
-      first: $first
-      after: $after
-    ) {
-      results {
-        id
-        message
-        senderUsername
-        platform
-        senderIsModerator
-        senderIsPatreon
-        insertedAt
-        viewerId
-        userId
-      }
-      startKeyset
-      endKeyset
-    }
-  }
-`);
+const chatMessageFields: (
+  | "id" | "message" | "senderUsername" | "platform"
+  | "senderIsModerator" | "senderIsPatreon" | "insertedAt" | "viewerId" | "userId"
+)[] = [
+  "id", "message", "senderUsername", "platform",
+  "senderIsModerator", "senderIsPatreon", "insertedAt", "viewerId", "userId",
+];
 
-export type ChatMessage = NonNullable<
-  NonNullable<ResultOf<typeof ChatHistoryQuery>["chatHistory"]>["results"]
->[number];
+export interface ChatMessage {
+  id: string;
+  message: string;
+  senderUsername: string;
+  platform: string;
+  senderIsModerator: boolean | null;
+  senderIsPatreon: boolean | null;
+  insertedAt: string;
+  viewerId: string | null;
+  userId: string;
+}
 
 export default function ChatHistory() {
   const { user } = useCurrentUser();
@@ -124,20 +105,38 @@ function ChatHistoryContent(props: {
   setSearchInput: (s: string) => void;
   handleSearch: (e: Event) => void;
 }) {
-  // createQuery automatically re-fetches when variables change!
-  const [messagesQuery] = createQuery({
-    query: ChatHistoryQuery,
-    variables: () => ({
-      userId: props.userId,
-      platform: props.platform() || null,
-      dateRange: props.dateRange() || null,
-      search: props.search() || null,
-      first: 20,
-      after: null,
-    }),
-  });
+  const [messages, setMessages] = createSignal<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = createSignal(true);
 
-  const messages = () => messagesQuery.data?.chatHistory?.results || [];
+  const loadMessages = async () => {
+    setIsLoading(true);
+    const result = await getChatHistory({
+      input: {
+        userId: props.userId,
+        platform: props.platform() || undefined,
+        dateRange: props.dateRange() || undefined,
+        search: props.search() || undefined,
+      },
+      fields: [...chatMessageFields],
+      fetchOptions: { credentials: "include" },
+    });
+
+    if (result.success && result.data) {
+      setMessages(result.data as ChatMessage[]);
+    } else {
+      setMessages([]);
+    }
+    setIsLoading(false);
+  };
+
+  // Load messages on mount and when filters change
+  createEffect(() => {
+    // Track reactive dependencies
+    props.platform();
+    props.dateRange();
+    props.search();
+    loadMessages();
+  });
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

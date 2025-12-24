@@ -46,13 +46,6 @@ defmodule StreampaiWeb.Router do
     plug(ErrorTracker)
   end
 
-  pipeline :graphql do
-    plug(:accepts, ["json"])
-    plug(:fetch_session)
-    plug(SafeLoadFromSession)
-    plug(AshGraphql.Plug)
-    plug(ErrorTracker)
-  end
 
   pipeline :rate_limited_auth do
     plug(:accepts, ["html", "json"])
@@ -97,18 +90,6 @@ defmodule StreampaiWeb.Router do
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
-  scope "/graphql" do
-    pipe_through(:graphql)
-
-    forward "/playground",
-            Absinthe.Plug.GraphiQL,
-            schema: Module.concat(["StreampaiWeb.GraphQL.Schema"]),
-            interface: :playground
-
-    forward "/",
-            Absinthe.Plug,
-            schema: Module.concat(["StreampaiWeb.GraphQL.Schema"])
-  end
 
   scope "/api", StreampaiWeb do
     pipe_through(:api)

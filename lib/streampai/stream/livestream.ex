@@ -4,7 +4,7 @@ defmodule Streampai.Stream.Livestream do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
 
   alias Streampai.Stream.Livestream.Validations.ValidateNotEnded
   alias Streampai.Stream.Livestream.Validations.ValidateSubcategory
@@ -14,11 +14,8 @@ defmodule Streampai.Stream.Livestream do
     repo Streampai.Repo
   end
 
-  graphql do
-    type :livestream
-
-    # Expose relationships in GraphQL for efficient data fetching
-    relationships([:chat_messages, :metrics, :stream_events])
+  typescript do
+    type_name "Livestream"
   end
 
   code_interface do

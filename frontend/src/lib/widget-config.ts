@@ -1,36 +1,4 @@
-import { graphql } from "~/lib/graphql";
-import { client } from "./urql";
-
-export const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
-
-export const SAVE_WIDGET_CONFIG = graphql(`
-  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
-    saveWidgetConfig(input: $input) {
-      result {
-        id
-        config
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-export const GET_CURRENT_USER = graphql(`
-  query GetCurrentUser {
-    currentUser {
-      id
-    }
-  }
-`);
+import { getWidgetConfig, saveWidgetConfig as saveWidgetConfigRpc, getCurrentUser } from "~/sdk/ash_rpc";
 
 interface SaveWidgetConfigParams<T> {
   userId: string;
@@ -44,32 +12,30 @@ interface LoadWidgetConfigParams {
 }
 
 export async function saveWidgetConfig<T>({ userId, type, config }: SaveWidgetConfigParams<T>) {
-  const result = await client.mutation(
-    SAVE_WIDGET_CONFIG,
-    {
-      input: {
-        userId,
-        type,
-        config: JSON.stringify(config), // Convert to JSON string
-      },
+  const result = await saveWidgetConfigRpc({
+    input: {
+      userId,
+      type,
+      config,
     },
-    { fetchOptions: { credentials: "include" } }
-  );
+    fields: ["id", "config"],
+    fetchOptions: { credentials: "include" },
+  });
 
   return result;
 }
 
 export async function loadWidgetConfig<T>({ userId, type }: LoadWidgetConfigParams): Promise<T | null> {
-  const result = await client.query(
-    GET_WIDGET_CONFIG,
-    { userId, type },
-    { fetchOptions: { credentials: "include" } }
-  );
+  const result = await getWidgetConfig({
+    input: { userId, type },
+    fields: ["id", "config"],
+    fetchOptions: { credentials: "include" },
+  });
 
-  if (result.data?.widgetConfig?.config) {
+  if (result.success && result.data?.config) {
     try {
-      // Parse JSON string to object
-      return JSON.parse(result.data.widgetConfig.config) as T;
+      // Config is already an object from the RPC, no need to parse
+      return result.data.config as T;
     } catch (e) {
       console.error("Failed to parse widget config:", e);
       return null;
@@ -80,11 +46,10 @@ export async function loadWidgetConfig<T>({ userId, type }: LoadWidgetConfigPara
 }
 
 export async function getCurrentUserId(): Promise<string | null> {
-  const result = await client.query(
-    GET_CURRENT_USER,
-    {},
-    { fetchOptions: { credentials: "include" } }
-  );
+  const result = await getCurrentUser({
+    fields: ["id"],
+    fetchOptions: { credentials: "include" },
+  });
 
-  return result.data?.currentUser?.id || null;
+  return result.success ? result.data?.id || null : null;
 }

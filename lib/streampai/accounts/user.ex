@@ -8,7 +8,7 @@ defmodule Streampai.Accounts.User do
       AshAuthentication,
       AshAdmin.Resource,
       AshOban,
-      AshGraphql.Resource
+      AshTypescript.Resource
     ],
     data_layer: AshPostgres.DataLayer
 
@@ -114,8 +114,8 @@ defmodule Streampai.Accounts.User do
     end
   end
 
-  graphql do
-    type :user
+  typescript do
+    type_name "User"
   end
 
   code_interface do

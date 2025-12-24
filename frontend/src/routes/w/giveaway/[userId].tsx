@@ -1,7 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { getWidgetConfig } from "~/sdk/ash_rpc";
 import GiveawayWidget from "~/components/widgets/GiveawayWidget";
 
 interface GiveawayConfig {
@@ -26,15 +25,6 @@ interface GiveawayConfig {
   fontSize: 'small' | 'medium' | 'large' | 'extra-large';
   showPatreonInfo: boolean;
 }
-
-const GET_WIDGET_CONFIG = graphql(`
-  query GetWidgetConfig($userId: ID!, $type: String!) {
-    widgetConfig(userId: $userId, type: $type) {
-      id
-      config
-    }
-  }
-`);
 
 const DEFAULT_CONFIG: GiveawayConfig = {
   showTitle: true,
@@ -67,13 +57,14 @@ export default function GiveawayWidgetDisplay() {
     const userId = params.userId;
     if (!userId) return;
 
-    const result = await client.query(GET_WIDGET_CONFIG, {
-      userId,
-      type: "giveaway_widget",
+    const result = await getWidgetConfig({
+      input: { userId, type: "giveaway_widget" },
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
     });
 
-    if (result.data?.widgetConfig?.config) {
-      const loadedConfig = JSON.parse(result.data.widgetConfig.config);
+    if (result.success && result.data.config) {
+      const loadedConfig = result.data.config;
       setConfig({
         showTitle: loadedConfig.show_title ?? DEFAULT_CONFIG.showTitle,
         title: loadedConfig.title ?? DEFAULT_CONFIG.title,

@@ -10,7 +10,7 @@ defmodule Streampai.Stream.StreamViewer do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshGraphql.Resource]
+    extensions: [AshTypescript.Resource]
 
   require Ash.Query
 
@@ -25,8 +25,8 @@ defmodule Streampai.Stream.StreamViewer do
     end
   end
 
-  graphql do
-    type :stream_viewer
+  typescript do
+    type_name "StreamViewer"
   end
 
   code_interface do

@@ -1,7 +1,6 @@
 import { createSignal, Show, createMemo } from "solid-js";
 import { Title } from "@solidjs/meta";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
+import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
 import { button, card, text, input } from "~/styles/design-system";
 import { useCurrentUser } from "~/lib/auth";
@@ -29,19 +28,6 @@ interface BackendAlertConfig {
   alert_position?: string;
 }
 
-const SAVE_WIDGET_CONFIG = graphql(`
-  mutation SaveWidgetConfig($input: SaveWidgetConfigInput!) {
-    saveWidgetConfig(input: $input) {
-      result {
-        id
-        config
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 const DEFAULT_CONFIG: AlertConfig = {
   animationType: "fade",
@@ -104,30 +90,34 @@ export default function AlertboxWidgetSettings() {
     setSaveMessage(null);
 
     const currentConfig = config();
-    const result = await client.mutation(SAVE_WIDGET_CONFIG, {
+    const backendConfig = {
+      animation_type: currentConfig.animationType,
+      display_duration: currentConfig.displayDuration,
+      sound_enabled: currentConfig.soundEnabled,
+      sound_volume: currentConfig.soundVolume,
+      show_message: currentConfig.showMessage,
+      show_amount: currentConfig.showAmount,
+      font_size: currentConfig.fontSize,
+      alert_position: currentConfig.alertPosition,
+    };
+
+    const result = await saveWidgetConfig({
       input: {
         userId: userId()!,
         type: "alertbox_widget",
-        config: JSON.stringify({
-          animation_type: currentConfig.animationType,
-          display_duration: currentConfig.displayDuration,
-          sound_enabled: currentConfig.soundEnabled,
-          sound_volume: currentConfig.soundVolume,
-          show_message: currentConfig.showMessage,
-          show_amount: currentConfig.showAmount,
-          font_size: currentConfig.fontSize,
-          alert_position: currentConfig.alertPosition,
-        }),
+        config: backendConfig,
       },
-    }, { fetchOptions: { credentials: "include" } });
+      fields: ["id", "config"],
+      fetchOptions: { credentials: "include" },
+    });
 
     setSaving(false);
-    if (result.data?.saveWidgetConfig?.result) {
+    if (!result.success) {
+      setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
+    } else {
       setSaveMessage("Configuration saved successfully!");
       setLocalOverrides({});
       setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage("Error saving configuration");
     }
   }
 

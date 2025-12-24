@@ -2,170 +2,22 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createEffect, createMemo } from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
-import { graphql } from "~/lib/graphql";
-import { client } from "~/lib/urql";
 import { useUserPreferencesForUser, useUserRolesData, type UserRole } from "~/lib/useElectric";
+import {
+  updateName,
+  updateAvatar,
+  toggleEmailNotifications,
+  saveDonationSettings,
+  inviteUserRole,
+  acceptRoleInvitation,
+  declineRoleInvitation,
+  revokeUserRole,
+  getUserByName,
+  getUserInfo,
+  requestFileUpload,
+  confirmFileUpload,
+} from "~/sdk/ash_rpc";
 
-const REQUEST_FILE_UPLOAD = graphql(`
-  mutation RequestFileUpload($filename: String!, $contentType: String, $fileType: String!, $estimatedSize: Int!) {
-    requestFileUpload(filename: $filename, contentType: $contentType, fileType: $fileType, estimatedSize: $estimatedSize) {
-      id
-      uploadUrl
-      uploadHeaders {
-        key
-        value
-      }
-      maxSize
-    }
-  }
-`);
-
-const CONFIRM_FILE_UPLOAD = graphql(`
-  mutation ConfirmFileUpload($fileId: ID!) {
-    confirmFileUpload(fileId: $fileId) {
-      id
-      url
-    }
-  }
-`);
-
-const UPDATE_AVATAR = graphql(`
-  mutation UpdateAvatar($id: ID!, $fileId: ID!) {
-    updateAvatar(id: $id, input: { fileId: $fileId }) {
-      result {
-        id
-        displayAvatar
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const SAVE_DONATION_SETTINGS = graphql(`
-  mutation SaveDonationSettings($minAmount: Int, $maxAmount: Int, $currency: String, $defaultVoice: String) {
-    saveDonationSettings(minAmount: $minAmount, maxAmount: $maxAmount, currency: $currency, defaultVoice: $defaultVoice) {
-      userId
-      emailNotifications
-      minDonationAmount
-      maxDonationAmount
-      donationCurrency
-      defaultVoice
-      updatedAt
-    }
-  }
-`);
-
-const TOGGLE_EMAIL_NOTIFICATIONS = graphql(`
-  mutation ToggleEmailNotifications {
-    toggleEmailNotifications {
-      userId
-      emailNotifications
-      updatedAt
-    }
-  }
-`);
-
-const UPDATE_NAME = graphql(`
-  mutation UpdateName($name: String!) {
-    updateName(name: $name) {
-      id
-      name
-    }
-  }
-`);
-
-// User lookup for role management (to get user details like name and avatar)
-const LOOKUP_USER_BY_NAME = graphql(`
-  query LookupUserByName($name: String!) {
-    userByName(name: $name) {
-      id
-      name
-      displayAvatar
-    }
-  }
-`);
-
-// User info lookup by ID (for enriching Electric sync role data)
-const GET_USER_INFO = graphql(`
-  query GetUserInfo($id: String!) {
-    userInfo(id: $id) {
-      id
-      name
-      displayAvatar
-    }
-  }
-`);
-
-const GET_PUBLIC_PROFILE = graphql(`
-  query GetPublicProfile($username: String!) {
-    publicProfile(username: $username) {
-      id
-      name
-    }
-  }
-`);
-
-// Role Management Mutations
-const INVITE_USER_ROLE = graphql(`
-  mutation InviteUserRole($input: InviteUserRoleInput!) {
-    inviteUserRole(input: $input) {
-      result {
-        id
-        roleType
-        roleStatus
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const ACCEPT_ROLE_INVITATION = graphql(`
-  mutation AcceptRoleInvitation($id: ID!) {
-    acceptRoleInvitation(id: $id) {
-      result {
-        id
-        roleStatus
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const DECLINE_ROLE_INVITATION = graphql(`
-  mutation DeclineRoleInvitation($id: ID!) {
-    declineRoleInvitation(id: $id) {
-      result {
-        id
-        roleStatus
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const REVOKE_USER_ROLE = graphql(`
-  mutation RevokeUserRole($id: ID!) {
-    revokeUserRole(id: $id) {
-      result {
-        id
-        revokedAt
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-// User info cache type
 type UserInfo = { id: string; name: string; displayAvatar: string | null };
 
 export default function Settings() {
@@ -177,7 +29,6 @@ export default function Settings() {
   const [uploadSuccess, setUploadSuccess] = createSignal(false);
   let fileInputRef: HTMLInputElement | undefined;
 
-  // Donation settings form state
   const [minAmount, setMinAmount] = createSignal<number | null>(null);
   const [maxAmount, setMaxAmount] = createSignal<number | null>(null);
   const [currency, setCurrency] = createSignal("USD");
@@ -186,16 +37,13 @@ export default function Settings() {
   const [saveError, setSaveError] = createSignal<string | null>(null);
   const [saveSuccess, setSaveSuccess] = createSignal(false);
 
-  // Display name state
   const [displayName, setDisplayName] = createSignal("");
   const [isUpdatingName, setIsUpdatingName] = createSignal(false);
   const [nameError, setNameError] = createSignal<string | null>(null);
   const [nameSuccess, setNameSuccess] = createSignal(false);
 
-  // Email notifications state
   const [isTogglingNotifications, setIsTogglingNotifications] = createSignal(false);
 
-  // Role management state (Electric SQL synced)
   const [inviteUsername, setInviteUsername] = createSignal("");
   const [inviteRoleType, setInviteRoleType] = createSignal<"moderator" | "manager">("moderator");
   const [isInviting, setIsInviting] = createSignal(false);
@@ -203,21 +51,24 @@ export default function Settings() {
   const [inviteSuccess, setInviteSuccess] = createSignal(false);
   const [processingRoleId, setProcessingRoleId] = createSignal<string | null>(null);
 
-  // User info cache for role display (granter/user names and avatars)
   const [userInfoCache, setUserInfoCache] = createSignal<Map<string, UserInfo>>(new Map());
 
-  // Fetch user info for a given user ID (used to enrich role data)
   const fetchUserInfo = async (userId: string): Promise<UserInfo | null> => {
     const cached = userInfoCache().get(userId);
     if (cached) return cached;
 
     try {
-      const result = await client.query(GET_USER_INFO, { id: userId }, { fetchOptions: { credentials: "include" } });
-      if (result.data?.userInfo) {
+      const result = await getUserInfo({
+        input: { id: userId },
+        fields: ["id", "name", "displayAvatar"],
+        fetchOptions: { credentials: "include" },
+      });
+
+      if (result.success && result.data) {
         const info: UserInfo = {
-          id: result.data.userInfo.id,
-          name: result.data.userInfo.name,
-          displayAvatar: result.data.userInfo.displayAvatar,
+          id: result.data.id,
+          name: result.data.name,
+          displayAvatar: result.data.displayAvatar,
         };
         setUserInfoCache((prev) => new Map(prev).set(userId, info));
         return info;
@@ -228,14 +79,12 @@ export default function Settings() {
     return null;
   };
 
-  // Derived state from Electric sync with user info enrichment
   const pendingInvitations = createMemo(() => rolesData.data().pendingInvitations);
   const myRoles = createMemo(() => rolesData.data().myAcceptedRoles);
   const rolesIGranted = createMemo(() => rolesData.data().rolesIGranted);
   const pendingInvitationsSent = createMemo(() => rolesData.data().pendingInvitationsSent);
   const loadingRoles = createMemo(() => rolesData.isLoading());
 
-  // Load user info for all roles when roles change
   createEffect(() => {
     const allRoles = [...pendingInvitations(), ...myRoles(), ...rolesIGranted(), ...pendingInvitationsSent()];
     const userIds = new Set<string>();
@@ -245,7 +94,6 @@ export default function Settings() {
       userIds.add(role.granter_id);
     }
 
-    // Fetch info for any users we don't have cached
     for (const userId of userIds) {
       if (!userInfoCache().has(userId)) {
         fetchUserInfo(userId);
@@ -253,15 +101,12 @@ export default function Settings() {
     }
   });
 
-  // Helper to get user info from cache
-  const getUserInfo = (userId: string): UserInfo | null => {
+  const getUserInfo_cached = (userId: string): UserInfo | null => {
     return userInfoCache().get(userId) || null;
   };
 
-  // Track if we've initialized form state from preferences
   const [formInitialized, setFormInitialized] = createSignal(false);
 
-  // Populate form state from Electric preferences when they load
   createEffect(() => {
     const data = prefs.data();
     if (data && !formInitialized()) {
@@ -276,20 +121,27 @@ export default function Settings() {
 
   const handleSaveDonationSettings = async (e: Event) => {
     e.preventDefault();
+    const currentUser = user();
+    if (!currentUser) return;
+
     setIsSavingSettings(true);
     setSaveError(null);
     setSaveSuccess(false);
 
     try {
-      const result = await client.mutation(SAVE_DONATION_SETTINGS, {
-        minAmount: minAmount(),
-        maxAmount: maxAmount(),
-        currency: currency(),
-        defaultVoice: defaultVoice(),
+      const result = await saveDonationSettings({
+        identity: currentUser.id,
+        input: {
+          minAmount: minAmount() ?? undefined,
+          maxAmount: maxAmount() ?? undefined,
+          currency: currency(),
+          defaultVoice: defaultVoice(),
+        },
+        fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to save settings");
       }
 
       setSaveSuccess(true);
@@ -303,6 +155,9 @@ export default function Settings() {
   };
 
   const handleUpdateName = async () => {
+    const currentUser = user();
+    if (!currentUser) return;
+
     const name = displayName().trim();
     if (!name) {
       setNameError("Name is required");
@@ -314,14 +169,19 @@ export default function Settings() {
     setNameSuccess(false);
 
     try {
-      const result = await client.mutation(UPDATE_NAME, { name });
+      const result = await updateName({
+        identity: currentUser.id,
+        input: { name },
+        fields: ["id", "name"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to update name");
       }
 
       setNameSuccess(true);
-      setDisplayName(""); // Clear local override so Electric-synced value shows
+      setDisplayName("");
       setTimeout(() => setNameSuccess(false), 3000);
     } catch (error) {
       console.error("Update name error:", error);
@@ -332,13 +192,19 @@ export default function Settings() {
   };
 
   const handleToggleEmailNotifications = async () => {
+    const currentUser = user();
+    if (!currentUser) return;
+
     setIsTogglingNotifications(true);
 
     try {
-      const result = await client.mutation(TOGGLE_EMAIL_NOTIFICATIONS, {});
+      const result = await toggleEmailNotifications({
+        identity: currentUser.id,
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to toggle notifications");
       }
     } catch (error) {
       console.error("Toggle notifications error:", error);
@@ -363,40 +229,39 @@ export default function Settings() {
     setInviteSuccess(false);
 
     try {
-      // First lookup the user by name
-      const lookupResult = await client.query(LOOKUP_USER_BY_NAME, { name: username }, { fetchOptions: { credentials: "include" } });
+      const lookupResult = await getUserByName({
+        input: { name: username },
+        fields: ["id", "name", "displayAvatar"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (!lookupResult.data?.userByName) {
+      if (!lookupResult.success || !lookupResult.data) {
         throw new Error(`User "${username}" not found`);
       }
 
-      const targetUser = lookupResult.data.userByName;
+      const targetUser = lookupResult.data;
 
       if (targetUser.id === currentUser.id) {
         throw new Error("You cannot invite yourself");
       }
 
-      // Send the invitation
-      const result = await client.mutation(INVITE_USER_ROLE, {
+      const result = await inviteUserRole({
         input: {
           userId: targetUser.id,
           granterId: currentUser.id,
           roleType: inviteRoleType(),
         },
-      }, { fetchOptions: { credentials: "include" } });
+        fields: ["id", "roleType", "roleStatus"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      if (result.data?.inviteUserRole?.errors?.length > 0) {
-        throw new Error(result.data.inviteUserRole.errors[0].message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to send invitation");
       }
 
       setInviteSuccess(true);
       setInviteUsername("");
       setTimeout(() => setInviteSuccess(false), 3000);
-      // Electric sync will automatically update the roles data
     } catch (error) {
       console.error("Invite error:", error);
       setInviteError(error instanceof Error ? error.message : "Failed to send invitation");
@@ -408,12 +273,15 @@ export default function Settings() {
   const handleAcceptInvitation = async (roleId: string) => {
     setProcessingRoleId(roleId);
     try {
-      const result = await client.mutation(ACCEPT_ROLE_INVITATION, { id: roleId }, { fetchOptions: { credentials: "include" } });
+      const result = await acceptRoleInvitation({
+        identity: roleId,
+        fields: ["id", "roleStatus"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to accept invitation");
       }
-      // Electric sync will automatically update
     } catch (error) {
       console.error("Accept invitation error:", error);
     } finally {
@@ -424,12 +292,15 @@ export default function Settings() {
   const handleDeclineInvitation = async (roleId: string) => {
     setProcessingRoleId(roleId);
     try {
-      const result = await client.mutation(DECLINE_ROLE_INVITATION, { id: roleId }, { fetchOptions: { credentials: "include" } });
+      const result = await declineRoleInvitation({
+        identity: roleId,
+        fields: ["id", "roleStatus"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to decline invitation");
       }
-      // Electric sync will automatically update
     } catch (error) {
       console.error("Decline invitation error:", error);
     } finally {
@@ -442,12 +313,15 @@ export default function Settings() {
 
     setProcessingRoleId(roleId);
     try {
-      const result = await client.mutation(REVOKE_USER_ROLE, { id: roleId }, { fetchOptions: { credentials: "include" } });
+      const result = await revokeUserRole({
+        identity: roleId,
+        fields: ["id", "revokedAt"],
+        fetchOptions: { credentials: "include" },
+      });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (!result.success) {
+        throw new Error(result.errors[0]?.message || "Failed to revoke role");
       }
-      // Electric sync will automatically update
     } catch (error) {
       console.error("Revoke role error:", error);
     } finally {
@@ -472,24 +346,36 @@ export default function Settings() {
     setUploadSuccess(false);
 
     try {
-      // Step 1: Request presigned upload URL
-      const requestResult = await client.mutation(REQUEST_FILE_UPLOAD, {
-        filename: file.name,
-        contentType: file.type,
-        fileType: "avatar",
-        estimatedSize: file.size,
+      const requestResult = await requestFileUpload({
+        input: {
+          filename: file.name,
+          contentType: file.type,
+          fileType: "avatar",
+          estimatedSize: file.size,
+        },
+        fields: ["id", "uploadUrl", "uploadHeaders", "maxSize"],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (requestResult.error || !requestResult.data?.requestFileUpload) {
-        throw new Error(requestResult.error?.message || "Failed to get upload URL");
+      if (!requestResult.success) {
+        throw new Error(requestResult.errors?.[0]?.message || "Failed to get upload URL");
       }
 
-      const { id: fileId, uploadUrl, uploadHeaders } = requestResult.data.requestFileUpload;
+      if (!requestResult.data) {
+        throw new Error("Failed to get upload URL");
+      }
 
-      // Step 2: Upload directly to S3
+      const { id: fileId, uploadUrl, uploadHeaders } = requestResult.data;
+
+      if (!uploadUrl) {
+        throw new Error("No upload URL returned");
+      }
+
       const headers: Record<string, string> = {};
-      for (const header of uploadHeaders) {
-        headers[header.key] = header.value;
+      if (uploadHeaders) {
+        for (const header of uploadHeaders) {
+          headers[header.key as string] = header.value as string;
+        }
       }
 
       const uploadResponse = await fetch(uploadUrl, {
@@ -502,24 +388,24 @@ export default function Settings() {
         throw new Error(`Upload failed: ${uploadResponse.statusText}`);
       }
 
-      // Step 3: Confirm upload
-      const confirmResult = await client.mutation(CONFIRM_FILE_UPLOAD, {
-        fileId,
+      const confirmResult = await confirmFileUpload({
+        identity: fileId,
+        fetchOptions: { credentials: "include" },
       });
 
-      if (confirmResult.error || !confirmResult.data?.confirmFileUpload) {
-        throw new Error(confirmResult.error?.message || "Failed to confirm upload");
+      if (!confirmResult.success) {
+        throw new Error(confirmResult.errors?.[0]?.message || "Failed to confirm upload");
       }
 
-      // Step 4: Update user avatar
-      const updateResult = await client.mutation(UPDATE_AVATAR, {
-        id: currentUser.id,
-        fileId,
+      const updateResult = await updateAvatar({
+        identity: currentUser.id,
+        input: { fileId },
+        fields: ["id", "displayAvatar"],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (updateResult.error || updateResult.data?.updateAvatar?.errors?.length > 0) {
-        const errorMsg = updateResult.data?.updateAvatar?.errors?.[0]?.message || updateResult.error?.message || "Failed to update avatar";
-        throw new Error(errorMsg);
+      if (!updateResult.success) {
+        throw new Error(updateResult.errors[0]?.message || "Failed to update avatar");
       }
 
       setUploadSuccess(true);
@@ -535,12 +421,10 @@ export default function Settings() {
     const target = e.target as HTMLInputElement;
     const file = target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         setUploadError("Please select an image file");
         return;
       }
-      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         setUploadError("File size must be less than 5MB");
         return;
@@ -612,7 +496,6 @@ export default function Settings() {
         >
           <>
             <div class="max-w-6xl mx-auto space-y-6">
-              {/* Subscription Widget Placeholder */}
               <div class="bg-linear-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white">
                 <div class="flex items-center justify-between">
                   <div>
@@ -627,13 +510,11 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Account Settings */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Account Settings
                 </h3>
                 <div class="space-y-6">
-                  {/* Email */}
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Email
@@ -649,7 +530,6 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  {/* Display Name */}
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Display Name
@@ -687,7 +567,6 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  {/* Avatar Upload Section */}
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Profile Avatar
@@ -748,7 +627,6 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  {/* Streaming Platforms */}
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Streaming Platforms
@@ -793,7 +671,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Donation Page */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Donation Page
@@ -863,7 +740,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Donation Settings */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Donation Settings
@@ -936,7 +812,6 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  {/* Default TTS Voice */}
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                       Default TTS Voice
@@ -962,7 +837,6 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  {/* Info box */}
                   <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
                     <svg
                       class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"
@@ -1019,7 +893,6 @@ export default function Settings() {
                 </form>
               </div>
 
-              {/* Role Invitations */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Role Invitations
@@ -1052,7 +925,7 @@ export default function Settings() {
                   <div class="space-y-3">
                     <For each={pendingInvitations()}>
                       {(invitation) => {
-                        const granterInfo = () => getUserInfo(invitation.granter_id);
+                        const granterInfo = () => getUserInfo_cached(invitation.granter_id);
                         return (
                           <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                             <div class="flex items-center gap-3">
@@ -1108,7 +981,6 @@ export default function Settings() {
                 </Show>
               </div>
 
-              {/* My Roles in Other Channels */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   My Roles in Other Channels
@@ -1142,7 +1014,7 @@ export default function Settings() {
                   <div class="space-y-3">
                     <For each={myRoles()}>
                       {(role) => {
-                        const granterInfo = () => getUserInfo(role.granter_id);
+                        const granterInfo = () => getUserInfo_cached(role.granter_id);
                         return (
                           <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                             <div class="flex items-center gap-3">
@@ -1184,7 +1056,6 @@ export default function Settings() {
                 </Show>
               </div>
 
-              {/* Divider */}
               <div class="relative">
                 <div class="absolute inset-0 flex items-center">
                   <div class="w-full border-t border-gray-300"></div>
@@ -1196,13 +1067,11 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Role Management */}
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Role Management
                 </h3>
 
-                {/* Invite User Form */}
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h4 class="font-medium text-gray-900 mb-3">Invite User</h4>
                   <form class="space-y-3" onSubmit={handleInviteUser}>
@@ -1277,13 +1146,12 @@ export default function Settings() {
                   </div>
                 </div>
 
-                {/* Pending Invitations Sent */}
                 <Show when={!loadingRoles() && pendingInvitationsSent().length > 0}>
                   <div class="space-y-3 mb-6">
                     <h4 class="font-medium text-gray-700 text-sm">Pending Invitations</h4>
                     <For each={pendingInvitationsSent()}>
                       {(role) => {
-                        const userInfo = () => getUserInfo(role.user_id);
+                        const userInfo = () => getUserInfo_cached(role.user_id);
                         return (
                           <div class="flex items-center justify-between p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
                             <div class="flex items-center gap-3">
@@ -1331,7 +1199,6 @@ export default function Settings() {
                   </div>
                 </Show>
 
-                {/* Users I've Granted Roles To */}
                 <Show
                   when={!loadingRoles() && rolesIGranted().length > 0}
                   fallback={
@@ -1362,7 +1229,7 @@ export default function Settings() {
                     <h4 class="font-medium text-gray-700 text-sm">Your Team</h4>
                     <For each={rolesIGranted()}>
                       {(role) => {
-                        const userInfo = () => getUserInfo(role.user_id);
+                        const userInfo = () => getUserInfo_cached(role.user_id);
                         return (
                           <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                             <div class="flex items-center gap-3">
@@ -1411,7 +1278,6 @@ export default function Settings() {
                 </Show>
               </div>
 
-              {/* Notification Preferences */}
               <Show when={user()}>
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h3 class="text-lg font-medium text-gray-900 mb-6">

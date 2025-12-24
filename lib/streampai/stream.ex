@@ -1,7 +1,7 @@
 defmodule Streampai.Stream do
   @moduledoc false
   use Ash.Domain,
-    extensions: [AshAdmin.Domain, AshGraphql.Domain]
+    extensions: [AshAdmin.Domain, AshTypescript.Rpc]
 
   alias Streampai.Stream.BannedViewer
   alias Streampai.Stream.ChatMessage
@@ -13,23 +13,35 @@ defmodule Streampai.Stream do
     show? true
   end
 
-  graphql do
-    queries do
-      list ChatMessage, :chat_history, :get_for_user
-      list ChatMessage, :livestream_chat, :get_for_livestream
-      list ChatMessage, :viewer_chat, :get_for_viewer
+  typescript_rpc do
+    resource Livestream do
+      rpc_action :get_stream_history, :get_completed_by_user
+      rpc_action :get_livestream, :read, get_by: [:id]
+    end
 
-      list StreamViewer, :viewers, :for_user
-      list StreamViewer, :search_viewers, :by_display_name
+    resource ChatMessage do
+      rpc_action :get_livestream_chat, :get_for_livestream
+      rpc_action :get_chat_history, :get_for_user
+      rpc_action :get_viewer_chat, :get_for_viewer
+    end
 
-      list BannedViewer, :banned_viewers, :get_active_bans
+    resource StreamEvent do
+      rpc_action :get_livestream_events, :get_activity_events_for_livestream
+      rpc_action :get_viewer_events, :get_for_viewer
+    end
 
-      list Livestream, :stream_history, :get_completed_by_user
-      get Livestream, :livestream, :read
+    resource StreamViewer do
+      rpc_action :list_viewers, :for_user
+      rpc_action :search_viewers, :by_display_name
+    end
 
-      list StreamEvent, :livestream_events, :get_activity_events_for_livestream
+    resource BannedViewer do
+      rpc_action :list_banned_viewers, :get_active_bans
+    end
 
-      list StreamEvent, :viewer_events, :get_for_viewer
+    resource Streampai.Storage.File do
+      rpc_action :request_file_upload, :request_upload
+      rpc_action :confirm_file_upload, :mark_uploaded
     end
   end
 

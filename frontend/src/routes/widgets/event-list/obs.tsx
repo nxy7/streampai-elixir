@@ -1,71 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show, For } from "solid-js";
-import { createSubscription } from "@urql/solid";
-import { graphql } from "~/lib/graphql";
-
-const DONATION_SUBSCRIPTION = graphql(`
-  subscription DonationReceived($userId: ID!) {
-    donationReceived(userId: $userId) {
-      id
-      amount
-      currency
-      username
-      message
-      timestamp
-      platform
-    }
-  }
-`);
-
-const FOLLOWER_SUBSCRIPTION = graphql(`
-  subscription FollowerAdded($userId: ID!) {
-    followerAdded(userId: $userId) {
-      id
-      username
-      timestamp
-      platform
-    }
-  }
-`);
-
-const SUBSCRIBER_SUBSCRIPTION = graphql(`
-  subscription SubscriberAdded($userId: ID!) {
-    subscriberAdded(userId: $userId) {
-      id
-      username
-      tier
-      months
-      message
-      timestamp
-      platform
-    }
-  }
-`);
-
-const RAID_SUBSCRIPTION = graphql(`
-  subscription RaidReceived($userId: ID!) {
-    raidReceived(userId: $userId) {
-      id
-      username
-      viewerCount
-      timestamp
-      platform
-    }
-  }
-`);
-
-const CHEER_SUBSCRIPTION = graphql(`
-  subscription CheerReceived($userId: ID!) {
-    cheerReceived(userId: $userId) {
-      id
-      username
-      bits
-      message
-      timestamp
-      platform
-    }
-  }
-`);
+import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
+import { useLiveQuery } from "@tanstack/solid-db";
+import { createUserScopedStreamEventsCollection } from "~/lib/electric";
 
 type Event = {
   id: string;
@@ -82,118 +18,83 @@ export default function EventListOBS() {
   const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
   const maxEvents = () => parseInt(params.maxEvents || "10");
 
-  const [events, setEvents] = createSignal<Event[]>([]);
-
-  const [donationResult] = createSubscription({
-    query: DONATION_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
+  const eventsQuery = useLiveQuery(() => {
+    const id = userId();
+    if (!id) return null;
+    return createUserScopedStreamEventsCollection(id);
   });
 
-  const [followerResult] = createSubscription({
-    query: FOLLOWER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
+  const events = createMemo(() => {
+    const data = eventsQuery.data || [];
+    const relevantEvents = data.filter((e) =>
+      e.type === "donation" ||
+      e.type === "follow" ||
+      e.type === "subscription" ||
+      e.type === "raid" ||
+      e.type === "cheer"
+    );
 
-  const [subscriberResult] = createSubscription({
-    query: SUBSCRIBER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
+    return relevantEvents
+      .map((streamEvent): Event => {
+        const username = (streamEvent.data?.username as string) || streamEvent.author_id;
+        let eventType: 'donation' | 'follower' | 'subscriber' | 'raid' | 'cheer';
+        let description: string;
+        let icon: string;
+        let color: string;
 
-  const [raidResult] = createSubscription({
-    query: RAID_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
+        switch (streamEvent.type) {
+          case "donation":
+            eventType = 'donation';
+            const amount = (streamEvent.data?.amount as number) || 0;
+            const currency = (streamEvent.data?.currency as string) || "$";
+            description = `Donated ${currency}${amount}`;
+            icon = '💰';
+            color = 'from-purple-600 to-pink-600';
+            break;
+          case "follow":
+            eventType = 'follower';
+            description = 'Followed';
+            icon = '❤️';
+            color = 'from-pink-600 to-red-600';
+            break;
+          case "subscription":
+            eventType = 'subscriber';
+            const months = (streamEvent.data?.months as number) || 1;
+            description = months > 1 ? `Subscribed (${months} months)` : 'Subscribed';
+            icon = '⭐';
+            color = 'from-indigo-600 to-purple-600';
+            break;
+          case "raid":
+            eventType = 'raid';
+            const viewerCount = (streamEvent.data?.viewerCount as number) || 0;
+            description = `Raided with ${viewerCount} viewers`;
+            icon = '🎉';
+            color = 'from-orange-600 to-red-600';
+            break;
+          case "cheer":
+            eventType = 'cheer';
+            const bits = (streamEvent.data?.bits as number) || 0;
+            description = `Cheered ${bits} bits`;
+            icon = '💎';
+            color = 'from-blue-600 to-cyan-600';
+            break;
+          default:
+            return null;
+        }
 
-  const [cheerResult] = createSubscription({
-    query: CHEER_SUBSCRIPTION,
-    variables: { userId: userId() },
-    pause: !userId(),
-  });
-
-  function addEvent(event: Event) {
-    setEvents(prev => {
-      const updated = [event, ...prev];
-      return updated.slice(0, maxEvents());
-    });
-  }
-
-  createEffect(() => {
-    if (donationResult()?.data?.donationReceived) {
-      const data = donationResult.data.donationReceived;
-      addEvent({
-        id: data.id,
-        type: 'donation',
-        username: data.username,
-        description: `Donated ${data.currency}${data.amount}`,
-        icon: '💰',
-        color: 'from-purple-600 to-pink-600',
-        timestamp: new Date(data.timestamp)
-      });
-    }
-  });
-
-  createEffect(() => {
-    if (followerResult()?.data?.followerAdded) {
-      const data = followerResult.data.followerAdded;
-      addEvent({
-        id: data.id,
-        type: 'follower',
-        username: data.username,
-        description: 'Followed',
-        icon: '❤️',
-        color: 'from-pink-600 to-red-600',
-        timestamp: new Date(data.timestamp)
-      });
-    }
-  });
-
-  createEffect(() => {
-    if (subscriberResult()?.data?.subscriberAdded) {
-      const data = subscriberResult.data.subscriberAdded;
-      addEvent({
-        id: data.id,
-        type: 'subscriber',
-        username: data.username,
-        description: data.months > 1 ? `Subscribed (${data.months} months)` : 'Subscribed',
-        icon: '⭐',
-        color: 'from-indigo-600 to-purple-600',
-        timestamp: new Date(data.timestamp)
-      });
-    }
-  });
-
-  createEffect(() => {
-    if (raidResult()?.data?.raidReceived) {
-      const data = raidResult.data.raidReceived;
-      addEvent({
-        id: data.id,
-        type: 'raid',
-        username: data.username,
-        description: `Raided with ${data.viewerCount} viewers`,
-        icon: '🎉',
-        color: 'from-orange-600 to-red-600',
-        timestamp: new Date(data.timestamp)
-      });
-    }
-  });
-
-  createEffect(() => {
-    if (cheerResult()?.data?.cheerReceived) {
-      const data = cheerResult.data.cheerReceived;
-      addEvent({
-        id: data.id,
-        type: 'cheer',
-        username: data.username,
-        description: `Cheered ${data.bits} bits`,
-        icon: '💎',
-        color: 'from-blue-600 to-cyan-600',
-        timestamp: new Date(data.timestamp)
-      });
-    }
+        return {
+          id: streamEvent.id,
+          type: eventType,
+          username,
+          description,
+          icon,
+          color,
+          timestamp: new Date(streamEvent.inserted_at)
+        };
+      })
+      .filter((e): e is Event => e !== null)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, maxEvents());
   });
 
   return (

@@ -2,39 +2,10 @@ import { Title } from "@solidjs/meta";
 import { createSignal, createEffect, Show, For, createMemo } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
-import { client } from "~/lib/urql";
-import { graphql } from "~/lib/graphql";
+import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
 import { button, card, text, badge, input } from "~/styles/design-system";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { adminUsersCollection, type AdminUser } from "~/lib/electric";
-
-const GrantProAccessMutation = graphql(`
-  mutation GrantProAccess($id: ID!, $input: GrantProAccessInput!) {
-    grantProAccess(id: $id, input: $input) {
-      result {
-        id
-        tier
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const RevokeProAccessMutation = graphql(`
-  mutation RevokeProAccess($id: ID!) {
-    revokeProAccess(id: $id) {
-      result {
-        id
-        tier
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -96,19 +67,18 @@ export default function AdminUsers() {
     setError(null);
 
     try {
-      const result = await client.mutation(GrantProAccessMutation, {
-        id: user.id,
+      const result = await grantProAccess({
+        identity: user.id,
         input: {
           durationDays: parseInt(grantDuration()),
           reason: reason,
         },
+        fields: ["id", "tier"],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
-        setError("Failed to grant PRO access. Please try again.");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.grantProAccess?.errors && result.data.grantProAccess.errors.length > 0) {
-        setError(result.data.grantProAccess.errors[0].message || "Failed to grant PRO access");
+      if (!result.success) {
+        setError(result.errors[0]?.message || "Failed to grant PRO access");
       } else {
         setSuccessMessage(`PRO access granted to ${user.email} for ${grantDuration()} days`);
         closeGrantModal();
@@ -143,15 +113,14 @@ export default function AdminUsers() {
     setError(null);
 
     try {
-      const result = await client.mutation(RevokeProAccessMutation, {
-        id: user.id,
+      const result = await revokeProAccess({
+        identity: user.id,
+        fields: ["id", "tier"],
+        fetchOptions: { credentials: "include" },
       });
 
-      if (result.error) {
-        setError("Failed to revoke PRO access. Please try again.");
-        console.error("GraphQL error:", result.error);
-      } else if (result.data?.revokeProAccess?.errors && result.data.revokeProAccess.errors.length > 0) {
-        setError(result.data.revokeProAccess.errors[0].message || "Failed to revoke PRO access");
+      if (!result.success) {
+        setError(result.errors[0]?.message || "Failed to revoke PRO access");
       } else {
         setSuccessMessage(`PRO access revoked for ${user.email}`);
         closeRevokeConfirm();
