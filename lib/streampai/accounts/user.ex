@@ -213,6 +213,19 @@ defmodule Streampai.Accounts.User do
       filter expr(id == ^arg(:id))
     end
 
+    read :get_user_info do
+      description "Get basic user info (name and avatar) by ID - for enriching role data"
+      get? true
+
+      argument :id, :string do
+        allow_nil? false
+      end
+
+      prepare build(load: [:display_avatar], select: [:id, :name])
+
+      filter expr(id == ^arg(:id))
+    end
+
     read :get_by_subject do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false
@@ -358,14 +371,14 @@ defmodule Streampai.Accounts.User do
     end
 
     read :get_by_name do
-      description "Looks up a user by their display name"
+      description "Looks up a user by their display name (case-insensitive)"
       get? true
 
       argument :name, :string do
         allow_nil? false
       end
 
-      filter expr(name == ^arg(:name))
+      filter expr(fragment("lower(?)", name) == fragment("lower(?)", ^arg(:name)))
     end
 
     read :get_public_profile do
@@ -594,6 +607,14 @@ defmodule Streampai.Accounts.User do
 
     bypass action(:get_public_profile) do
       authorize_if always()
+    end
+
+    bypass action(:get_by_name) do
+      authorize_if actor_present()
+    end
+
+    bypass action(:get_user_info) do
+      authorize_if actor_present()
     end
 
     bypass action_type(:read) do

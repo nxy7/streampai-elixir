@@ -10,6 +10,7 @@ import {
   createNotificationsCollection,
   createNotificationReadsCollection,
   globalNotificationsCollection,
+  createUserRolesCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
@@ -19,6 +20,7 @@ import {
   type WidgetType,
   type Notification,
   type NotificationRead,
+  type UserRole,
 } from "./electric";
 
 export function useStreamEvents() {
@@ -301,6 +303,79 @@ export function useGlobalNotifications() {
   };
 }
 
+// Cache for user roles collection by user ID
+const userRolesCollections = new Map<string, ReturnType<typeof createUserRolesCollection>>();
+
+function getUserRolesCollection(userId: string) {
+  let collection = userRolesCollections.get(userId);
+  if (!collection) {
+    collection = createUserRolesCollection(userId);
+    userRolesCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+export function useUserRoles(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getUserRolesCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export type UserRolesData = {
+  pendingInvitations: UserRole[];
+  myAcceptedRoles: UserRole[];
+  rolesIGranted: UserRole[];
+  pendingInvitationsSent: UserRole[];
+};
+
+export function useUserRolesData(userId: () => string | undefined): {
+  data: () => UserRolesData;
+  isLoading: () => boolean;
+} {
+  const rolesQuery = useUserRoles(userId);
+
+  return {
+    data: createMemo((): UserRolesData => {
+      const roles = rolesQuery.data();
+      const currentUserId = userId();
+
+      if (!currentUserId) {
+        return { pendingInvitations: [], myAcceptedRoles: [], rolesIGranted: [], pendingInvitationsSent: [] };
+      }
+
+      return {
+        // Invitations sent to me that are pending
+        pendingInvitations: roles.filter(
+          (r) => r.user_id === currentUserId && r.role_status === "pending"
+        ),
+        // Roles I have (accepted) in other channels
+        myAcceptedRoles: roles.filter(
+          (r) => r.user_id === currentUserId && r.role_status === "accepted"
+        ),
+        // Roles I've granted to others (accepted)
+        rolesIGranted: roles.filter(
+          (r) => r.granter_id === currentUserId && r.role_status === "accepted"
+        ),
+        // Pending invitations I've sent to others
+        pendingInvitationsSent: roles.filter(
+          (r) => r.granter_id === currentUserId && r.role_status === "pending"
+        ),
+      };
+    }),
+    isLoading: () => !rolesQuery.data,
+  };
+}
+
 export {
   type StreamEvent,
   type ChatMessage,
@@ -311,4 +386,5 @@ export {
   type WidgetType,
   type Notification,
   type NotificationRead,
+  type UserRole,
 };

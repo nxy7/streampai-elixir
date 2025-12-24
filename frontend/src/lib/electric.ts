@@ -97,6 +97,19 @@ export type NotificationRead = Row & {
   seen_at: string;
 };
 
+export type UserRole = Row & {
+  id: string;
+  user_id: string;
+  granter_id: string;
+  role_type: "moderator" | "manager";
+  role_status: "pending" | "accepted" | "declined";
+  granted_at: string;
+  accepted_at: string | null;
+  revoked_at: string | null;
+  inserted_at: string;
+  updated_at: string;
+};
+
 export type WidgetType =
   | "placeholder_widget"
   | "chat_widget"
@@ -302,3 +315,15 @@ export const globalNotificationsCollection = createCollection(
     getKey: (item) => item.id,
   })
 );
+
+export function createUserRolesCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<UserRole>({
+      id: `user_roles_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/user_roles/${userId}`,
+      },
+      getKey: (item) => item.id,
+    })
+  );
+}

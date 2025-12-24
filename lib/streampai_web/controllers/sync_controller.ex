@@ -86,4 +86,13 @@ defmodule StreampaiWeb.SyncController do
       where: "user_id IS NULL"
     )
   end
+
+  def user_roles(conn, %{"user_id" => user_id} = params) do
+    # Syncs roles where the user is either the recipient (user_id) or the granter (granter_id)
+    # This allows syncing both "roles I have" and "roles I've granted"
+    sync_render(conn, params,
+      table: "user_roles",
+      where: "(user_id = '#{user_id}' OR granter_id = '#{user_id}') AND revoked_at IS NULL"
+    )
+  end
 end

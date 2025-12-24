@@ -4,6 +4,177 @@ schema {
   query: RootQueryType
 }
 
+"The result of the :revoke_user_role mutation"
+type RevokeUserRoleResult {
+  "The successful result of the mutation"
+  result: UserRole
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :decline_role_invitation mutation"
+type DeclineRoleInvitationResult {
+  "The successful result of the mutation"
+  result: UserRole
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :accept_role_invitation mutation"
+type AcceptRoleInvitationResult {
+  "The successful result of the mutation"
+  result: UserRole
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :invite_user_role mutation"
+type InviteUserRoleResult {
+  "The successful result of the mutation"
+  result: UserRole
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input InviteUserRoleInput {
+  userId: ID!
+  granterId: ID!
+  roleType: String!
+}
+
+enum UserRoleSortField {
+  ID
+  USER_ID
+  GRANTER_ID
+  ROLE_TYPE
+  ROLE_STATUS
+  GRANTED_AT
+  ACCEPTED_AT
+  REVOKED_AT
+}
+
+input UserRoleFilterRevokedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input UserRoleFilterAcceptedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input UserRoleFilterGrantedAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input UserRoleFilterRoleStatus {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input UserRoleFilterRoleType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input UserRoleFilterGranterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input UserRoleFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input UserRoleFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input UserRoleFilterInput {
+  and: [UserRoleFilterInput!]
+  or: [UserRoleFilterInput!]
+  not: [UserRoleFilterInput!]
+  id: UserRoleFilterId
+  userId: UserRoleFilterUserId
+  granterId: UserRoleFilterGranterId
+  roleType: UserRoleFilterRoleType
+  roleStatus: UserRoleFilterRoleStatus
+  grantedAt: UserRoleFilterGrantedAt
+  acceptedAt: UserRoleFilterAcceptedAt
+  revokedAt: UserRoleFilterRevokedAt
+}
+
+input UserRoleSortInput {
+  order: SortOrder
+  field: UserRoleSortField!
+}
+
+type UserRole {
+  id: ID!
+  userId: ID!
+  granterId: ID!
+  roleType: String!
+  roleStatus: String!
+  grantedAt: DateTime!
+  acceptedAt: DateTime
+  revokedAt: DateTime
+}
+
 "The result of the :update_smart_canvas_layout mutation"
 type UpdateSmartCanvasLayoutResult {
   "The successful result of the mutation"
@@ -2209,6 +2380,22 @@ type RootQueryType {
     username: String!
   ): User
 
+  "Looks up a user by their display name (case-insensitive)"
+  userByName(
+    "A filter to limit the results"
+    filter: UserFilterInput
+
+    name: String!
+  ): User
+
+  "Get basic user info (name and avatar) by ID - for enriching role data"
+  userInfo(
+    "A filter to limit the results"
+    filter: UserFilterInput
+
+    id: String!
+  ): User
+
   listUsers(
     "How to sort the records in the response"
     sort: [UserSortInput]
@@ -2244,6 +2431,36 @@ type RootQueryType {
 
     userId: ID!
   ): SmartCanvasLayout
+
+  myPendingInvitations(
+    "How to sort the records in the response"
+    sort: [UserRoleSortInput]
+
+    "A filter to limit the results"
+    filter: UserRoleFilterInput
+
+    userId: ID!
+  ): [UserRole!]!
+
+  myGrantedRoles(
+    "How to sort the records in the response"
+    sort: [UserRoleSortInput]
+
+    "A filter to limit the results"
+    filter: UserRoleFilterInput
+
+    userId: ID!
+  ): [UserRole!]!
+
+  rolesIGranted(
+    "How to sort the records in the response"
+    sort: [UserRoleSortInput]
+
+    "A filter to limit the results"
+    filter: UserRoleFilterInput
+
+    granterId: ID!
+  ): [UserRole!]!
 }
 
 type RootMutationType {
@@ -2288,6 +2505,14 @@ type RootMutationType {
   saveSmartCanvasLayout(input: SaveSmartCanvasLayoutInput!): SaveSmartCanvasLayoutResult!
 
   updateSmartCanvasLayout(id: ID!, input: UpdateSmartCanvasLayoutInput): UpdateSmartCanvasLayoutResult!
+
+  inviteUserRole(input: InviteUserRoleInput!): InviteUserRoleResult!
+
+  acceptRoleInvitation(id: ID!): AcceptRoleInvitationResult!
+
+  declineRoleInvitation(id: ID!): DeclineRoleInvitationResult!
+
+  revokeUserRole(id: ID!): RevokeUserRoleResult!
 }
 
 type RootSubscriptionType {

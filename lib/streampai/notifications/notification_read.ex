@@ -61,7 +61,11 @@ defmodule Streampai.Notifications.NotificationRead do
       run fn input, context ->
         actor = context.actor
 
-        case Ash.get(__MODULE__, %{user_id: actor.id, notification_id: input.arguments.notification_id}, actor: actor) do
+        case Ash.get(
+               __MODULE__,
+               %{user_id: actor.id, notification_id: input.arguments.notification_id},
+               actor: actor
+             ) do
           {:ok, record} ->
             case Ash.destroy(record, actor: actor) do
               :ok -> {:ok, %{notification_id: input.arguments.notification_id, user_id: actor.id}}

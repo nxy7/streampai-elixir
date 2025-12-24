@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.UserRole do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource],
+    extensions: [AshAdmin.Resource, AshGraphql.Resource],
     data_layer: AshPostgres.DataLayer
 
   alias Streampai.Accounts.User
@@ -33,6 +33,10 @@ defmodule Streampai.Accounts.UserRole do
         name: "idx_user_roles_user_pending",
         where: "role_status = 'pending' AND revoked_at IS NULL"
     end
+  end
+
+  graphql do
+    type :user_role
   end
 
   code_interface do
@@ -114,6 +118,7 @@ defmodule Streampai.Accounts.UserRole do
       change set_attribute(:role_type, arg(:role_type))
       change set_attribute(:role_status, :pending)
       change set_attribute(:granted_at, &DateTime.utc_now/0)
+      change Streampai.Accounts.UserRole.Changes.NotifyOnInvite
 
       validate attribute_does_not_equal(:user_id, :granter_id)
       validate present([:user_id])
@@ -122,9 +127,10 @@ defmodule Streampai.Accounts.UserRole do
     end
 
     update :accept do
-      # Can only accept pending invitations
+      require_atomic? false
       change set_attribute(:role_status, :accepted)
       change set_attribute(:accepted_at, &DateTime.utc_now/0)
+      change Streampai.Accounts.UserRole.Changes.NotifyOnAccept
     end
 
     update :decline do
@@ -133,8 +139,9 @@ defmodule Streampai.Accounts.UserRole do
     end
 
     update :revoke do
-      # Can only revoke accepted roles that haven't been revoked
+      require_atomic? false
       change set_attribute(:revoked_at, &DateTime.utc_now/0)
+      change Streampai.Accounts.UserRole.Changes.NotifyOnRevoke
     end
   end
 

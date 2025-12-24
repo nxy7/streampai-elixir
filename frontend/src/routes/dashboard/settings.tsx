@@ -1,10 +1,10 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal, createEffect } from "solid-js";
+import { Show, For, createSignal, createEffect, createMemo } from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
 import { graphql } from "gql.tada";
 import { client } from "~/lib/urql";
-import { useUserPreferencesForUser } from "~/lib/useElectric";
+import { useUserPreferencesForUser, useUserRolesData, type UserRole } from "~/lib/useElectric";
 
 const REQUEST_FILE_UPLOAD = graphql(`
   mutation RequestFileUpload($filename: String!, $contentType: String, $fileType: String!, $estimatedSize: Int!) {
@@ -76,9 +76,102 @@ const UPDATE_NAME = graphql(`
   }
 `);
 
+// User lookup for role management (to get user details like name and avatar)
+const LOOKUP_USER_BY_NAME = graphql(`
+  query LookupUserByName($name: String!) {
+    userByName(name: $name) {
+      id
+      name
+      displayAvatar
+    }
+  }
+`);
+
+// User info lookup by ID (for enriching Electric sync role data)
+const GET_USER_INFO = graphql(`
+  query GetUserInfo($id: String!) {
+    userInfo(id: $id) {
+      id
+      name
+      displayAvatar
+    }
+  }
+`);
+
+const GET_PUBLIC_PROFILE = graphql(`
+  query GetPublicProfile($username: String!) {
+    publicProfile(username: $username) {
+      id
+      name
+    }
+  }
+`);
+
+// Role Management Mutations
+const INVITE_USER_ROLE = graphql(`
+  mutation InviteUserRole($input: InviteUserRoleInput!) {
+    inviteUserRole(input: $input) {
+      result {
+        id
+        roleType
+        roleStatus
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const ACCEPT_ROLE_INVITATION = graphql(`
+  mutation AcceptRoleInvitation($id: ID!) {
+    acceptRoleInvitation(id: $id) {
+      result {
+        id
+        roleStatus
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const DECLINE_ROLE_INVITATION = graphql(`
+  mutation DeclineRoleInvitation($id: ID!) {
+    declineRoleInvitation(id: $id) {
+      result {
+        id
+        roleStatus
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const REVOKE_USER_ROLE = graphql(`
+  mutation RevokeUserRole($id: ID!) {
+    revokeUserRole(id: $id) {
+      result {
+        id
+        revokedAt
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+// User info cache type
+type UserInfo = { id: string; name: string; displayAvatar: string | null };
+
 export default function Settings() {
   const { user, isLoading } = useCurrentUser();
   const prefs = useUserPreferencesForUser(() => user()?.id);
+  const rolesData = useUserRolesData(() => user()?.id);
   const [isUploading, setIsUploading] = createSignal(false);
   const [uploadError, setUploadError] = createSignal<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = createSignal(false);
@@ -101,6 +194,69 @@ export default function Settings() {
 
   // Email notifications state
   const [isTogglingNotifications, setIsTogglingNotifications] = createSignal(false);
+
+  // Role management state (Electric SQL synced)
+  const [inviteUsername, setInviteUsername] = createSignal("");
+  const [inviteRoleType, setInviteRoleType] = createSignal<"moderator" | "manager">("moderator");
+  const [isInviting, setIsInviting] = createSignal(false);
+  const [inviteError, setInviteError] = createSignal<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = createSignal(false);
+  const [processingRoleId, setProcessingRoleId] = createSignal<string | null>(null);
+
+  // User info cache for role display (granter/user names and avatars)
+  const [userInfoCache, setUserInfoCache] = createSignal<Map<string, UserInfo>>(new Map());
+
+  // Fetch user info for a given user ID (used to enrich role data)
+  const fetchUserInfo = async (userId: string): Promise<UserInfo | null> => {
+    const cached = userInfoCache().get(userId);
+    if (cached) return cached;
+
+    try {
+      const result = await client.query(GET_USER_INFO, { id: userId }, { fetchOptions: { credentials: "include" } });
+      if (result.data?.userInfo) {
+        const info: UserInfo = {
+          id: result.data.userInfo.id,
+          name: result.data.userInfo.name,
+          displayAvatar: result.data.userInfo.displayAvatar,
+        };
+        setUserInfoCache((prev) => new Map(prev).set(userId, info));
+        return info;
+      }
+    } catch (e) {
+      console.error("Failed to fetch user info:", e);
+    }
+    return null;
+  };
+
+  // Derived state from Electric sync with user info enrichment
+  const pendingInvitations = createMemo(() => rolesData.data().pendingInvitations);
+  const myRoles = createMemo(() => rolesData.data().myAcceptedRoles);
+  const rolesIGranted = createMemo(() => rolesData.data().rolesIGranted);
+  const pendingInvitationsSent = createMemo(() => rolesData.data().pendingInvitationsSent);
+  const loadingRoles = createMemo(() => rolesData.isLoading());
+
+  // Load user info for all roles when roles change
+  createEffect(() => {
+    const allRoles = [...pendingInvitations(), ...myRoles(), ...rolesIGranted(), ...pendingInvitationsSent()];
+    const userIds = new Set<string>();
+
+    for (const role of allRoles) {
+      userIds.add(role.user_id);
+      userIds.add(role.granter_id);
+    }
+
+    // Fetch info for any users we don't have cached
+    for (const userId of userIds) {
+      if (!userInfoCache().has(userId)) {
+        fetchUserInfo(userId);
+      }
+    }
+  });
+
+  // Helper to get user info from cache
+  const getUserInfo = (userId: string): UserInfo | null => {
+    return userInfoCache().get(userId) || null;
+  };
 
   // Track if we've initialized form state from preferences
   const [formInitialized, setFormInitialized] = createSignal(false);
@@ -189,6 +345,122 @@ export default function Settings() {
     } finally {
       setIsTogglingNotifications(false);
     }
+  };
+
+  const handleInviteUser = async (e: Event) => {
+    e.preventDefault();
+    const currentUser = user();
+    if (!currentUser) return;
+
+    const username = inviteUsername().trim();
+    if (!username) {
+      setInviteError("Please enter a username");
+      return;
+    }
+
+    setIsInviting(true);
+    setInviteError(null);
+    setInviteSuccess(false);
+
+    try {
+      // First lookup the user by name
+      const lookupResult = await client.query(LOOKUP_USER_BY_NAME, { name: username }, { fetchOptions: { credentials: "include" } });
+
+      if (!lookupResult.data?.userByName) {
+        throw new Error(`User "${username}" not found`);
+      }
+
+      const targetUser = lookupResult.data.userByName;
+
+      if (targetUser.id === currentUser.id) {
+        throw new Error("You cannot invite yourself");
+      }
+
+      // Send the invitation
+      const result = await client.mutation(INVITE_USER_ROLE, {
+        input: {
+          userId: targetUser.id,
+          granterId: currentUser.id,
+          roleType: inviteRoleType(),
+        },
+      }, { fetchOptions: { credentials: "include" } });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      if (result.data?.inviteUserRole?.errors?.length > 0) {
+        throw new Error(result.data.inviteUserRole.errors[0].message);
+      }
+
+      setInviteSuccess(true);
+      setInviteUsername("");
+      setTimeout(() => setInviteSuccess(false), 3000);
+      // Electric sync will automatically update the roles data
+    } catch (error) {
+      console.error("Invite error:", error);
+      setInviteError(error instanceof Error ? error.message : "Failed to send invitation");
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const handleAcceptInvitation = async (roleId: string) => {
+    setProcessingRoleId(roleId);
+    try {
+      const result = await client.mutation(ACCEPT_ROLE_INVITATION, { id: roleId }, { fetchOptions: { credentials: "include" } });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      // Electric sync will automatically update
+    } catch (error) {
+      console.error("Accept invitation error:", error);
+    } finally {
+      setProcessingRoleId(null);
+    }
+  };
+
+  const handleDeclineInvitation = async (roleId: string) => {
+    setProcessingRoleId(roleId);
+    try {
+      const result = await client.mutation(DECLINE_ROLE_INVITATION, { id: roleId }, { fetchOptions: { credentials: "include" } });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      // Electric sync will automatically update
+    } catch (error) {
+      console.error("Decline invitation error:", error);
+    } finally {
+      setProcessingRoleId(null);
+    }
+  };
+
+  const handleRevokeRole = async (roleId: string) => {
+    if (!confirm("Are you sure you want to revoke this role?")) return;
+
+    setProcessingRoleId(roleId);
+    try {
+      const result = await client.mutation(REVOKE_USER_ROLE, { id: roleId }, { fetchOptions: { credentials: "include" } });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      // Electric sync will automatically update
+    } catch (error) {
+      console.error("Revoke role error:", error);
+    } finally {
+      setProcessingRoleId(null);
+    }
+  };
+
+  const formatRoleType = (roleType: string) => {
+    return roleType.charAt(0).toUpperCase() + roleType.slice(1);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -825,26 +1097,88 @@ export default function Settings() {
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   Role Invitations
                 </h3>
-                <div class="text-center py-8 text-gray-500">
-                  <svg
-                    class="w-12 h-12 mx-auto mb-3 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  <p class="text-sm">No pending role invitations</p>
-                  <p class="text-xs text-gray-400 mt-1">
-                    You'll see invitations here when streamers invite you to
-                    moderate their channels
-                  </p>
-                </div>
+                <Show
+                  when={!loadingRoles() && pendingInvitations().length > 0}
+                  fallback={
+                    <div class="text-center py-8 text-gray-500">
+                      <svg
+                        class="w-12 h-12 mx-auto mb-3 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                      <p class="text-sm">No pending role invitations</p>
+                      <p class="text-xs text-gray-400 mt-1">
+                        You'll see invitations here when streamers invite you to
+                        moderate their channels
+                      </p>
+                    </div>
+                  }
+                >
+                  <div class="space-y-3">
+                    <For each={pendingInvitations()}>
+                      {(invitation) => {
+                        const granterInfo = () => getUserInfo(invitation.granter_id);
+                        return (
+                          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                                <Show
+                                  when={granterInfo()?.displayAvatar}
+                                  fallback={
+                                    <span class="text-white font-bold">
+                                      {granterInfo()?.name?.[0]?.toUpperCase() || "?"}
+                                    </span>
+                                  }
+                                >
+                                  <img
+                                    src={granterInfo()!.displayAvatar!}
+                                    alt={granterInfo()?.name || "User"}
+                                    class="w-full h-full object-cover"
+                                  />
+                                </Show>
+                              </div>
+                              <div>
+                                <p class="font-medium text-gray-900">
+                                  {granterInfo()?.name || "Loading..."}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                  Invited you as <span class="font-medium text-purple-600">{formatRoleType(invitation.role_type)}</span>
+                                </p>
+                                <p class="text-xs text-gray-400">
+                                  {formatDate(invitation.granted_at)}
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex gap-2">
+                              <button
+                                onClick={() => handleAcceptInvitation(invitation.id)}
+                                disabled={processingRoleId() === invitation.id}
+                                class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                              >
+                                {processingRoleId() === invitation.id ? "..." : "Accept"}
+                              </button>
+                              <button
+                                onClick={() => handleDeclineInvitation(invitation.id)}
+                                disabled={processingRoleId() === invitation.id}
+                                class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium disabled:opacity-50"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
               </div>
 
               {/* My Roles in Other Channels */}
@@ -852,27 +1186,75 @@ export default function Settings() {
                 <h3 class="text-lg font-medium text-gray-900 mb-6">
                   My Roles in Other Channels
                 </h3>
-                <div class="text-center py-8 text-gray-500">
-                  <svg
-                    class="w-12 h-12 mx-auto mb-3 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-                    />
-                  </svg>
-                  <p class="text-sm">
-                    You don't have any roles in other channels
-                  </p>
-                  <p class="text-xs text-gray-400 mt-1">
-                    Roles granted to you by other streamers will appear here
-                  </p>
-                </div>
+                <Show
+                  when={!loadingRoles() && myRoles().length > 0}
+                  fallback={
+                    <div class="text-center py-8 text-gray-500">
+                      <svg
+                        class="w-12 h-12 mx-auto mb-3 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                        />
+                      </svg>
+                      <p class="text-sm">
+                        You don't have any roles in other channels
+                      </p>
+                      <p class="text-xs text-gray-400 mt-1">
+                        Roles granted to you by other streamers will appear here
+                      </p>
+                    </div>
+                  }
+                >
+                  <div class="space-y-3">
+                    <For each={myRoles()}>
+                      {(role) => {
+                        const granterInfo = () => getUserInfo(role.granter_id);
+                        return (
+                          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                                <Show
+                                  when={granterInfo()?.displayAvatar}
+                                  fallback={
+                                    <span class="text-white font-bold">
+                                      {granterInfo()?.name?.[0]?.toUpperCase() || "?"}
+                                    </span>
+                                  }
+                                >
+                                  <img
+                                    src={granterInfo()!.displayAvatar!}
+                                    alt={granterInfo()?.name || "User"}
+                                    class="w-full h-full object-cover"
+                                  />
+                                </Show>
+                              </div>
+                              <div>
+                                <p class="font-medium text-gray-900">
+                                  {granterInfo()?.name || "Loading..."}'s channel
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    {formatRoleType(role.role_type)}
+                                  </span>
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                  Since {formatDate(role.accepted_at || role.granted_at)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
               </div>
 
               {/* Divider */}
@@ -896,17 +1278,23 @@ export default function Settings() {
                 {/* Invite User Form */}
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h4 class="font-medium text-gray-900 mb-3">Invite User</h4>
-                  <form class="space-y-3">
+                  <form class="space-y-3" onSubmit={handleInviteUser}>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <input
                           type="text"
                           placeholder="Enter username"
+                          value={inviteUsername()}
+                          onInput={(e) => setInviteUsername(e.currentTarget.value)}
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
                       <div>
-                        <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <select
+                          value={inviteRoleType()}
+                          onChange={(e) => setInviteRoleType(e.currentTarget.value as "moderator" | "manager")}
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        >
                           <option value="moderator">Moderator</option>
                           <option value="manager">Manager</option>
                         </select>
@@ -914,12 +1302,21 @@ export default function Settings() {
                       <div>
                         <button
                           type="submit"
-                          class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                          disabled={isInviting()}
+                          class={`w-full bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                            isInviting() ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+                          }`}
                         >
-                          Send Invitation
+                          {isInviting() ? "Sending..." : "Send Invitation"}
                         </button>
                       </div>
                     </div>
+                    <Show when={inviteError()}>
+                      <p class="text-red-600 text-sm">{inviteError()}</p>
+                    </Show>
+                    <Show when={inviteSuccess()}>
+                      <p class="text-green-600 text-sm">Invitation sent successfully!</p>
+                    </Show>
                   </form>
                   <div class="mt-3 p-3 bg-blue-50 rounded-lg">
                     <div class="flex">
@@ -953,26 +1350,138 @@ export default function Settings() {
                   </div>
                 </div>
 
-                {/* Current Roles */}
-                <div class="text-center py-8 text-gray-500">
-                  <svg
-                    class="w-12 h-12 mx-auto mb-3 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  <p class="text-sm">No roles granted yet</p>
-                  <p class="text-xs text-gray-400 mt-1">
-                    Users you've granted permissions to will appear here
-                  </p>
-                </div>
+                {/* Pending Invitations Sent */}
+                <Show when={!loadingRoles() && pendingInvitationsSent().length > 0}>
+                  <div class="space-y-3 mb-6">
+                    <h4 class="font-medium text-gray-700 text-sm">Pending Invitations</h4>
+                    <For each={pendingInvitationsSent()}>
+                      {(role) => {
+                        const userInfo = () => getUserInfo(role.user_id);
+                        return (
+                          <div class="flex items-center justify-between p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 bg-linear-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center overflow-hidden">
+                                <Show
+                                  when={userInfo()?.displayAvatar}
+                                  fallback={
+                                    <span class="text-white font-bold">
+                                      {userInfo()?.name?.[0]?.toUpperCase() || "?"}
+                                    </span>
+                                  }
+                                >
+                                  <img
+                                    src={userInfo()!.displayAvatar!}
+                                    alt={userInfo()?.name || "User"}
+                                    class="w-full h-full object-cover"
+                                  />
+                                </Show>
+                              </div>
+                              <div>
+                                <p class="font-medium text-gray-900">
+                                  {userInfo()?.name || "Loading..."}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    {formatRoleType(role.role_type)} (Pending)
+                                  </span>
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                  Invited {formatDate(role.granted_at)}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleRevokeRole(role.id)}
+                              disabled={processingRoleId() === role.id}
+                              class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                              {processingRoleId() === role.id ? "..." : "Cancel"}
+                            </button>
+                          </div>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
+
+                {/* Users I've Granted Roles To */}
+                <Show
+                  when={!loadingRoles() && rolesIGranted().length > 0}
+                  fallback={
+                    <Show when={pendingInvitationsSent().length === 0}>
+                      <div class="text-center py-8 text-gray-500">
+                        <svg
+                          class="w-12 h-12 mx-auto mb-3 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
+                        <p class="text-sm">No roles granted yet</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                          Users you've granted permissions to will appear here
+                        </p>
+                      </div>
+                    </Show>
+                  }
+                >
+                  <div class="space-y-3">
+                    <h4 class="font-medium text-gray-700 text-sm">Your Team</h4>
+                    <For each={rolesIGranted()}>
+                      {(role) => {
+                        const userInfo = () => getUserInfo(role.user_id);
+                        return (
+                          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                                <Show
+                                  when={userInfo()?.displayAvatar}
+                                  fallback={
+                                    <span class="text-white font-bold">
+                                      {userInfo()?.name?.[0]?.toUpperCase() || "?"}
+                                    </span>
+                                  }
+                                >
+                                  <img
+                                    src={userInfo()!.displayAvatar!}
+                                    alt={userInfo()?.name || "User"}
+                                    class="w-full h-full object-cover"
+                                  />
+                                </Show>
+                              </div>
+                              <div>
+                                <p class="font-medium text-gray-900">
+                                  {userInfo()?.name || "Loading..."}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    {formatRoleType(role.role_type)}
+                                  </span>
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                  Since {formatDate(role.accepted_at || role.granted_at)}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleRevokeRole(role.id)}
+                              disabled={processingRoleId() === role.id}
+                              class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                              {processingRoleId() === role.id ? "..." : "Revoke"}
+                            </button>
+                          </div>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
               </div>
 
               {/* Notification Preferences */}
