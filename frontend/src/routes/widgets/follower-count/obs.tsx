@@ -48,7 +48,7 @@ export default function FollowerCountOBS() {
           Error: No userId provided in URL parameters
         </div>
       }>
-        <div class="bg-gradient-to-r from-pink-900/80 to-red-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm min-w-[300px]">
+        <div class="bg-linear-to-r from-pink-900/80 to-red-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm min-w-[300px]">
           <div class="text-center">
             <div class="text-white text-2xl mb-2">
               ❤️ Followers

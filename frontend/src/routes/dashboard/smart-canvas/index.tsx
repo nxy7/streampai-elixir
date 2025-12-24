@@ -77,7 +77,7 @@ const UPDATE_SMART_CANVAS_LAYOUT = graphql(`
 function PaletteWidgetItem(props: { widgetDef: typeof AVAILABLE_WIDGETS[number] }) {
   return (
     <div
-      class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg cursor-pointer hover:shadow-lg transition-shadow flex items-center gap-3"
+      class="p-3 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-lg cursor-pointer hover:shadow-lg transition-shadow flex items-center gap-3"
       onClick={() => {
         // This will be handled by the parent component through a callback
         const event = new CustomEvent("add-widget", {
@@ -468,7 +468,7 @@ export default function SmartCanvas() {
 
             <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
               <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 text-blue-600">ℹ️</div>
+                <div class="shrink-0 text-blue-600">ℹ️</div>
                 <div class="flex-1">
                   <h3 class="font-semibold text-gray-900 mb-1">OBS Browser Source URL</h3>
                   <p class="text-sm text-gray-600 mb-2">

@@ -38,7 +38,7 @@ export default function LoginPage() {
               <p class="text-gray-300 mb-6">You're already logged in.</p>
               <A
                 href={getDashboardUrl()}
-                class="inline-block w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                class="inline-block w-full py-3 px-4 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Go to Dashboard
               </A>

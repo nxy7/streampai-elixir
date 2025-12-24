@@ -63,7 +63,7 @@ export default function PollOBS() {
                           </div>
                           <div class="relative w-full h-4 bg-gray-700 rounded-full overflow-hidden">
                             <div
-                              class="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                              class="absolute inset-y-0 left-0 bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-500"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>

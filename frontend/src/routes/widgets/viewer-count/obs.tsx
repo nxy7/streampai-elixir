@@ -42,7 +42,7 @@ export default function ViewerCountOBS() {
           Error: No userId provided in URL parameters
         </div>
       }>
-        <div class="bg-gradient-to-r from-blue-900/80 to-purple-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+        <div class="bg-linear-to-r from-blue-900/80 to-purple-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <div class="text-center">
             <div class="text-white text-2xl mb-2">
               👥 Viewers

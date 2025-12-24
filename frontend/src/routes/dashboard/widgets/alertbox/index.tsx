@@ -106,7 +106,7 @@ export default function AlertboxWidgetSettings() {
     const currentConfig = config();
     const result = await client.mutation(SAVE_WIDGET_CONFIG, {
       input: {
-        userId: userId(),
+        userId: userId()!,
         type: "alertbox_widget",
         config: JSON.stringify({
           animation_type: currentConfig.animationType,

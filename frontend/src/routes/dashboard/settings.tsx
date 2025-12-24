@@ -602,7 +602,7 @@ export default function Settings() {
                 </p>
                 <a
                   href={getLoginUrl()}
-                  class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                  class="inline-block px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                 >
                   Sign In
                 </a>
@@ -613,7 +613,7 @@ export default function Settings() {
           <>
             <div class="max-w-6xl mx-auto space-y-6">
               {/* Subscription Widget Placeholder */}
-              <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white">
+              <div class="bg-linear-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white">
                 <div class="flex items-center justify-between">
                   <div>
                     <h3 class="text-xl font-bold mb-2">Free Plan</h3>
@@ -759,7 +759,7 @@ export default function Settings() {
                           <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                             <div class="flex items-center space-x-3">
                               <div
-                                class={`w-10 h-10 bg-gradient-to-r ${connection.color} rounded-lg flex items-center justify-center`}
+                                class={`w-10 h-10 bg-linear-to-r ${connection.color} rounded-lg flex items-center justify-center`}
                               >
                                 <span class="text-white font-bold text-sm">
                                   {connection.name[0]}
@@ -827,7 +827,7 @@ export default function Settings() {
 
                   <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                     <div class="flex items-center space-x-3">
-                      <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                      <div class="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
                         <Show
                           when={prefs.data()?.avatar_url}
                           fallback={
@@ -965,7 +965,7 @@ export default function Settings() {
                   {/* Info box */}
                   <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
                     <svg
-                      class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                      class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1248,7 +1248,7 @@ export default function Settings() {
                   <div class="mt-3 p-3 bg-blue-50 rounded-lg">
                     <div class="flex">
                       <svg
-                        class="w-5 h-5 text-blue-500 flex-shrink-0 mr-2"
+                        class="w-5 h-5 text-blue-500 shrink-0 mr-2"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

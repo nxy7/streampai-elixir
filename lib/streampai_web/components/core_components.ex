@@ -117,17 +117,17 @@ defmodule StreampaiWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}
       role="alert"
       class={[
-        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-[60] rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
+        "flash-card fixed top-4 right-4 mr-2 w-80 sm:w-96 z-60 rounded-xl p-4 shadow-lg border cursor-pointer transition-transform duration-300 ease-out",
         @kind == :info &&
-          "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
+          "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-800 border-purple-200 shadow-purple-100",
         @kind == :error &&
-          "bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
+          "bg-linear-to-r from-red-50 to-rose-50 text-red-800 border-red-200 shadow-red-100"
       ]}
       {@rest}
     >
       <div class="flex items-start gap-3">
         <div class={[
-          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+          "shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
           @kind == :info && "bg-purple-100",
           @kind == :error && "bg-red-100"
         ]}>
@@ -146,13 +146,13 @@ defmodule StreampaiWeb.CoreComponents do
         </div>
         <button
           type="button"
-          class="group flex-shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors"
+          class="group shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors"
           aria-label={gettext("close")}
         >
           <.icon name="hero-x-mark-solid" class="h-4 w-4 opacity-50 group-hover:opacity-70" />
         </button>
       </div>
-      
+
     <!-- Slide in animation -->
       <script>
         (function() {
@@ -410,7 +410,7 @@ defmodule StreampaiWeb.CoreComponents do
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
+          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-24",
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
@@ -530,7 +530,7 @@ defmodule StreampaiWeb.CoreComponents do
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
+      <table class="w-160 mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
             <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal">{col[:label]}</th>

@@ -181,7 +181,7 @@ export default function AlertboxOBS() {
 
   function renderDonationAlert(data: any) {
     return (
-      <div class="alert-content bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
+      <div class="alert-content bg-linear-to-r from-purple-600 to-pink-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
         <div class="text-white text-5xl mb-4">💰</div>
         <div class="text-white text-4xl font-bold mb-2">
           {data.username} donated {data.currency}{data.amount}!
@@ -195,7 +195,7 @@ export default function AlertboxOBS() {
 
   function renderFollowerAlert(data: any) {
     return (
-      <div class="alert-content bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
+      <div class="alert-content bg-linear-to-r from-blue-600 to-cyan-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
         <div class="text-white text-5xl mb-4">❤️</div>
         <div class="text-white text-4xl font-bold mb-2">
           {data.username} just followed!
@@ -207,7 +207,7 @@ export default function AlertboxOBS() {
 
   function renderSubscriberAlert(data: any) {
     return (
-      <div class="alert-content bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
+      <div class="alert-content bg-linear-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
         <div class="text-white text-5xl mb-4">⭐</div>
         <div class="text-white text-4xl font-bold mb-2">
           {data.username} subscribed!
@@ -224,7 +224,7 @@ export default function AlertboxOBS() {
 
   function renderRaidAlert(data: any) {
     return (
-      <div class="alert-content bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
+      <div class="alert-content bg-linear-to-r from-orange-600 to-red-600 rounded-2xl p-8 shadow-2xl text-center animate-bounce-in">
         <div class="text-white text-5xl mb-4">🎉</div>
         <div class="text-white text-4xl font-bold mb-2">
           {data.username} is raiding!

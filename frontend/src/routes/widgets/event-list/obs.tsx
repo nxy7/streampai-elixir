@@ -207,7 +207,7 @@ export default function EventListOBS() {
           <div class="space-y-2">
             <For each={events()}>
               {(event) => (
-                <div class={`bg-gradient-to-r ${event.color} rounded-lg p-4 shadow-lg animate-slide-in-right`}>
+                <div class={`bg-linear-to-r ${event.color} rounded-lg p-4 shadow-lg animate-slide-in-right`}>
                   <div class="flex items-center gap-3">
                     <div class="text-3xl">{event.icon}</div>
                     <div class="flex-1">

@@ -136,8 +136,8 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
       <div class={`absolute inset-0 flex justify-center ${positionClass()}`}>
         <Show when={props.event}>
           <div class={`alert-card relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass()} animate-${props.config.animationType}-in`}>
-            <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
-            <div class={`absolute inset-0 rounded-lg bg-gradient-to-r ${getGradientColor(props.event!.type)} opacity-10 animate-pulse`}></div>
+            <div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
+            <div class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event!.type)} opacity-10 animate-pulse`}></div>
 
             <div class="relative z-10">
               <div class="text-center mb-6">
@@ -183,7 +183,7 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 
             <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-lg overflow-hidden">
               <div
-                class="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                class="h-full bg-linear-to-r from-purple-500 to-pink-500"
                 style={{
                   width: "100%",
                   animation: `progress-width-shrink ${props.config.displayDuration}s linear forwards`

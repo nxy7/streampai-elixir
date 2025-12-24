@@ -110,7 +110,7 @@ export default function ChatWidget(props: ChatWidgetProps) {
               <div class={`flex items-start space-x-2 ${fontClass()}`}>
                 <Show when={props.config.showPlatform}>
                   <div
-                    class={`rounded flex items-center justify-center flex-shrink-0 ${message.platform.color}`}
+                    class={`rounded flex items-center justify-center shrink-0 ${message.platform.color}`}
                     style={{ width: "20px", height: "20px" }}
                   >
                     <svg
@@ -124,7 +124,7 @@ export default function ChatWidget(props: ChatWidgetProps) {
                 </Show>
 
                 <Show when={props.config.showBadges && message.badge}>
-                  <div class={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${message.badgeColor}`}>
+                  <div class={`px-2 py-1 rounded text-xs font-semibold shrink-0 ${message.badgeColor}`}>
                     {message.badge}
                   </div>
                 </Show>

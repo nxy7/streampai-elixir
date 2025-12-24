@@ -216,7 +216,7 @@ export default function DonationPage() {
                   </p>
                   <a
                     href="/"
-                    class="inline-block mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                    class="inline-block mt-6 px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                   >
                     Go Home
                   </a>
@@ -227,7 +227,7 @@ export default function DonationPage() {
             <div class="max-w-2xl mx-auto px-4 py-12">
               {/* User Header */}
               <div class="text-center mb-8">
-                <div class="w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                <div class="w-24 h-24 mx-auto mb-4 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
                   <Show
                     when={userAvatar()}
                     fallback={
@@ -268,7 +268,7 @@ export default function DonationPage() {
                           }}
                           class={`py-3 px-4 rounded-lg font-semibold transition-all ${
                             currentStreamerPrefs().selectedAmount === amount
-                              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                              ? "bg-linear-to-r from-purple-500 to-pink-500 text-white"
                               : "bg-white/20 text-white hover:bg-white/30"
                           }`}
                         >
@@ -384,7 +384,7 @@ export default function DonationPage() {
                   disabled={!isValidAmount()}
                   class={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
                     isValidAmount()
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
+                      ? "bg-linear-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed"
                   }`}
                 >

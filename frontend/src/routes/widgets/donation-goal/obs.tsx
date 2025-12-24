@@ -51,14 +51,14 @@ export default function DonationGoalOBS() {
         </div>
       }>
         <div class="w-full max-w-2xl">
-          <div class="bg-gradient-to-r from-purple-900/80 to-pink-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+          <div class="bg-linear-to-r from-purple-900/80 to-pink-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
             <div class="text-white text-3xl font-bold mb-6 text-center">
               Donation Goal
             </div>
 
             <div class="relative w-full h-16 bg-gray-800/50 rounded-full overflow-hidden mb-4">
               <div
-                class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000 ease-out flex items-center justify-center"
+                class="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-1000 ease-out flex items-center justify-center"
                 style={{ width: `${Math.min(goalData().percentage, 100)}%` }}
               >
                 <Show when={goalData().percentage > 10}>

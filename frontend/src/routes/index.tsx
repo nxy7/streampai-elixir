@@ -34,7 +34,7 @@ function LandingNavigation() {
               fallback={
                 <a
                   href={getLoginUrl()}
-                  class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                  class="bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                 >
                   Get Started
                 </a>
@@ -42,7 +42,7 @@ function LandingNavigation() {
             >
               <A
                 href={getDashboardUrl()}
-                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                class="bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Dashboard
               </A>
@@ -81,7 +81,7 @@ function LandingNavigation() {
                   fallback={
                     <a
                       href={getLoginUrl()}
-                      class="w-full block text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                      class="w-full block text-center bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                     >
                       Get Started
                     </a>
@@ -89,7 +89,7 @@ function LandingNavigation() {
                 >
                   <A
                     href={getDashboardUrl()}
-                    class="w-full block text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                    class="w-full block text-center bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                   >
                     Dashboard
                   </A>
@@ -126,19 +126,19 @@ function LandingHero() {
 
   return (
     <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-r from-purple-800/20 to-pink-800/20"></div>
+      <div class="absolute inset-0 bg-linear-to-r from-purple-800/20 to-pink-800/20"></div>
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div class="text-center">
           <h1 class="text-5xl md:text-7xl font-bold text-white mb-8">
             Stream to{" "}
-            <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               Everyone
             </span>
             <br />
             at Once
           </h1>
 
-          <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg border border-yellow-500/30 rounded-2xl p-6 mb-8 max-w-2xl mx-auto">
+          <div class="bg-linear-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg border border-yellow-500/30 rounded-2xl p-6 mb-8 max-w-2xl mx-auto">
             <div class="flex items-center justify-center mb-4">
               <svg
                 class="w-8 h-8 text-yellow-400 mr-3"
@@ -175,7 +175,7 @@ function LandingHero() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50"
+                class="bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50"
               >
                 {loading() ? "Submitting..." : "Notify Me"}
               </button>
@@ -231,7 +231,7 @@ function LandingHero() {
               <span class="text-white font-medium">Facebook</span>
             </div>
             <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded flex items-center justify-center">
+              <div class="w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded flex items-center justify-center">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
@@ -262,7 +262,7 @@ function LandingFeatures() {
           <div class="text-center mb-20">
             <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
               Everything You Need to{" "}
-              <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Dominate
               </span>
             </h2>
@@ -274,7 +274,7 @@ function LandingFeatures() {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -284,7 +284,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">Multi-Platform Streaming</h3>
+                <h3 class="text-xl font-bold text-white grow">Multi-Platform Streaming</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Stream to Twitch, YouTube, Kick, Facebook, and more simultaneously. One stream, maximum reach.
@@ -293,7 +293,7 @@ function LandingFeatures() {
 
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -303,7 +303,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">Unified Chat Management</h3>
+                <h3 class="text-xl font-bold text-white grow">Unified Chat Management</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Merge all platform chats into one stream. Never miss a message from any platform again.
@@ -312,7 +312,7 @@ function LandingFeatures() {
 
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -322,7 +322,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">Real-time Analytics</h3>
+                <h3 class="text-xl font-bold text-white grow">Real-time Analytics</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Track viewers, engagement, revenue, and growth across all platforms in one beautiful dashboard.
@@ -331,7 +331,7 @@ function LandingFeatures() {
 
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -341,7 +341,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">AI-Powered Moderation</h3>
+                <h3 class="text-xl font-bold text-white grow">AI-Powered Moderation</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Auto-moderation with custom rules, spam detection, and toxicity filtering across all platforms.
@@ -350,7 +350,7 @@ function LandingFeatures() {
 
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -360,7 +360,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">Custom Stream Widgets</h3>
+                <h3 class="text-xl font-bold text-white grow">Custom Stream Widgets</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Beautiful, customizable widgets for donations, follows, chat, and more. Perfect for your brand.
@@ -369,7 +369,7 @@ function LandingFeatures() {
 
             <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
               <div class="flex items-start space-x-4 mb-4">
-                <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-linear-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
@@ -379,7 +379,7 @@ function LandingFeatures() {
                     />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white flex-grow">Team & Moderator Tools</h3>
+                <h3 class="text-xl font-bold text-white grow">Team & Moderator Tools</h3>
               </div>
               <p class="text-gray-300 leading-relaxed">
                 Powerful moderator dashboard, team management, and collaborative stream management tools.
@@ -395,7 +395,7 @@ function LandingFeatures() {
             <div>
               <h2 class="text-4xl md:text-5xl font-bold text-white mb-8">
                 Built by Streamers,{" "}
-                <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                   for Streamers
                 </span>
               </h2>
@@ -427,10 +427,10 @@ function LandingFeatures() {
             </div>
 
             <div class="relative">
-              <div class="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 backdrop-blur-lg border border-white/10">
+              <div class="bg-linear-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 backdrop-blur-lg border border-white/10">
                 <div class="space-y-6">
                   <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
                       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                       </svg>
@@ -444,7 +444,7 @@ function LandingFeatures() {
                   </div>
 
                   <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
                       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           stroke-linecap="round"
@@ -463,7 +463,7 @@ function LandingFeatures() {
                   </div>
 
                   <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           stroke-linecap="round"
@@ -483,7 +483,7 @@ function LandingFeatures() {
                 </div>
               </div>
 
-              <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-2xl"></div>
+              <div class="absolute -top-4 -right-4 w-24 h-24 bg-linear-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-2xl"></div>
             </div>
           </div>
         </div>
@@ -494,7 +494,7 @@ function LandingFeatures() {
 
 function LandingCTA() {
   return (
-    <section class="py-24 bg-gradient-to-r from-purple-600/20 to-pink-600/20">
+    <section class="py-24 bg-linear-to-r from-purple-600/20 to-pink-600/20">
       <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
         <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
           Ready to Level Up Your Stream?
@@ -547,7 +547,7 @@ export default function Home() {
   return (
     <>
       <Title>Streampai - Multi-Platform Streaming Solution</Title>
-      <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <LandingNavigation />
         <LandingHero />
         <LandingFeatures />

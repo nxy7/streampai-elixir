@@ -70,7 +70,7 @@ defmodule StreampaiWeb.Utils.PlatformUtils do
   def platform_solid_color("Facebook"), do: "bg-blue-600"
   def platform_solid_color(:kick), do: "bg-green-600"
   def platform_solid_color("Kick"), do: "bg-green-600"
-  def platform_solid_color("Streampai"), do: "bg-gradient-to-r from-purple-600 to-pink-600"
+  def platform_solid_color("Streampai"), do: "bg-linear-to-r from-purple-600 to-pink-600"
   def platform_solid_color(_), do: "bg-gray-600"
 
   @doc """

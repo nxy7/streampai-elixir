@@ -61,7 +61,7 @@ export default function Dashboard() {
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                       <svg
                         class="w-6 h-6 text-white"
                         fill="none"
@@ -108,7 +108,7 @@ export default function Dashboard() {
 
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
                       <svg
                         class="w-6 h-6 text-white"
                         fill="none"
@@ -136,7 +136,7 @@ export default function Dashboard() {
 
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
                       <svg
                         class="w-6 h-6 text-white"
                         fill="none"
@@ -170,7 +170,7 @@ export default function Dashboard() {
                 >
                   <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center space-x-3 mb-4">
-                      <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                      <div class="w-12 h-12 bg-linear-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
                         <svg
                           class="w-6 h-6 text-white"
                           fill="none"
@@ -199,7 +199,7 @@ export default function Dashboard() {
                       </div>
                       <div class="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
+                          class="bg-linear-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
                           style={{
                             width: `${Math.min(
                               user()?.storageUsedPercent || 0,
@@ -214,7 +214,7 @@ export default function Dashboard() {
 
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
                       <svg
                         class="w-6 h-6 text-white"
                         fill="none"
@@ -242,7 +242,7 @@ export default function Dashboard() {
 
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
                       <svg
                         class="w-6 h-6 text-white"
                         fill="none"
@@ -276,13 +276,13 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-8">
+              <div class="bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-8">
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">
                   Quick Start Guide
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       1
                     </div>
                     <div>
@@ -295,7 +295,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       2
                     </div>
                     <div>
@@ -308,7 +308,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       3
                     </div>
                     <div>

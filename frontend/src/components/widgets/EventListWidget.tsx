@@ -151,7 +151,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
                   style={{ "animation-delay": `${index() * 100}ms` }}
                 >
                   <Show when={!props.config.compactMode}>
-                    <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-30 blur-sm"></div>
+                    <div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/20 to-pink-500/20 opacity-30 blur-sm"></div>
                   </Show>
 
                   <div class="relative z-10">

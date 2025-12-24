@@ -32,7 +32,7 @@ export const button = {
 
   // Gradient button (special CTAs)
   gradient:
-    "bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-600 transition-all font-semibold shadow-md",
+    "bg-linear-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-600 transition-all font-semibold shadow-md",
 };
 
 export const input = {
@@ -68,7 +68,7 @@ export const card = {
 
   // Gradient card (special sections)
   gradient:
-    "bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white",
+    "bg-linear-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white",
 
   // Section card with header
   section:

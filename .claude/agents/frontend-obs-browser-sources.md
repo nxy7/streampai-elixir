@@ -1,9 +1,11 @@
 # Frontend: OBS Browser Source Pages for Widgets
 
 ## Context
+
 You are a frontend specialist working on creating OBS browser source pages using SolidJS for real-time widget displays.
 
 ## Current State
+
 - SolidJS Start framework at `/home/nxyt/streampai-elixir/frontend/`
 - URQL GraphQL client configured at `frontend/src/lib/urql.ts`
 - Widget settings pages exist at `frontend/src/routes/dashboard/widgets/{widgetType}/settings.tsx`
@@ -11,6 +13,7 @@ You are a frontend specialist working on creating OBS browser source pages using
 - Design system at `frontend/src/styles/design-system.ts`
 
 ## Your Task
+
 Create OBS browser source pages for all widgets that listen to GraphQL subscriptions for real-time updates.
 
 ### Architecture Overview
@@ -38,9 +41,9 @@ import {
   cacheExchange,
   fetchExchange,
   subscriptionExchange,
-  Client
+  Client,
 } from "@urql/solid";
-import { createClient as createWSClient } from 'graphql-ws';
+import { createClient as createWSClient } from "graphql-ws";
 
 const WS_ENDPOINT = "ws://localhost:4000/graphql/websocket";
 const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
@@ -56,7 +59,7 @@ export const client = new Client({
     fetchExchange,
     subscriptionExchange({
       forwardSubscription(request) {
-        const input = { ...request, query: request.query || '' };
+        const input = { ...request, query: request.query || "" };
         return {
           subscribe(sink) {
             const unsubscribe = wsClient.subscribe(input, sink);
@@ -77,6 +80,7 @@ export const client = new Client({
 Create these pages under `frontend/src/routes/widgets/`:
 
 **Directory Structure**:
+
 ```
 frontend/src/routes/widgets/
   alertbox/
@@ -155,7 +159,7 @@ export default function AlertboxOBS() {
       <Show when={isAnimating() && currentEvent()}>
         {(event) => (
           <div class="alert-container animate-slide-in">
-            <div class="alert-content bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 shadow-2xl">
+            <div class="alert-content bg-linear-to-r from-purple-600 to-pink-600 rounded-2xl p-6 shadow-2xl">
               <div class="text-white text-3xl font-bold mb-2">
                 {event().username} donated ${event().amount}!
               </div>
@@ -174,48 +178,56 @@ export default function AlertboxOBS() {
 #### 4. Widget-Specific Implementations
 
 **Alertbox** (`alertbox/obs.tsx`):
+
 - Subscribe to: donations, follows, subs, raids, cheers
 - Show animated alerts with sound effects
 - Queue multiple events
 - Configurable animations
 
 **Donation Goal** (`donation-goal/obs.tsx`):
+
 - Subscribe to: goalProgress
 - Show progress bar
 - Animate when goal updates
 - Display current/target amounts
 
 **Chat Widget** (`chat/obs.tsx`):
+
 - Subscribe to: chatMessage
 - Show scrolling chat messages
 - Platform badges
 - Moderator/subscriber badges
 
 **Viewer Count** (`viewer-count/obs.tsx`):
+
 - Subscribe to: viewerCountUpdated
 - Display current viewer count
 - Smooth number transitions
 - Optional growth indicators
 
 **Follower Count** (`follower-count/obs.tsx`):
+
 - Subscribe to: followerAdded
 - Display total follower count
 - Celebration animation on new follow
 - Platform breakdown
 
 **Event List** (`event-list/obs.tsx`):
+
 - Subscribe to: all event types
 - Show recent events in a list
 - Auto-scroll
 - Configurable display time
 
 **Top Donors** (`top-donors/obs.tsx`):
+
 - Subscribe to: donationReceived
 - Update leaderboard in real-time
 - Smooth position transitions
 - Highlight new entries
 
 **Poll Widget** (`poll/obs.tsx`):
+
 - Subscribe to: pollVote
 - Show poll options with bars
 - Real-time vote updates
@@ -224,6 +236,7 @@ export default function AlertboxOBS() {
 #### 5. Styling Requirements
 
 All OBS pages must:
+
 - Have transparent background: `bg-transparent`
 - Use `overflow-hidden` to prevent scrollbars
 - Be fullscreen: `w-full h-screen`
@@ -288,6 +301,7 @@ Add to `frontend/src/app.css`:
 #### 7. Error Handling
 
 Each OBS page should:
+
 - Show connection status
 - Retry on disconnection
 - Display error messages (for testing)
@@ -296,7 +310,7 @@ Each OBS page should:
 ```typescript
 createEffect(() => {
   if (result().error) {
-    console.error('Subscription error:', result().error);
+    console.error("Subscription error:", result().error);
   }
 });
 ```
@@ -308,7 +322,7 @@ Load widget config from query params or GraphQL:
 ```typescript
 const [configResult] = useQuery({
   query: WIDGET_CONFIG_QUERY,
-  variables: { userId: userId(), type: 'alertbox' },
+  variables: { userId: userId(), type: "alertbox" },
 });
 
 const config = () => configResult()?.data?.widgetConfig?.config || {};
@@ -320,9 +334,11 @@ Test each OBS page:
 
 1. Open in browser: `http://localhost:3000/widgets/alertbox/obs?userId=USER_ID`
 2. In iex, broadcast test event:
+
 ```elixir
 StreampaiWeb.GraphQL.Subscriptions.broadcast_donation("USER_ID", %{...})
 ```
+
 3. Verify alert appears with animation
 4. Test in OBS Browser Source
 

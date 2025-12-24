@@ -105,7 +105,7 @@ export default function StreamHistory() {
               </p>
               <a
                 href={getLoginUrl()}
-                class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                class="inline-block px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Sign In
               </a>

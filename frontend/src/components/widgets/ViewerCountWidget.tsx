@@ -124,7 +124,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
       }>
         <div class="viewer-display">
           <Show when={props.config.display_style === "minimal"}>
-            <div class="flex items-center space-x-3 text-white bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl px-6 py-4 shadow-lg border border-gray-700">
+            <div class="flex items-center space-x-3 text-white bg-linear-to-r from-gray-800 to-gray-900 rounded-xl px-6 py-4 shadow-lg border border-gray-700">
               <svg class="w-8 h-8" style={{ color: props.config.icon_color || "#ef4444" }} fill="currentColor" viewBox={viewerIcon.viewBox}>
                 <path d={viewerIcon.path}/>
               </svg>
@@ -140,7 +140,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
           <Show when={props.config.display_style === "detailed"}>
             <div class="space-y-3">
               <Show when={props.config.show_total}>
-                <div class="flex items-center justify-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 shadow-lg">
+                <div class="flex items-center justify-center space-x-3 text-white bg-linear-to-r from-blue-600 to-purple-600 rounded-xl p-4 shadow-lg">
                   <svg class="w-10 h-10" style={{ color: props.config.icon_color || "#ef4444" }} fill="currentColor" viewBox={viewerIcon.viewBox}>
                     <path d={viewerIcon.path}/>
                   </svg>
@@ -175,7 +175,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
           <Show when={props.config.display_style === "cards"}>
             <div class="space-y-3">
               <Show when={props.config.show_total}>
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-5 text-white text-center shadow-lg">
+                <div class="bg-linear-to-r from-blue-600 to-purple-600 rounded-xl p-5 text-white text-center shadow-lg">
                   <div class="flex items-center justify-center space-x-2 mb-2">
                     <svg class="w-7 h-7" style={{ color: props.config.icon_color || "#ef4444" }} fill="currentColor" viewBox={viewerIcon.viewBox}>
                       <path d={viewerIcon.path}/>

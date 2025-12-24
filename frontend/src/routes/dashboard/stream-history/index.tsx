@@ -62,7 +62,7 @@ export default function StreamHistory() {
               </p>
               <a
                 href={getLoginUrl()}
-                class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                class="inline-block px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
               >
                 Sign In
               </a>
@@ -273,7 +273,7 @@ function StreamHistoryContent(props: {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class={card.default}>
           <div class="flex items-center">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg
                   class="w-4 h-4 text-purple-600"
@@ -303,7 +303,7 @@ function StreamHistoryContent(props: {
 
         <div class={card.default}>
           <div class="flex items-center">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg
                   class="w-4 h-4 text-blue-600"
@@ -331,7 +331,7 @@ function StreamHistoryContent(props: {
 
         <div class={card.default}>
           <div class="flex items-center">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg
                   class="w-4 h-4 text-green-600"
@@ -408,7 +408,7 @@ function StreamHistoryContent(props: {
                 >
                   <div class="flex items-center space-x-4">
                     <Show when={stream.thumbnailUrl}>
-                      <div class="flex-shrink-0">
+                      <div class="shrink-0">
                         <img
                           src={stream.thumbnailUrl!}
                           alt="Stream thumbnail"
@@ -459,7 +459,7 @@ function StreamHistoryContent(props: {
                         </div>
                       </div>
                     </div>
-                    <div class="flex-shrink-0">
+                    <div class="shrink-0">
                       <svg
                         class="w-5 h-5 text-gray-400"
                         fill="none"

@@ -233,7 +233,7 @@ export default function Widgets() {
                       }
                     >
                       {/* Widget Icon Header */}
-                      <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-center">
+                      <div class="bg-linear-to-r from-purple-500 to-pink-500 p-6 text-center">
                         <div class="text-6xl mb-2">{widget.icon}</div>
                         <h3 class="text-white font-semibold text-lg">
                           {widget.name}
@@ -303,11 +303,11 @@ export default function Widgets() {
               </div>
 
               {/* Help Section */}
-              <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-8">
+              <div class="bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-8">
                 <h2 class={text.h2 + " mb-4"}>How to Use Widgets</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       1
                     </div>
                     <div>
@@ -321,7 +321,7 @@ export default function Widgets() {
                     </div>
                   </div>
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       2
                     </div>
                     <div>
@@ -334,7 +334,7 @@ export default function Widgets() {
                     </div>
                   </div>
                   <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0 text-white font-bold">
                       3
                     </div>
                     <div>
