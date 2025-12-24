@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, createEffect, createMemo, For } from "solid-js";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import { createUserPreferencesCollection, type UserPreferences } from "~/lib/electric";
 import { useLiveQuery } from "@tanstack/solid-db";

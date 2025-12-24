@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onMount, Show, createMemo } from "solid-js";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import ChatWidget from "~/components/widgets/ChatWidget";
 import { button, card, text, input } from "~/styles/design-system";

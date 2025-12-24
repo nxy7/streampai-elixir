@@ -3,7 +3,7 @@ import { useCurrentUser } from "~/lib/auth";
 import { useNotificationsWithReadStatus } from "~/lib/useElectric";
 import { createLocalStorageSignal } from "~/lib/useLocalStorage";
 import { client } from "~/lib/urql";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 
 const MarkNotificationReadMutation = graphql(`
   mutation MarkNotificationRead($input: MarkNotificationReadInput!) {

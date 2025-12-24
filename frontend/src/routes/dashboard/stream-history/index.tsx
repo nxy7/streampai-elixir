@@ -4,7 +4,7 @@ import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Alert, Stat } from "~/components/ui";
 import { createQuery } from "@urql/solid";
-import { graphql, ResultOf } from "gql.tada";
+import { graphql, ResultOf } from "~/lib/graphql";
 import LoadingIndicator from "~/components/LoadingIndicator";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
@@ -52,7 +52,7 @@ export default function StreamHistory() {
       <Show
         when={user()}
         fallback={
-          <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+          <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
             <div class="text-center py-12">
               <h2 class="text-2xl font-bold text-white mb-4">
                 Not Authenticated
@@ -124,17 +124,17 @@ function StreamHistoryContent(props: {
     const now = new Date();
     if (props.dateRange() === "7days") {
       const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      result = result.filter((s) => new Date(s.startedAt as Date) > cutoff);
+      result = result.filter((s) => new Date(s.startedAt) > cutoff);
     } else if (props.dateRange() === "30days") {
       const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      result = result.filter((s) => new Date(s.startedAt as Date) > cutoff);
+      result = result.filter((s) => new Date(s.startedAt) > cutoff);
     }
 
     if (props.sortBy() === "recent") {
       result.sort(
         (a, b) =>
-          new Date(b.startedAt as Date).getTime() -
-          new Date(a.startedAt as Date).getTime()
+          new Date(b.startedAt).getTime() -
+          new Date(a.startedAt).getTime()
       );
     } else if (props.sortBy() === "duration") {
       result.sort(

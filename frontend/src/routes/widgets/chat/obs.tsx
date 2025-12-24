@@ -1,7 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For } from "solid-js";
 import { createSubscription } from "@urql/solid";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 
 const CHAT_MESSAGE_SUBSCRIPTION = graphql(`
   subscription ChatMessage($userId: ID!) {

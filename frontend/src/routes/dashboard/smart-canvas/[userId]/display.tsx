@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, onMount, onCleanup } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
 

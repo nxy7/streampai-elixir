@@ -4,7 +4,7 @@ import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { Card, CardHeader, CardTitle, CardContent, Stat, StatGroup, ProgressBar, Badge, Alert, Button, Select } from "~/components/ui";
 import { client } from "~/lib/urql";
-import { graphql, ResultOf } from "gql.tada";
+import { graphql, ResultOf } from "~/lib/graphql";
 
 type Timeframe = "day" | "week" | "month" | "year";
 
@@ -118,7 +118,7 @@ export default function Analytics() {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     return streams().filter(stream => {
-      const startDate = new Date(stream.startedAt as string);
+      const startDate = new Date(stream.startedAt);
       return startDate >= cutoff && stream.endedAt;
     });
   });
@@ -139,8 +139,8 @@ export default function Analytics() {
     const dataByHour = new Map<number, number[]>();
 
     filteredStreams().forEach(stream => {
-      const startDate = new Date(stream.startedAt as string);
-      const endDate = stream.endedAt ? new Date(stream.endedAt as string) : now;
+      const startDate = new Date(stream.startedAt);
+      const endDate = stream.endedAt ? new Date(stream.endedAt) : now;
       const durationHours = Math.max(1, Math.floor((stream.durationSeconds || 0) / 3600));
 
       for (let i = 0; i < durationHours; i++) {
@@ -203,7 +203,7 @@ export default function Analytics() {
         id: stream.id,
         title: stream.title || "Untitled Stream",
         platform: formatPlatforms(stream.platforms || []),
-        startTime: new Date(stream.startedAt as string),
+        startTime: new Date(stream.startedAt),
         duration: formatDuration(stream.durationSeconds || 0),
         viewers: {
           peak: stream.peakViewers || 0,

@@ -1,6 +1,6 @@
 import { createSignal, useContext, onMount, type ParentComponent } from "solid-js";
 import { client } from "./urql";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { BACKEND_URL } from "./constants";
 import { AuthContext, type User } from "./AuthContext";
 

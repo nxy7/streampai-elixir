@@ -1,7 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For } from "solid-js";
 import { createSubscription } from "@urql/solid";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 
 const DONATION_SUBSCRIPTION = graphql(`
   subscription DonationReceived($userId: ID!) {

@@ -4,7 +4,7 @@ import { useNavigate } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input, badge } from "~/styles/design-system";
 import { client } from "~/lib/urql";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type ViewMode = "viewers" | "banned";

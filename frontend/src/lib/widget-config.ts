@@ -1,4 +1,4 @@
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "./urql";
 
 export const GET_WIDGET_CONFIG = graphql(`

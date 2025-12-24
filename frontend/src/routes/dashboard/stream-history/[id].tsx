@@ -3,7 +3,7 @@ import { createSignal, createMemo, Show, For, Suspense, ErrorBoundary } from "so
 import { useParams, A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { createQuery } from "@urql/solid";
-import { graphql, type ResultOf } from "gql.tada";
+import { graphql, type ResultOf } from "~/lib/graphql";
 import LoadingIndicator from "~/components/LoadingIndicator";
 
 const LivestreamQuery = graphql(`
@@ -122,7 +122,7 @@ const eventColor = (type: string) => {
   return colors[type] || "#6b7280";
 };
 
-const formatCategoryLabel = (category?: string) => {
+const formatCategoryLabel = (category?: string | null) => {
   if (!category) return null;
   return category
     .split("_")
@@ -130,7 +130,7 @@ const formatCategoryLabel = (category?: string) => {
     .join(" ");
 };
 
-const languageName = (code?: string) => {
+const languageName = (code?: string | null) => {
   if (!code) return null;
   const names: Record<string, string> = {
     en: "English",
@@ -183,7 +183,7 @@ export default function StreamHistoryDetail() {
       <Show
         when={user()}
         fallback={
-          <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+          <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
             <div class="text-center py-12">
               <h2 class="text-2xl font-bold text-white mb-4">
                 Not Authenticated
@@ -218,7 +218,7 @@ export default function StreamHistoryDetail() {
           )}
         >
           <Suspense fallback={<LoadingIndicator />}>
-            <StreamDetailContent streamId={params.id} />
+            <StreamDetailContent streamId={params.id!} />
           </Suspense>
         </ErrorBoundary>
       </Show>
@@ -597,7 +597,7 @@ function StreamDetailContent(props: { streamId: string }) {
                         }
                         class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                       />
-                      <span class="text-sm font-medium text-gray-600 min-w-[60px]">
+                      <span class="text-sm font-medium text-gray-600 min-w-15">
                         <Show when={stream()} fallback="0:00">
                           {formatTimelineTime(
                             stream()!,

@@ -3,7 +3,7 @@ import { createSignal, createEffect, Show, For, createMemo } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
 import { client } from "~/lib/urql";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { button, card, text, badge, input } from "~/styles/design-system";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { adminUsersCollection, type AdminUser } from "~/lib/electric";

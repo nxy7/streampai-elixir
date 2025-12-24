@@ -3,7 +3,7 @@ import { createSignal, Show, For, onMount } from "solid-js";
 import { useParams, useNavigate, A } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
 import { client } from "~/lib/urql";
-import { graphql, type ResultOf } from "gql.tada";
+import { graphql, type ResultOf } from "~/lib/graphql";
 
 const GetViewerQuery = graphql(`
   query GetViewer($userId: ID!, $viewerId: String!) {

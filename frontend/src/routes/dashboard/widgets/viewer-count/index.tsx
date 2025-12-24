@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onMount, onCleanup, Show, createMemo } from "solid-js";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import { button, card, text, input as designInput } from "~/styles/design-system";

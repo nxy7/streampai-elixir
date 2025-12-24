@@ -2,7 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, onMount, createEffect } from "solid-js";
 import { useCurrentUser } from "~/lib/auth";
 import { card, text, button } from "~/styles/design-system";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 
 interface CanvasWidget {

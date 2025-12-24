@@ -1,6 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import FollowerCountWidget from "~/components/widgets/FollowerCountWidget";
 import { Title } from "@solidjs/meta";

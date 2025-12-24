@@ -1,6 +1,6 @@
 import { createSignal, Show, createMemo } from "solid-js";
 import { Title } from "@solidjs/meta";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
 import { button, card, text, input } from "~/styles/design-system";

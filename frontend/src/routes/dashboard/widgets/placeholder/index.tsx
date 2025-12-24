@@ -1,5 +1,5 @@
 import { createSignal, Show, createEffect, createMemo } from "solid-js";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import PlaceholderWidget from "~/components/widgets/PlaceholderWidget";
 import { button, card, text, input } from "~/styles/design-system";

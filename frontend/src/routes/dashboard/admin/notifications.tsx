@@ -4,7 +4,7 @@ import { useNavigate } from "@solidjs/router";
 import { useCurrentUser } from "~/lib/auth";
 import { useGlobalNotifications, type Notification } from "~/lib/useElectric";
 import { client } from "~/lib/urql";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { button, card, text, badge, input } from "~/styles/design-system";
 
 const CreateNotificationMutation = graphql(`

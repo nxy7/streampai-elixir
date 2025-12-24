@@ -1,7 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
 import { createSubscription } from "@urql/solid";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 
 const VIEWER_COUNT_SUBSCRIPTION = graphql(`
   subscription ViewerCountUpdated($userId: ID!) {

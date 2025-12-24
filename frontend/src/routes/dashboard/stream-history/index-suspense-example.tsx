@@ -4,7 +4,7 @@ import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, badge } from "~/styles/design-system";
 import { createQuery } from "@urql/solid"; // Use createQuery instead of client.query
-import { graphql, ResultOf } from "gql.tada";
+import { graphql, ResultOf } from "~/lib/graphql";
 import LoadingIndicator from "~/components/LoadingIndicator";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";

@@ -2,7 +2,7 @@ import { Title } from "@solidjs/meta";
 import { Show, For, createSignal, createEffect, createMemo } from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
-import { graphql } from "gql.tada";
+import { graphql } from "~/lib/graphql";
 import { client } from "~/lib/urql";
 import { useUserPreferencesForUser, useUserRolesData, type UserRole } from "~/lib/useElectric";
 

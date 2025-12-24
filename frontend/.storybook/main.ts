@@ -1,5 +1,9 @@
 import type { StorybookConfig } from 'storybook-solidjs-vite';
 import tailwindcss from '@tailwindcss/vite';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const config: StorybookConfig = {
   "stories": [
@@ -16,6 +20,11 @@ const config: StorybookConfig = {
   viteFinal: async (config) => {
     config.plugins = config.plugins || [];
     config.plugins.push(tailwindcss());
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '~': resolve(__dirname, '../src'),
+    };
     return config;
   },
 };
