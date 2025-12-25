@@ -6,10 +6,12 @@ import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
 import { button, card, text, badge, input } from "~/styles/design-system";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { adminUsersCollection, type AdminUser } from "~/lib/electric";
+import { usePresence } from "~/lib/socket";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
   const { user: currentUser, isLoading: authLoading } = useCurrentUser();
+  const { users: onlineUsers } = usePresence();
 
   const usersQuery = useLiveQuery(() => adminUsersCollection);
 
@@ -17,6 +19,10 @@ export default function AdminUsers() {
     const allUsers = usersQuery.data ?? [];
     return allUsers.sort((a, b) => a.email.localeCompare(b.email));
   });
+
+  const isUserOnline = (userId: string) => {
+    return onlineUsers().some((u) => u.id === userId);
+  };
 
   const [error, setError] = createSignal<string | null>(null);
   const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
@@ -188,9 +194,17 @@ export default function AdminUsers() {
               </Show>
 
               <div class={card.base}>
-                <div class="px-6 py-4 border-b border-gray-200">
-                  <h3 class={text.h3}>All Users</h3>
-                  <p class={text.muted}>Manage user accounts and PRO access</p>
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <h3 class={text.h3}>All Users</h3>
+                    <p class={text.muted}>Manage user accounts and PRO access</p>
+                  </div>
+                  <div class="flex items-center space-x-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full" />
+                    <span class="text-gray-600">
+                      {onlineUsers().length} online
+                    </span>
+                  </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -210,21 +224,29 @@ export default function AdminUsers() {
                           <tr class={currentUser()?.id === user.id ? "bg-purple-50" : "hover:bg-gray-50"}>
                             <td class="px-6 py-4 whitespace-nowrap">
                               <div class="flex items-center">
-                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
-                                  <Show
-                                    when={user.avatar_url}
-                                    fallback={
-                                      <span class="text-white font-medium text-sm">
-                                        {user.email[0].toUpperCase()}
-                                      </span>
-                                    }
-                                  >
-                                    <img
-                                      src={user.avatar_url!}
-                                      alt={user.name}
-                                      class="w-10 h-10 rounded-full object-cover"
-                                    />
-                                  </Show>
+                                <div class="relative">
+                                  <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center overflow-hidden">
+                                    <Show
+                                      when={user.avatar_url}
+                                      fallback={
+                                        <span class="text-white font-medium text-sm">
+                                          {user.email[0].toUpperCase()}
+                                        </span>
+                                      }
+                                    >
+                                      <img
+                                        src={user.avatar_url!}
+                                        alt={user.name}
+                                        class="w-10 h-10 rounded-full object-cover"
+                                      />
+                                    </Show>
+                                  </div>
+                                  <div
+                                    class={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                                      isUserOnline(user.id) ? "bg-green-500" : "bg-gray-400"
+                                    }`}
+                                    title={isUserOnline(user.id) ? "Online" : "Offline"}
+                                  />
                                 </div>
                                 <div class="ml-3">
                                   <div class="flex items-center space-x-2">

@@ -7,6 +7,13 @@ let socketInstance: Socket | null = null;
 let socketToken: string | null = null;
 let tokenFetchPromise: Promise<string | null> | null = null;
 
+// Presence singleton for app-level tracking
+let presenceChannel: Channel | null = null;
+let presenceInstance: Presence | null = null;
+type PresenceListener = (users: PresenceUser[]) => void;
+const presenceListeners: Set<PresenceListener> = new Set();
+let currentPresenceUsers: PresenceUser[] = [];
+
 /**
  * Fetch a socket token from the backend.
  * This token is used for WebSocket authentication since cookies
@@ -94,55 +101,103 @@ export interface PresenceState {
 }
 
 /**
- * Hook for subscribing to presence in a lobby.
- * Returns a reactive signal with current online users.
+ * Notify all listeners of presence changes
  */
-export function usePresence() {
-  const [users, setUsers] = createSignal<PresenceUser[]>([]);
-  const [isConnected, setIsConnected] = createSignal(false);
+function notifyPresenceListeners() {
+  presenceListeners.forEach((listener) => listener(currentPresenceUsers));
+}
 
-  let channel: Channel | null = null;
-  let presence: Presence | null = null;
+/**
+ * Initialize presence tracking for the current user.
+ * Call this once when the user is authenticated.
+ * Returns a cleanup function to leave the presence channel.
+ */
+export async function initPresence(): Promise<() => void> {
+  // Already connected
+  if (presenceChannel) {
+    return () => leavePresence();
+  }
 
-  const syncPresence = () => {
-    if (!presence) return;
+  const socket = await initSocket();
+  presenceChannel = socket.channel("presence:lobby", {});
 
-    const state = presence.list((id, { metas }) => ({
+  // Create presence instance BEFORE joining so it can receive initial state
+  presenceInstance = new Presence(presenceChannel);
+  presenceInstance.onSync(() => {
+    currentPresenceUsers = presenceInstance!.list((id, { metas }) => ({
       id,
       name: metas[0]?.name || "Unknown",
       avatar: metas[0]?.avatar || null,
       onlineAt: metas[0]?.online_at || 0,
     }));
+    console.log("[Presence] Synced users:", currentPresenceUsers);
+    notifyPresenceListeners();
+  });
 
-    setUsers(state);
+  presenceChannel
+    .join()
+    .receive("ok", () => {
+      console.log("[Presence] Connected to lobby");
+    })
+    .receive("error", (resp) => {
+      console.error("[Presence] Failed to join lobby:", resp);
+    });
+
+  return () => leavePresence();
+}
+
+/**
+ * Leave the presence channel (e.g., on logout)
+ */
+export function leavePresence() {
+  if (presenceChannel) {
+    presenceChannel.leave();
+    presenceChannel = null;
+    presenceInstance = null;
+    currentPresenceUsers = [];
+    notifyPresenceListeners();
+  }
+}
+
+/**
+ * Subscribe to presence updates.
+ * Returns an unsubscribe function.
+ */
+export function subscribeToPresence(
+  listener: PresenceListener
+): () => void {
+  presenceListeners.add(listener);
+  // Immediately call with current state
+  listener(currentPresenceUsers);
+
+  return () => {
+    presenceListeners.delete(listener);
   };
+}
 
-  // Initialize socket with token, then join presence channel
-  initSocket().then((socket) => {
-    channel = socket.channel("presence:lobby", {});
+/**
+ * Get current presence users (non-reactive)
+ */
+export function getPresenceUsers(): PresenceUser[] {
+  return currentPresenceUsers;
+}
 
-    // Create presence instance immediately and set up sync handler
-    presence = new Presence(channel);
-    presence.onSync(syncPresence);
+/**
+ * Hook for subscribing to presence in a lobby.
+ * Returns a reactive signal with current online users.
+ * Uses the app-level presence singleton.
+ */
+export function usePresence() {
+  const [users, setUsers] = createSignal<PresenceUser[]>(currentPresenceUsers);
 
-    channel
-      .join()
-      .receive("ok", () => {
-        setIsConnected(true);
-        console.log("[Presence] Connected to lobby");
-      })
-      .receive("error", (resp) => {
-        console.error("[Presence] Failed to join lobby:", resp);
-      });
+  // Subscribe to presence updates
+  const unsubscribe = subscribeToPresence((newUsers) => {
+    setUsers(newUsers);
   });
 
-  onCleanup(() => {
-    if (channel) {
-      channel.leave();
-    }
-  });
+  onCleanup(unsubscribe);
 
-  return { users, isConnected };
+  return { users };
 }
 
 /**

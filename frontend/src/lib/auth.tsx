@@ -1,7 +1,15 @@
-import { createSignal, useContext, onMount, type ParentComponent } from "solid-js";
+import {
+  createSignal,
+  useContext,
+  onMount,
+  createEffect,
+  onCleanup,
+  type ParentComponent,
+} from "solid-js";
 import { BACKEND_URL } from "./constants";
 import { AuthContext, type User } from "./AuthContext";
 import { getCurrentUser, type GetCurrentUserResult } from "~/sdk/ash_rpc";
+import { initPresence, leavePresence } from "./socket";
 
 const currentUserFields: (
   | "id"
@@ -60,6 +68,23 @@ export const AuthProvider: ParentComponent = (props) => {
 
   onMount(() => {
     fetchCurrentUser();
+  });
+
+  // Initialize presence when user is authenticated
+  createEffect(() => {
+    const user = currentUser();
+    if (user) {
+      // User logged in - join presence
+      initPresence();
+    } else if (!isLoading()) {
+      // User logged out (not just loading) - leave presence
+      leavePresence();
+    }
+  });
+
+  // Cleanup on unmount
+  onCleanup(() => {
+    leavePresence();
   });
 
   return (
