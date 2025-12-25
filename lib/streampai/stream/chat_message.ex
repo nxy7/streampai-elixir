@@ -31,7 +31,7 @@ defmodule Streampai.Stream.ChatMessage do
   end
 
   typescript do
-    type_name "ChatMessage"
+    type_name("ChatMessage")
   end
 
   code_interface do

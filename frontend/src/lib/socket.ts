@@ -201,11 +201,22 @@ export function usePresence() {
 }
 
 /**
+ * Parse presence state into PresenceUser array
+ */
+function parsePresenceList(presence: Presence, nameField = "name", timeField = "online_at"): PresenceUser[] {
+  return presence.list((id, { metas }) => ({
+    id,
+    name: metas[0]?.[nameField] || "Anonymous",
+    avatar: metas[0]?.avatar || null,
+    onlineAt: metas[0]?.[timeField] || 0,
+  }));
+}
+
+/**
  * Hook for subscribing to stream-specific presence (viewer tracking).
  */
 export function useStreamPresence(streamId: Accessor<string | undefined>) {
   const [viewers, setViewers] = createSignal<PresenceUser[]>([]);
-  const [viewerCount, setViewerCount] = createSignal(0);
   const [isConnected, setIsConnected] = createSignal(false);
 
   let channel: Channel | null = null;
@@ -213,26 +224,14 @@ export function useStreamPresence(streamId: Accessor<string | undefined>) {
 
   const syncPresence = () => {
     if (!presence) return;
-
-    const state = presence.list((id, { metas }) => ({
-      id,
-      name: metas[0]?.name || "Anonymous",
-      avatar: metas[0]?.avatar || null,
-      onlineAt: metas[0]?.joined_at || 0,
-    }));
-
-    setViewers(state);
-    setViewerCount(state.length);
+    setViewers(parsePresenceList(presence, "name", "joined_at"));
   };
 
   createEffect(() => {
     const id = streamId();
     if (!id) return;
 
-    // Cleanup previous channel
-    if (channel) {
-      channel.leave();
-    }
+    channel?.leave();
 
     const socket = getSocket();
     channel = socket.channel(`presence:stream:${id}`, {});
@@ -253,20 +252,16 @@ export function useStreamPresence(streamId: Accessor<string | undefined>) {
       syncPresence();
     });
 
-    channel.on("presence_diff", () => {
-      if (presence) {
-        presence.onSync(syncPresence);
-      }
-    });
+    channel.on("presence_diff", () => presence?.onSync(syncPresence));
   });
 
-  onCleanup(() => {
-    if (channel) {
-      channel.leave();
-    }
-  });
+  onCleanup(() => channel?.leave());
 
-  return { viewers, viewerCount, isConnected };
+  return {
+    viewers,
+    viewerCount: () => viewers().length,
+    isConnected
+  };
 }
 
 /**

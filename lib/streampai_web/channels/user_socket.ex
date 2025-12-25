@@ -22,37 +22,23 @@ defmodule StreampaiWeb.UserSocket do
 
   @impl true
   def connect(params, socket, _connect_info) do
-    # Try to authenticate via token passed in params
-    case get_user_from_token(socket, params) do
-      {:ok, user} ->
-        socket =
-          socket
-          |> assign(:current_user, user)
-          |> assign(:ash_actor, user)
-          |> assign(:user_id, user.id)
+    socket = authenticate_socket(socket, params)
+    {:ok, socket}
+  end
 
-        {:ok, socket}
-
-      :anonymous ->
-        # Allow anonymous connections for public presence (e.g., stream viewer counts)
-        {:ok, assign(socket, :current_user, nil)}
+  defp authenticate_socket(socket, %{"token" => token}) when is_binary(token) do
+    with {:ok, user_id} <- Phoenix.Token.verify(socket, "user_socket", token, max_age: @max_age),
+         {:ok, user} <- Ash.get(User, user_id, authorize?: false) do
+      socket
+      |> assign(:current_user, user)
+      |> assign(:ash_actor, user)
+      |> assign(:user_id, user.id)
+    else
+      _ -> assign(socket, :current_user, nil)
     end
   end
 
-  defp get_user_from_token(socket, %{"token" => token}) when is_binary(token) do
-    case Phoenix.Token.verify(socket, "user_socket", token, max_age: @max_age) do
-      {:ok, user_id} ->
-        case Ash.get(User, user_id, authorize?: false) do
-          {:ok, user} -> {:ok, user}
-          _ -> :anonymous
-        end
-
-      {:error, _reason} ->
-        :anonymous
-    end
-  end
-
-  defp get_user_from_token(_socket, _params), do: :anonymous
+  defp authenticate_socket(socket, _params), do: assign(socket, :current_user, nil)
 
   @impl true
   def id(socket) do

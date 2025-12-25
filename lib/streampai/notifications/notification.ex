@@ -17,7 +17,7 @@ defmodule Streampai.Notifications.Notification do
   end
 
   typescript do
-    type_name "Notification"
+    type_name("Notification")
   end
 
   code_interface do

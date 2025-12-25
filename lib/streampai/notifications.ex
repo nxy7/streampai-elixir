@@ -17,13 +17,13 @@ defmodule Streampai.Notifications do
 
   typescript_rpc do
     resource Notification do
-      rpc_action :create_notification, :create
-      rpc_action :delete_notification, :destroy
+      rpc_action(:create_notification, :create)
+      rpc_action(:delete_notification, :destroy)
     end
 
     resource NotificationRead do
-      rpc_action :mark_notification_read, :mark_as_read
-      rpc_action :mark_notification_unread, :mark_as_unread
+      rpc_action(:mark_notification_read, :mark_as_read)
+      rpc_action(:mark_notification_unread, :mark_as_unread)
     end
   end
 

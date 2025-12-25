@@ -115,7 +115,7 @@ defmodule Streampai.Accounts.User do
   end
 
   typescript do
-    type_name "User"
+    type_name("User")
   end
 
   code_interface do
@@ -123,13 +123,7 @@ defmodule Streampai.Accounts.User do
     define :get_by_id_minimal
     define :check_name_availability, args: [:name]
     define :get_by_name, args: [:name]
-  end
-
-  code_interface do
     define :register_with_password
-  end
-
-  code_interface do
     define :update_avatar, args: [:file_id]
     define :update_name
     define :toggle_email_notifications
@@ -571,27 +565,19 @@ defmodule Streampai.Accounts.User do
       argument :default_voice, :string, allow_nil?: true
 
       change fn changeset, _context ->
-        changeset
-        |> Ash.Changeset.change_attribute(
-          :min_donation_amount,
-          Ash.Changeset.get_argument(changeset, :min_amount)
-        )
-        |> Ash.Changeset.change_attribute(
-          :max_donation_amount,
-          Ash.Changeset.get_argument(changeset, :max_amount)
-        )
-        |> then(fn cs ->
-          case Ash.Changeset.get_argument(cs, :currency) do
-            nil -> cs
-            currency -> Ash.Changeset.change_attribute(cs, :donation_currency, currency)
-          end
-        end)
-        |> then(fn cs ->
-          case Ash.Changeset.get_argument(cs, :default_voice) do
-            nil -> cs
-            voice -> Ash.Changeset.change_attribute(cs, :default_voice, voice)
-          end
-        end)
+        import Ash.Changeset
+
+        attrs =
+          [
+            {:min_donation_amount, get_argument(changeset, :min_amount)},
+            {:max_donation_amount, get_argument(changeset, :max_amount)},
+            {:donation_currency, get_argument(changeset, :currency)},
+            {:default_voice, get_argument(changeset, :default_voice)}
+          ]
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
+
+        change_attributes(changeset, attrs)
       end
     end
   end

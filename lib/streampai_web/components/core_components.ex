@@ -152,7 +152,7 @@ defmodule StreampaiWeb.CoreComponents do
           <.icon name="hero-x-mark-solid" class="h-4 w-4 opacity-50 group-hover:opacity-70" />
         </button>
       </div>
-
+      
     <!-- Slide in animation -->
       <script>
         (function() {

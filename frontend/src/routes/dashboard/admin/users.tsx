@@ -7,6 +7,7 @@ import { button, card, text, badge, input } from "~/styles/design-system";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { adminUsersCollection, type AdminUser } from "~/lib/electric";
 import { usePresence } from "~/lib/socket";
+import { Alert } from "~/components/ui";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -156,41 +157,15 @@ export default function AdminUsers() {
           <>
             <div class="max-w-6xl mx-auto space-y-6">
               <Show when={successMessage()}>
-                <div class="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div class="flex-1">
-                    <p class="text-sm text-green-800 font-medium">{successMessage()}</p>
-                  </div>
-                  <button
-                    onClick={() => setSuccessMessage(null)}
-                    class="text-green-500 hover:text-green-700"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <Alert variant="success" onClose={() => setSuccessMessage(null)}>
+                  {successMessage()}
+                </Alert>
               </Show>
 
               <Show when={error()}>
-                <div class="flex items-start space-x-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                  <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div class="flex-1">
-                    <p class="text-sm text-red-800 font-medium">{error()}</p>
-                  </div>
-                  <button
-                    onClick={() => setError(null)}
-                    class="text-red-500 hover:text-red-700"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <Alert variant="error" onClose={() => setError(null)}>
+                  {error()}
+                </Alert>
               </Show>
 
               <div class={card.base}>

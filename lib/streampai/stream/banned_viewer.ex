@@ -48,7 +48,7 @@ defmodule Streampai.Stream.BannedViewer do
   end
 
   typescript do
-    type_name "BannedViewer"
+    type_name("BannedViewer")
   end
 
   code_interface do

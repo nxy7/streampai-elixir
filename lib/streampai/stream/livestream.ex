@@ -15,7 +15,7 @@ defmodule Streampai.Stream.Livestream do
   end
 
   typescript do
-    type_name "Livestream"
+    type_name("Livestream")
   end
 
   code_interface do

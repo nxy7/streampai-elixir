@@ -11,11 +11,11 @@ defmodule Streampai.Accounts.UserPolicy do
 
   ## Examples
 
-      iex> user = %User{email: Streampai.Constants.admin_email()}
+      iex> user = %User{role: :admin}
       iex> UserPolicy.admin?(user)
       true
 
-      iex> user = %User{email: "regular@example.com"}
+      iex> user = %User{role: :regular}
       iex> UserPolicy.admin?(user)
       false
   """
@@ -24,28 +24,17 @@ defmodule Streampai.Accounts.UserPolicy do
 
   @doc """
   Determines if a user can impersonate (general permission).
-
   Currently only admins can impersonate other users.
   """
-  def can_impersonate?(user) do
-    user.role == :admin
-  end
+  def can_impersonate?(%{role: :admin}), do: true
+  def can_impersonate?(_), do: false
 
   @doc """
   Checks if a user can impersonate a specific target user.
-
   Admins can impersonate anyone except other admins.
-  Regular users cannot impersonate anyone.
   """
-  def can_impersonate_user?(user, target_user) do
-    case {user.role, target_user.role} do
-      {:admin, :regular} -> true
-      # Admins cannot impersonate other admins
-      {:admin, :admin} -> false
-      # Regular users cannot impersonate anyone
-      {:regular, _} -> false
-    end
-  end
+  def can_impersonate_user?(%{role: :admin}, %{role: :regular}), do: true
+  def can_impersonate_user?(_, _), do: false
 
   @doc """
   Gets all admin emails for reference.

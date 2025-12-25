@@ -26,7 +26,7 @@ defmodule Streampai.Accounts.StreamingAccount do
   end
 
   typescript do
-    type_name "StreamingAccount"
+    type_name("StreamingAccount")
   end
 
   code_interface do

@@ -15,7 +15,7 @@ defmodule Streampai.Accounts.WidgetConfig do
   end
 
   typescript do
-    type_name "WidgetConfig"
+    type_name("WidgetConfig")
   end
 
   code_interface do

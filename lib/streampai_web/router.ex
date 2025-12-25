@@ -46,7 +46,6 @@ defmodule StreampaiWeb.Router do
     plug(ErrorTracker)
   end
 
-
   pipeline :rate_limited_auth do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
@@ -89,7 +88,6 @@ defmodule StreampaiWeb.Router do
 
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
-
 
   scope "/api", StreampaiWeb do
     pipe_through(:api)

@@ -40,7 +40,7 @@ defmodule Streampai.Stream.StreamEvent do
   end
 
   typescript do
-    type_name "StreamEvent"
+    type_name("StreamEvent")
   end
 
   code_interface do

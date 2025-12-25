@@ -36,7 +36,7 @@ defmodule Streampai.Accounts.UserRole do
   end
 
   typescript do
-    type_name "UserRole"
+    type_name("UserRole")
   end
 
   code_interface do

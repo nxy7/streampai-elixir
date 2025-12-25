@@ -8,23 +8,10 @@ import {
 } from "solid-js";
 import { BACKEND_URL } from "./constants";
 import { AuthContext, type User } from "./AuthContext";
-import { getCurrentUser, type GetCurrentUserResult } from "~/sdk/ash_rpc";
+import { getCurrentUser } from "~/sdk/ash_rpc";
 import { initPresence, leavePresence } from "./socket";
 
-const currentUserFields: (
-  | "id"
-  | "email"
-  | "name"
-  | "displayAvatar"
-  | "hoursStreamedLast30Days"
-  | "extraData"
-  | "isModerator"
-  | "storageQuota"
-  | "storageUsedPercent"
-  | "avatarFileId"
-  | "role"
-  | "tier"
-)[] = [
+const currentUserFields = [
   "id",
   "email",
   "name",
@@ -37,7 +24,7 @@ const currentUserFields: (
   "avatarFileId",
   "role",
   "tier",
-];
+] as const;
 
 export type { User } from "./AuthContext";
 
@@ -49,15 +36,11 @@ export const AuthProvider: ParentComponent = (props) => {
     setIsLoading(true);
     try {
       const result = await getCurrentUser({
-        fields: currentUserFields,
+        fields: [...currentUserFields],
         fetchOptions: { credentials: "include" },
       });
 
-      if (result.success && result.data) {
-        setCurrentUser(result.data as User);
-      } else {
-        setCurrentUser(null);
-      }
+      setCurrentUser(result.success && result.data ? (result.data as User) : null);
     } catch (error) {
       console.error("Error fetching current user:", error);
       setCurrentUser(null);

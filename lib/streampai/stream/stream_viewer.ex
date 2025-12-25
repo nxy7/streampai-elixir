@@ -26,7 +26,7 @@ defmodule Streampai.Stream.StreamViewer do
   end
 
   typescript do
-    type_name "StreamViewer"
+    type_name("StreamViewer")
   end
 
   code_interface do

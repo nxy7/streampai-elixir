@@ -21,6 +21,7 @@ export interface AlertProps extends JSX.HTMLAttributes<HTMLDivElement> {
   variant?: AlertVariant;
   title?: string;
   children: JSX.Element;
+  onClose?: () => void;
 }
 
 export default function Alert(props: AlertProps) {
@@ -29,6 +30,7 @@ export default function Alert(props: AlertProps) {
     "title",
     "children",
     "class",
+    "onClose",
   ]);
 
   const variant = local.variant ?? "info";
@@ -87,6 +89,17 @@ export default function Alert(props: AlertProps) {
         </Show>
         <div class={cn("text-sm", local.title && "mt-1")}>{local.children}</div>
       </div>
+      <Show when={local.onClose}>
+        <button
+          type="button"
+          onClick={local.onClose}
+          class={cn("shrink-0 ml-auto", iconColors[variant], "hover:opacity-70")}
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </Show>
     </div>
   );
 }

@@ -23,44 +23,42 @@ defmodule StreampaiWeb.PresenceChannel do
 
   @impl true
   def handle_info(:after_join, socket) do
-    # Track the user in presence
     if user = socket.assigns[:current_user] do
-      {:ok, _} =
-        Presence.track(socket, user.id, %{
-          name: user.name,
-          avatar: user.avatar_url,
-          online_at: System.system_time(:second)
-        })
+      track_user(socket, user.id, user.name, user.avatar_url, online_at: System.system_time(:second))
     end
 
-    # Push current presence state to the joining client
-    push(socket, "presence_state", Presence.list(socket))
-
-    {:noreply, socket}
+    push_presence_state(socket)
   end
 
   def handle_info({:after_join_stream, stream_id}, socket) do
     user = socket.assigns[:current_user]
+    {user_id, name, avatar} = user_or_anonymous(user, socket.id)
 
-    # Track viewer in stream-specific presence
-    user_id = if user, do: user.id, else: socket.id
+    track_user(socket, user_id, name, avatar,
+      stream_id: stream_id,
+      joined_at: System.system_time(:second)
+    )
 
-    {:ok, _} =
-      Presence.track(socket, user_id, %{
-        name: if(user, do: user.name, else: "Anonymous"),
-        avatar: if(user, do: user.avatar_url, else: nil),
-        stream_id: stream_id,
-        joined_at: System.system_time(:second)
-      })
-
-    # Push current presence state
-    push(socket, "presence_state", Presence.list(socket))
-
-    {:noreply, socket}
+    push_presence_state(socket)
   end
 
   @impl true
   def handle_in("get_presence", _params, socket) do
     {:reply, {:ok, Presence.list(socket)}, socket}
+  end
+
+  # Private helpers
+
+  defp user_or_anonymous(nil, socket_id), do: {socket_id, "Anonymous", nil}
+  defp user_or_anonymous(user, _socket_id), do: {user.id, user.name, user.avatar_url}
+
+  defp track_user(socket, user_id, name, avatar, extra_meta) do
+    meta = Map.merge(%{name: name, avatar: avatar}, Map.new(extra_meta))
+    {:ok, _} = Presence.track(socket, user_id, meta)
+  end
+
+  defp push_presence_state(socket) do
+    push(socket, "presence_state", Presence.list(socket))
+    {:noreply, socket}
   end
 end

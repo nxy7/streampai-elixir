@@ -16,7 +16,7 @@ defmodule Streampai.Accounts.SmartCanvasLayout do
   end
 
   typescript do
-    type_name "SmartCanvasLayout"
+    type_name("SmartCanvasLayout")
   end
 
   code_interface do
