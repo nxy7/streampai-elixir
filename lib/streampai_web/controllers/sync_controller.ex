@@ -97,10 +97,26 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def user_livestreams(conn, %{"user_id" => user_id} = params) do
-    # User-scoped livestreams - syncs completed streams for a specific user
+    # User-scoped livestreams - syncs all streams for a specific user
     sync_render(conn, params,
       table: "livestreams",
-      where: "user_id = '#{user_id}' AND ended_at IS NOT NULL"
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
+  def user_stream_events(conn, %{"user_id" => user_id} = params) do
+    # User-scoped stream events - syncs all events for a specific streamer
+    sync_render(conn, params,
+      table: "stream_events",
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
+  def user_viewers(conn, %{"user_id" => user_id} = params) do
+    # User-scoped viewers - syncs all viewers for a specific streamer
+    sync_render(conn, params,
+      table: "stream_viewers",
+      where: "user_id = '#{user_id}'"
     )
   end
 

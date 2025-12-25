@@ -115,6 +115,12 @@ defmodule StreampaiWeb.Router do
     get "/notification_reads/:user_id", SyncController, :notification_reads
     get "/global_notifications", SyncController, :global_notifications
     get "/user_roles/:user_id", SyncController, :user_roles
+
+    # User-scoped data endpoints
+    get "/stream_events/:user_id", SyncController, :user_stream_events
+    get "/chat_messages/:user_id", SyncController, :user_chat_messages
+    get "/livestreams/:user_id", SyncController, :user_livestreams
+    get "/viewers/:user_id", SyncController, :user_viewers
   end
 
   scope "/shapes", StreampaiWeb do

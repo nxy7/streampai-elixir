@@ -42,14 +42,22 @@ export type Livestream = Row & {
 };
 
 export type Viewer = Row & {
-  id: string;
-  username: string;
-  platform: string;
+  viewer_id: string;
   user_id: string;
+  display_name: string;
+  notes: string | null;
+  ai_summary: string | null;
   first_seen_at: string;
   last_seen_at: string;
-  message_count: number;
+  avatar_url: string | null;
+  channel_url: string | null;
+  is_verified: boolean;
+  is_owner: boolean;
+  is_moderator: boolean;
+  is_patreon: boolean;
+  platform: string;
   inserted_at: string;
+  updated_at: string;
 };
 
 export type UserPreferences = Row & {
@@ -169,7 +177,7 @@ export const viewersCollection = createCollection(
     shapeOptions: {
       url: `${SHAPES_URL}/viewers`,
     },
-    getKey: (item) => item.id,
+    getKey: (item) => item.viewer_id,
   })
 );
 
@@ -203,10 +211,7 @@ export function createUserScopedStreamEventsCollection(userId: string) {
     electricCollectionOptions<StreamEvent>({
       id: `stream_events_${userId}`,
       shapeOptions: {
-        url: `${SHAPES_URL}/stream_events`,
-        params: {
-          where: `user_id='${userId}'`,
-        },
+        url: `${SHAPES_URL}/stream_events/${userId}`,
       },
       getKey: (item) => item.id,
     })
@@ -218,10 +223,7 @@ export function createUserScopedChatMessagesCollection(userId: string) {
     electricCollectionOptions<ChatMessage>({
       id: `chat_messages_${userId}`,
       shapeOptions: {
-        url: `${SHAPES_URL}/chat_messages`,
-        params: {
-          where: `user_id='${userId}'`,
-        },
+        url: `${SHAPES_URL}/chat_messages/${userId}`,
       },
       getKey: (item) => item.id,
     })
@@ -233,10 +235,7 @@ export function createUserScopedLivestreamsCollection(userId: string) {
     electricCollectionOptions<Livestream>({
       id: `livestreams_${userId}`,
       shapeOptions: {
-        url: `${SHAPES_URL}/livestreams`,
-        params: {
-          where: `user_id='${userId}'`,
-        },
+        url: `${SHAPES_URL}/livestreams/${userId}`,
       },
       getKey: (item) => item.id,
     })
@@ -248,12 +247,9 @@ export function createUserScopedViewersCollection(userId: string) {
     electricCollectionOptions<Viewer>({
       id: `viewers_${userId}`,
       shapeOptions: {
-        url: `${SHAPES_URL}/viewers`,
-        params: {
-          where: `user_id='${userId}'`,
-        },
+        url: `${SHAPES_URL}/viewers/${userId}`,
       },
-      getKey: (item) => item.id,
+      getKey: (item) => item.viewer_id,
     })
   );
 }
