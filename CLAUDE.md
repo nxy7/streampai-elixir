@@ -46,8 +46,7 @@ bun dev                # Start at http://localhost:3000
 **Authentication**:
 - Session-based with Phoenix cookies
 - OAuth providers: Google, Twitch (+ more configured)
-- Password auth with email confirmation
-- Test credentials (dev): `test@test.local` / `testpassword`
+- To login: Go to `http://localhost:3000` (frontend), click Login, then sign in with Google
 
 ### Frontend (SolidJS)
 

@@ -11,6 +11,10 @@ import {
   createNotificationReadsCollection,
   globalNotificationsCollection,
   createUserRolesCollection,
+  createUserScopedStreamEventsCollection,
+  createUserScopedChatMessagesCollection,
+  createUserScopedLivestreamsCollection,
+  createUserScopedViewersCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
@@ -150,6 +154,171 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
       if (!id) return null;
       const data = query.data || [];
       return data.find((p) => p.id === id) || null;
+    }),
+  };
+}
+
+// Cache for user-scoped collections
+const userScopedChatCollections = new Map<string, ReturnType<typeof createUserScopedChatMessagesCollection>>();
+const userScopedEventsCollections = new Map<string, ReturnType<typeof createUserScopedStreamEventsCollection>>();
+const userScopedLivestreamsCollections = new Map<string, ReturnType<typeof createUserScopedLivestreamsCollection>>();
+const userScopedViewersCollections = new Map<string, ReturnType<typeof createUserScopedViewersCollection>>();
+
+function getUserScopedChatCollection(userId: string) {
+  let collection = userScopedChatCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedChatMessagesCollection(userId);
+    userScopedChatCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+function getUserScopedEventsCollection(userId: string) {
+  let collection = userScopedEventsCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedStreamEventsCollection(userId);
+    userScopedEventsCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+function getUserScopedLivestreamsCollection(userId: string) {
+  let collection = userScopedLivestreamsCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedLivestreamsCollection(userId);
+    userScopedLivestreamsCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+function getUserScopedViewersCollection(userId: string) {
+  let collection = userScopedViewersCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedViewersCollection(userId);
+    userScopedViewersCollections.set(userId, collection);
+  }
+  return collection;
+}
+
+export function useUserChatMessages(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getUserScopedChatCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useRecentUserChatMessages(userId: () => string | undefined, limit = 10) {
+  const query = useUserChatMessages(userId);
+
+  return createMemo(() => {
+    const messages = query.data();
+    return [...messages]
+      .sort((a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime())
+      .slice(0, limit);
+  });
+}
+
+export function useUserStreamEvents(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getUserScopedEventsCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useRecentUserStreamEvents(userId: () => string | undefined, limit = 10) {
+  const query = useUserStreamEvents(userId);
+
+  return createMemo(() => {
+    const events = query.data();
+    return [...events]
+      .sort((a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime())
+      .slice(0, limit);
+  });
+}
+
+export function useUserLivestreams(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getUserScopedLivestreamsCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useRecentUserLivestreams(userId: () => string | undefined, limit = 5) {
+  const query = useUserLivestreams(userId);
+
+  return createMemo(() => {
+    const streams = query.data();
+    return [...streams]
+      .sort((a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime())
+      .slice(0, limit);
+  });
+}
+
+export function useUserViewers(userId: () => string | undefined) {
+  const query = useLiveQuery(() => {
+    const currentId = userId();
+    if (!currentId) return null;
+    return getUserScopedViewersCollection(currentId);
+  });
+
+  return {
+    ...query,
+    data: createMemo(() => {
+      if (!userId()) return [];
+      return query.data || [];
+    }),
+  };
+}
+
+export function useDashboardStats(userId: () => string | undefined) {
+  const chatQuery = useUserChatMessages(userId);
+  const eventsQuery = useUserStreamEvents(userId);
+  const viewersQuery = useUserViewers(userId);
+  const streamsQuery = useUserLivestreams(userId);
+
+  return {
+    totalMessages: createMemo(() => chatQuery.data().length),
+    totalEvents: createMemo(() => eventsQuery.data().length),
+    uniqueViewers: createMemo(() => viewersQuery.data().length),
+    totalStreams: createMemo(() => streamsQuery.data().length),
+    totalDonations: createMemo(() => {
+      const events = eventsQuery.data();
+      return events
+        .filter((e) => e.type === "donation")
+        .reduce((sum, e) => sum + (Number(e.data?.amount) || 0), 0);
+    }),
+    donationCount: createMemo(() => {
+      return eventsQuery.data().filter((e) => e.type === "donation").length;
+    }),
+    followCount: createMemo(() => {
+      return eventsQuery.data().filter((e) => e.type === "follow").length;
     }),
   };
 }

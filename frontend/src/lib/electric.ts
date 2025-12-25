@@ -228,6 +228,36 @@ export function createUserScopedChatMessagesCollection(userId: string) {
   );
 }
 
+export function createUserScopedLivestreamsCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<Livestream>({
+      id: `livestreams_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/livestreams`,
+        params: {
+          where: `user_id='${userId}'`,
+        },
+      },
+      getKey: (item) => item.id,
+    })
+  );
+}
+
+export function createUserScopedViewersCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<Viewer>({
+      id: `viewers_${userId}`,
+      shapeOptions: {
+        url: `${SHAPES_URL}/viewers`,
+        params: {
+          where: `user_id='${userId}'`,
+        },
+      },
+      getKey: (item) => item.id,
+    })
+  );
+}
+
 export function createLivestreamChatCollection(livestreamId: string) {
   return createCollection(
     electricCollectionOptions<ChatMessage>({
