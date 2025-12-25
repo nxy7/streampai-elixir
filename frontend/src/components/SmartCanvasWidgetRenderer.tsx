@@ -169,7 +169,7 @@ export default function SmartCanvasWidgetRenderer(props: WidgetRendererProps) {
 
       default:
         return (
-          <div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-700 border-2 border-white/20 rounded-lg shadow-lg p-4 flex items-center justify-center text-white">
+          <div class="w-full h-full bg-linear-to-br from-gray-500 to-gray-700 border-2 border-white/20 rounded-lg shadow-lg p-4 flex items-center justify-center text-white">
             <div class="text-center">
               <div class="text-4xl mb-2">❓</div>
               <div class="font-semibold">Unknown Widget</div>

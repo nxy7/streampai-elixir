@@ -21,7 +21,7 @@ defmodule Streampai.Constants do
   @currency_code_max_length 3
 
   # Admin Configuration
-  @admin_email "lolnoxy@gmail.com"
+  @admin_emails ["lolnoxy@gmail.com", "streampaitest@gmail.com"]
   @test_admin_email "testadmin@local.com"
 
   # Timeout Values (milliseconds)
@@ -47,9 +47,20 @@ defmodule Streampai.Constants do
     if Mix.env() == :test do
       @test_admin_email
     else
-      @admin_email
+      hd(@admin_emails)
     end
   end
+
+  def admin_emails do
+    if Mix.env() == :test do
+      [@test_admin_email]
+    else
+      @admin_emails
+    end
+  end
+
+  def admin?(email) when is_binary(email), do: email in admin_emails()
+  def admin?(_), do: false
 
   def test_admin_email, do: @test_admin_email
   def default_timeout, do: @default_timeout

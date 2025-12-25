@@ -192,7 +192,7 @@ defmodule Streampai.Dashboard do
 
   @doc "Checks if user has admin privileges."
   def admin?(%User{email: email}) do
-    email == Constants.admin_email()
+    Constants.admin?(email)
   end
 
   def admin?(_), do: false

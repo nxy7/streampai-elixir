@@ -129,7 +129,7 @@ function CanvasWidgetComponent(props: {
       }}
     >
       <div
-        class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-white/20 rounded-lg shadow-lg p-4 cursor-move"
+        class="w-full h-full bg-linear-to-br from-purple-500 to-pink-500 border-2 border-white/20 rounded-lg shadow-lg p-4 cursor-move"
         classList={{
           "ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
         }}

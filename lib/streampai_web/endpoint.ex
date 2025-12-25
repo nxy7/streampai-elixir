@@ -13,6 +13,10 @@ defmodule StreampaiWeb.Endpoint do
     plug Tidewave
   end
 
+  socket "/socket", StreampaiWeb.UserSocket,
+    websocket: [connect_info: [:user_agent, session: @session_options]],
+    longpoll: false
+
   if code_reloading? do
     plug AshAi.Mcp.Dev,
       protocol_version_statement: "2024-11-05",

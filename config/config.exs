@@ -27,7 +27,9 @@ config :ash_typescript,
   run_endpoint: "http://localhost:4000/rpc/run",
   validate_endpoint: "http://localhost:4000/rpc/validate",
   input_field_formatter: :camel_case,
-  output_field_formatter: :camel_case
+  output_field_formatter: :camel_case,
+  generate_phx_channel_rpc_actions: true,
+  phoenix_import_path: "phoenix"
 
 config :ex_cldr, default_backend: Streampai.Cldr
 

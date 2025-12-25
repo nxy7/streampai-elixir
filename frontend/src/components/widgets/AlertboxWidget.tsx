@@ -135,7 +135,7 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 
       <div class={`absolute inset-0 flex justify-center ${positionClass()}`}>
         <Show when={props.event}>
-          <div class={`alert-card relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass()} animate-${props.config.animationType}-in`}>
+          <div class={`alert-card relative bg-linear-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass()} animate-${props.config.animationType}-in`}>
             <div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
             <div class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event!.type)} opacity-10 animate-pulse`}></div>
 

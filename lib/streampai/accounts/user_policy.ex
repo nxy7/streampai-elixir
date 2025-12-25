@@ -6,8 +6,6 @@ defmodule Streampai.Accounts.UserPolicy do
   previously scattered across different LiveViews and contexts.
   """
 
-  @admin_emails [Streampai.Constants.admin_email()]
-
   @doc """
   Checks if a user is an administrator.
 
@@ -54,7 +52,7 @@ defmodule Streampai.Accounts.UserPolicy do
 
   This is useful for testing or administrative purposes.
   """
-  def admin_emails, do: @admin_emails
+  def admin_emails, do: Streampai.Constants.admin_emails()
 
   @doc """
   Checks if a user can access a specific resource.

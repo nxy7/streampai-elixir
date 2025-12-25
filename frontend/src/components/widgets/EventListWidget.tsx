@@ -146,7 +146,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
                   class={`relative transition-all duration-300 ${getAnimationClass()} ${
                     props.config.compactMode
                       ? "p-2 bg-gray-900/80 rounded border border-white/10"
-                      : "p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-lg"
+                      : "p-4 bg-linear-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-lg"
                   }`}
                   style={{ "animation-delay": `${index() * 100}ms` }}
                 >

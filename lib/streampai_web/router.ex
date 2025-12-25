@@ -130,6 +130,7 @@ defmodule StreampaiWeb.Router do
 
     post("/run", AshTypescriptRpcController, :run)
     post("/validate", AshTypescriptRpcController, :validate)
+    get("/socket-token", AshTypescriptRpcController, :socket_token)
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

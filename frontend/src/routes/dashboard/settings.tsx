@@ -4,18 +4,18 @@ import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { button, card, text, input } from "~/styles/design-system";
 import { useUserPreferencesForUser, useUserRolesData, type UserRole } from "~/lib/useElectric";
 import {
-  updateName,
-  updateAvatar,
-  toggleEmailNotifications,
+  getUserInfo,
   saveDonationSettings,
+  updateName,
+  toggleEmailNotifications,
+  getUserByName,
   inviteUserRole,
   acceptRoleInvitation,
   declineRoleInvitation,
   revokeUserRole,
-  getUserByName,
-  getUserInfo,
   requestFileUpload,
   confirmFileUpload,
+  updateAvatar,
 } from "~/sdk/ash_rpc";
 
 type UserInfo = { id: string; name: string; displayAvatar: string | null };
@@ -468,7 +468,7 @@ export default function Settings() {
       <Show
         when={!isLoading()}
         fallback={
-          <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <div class="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
             <div class="text-white text-xl">Loading...</div>
           </div>
         }
@@ -476,7 +476,7 @@ export default function Settings() {
         <Show
           when={user()}
           fallback={
-            <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+            <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
               <div class="text-center py-12">
                 <h2 class="text-2xl font-bold text-white mb-4">
                   Not Authenticated

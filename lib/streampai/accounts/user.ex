@@ -748,7 +748,7 @@ defmodule Streampai.Accounts.User do
 
     calculate :role,
               :atom,
-              expr(if email == ^Streampai.Constants.admin_email(), do: :admin, else: :regular) do
+              expr(if email in ^Streampai.Constants.admin_emails(), do: :admin, else: :regular) do
       public? true
       description "User role: admin or regular"
     end

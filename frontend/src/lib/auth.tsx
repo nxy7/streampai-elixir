@@ -1,7 +1,7 @@
 import { createSignal, useContext, onMount, type ParentComponent } from "solid-js";
 import { BACKEND_URL } from "./constants";
 import { AuthContext, type User } from "./AuthContext";
-import { getCurrentUser } from "~/sdk/ash_rpc";
+import { getCurrentUser, type GetCurrentUserResult } from "~/sdk/ash_rpc";
 
 const currentUserFields: (
   | "id"
@@ -41,7 +41,7 @@ export const AuthProvider: ParentComponent = (props) => {
     setIsLoading(true);
     try {
       const result = await getCurrentUser({
-        fields: [...currentUserFields],
+        fields: currentUserFields,
         fetchOptions: { credentials: "include" },
       });
 
