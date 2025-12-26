@@ -7,6 +7,7 @@ defmodule Streampai.Integrations do
   resources do
     resource Streampai.Integrations.PayPalConnection
     resource Streampai.Integrations.Donation
+    resource Streampai.Integrations.DiscordWebhook
   end
 end
 

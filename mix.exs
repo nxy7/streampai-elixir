@@ -90,6 +90,8 @@ defmodule Streampai.MixProject do
       {:sweet_xml, "~> 0.7"},
       {:electric, "~> 1.0"},
       {:phoenix_sync, "== 0.6.0"}
+      # Note: Discord integration uses existing Req library for webhook-based notifications
+      # For full bot functionality, consider {:nostrum, "~> 0.10"} later
     ]
   end
 
