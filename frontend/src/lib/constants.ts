@@ -10,7 +10,3 @@ export const API_PATH = "/api";
 
 // All backend API routes are prefixed with /api
 export const API_URL = `${BASE_URL}${API_PATH}`;
-
-// Keep BACKEND_URL as alias for backwards compatibility
-export const BACKEND_URL = API_URL;
-
