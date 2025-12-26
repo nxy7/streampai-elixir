@@ -9,7 +9,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout(props: DashboardLayoutProps) {
-	const { user } = useCurrentUser();
+	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
@@ -301,6 +301,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 		},
 	];
 
+	// Don't render anything while auth is loading to prevent flash of placeholder content
+	if (isLoading()) {
+		return null;
+	}
+
 	return (
 		<div class="flex h-screen">
 			{/* Mobile sidebar backdrop */}
@@ -553,34 +558,36 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 
 						<div class="flex items-center space-x-4">
 							<NotificationBell />
-							<div class="flex items-center space-x-3">
-								<A
-									href="/dashboard/settings"
-									class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
-									title="Go to Settings">
-									<Show
-										when={prefs.data()?.avatar_url}
-										fallback={
-											<span class="font-medium text-sm text-white">
-												{prefs.data()?.name?.[0]?.toUpperCase() ||
-													user()?.email?.[0]?.toUpperCase() ||
-													"U"}
-											</span>
-										}>
-										<img
-											src={prefs.data()?.avatar_url ?? ""}
-											alt="User Avatar"
-											class="h-full w-full object-cover"
-										/>
-									</Show>
-								</A>
-								<div class="hidden md:block">
-									<p class="font-medium text-gray-900 text-sm">
-										{prefs.data()?.name || user()?.email || "Unknown User"}
-									</p>
-									<p class="text-gray-500 text-xs">Free Plan</p>
+							<Show when={user()}>
+								<div class="flex items-center space-x-3">
+									<A
+										href="/dashboard/settings"
+										class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
+										title="Go to Settings">
+										<Show
+											when={prefs.data()?.avatar_url}
+											fallback={
+												<span class="font-medium text-sm text-white">
+													{prefs.data()?.name?.[0]?.toUpperCase() ||
+														user()?.email?.[0]?.toUpperCase() ||
+														""}
+												</span>
+											}>
+											<img
+												src={prefs.data()?.avatar_url ?? ""}
+												alt="User Avatar"
+												class="h-full w-full object-cover"
+											/>
+										</Show>
+									</A>
+									<div class="hidden md:block">
+										<p class="font-medium text-gray-900 text-sm">
+											{prefs.data()?.name || user()?.email || ""}
+										</p>
+										<p class="text-gray-500 text-xs">Free Plan</p>
+									</div>
 								</div>
-							</div>
+							</Show>
 						</div>
 					</div>
 				</header>
