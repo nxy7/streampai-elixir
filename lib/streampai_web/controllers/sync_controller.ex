@@ -55,6 +55,14 @@ defmodule StreampaiWeb.SyncController do
     sync_render(conn, params, table: "users", columns: @admin_user_columns)
   end
 
+  def widget_configs(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "widget_configs",
+      where: "false"
+    )
+  end
+
   def widget_configs(conn, %{"user_id" => user_id} = params) do
     # User-scoped widget configs - syncs all widget configs for a specific user
     sync_render(conn, params,
@@ -63,11 +71,27 @@ defmodule StreampaiWeb.SyncController do
     )
   end
 
+  def notifications(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "notifications",
+      where: "false"
+    )
+  end
+
   def notifications(conn, %{"user_id" => user_id} = params) do
     # Syncs notifications visible to a user: global (user_id IS NULL) OR user-specific
     sync_render(conn, params,
       table: "notifications",
       where: "user_id IS NULL OR user_id = '#{user_id}'"
+    )
+  end
+
+  def notification_reads(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "notification_reads",
+      where: "false"
     )
   end
 
@@ -84,6 +108,14 @@ defmodule StreampaiWeb.SyncController do
     sync_render(conn, params,
       table: "notifications",
       where: "user_id IS NULL"
+    )
+  end
+
+  def user_roles(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "user_roles",
+      where: "false"
     )
   end
 
