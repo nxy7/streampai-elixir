@@ -1,7 +1,17 @@
 import type { Row } from "@electric-sql/client";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/solid-db";
-import { BACKEND_URL } from "./constants";
+import { API_PATH } from "./constants";
+
+// Use current page origin for Electric sync requests
+// This ensures cookies are sent correctly when accessing via Caddy proxy
+const getShapesBaseUrl = () => {
+	if (typeof window !== "undefined") {
+		return `${window.location.origin}${API_PATH}`;
+	}
+	// Fallback for SSR - this won't be used for actual requests
+	return `http://localhost:4000${API_PATH}`;
+};
 
 export type StreamEvent = Row & {
 	id: string;
@@ -140,7 +150,7 @@ export type WidgetType =
 	| "giveaway_widget"
 	| "eventlist_widget";
 
-const SHAPES_URL = `${BACKEND_URL}/shapes`;
+const SHAPES_URL = `${getShapesBaseUrl()}/shapes`;
 
 export const streamEventsCollection = createCollection(
 	electricCollectionOptions<StreamEvent>({
@@ -285,21 +295,12 @@ export function createLivestreamEventsCollection(livestreamId: string) {
 	);
 }
 
-// Empty placeholder collection for admin users when not admin
-export const emptyAdminUsersCollection = createCollection(
-	electricCollectionOptions<AdminUser>({
-		id: "empty_admin_users",
-		shapeOptions: {
-			url: `${SHAPES_URL}/admin_users/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 // Cache for admin users collection - created once when admin logs in
-let adminUsersCollectionCache: typeof emptyAdminUsersCollection | null = null;
+let adminUsersCollectionCache: ReturnType<
+	typeof createCollection<AdminUser, string>
+> | null = null;
 
-export function createAdminUsersCollection(): typeof emptyAdminUsersCollection {
+export function getAdminUsersCollection() {
 	if (!adminUsersCollectionCache) {
 		adminUsersCollectionCache = createCollection(
 			electricCollectionOptions<AdminUser>({

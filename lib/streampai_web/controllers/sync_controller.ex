@@ -49,15 +49,6 @@ defmodule StreampaiWeb.SyncController do
     sync_render(conn, params, table: "users", columns: @user_sync_columns)
   end
 
-  def admin_users(conn, %{"_empty" => _} = params) do
-    # Return empty result for placeholder requests (no admin user)
-    sync_render(conn, params,
-      table: "users",
-      columns: @admin_user_columns,
-      where: "false"
-    )
-  end
-
   def admin_users(conn, params) do
     # Admin-only endpoint: sync all users for admin management
     # Authorization is handled by the router pipeline
