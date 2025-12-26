@@ -12,6 +12,7 @@
     "strict": true,
     "types": ["vinxi/types/client"],
     "isolatedModules": true,
+    "skipLibCheck": true,
     "paths": {
       "~/*": ["./src/*"]
     },
@@ -22,5 +23,7 @@
         "tadaOutputLocation": "./src/graphql-env.d.ts"
       }
     ]
-  }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

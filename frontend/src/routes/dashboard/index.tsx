@@ -82,7 +82,7 @@ function getEventColor(type: string) {
 function getStreamStatusBadge(status: string) {
   switch (status) {
     case "live": return badge.success;
-    case "ended": return badge.default;
+    case "ended": return badge.neutral;
     default: return badge.warning;
   }
 }

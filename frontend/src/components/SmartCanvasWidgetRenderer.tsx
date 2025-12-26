@@ -135,7 +135,7 @@ export default function SmartCanvasWidgetRenderer(props: WidgetRendererProps) {
         return <PlaceholderWidget config={config} />;
 
       case "viewer-count":
-        return <ViewerCountWidget config={config} data={{ count: Math.floor(Math.random() * 1000) }} />;
+        return <ViewerCountWidget config={config} data={null} />;
 
       case "follower-count":
         return <FollowerCountWidget config={config} count={Math.floor(Math.random() * 10000)} />;

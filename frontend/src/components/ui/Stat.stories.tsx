@@ -105,7 +105,7 @@ export const StatGroupExample: Story = {
   ),
   name: "Stat Group (3 columns)",
   decorators: [
-    (Story) => (
+    (Story: () => any) => (
       <div style={{ width: "500px" }}>
         <Story />
       </div>
@@ -126,7 +126,7 @@ export const StatGroupFourColumns: Story = {
   ),
   name: "Stat Group (4 columns)",
   decorators: [
-    (Story) => (
+    (Story: () => any) => (
       <div style={{ width: "600px" }}>
         <Story />
       </div>
@@ -164,7 +164,7 @@ export const DashboardStats: Story = {
   ),
   name: "Dashboard Stats Example",
   decorators: [
-    (Story) => (
+    (Story: () => any) => (
       <div style={{ width: "800px" }}>
         <Story />
       </div>

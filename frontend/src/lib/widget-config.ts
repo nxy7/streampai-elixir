@@ -11,7 +11,7 @@ interface LoadWidgetConfigParams {
   type: string;
 }
 
-export async function saveWidgetConfig<T>({ userId, type, config }: SaveWidgetConfigParams<T>) {
+export async function saveWidgetConfig<T extends Record<string, any>>({ userId, type, config }: SaveWidgetConfigParams<T>) {
   const result = await saveWidgetConfigRpc({
     input: {
       userId,

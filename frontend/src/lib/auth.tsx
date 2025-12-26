@@ -85,7 +85,10 @@ export function useCurrentUser() {
   return context;
 }
 
-export function getLoginUrl() {
+export function getLoginUrl(provider?: string) {
+  if (provider) {
+    return `${BACKEND_URL}/auth/${provider}`;
+  }
   return "/login";
 }
 

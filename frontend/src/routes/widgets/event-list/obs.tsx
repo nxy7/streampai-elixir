@@ -1,11 +1,13 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createUserScopedStreamEventsCollection } from "~/lib/electric";
+import { createUserScopedStreamEventsCollection, streamEventsCollection } from "~/lib/electric";
+
+type StreamEventType = 'donation' | 'follower' | 'subscriber' | 'raid' | 'cheer';
 
 type Event = {
   id: string;
-  type: 'donation' | 'follower' | 'subscriber' | 'raid' | 'cheer';
+  type: StreamEventType;
   username: string;
   description: string;
   icon: string;
@@ -13,15 +15,28 @@ type Event = {
   timestamp: Date;
 };
 
+// Cache for user-scoped event collections
+const eventCollections = new Map<string, ReturnType<typeof createUserScopedStreamEventsCollection>>();
+function getEventsCollection(userId: string) {
+  let collection = eventCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedStreamEventsCollection(userId);
+    eventCollections.set(userId, collection);
+  }
+  return collection;
+}
+
 export default function EventListOBS() {
   const [params] = useSearchParams();
-  const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
-  const maxEvents = () => parseInt(params.maxEvents || "10");
+  const rawUserId = params.userId;
+  const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
+  const rawMaxEvents = params.maxEvents;
+  const maxEvents = () => parseInt((Array.isArray(rawMaxEvents) ? rawMaxEvents[0] : rawMaxEvents) || "10");
 
   const eventsQuery = useLiveQuery(() => {
     const id = userId();
-    if (!id) return null;
-    return createUserScopedStreamEventsCollection(id);
+    if (!id) return streamEventsCollection;
+    return getEventsCollection(id);
   });
 
   const events = createMemo(() => {
@@ -35,7 +50,7 @@ export default function EventListOBS() {
     );
 
     return relevantEvents
-      .map((streamEvent): Event => {
+      .map((streamEvent): Event | undefined => {
         const username = (streamEvent.data?.username as string) || streamEvent.author_id;
         let eventType: 'donation' | 'follower' | 'subscriber' | 'raid' | 'cheer';
         let description: string;
@@ -79,7 +94,7 @@ export default function EventListOBS() {
             color = 'from-blue-600 to-cyan-600';
             break;
           default:
-            return null;
+            return undefined;
         }
 
         return {

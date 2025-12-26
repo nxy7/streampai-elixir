@@ -297,6 +297,47 @@ export const adminUsersCollection = createCollection(
   })
 );
 
+// Empty placeholder collections for fallback when userId is undefined
+export const emptyWidgetConfigsCollection = createCollection(
+  electricCollectionOptions<WidgetConfig>({
+    id: "empty_widget_configs",
+    shapeOptions: {
+      url: `${SHAPES_URL}/widget_configs/_empty`,
+    },
+    getKey: (item) => item.id,
+  })
+);
+
+export const emptyNotificationsCollection = createCollection(
+  electricCollectionOptions<Notification>({
+    id: "empty_notifications",
+    shapeOptions: {
+      url: `${SHAPES_URL}/notifications/_empty`,
+    },
+    getKey: (item) => item.id,
+  })
+);
+
+export const emptyNotificationReadsCollection = createCollection(
+  electricCollectionOptions<NotificationRead>({
+    id: "empty_notification_reads",
+    shapeOptions: {
+      url: `${SHAPES_URL}/notification_reads/_empty`,
+    },
+    getKey: (item) => `${item.user_id}_${item.notification_id}`,
+  })
+);
+
+export const emptyUserRolesCollection = createCollection(
+  electricCollectionOptions<UserRole>({
+    id: "empty_user_roles",
+    shapeOptions: {
+      url: `${SHAPES_URL}/user_roles/_empty`,
+    },
+    getKey: (item) => item.id,
+  })
+);
+
 export function createWidgetConfigsCollection(userId: string) {
   return createCollection(
     electricCollectionOptions<WidgetConfig>({

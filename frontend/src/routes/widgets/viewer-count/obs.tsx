@@ -1,7 +1,18 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, createMemo } from "solid-js";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createUserScopedStreamEventsCollection } from "~/lib/electric";
+import { createUserScopedStreamEventsCollection, streamEventsCollection } from "~/lib/electric";
+
+// Cache for user-scoped event collections
+const eventCollections = new Map<string, ReturnType<typeof createUserScopedStreamEventsCollection>>();
+function getEventsCollection(userId: string) {
+  let collection = eventCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedStreamEventsCollection(userId);
+    eventCollections.set(userId, collection);
+  }
+  return collection;
+}
 
 export default function ViewerCountOBS() {
   const [params] = useSearchParams();
@@ -12,8 +23,8 @@ export default function ViewerCountOBS() {
 
   const eventsQuery = useLiveQuery(() => {
     const id = userId();
-    if (!id) return null;
-    return createUserScopedStreamEventsCollection(id);
+    if (!id) return streamEventsCollection;
+    return getEventsCollection(id);
   });
 
   const viewerEvents = createMemo(() => {

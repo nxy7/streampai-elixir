@@ -1,18 +1,31 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, createMemo } from "solid-js";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createUserScopedStreamEventsCollection } from "~/lib/electric";
+import { createUserScopedStreamEventsCollection, streamEventsCollection } from "~/lib/electric";
+
+// Cache for user-scoped event collections
+const eventCollections = new Map<string, ReturnType<typeof createUserScopedStreamEventsCollection>>();
+function getEventsCollection(userId: string) {
+  let collection = eventCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedStreamEventsCollection(userId);
+    eventCollections.set(userId, collection);
+  }
+  return collection;
+}
 
 export default function DonationGoalOBS() {
   const [params] = useSearchParams();
-  const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
+  const rawUserId = params.userId;
+  const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
   const goalId = () => params.goalId;
-  const targetAmount = () => parseFloat(params.targetAmount || "100");
+  const rawTargetAmount = params.targetAmount;
+  const targetAmount = () => parseFloat((Array.isArray(rawTargetAmount) ? rawTargetAmount[0] : rawTargetAmount) || "100");
 
   const eventsQuery = useLiveQuery(() => {
     const id = userId();
-    if (!id) return null;
-    return createUserScopedStreamEventsCollection(id);
+    if (!id) return streamEventsCollection;
+    return getEventsCollection(id);
   });
 
   const goalData = createMemo(() => {

@@ -1,7 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
+import { Show, For, createMemo } from "solid-js";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createUserScopedStreamEventsCollection } from "~/lib/electric";
+import { createUserScopedStreamEventsCollection, streamEventsCollection } from "~/lib/electric";
 
 type Donor = {
   username: string;
@@ -10,15 +10,28 @@ type Donor = {
   donationCount: number;
 };
 
+// Cache for user-scoped event collections
+const eventCollections = new Map<string, ReturnType<typeof createUserScopedStreamEventsCollection>>();
+function getEventsCollection(userId: string) {
+  let collection = eventCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedStreamEventsCollection(userId);
+    eventCollections.set(userId, collection);
+  }
+  return collection;
+}
+
 export default function TopDonorsOBS() {
   const [params] = useSearchParams();
-  const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
-  const maxDonors = () => parseInt(params.maxDonors || "5");
+  const rawUserId = params.userId;
+  const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
+  const rawMaxDonors = params.maxDonors;
+  const maxDonors = () => parseInt((Array.isArray(rawMaxDonors) ? rawMaxDonors[0] : rawMaxDonors) || "5");
 
   const eventsQuery = useLiveQuery(() => {
     const id = userId();
-    if (!id) return null;
-    return createUserScopedStreamEventsCollection(id);
+    if (!id) return streamEventsCollection;
+    return getEventsCollection(id);
   });
 
   const donors = createMemo(() => {
@@ -67,7 +80,7 @@ export default function TopDonorsOBS() {
         </div>
       }>
         <div class="w-full max-w-2xl">
-          <div class="bg-gradient-to-b from-purple-900/80 to-pink-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+          <div class="bg-linear-to-b from-purple-900/80 to-pink-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
             <div class="text-white text-3xl font-bold mb-6 text-center">
               🏆 Top Donors
             </div>

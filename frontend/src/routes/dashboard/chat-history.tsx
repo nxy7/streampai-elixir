@@ -1,5 +1,13 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal, Suspense, ErrorBoundary, createResource, createEffect } from "solid-js";
+import {
+  Show,
+  For,
+  createSignal,
+  Suspense,
+  ErrorBoundary,
+  createResource,
+  createEffect,
+} from "solid-js";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import { A } from "@solidjs/router";
 import { card, text, input, badge } from "~/styles/design-system";
@@ -10,11 +18,25 @@ type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type DateRange = "7days" | "30days" | "3months" | "";
 
 const chatMessageFields: (
-  | "id" | "message" | "senderUsername" | "platform"
-  | "senderIsModerator" | "senderIsPatreon" | "insertedAt" | "viewerId" | "userId"
+  | "id"
+  | "message"
+  | "senderUsername"
+  | "platform"
+  | "senderIsModerator"
+  | "senderIsPatreon"
+  | "insertedAt"
+  | "viewerId"
+  | "userId"
 )[] = [
-  "id", "message", "senderUsername", "platform",
-  "senderIsModerator", "senderIsPatreon", "insertedAt", "viewerId", "userId",
+  "id",
+  "message",
+  "senderUsername",
+  "platform",
+  "senderIsModerator",
+  "senderIsPatreon",
+  "insertedAt",
+  "viewerId",
+  "userId",
 ];
 
 export interface ChatMessage {
@@ -48,7 +70,7 @@ export default function ChatHistory() {
       <Show
         when={user()}
         fallback={
-          <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+                <div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
             <div class="text-center py-12">
               <h2 class="text-2xl font-bold text-white mb-4">
                 Not Authenticated
@@ -304,9 +326,7 @@ function ChatHistoryContent(props: {
                             {msg.senderUsername}
                           </A>
                         </Show>
-                        <span
-                          class={getPlatformBadgeColor(msg.platform)}
-                        >
+                        <span class={getPlatformBadgeColor(msg.platform)}>
                           {msg.platform}
                         </span>
                         <Show when={msg.senderIsModerator}>
@@ -323,9 +343,7 @@ function ChatHistoryContent(props: {
                       </div>
 
                       {/* Message Content */}
-                      <p class="text-gray-700 wrap-break-word">
-                        {msg.message}
-                      </p>
+                      <p class="text-gray-700 wrap-break-word">{msg.message}</p>
                     </div>
                   </div>
                 </div>

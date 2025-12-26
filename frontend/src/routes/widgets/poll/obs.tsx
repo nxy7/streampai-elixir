@@ -39,7 +39,7 @@ export default function PollOBS() {
         >
           {(poll) => (
             <div class="w-full max-w-3xl">
-              <div class="bg-gradient-to-b from-indigo-900/80 to-purple-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+              <div class="bg-linear-to-b from-indigo-900/80 to-purple-900/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
                 <div class="text-white text-3xl font-bold mb-6 text-center">
                   📊 {poll().question}
                 </div>

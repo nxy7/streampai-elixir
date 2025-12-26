@@ -1,7 +1,7 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, Show, For, createMemo } from "solid-js";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createUserScopedChatMessagesCollection } from "~/lib/electric";
+import { createUserScopedChatMessagesCollection, chatMessagesCollection } from "~/lib/electric";
 
 type ChatMessage = {
   id: string;
@@ -13,15 +13,27 @@ type ChatMessage = {
   isSubscriber?: boolean;
 };
 
+// Cache for user-scoped chat collections
+const chatCollections = new Map<string, ReturnType<typeof createUserScopedChatMessagesCollection>>();
+function getChatCollection(userId: string) {
+  let collection = chatCollections.get(userId);
+  if (!collection) {
+    collection = createUserScopedChatMessagesCollection(userId);
+    chatCollections.set(userId, collection);
+  }
+  return collection;
+}
+
 export default function ChatOBS() {
   const [params] = useSearchParams();
-  const userId = () => (Array.isArray(params.userId) ? params.userId[0] : params.userId);
-  const maxMessages = () => parseInt(params.maxMessages || "10");
+  const rawUserId = params.userId;
+  const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
+  const maxMessages = () => parseInt((Array.isArray(params.maxMessages) ? params.maxMessages[0] : params.maxMessages) || "10");
 
   const chatQuery = useLiveQuery(() => {
     const id = userId();
-    if (!id) return null;
-    return createUserScopedChatMessagesCollection(id);
+    if (!id) return chatMessagesCollection;
+    return getChatCollection(id);
   });
 
   const messages = createMemo(() => {

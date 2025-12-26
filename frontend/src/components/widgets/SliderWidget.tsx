@@ -33,7 +33,7 @@ export default function SliderWidget(props: SliderWidgetProps) {
   const slideDuration = () => Math.max(1000, (props.config.slideDuration || 5) * 1000);
   const transitionDuration = () => Math.max(200, Math.min(2000, props.config.transitionDuration || 500));
 
-  const getImageStyle = () => {
+  const getImageStyle = (): Record<string, string> => {
     const fitMode = props.config.fitMode || "contain";
 
     switch (fitMode) {
@@ -41,20 +41,20 @@ export default function SliderWidget(props: SliderWidgetProps) {
         return {
           width: "100%",
           height: "100%",
-          objectFit: "cover" as const,
+          "object-fit": "cover",
         };
       case "fill":
         return {
           width: "100%",
           height: "100%",
-          objectFit: "fill" as const,
+          "object-fit": "fill",
         };
       case "contain":
       default:
         return {
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "contain" as const,
+          "max-width": "100%",
+          "max-height": "100%",
+          "object-fit": "contain",
         };
     }
   };
@@ -119,7 +119,7 @@ export default function SliderWidget(props: SliderWidgetProps) {
                   alt={slide().alt || `Slide ${slide().index + 1}`}
                   style={{
                     ...getImageStyle(),
-                    borderRadius: "4px",
+                    "border-radius": "4px",
                   }}
                 />
               </div>

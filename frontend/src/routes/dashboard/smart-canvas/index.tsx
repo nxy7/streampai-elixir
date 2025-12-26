@@ -238,7 +238,7 @@ export default function SmartCanvas() {
   async function saveLayout() {
     if (!user()?.id) return;
 
-    const widgetsData = widgets().map(w => JSON.stringify({
+    const widgetsData = widgets().map(w => ({
       id: w.id,
       type: w.widgetType,
       x: w.x,
@@ -250,7 +250,7 @@ export default function SmartCanvas() {
 
     // The create action uses upsert, so we can use it for both create and update
     const result = await saveSmartCanvasLayout({
-      input: { widgets: widgetsData },
+      input: { userId: user()!.id, widgets: widgetsData },
       fields: [...layoutFields],
       fetchOptions: { credentials: "include" },
     });

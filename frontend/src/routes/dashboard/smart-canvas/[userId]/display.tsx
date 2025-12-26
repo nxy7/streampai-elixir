@@ -21,6 +21,7 @@ export default function SmartCanvasDisplay() {
   const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
 
   async function loadLayout() {
+    if (!params.userId) return;
     const result = await getSmartCanvasLayout({
       input: { userId: params.userId },
       fields: [...layoutFields],

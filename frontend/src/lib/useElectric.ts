@@ -15,6 +15,10 @@ import {
   createUserScopedChatMessagesCollection,
   createUserScopedLivestreamsCollection,
   createUserScopedViewersCollection,
+  emptyWidgetConfigsCollection,
+  emptyNotificationsCollection,
+  emptyNotificationReadsCollection,
+  emptyUserRolesCollection,
   type StreamEvent,
   type ChatMessage,
   type Livestream,
@@ -203,7 +207,7 @@ function getUserScopedViewersCollection(userId: string) {
 export function useUserChatMessages(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return chatMessagesCollection;
     return getUserScopedChatCollection(currentId);
   });
 
@@ -230,7 +234,7 @@ export function useRecentUserChatMessages(userId: () => string | undefined, limi
 export function useUserStreamEvents(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return streamEventsCollection;
     return getUserScopedEventsCollection(currentId);
   });
 
@@ -257,7 +261,7 @@ export function useRecentUserStreamEvents(userId: () => string | undefined, limi
 export function useUserLivestreams(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return livestreamsCollection;
     return getUserScopedLivestreamsCollection(currentId);
   });
 
@@ -284,7 +288,7 @@ export function useRecentUserLivestreams(userId: () => string | undefined, limit
 export function useUserViewers(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return viewersCollection;
     return getUserScopedViewersCollection(currentId);
   });
 
@@ -338,7 +342,7 @@ function getWidgetConfigsCollection(userId: string) {
 export function useWidgetConfigs(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return emptyWidgetConfigsCollection;
     return getWidgetConfigsCollection(currentId);
   });
 
@@ -346,7 +350,7 @@ export function useWidgetConfigs(userId: () => string | undefined) {
     ...query,
     data: createMemo(() => {
       if (!userId()) return [];
-      return query.data || [];
+      return (query.data || []) as WidgetConfig[];
     }),
   };
 }
@@ -394,7 +398,7 @@ function getNotificationReadsCollection(userId: string) {
 export function useNotifications(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return emptyNotificationsCollection;
     return getNotificationsCollection(currentId);
   });
 
@@ -402,7 +406,7 @@ export function useNotifications(userId: () => string | undefined) {
     ...query,
     data: createMemo(() => {
       if (!userId()) return [];
-      return query.data || [];
+      return (query.data || []) as Notification[];
     }),
   };
 }
@@ -410,7 +414,7 @@ export function useNotifications(userId: () => string | undefined) {
 export function useNotificationReads(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return emptyNotificationReadsCollection;
     return getNotificationReadsCollection(currentId);
   });
 
@@ -418,7 +422,7 @@ export function useNotificationReads(userId: () => string | undefined) {
     ...query,
     data: createMemo(() => {
       if (!userId()) return [];
-      return query.data || [];
+      return (query.data || []) as NotificationRead[];
     }),
   };
 }
@@ -487,7 +491,7 @@ function getUserRolesCollection(userId: string) {
 export function useUserRoles(userId: () => string | undefined) {
   const query = useLiveQuery(() => {
     const currentId = userId();
-    if (!currentId) return null;
+    if (!currentId) return emptyUserRolesCollection;
     return getUserRolesCollection(currentId);
   });
 
@@ -495,7 +499,7 @@ export function useUserRoles(userId: () => string | undefined) {
     ...query,
     data: createMemo(() => {
       if (!userId()) return [];
-      return query.data || [];
+      return (query.data || []) as UserRole[];
     }),
   };
 }

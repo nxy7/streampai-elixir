@@ -98,7 +98,7 @@ export const FullWidth: Story = {
     children: "Full Width Button",
   },
   decorators: [
-    (Story) => (
+    (Story: () => any) => (
       <div style={{ width: "300px" }}>
         <Story />
       </div>
