@@ -316,6 +316,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 		},
 	];
 
+	// Don't render anything while auth is loading to prevent flash of placeholder content
+	if (isLoading()) {
+		return null;
+	}
+
 	return (
 		<Show
 			when={!isLoading()}
@@ -545,71 +550,41 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						</div>
 					</div>
 
-					{/* Main Content */}
-					<div
-						class={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${
-							sidebarCollapsed() ? "md:ml-20" : "md:ml-64"
-						}`}>
-						{/* Top Bar */}
-						<header class="border-gray-200 border-b bg-white shadow-sm">
-							<div class="flex items-center justify-between px-6 py-4">
-								<div class="flex items-center space-x-4">
-									<button
-										type="button"
-										onClick={() => setMobileSidebarOpen(!mobileSidebarOpen())}
-										class="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden">
-										<svg
-											aria-hidden="true"
-											class="h-5 w-5"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24">
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M4 6h16M4 12h16M4 18h16"
+						<div class="flex items-center space-x-4">
+							<NotificationBell />
+							<Show when={user()}>
+								<div class="flex items-center space-x-3">
+									<A
+										href="/dashboard/settings"
+										class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
+										title="Go to Settings">
+										<Show
+											when={prefs.data()?.avatar_url}
+											fallback={
+												<span class="font-medium text-sm text-white">
+													{prefs.data()?.name?.[0]?.toUpperCase() ||
+														user()?.email?.[0]?.toUpperCase() ||
+														""}
+												</span>
+											}>
+											<img
+												src={prefs.data()?.avatar_url ?? ""}
+												alt="User Avatar"
+												class="h-full w-full object-cover"
 											/>
-										</svg>
-									</button>
-									<h1 class="font-semibold text-2xl text-gray-900">
-										{pageTitle()}
-									</h1>
-								</div>
-
-								<div class="flex items-center space-x-4">
-									<NotificationBell />
-									<div class="flex items-center space-x-3">
-										<A
-											href="/dashboard/settings"
-											class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
-											title="Go to Settings">
-											<Show
-												when={prefs.data()?.avatar_url}
-												fallback={
-													<span class="font-medium text-sm text-white">
-														{prefs.data()?.name?.[0]?.toUpperCase() ||
-															user()?.email?.[0]?.toUpperCase() ||
-															"U"}
-													</span>
-												}>
-												<img
-													src={prefs.data()?.avatar_url ?? ""}
-													alt="User Avatar"
-													class="h-full w-full object-cover"
-												/>
-											</Show>
-										</A>
-										<div class="hidden md:block">
-											<p class="font-medium text-gray-900 text-sm">
-												{prefs.data()?.name || user()?.email || "Unknown User"}
-											</p>
-											<p class="text-gray-500 text-xs">Free Plan</p>
-										</div>
+										</Show>
+									</A>
+									<div class="hidden md:block">
+										<p class="font-medium text-gray-900 text-sm">
+											{prefs.data()?.name || user()?.email || ""}
+										</p>
+										<p class="text-gray-500 text-xs">Free Plan</p>
 									</div>
 								</div>
-							</div>
-						</header>
+							</Show>
+						</div>
+					</div>
+				</header>
 
 						{/* Main Content Area */}
 						<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
