@@ -169,7 +169,7 @@ export default function Contact() {
 
 							<div class="lg:col-span-2">
 								<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
-									<h3 class="mb-6 font-semibold text-xl text-white">
+									<h3 class="mb-6 font-semibold text-white text-xl">
 										Send us a message
 									</h3>
 

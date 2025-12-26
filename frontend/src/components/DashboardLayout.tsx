@@ -322,7 +322,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			fallback={
 				<div class="flex h-screen items-center justify-center bg-gray-50">
 					<div class="text-center">
-						<div class="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 mx-auto" />
+						<div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
 						<p class="text-gray-600">Loading...</p>
 					</div>
 				</div>
