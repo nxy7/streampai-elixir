@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { Show, For } from "solid-js";
+import { Show, For, createSignal, createMemo } from "solid-js";
 import { A } from "@solidjs/router";
 import { useCurrentUser, getLoginUrl } from "~/lib/auth";
 import {
@@ -8,8 +8,9 @@ import {
   useRecentUserStreamEvents,
   useRecentUserLivestreams,
   useDashboardStats,
+  useUserStreamEvents,
+  useUserChatMessages,
 } from "~/lib/useElectric";
-import { usePresence } from "~/lib/socket";
 import { card, text, badge } from "~/styles/design-system";
 
 function getGreeting() {
@@ -86,10 +87,398 @@ function getStreamStatusBadge(status: string) {
   }
 }
 
+// Feature 1: Stream Health Monitor Component
+function StreamHealthMonitor() {
+  // Simulated stream health data - in production this would come from actual stream metrics
+  const [connectionQuality] = createSignal<"excellent" | "good" | "fair" | "poor">("excellent");
+  const [bitrate] = createSignal(6000);
+  const [droppedFrames] = createSignal(0);
+  const [uptime] = createSignal("2h 34m");
+
+  const qualityColor = () => {
+    switch (connectionQuality()) {
+      case "excellent": return "text-green-500";
+      case "good": return "text-blue-500";
+      case "fair": return "text-yellow-500";
+      case "poor": return "text-red-500";
+    }
+  };
+
+  const qualityBg = () => {
+    switch (connectionQuality()) {
+      case "excellent": return "bg-green-500";
+      case "good": return "bg-blue-500";
+      case "fair": return "bg-yellow-500";
+      case "poor": return "bg-red-500";
+    }
+  };
+
+  return (
+    <div class={`${card.base} p-4`} data-testid="stream-health-monitor">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Stream Health
+        </h3>
+        <div class={`flex items-center gap-1.5 px-2 py-1 rounded-full ${qualityBg()} bg-opacity-10`}>
+          <div class={`w-2 h-2 rounded-full ${qualityBg()} animate-pulse`} />
+          <span class={`text-xs font-medium capitalize ${qualityColor()}`}>{connectionQuality()}</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="text-center p-2 bg-gray-50 rounded-lg">
+          <p class="text-lg font-bold text-gray-900">{bitrate()} kbps</p>
+          <p class="text-xs text-gray-500">Bitrate</p>
+        </div>
+        <div class="text-center p-2 bg-gray-50 rounded-lg">
+          <p class="text-lg font-bold text-gray-900">{droppedFrames()}</p>
+          <p class="text-xs text-gray-500">Dropped</p>
+        </div>
+        <div class="text-center p-2 bg-gray-50 rounded-lg">
+          <p class="text-lg font-bold text-gray-900">{uptime()}</p>
+          <p class="text-xs text-gray-500">Uptime</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Feature 2: Quick Actions Floating Panel
+function QuickActionsPanel(props: { onTestAlert: () => void }) {
+  const [isExpanded, setIsExpanded] = createSignal(false);
+
+  return (
+    <div class="fixed bottom-6 right-6 z-50" data-testid="quick-actions-panel">
+      <Show when={isExpanded()}>
+        <div class="absolute bottom-16 right-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 min-w-[200px] animate-fade-in">
+          <div class="space-y-2">
+            <button
+              onClick={props.onTestAlert}
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span class="text-sm font-medium">Test Alert</span>
+            </button>
+            <A
+              href="/dashboard/widgets"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" />
+              </svg>
+              <span class="text-sm font-medium">Widgets</span>
+            </A>
+            <A
+              href="/dashboard/stream"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-700 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm font-medium">Go Live</span>
+            </A>
+            <A
+              href="/dashboard/settings"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="text-sm font-medium">Settings</span>
+            </A>
+          </div>
+        </div>
+      </Show>
+      <button
+        onClick={() => setIsExpanded(!isExpanded())}
+        class={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
+          isExpanded()
+            ? "bg-gray-700 rotate-45"
+            : "bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+        }`}
+      >
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// Feature 3: Viewer Engagement Score Component
+function ViewerEngagementScore(props: {
+  chatMessages: number;
+  follows: number;
+  donations: number;
+  totalDonationAmount: number;
+}) {
+  const engagementScore = createMemo(() => {
+    // Calculate engagement score based on various metrics
+    // Weighted formula: chat activity (30%), follows (30%), donations count (20%), donation value (20%)
+    const chatScore = Math.min(props.chatMessages / 100, 1) * 30;
+    const followScore = Math.min(props.follows / 50, 1) * 30;
+    const donationCountScore = Math.min(props.donations / 20, 1) * 20;
+    const donationValueScore = Math.min(props.totalDonationAmount / 500, 1) * 20;
+    return Math.round(chatScore + followScore + donationCountScore + donationValueScore);
+  });
+
+  const scoreColor = () => {
+    const score = engagementScore();
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-blue-600";
+    if (score >= 40) return "text-yellow-600";
+    return "text-gray-600";
+  };
+
+  const scoreGradient = () => {
+    const score = engagementScore();
+    if (score >= 80) return "from-green-500 to-emerald-500";
+    if (score >= 60) return "from-blue-500 to-cyan-500";
+    if (score >= 40) return "from-yellow-500 to-orange-500";
+    return "from-gray-400 to-gray-500";
+  };
+
+  const scoreLabel = () => {
+    const score = engagementScore();
+    if (score >= 80) return "Excellent";
+    if (score >= 60) return "Good";
+    if (score >= 40) return "Growing";
+    return "Building";
+  };
+
+  return (
+    <div class={`${card.base} p-4`} data-testid="engagement-score">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Engagement Score
+        </h3>
+        <span class={`text-xs font-medium px-2 py-1 rounded-full bg-gray-100 ${scoreColor()}`}>
+          {scoreLabel()}
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class={`relative w-16 h-16 rounded-full bg-linear-to-r ${scoreGradient()} p-1`}>
+          <div class="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <span class={`text-xl font-bold ${scoreColor()}`}>{engagementScore()}</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              class={`h-full bg-linear-to-r ${scoreGradient()} transition-all duration-500`}
+              style={{ width: `${engagementScore()}%` }}
+            />
+          </div>
+          <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span>0</span>
+            <span>50</span>
+            <span>100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Feature 4: Stream Goals Tracker Component
+function StreamGoalsTracker(props: {
+  currentFollowers: number;
+  currentDonations: number;
+  currentMessages: number;
+}) {
+  // Example goals - in production these would be configurable
+  const goals = [
+    {
+      id: "followers",
+      label: "Daily Followers",
+      current: Math.min(props.currentFollowers, 100),
+      target: 100,
+      icon: "heart",
+      color: "pink"
+    },
+    {
+      id: "donations",
+      label: "Donation Goal",
+      current: Math.min(props.currentDonations, 500),
+      target: 500,
+      icon: "dollar",
+      color: "green",
+      prefix: "$"
+    },
+    {
+      id: "chat",
+      label: "Chat Activity",
+      current: Math.min(props.currentMessages, 1000),
+      target: 1000,
+      icon: "chat",
+      color: "blue"
+    },
+  ];
+
+  const getColorClasses = (color: string) => {
+    switch (color) {
+      case "pink": return { bg: "bg-pink-500", light: "bg-pink-100", text: "text-pink-600" };
+      case "green": return { bg: "bg-green-500", light: "bg-green-100", text: "text-green-600" };
+      case "blue": return { bg: "bg-blue-500", light: "bg-blue-100", text: "text-blue-600" };
+      default: return { bg: "bg-gray-500", light: "bg-gray-100", text: "text-gray-600" };
+    }
+  };
+
+  return (
+    <div class={card.base} data-testid="stream-goals">
+      <div class="px-4 py-3 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+          Stream Goals
+        </h3>
+      </div>
+      <div class="p-4 space-y-4">
+        <For each={goals}>
+          {(goal) => {
+            const colors = getColorClasses(goal.color);
+            const percentage = Math.round((goal.current / goal.target) * 100);
+            return (
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">{goal.label}</span>
+                  <span class={`text-sm font-bold ${colors.text}`}>
+                    {goal.prefix || ""}{goal.current} / {goal.prefix || ""}{goal.target}
+                  </span>
+                </div>
+                <div class={`h-2 rounded-full overflow-hidden ${colors.light}`}>
+                  <div
+                    class={`h-full rounded-full ${colors.bg} transition-all duration-500`}
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
+                <Show when={percentage >= 100}>
+                  <div class="flex items-center gap-1 text-xs text-green-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Goal reached!
+                  </div>
+                </Show>
+              </div>
+            );
+          }}
+        </For>
+      </div>
+    </div>
+  );
+}
+
+// Feature 5: Activity Feed with Filters
+type EventFilter = "all" | "donation" | "follow" | "subscription" | "raid";
+
+function ActivityFeed(props: {
+  events: Array<{
+    id: string;
+    type: string;
+    data: Record<string, unknown>;
+    inserted_at: string;
+  }>;
+}) {
+  const [filter, setFilter] = createSignal<EventFilter>("all");
+
+  const filteredEvents = createMemo(() => {
+    const f = filter();
+    if (f === "all") return props.events.slice(0, 10);
+    return props.events.filter(e => e.type === f).slice(0, 10);
+  });
+
+  const filterButtons: { value: EventFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "donation", label: "Donations" },
+    { value: "follow", label: "Follows" },
+    { value: "subscription", label: "Subs" },
+    { value: "raid", label: "Raids" },
+  ];
+
+  return (
+    <div class={card.base} data-testid="activity-feed">
+      <div class="px-4 py-3 border-b border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Activity Feed
+          </h3>
+          <span class="text-xs text-gray-500">{filteredEvents().length} events</span>
+        </div>
+        <div class="flex gap-1 flex-wrap">
+          <For each={filterButtons}>
+            {(btn) => (
+              <button
+                onClick={() => setFilter(btn.value)}
+                class={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+                  filter() === btn.value
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+                data-testid={`filter-${btn.value}`}
+              >
+                {btn.label}
+              </button>
+            )}
+          </For>
+        </div>
+      </div>
+      <div class="max-h-[300px] overflow-y-auto">
+        <Show
+          when={filteredEvents().length > 0}
+          fallback={
+            <div class="px-4 py-8 text-center">
+              <svg class="w-10 h-10 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <p class="text-gray-500 text-sm">No {filter() === "all" ? "" : filter()} events</p>
+            </div>
+          }
+        >
+          <div class="divide-y divide-gray-50">
+            <For each={filteredEvents()}>
+              {(event) => (
+                <div class="px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3">
+                  <div class={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${getEventColor(event.type)}`}>
+                    {getEventIcon(event.type)}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium text-gray-900 text-sm capitalize">{event.type}</span>
+                      <span class="text-gray-400 text-xs">{formatTimeAgo(event.inserted_at)}</span>
+                    </div>
+                    <p class="text-gray-500 text-xs truncate">
+                      {(event.data?.username as string) || "Anonymous"}
+                      <Show when={event.type === "donation" && event.data?.amount}>
+                        {" - "}${Number(event.data?.amount).toFixed(2)}
+                      </Show>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user, isLoading } = useCurrentUser();
   const prefs = useUserPreferencesForUser(() => user()?.id);
-  const { users: onlineUsers } = usePresence();
   const greeting = getGreeting();
 
   // User-scoped data
@@ -97,6 +486,22 @@ export default function Dashboard() {
   const recentEvents = useRecentUserStreamEvents(() => user()?.id, 5);
   const recentStreams = useRecentUserLivestreams(() => user()?.id, 3);
   const stats = useDashboardStats(() => user()?.id);
+
+  // Full events list for Activity Feed
+  const allEventsQuery = useUserStreamEvents(() => user()?.id);
+  const allEvents = createMemo(() => {
+    const events = allEventsQuery.data();
+    return [...events].sort(
+      (a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime()
+    );
+  });
+
+  // Alert test handler
+  const [showTestAlert, setShowTestAlert] = createSignal(false);
+  const handleTestAlert = () => {
+    setShowTestAlert(true);
+    setTimeout(() => setShowTestAlert(false), 3000);
+  };
 
   return (
     <>
@@ -132,23 +537,15 @@ export default function Dashboard() {
         >
           <>
             <div class="space-y-6">
-              {/* Header with greeting and online status */}
+              {/* Header with greeting */}
               <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-                <div class="flex items-start justify-between">
-                  <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                      {greeting}, {prefs.data()?.name || user()?.name || "Streamer"}!
-                    </h1>
-                    <p class="text-gray-600">
-                      Welcome to your Streampai dashboard.
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span class="text-sm text-green-700 font-medium">
-                      {onlineUsers().length} online
-                    </span>
-                  </div>
+                <div>
+                  <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    {greeting}, {prefs.data()?.name || user()?.name || "Streamer"}!
+                  </h1>
+                  <p class="text-gray-600">
+                    Welcome to your Streampai dashboard.
+                  </p>
                 </div>
               </div>
 
@@ -212,6 +609,22 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* New Features Row: Stream Health, Engagement Score, Goals */}
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StreamHealthMonitor />
+                <ViewerEngagementScore
+                  chatMessages={stats.totalMessages()}
+                  follows={stats.followCount()}
+                  donations={stats.donationCount()}
+                  totalDonationAmount={stats.totalDonations()}
+                />
+                <StreamGoalsTracker
+                  currentFollowers={stats.followCount()}
+                  currentDonations={stats.totalDonations()}
+                  currentMessages={stats.totalMessages()}
+                />
               </div>
 
               {/* Main Content Grid */}
@@ -326,6 +739,9 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Activity Feed with Filters */}
+              <ActivityFeed events={allEvents()} />
+
               {/* Recent Streams */}
               <div class={card.base}>
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -437,6 +853,29 @@ export default function Dashboard() {
                 </A>
               </div>
             </div>
+
+            {/* Quick Actions Floating Panel */}
+            <QuickActionsPanel onTestAlert={handleTestAlert} />
+
+            {/* Test Alert Notification */}
+            <Show when={showTestAlert()}>
+              <div
+                class="fixed top-4 right-4 z-50 bg-linear-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl animate-slide-in"
+                data-testid="test-alert"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-bold">Test Alert!</p>
+                    <p class="text-sm opacity-90">Your alerts are working correctly.</p>
+                  </div>
+                </div>
+              </div>
+            </Show>
           </>
         </Show>
       </Show>

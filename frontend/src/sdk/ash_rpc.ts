@@ -64,7 +64,7 @@ export type ChatMessageResourceSchema = {
 // StreamEvent Schema
 export type StreamEventResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "type" | "data" | "dataRaw" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "insertedAt";
+  __primitiveFields: "id" | "type" | "data" | "dataRaw" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
   id: UUID;
   type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
   data: Record<string, any>;
@@ -74,6 +74,7 @@ export type StreamEventResourceSchema = {
   userId: UUID;
   platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
   viewerId: string | null;
+  wasDisplayed: boolean | null;
   insertedAt: UtcDateTimeUsec;
 };
 
@@ -522,6 +523,11 @@ export type StreamEventFilterInput = {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
+  };
+
+  wasDisplayed?: {
+    eq?: boolean;
+    notEq?: boolean;
   };
 
   insertedAt?: {
@@ -2248,6 +2254,61 @@ export async function getViewerEventsChannel<Fields extends GetViewerEventsField
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type MarkStreamEventDisplayedFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+
+export type InferMarkStreamEventDisplayedResult<
+  Fields extends MarkStreamEventDisplayedFields | undefined,
+> = InferResult<StreamEventResourceSchema, Fields>;
+
+export type MarkStreamEventDisplayedResult<Fields extends MarkStreamEventDisplayedFields | undefined = undefined> = | { success: true; data: InferMarkStreamEventDisplayedResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function markStreamEventDisplayed<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "mark_stream_event_displayed",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function markStreamEventDisplayedChannel<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  fields?: Fields;
+  resultHandler: (result: MarkStreamEventDisplayedResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<MarkStreamEventDisplayedResult<Fields>>(
+    config.channel,
+    {
+    action: "mark_stream_event_displayed",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config

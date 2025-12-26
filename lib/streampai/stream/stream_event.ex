@@ -54,6 +54,7 @@ defmodule Streampai.Stream.StreamEvent do
     define :get_for_viewer, args: [:viewer_id, :user_id]
     define :upsert
     define :create_stream_updated, args: [:livestream_id, :user_id, :author_id, :metadata]
+    define :mark_as_displayed
   end
 
   actions do
@@ -201,6 +202,13 @@ defmodule Streampai.Stream.StreamEvent do
         Ash.Changeset.change_attribute(changeset, :viewer_id, to_string(viewer_id))
       end
     end
+
+    update :mark_as_displayed do
+      description "Mark a stream event as displayed. This is called by OBS browser sources when an alert is shown."
+
+      accept []
+      change set_attribute(:was_displayed, true)
+    end
   end
 
   attributes do
@@ -248,6 +256,12 @@ defmodule Streampai.Stream.StreamEvent do
 
     attribute :viewer_id, :string do
       public? true
+    end
+
+    attribute :was_displayed, :boolean do
+      description "Whether this event has been displayed in an overlay/widget"
+      public? true
+      default true
     end
 
     create_timestamp :inserted_at, public?: true

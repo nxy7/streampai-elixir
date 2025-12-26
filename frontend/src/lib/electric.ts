@@ -13,6 +13,7 @@ export type StreamEvent = Row & {
   user_id: string;
   platform: string | null;
   viewer_id: string | null;
+  was_displayed: boolean;
   inserted_at: string;
 };
 

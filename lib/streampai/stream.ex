@@ -28,6 +28,7 @@ defmodule Streampai.Stream do
     resource StreamEvent do
       rpc_action(:get_livestream_events, :get_activity_events_for_livestream)
       rpc_action(:get_viewer_events, :get_for_viewer)
+      rpc_action(:mark_stream_event_displayed, :mark_as_displayed)
     end
 
     resource StreamViewer do
