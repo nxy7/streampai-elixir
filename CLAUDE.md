@@ -341,3 +341,4 @@ export const Default: Story = {
 - App name is "Streampai" (not "StreamPai")
 - If a port is taken, use another port instead of killing the running app
 - When using Playwright MCP for testing, let the user log in manually unless explicitly asked to automate it
+- **Playwright testing**: Always use HTTPS and the Caddy port (e.g., `https://localhost:8000`), not the direct frontend port. Caddy proxies both frontend and backend, which is required for auth flows to work correctly.
