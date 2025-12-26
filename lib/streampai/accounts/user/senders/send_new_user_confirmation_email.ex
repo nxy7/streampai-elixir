@@ -20,7 +20,7 @@ defmodule Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail do
       IO.puts("""
       Click this link to confirm your email:
 
-      #{url(~p"/auth/user/confirm_new_user?#{[confirm: token]}")}
+      #{url(~p"/api/auth/user/confirm_new_user?#{[confirm: token]}")}
       """)
     end
   end
