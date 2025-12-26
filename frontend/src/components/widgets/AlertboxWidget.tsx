@@ -1,102 +1,108 @@
-import { Show, createMemo } from "solid-js";
+import { createMemo, Show } from "solid-js";
 
 interface AlertEvent {
-  id: string;
-  type: 'donation' | 'follow' | 'subscription' | 'raid';
-  username: string;
-  message?: string;
-  amount?: number;
-  currency?: string;
-  timestamp: Date;
-  displayTime?: number;
-  ttsUrl?: string;
-  platform: {
-    icon: string;
-    color: string;
-  };
+	id: string;
+	type: "donation" | "follow" | "subscription" | "raid";
+	username: string;
+	message?: string;
+	amount?: number;
+	currency?: string;
+	timestamp: Date;
+	displayTime?: number;
+	ttsUrl?: string;
+	platform: {
+		icon: string;
+		color: string;
+	};
 }
 
 interface AlertConfig {
-  animationType: 'slide' | 'fade' | 'bounce';
-  displayDuration: number;
-  soundEnabled: boolean;
-  soundVolume: number;
-  showMessage: boolean;
-  showAmount: boolean;
-  fontSize: 'small' | 'medium' | 'large';
-  alertPosition: 'top' | 'center' | 'bottom';
+	animationType: "slide" | "fade" | "bounce";
+	displayDuration: number;
+	soundEnabled: boolean;
+	soundVolume: number;
+	showMessage: boolean;
+	showAmount: boolean;
+	fontSize: "small" | "medium" | "large";
+	alertPosition: "top" | "center" | "bottom";
 }
 
 interface AlertboxWidgetProps {
-  config: AlertConfig;
-  event: AlertEvent | null;
+	config: AlertConfig;
+	event: AlertEvent | null;
 }
 
 export default function AlertboxWidget(props: AlertboxWidgetProps) {
-  const fontClass = createMemo(() => {
-    switch (props.config.fontSize) {
-      case 'small': return 'text-lg';
-      case 'large': return 'text-4xl';
-      default: return 'text-2xl';
-    }
-  });
+	const fontClass = createMemo(() => {
+		switch (props.config.fontSize) {
+			case "small":
+				return "text-lg";
+			case "large":
+				return "text-4xl";
+			default:
+				return "text-2xl";
+		}
+	});
 
-  const positionClass = createMemo(() => {
-    switch (props.config.alertPosition) {
-      case 'top': return 'items-start pt-8';
-      case 'bottom': return 'items-end pb-8';
-      default: return 'items-center';
-    }
-  });
+	const positionClass = createMemo(() => {
+		switch (props.config.alertPosition) {
+			case "top":
+				return "items-start pt-8";
+			case "bottom":
+				return "items-end pb-8";
+			default:
+				return "items-center";
+		}
+	});
 
-  const getAlertColor = (type: string) => {
-    const colors = {
-      donation: 'text-green-400',
-      follow: 'text-blue-400',
-      subscription: 'text-purple-400',
-      raid: 'text-yellow-400'
-    };
-    return colors[type as keyof typeof colors] || colors.donation;
-  };
+	const getAlertColor = (type: string) => {
+		const colors = {
+			donation: "text-green-400",
+			follow: "text-blue-400",
+			subscription: "text-purple-400",
+			raid: "text-yellow-400",
+		};
+		return colors[type as keyof typeof colors] || colors.donation;
+	};
 
-  const getGradientColor = (type: string) => {
-    const gradients = {
-      donation: 'from-green-500 to-emerald-600',
-      follow: 'from-blue-500 to-cyan-600',
-      subscription: 'from-purple-500 to-violet-600',
-      raid: 'from-yellow-500 to-orange-600'
-    };
-    return gradients[type as keyof typeof gradients] || gradients.donation;
-  };
+	const getGradientColor = (type: string) => {
+		const gradients = {
+			donation: "from-green-500 to-emerald-600",
+			follow: "from-blue-500 to-cyan-600",
+			subscription: "from-purple-500 to-violet-600",
+			raid: "from-yellow-500 to-orange-600",
+		};
+		return gradients[type as keyof typeof gradients] || gradients.donation;
+	};
 
-  const getAlertTypeLabel = (type: string) => {
-    const labels = {
-      donation: 'Donation',
-      follow: 'New Follower',
-      subscription: 'New Subscriber',
-      raid: 'Raid'
-    };
-    return labels[type as keyof typeof labels] || 'Alert';
-  };
+	const getAlertTypeLabel = (type: string) => {
+		const labels = {
+			donation: "Donation",
+			follow: "New Follower",
+			subscription: "New Subscriber",
+			raid: "Raid",
+		};
+		return labels[type as keyof typeof labels] || "Alert";
+	};
 
-  const getPlatformName = (icon: string) => {
-    const platformNames = {
-      twitch: 'Twitch',
-      youtube: 'YouTube',
-      facebook: 'Facebook',
-      kick: 'Kick'
-    };
-    return platformNames[icon as keyof typeof platformNames] || icon;
-  };
+	const getPlatformName = (icon: string) => {
+		const platformNames = {
+			twitch: "Twitch",
+			youtube: "YouTube",
+			facebook: "Facebook",
+			kick: "Kick",
+		};
+		return platformNames[icon as keyof typeof platformNames] || icon;
+	};
 
-  const formatAmount = (amount?: number, currency?: string) => {
-    if (!amount) return '';
-    return `${currency || '$'}${amount.toFixed(2)}`;
-  };
+	const formatAmount = (amount?: number, currency?: string) => {
+		if (!amount) return "";
+		return `${currency || "$"}${amount.toFixed(2)}`;
+	};
 
-  return (
-    <div class="alertbox-widget h-full w-full relative overflow-hidden">
-      <style>{`
+	return (
+		<div class="alertbox-widget relative h-full w-full overflow-hidden">
+			<style>{`
         @keyframes fade-in {
           from { opacity: 0; transform: scale(0.85) translateY(20px); filter: blur(4px); }
           to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
@@ -133,73 +139,82 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
         .animate-bounce-out { animation: bounce-out 0.8s cubic-bezier(0.3, 0, 0.8, 0.15) forwards; }
       `}</style>
 
-      <div class={`absolute inset-0 flex justify-center ${positionClass()}`}>
-        <Show when={props.event}>
-          <div class={`alert-card relative bg-linear-to-br from-gray-900/95 to-gray-800/95 rounded-lg border border-white/20 backdrop-blur-lg shadow-2xl p-8 w-96 mx-4 ${fontClass()} animate-${props.config.animationType}-in`}>
-            <div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
-            <div class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event!.type)} opacity-10 animate-pulse`}></div>
+			<div class={`absolute inset-0 flex justify-center ${positionClass()}`}>
+				<Show when={props.event}>
+					<div
+						class={`alert-card relative mx-4 w-96 rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-8 shadow-2xl backdrop-blur-lg ${fontClass()} animate-${props.config.animationType}-in`}
+					>
+						<div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
+						<div
+							class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event?.type)} animate-pulse opacity-10`}
+						></div>
 
-            <div class="relative z-10">
-              <div class="text-center mb-6">
-                <div class={`font-extrabold text-sm tracking-wider uppercase ${getAlertColor(props.event!.type)} drop-shadow-sm mb-2`}>
-                  {getAlertTypeLabel(props.event!.type)}
-                </div>
-                <div class="text-white font-bold text-2xl drop-shadow-sm">
-                  {props.event!.username}
-                </div>
-                <div class="flex justify-center mt-3">
-                  <div class="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-sm border border-white/20 text-white">
-                    <span class="opacity-70">via</span> <span class="font-bold">{getPlatformName(props.event!.platform.icon)}</span>
-                  </div>
-                </div>
-              </div>
+						<div class="relative z-10">
+							<div class="mb-6 text-center">
+								<div
+									class={`font-extrabold text-sm uppercase tracking-wider ${getAlertColor(props.event?.type)} mb-2 drop-shadow-sm`}
+								>
+									{getAlertTypeLabel(props.event?.type)}
+								</div>
+								<div class="font-bold text-2xl text-white drop-shadow-sm">
+									{props.event?.username}
+								</div>
+								<div class="mt-3 flex justify-center">
+									<div class="rounded-full border border-white/20 bg-white/10 px-3 py-1 font-semibold text-white text-xs backdrop-blur-sm">
+										<span class="opacity-70">via</span>{" "}
+										<span class="font-bold">
+											{getPlatformName(props.event?.platform.icon)}
+										</span>
+									</div>
+								</div>
+							</div>
 
-              <Show when={props.config.showAmount && props.event!.amount}>
-                <div class="text-center mb-6">
-                  <div class="relative inline-block">
-                    <div class="absolute inset-0 text-4xl font-black text-green-400 blur-sm opacity-50">
-                      {formatAmount(props.event!.amount, props.event!.currency)}
-                    </div>
-                    <div class="relative text-4xl font-black text-green-400 drop-shadow-lg">
-                      {formatAmount(props.event!.amount, props.event!.currency)}
-                    </div>
-                  </div>
-                </div>
-              </Show>
+							<Show when={props.config.showAmount && props.event?.amount}>
+								<div class="mb-6 text-center">
+									<div class="relative inline-block">
+										<div class="absolute inset-0 font-black text-4xl text-green-400 opacity-50 blur-sm">
+											{formatAmount(props.event?.amount, props.event?.currency)}
+										</div>
+										<div class="relative font-black text-4xl text-green-400 drop-shadow-lg">
+											{formatAmount(props.event?.amount, props.event?.currency)}
+										</div>
+									</div>
+								</div>
+							</Show>
 
-              <Show when={props.config.showMessage && props.event!.message}>
-                <div class="text-center mb-4">
-                  <div class="bg-white/5 rounded-lg p-4 border border-white/10 backdrop-blur-sm">
-                    <div class="text-gray-200 font-medium leading-relaxed">
-                      {props.event!.message}
-                    </div>
-                  </div>
-                </div>
-              </Show>
+							<Show when={props.config.showMessage && props.event?.message}>
+								<div class="mb-4 text-center">
+									<div class="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+										<div class="font-medium text-gray-200 leading-relaxed">
+											{props.event?.message}
+										</div>
+									</div>
+								</div>
+							</Show>
 
-              <div class="absolute top-4 right-4 w-2 h-2 bg-white/30 rounded-full animate-pulse"></div>
-              <div class="absolute bottom-4 left-4 w-1 h-1 bg-white/20 rounded-full animate-pulse delay-300"></div>
-            </div>
+							<div class="absolute top-4 right-4 h-2 w-2 animate-pulse rounded-full bg-white/30"></div>
+							<div class="absolute bottom-4 left-4 h-1 w-1 animate-pulse rounded-full bg-white/20 delay-300"></div>
+						</div>
 
-            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-lg overflow-hidden">
-              <div
-                class="h-full bg-linear-to-r from-purple-500 to-pink-500"
-                style={{
-                  width: "100%",
-                  animation: `progress-width-shrink ${props.config.displayDuration}s linear forwards`
-                }}
-              ></div>
-            </div>
-          </div>
-        </Show>
-      </div>
+						<div class="absolute right-0 bottom-0 left-0 h-1 overflow-hidden rounded-b-lg bg-white/10">
+							<div
+								class="h-full bg-linear-to-r from-purple-500 to-pink-500"
+								style={{
+									width: "100%",
+									animation: `progress-width-shrink ${props.config.displayDuration}s linear forwards`,
+								}}
+							></div>
+						</div>
+					</div>
+				</Show>
+			</div>
 
-      <style>{`
+			<style>{`
         @keyframes progress-width-shrink {
           from { width: 100%; }
           to { width: 0%; }
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }

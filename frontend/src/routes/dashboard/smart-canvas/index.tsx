@@ -1,563 +1,704 @@
 import { Title } from "@solidjs/meta";
-import { Show, For, createSignal, onMount, createEffect } from "solid-js";
+import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import { useCurrentUser } from "~/lib/auth";
-import { card, text, button } from "~/styles/design-system";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
+import { button, card, text } from "~/styles/design-system";
 
 interface CanvasWidget {
-  id: string;
-  widgetType: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  config?: any;
+	id: string;
+	widgetType: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	config?: Record<string, unknown>;
 }
 
-interface SmartCanvasLayout {
-  id?: string;
-  userId: string;
-  widgets: CanvasWidget[];
+interface _SmartCanvasLayout {
+	id?: string;
+	userId: string;
+	widgets: CanvasWidget[];
 }
 
 const AVAILABLE_WIDGETS = [
-  { type: "placeholder", name: "Placeholder", icon: "🎨", defaultWidth: 200, defaultHeight: 120 },
-  { type: "viewer-count", name: "Viewer Count", icon: "👁️", defaultWidth: 200, defaultHeight: 100 },
-  { type: "follower-count", name: "Follower Count", icon: "👥", defaultWidth: 200, defaultHeight: 100 },
-  { type: "donation-goal", name: "Donation Goal", icon: "🎯", defaultWidth: 300, defaultHeight: 150 },
-  { type: "chat", name: "Chat", icon: "💬", defaultWidth: 400, defaultHeight: 600 },
-  { type: "alertbox", name: "Alertbox", icon: "🔔", defaultWidth: 400, defaultHeight: 200 },
-  { type: "timer", name: "Timer", icon: "⏱️", defaultWidth: 200, defaultHeight: 100 },
-  { type: "poll", name: "Poll", icon: "📊", defaultWidth: 300, defaultHeight: 200 },
-  { type: "eventlist", name: "Event List", icon: "📋", defaultWidth: 300, defaultHeight: 400 },
-  { type: "topdonors", name: "Top Donors", icon: "🏆", defaultWidth: 300, defaultHeight: 300 },
-  { type: "giveaway", name: "Giveaway", icon: "🎁", defaultWidth: 350, defaultHeight: 250 },
-  { type: "slider", name: "Slider", icon: "🎠", defaultWidth: 600, defaultHeight: 200 },
+	{
+		type: "placeholder",
+		name: "Placeholder",
+		icon: "🎨",
+		defaultWidth: 200,
+		defaultHeight: 120,
+	},
+	{
+		type: "viewer-count",
+		name: "Viewer Count",
+		icon: "👁️",
+		defaultWidth: 200,
+		defaultHeight: 100,
+	},
+	{
+		type: "follower-count",
+		name: "Follower Count",
+		icon: "👥",
+		defaultWidth: 200,
+		defaultHeight: 100,
+	},
+	{
+		type: "donation-goal",
+		name: "Donation Goal",
+		icon: "🎯",
+		defaultWidth: 300,
+		defaultHeight: 150,
+	},
+	{
+		type: "chat",
+		name: "Chat",
+		icon: "💬",
+		defaultWidth: 400,
+		defaultHeight: 600,
+	},
+	{
+		type: "alertbox",
+		name: "Alertbox",
+		icon: "🔔",
+		defaultWidth: 400,
+		defaultHeight: 200,
+	},
+	{
+		type: "timer",
+		name: "Timer",
+		icon: "⏱️",
+		defaultWidth: 200,
+		defaultHeight: 100,
+	},
+	{
+		type: "poll",
+		name: "Poll",
+		icon: "📊",
+		defaultWidth: 300,
+		defaultHeight: 200,
+	},
+	{
+		type: "eventlist",
+		name: "Event List",
+		icon: "📋",
+		defaultWidth: 300,
+		defaultHeight: 400,
+	},
+	{
+		type: "topdonors",
+		name: "Top Donors",
+		icon: "🏆",
+		defaultWidth: 300,
+		defaultHeight: 300,
+	},
+	{
+		type: "giveaway",
+		name: "Giveaway",
+		icon: "🎁",
+		defaultWidth: 350,
+		defaultHeight: 250,
+	},
+	{
+		type: "slider",
+		name: "Slider",
+		icon: "🎠",
+		defaultWidth: 600,
+		defaultHeight: 200,
+	},
 ];
 
-const layoutFields: ("id" | "userId" | "widgets")[] = ["id", "userId", "widgets"];
+const layoutFields: ("id" | "userId" | "widgets")[] = [
+	"id",
+	"userId",
+	"widgets",
+];
 
-function PaletteWidgetItem(props: { widgetDef: typeof AVAILABLE_WIDGETS[number] }) {
-  return (
-    <div
-      class="p-3 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-lg cursor-pointer hover:shadow-lg transition-shadow flex items-center gap-3"
-      onClick={() => {
-        // This will be handled by the parent component through a callback
-        const event = new CustomEvent("add-widget", {
-          detail: { widgetType: props.widgetDef.type }
-        });
-        window.dispatchEvent(event);
-      }}
-    >
-      <span class="text-2xl">{props.widgetDef.icon}</span>
-      <span class="font-semibold">{props.widgetDef.name}</span>
-    </div>
-  );
+function PaletteWidgetItem(props: {
+	widgetDef: (typeof AVAILABLE_WIDGETS)[number];
+}) {
+	const handleAddWidget = () => {
+		const event = new CustomEvent("add-widget", {
+			detail: { widgetType: props.widgetDef.type },
+		});
+		window.dispatchEvent(event);
+	};
+
+	return (
+		<button
+			type="button"
+			class="flex cursor-pointer items-center gap-3 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 p-3 text-white transition-shadow hover:shadow-lg"
+			onClick={handleAddWidget}
+		>
+			<span class="text-2xl">{props.widgetDef.icon}</span>
+			<span class="font-semibold">{props.widgetDef.name}</span>
+		</button>
+	);
 }
 
 function CanvasWidgetComponent(props: {
-  widget: CanvasWidget;
-  selectedWidgetId: string | null;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
-  onUpdatePosition: (id: string, x: number, y: number) => void;
-  onUpdateSize: (id: string, width: number, height: number) => void;
-  scale: number;
-  setIsResizing: (resizing: boolean) => void;
+	widget: CanvasWidget;
+	selectedWidgetId: string | null;
+	onSelect: (id: string) => void;
+	onDelete: (id: string) => void;
+	onUpdatePosition: (id: string, x: number, y: number) => void;
+	onUpdateSize: (id: string, width: number, height: number) => void;
+	scale: number;
+	setIsResizing: (resizing: boolean) => void;
 }) {
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let startWidgetX = 0;
-  let startWidgetY = 0;
+	let isDragging = false;
+	let startX = 0;
+	let startY = 0;
+	let startWidgetX = 0;
+	let startWidgetY = 0;
 
-  const widgetDef = () => AVAILABLE_WIDGETS.find(w => w.type === props.widget.widgetType);
+	const widgetDef = () =>
+		AVAILABLE_WIDGETS.find((w) => w.type === props.widget.widgetType);
 
-  const handleMouseDown = (e: MouseEvent) => {
-    if ((e.target as HTMLElement).closest(".resize-handle") ||
-        (e.target as HTMLElement).closest(".delete-button")) {
-      return;
-    }
+	const handleMouseDown = (e: MouseEvent) => {
+		if (
+			(e.target as HTMLElement).closest(".resize-handle") ||
+			(e.target as HTMLElement).closest(".delete-button")
+		) {
+			return;
+		}
 
-    e.preventDefault();
-    e.stopPropagation();
+		e.preventDefault();
+		e.stopPropagation();
 
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startWidgetX = props.widget.x;
-    startWidgetY = props.widget.y;
+		isDragging = true;
+		startX = e.clientX;
+		startY = e.clientY;
+		startWidgetX = props.widget.x;
+		startWidgetY = props.widget.y;
 
-    props.onSelect(props.widget.id);
+		props.onSelect(props.widget.id);
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isDragging) return;
+		const handleMouseMove = (moveEvent: MouseEvent) => {
+			if (!isDragging) return;
 
-      const deltaX = (moveEvent.clientX - startX) / props.scale;
-      const deltaY = (moveEvent.clientY - startY) / props.scale;
+			const deltaX = (moveEvent.clientX - startX) / props.scale;
+			const deltaY = (moveEvent.clientY - startY) / props.scale;
 
-      props.onUpdatePosition(
-        props.widget.id,
-        startWidgetX + deltaX,
-        startWidgetY + deltaY
-      );
-    };
+			props.onUpdatePosition(
+				props.widget.id,
+				startWidgetX + deltaX,
+				startWidgetY + deltaY,
+			);
+		};
 
-    const handleMouseUp = () => {
-      isDragging = false;
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
+		const handleMouseUp = () => {
+			isDragging = false;
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+		};
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  };
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+	};
 
-  return (
-    <div
-      class="absolute group"
-      style={{
-        left: `${props.widget.x}px`,
-        top: `${props.widget.y}px`,
-        width: `${props.widget.width}px`,
-        height: `${props.widget.height}px`,
-        "z-index": props.selectedWidgetId === props.widget.id ? 20 : 10,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        props.onSelect(props.widget.id);
-      }}
-    >
-      <div
-        class="w-full h-full bg-linear-to-br from-purple-500 to-pink-500 border-2 border-white/20 rounded-lg shadow-lg p-4 cursor-move"
-        classList={{
-          "ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <div class="flex items-center gap-2 mb-2 text-white">
-          <span class="text-xl">{widgetDef()?.icon}</span>
-          <span class="font-semibold text-sm">{widgetDef()?.name}</span>
-        </div>
-        <div class="bg-black/20 rounded p-2 text-xs text-white/80">
-          <div>Position: ({Math.round(props.widget.x)}, {Math.round(props.widget.y)})</div>
-          <div>Size: {props.widget.width}x{props.widget.height}</div>
-        </div>
-      </div>
+	const handleSelect = (e: MouseEvent) => {
+		e.stopPropagation();
+		props.onSelect(props.widget.id);
+	};
 
-      <button
-        class="delete-button absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-2 border-white"
-        onClick={(e) => {
-          e.stopPropagation();
-          props.onDelete(props.widget.id);
-        }}
-      >
-        ×
-      </button>
+	return (
+		<button
+			type="button"
+			class="group absolute text-left"
+			style={{
+				left: `${props.widget.x}px`,
+				top: `${props.widget.y}px`,
+				width: `${props.widget.width}px`,
+				height: `${props.widget.height}px`,
+				"z-index": props.selectedWidgetId === props.widget.id ? 20 : 10,
+			}}
+			onClick={handleSelect}
+		>
+			<div
+				role="application"
+				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-purple-500 to-pink-500 p-4 shadow-lg"
+				classList={{
+					"ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
+				}}
+				onMouseDown={handleMouseDown}
+			>
+				<div class="mb-2 flex items-center gap-2 text-white">
+					<span class="text-xl">{widgetDef()?.icon}</span>
+					<span class="font-semibold text-sm">{widgetDef()?.name}</span>
+				</div>
+				<div class="rounded bg-black/20 p-2 text-white/80 text-xs">
+					<div>
+						Position: ({Math.round(props.widget.x)},{" "}
+						{Math.round(props.widget.y)})
+					</div>
+					<div>
+						Size: {props.widget.width}x{props.widget.height}
+					</div>
+				</div>
+			</div>
 
-      <div
-        class="resize-handle absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 text-white rounded-full cursor-nwse-resize opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-2 border-white"
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          props.setIsResizing(true);
-          const startX = e.clientX;
-          const startY = e.clientY;
-          const startWidth = props.widget.width;
-          const startHeight = props.widget.height;
+			<button
+				type="button"
+				class="delete-button absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+				onClick={(e) => {
+					e.stopPropagation();
+					props.onDelete(props.widget.id);
+				}}
+			>
+				×
+			</button>
 
-          const handleMouseMove = (moveEvent: MouseEvent) => {
-            const deltaX = (moveEvent.clientX - startX) / props.scale;
-            const deltaY = (moveEvent.clientY - startY) / props.scale;
-            props.onUpdateSize(
-              props.widget.id,
-              startWidth + deltaX,
-              startHeight + deltaY
-            );
-          };
+			<button
+				type="button"
+				class="resize-handle absolute -right-2 -bottom-2 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-full border-2 border-white bg-blue-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+				onMouseDown={(e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					props.setIsResizing(true);
+					const startX = e.clientX;
+					const startY = e.clientY;
+					const startWidth = props.widget.width;
+					const startHeight = props.widget.height;
 
-          const handleMouseUp = () => {
-            props.setIsResizing(false);
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
-          };
+					const handleMouseMove = (moveEvent: MouseEvent) => {
+						const deltaX = (moveEvent.clientX - startX) / props.scale;
+						const deltaY = (moveEvent.clientY - startY) / props.scale;
+						props.onUpdateSize(
+							props.widget.id,
+							startWidth + deltaX,
+							startHeight + deltaY,
+						);
+					};
 
-          document.addEventListener("mousemove", handleMouseMove);
-          document.addEventListener("mouseup", handleMouseUp);
-        }}
-      >
-        ⇲
-      </div>
-    </div>
-  );
+					const handleMouseUp = () => {
+						props.setIsResizing(false);
+						document.removeEventListener("mousemove", handleMouseMove);
+						document.removeEventListener("mouseup", handleMouseUp);
+					};
+
+					document.addEventListener("mousemove", handleMouseMove);
+					document.addEventListener("mouseup", handleMouseUp);
+				}}
+			>
+				⇲
+			</button>
+		</button>
+	);
 }
 
 export default function SmartCanvas() {
-  const { user } = useCurrentUser();
-  const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
-  const [layoutId, setLayoutId] = createSignal<string | null>(null);
-  const [layoutSaved, setLayoutSaved] = createSignal(true);
-  const [canvasMaximized, setCanvasMaximized] = createSignal(false);
-  const [scale, setScale] = createSignal(0.5); // Start with reasonable default, will be updated by ResizeObserver
-  const [selectedWidgetId, setSelectedWidgetId] = createSignal<string | null>(null);
-  const [isResizing, setIsResizing] = createSignal(false);
-  const [canvasRef, setCanvasRef] = createSignal<HTMLDivElement | undefined>();
+	const { user } = useCurrentUser();
+	const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
+	const [_layoutId, setLayoutId] = createSignal<string | null>(null);
+	const [layoutSaved, setLayoutSaved] = createSignal(true);
+	const [canvasMaximized, setCanvasMaximized] = createSignal(false);
+	const [scale, setScale] = createSignal(0.5); // Start with reasonable default, will be updated by ResizeObserver
+	const [selectedWidgetId, setSelectedWidgetId] = createSignal<string | null>(
+		null,
+	);
+	const [_isResizing, setIsResizing] = createSignal(false);
+	const [canvasRef, setCanvasRef] = createSignal<HTMLDivElement | undefined>();
 
-  async function loadLayout() {
-    if (!user()?.id) return;
+	async function loadLayout() {
+		if (!user()?.id) return;
 
-    const result = await getSmartCanvasLayout({
-      input: { userId: user()!.id },
-      fields: [...layoutFields],
-      fetchOptions: { credentials: "include" },
-    });
+		const result = await getSmartCanvasLayout({
+			input: { userId: user()?.id },
+			fields: [...layoutFields],
+			fetchOptions: { credentials: "include" },
+		});
 
-    if (result.success && result.data) {
-      const layout = result.data;
-      setLayoutId(layout.id);
+		if (result.success && result.data) {
+			const layout = result.data;
+			setLayoutId(layout.id);
 
-      if (layout.widgets && Array.isArray(layout.widgets)) {
-        const parsedWidgets = layout.widgets.map((w: any) => {
-          const widget = typeof w === 'string' ? JSON.parse(w) : w;
-          return {
-            id: widget.id,
-            widgetType: widget.type || widget.widgetType,
-            x: widget.x || 0,
-            y: widget.y || 0,
-            width: widget.width || 200,
-            height: widget.height || 120,
-            config: widget.config,
-          };
-        });
-        setWidgets(parsedWidgets);
-      }
-      setLayoutSaved(true);
-    }
-  }
+			if (layout.widgets && Array.isArray(layout.widgets)) {
+				const parsedWidgets = layout.widgets.map((w: unknown) => {
+					const widget =
+						typeof w === "string"
+							? JSON.parse(w)
+							: (w as Record<string, unknown>);
+					return {
+						id: widget.id,
+						widgetType: widget.type || widget.widgetType,
+						x: widget.x || 0,
+						y: widget.y || 0,
+						width: widget.width || 200,
+						height: widget.height || 120,
+						config: widget.config,
+					};
+				});
+				setWidgets(parsedWidgets);
+			}
+			setLayoutSaved(true);
+		}
+	}
 
-  async function saveLayout() {
-    if (!user()?.id) return;
+	async function saveLayout() {
+		if (!user()?.id) return;
 
-    const widgetsData = widgets().map(w => ({
-      id: w.id,
-      type: w.widgetType,
-      x: w.x,
-      y: w.y,
-      width: w.width,
-      height: w.height,
-      config: w.config,
-    }));
+		const widgetsData = widgets().map((w) => ({
+			id: w.id,
+			type: w.widgetType,
+			x: w.x,
+			y: w.y,
+			width: w.width,
+			height: w.height,
+			config: w.config,
+		}));
 
-    // The create action uses upsert, so we can use it for both create and update
-    const result = await saveSmartCanvasLayout({
-      input: { userId: user()!.id, widgets: widgetsData },
-      fields: [...layoutFields],
-      fetchOptions: { credentials: "include" },
-    });
+		// The create action uses upsert, so we can use it for both create and update
+		const result = await saveSmartCanvasLayout({
+			input: { userId: user()?.id, widgets: widgetsData },
+			fields: [...layoutFields],
+			fetchOptions: { credentials: "include" },
+		});
 
-    if (result.success && result.data) {
-      setLayoutId(result.data.id);
-      setLayoutSaved(true);
-    }
-  }
+		if (result.success && result.data) {
+			setLayoutId(result.data.id);
+			setLayoutSaved(true);
+		}
+	}
 
-  function addWidget(widgetType: string, x: number = Math.random() * 400, y: number = Math.random() * 200) {
-    const widgetDef = AVAILABLE_WIDGETS.find(w => w.type === widgetType);
-    const newWidget: CanvasWidget = {
-      id: `widget-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      widgetType,
-      x: Math.max(0, Math.min(1920 - (widgetDef?.defaultWidth || 200), x)),
-      y: Math.max(0, Math.min(1080 - (widgetDef?.defaultHeight || 120), y)),
-      width: widgetDef?.defaultWidth || 200,
-      height: widgetDef?.defaultHeight || 120,
-    };
+	function addWidget(
+		widgetType: string,
+		x: number = Math.random() * 400,
+		y: number = Math.random() * 200,
+	) {
+		const widgetDef = AVAILABLE_WIDGETS.find((w) => w.type === widgetType);
+		const newWidget: CanvasWidget = {
+			id: `widget-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+			widgetType,
+			x: Math.max(0, Math.min(1920 - (widgetDef?.defaultWidth || 200), x)),
+			y: Math.max(0, Math.min(1080 - (widgetDef?.defaultHeight || 120), y)),
+			width: widgetDef?.defaultWidth || 200,
+			height: widgetDef?.defaultHeight || 120,
+		};
 
-    setWidgets([...widgets(), newWidget]);
-    setLayoutSaved(false);
-  }
+		setWidgets([...widgets(), newWidget]);
+		setLayoutSaved(false);
+	}
 
-  function deleteWidget(widgetId: string) {
-    setWidgets(widgets().filter(w => w.id !== widgetId));
-    setLayoutSaved(false);
-  }
+	function deleteWidget(widgetId: string) {
+		setWidgets(widgets().filter((w) => w.id !== widgetId));
+		setLayoutSaved(false);
+	}
 
-  function updateWidgetPosition(widgetId: string, x: number, y: number) {
-    setWidgets(widgets().map(w =>
-      w.id === widgetId
-        ? { ...w, x: Math.max(0, Math.min(1920 - w.width, x)), y: Math.max(0, Math.min(1080 - w.height, y)) }
-        : w
-    ));
-    setLayoutSaved(false);
-  }
+	function updateWidgetPosition(widgetId: string, x: number, y: number) {
+		setWidgets(
+			widgets().map((w) =>
+				w.id === widgetId
+					? {
+							...w,
+							x: Math.max(0, Math.min(1920 - w.width, x)),
+							y: Math.max(0, Math.min(1080 - w.height, y)),
+						}
+					: w,
+			),
+		);
+		setLayoutSaved(false);
+	}
 
-  function updateWidgetSize(widgetId: string, width: number, height: number) {
-    setWidgets(widgets().map(w =>
-      w.id === widgetId
-        ? {
-            ...w,
-            width: Math.max(100, Math.min(1920 - w.x, width)),
-            height: Math.max(50, Math.min(1080 - w.y, height)),
-          }
-        : w
-    ));
-    setLayoutSaved(false);
-  }
+	function updateWidgetSize(widgetId: string, width: number, height: number) {
+		setWidgets(
+			widgets().map((w) =>
+				w.id === widgetId
+					? {
+							...w,
+							width: Math.max(100, Math.min(1920 - w.x, width)),
+							height: Math.max(50, Math.min(1080 - w.y, height)),
+						}
+					: w,
+			),
+		);
+		setLayoutSaved(false);
+	}
 
-  function clearWidgets() {
-    setWidgets([]);
-    setLayoutSaved(false);
-  }
+	function clearWidgets() {
+		setWidgets([]);
+		setLayoutSaved(false);
+	}
 
-  function updateScale() {
-    const canvas = canvasRef();
-    if (!canvas) return;
+	function updateScale() {
+		const canvas = canvasRef();
+		if (!canvas) return;
 
-    const container = canvas.parentElement;
-    if (!container) return;
+		const container = canvas.parentElement;
+		if (!container) return;
 
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
 
-    // Don't calculate if container has no dimensions yet
-    if (containerWidth === 0 || containerHeight === 0) return;
+		// Don't calculate if container has no dimensions yet
+		if (containerWidth === 0 || containerHeight === 0) return;
 
-    const scaleX = containerWidth / 1920;
-    const scaleY = containerHeight / 1080;
-    const newScale = Math.min(scaleX, scaleY);
+		const scaleX = containerWidth / 1920;
+		const scaleY = containerHeight / 1080;
+		const newScale = Math.min(scaleX, scaleY);
 
-    // Only update if scale actually changed
-    if (Math.abs(newScale - scale()) > 0.001) {
-      setScale(newScale);
-    }
-  }
+		// Only update if scale actually changed
+		if (Math.abs(newScale - scale()) > 0.001) {
+			setScale(newScale);
+		}
+	}
 
-  // Load layout when user becomes available
-  createEffect(() => {
-    if (user()?.id) {
-      loadLayout();
-    }
-  });
+	// Load layout when user becomes available
+	createEffect(() => {
+		if (user()?.id) {
+			loadLayout();
+		}
+	});
 
-  onMount(() => {
-    // Initial scale calculation after mount
-    setTimeout(() => {
-      updateScale();
-    }, 0);
+	onMount(() => {
+		// Initial scale calculation after mount
+		setTimeout(() => {
+			updateScale();
+		}, 0);
 
-    window.addEventListener("resize", updateScale);
+		window.addEventListener("resize", updateScale);
 
-    // Listen for widget add events from palette
-    const handleAddWidget = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      addWidget(customEvent.detail.widgetType);
-    };
-    window.addEventListener("add-widget", handleAddWidget);
+		// Listen for widget add events from palette
+		const handleAddWidget = (e: Event) => {
+			const customEvent = e as CustomEvent;
+			addWidget(customEvent.detail.widgetType);
+		};
+		window.addEventListener("add-widget", handleAddWidget);
 
-    return () => {
-      window.removeEventListener("resize", updateScale);
-      window.removeEventListener("add-widget", handleAddWidget);
-    };
-  });
+		return () => {
+			window.removeEventListener("resize", updateScale);
+			window.removeEventListener("add-widget", handleAddWidget);
+		};
+	});
 
-  // Recalculate scale whenever canvasRef is set or canvasMaximized changes
-  createEffect(() => {
-    const canvas = canvasRef();
-    if (canvas) {
-      // Track canvasMaximized to trigger recalculation when it changes
-      canvasMaximized();
+	// Recalculate scale whenever canvasRef is set or canvasMaximized changes
+	createEffect(() => {
+		const canvas = canvasRef();
+		if (canvas) {
+			// Track canvasMaximized to trigger recalculation when it changes
+			canvasMaximized();
 
-      const container = canvas.parentElement;
-      if (!container) return;
+			const container = canvas.parentElement;
+			if (!container) return;
 
-      // Use ResizeObserver to detect when container is sized
-      const resizeObserver = new ResizeObserver(() => {
-        updateScale();
-      });
-      resizeObserver.observe(container);
+			// Use ResizeObserver to detect when container is sized
+			const resizeObserver = new ResizeObserver(() => {
+				updateScale();
+			});
+			resizeObserver.observe(container);
 
-      // Try immediate update
-      updateScale();
+			// Try immediate update
+			updateScale();
 
-      // Also try with RAF as fallback
-      requestAnimationFrame(() => {
-        updateScale();
-        requestAnimationFrame(() => {
-          updateScale();
-        });
-      });
+			// Also try with RAF as fallback
+			requestAnimationFrame(() => {
+				updateScale();
+				requestAnimationFrame(() => {
+					updateScale();
+				});
+			});
 
-      // And setTimeout as additional fallback
-      setTimeout(() => {
-        updateScale();
-      }, 0);
+			// And setTimeout as additional fallback
+			setTimeout(() => {
+				updateScale();
+			}, 0);
 
-      setTimeout(() => {
-        updateScale();
-      }, 100);
+			setTimeout(() => {
+				updateScale();
+			}, 100);
 
-      // Cleanup
-      return () => {
-        resizeObserver.disconnect();
-      };
-    }
-  });
+			// Cleanup
+			return () => {
+				resizeObserver.disconnect();
+			};
+		}
+	});
 
-  const obsUrl = () => {
-    if (!user()?.id) return "";
-    return `${window.location.origin}/w/smart-canvas/${user()!.id}`;
-  };
+	const obsUrl = () => {
+		if (!user()?.id) return "";
+		return `${window.location.origin}/w/smart-canvas/${user()?.id}`;
+	};
 
-  return (
-    <>
-      <Title>Smart Canvas - Streampai</Title>
-      <Show when={user()}>
-        <>
-          <div class="space-y-6">
-            <div class={card.default}>
-              <h1 class={text.h1}>Smart Canvas</h1>
-              <p class={text.muted + " mt-2"}>
-                Compose your stream overlay with interactive widgets. Click widgets from the palette to add them to the canvas.
-              </p>
-            </div>
+	return (
+		<>
+			<Title>Smart Canvas - Streampai</Title>
+			<Show when={user()}>
+				<div class="space-y-6">
+					<div class={card.default}>
+						<h1 class={text.h1}>Smart Canvas</h1>
+						<p class={`${text.muted} mt-2`}>
+							Compose your stream overlay with interactive widgets. Click
+							widgets from the palette to add them to the canvas.
+						</p>
+					</div>
 
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-              <div class="flex items-start gap-3">
-                <div class="shrink-0 text-blue-600">ℹ️</div>
-                <div class="flex-1">
-                  <h3 class="font-semibold text-gray-900 mb-1">OBS Browser Source URL</h3>
-                  <p class="text-sm text-gray-600 mb-2">
-                    Copy this URL and add it as a Browser Source in OBS (set to 1920x1080):
-                  </p>
-                  <div class="flex gap-2">
-                    <input
-                      type="text"
-                      readonly
-                      value={obsUrl()}
-                      class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white font-mono"
-                    />
-                    <button
-                      class={button.primary}
-                      onClick={() => {
-                        navigator.clipboard.writeText(obsUrl());
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+					<div class="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+						<div class="flex items-start gap-3">
+							<div class="shrink-0 text-blue-600">ℹ️</div>
+							<div class="flex-1">
+								<h3 class="mb-1 font-semibold text-gray-900">
+									OBS Browser Source URL
+								</h3>
+								<p class="mb-2 text-gray-600 text-sm">
+									Copy this URL and add it as a Browser Source in OBS (set to
+									1920x1080):
+								</p>
+								<div class="flex gap-2">
+									<input
+										type="text"
+										readonly
+										value={obsUrl()}
+										class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-sm"
+									/>
+									<button
+										type="button"
+										class={button.primary}
+										onClick={() => {
+											navigator.clipboard.writeText(obsUrl());
+										}}
+									>
+										Copy
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
 
-            <div class={card.default}>
-              <div class="flex items-center justify-between">
-                <div class="flex gap-2">
-                  <button
-                    class={layoutSaved() ? "px-4 py-2 bg-green-600 text-white rounded-lg" : button.primary}
-                    onClick={saveLayout}
-                  >
-                    {layoutSaved() ? "✓ Layout Saved" : "Save Layout"}
-                  </button>
-                  <button class={button.secondary} onClick={clearWidgets}>
-                    Clear All
-                  </button>
-                  <button
-                    class={button.ghost}
-                    onClick={() => setCanvasMaximized(!canvasMaximized())}
-                  >
-                    {canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
-                  </button>
-                </div>
-                <div class="text-sm text-gray-600">
-                  Widgets: {widgets().length}
-                </div>
-              </div>
-            </div>
+					<div class={card.default}>
+						<div class="flex items-center justify-between">
+							<div class="flex gap-2">
+								<button
+									type="button"
+									class={
+										layoutSaved()
+											? "rounded-lg bg-green-600 px-4 py-2 text-white"
+											: button.primary
+									}
+									onClick={saveLayout}
+								>
+									{layoutSaved() ? "✓ Layout Saved" : "Save Layout"}
+								</button>
+								<button
+									type="button"
+									class={button.secondary}
+									onClick={clearWidgets}
+								>
+									Clear All
+								</button>
+								<button
+									type="button"
+									class={button.ghost}
+									onClick={() => setCanvasMaximized(!canvasMaximized())}
+								>
+									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
+								</button>
+							</div>
+							<div class="text-gray-600 text-sm">
+								Widgets: {widgets().length}
+							</div>
+						</div>
+					</div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div class="lg:col-span-1">
-                <div class={card.default + " overflow-y-auto max-h-[700px]"}>
-                  <h3 class={text.h3 + " mb-4"}>Widget Palette</h3>
-                  <p class="text-sm text-gray-600 mb-4">Click a widget to add it to the canvas</p>
-                  <div class="space-y-2">
-                    <For each={AVAILABLE_WIDGETS}>
-                      {(widgetDef) => <PaletteWidgetItem widgetDef={widgetDef} />}
-                    </For>
-                  </div>
-                </div>
-              </div>
+					<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+						<div class="lg:col-span-1">
+							<div class={`${card.default} max-h-[700px] overflow-y-auto`}>
+								<h3 class={`${text.h3} mb-4`}>Widget Palette</h3>
+								<p class="mb-4 text-gray-600 text-sm">
+									Click a widget to add it to the canvas
+								</p>
+								<div class="space-y-2">
+									<For each={AVAILABLE_WIDGETS}>
+										{(widgetDef) => <PaletteWidgetItem widgetDef={widgetDef} />}
+									</For>
+								</div>
+							</div>
+						</div>
 
-              <div class="lg:col-span-3">
-                <div
-                  class={card.default + " bg-gray-900 p-4"}
-                  classList={{
-                    "!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
-                  }}
-                >
-                  <Show when={canvasMaximized()}>
-                    <button
-                      class="absolute top-4 right-4 z-50 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
-                      onClick={() => setCanvasMaximized(false)}
-                    >
-                      ✕
-                    </button>
-                  </Show>
+						<div class="lg:col-span-3">
+							<div
+								class={`${card.default} bg-gray-900 p-4`}
+								classList={{
+									"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
+								}}
+							>
+								<Show when={canvasMaximized()}>
+									<button
+										type="button"
+										class="absolute top-4 right-4 z-50 rounded-lg bg-gray-800 p-2 text-white hover:bg-gray-700"
+										onClick={() => setCanvasMaximized(false)}
+									>
+										✕
+									</button>
+								</Show>
 
-                  <div class="text-sm text-gray-400 mb-2" classList={{ "hidden": canvasMaximized() }}>
-                    Canvas: 1920x1080 (16:9)
-                  </div>
+								<div
+									class="mb-2 text-gray-400 text-sm"
+									classList={{ hidden: canvasMaximized() }}
+								>
+									Canvas: 1920x1080 (16:9)
+								</div>
 
-                  <div
-                    class="w-full"
-                    style={{
-                      "aspect-ratio": "16/9",
-                      "max-height": canvasMaximized() ? "100vh" : "650px",
-                    }}
-                  >
-                    <div class="relative w-full h-full">
-                      <div
-                        ref={setCanvasRef}
-                        class="absolute bg-gray-950 border-2 border-gray-700 rounded-lg overflow-hidden"
-                        style={{
-                          width: "1920px",
-                          height: "1080px",
-                          "transform-origin": "top left",
-                          transform: `scale(${scale()})`,
-                          background: "linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
-                          "background-size": "50px 50px",
-                        }}
-                        onClick={() => setSelectedWidgetId(null)}
-                      >
-                        <For each={widgets()}>
-                          {(widget) => (
-                            <CanvasWidgetComponent
-                              widget={widget}
-                              selectedWidgetId={selectedWidgetId()}
-                              onSelect={setSelectedWidgetId}
-                              onDelete={deleteWidget}
-                              onUpdatePosition={updateWidgetPosition}
-                              onUpdateSize={updateWidgetSize}
-                              scale={scale()}
-                              setIsResizing={setIsResizing}
-                            />
-                          )}
-                        </For>
+								<div
+									class="w-full"
+									style={{
+										"aspect-ratio": "16/9",
+										"max-height": canvasMaximized() ? "100vh" : "650px",
+									}}
+								>
+									<div class="relative h-full w-full">
+										<div
+											role="application"
+											ref={setCanvasRef}
+											class="absolute overflow-hidden rounded-lg border-2 border-gray-700 bg-gray-950"
+											style={{
+												width: "1920px",
+												height: "1080px",
+												"transform-origin": "top left",
+												transform: `scale(${scale()})`,
+												background:
+													"linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+												"background-size": "50px 50px",
+											}}
+											onClick={() => setSelectedWidgetId(null)}
+											onKeyDown={(e) => {
+												if (e.key === "Escape") {
+													setSelectedWidgetId(null);
+												}
+											}}
+										>
+											<For each={widgets()}>
+												{(widget) => (
+													<CanvasWidgetComponent
+														widget={widget}
+														selectedWidgetId={selectedWidgetId()}
+														onSelect={setSelectedWidgetId}
+														onDelete={deleteWidget}
+														onUpdatePosition={updateWidgetPosition}
+														onUpdateSize={updateWidgetSize}
+														scale={scale()}
+														setIsResizing={setIsResizing}
+													/>
+												)}
+											</For>
 
-                        <Show when={widgets().length === 0}>
-                          <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                            <div class="text-6xl mb-4">🎨</div>
-                            <h3 class="text-xl font-semibold mb-2">No Widgets Yet</h3>
-                            <p class="text-sm">Click widgets from the palette to get started</p>
-                          </div>
-                        </Show>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      </Show>
-    </>
-  );
+											<Show when={widgets().length === 0}>
+												<div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+													<div class="mb-4 text-6xl">🎨</div>
+													<h3 class="mb-2 font-semibold text-xl">
+														No Widgets Yet
+													</h3>
+													<p class="text-sm">
+														Click widgets from the palette to get started
+													</p>
+												</div>
+											</Show>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</Show>
+		</>
+	);
 }

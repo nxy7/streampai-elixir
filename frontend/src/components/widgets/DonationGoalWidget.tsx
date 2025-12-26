@@ -1,111 +1,127 @@
-import { Show, For, createSignal, createMemo, onMount, onCleanup } from "solid-js";
+import {
+	createMemo,
+	createSignal,
+	For,
+	onCleanup,
+	onMount,
+	Show,
+} from "solid-js";
 
 interface DonationEvent {
-  id: string;
-  amount: number;
-  currency: string;
-  username: string;
-  timestamp: Date;
+	id: string;
+	amount: number;
+	currency: string;
+	username: string;
+	timestamp: Date;
 }
 
 interface FloatingBubble {
-  id: string;
-  amount: number;
-  currency: string;
-  x: number;
-  y: number;
+	id: string;
+	amount: number;
+	currency: string;
+	x: number;
+	y: number;
 }
 
 interface DonationGoalConfig {
-  goalAmount: number;
-  startingAmount: number;
-  currency: string;
-  startDate: string;
-  endDate: string;
-  title: string;
-  showPercentage: boolean;
-  showAmountRaised: boolean;
-  showDaysLeft: boolean;
-  theme: 'default' | 'minimal' | 'modern';
-  barColor: string;
-  backgroundColor: string;
-  textColor: string;
-  animationEnabled: boolean;
+	goalAmount: number;
+	startingAmount: number;
+	currency: string;
+	startDate: string;
+	endDate: string;
+	title: string;
+	showPercentage: boolean;
+	showAmountRaised: boolean;
+	showDaysLeft: boolean;
+	theme: "default" | "minimal" | "modern";
+	barColor: string;
+	backgroundColor: string;
+	textColor: string;
+	animationEnabled: boolean;
 }
 
 interface DonationGoalWidgetProps {
-  config: DonationGoalConfig;
-  currentAmount: number;
-  donation?: DonationEvent | null;
+	config: DonationGoalConfig;
+	currentAmount: number;
+	donation?: DonationEvent | null;
 }
 
 export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
-  const [floatingBubbles, setFloatingBubbles] = createSignal<FloatingBubble[]>([]);
-  const [lastDonationId, setLastDonationId] = createSignal<string | null>(null);
+	const [floatingBubbles, setFloatingBubbles] = createSignal<FloatingBubble[]>(
+		[],
+	);
+	const [lastDonationId, setLastDonationId] = createSignal<string | null>(null);
 
-  const progressPercentage = createMemo(() => {
-    const total = props.currentAmount || props.config.startingAmount || 0;
-    const goal = props.config.goalAmount || 1000;
-    return Math.min((total / goal) * 100, 100);
-  });
+	const progressPercentage = createMemo(() => {
+		const total = props.currentAmount || props.config.startingAmount || 0;
+		const goal = props.config.goalAmount || 1000;
+		return Math.min((total / goal) * 100, 100);
+	});
 
-  const formattedGoal = createMemo(() => {
-    const currency = props.config.currency || '$';
-    const amount = props.config.goalAmount || 1000;
-    return `${currency}${amount.toLocaleString()}`;
-  });
+	const formattedGoal = createMemo(() => {
+		const currency = props.config.currency || "$";
+		const amount = props.config.goalAmount || 1000;
+		return `${currency}${amount.toLocaleString()}`;
+	});
 
-  const formattedCurrent = createMemo(() => {
-    const currency = props.config.currency || '$';
-    const amount = props.currentAmount || props.config.startingAmount || 0;
-    return `${currency}${amount.toLocaleString()}`;
-  });
+	const formattedCurrent = createMemo(() => {
+		const currency = props.config.currency || "$";
+		const amount = props.currentAmount || props.config.startingAmount || 0;
+		return `${currency}${amount.toLocaleString()}`;
+	});
 
-  const daysLeft = createMemo(() => {
-    if (!props.config.endDate) return null;
-    const end = new Date(props.config.endDate);
-    const now = new Date();
-    const diff = end.getTime() - now.getTime();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 0;
-  });
+	const daysLeft = createMemo(() => {
+		if (!props.config.endDate) return null;
+		const end = new Date(props.config.endDate);
+		const now = new Date();
+		const diff = end.getTime() - now.getTime();
+		const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+		return days > 0 ? days : 0;
+	});
 
-  const themeClasses = createMemo(() => {
-    switch (props.config.theme) {
-      case 'minimal': return 'theme-minimal';
-      case 'modern': return 'theme-modern';
-      default: return 'theme-default';
-    }
-  });
+	const themeClasses = createMemo(() => {
+		switch (props.config.theme) {
+			case "minimal":
+				return "theme-minimal";
+			case "modern":
+				return "theme-modern";
+			default:
+				return "theme-default";
+		}
+	});
 
-  onMount(() => {
-    let timeoutId: number | undefined;
+	onMount(() => {
+		let timeoutId: number | undefined;
 
-    if (props.donation && props.config.animationEnabled && props.donation.id !== lastDonationId()) {
-      setLastDonationId(props.donation.id);
-      const bubble: FloatingBubble = {
-        id: props.donation.id,
-        amount: props.donation.amount,
-        currency: props.donation.currency || props.config.currency || '$',
-        x: Math.random() * 80 + 10,
-        y: 0
-      };
-      setFloatingBubbles([...floatingBubbles(), bubble]);
-      timeoutId = setTimeout(() => {
-        setFloatingBubbles(floatingBubbles().filter(b => b.id !== bubble.id));
-      }, 4000) as any;
-    }
+		if (
+			props.donation &&
+			props.config.animationEnabled &&
+			props.donation.id !== lastDonationId()
+		) {
+			setLastDonationId(props.donation.id);
+			const bubble: FloatingBubble = {
+				id: props.donation.id,
+				amount: props.donation.amount,
+				currency: props.donation.currency || props.config.currency || "$",
+				x: Math.random() * 80 + 10,
+				y: 0,
+			};
+			setFloatingBubbles([...floatingBubbles(), bubble]);
+			timeoutId = window.setTimeout(() => {
+				setFloatingBubbles(floatingBubbles().filter((b) => b.id !== bubble.id));
+			}, 4000);
+		}
 
-    onCleanup(() => {
-      if (timeoutId !== undefined) {
-        clearTimeout(timeoutId);
-      }
-    });
-  });
+		onCleanup(() => {
+			if (timeoutId !== undefined) {
+				clearTimeout(timeoutId);
+			}
+		});
+	});
 
-  return (
-    <div class="widget-container" style={{ width: "100%", height: "100%" }}>
-      <style>{`
+	return (
+		<div class="widget-container" style={{ width: "100%", height: "100%" }}>
+			<style>{`
         .donation-goal-widget {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
           padding: 1.5rem;
@@ -172,134 +188,211 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
         }
       `}</style>
 
-      <div
-        class={`donation-goal-widget ${themeClasses()}`}
-        style={{
-          "--bar-color": props.config.barColor || '#10b981',
-          "--bg-color": props.config.backgroundColor || '#e5e7eb',
-          "--text-color": props.config.textColor || '#1f2937',
-          color: props.config.textColor || '#1f2937'
-        }}
-      >
-        <Show when={props.config.title}>
-          <div class="widget-title" style={{ position: "relative", "text-align": "center", "margin-bottom": "1rem", overflow: "hidden", "flex-shrink": "0" }}>
-            <span class="title-text" style={{ color: props.config.textColor }}>{props.config.title}</span>
-          </div>
-        </Show>
+			<div
+				class={`donation-goal-widget ${themeClasses()}`}
+				style={{
+					"--bar-color": props.config.barColor || "#10b981",
+					"--bg-color": props.config.backgroundColor || "#e5e7eb",
+					"--text-color": props.config.textColor || "#1f2937",
+					color: props.config.textColor || "#1f2937",
+				}}
+			>
+				<Show when={props.config.title}>
+					<div
+						class="widget-title"
+						style={{
+							position: "relative",
+							"text-align": "center",
+							"margin-bottom": "1rem",
+							overflow: "hidden",
+							"flex-shrink": "0",
+						}}
+					>
+						<span class="title-text" style={{ color: props.config.textColor }}>
+							{props.config.title}
+						</span>
+					</div>
+				</Show>
 
-        <div class="progress-section" style={{ position: "relative" }}>
-          <div class="progress-container" style={{ position: "relative", "margin-bottom": "1rem" }}>
-            <div class="progress-labels" style={{ display: "flex", "justify-content": "space-between", "margin-bottom": "0.75rem", "font-weight": "600" }}>
-              <Show when={props.config.showAmountRaised}>
-                <div class="current-amount" style={{ color: props.config.barColor, "font-size": "1.1rem", "font-weight": "800", "text-shadow": "0 1px 2px rgba(0, 0, 0, 0.1)" }}>
-                  {formattedCurrent()}
-                </div>
-              </Show>
-              <div class="goal-amount" style={{ color: `color-mix(in srgb, ${props.config.textColor} 70%, transparent)`, "font-size": "1rem" }}>
-                {formattedGoal()}
-              </div>
-            </div>
+				<div class="progress-section" style={{ position: "relative" }}>
+					<div
+						class="progress-container"
+						style={{ position: "relative", "margin-bottom": "1rem" }}
+					>
+						<div
+							class="progress-labels"
+							style={{
+								display: "flex",
+								"justify-content": "space-between",
+								"margin-bottom": "0.75rem",
+								"font-weight": "600",
+							}}
+						>
+							<Show when={props.config.showAmountRaised}>
+								<div
+									class="current-amount"
+									style={{
+										color: props.config.barColor,
+										"font-size": "1.1rem",
+										"font-weight": "800",
+										"text-shadow": "0 1px 2px rgba(0, 0, 0, 0.1)",
+									}}
+								>
+									{formattedCurrent()}
+								</div>
+							</Show>
+							<div
+								class="goal-amount"
+								style={{
+									color: `color-mix(in srgb, ${props.config.textColor} 70%, transparent)`,
+									"font-size": "1rem",
+								}}
+							>
+								{formattedGoal()}
+							</div>
+						</div>
 
-            <div class="progress-track">
-              <div class="progress-background">
-                <div class="progress-texture"></div>
-              </div>
-              <div class="progress-bar" style={{ width: `${progressPercentage()}%` }}>
-                <Show when={props.config.animationEnabled}>
-                  <div style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "-100%",
-                    width: "100%",
-                    height: "100%",
-                    background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent)",
-                    animation: "shimmer 3s infinite",
-                    "border-radius": "1.25rem"
-                  }}></div>
-                </Show>
-                <div style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: "40%",
-                  background: "linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent)",
-                  "border-radius": "1.25rem 1.25rem 0 0"
-                }}></div>
-              </div>
+						<div class="progress-track">
+							<div class="progress-background">
+								<div class="progress-texture"></div>
+							</div>
+							<div
+								class="progress-bar"
+								style={{ width: `${progressPercentage()}%` }}
+							>
+								<Show when={props.config.animationEnabled}>
+									<div
+										style={{
+											position: "absolute",
+											top: 0,
+											left: "-100%",
+											width: "100%",
+											height: "100%",
+											background:
+												"linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent)",
+											animation: "shimmer 3s infinite",
+											"border-radius": "1.25rem",
+										}}
+									></div>
+								</Show>
+								<div
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										right: 0,
+										height: "40%",
+										background:
+											"linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent)",
+										"border-radius": "1.25rem 1.25rem 0 0",
+									}}
+								></div>
+							</div>
 
-              <Show when={props.config.showPercentage}>
-                <div style={{
-                  position: "absolute",
-                  top: "-45px",
-                  left: `${Math.min(progressPercentage(), 95)}%`,
-                  transform: "translateX(-50%)",
-                  "z-index": "20"
-                }}>
-                  <div style={{
-                    background: props.config.barColor,
-                    color: "white",
-                    padding: "0.5rem 0.75rem",
-                    "border-radius": "1rem",
-                    "font-size": "0.875rem",
-                    "font-weight": "700",
-                    "white-space": "nowrap",
-                    "box-shadow": "0 4px 12px rgba(0, 0, 0, 0.15)",
-                    position: "relative"
-                  }}>
-                    {Math.round(progressPercentage())}%
-                  </div>
-                </div>
-              </Show>
-            </div>
+							<Show when={props.config.showPercentage}>
+								<div
+									style={{
+										position: "absolute",
+										top: "-45px",
+										left: `${Math.min(progressPercentage(), 95)}%`,
+										transform: "translateX(-50%)",
+										"z-index": "20",
+									}}
+								>
+									<div
+										style={{
+											background: props.config.barColor,
+											color: "white",
+											padding: "0.5rem 0.75rem",
+											"border-radius": "1rem",
+											"font-size": "0.875rem",
+											"font-weight": "700",
+											"white-space": "nowrap",
+											"box-shadow": "0 4px 12px rgba(0, 0, 0, 0.15)",
+											position: "relative",
+										}}
+									>
+										{Math.round(progressPercentage())}%
+									</div>
+								</div>
+							</Show>
+						</div>
 
-            <For each={floatingBubbles()}>
-              {(bubble) => (
-                <div class="floating-bubble" style={{ left: `${bubble.x}%`, bottom: "0" }}>
-                  <div style={{
-                    display: "flex",
-                    "align-items": "center",
-                    background: `linear-gradient(135deg, ${props.config.barColor}, color-mix(in srgb, ${props.config.barColor} 80%, white))`,
-                    color: "white",
-                    padding: "0.5rem 1rem",
-                    "border-radius": "2rem",
-                    "font-weight": "800",
-                    "font-size": "0.875rem",
-                    "white-space": "nowrap",
-                    "box-shadow": "0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-                    position: "relative",
-                    "z-index": "2"
-                  }}>
-                    <span style={{ "font-size": "1.1rem", "margin-right": "0.25rem" }}>+</span>
-                    <span style={{ "font-weight": "900" }}>{bubble.currency}{bubble.amount.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-            </For>
-          </div>
+						<For each={floatingBubbles()}>
+							{(bubble) => (
+								<div
+									class="floating-bubble"
+									style={{ left: `${bubble.x}%`, bottom: "0" }}
+								>
+									<div
+										style={{
+											display: "flex",
+											"align-items": "center",
+											background: `linear-gradient(135deg, ${props.config.barColor}, color-mix(in srgb, ${props.config.barColor} 80%, white))`,
+											color: "white",
+											padding: "0.5rem 1rem",
+											"border-radius": "2rem",
+											"font-weight": "800",
+											"font-size": "0.875rem",
+											"white-space": "nowrap",
+											"box-shadow":
+												"0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
+											position: "relative",
+											"z-index": "2",
+										}}
+									>
+										<span
+											style={{
+												"font-size": "1.1rem",
+												"margin-right": "0.25rem",
+											}}
+										>
+											+
+										</span>
+										<span style={{ "font-weight": "900" }}>
+											{bubble.currency}
+											{bubble.amount.toFixed(2)}
+										</span>
+									</div>
+								</div>
+							)}
+						</For>
+					</div>
 
-          <div class="stats-container" style={{ display: "flex", "justify-content": "center", gap: "1rem", "flex-wrap": "wrap", "margin-top": "1rem" }}>
-            <Show when={props.config.showDaysLeft && daysLeft() !== null}>
-              <div class="days-left-subtle" style={{
-                "font-size": "0.875rem",
-                color: `color-mix(in srgb, ${props.config.textColor} 50%, transparent)`,
-                "text-align": "center",
-                "font-weight": "500",
-                "margin-top": "0.5rem"
-              }}>
-                {daysLeft()} days left
-              </div>
-            </Show>
-          </div>
-        </div>
-      </div>
+					<div
+						class="stats-container"
+						style={{
+							display: "flex",
+							"justify-content": "center",
+							gap: "1rem",
+							"flex-wrap": "wrap",
+							"margin-top": "1rem",
+						}}
+					>
+						<Show when={props.config.showDaysLeft && daysLeft() !== null}>
+							<div
+								class="days-left-subtle"
+								style={{
+									"font-size": "0.875rem",
+									color: `color-mix(in srgb, ${props.config.textColor} 50%, transparent)`,
+									"text-align": "center",
+									"font-weight": "500",
+									"margin-top": "0.5rem",
+								}}
+							>
+								{daysLeft()} days left
+							</div>
+						</Show>
+					</div>
+				</div>
+			</div>
 
-      <style>{`
+			<style>{`
         @keyframes shimmer {
           0% { left: -100%; }
           100% { left: 200%; }
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }

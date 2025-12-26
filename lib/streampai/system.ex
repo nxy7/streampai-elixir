@@ -9,5 +9,6 @@ defmodule Streampai.System do
 
   resources do
     resource Streampai.System.FeatureFlag
+    resource Streampai.System.ActorState
   end
 end

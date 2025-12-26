@@ -12,6 +12,18 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"tailwindDirectives": true
+		},
+		"linter": {
+			"enabled": false
+		},
+		"formatter": {
+			"enabled": false
+		}
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {
@@ -21,6 +33,27 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["**/*.stories.tsx"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noSvgWithoutTitle": "off"
+					},
+					"suspicious": {
+						"noShadowRestrictedNames": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/sdk/**"],
+			"linter": {
+				"enabled": false
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"

@@ -1,29 +1,29 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js",
-    "allowJs": true,
-    "noEmit": true,
-    "strict": true,
-    "types": ["vinxi/types/client"],
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "paths": {
-      "~/*": ["./src/*"]
-    },
-    "plugins": [
-      {
-        "name": "gql.tada/ts-plugin",
-        "schema": "./schema.graphql",
-        "tadaOutputLocation": "./src/graphql-env.d.ts"
-      }
-    ]
-  },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
+		"allowJs": true,
+		"noEmit": true,
+		"strict": true,
+		"types": ["vinxi/types/client"],
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"paths": {
+			"~/*": ["./src/*"]
+		},
+		"plugins": [
+			{
+				"name": "gql.tada/ts-plugin",
+				"schema": "./schema.graphql",
+				"tadaOutputLocation": "./src/graphql-env.d.ts"
+			}
+		]
+	},
+	"include": ["src"],
+	"exclude": ["node_modules"]
 }

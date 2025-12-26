@@ -1,123 +1,129 @@
 import { For, Show } from "solid-js";
 
 interface Donor {
-  id: string;
-  username: string;
-  amount: number;
-  currency: string;
+	id: string;
+	username: string;
+	amount: number;
+	currency: string;
 }
 
 interface TopDonorsConfig {
-  title: string;
-  topCount: number;
-  fontSize: number;
-  showAmounts: boolean;
-  showRanking: boolean;
-  backgroundColor: string;
-  textColor: string;
-  highlightColor: string;
+	title: string;
+	topCount: number;
+	fontSize: number;
+	showAmounts: boolean;
+	showRanking: boolean;
+	backgroundColor: string;
+	textColor: string;
+	highlightColor: string;
 }
 
 interface TopDonorsWidgetProps {
-  config: TopDonorsConfig;
-  donors: Donor[];
+	config: TopDonorsConfig;
+	donors: Donor[];
 }
 
 export default function TopDonorsWidget(props: TopDonorsWidgetProps) {
-  const displayedDonors = () => {
-    return (props.donors || [])
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, props.config.topCount);
-  };
+	const displayedDonors = () => {
+		return (props.donors || [])
+			.sort((a, b) => b.amount - a.amount)
+			.slice(0, props.config.topCount);
+	};
 
-  const getDonorRankEmoji = (index: number): string => {
-    switch (index) {
-      case 0:
-        return "👑";
-      case 1:
-        return "🥈";
-      case 2:
-        return "🥉";
-      default:
-        return "🎖️";
-    }
-  };
+	const getDonorRankEmoji = (index: number): string => {
+		switch (index) {
+			case 0:
+				return "👑";
+			case 1:
+				return "🥈";
+			case 2:
+				return "🥉";
+			default:
+				return "🎖️";
+		}
+	};
 
-  const getDonorSizeClass = (index: number): string => {
-    switch (index) {
-      case 0:
-        return "top-1";
-      case 1:
-        return "top-2";
-      case 2:
-        return "top-3";
-      default:
-        return "regular";
-    }
-  };
+	const getDonorSizeClass = (index: number): string => {
+		switch (index) {
+			case 0:
+				return "top-1";
+			case 1:
+				return "top-2";
+			case 2:
+				return "top-3";
+			default:
+				return "regular";
+		}
+	};
 
-  const formatAmount = (amount: number, currency: string): string => {
-    return `${currency}${amount.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
+	const formatAmount = (amount: number, currency: string): string => {
+		return `${currency}${amount.toLocaleString("en-US", {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})}`;
+	};
 
-  return (
-    <div
-      class="widget-container"
-      style={{
-        "font-family":
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
-      }}
-    >
-      <div
-        class="top-donors-widget"
-        style={{
-          "--bg-color": props.config.backgroundColor || "#1f2937",
-          "--text-color": props.config.textColor || "#ffffff",
-          "--highlight-color": props.config.highlightColor || "#ffd700",
-          "font-size": `${props.config.fontSize}px`,
-        }}
-      >
-        <div class="widget-title">
-          <div class="title-glow"></div>
-          <span class="title-text">{props.config.title || "🏆 Top Donors"}</span>
-          <div class="title-decoration"></div>
-        </div>
+	return (
+		<div
+			class="widget-container"
+			style={{
+				"font-family":
+					"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
+			}}
+		>
+			<div
+				class="top-donors-widget"
+				style={{
+					"--bg-color": props.config.backgroundColor || "#1f2937",
+					"--text-color": props.config.textColor || "#ffffff",
+					"--highlight-color": props.config.highlightColor || "#ffd700",
+					"font-size": `${props.config.fontSize}px`,
+				}}
+			>
+				<div class="widget-title">
+					<div class="title-glow"></div>
+					<span class="title-text">
+						{props.config.title || "🏆 Top Donors"}
+					</span>
+					<div class="title-decoration"></div>
+				</div>
 
-        <div class="donors-list">
-          <div class="donors-container">
-            <For each={displayedDonors()}>
-              {(donor, index) => (
-                <div
-                  class={`donor-item ${getDonorSizeClass(index())} ${index() === 2 ? "last-podium" : ""}`}
-                >
-                  <Show when={props.config.showRanking}>
-                    <div class="donor-rank">
-                      <span class="rank-emoji">{getDonorRankEmoji(index())}</span>
-                      <span class="rank-number">{index() + 1}</span>
-                    </div>
-                  </Show>
+				<div class="donors-list">
+					<div class="donors-container">
+						<For each={displayedDonors()}>
+							{(donor, index) => (
+								<div
+									class={`donor-item ${getDonorSizeClass(index())} ${index() === 2 ? "last-podium" : ""}`}
+								>
+									<Show when={props.config.showRanking}>
+										<div class="donor-rank">
+											<span class="rank-emoji">
+												{getDonorRankEmoji(index())}
+											</span>
+											<span class="rank-number">{index() + 1}</span>
+										</div>
+									</Show>
 
-                  <div class="donor-info">
-                    <div class="donor-name">{donor.username}</div>
-                    <Show when={props.config.showAmounts}>
-                      <div class="donor-amount">{formatAmount(donor.amount, donor.currency)}</div>
-                    </Show>
-                  </div>
+									<div class="donor-info">
+										<div class="donor-name">{donor.username}</div>
+										<Show when={props.config.showAmounts}>
+											<div class="donor-amount">
+												{formatAmount(donor.amount, donor.currency)}
+											</div>
+										</Show>
+									</div>
 
-                  <Show when={index() < 3}>
-                    <div class="donor-glow"></div>
-                  </Show>
-                </div>
-              )}
-            </For>
-          </div>
-        </div>
-      </div>
+									<Show when={index() < 3}>
+										<div class="donor-glow"></div>
+									</Show>
+								</div>
+							)}
+						</For>
+					</div>
+				</div>
+			</div>
 
-      <style>{`
+			<style>{`
         .widget-container {
           width: 100%;
           height: 100%;
@@ -379,6 +385,6 @@ export default function TopDonorsWidget(props: TopDonorsWidgetProps) {
           }
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }

@@ -1,5 +1,5 @@
-import { Socket, Channel, Presence } from "phoenix";
-import { createSignal, onCleanup, createEffect, Accessor } from "solid-js";
+import { type Channel, Presence, Socket } from "phoenix";
+import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
 import { BACKEND_URL } from "./constants";
 
 // Socket singleton
@@ -20,33 +20,33 @@ let currentPresenceUsers: PresenceUser[] = [];
  * don't work cross-origin for WebSocket connections.
  */
 async function fetchSocketToken(): Promise<string | null> {
-  try {
-    const response = await fetch(`${BACKEND_URL}/rpc/socket-token`, {
-      credentials: "include",
-    });
-    const data = await response.json();
-    return data.token || null;
-  } catch (error) {
-    console.error("[Socket] Failed to fetch socket token:", error);
-    return null;
-  }
+	try {
+		const response = await fetch(`${BACKEND_URL}/rpc/socket-token`, {
+			credentials: "include",
+		});
+		const data = await response.json();
+		return data.token || null;
+	} catch (error) {
+		console.error("[Socket] Failed to fetch socket token:", error);
+		return null;
+	}
 }
 
 /**
  * Get the socket token, fetching it if necessary.
  */
 async function getSocketToken(): Promise<string | null> {
-  if (socketToken) return socketToken;
+	if (socketToken) return socketToken;
 
-  if (!tokenFetchPromise) {
-    tokenFetchPromise = fetchSocketToken().then((token) => {
-      socketToken = token;
-      tokenFetchPromise = null;
-      return token;
-    });
-  }
+	if (!tokenFetchPromise) {
+		tokenFetchPromise = fetchSocketToken().then((token) => {
+			socketToken = token;
+			tokenFetchPromise = null;
+			return token;
+		});
+	}
 
-  return tokenFetchPromise;
+	return tokenFetchPromise;
 }
 
 /**
@@ -54,17 +54,17 @@ async function getSocketToken(): Promise<string | null> {
  * Uses token-based authentication via params.
  */
 export function getSocket(): Socket {
-  if (!socketInstance) {
-    const wsUrl = BACKEND_URL.replace(/^http/, "ws") + "/socket";
+	if (!socketInstance) {
+		const wsUrl = `${BACKEND_URL.replace(/^http/, "ws")}/socket`;
 
-    socketInstance = new Socket(wsUrl, {
-      params: () => ({ token: socketToken }),
-    });
+		socketInstance = new Socket(wsUrl, {
+			params: () => ({ token: socketToken }),
+		});
 
-    socketInstance.connect();
-  }
+		socketInstance.connect();
+	}
 
-  return socketInstance;
+	return socketInstance;
 }
 
 /**
@@ -72,39 +72,41 @@ export function getSocket(): Socket {
  * Call this once when the app starts or when user logs in.
  */
 export async function initSocket(): Promise<Socket> {
-  // Fetch token first
-  await getSocketToken();
+	// Fetch token first
+	await getSocketToken();
 
-  // Then get/create socket (will use the token we just fetched)
-  return getSocket();
+	// Then get/create socket (will use the token we just fetched)
+	return getSocket();
 }
 
 /**
  * Presence state type
  */
 export interface PresenceUser {
-  id: string;
-  name: string;
-  avatar: string | null;
-  onlineAt: number;
+	id: string;
+	name: string;
+	avatar: string | null;
+	onlineAt: number;
 }
 
 export interface PresenceState {
-  [userId: string]: {
-    metas: Array<{
-      name: string;
-      avatar: string | null;
-      online_at: number;
-      phx_ref: string;
-    }>;
-  };
+	[userId: string]: {
+		metas: Array<{
+			name: string;
+			avatar: string | null;
+			online_at: number;
+			phx_ref: string;
+		}>;
+	};
 }
 
 /**
  * Notify all listeners of presence changes
  */
 function notifyPresenceListeners() {
-  presenceListeners.forEach((listener) => listener(currentPresenceUsers));
+	for (const listener of presenceListeners) {
+		listener(currentPresenceUsers);
+	}
 }
 
 /**
@@ -113,73 +115,71 @@ function notifyPresenceListeners() {
  * Returns a cleanup function to leave the presence channel.
  */
 export async function initPresence(): Promise<() => void> {
-  // Already connected
-  if (presenceChannel) {
-    return () => leavePresence();
-  }
+	// Already connected
+	if (presenceChannel) {
+		return () => leavePresence();
+	}
 
-  const socket = await initSocket();
-  presenceChannel = socket.channel("presence:lobby", {});
+	const socket = await initSocket();
+	presenceChannel = socket.channel("presence:lobby", {});
 
-  // Create presence instance BEFORE joining so it can receive initial state
-  presenceInstance = new Presence(presenceChannel);
-  presenceInstance.onSync(() => {
-    currentPresenceUsers = presenceInstance!.list((id, { metas }) => ({
-      id,
-      name: metas[0]?.name || "Unknown",
-      avatar: metas[0]?.avatar || null,
-      onlineAt: metas[0]?.online_at || 0,
-    }));
-    console.log("[Presence] Synced users:", currentPresenceUsers);
-    notifyPresenceListeners();
-  });
+	// Create presence instance BEFORE joining so it can receive initial state
+	presenceInstance = new Presence(presenceChannel);
+	presenceInstance.onSync(() => {
+		currentPresenceUsers = presenceInstance?.list((id, { metas }) => ({
+			id,
+			name: metas[0]?.name || "Unknown",
+			avatar: metas[0]?.avatar || null,
+			onlineAt: metas[0]?.online_at || 0,
+		}));
+		console.log("[Presence] Synced users:", currentPresenceUsers);
+		notifyPresenceListeners();
+	});
 
-  presenceChannel
-    .join()
-    .receive("ok", () => {
-      console.log("[Presence] Connected to lobby");
-    })
-    .receive("error", (resp) => {
-      console.error("[Presence] Failed to join lobby:", resp);
-    });
+	presenceChannel
+		.join()
+		.receive("ok", () => {
+			console.log("[Presence] Connected to lobby");
+		})
+		.receive("error", (resp) => {
+			console.error("[Presence] Failed to join lobby:", resp);
+		});
 
-  return () => leavePresence();
+	return () => leavePresence();
 }
 
 /**
  * Leave the presence channel (e.g., on logout)
  */
 export function leavePresence() {
-  if (presenceChannel) {
-    presenceChannel.leave();
-    presenceChannel = null;
-    presenceInstance = null;
-    currentPresenceUsers = [];
-    notifyPresenceListeners();
-  }
+	if (presenceChannel) {
+		presenceChannel.leave();
+		presenceChannel = null;
+		presenceInstance = null;
+		currentPresenceUsers = [];
+		notifyPresenceListeners();
+	}
 }
 
 /**
  * Subscribe to presence updates.
  * Returns an unsubscribe function.
  */
-export function subscribeToPresence(
-  listener: PresenceListener
-): () => void {
-  presenceListeners.add(listener);
-  // Immediately call with current state
-  listener(currentPresenceUsers);
+export function subscribeToPresence(listener: PresenceListener): () => void {
+	presenceListeners.add(listener);
+	// Immediately call with current state
+	listener(currentPresenceUsers);
 
-  return () => {
-    presenceListeners.delete(listener);
-  };
+	return () => {
+		presenceListeners.delete(listener);
+	};
 }
 
 /**
  * Get current presence users (non-reactive)
  */
 export function getPresenceUsers(): PresenceUser[] {
-  return currentPresenceUsers;
+	return currentPresenceUsers;
 }
 
 /**
@@ -188,92 +188,96 @@ export function getPresenceUsers(): PresenceUser[] {
  * Uses the app-level presence singleton.
  */
 export function usePresence() {
-  const [users, setUsers] = createSignal<PresenceUser[]>(currentPresenceUsers);
+	const [users, setUsers] = createSignal<PresenceUser[]>(currentPresenceUsers);
 
-  // Subscribe to presence updates
-  const unsubscribe = subscribeToPresence((newUsers) => {
-    setUsers(newUsers);
-  });
+	// Subscribe to presence updates
+	const unsubscribe = subscribeToPresence((newUsers) => {
+		setUsers(newUsers);
+	});
 
-  onCleanup(unsubscribe);
+	onCleanup(unsubscribe);
 
-  return { users };
+	return { users };
 }
 
 /**
  * Parse presence state into PresenceUser array
  */
-function parsePresenceList(presence: Presence, nameField = "name", timeField = "online_at"): PresenceUser[] {
-  return presence.list((id, { metas }) => ({
-    id,
-    name: metas[0]?.[nameField] || "Anonymous",
-    avatar: metas[0]?.avatar || null,
-    onlineAt: metas[0]?.[timeField] || 0,
-  }));
+function parsePresenceList(
+	presence: Presence,
+	nameField = "name",
+	timeField = "online_at",
+): PresenceUser[] {
+	return presence.list((id, { metas }) => ({
+		id,
+		name: metas[0]?.[nameField] || "Anonymous",
+		avatar: metas[0]?.avatar || null,
+		onlineAt: metas[0]?.[timeField] || 0,
+	}));
 }
 
 /**
  * Hook for subscribing to stream-specific presence (viewer tracking).
  */
 export function useStreamPresence(streamId: Accessor<string | undefined>) {
-  const [viewers, setViewers] = createSignal<PresenceUser[]>([]);
-  const [isConnected, setIsConnected] = createSignal(false);
+	const [viewers, setViewers] = createSignal<PresenceUser[]>([]);
+	const [isConnected, setIsConnected] = createSignal(false);
 
-  let channel: Channel | null = null;
-  let presence: Presence | null = null;
+	let channel: Channel | null = null;
+	let presence: Presence | null = null;
 
-  const syncPresence = () => {
-    if (!presence) return;
-    setViewers(parsePresenceList(presence, "name", "joined_at"));
-  };
+	const syncPresence = () => {
+		if (!presence) return;
+		setViewers(parsePresenceList(presence, "name", "joined_at"));
+	};
 
-  createEffect(() => {
-    const id = streamId();
-    if (!id) return;
+	createEffect(() => {
+		const id = streamId();
+		if (!id) return;
 
-    channel?.leave();
+		channel?.leave();
 
-    const socket = getSocket();
-    channel = socket.channel(`presence:stream:${id}`, {});
+		const socket = getSocket();
+		channel = socket.channel(`presence:stream:${id}`, {});
 
-    channel
-      .join()
-      .receive("ok", () => {
-        setIsConnected(true);
-        console.log(`[Stream Presence] Connected to stream ${id}`);
-      })
-      .receive("error", (resp) => {
-        console.error(`[Stream Presence] Failed to join stream ${id}:`, resp);
-      });
+		channel
+			.join()
+			.receive("ok", () => {
+				setIsConnected(true);
+				console.log(`[Stream Presence] Connected to stream ${id}`);
+			})
+			.receive("error", (resp) => {
+				console.error(`[Stream Presence] Failed to join stream ${id}:`, resp);
+			});
 
-    channel.on("presence_state", () => {
-      presence = new Presence(channel!);
-      presence.onSync(syncPresence);
-      syncPresence();
-    });
+		channel.on("presence_state", () => {
+			presence = new Presence(channel);
+			presence.onSync(syncPresence);
+			syncPresence();
+		});
 
-    channel.on("presence_diff", () => presence?.onSync(syncPresence));
-  });
+		channel.on("presence_diff", () => presence?.onSync(syncPresence));
+	});
 
-  onCleanup(() => channel?.leave());
+	onCleanup(() => channel?.leave());
 
-  return {
-    viewers,
-    viewerCount: () => viewers().length,
-    isConnected
-  };
+	return {
+		viewers,
+		viewerCount: () => viewers().length,
+		isConnected,
+	};
 }
 
 /**
  * Disconnect the socket (e.g., on logout)
  */
 export function disconnectSocket() {
-  if (socketInstance) {
-    socketInstance.disconnect();
-    socketInstance = null;
-  }
+	if (socketInstance) {
+		socketInstance.disconnect();
+		socketInstance = null;
+	}
 
-  // Clear token so it will be re-fetched on next connection
-  socketToken = null;
-  tokenFetchPromise = null;
+	// Clear token so it will be re-fetched on next connection
+	socketToken = null;
+	tokenFetchPromise = null;
 }
