@@ -89,6 +89,7 @@ export default function LoginPage() {
 						<div class="space-y-4">
 							<a
 								href={`${BACKEND_URL}/auth/user/google`}
+								rel="external"
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100"
 							>
 								<GoogleIcon />
@@ -97,6 +98,7 @@ export default function LoginPage() {
 
 							<a
 								href={`${BACKEND_URL}/auth/user/twitch`}
+								rel="external"
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
 							>
 								<TwitchIcon />
@@ -117,6 +119,7 @@ export default function LoginPage() {
 
 						<a
 							href={`${BACKEND_URL}/auth/sign-in`}
+							rel="external"
 							class="flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-3 font-semibold text-white transition-all hover:bg-white/10"
 						>
 							<svg
@@ -140,6 +143,7 @@ export default function LoginPage() {
 							Don't have an account?{" "}
 							<a
 								href={`${BACKEND_URL}/auth/register`}
+								rel="external"
 								class="text-purple-400 hover:text-purple-300"
 							>
 								Create one

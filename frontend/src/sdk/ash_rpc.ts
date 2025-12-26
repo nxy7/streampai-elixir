@@ -1696,7 +1696,7 @@ async function executeActionRpcRequest<T>(
     body: JSON.stringify(payload),
   };
 
-  const response = await fetchFunction("http://localhost:4000/rpc/run", fetchOptions);
+  const response = await fetchFunction("/api/rpc/run", fetchOptions);
   const result = response.ok ? await response.json() : null;
 
 

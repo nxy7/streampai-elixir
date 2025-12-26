@@ -96,6 +96,7 @@ export default function Nav() {
 									</A>
 									<a
 										href={getLogoutUrl()}
+										rel="external"
 										class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
 									>
 										Sign Out

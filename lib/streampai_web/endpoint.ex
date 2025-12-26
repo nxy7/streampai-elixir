@@ -13,7 +13,7 @@ defmodule StreampaiWeb.Endpoint do
     plug Tidewave
   end
 
-  socket "/socket", StreampaiWeb.UserSocket,
+  socket "/api/socket", StreampaiWeb.UserSocket,
     websocket: [connect_info: [:user_agent, session: @session_options]],
     longpoll: false
 
@@ -43,7 +43,14 @@ defmodule StreampaiWeb.Endpoint do
   plug StreampaiWeb.Router
 
   defp cors(conn, _opts) do
-    allowed_origins = ["http://localhost:3000", "http://localhost:3001"]
+    # Allow frontend dev server and Caddy proxy origins
+    allowed_origins = [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://localhost:8000",
+      "https://localhost:8001"
+    ]
+
     origin = conn |> get_req_header("origin") |> List.first()
 
     conn =

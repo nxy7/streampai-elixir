@@ -1,6 +1,6 @@
 import { type Channel, Presence, Socket } from "phoenix";
 import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
-import { BACKEND_URL } from "./constants";
+import { API_URL, BASE_URL } from "./constants";
 
 // Socket singleton
 let socketInstance: Socket | null = null;
@@ -21,7 +21,7 @@ let currentPresenceUsers: PresenceUser[] = [];
  */
 async function fetchSocketToken(): Promise<string | null> {
 	try {
-		const response = await fetch(`${BACKEND_URL}/rpc/socket-token`, {
+		const response = await fetch(`${API_URL}/rpc/socket-token`, {
 			credentials: "include",
 		});
 		const data = await response.json();
@@ -55,7 +55,8 @@ async function getSocketToken(): Promise<string | null> {
  */
 export function getSocket(): Socket {
 	if (!socketInstance) {
-		const wsUrl = `${BACKEND_URL.replace(/^http/, "ws")}/socket`;
+		// WebSocket URL uses /api/socket path
+		const wsUrl = `${BASE_URL.replace(/^http/, "ws")}/api/socket`;
 
 		socketInstance = new Socket(wsUrl, {
 			params: () => ({ token: socketToken }),

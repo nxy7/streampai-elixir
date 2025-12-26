@@ -15,12 +15,165 @@ test:
 
 start:
 	mix start
-	
+
 si:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 	iex -S mix phx.server
+
+dev:
+	#!/usr/bin/env bash
+	set -euo pipefail
+
+	# Load environment variables
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+
+	# Get ports from environment or use defaults
+	PHOENIX_PORT=${PORT:-4000}
+	FRONTEND_PORT=${FRONTEND_PORT:-3000}
+	CADDY_PORT=${CADDY_PORT:-8000}
+
+	echo "🚀 Starting Streampai development environment"
+	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
+	echo "   Frontend: http://localhost:$FRONTEND_PORT"
+	echo "   Caddy:    https://localhost:$CADDY_PORT (HTTP/2 enabled)"
+	echo ""
+	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
+	echo ""
+
+	# Check if caddy is installed
+	if ! command -v caddy &> /dev/null; then
+		echo "❌ Caddy is not installed. Please install it:"
+		echo "   brew install caddy"
+		echo "   caddy trust  # Install local CA certificates"
+		exit 1
+	fi
+
+	# Start all services in parallel
+	trap 'kill $(jobs -p) 2>/dev/null' EXIT
+
+	# Start Phoenix
+	PORT=$PHOENIX_PORT iex -S mix phx.server &
+
+	# Start Frontend
+	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" bun dev --port $FRONTEND_PORT &
+
+	# Wait a bit for services to start
+	sleep 2
+
+	# Start Caddy
+	PHOENIX_PORT=$PHOENIX_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT caddy run --config Caddyfile
+
+	wait
+
+caddy:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} \
+		caddy run --config Caddyfile
+
+caddy-setup:
+	#!/usr/bin/env bash
+	echo "Installing Caddy..."
+	brew install caddy || echo "Caddy already installed"
+	echo "Installing local CA certificates (may require sudo)..."
+	caddy trust
+	echo "✅ Caddy is ready! Run 'just dev' to start development."
+
+worktree name:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	echo "Creating worktree: {{name}}"
+
+	# Create the worktree
+	git worktree add "../{{name}}" -b "{{name}}" || echo "Worktree ../{{name}} already exists"
+	cd "../{{name}}"
+
+	just worktree-setup
+
+worktree-setup:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	name=$(pwd | awk -F/ '{print $NF}')
+
+	echo "Setting up worktree: $name"
+
+	# Generate unique ports based on worktree name hash
+	# This ensures consistent ports for the same worktree
+	hash=$(echo -n "$name" | md5sum | cut -c1-4)
+	hash_num=$((16#$hash))
+
+	# Port ranges:
+	# Phoenix: 4000-4999
+	# Frontend: 3000-3999
+	# Caddy: 8000-8999
+	PHOENIX_PORT=$((4000 + (hash_num % 1000)))
+	FRONTEND_PORT=$((3000 + (hash_num % 1000)))
+	CADDY_PORT=$((8000 + (hash_num % 1000)))
+
+	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
+	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" || echo "Database $DB_NAME already exists"
+
+	# Add MCP server for this worktree
+	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" || echo "MCP already exists"
+
+	# Copy base .env and compiled artifacts
+	cp ~/streampai-elixir/.env .
+	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
+	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
+
+	# Append worktree-specific configuration
+	cat >> .env << EOF
+		DATABASE_URL=$DB_URL
+		PORT=$PHOENIX_PORT
+		FRONTEND_PORT=$FRONTEND_PORT
+		CADDY_PORT=$CADDY_PORT
+		DISABLE_LIVE_DEBUGGER=true
+		EOF
+
+	echo ""
+	echo "📋 Worktree ports for '$name':"
+	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
+	echo "   Frontend: http://localhost:$FRONTEND_PORT"
+	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo ""
+
+	mix deps.get
+	mix assets.setup
+	mix assets.build
+
+	# Export environment variables and run setup
+	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+
+	# Create the database first
+	mix ecto.create || echo "Database $DB_NAME already exists"
+
+	# Run ash.setup for migrations and seeds
+	mix ash.setup
+	mix compile
+
+	echo ""
+	echo "✅ Worktree '$name' is ready!"
+	echo "   Run 'just dev' to start with Caddy (recommended)"
+	echo "   Run 'just si' to start without Caddy"
+
+	claude --dangerously-skip-permissions .
+
+# Show port configuration for current worktree
+ports:
+	#!/usr/bin/env bash
+	export $(grep -v '^#' .env | grep -v '^$' | xargs 2>/dev/null) || true
+	echo "Port configuration:"
+	echo "   Phoenix:  ${PORT:-4000}"
+	echo "   Frontend: ${FRONTEND_PORT:-3000}"
+	echo "   Caddy:    ${CADDY_PORT:-8000}"
+
+# ============================================================================
+# Production Commands
+# ============================================================================
 
 # Setup and run in production mode locally (for benchmarking)
 prod:
@@ -54,56 +207,9 @@ prod:
 build-prod:
 	MIX_ENV=prod mix do deps.get, assets.deploy, compile, phx.digest
 
-# Create a new git worktree with environment configuration
-worktree name:
-	#!/usr/bin/env bash
-	set -euo pipefail
-	echo "Creating worktree: {{name}}"
-
-	# Create the worktree
-	git worktree add "../{{name}}" -b "{{name}}" || echo "Worktree ../{{name}} already exists"
-	cd "../{{name}}"
-
-	just worktree-setup
-
-worktree-setup:
-	#!/usr/bin/env bash
-	set -euo pipefail
-	name=$(pwd | awk -F/ '{print $NF}')
-
-	echo "Setting up worktree: $name"
-	
-	PORT=$(($(random) % 3000 + 4000))
-	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
-	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
-	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" || echo "Database $DB_NAME already exists"
-	claude mcp add --transport http tidewave http://localhost:$PORT/tidewave/mcp || echo "MCP already exists"
-
-	cp ~/streampai-elixir/.env .
-	# copy compiled artifacts for faster startup
-	cp -r ~/streampai-elixir/deps .
-	cp -r ~/streampai-elixir/_build .
-	# Append worktree-specific configuration to .env before setup
-	echo "" >> .env
-	echo "# Worktree-specific configuration for: $name" >> .env
-	echo "DATABASE_URL=$DB_URL" >> .env
-	echo "PORT=$PORT" >> .env
-	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
-
-	mix deps.get
-	mix assets.setup
-	mix assets.build
-
-	# Export environment variables and run setup
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
-
-	# Create the database first (ecto.create connects to postgres db to create target db)
-	mix ecto.create || echo "Database $DB_NAME already exists"
-
-	# Then run ash.setup for migrations and seeds
-	mix ash.setup
-	mix compile
-	claude --dangerously-skip-permissions .
+# ============================================================================
+# Utility Commands
+# ============================================================================
 
 tasks:
 	hx ./tasks

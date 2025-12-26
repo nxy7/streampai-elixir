@@ -65,6 +65,7 @@ defmodule StreampaiWeb.Router do
     plug(:require_admin_user)
   end
 
+  # Admin routes (not prefixed with /api - internal only)
   scope "/admin" do
     pipe_through(:admin)
 
@@ -72,7 +73,8 @@ defmodule StreampaiWeb.Router do
     oban_dashboard("/oban")
   end
 
-  scope "/", StreampaiWeb do
+  # All API routes are prefixed with /api for clean proxy configuration
+  scope "/api", StreampaiWeb do
     pipe_through(:browser)
 
     get("/slider_images/*path", SliderImageController, :serve)
@@ -102,7 +104,7 @@ defmodule StreampaiWeb.Router do
     post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
   end
 
-  scope "/shapes", StreampaiWeb do
+  scope "/api/shapes", StreampaiWeb do
     pipe_through(:electric_sync)
 
     get "/stream_events", SyncController, :stream_events
@@ -123,13 +125,13 @@ defmodule StreampaiWeb.Router do
     get "/viewers/:user_id", SyncController, :user_viewers
   end
 
-  scope "/shapes", StreampaiWeb do
+  scope "/api/shapes", StreampaiWeb do
     pipe_through(:admin_electric_sync)
 
     get "/admin_users", SyncController, :admin_users
   end
 
-  scope "/rpc", StreampaiWeb do
+  scope "/api/rpc", StreampaiWeb do
     pipe_through(:rpc)
 
     post("/run", AshTypescriptRpcController, :run)

@@ -24,8 +24,9 @@ config :ash_oban, pro?: false
 
 config :ash_typescript,
   output_file: "frontend/src/sdk/ash_rpc.ts",
-  run_endpoint: "http://localhost:4000/rpc/run",
-  validate_endpoint: "http://localhost:4000/rpc/validate",
+  # Use relative URLs so the SDK works with any proxy/port configuration
+  run_endpoint: "/api/rpc/run",
+  validate_endpoint: "/api/rpc/validate",
   input_field_formatter: :camel_case,
   output_field_formatter: :camel_case,
   generate_phx_channel_rpc_actions: true,

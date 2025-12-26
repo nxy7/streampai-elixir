@@ -515,6 +515,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 
 					<a
 						href={getLogoutUrl()}
+						rel="external"
 						class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-red-600 hover:text-white ${
 							sidebarCollapsed() ? "justify-center" : ""
 						}`}
