@@ -112,18 +112,22 @@ worktree-setup:
 
 	echo "Setting up worktree: $name"
 
-	# Generate unique ports based on worktree name hash
-	# This ensures consistent ports for the same worktree
-	hash=$(echo -n "$name" | md5sum | cut -c1-4)
-	hash_num=$((16#$hash))
+	# Generate random available ports
+	# Function to find a random available port in a range
+	find_port() {
+		local min=$1 max=$2
+		while true; do
+			port=$((min + RANDOM % (max - min)))
+			if ! lsof -i :$port >/dev/null 2>&1; then
+				echo $port
+				return
+			fi
+		done
+	}
 
-	# Port ranges:
-	# Phoenix: 4000-4999
-	# Frontend: 3000-3999
-	# Caddy: 8000-8999
-	PHOENIX_PORT=$((4000 + (hash_num % 1000)))
-	FRONTEND_PORT=$((3000 + (hash_num % 1000)))
-	CADDY_PORT=$((8000 + (hash_num % 1000)))
+	PHOENIX_PORT=$(find_port 4100 4999)
+	FRONTEND_PORT=$(find_port 3100 3999)
+	CADDY_PORT=$(find_port 8100 8999)
 
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
@@ -132,8 +136,12 @@ worktree-setup:
 	# Add MCP server for this worktree
 	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
 
-	# Copy base .env and compiled artifacts
-	cp ~/streampai-elixir/.env .
+	# Copy .env from main repo if not already present (vibe-kanban may have copied it)
+	if [ ! -f .env ]; then
+		cp ~/streampai-elixir/.env .
+	fi
+
+	# Copy compiled artifacts for faster setup
 	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 

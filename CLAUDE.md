@@ -209,10 +209,10 @@ This is the **single command** needed to set up any worktree environment. It:
 
 ### Port Allocation
 
-Ports are deterministically generated from the worktree name hash:
-- **Phoenix**: 4000-4999
-- **Frontend**: 3000-3999
-- **Caddy**: 8000-8999
+Ports are randomly assigned from available ports in these ranges:
+- **Phoenix**: 4100-4999
+- **Frontend**: 3100-3999
+- **Caddy**: 8100-8999
 
 Check your worktree's ports with:
 ```bash
