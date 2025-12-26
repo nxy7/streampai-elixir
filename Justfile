@@ -96,7 +96,19 @@ worktree name:
 worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	name=$(pwd | awk -F/ '{print $NF}')
+
+	# Detect worktree name: use parent dir if in vibe-kanban structure, otherwise current dir
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+
+	# If current dir is streampai-elixir but parent looks like a vibe-kanban worktree ID
+	# (e.g., "987c-update-claude-md"), use parent for unique naming
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		name="$parent_dir"
+		echo "Detected vibe-kanban worktree: $name"
+	else
+		name="$current_dir"
+	fi
 
 	echo "Setting up worktree: $name"
 
@@ -115,10 +127,10 @@ worktree-setup:
 
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
-	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" || echo "Database $DB_NAME already exists"
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "Database $DB_NAME already exists"
 
 	# Add MCP server for this worktree
-	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" || echo "MCP already exists"
+	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
 
 	# Copy base .env and compiled artifacts
 	cp ~/streampai-elixir/.env .
@@ -126,13 +138,11 @@ worktree-setup:
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 
 	# Append worktree-specific configuration
-	cat >> .env << EOF
-		DATABASE_URL=$DB_URL
-		PORT=$PHOENIX_PORT
-		FRONTEND_PORT=$FRONTEND_PORT
-		CADDY_PORT=$CADDY_PORT
-		DISABLE_LIVE_DEBUGGER=true
-		EOF
+	echo "DATABASE_URL=$DB_URL" >> .env
+	echo "PORT=$PHOENIX_PORT" >> .env
+	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
+	echo "CADDY_PORT=$CADDY_PORT" >> .env
+	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	echo ""
 	echo "📋 Worktree ports for '$name':"
@@ -141,18 +151,17 @@ worktree-setup:
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
 	echo ""
 
-	mix deps.get
-	mix assets.setup
-	mix assets.build
-
-	# Export environment variables and run setup
+	# Export environment variables for subsequent commands
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
-	# Create the database first
-	mix ecto.create || echo "Database $DB_NAME already exists"
+	# Install dependencies
+	mix deps.get
 
-	# Run ash.setup for migrations and seeds
+	# Create database and run migrations/seeds
+	mix ecto.create 2>/dev/null || echo "Database $DB_NAME already exists"
 	mix ash.setup
+
+	# Compile to verify everything works
 	mix compile
 
 	echo ""

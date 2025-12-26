@@ -241,11 +241,13 @@ just si     # Interactive Elixir shell with Phoenix server
 
 When vibe-kanban creates a worktree, it should run:
 ```bash
-cd /path/to/worktree
+cd /path/to/worktree/streampai-elixir
 just worktree-setup
 ```
 
 This single command handles all environment setup without affecting other worktrees or the main branch.
+
+**Vibe-kanban auto-detection**: The setup script automatically detects vibe-kanban worktrees (where the parent directory matches the pattern `XXXX-branch-name`) and uses the parent directory name for unique port/database generation.
 
 ## Common Patterns
 
