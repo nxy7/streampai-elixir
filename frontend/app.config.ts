@@ -11,6 +11,11 @@ const hmrPorts: Record<string, number> = {
 
 export default defineConfig({
 	ssr: false,
+	server: {
+		prerender: {
+			routes: ["/terms", "/privacy", "/support", "/contact"],
+		},
+	},
 	vite: ({ router }) => ({
 		plugins: [tailwindcss()],
 		server: {
