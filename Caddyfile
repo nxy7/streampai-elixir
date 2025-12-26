@@ -1,8 +1,8 @@
-# Caddyfile for local development with HTTP/2
-# This enables HTTP/2 multiplexing to avoid the browser's 6 connection limit
-# which can cause slowdowns when using many Electric SQL shapes.
+# Caddyfile for local development with HTTPS
+# This provides HTTPS for secure cookie handling and API testing.
 #
 # Usage:
+#   # Start Caddy:
 #   caddy run --config Caddyfile
 #
 # Or with environment variable override:
@@ -37,7 +37,22 @@ localhost:{$CADDY_PORT:8000} {
 		reverse_proxy localhost:{$PHOENIX_PORT:4000}
 	}
 
-	# Vite dev server assets and HMR WebSocket
+	# Vite HMR WebSocket - client router (must be before generic /_build/*)
+	handle /_build/_hmr/client {
+		reverse_proxy localhost:24678
+	}
+
+	# Vite HMR WebSocket - server router
+	handle /_build/_hmr/server {
+		reverse_proxy localhost:24679
+	}
+
+	# Vite HMR WebSocket - server-function router
+	handle /_build/_hmr/server-function {
+		reverse_proxy localhost:24680
+	}
+
+	# Vite dev server assets (all other /_build/* paths)
 	handle /_build/* {
 		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}
