@@ -1,5 +1,12 @@
-import { A, useLocation } from "@solidjs/router";
-import { createMemo, createSignal, For, type JSX, Show } from "solid-js";
+import { A, useLocation, useNavigate } from "@solidjs/router";
+import {
+	createEffect,
+	createMemo,
+	createSignal,
+	For,
+	type JSX,
+	Show,
+} from "solid-js";
 import { getLogoutUrl, useCurrentUser } from "~/lib/auth";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 import NotificationBell from "./NotificationBell";
@@ -9,10 +16,18 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout(props: DashboardLayoutProps) {
-	const { user } = useCurrentUser();
+	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
+	const navigate = useNavigate();
 	const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
+
+	// Redirect to login if user is not authenticated
+	createEffect(() => {
+		if (!isLoading() && !user()) {
+			navigate("/login", { replace: true });
+		}
+	});
 
 	// Use Electric-synced preferences for real-time avatar/name updates
 	const prefs = useUserPreferencesForUser(() => user()?.id);
@@ -300,6 +315,23 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			],
 		},
 	];
+
+	// Show loading state while checking auth
+	if (isLoading()) {
+		return (
+			<div class="flex h-screen items-center justify-center bg-gray-50">
+				<div class="text-center">
+					<div class="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 mx-auto" />
+					<p class="text-gray-600">Loading...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Don't render dashboard if user is not authenticated (redirect effect will trigger)
+	if (!user()) {
+		return null;
+	}
 
 	return (
 		<div class="flex h-screen">
