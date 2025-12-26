@@ -105,7 +105,10 @@ just start                  # Start Phoenix server
 just si                     # Interactive shell with server
 just test                   # Run tests (excludes external)
 just format                 # Format code
+just dev                    # Start full dev environment (Phoenix + Frontend + Caddy)
 just worktree name          # Create isolated dev environment
+just worktree-setup         # Setup current worktree (run after checkout)
+just ports                  # Show port configuration for current worktree
 ```
 
 ## Code Generation
@@ -169,6 +172,80 @@ This updates `frontend/src/sdk/ash_rpc.ts` with typed RPC functions.
 - Frontend default: port 3000 (auto-increments if taken)
 - Use `PORT=4001` for additional backend instances
 - Use `DISABLE_LIVE_DEBUGGER=true` to avoid port conflicts
+
+## Worktree Setup (Isolated Development)
+
+Git worktrees allow running multiple branches simultaneously with isolated databases and ports. This is essential for parallel development with tools like vibe-kanban.
+
+### Creating a New Worktree (from main repo)
+
+```bash
+just worktree my-feature-branch
+```
+
+This creates a worktree at `../my-feature-branch` and automatically:
+- Creates a new git branch `my-feature-branch`
+- Generates unique ports based on the branch name hash
+- Creates an isolated database `streampai_my_feature_branch_dev`
+- Copies deps and build artifacts from main repo for faster setup
+- Configures `.env` with worktree-specific settings
+- Runs full setup (deps, migrations, seeds, compile)
+
+### Setting Up an Existing Worktree
+
+If you already have a worktree checked out (e.g., created by vibe-kanban), run:
+
+```bash
+just worktree-setup
+```
+
+This is the **single command** needed to set up any worktree environment. It:
+1. Generates deterministic ports from the directory name
+2. Creates an isolated PostgreSQL database
+3. Copies `.env` and build artifacts from `~/streampai-elixir`
+4. Appends worktree-specific config (DATABASE_URL, PORT, etc.)
+5. Installs dependencies and runs migrations
+6. Starts Claude Code with permissions skipped
+
+### Port Allocation
+
+Ports are deterministically generated from the worktree name hash:
+- **Phoenix**: 4000-4999
+- **Frontend**: 3000-3999
+- **Caddy**: 8000-8999
+
+Check your worktree's ports with:
+```bash
+just ports
+```
+
+### Starting Development
+
+After setup, start the full dev environment:
+```bash
+just dev    # Starts Phoenix + Frontend + Caddy with HTTPS
+```
+
+Or just the backend:
+```bash
+just si     # Interactive Elixir shell with Phoenix server
+```
+
+### Worktree Requirements
+
+- Main repo must exist at `~/streampai-elixir` with `.env` configured
+- PostgreSQL running locally (user: postgres, password: postgres)
+- Caddy installed (`brew install caddy && caddy trust`)
+
+### Example: Vibe-Kanban Workflow
+
+When vibe-kanban creates a worktree, it should run:
+```bash
+cd /path/to/worktree
+just worktree-setup
+```
+
+This single command handles all environment setup without affecting other worktrees or the main branch.
 
 ## Common Patterns
 
