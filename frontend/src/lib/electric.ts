@@ -285,17 +285,36 @@ export function createLivestreamEventsCollection(livestreamId: string) {
 	);
 }
 
-export const adminUsersCollection = createCollection(
+// Empty placeholder collection for admin users when not admin
+export const emptyAdminUsersCollection = createCollection(
 	electricCollectionOptions<AdminUser>({
-		id: "admin_users",
+		id: "empty_admin_users",
 		shapeOptions: {
-			url: `${SHAPES_URL}/admin_users`,
-			fetchClient: (input, init) =>
-				fetch(input, { ...init, credentials: "include" }),
+			url: `${SHAPES_URL}/admin_users/_empty`,
 		},
 		getKey: (item) => item.id,
 	}),
 );
+
+// Cache for admin users collection - created once when admin logs in
+let adminUsersCollectionCache: typeof emptyAdminUsersCollection | null = null;
+
+export function createAdminUsersCollection(): typeof emptyAdminUsersCollection {
+	if (!adminUsersCollectionCache) {
+		adminUsersCollectionCache = createCollection(
+			electricCollectionOptions<AdminUser>({
+				id: "admin_users",
+				shapeOptions: {
+					url: `${SHAPES_URL}/admin_users`,
+					fetchClient: (input, init) =>
+						fetch(input, { ...init, credentials: "include" }),
+				},
+				getKey: (item) => item.id,
+			}),
+		);
+	}
+	return adminUsersCollectionCache;
+}
 
 // Empty placeholder collections for fallback when userId is undefined
 export const emptyWidgetConfigsCollection = createCollection(
