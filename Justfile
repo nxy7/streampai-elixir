@@ -10,7 +10,9 @@ format:
 test:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	mix test --max-failures 3 --exclude external
 
 start:
@@ -19,15 +21,19 @@ start:
 si:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	iex -S mix phx.server
 
 dev:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
-	# Load environment variables
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	# Load environment variables (using set -a to auto-export)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 
 	# Get ports from environment or use defaults
 	PHOENIX_PORT=${PORT:-4000}
@@ -53,8 +59,8 @@ dev:
 	# Start all services in parallel
 	trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
-	# Start Phoenix
-	PORT=$PHOENIX_PORT iex -S mix phx.server &
+	# Start Phoenix (using elixir directly since iex can't be backgrounded)
+	PORT=$PHOENIX_PORT elixir --sname streampai_dev -S mix phx.server &
 
 	# Start Frontend
 	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" bun dev --port $FRONTEND_PORT &
@@ -70,7 +76,9 @@ dev:
 caddy:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} \
 		caddy run --config Caddyfile
 
@@ -126,13 +134,11 @@ worktree-setup:
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 
 	# Append worktree-specific configuration
-	cat >> .env << EOF
-		DATABASE_URL=$DB_URL
-		PORT=$PHOENIX_PORT
-		FRONTEND_PORT=$FRONTEND_PORT
-		CADDY_PORT=$CADDY_PORT
-		DISABLE_LIVE_DEBUGGER=true
-		EOF
+	echo "DATABASE_URL=$DB_URL" >> .env
+	echo "PORT=$PHOENIX_PORT" >> .env
+	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
+	echo "CADDY_PORT=$CADDY_PORT" >> .env
+	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	echo ""
 	echo "📋 Worktree ports for '$name':"
@@ -165,7 +171,9 @@ worktree-setup:
 # Show port configuration for current worktree
 ports:
 	#!/usr/bin/env bash
-	export $(grep -v '^#' .env | grep -v '^$' | xargs 2>/dev/null) || true
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
+	set +a
 	echo "Port configuration:"
 	echo "   Phoenix:  ${PORT:-4000}"
 	echo "   Frontend: ${FRONTEND_PORT:-3000}"
@@ -179,7 +187,9 @@ ports:
 prod:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	export MIX_ENV=prod
 	export SECRET_KEY_BASE=$(mix phx.gen.secret)
 	export TOKEN_SIGNING_SECRET=$(openssl rand -base64 32)

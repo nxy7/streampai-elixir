@@ -74,9 +74,7 @@ export default function Terms() {
 					<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 						<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 							<div class="prose prose-invert max-w-none">
-								<p class="mb-6 text-gray-300">
-									Last updated: December 2024
-								</p>
+								<p class="mb-6 text-gray-300">Last updated: December 2024</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									1. Acceptance of Terms
@@ -184,7 +182,9 @@ export default function Terms() {
 								</h2>
 								<p class="text-gray-300">
 									If you have any questions about these Terms of Service, please{" "}
-									<A href="/contact" class="text-purple-400 hover:text-purple-300">
+									<A
+										href="/contact"
+										class="text-purple-400 hover:text-purple-300">
 										contact us
 									</A>
 									.

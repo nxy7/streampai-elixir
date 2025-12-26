@@ -69,7 +69,9 @@ export default function Contact() {
 	const [email, setEmail] = createSignal("");
 	const [subject, setSubject] = createSignal("");
 	const [message, setMessage] = createSignal("");
-	const [status, setStatus] = createSignal<"idle" | "loading" | "success" | "error">("idle");
+	const [status, setStatus] = createSignal<
+		"idle" | "loading" | "success" | "error"
+	>("idle");
 	const [statusMessage, setStatusMessage] = createSignal("");
 
 	const handleSubmit = async (e: Event) => {
@@ -79,7 +81,9 @@ export default function Contact() {
 		// TODO: Implement contact form submission via RPC
 		setTimeout(() => {
 			setStatus("success");
-			setStatusMessage("Thank you for your message! We'll get back to you soon.");
+			setStatusMessage(
+				"Thank you for your message! We'll get back to you soon.",
+			);
 			setName("");
 			setEmail("");
 			setSubject("");

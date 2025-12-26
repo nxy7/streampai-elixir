@@ -10,7 +10,7 @@ const hmrPorts: Record<string, number> = {
 };
 
 export default defineConfig({
-	ssr: true,
+	ssr: false,
 	server: {
 		prerender: {
 			routes: ["/terms", "/privacy", "/support", "/contact"],

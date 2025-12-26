@@ -74,9 +74,7 @@ export default function Privacy() {
 					<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 						<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 							<div class="prose prose-invert max-w-none">
-								<p class="mb-6 text-gray-300">
-									Last updated: December 2024
-								</p>
+								<p class="mb-6 text-gray-300">Last updated: December 2024</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									1. Information We Collect
@@ -85,18 +83,12 @@ export default function Privacy() {
 									We collect information you provide directly to us, including:
 								</p>
 								<ul class="mb-6 list-disc space-y-2 pl-6 text-gray-300">
-									<li>
-										Account information (name, email, password)
-									</li>
+									<li>Account information (name, email, password)</li>
 									<li>
 										Profile information from connected streaming platforms
 									</li>
-									<li>
-										Stream metadata and analytics data
-									</li>
-									<li>
-										Chat messages and moderation actions
-									</li>
+									<li>Stream metadata and analytics data</li>
+									<li>Chat messages and moderation actions</li>
 									<li>
 										Payment information (processed securely by third-party
 										providers)
@@ -106,7 +98,9 @@ export default function Privacy() {
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									2. How We Use Your Information
 								</h2>
-								<p class="mb-4 text-gray-300">We use the information we collect to:</p>
+								<p class="mb-4 text-gray-300">
+									We use the information we collect to:
+								</p>
 								<ul class="mb-6 list-disc space-y-2 pl-6 text-gray-300">
 									<li>Provide, maintain, and improve our services</li>
 									<li>
@@ -133,7 +127,9 @@ export default function Privacy() {
 										With streaming platforms you connect (to enable
 										multi-platform streaming)
 									</li>
-									<li>With service providers who assist in operating our platform</li>
+									<li>
+										With service providers who assist in operating our platform
+									</li>
 									<li>When required by law or to protect our rights</li>
 									<li>With your consent or at your direction</li>
 								</ul>
@@ -214,7 +210,9 @@ export default function Privacy() {
 								</h2>
 								<p class="text-gray-300">
 									If you have any questions about this Privacy Policy, please{" "}
-									<A href="/contact" class="text-purple-400 hover:text-purple-300">
+									<A
+										href="/contact"
+										class="text-purple-400 hover:text-purple-300">
 										contact us
 									</A>
 									.
