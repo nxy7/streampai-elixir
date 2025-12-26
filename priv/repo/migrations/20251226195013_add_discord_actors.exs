@@ -13,7 +13,11 @@ defmodule Streampai.Repo.Migrations.AddDiscordActors do
       add :bot_token, :text, null: false
       add :bot_name, :text
       add :status, :text, null: false, default: "disconnected"
-      add :event_types, {:array, :text}, null: false, default: ["donation", "stream_start", "stream_end"]
+
+      add :event_types, {:array, :text},
+        null: false,
+        default: ["donation", "stream_start", "stream_end"]
+
       add :announcement_guild_id, :text
       add :announcement_channel_id, :text
       add :actor_state, :map, null: false, default: %{}
@@ -37,7 +41,8 @@ defmodule Streampai.Repo.Migrations.AddDiscordActors do
             name: "discord_actors_user_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:discord_actors, [:status], name: "idx_discord_actors_status")
