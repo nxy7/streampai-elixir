@@ -98,8 +98,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 					"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 				color: props.config.textColor,
 				padding: "1rem",
-			}}
-		>
+			}}>
 			<style>{`
         .winner-fade { animation: fadeIn 1s ease-out; }
         .winner-slide { animation: slideInUp 1s ease-out; }
@@ -153,8 +152,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 					"text-align": "center",
 					position: "relative",
 					overflow: "hidden",
-				}}
-			>
+				}}>
 				<Show when={props.config.showTitle && props.config.title}>
 					<div
 						class="giveaway-title"
@@ -164,8 +162,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 							color: props.config.titleColor,
 							"margin-bottom": "0.75rem",
 							"line-height": "1.2",
-						}}
-					>
+						}}>
 						{props.config.title}
 					</div>
 				</Show>
@@ -178,8 +175,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 							opacity: "0.9",
 							"margin-bottom": "1rem",
 							"line-height": "1.4",
-						}}
-					>
+						}}>
 						{props.config.description}
 					</div>
 				</Show>
@@ -193,8 +189,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 								"border-radius": "0.5rem",
 								background: `linear-gradient(135deg, ${props.config.accentColor} 0%, color-mix(in srgb, ${props.config.accentColor} 80%, transparent) 100%)`,
 								color: "white",
-							}}
-						>
+							}}>
 							<div
 								class="status-label"
 								style={{
@@ -203,8 +198,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 									"margin-bottom": "0.5rem",
 									"text-transform": "uppercase",
 									"letter-spacing": "0.05em",
-								}}
-							>
+								}}>
 								{props.config.activeLabel || "Giveaway Active"}
 							</div>
 
@@ -216,21 +210,18 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 										"font-weight": "bold",
 										"line-height": "1",
 										"margin-bottom": "0.25rem",
-									}}
-								>
+									}}>
 									{participantCount()}
 								</div>
 								<div
 									class="count-label"
-									style={{ "font-size": "0.875em", opacity: "0.9" }}
-								>
+									style={{ "font-size": "0.875em", opacity: "0.9" }}>
 									{participantCount() === 1 ? "Participant" : "Participants"}
 								</div>
 							</div>
 
 							<Show
-								when={props.config.patreonMultiplier > 1 && patreonCount() > 0}
-							>
+								when={props.config.patreonMultiplier > 1 && patreonCount() > 0}>
 								<div
 									class="patreon-info"
 									style={{
@@ -241,8 +232,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 										"background-color": "rgba(255, 255, 255, 0.2)",
 										"border-radius": "0.25rem",
 										display: "inline-block",
-									}}
-								>
+									}}>
 									{patreonCount()} Patreons ({props.config.patreonMultiplier}x
 									entries)
 								</div>
@@ -259,8 +249,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 										"background-color": "rgba(255, 255, 255, 0.2)",
 										"border-radius": "0.375rem",
 										display: "inline-block",
-									}}
-								>
+									}}>
 									{props.config.entryMethodText || "Type !join to enter"}
 								</div>
 							</Show>
@@ -275,8 +264,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 								"border-radius": "0.5rem",
 								background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
 								color: "white",
-							}}
-						>
+							}}>
 							<div
 								class="winner-label"
 								style={{
@@ -285,8 +273,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 									"margin-bottom": "0.5rem",
 									"text-transform": "uppercase",
 									"letter-spacing": "0.05em",
-								}}
-							>
+								}}>
 								{props.config.winnerLabel || "Winner!"}
 							</div>
 
@@ -297,8 +284,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 									"font-weight": "bold",
 									"margin-bottom": "0.5rem",
 									"line-height": "1.1",
-								}}
-							>
+								}}>
 								{winner()?.username}
 							</div>
 
@@ -315,8 +301,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 										"font-weight": "600",
 										"text-transform": "uppercase",
 										"letter-spacing": "0.05em",
-									}}
-								>
+									}}>
 									{props.config.patreonBadgeText || "Patreon"}
 								</div>
 							</Show>
@@ -332,12 +317,10 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 								"background-color": "rgba(107, 114, 128, 0.1)",
 								color: props.config.textColor,
 								opacity: "0.7",
-							}}
-						>
+							}}>
 							<div
 								class="inactive-label"
-								style={{ "font-size": "1em", "font-weight": "500" }}
-							>
+								style={{ "font-size": "1em", "font-weight": "500" }}>
 								{props.config.inactiveLabel || "No Active Giveaway"}
 							</div>
 						</div>
@@ -347,8 +330,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 				<Show
 					when={
 						props.config.showProgressBar && props.config.targetParticipants > 0
-					}
-				>
+					}>
 					<div class="progress-container" style={{ "margin-top": "1rem" }}>
 						<div
 							class="progress-bar"
@@ -359,8 +341,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 								"border-radius": "4px",
 								overflow: "hidden",
 								"margin-bottom": "0.5rem",
-							}}
-						>
+							}}>
 							<div
 								class="progress-fill"
 								style={{
@@ -378,8 +359,7 @@ export default function GiveawayWidget(props: GiveawayWidgetProps) {
 								"font-size": "0.875em",
 								opacity: "0.8",
 								"font-weight": "500",
-							}}
-						>
+							}}>
 							{participantCount()} / {props.config.targetParticipants}
 						</div>
 					</div>

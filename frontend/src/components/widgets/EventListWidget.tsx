@@ -122,11 +122,9 @@ export default function EventListWidget(props: EventListWidgetProps) {
 			style={{
 				"font-family":
 					"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
-			}}
-		>
+			}}>
 			<div
-				class={`h-full w-full overflow-y-auto ${props.config.compactMode ? "space-y-2 p-2" : "space-y-3 p-4"}`}
-			>
+				class={`h-full w-full overflow-y-auto ${props.config.compactMode ? "space-y-2 p-2" : "space-y-3 p-4"}`}>
 				<Show
 					when={displayedEvents().length > 0}
 					fallback={
@@ -139,8 +137,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 								</div>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class={props.config.compactMode ? "space-y-1" : "space-y-2"}>
 						<For each={displayedEvents()}>
 							{(event, index) => (
@@ -150,8 +147,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 											? "rounded border border-white/10 bg-gray-900/80 p-2"
 											: "rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-4 shadow-lg backdrop-blur-lg"
 									}`}
-									style={{ "animation-delay": `${index() * 100}ms` }}
-								>
+									style={{ "animation-delay": `${index() * 100}ms` }}>
 									<Show when={!props.config.compactMode}>
 										<div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/20 to-pink-500/20 opacity-30 blur-sm"></div>
 									</Show>
@@ -168,8 +164,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 															</span>
 															<div>
 																<div
-																	class={`font-semibold ${getEventColor(event.type)} ${fontClass()}`}
-																>
+																	class={`font-semibold ${getEventColor(event.type)} ${fontClass()}`}>
 																	{event.username}
 																</div>
 																<div class="text-gray-400 text-xs uppercase tracking-wide">
@@ -180,8 +175,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 
 														<Show when={props.config.showTimestamps}>
 															<div
-																class={`text-gray-400 text-xs ${fontClass()}`}
-															>
+																class={`text-gray-400 text-xs ${fontClass()}`}>
 																{formatTimestamp(event.timestamp)}
 															</div>
 														</Show>
@@ -192,23 +186,19 @@ export default function EventListWidget(props: EventListWidgetProps) {
 															props.config.showAmounts &&
 															event.amount &&
 															event.type === "donation"
-														}
-													>
+														}>
 														<div class="mb-2">
 															<div
-																class={`font-bold text-green-400 ${fontClass()}`}
-															>
+																class={`font-bold text-green-400 ${fontClass()}`}>
 																{formatAmount(event.amount, event.currency)}
 															</div>
 														</div>
 													</Show>
 
 													<Show
-														when={event.message && event.message.trim() !== ""}
-													>
+														when={event.message && event.message.trim() !== ""}>
 														<div
-															class={`text-gray-200 leading-relaxed ${fontClass()}`}
-														>
+															class={`text-gray-200 leading-relaxed ${fontClass()}`}>
 															{event.message}
 														</div>
 													</Show>
@@ -221,8 +211,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 														</div>
 													</Show>
 												</>
-											}
-										>
+											}>
 											<div class="flex items-center justify-between">
 												<div class="flex min-w-0 flex-1 items-center space-x-2">
 													<span class="text-sm">
@@ -236,8 +225,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 															props.config.showAmounts &&
 															event.amount &&
 															event.type === "donation"
-														}
-													>
+														}>
 														<div class="font-bold text-green-400 text-sm">
 															{formatAmount(event.amount, event.currency)}
 														</div>

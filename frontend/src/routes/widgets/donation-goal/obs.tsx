@@ -65,8 +65,7 @@ export default function DonationGoalOBS() {
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}
-			>
+				}>
 				<div class="w-full max-w-2xl">
 					<div class="rounded-2xl bg-linear-to-r from-purple-900/80 to-pink-900/80 p-8 shadow-2xl backdrop-blur-sm">
 						<div class="mb-6 text-center font-bold text-3xl text-white">
@@ -76,8 +75,7 @@ export default function DonationGoalOBS() {
 						<div class="relative mb-4 h-16 w-full overflow-hidden rounded-full bg-gray-800/50">
 							<div
 								class="absolute inset-0 flex items-center justify-center bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-1000 ease-out"
-								style={{ width: `${Math.min(goalData().percentage, 100)}%` }}
-							>
+								style={{ width: `${Math.min(goalData().percentage, 100)}%` }}>
 								<Show when={goalData().percentage > 10}>
 									<span class="font-bold text-white text-xl">
 										{Math.round(goalData().percentage)}%

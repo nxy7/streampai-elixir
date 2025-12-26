@@ -170,8 +170,7 @@ export default function Widgets() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -185,14 +184,12 @@ export default function Widgets() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Header */}
 						<div class={card.default}>
@@ -215,8 +212,7 @@ export default function Widgets() {
 													? button.primary
 													: button.secondary
 											}
-											onClick={() => setSelectedCategory(category.value)}
-										>
+											onClick={() => setSelectedCategory(category.value)}>
 											{category.name}
 										</button>
 									)}
@@ -232,8 +228,7 @@ export default function Widgets() {
 										class={
 											card.base +
 											"overflow-hidden transition-shadow hover:shadow-lg"
-										}
-									>
+										}>
 										{/* Widget Icon Header */}
 										<div class="bg-linear-to-r from-purple-500 to-pink-500 p-6 text-center">
 											<div class="mb-2 text-6xl">{widget.icon}</div>
@@ -265,16 +260,13 @@ export default function Widgets() {
 														<button
 															type="button"
 															class={button.secondary}
-															disabled
-														>
+															disabled>
 															Configure
 														</button>
-													}
-												>
+													}>
 													<A
 														href={widget.settingsRoute}
-														class={`${button.primary} flex-1 text-center`}
-													>
+														class={`${button.primary} flex-1 text-center`}>
 														Configure
 													</A>
 												</Show>
@@ -283,8 +275,7 @@ export default function Widgets() {
 														href={`${widget.displayRoute}/${user()?.id}`}
 														class={button.ghost}
 														target="_blank"
-														rel="noopener noreferrer"
-													>
+														rel="noopener noreferrer">
 														<span class="sr-only">
 															Open widget display in new tab
 														</span>
@@ -293,8 +284,7 @@ export default function Widgets() {
 															class="h-5 w-5"
 															fill="none"
 															stroke="currentColor"
-															viewBox="0 0 24 24"
-														>
+															viewBox="0 0 24 24">
 															<path
 																stroke-linecap="round"
 																stroke-linejoin="round"

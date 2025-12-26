@@ -273,8 +273,7 @@ export default function PollWidgetSettings() {
 													| "large"
 													| "extra-large",
 											)
-										}
-									>
+										}>
 										<option value="small">Small</option>
 										<option value="medium">Medium</option>
 										<option value="large">Large</option>
@@ -294,8 +293,7 @@ export default function PollWidgetSettings() {
 												"animationType",
 												e.target.value as "none" | "smooth" | "bounce",
 											)
-										}
-									>
+										}>
 										<option value="none">None</option>
 										<option value="smooth">Smooth</option>
 										<option value="bounce">Bounce</option>
@@ -373,8 +371,7 @@ export default function PollWidgetSettings() {
 									type="button"
 									class={button.primary}
 									onClick={handleSave}
-									disabled={saving()}
-								>
+									disabled={saving()}>
 									{saving() ? "Saving..." : "Save Configuration"}
 								</button>
 
@@ -384,8 +381,7 @@ export default function PollWidgetSettings() {
 										classList={{
 											"text-green-600": saveMessage()?.includes("success"),
 											"text-red-600": saveMessage()?.includes("Error"),
-										}}
-									>
+										}}>
 										{saveMessage()}
 									</p>
 								</Show>
@@ -405,8 +401,7 @@ export default function PollWidgetSettings() {
 										value={demoMode()}
 										onChange={(e) =>
 											setDemoMode(e.target.value as "active" | "ended")
-										}
-									>
+										}>
 										<option value="active">Active Poll</option>
 										<option value="ended">Ended Poll (Results)</option>
 									</select>

@@ -220,8 +220,7 @@ export default function ChatSettings() {
 												"fontSize",
 												e.currentTarget.value as ChatConfig["fontSize"],
 											)
-										}
-									>
+										}>
 										<option value="small">Small</option>
 										<option value="medium">Medium</option>
 										<option value="large">Large</option>
@@ -261,8 +260,7 @@ export default function ChatSettings() {
 								/>
 								<label
 									for="showTimestamps"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Timestamps
 								</label>
 							</div>
@@ -279,8 +277,7 @@ export default function ChatSettings() {
 								/>
 								<label
 									for="showBadges"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show User Badges
 								</label>
 							</div>
@@ -297,8 +294,7 @@ export default function ChatSettings() {
 								/>
 								<label
 									for="showPlatform"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Platform Icons
 								</label>
 							</div>
@@ -315,8 +311,7 @@ export default function ChatSettings() {
 								/>
 								<label
 									for="showEmotes"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Emotes
 								</label>
 							</div>
@@ -327,8 +322,7 @@ export default function ChatSettings() {
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -337,8 +331,7 @@ export default function ChatSettings() {
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>
@@ -349,8 +342,7 @@ export default function ChatSettings() {
 						<div class="mt-4 space-y-4">
 							<div
 								class="overflow-hidden rounded-lg bg-gray-900"
-								style={{ height: "400px" }}
-							>
+								style={{ height: "400px" }}>
 								<ChatWidget config={config()} messages={messages()} />
 							</div>
 							<div class="space-y-2">

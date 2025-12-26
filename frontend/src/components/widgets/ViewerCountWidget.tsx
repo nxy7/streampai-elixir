@@ -131,8 +131,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 	return (
 		<div
 			id={widgetId()}
-			class="viewer-count-widget flex h-full items-center justify-center p-4 font-sans"
-		>
+			class="viewer-count-widget flex h-full items-center justify-center p-4 font-sans">
 			<Show
 				when={props.data}
 				fallback={
@@ -141,14 +140,12 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 							aria-hidden="true"
 							class="h-6 w-6 animate-pulse"
 							fill="currentColor"
-							viewBox="0 0 20 20"
-						>
+							viewBox="0 0 20 20">
 							<path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
 						</svg>
 						<span>Loading viewers...</span>
 					</div>
-				}
-			>
+				}>
 				<div class="viewer-display">
 					<Show when={props.config.display_style === "minimal"}>
 						<div class="flex items-center space-x-3 rounded-xl border border-gray-700 bg-linear-to-r from-gray-800 to-gray-900 px-6 py-4 text-white shadow-lg">
@@ -157,8 +154,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 								class="h-8 w-8"
 								style={{ color: props.config.icon_color || "#ef4444" }}
 								fill="currentColor"
-								viewBox={viewerIcon.viewBox}
-							>
+								viewBox={viewerIcon.viewBox}>
 								<path d={viewerIcon.path} />
 							</svg>
 							<span class={`${fontClass()} font-bold`}>
@@ -183,8 +179,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 										class="h-10 w-10"
 										style={{ color: props.config.icon_color || "#ef4444" }}
 										fill="currentColor"
-										viewBox={viewerIcon.viewBox}
-									>
+										viewBox={viewerIcon.viewBox}>
 										<path d={viewerIcon.path} />
 									</svg>
 									<div class="text-center">
@@ -205,15 +200,13 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 							<Show
 								when={
 									props.config.show_platforms && platformEntries().length > 0
-								}
-							>
+								}>
 								<div class="flex items-center justify-center space-x-4">
 									<For each={platformEntries()}>
 										{([platform, platformData]) => (
 											<div class="flex items-center space-x-2 rounded-lg border border-gray-700 bg-gray-900 bg-opacity-80 px-3 py-2 text-white">
 												<div
-													class={`h-4 w-4 rounded-full ${platformData.color} shadow-lg`}
-												></div>
+													class={`h-4 w-4 rounded-full ${platformData.color} shadow-lg`}></div>
 												<span class="font-bold">
 													{props.config.animation_enabled
 														? (
@@ -239,8 +232,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 											class="h-7 w-7"
 											style={{ color: props.config.icon_color || "#ef4444" }}
 											fill="currentColor"
-											viewBox={viewerIcon.viewBox}
-										>
+											viewBox={viewerIcon.viewBox}>
 											<path d={viewerIcon.path} />
 										</svg>
 										<Show when={props.config.viewer_label}>
@@ -260,14 +252,12 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 							<Show
 								when={
 									props.config.show_platforms && platformEntries().length > 0
-								}
-							>
+								}>
 								<div class="flex items-center justify-center space-x-3">
 									<For each={platformEntries()}>
 										{([platform, platformData]) => (
 											<div
-												class={`${platformData.color} rounded-xl p-3 text-center text-white shadow-lg transition-shadow duration-200 hover:shadow-xl`}
-											>
+												class={`${platformData.color} rounded-xl p-3 text-center text-white shadow-lg transition-shadow duration-200 hover:shadow-xl`}>
 												<div class="font-bold text-lg">
 													{props.config.animation_enabled
 														? (

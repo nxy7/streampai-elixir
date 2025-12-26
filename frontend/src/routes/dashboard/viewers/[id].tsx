@@ -273,8 +273,7 @@ export default function ViewerDetail() {
 					<p class="text-red-800">{error()}</p>
 					<A
 						href="/dashboard/viewers"
-						class="mt-2 inline-block text-red-600 underline hover:text-red-800"
-					>
+						class="mt-2 inline-block text-red-600 underline hover:text-red-800">
 						← Back to Viewers
 					</A>
 				</div>
@@ -287,15 +286,13 @@ export default function ViewerDetail() {
 						<div class="flex items-center space-x-4">
 							<A
 								href="/dashboard/viewers"
-								class="text-gray-500 hover:text-gray-700"
-							>
+								class="text-gray-500 hover:text-gray-700">
 								<svg
 									aria-hidden="true"
 									class="h-6 w-6"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -313,8 +310,7 @@ export default function ViewerDetail() {
 												{viewer()?.displayName.charAt(0).toUpperCase()}
 											</span>
 										</div>
-									}
-								>
+									}>
 									<img
 										class="h-12 w-12 rounded-full"
 										src={viewer()?.avatarUrl ?? ""}
@@ -329,8 +325,7 @@ export default function ViewerDetail() {
 										<a
 											href={viewer()?.channelUrl ?? ""}
 											target="_blank"
-											class="text-blue-600 text-sm hover:underline"
-										>
+											class="text-blue-600 text-sm hover:underline">
 											View Channel
 										</a>
 									</Show>
@@ -407,8 +402,7 @@ export default function ViewerDetail() {
 										class="mx-auto h-12 w-12 text-gray-400"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -421,8 +415,7 @@ export default function ViewerDetail() {
 										Messages will appear here once this viewer chats
 									</p>
 								</div>
-							}
-						>
+							}>
 							<div class="divide-y divide-gray-200">
 								<For each={messages()}>
 									{(message) => (
@@ -432,8 +425,7 @@ export default function ViewerDetail() {
 													<span
 														class={`inline-flex items-center rounded px-2 py-0.5 font-medium text-xs ${platformBadgeColor(
 															message.platform ?? "",
-														)}`}
-													>
+														)}`}>
 														{platformName(message.platform ?? "")}
 													</span>
 												</Show>
@@ -450,8 +442,7 @@ export default function ViewerDetail() {
 																`/dashboard/stream-history/${message.livestreamId}`,
 															)
 														}
-														class="text-blue-600 text-xs hover:underline"
-													>
+														class="text-blue-600 text-xs hover:underline">
 														{formatDateTime(message.insertedAt)}
 													</button>
 												</Show>
@@ -488,8 +479,7 @@ export default function ViewerDetail() {
 										class="mx-auto h-12 w-12 text-gray-400"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -502,8 +492,7 @@ export default function ViewerDetail() {
 										Events like donations and subscriptions will appear here
 									</p>
 								</div>
-							}
-						>
+							}>
 							<div class="divide-y divide-gray-200">
 								<For each={events()}>
 									{(event) => (
@@ -516,8 +505,7 @@ export default function ViewerDetail() {
 													<span
 														class={`inline-flex items-center rounded px-2 py-0.5 font-medium text-xs ${platformBadgeColor(
 															event.platform ?? "",
-														)}`}
-													>
+														)}`}>
 														{platformName(event.platform ?? "")}
 													</span>
 												</Show>
@@ -529,8 +517,7 @@ export default function ViewerDetail() {
 																`/dashboard/stream-history/${event.livestreamId}`,
 															)
 														}
-														class="text-blue-600 text-xs hover:underline"
-													>
+														class="text-blue-600 text-xs hover:underline">
 														{formatDateTime(event.insertedAt)}
 													</button>
 												</Show>

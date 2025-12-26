@@ -58,8 +58,7 @@ export default function Stream() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -73,14 +72,12 @@ export default function Stream() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Stream Status Card */}
 						<div class={card.default}>
@@ -95,8 +92,7 @@ export default function Stream() {
 										<span class={badge.neutral}>
 											{streamStatus().toUpperCase()}
 										</span>
-									}
-								>
+									}>
 									<span class={badge.success}>
 										<span class="mr-2 animate-pulse">●</span> LIVE
 									</span>
@@ -150,28 +146,24 @@ export default function Stream() {
 											type="button"
 											class={button.danger}
 											onClick={handleStopStream}
-											disabled={streamStatus() === "stopping"}
-										>
+											disabled={streamStatus() === "stopping"}>
 											{streamStatus() === "stopping"
 												? "Stopping..."
 												: "Stop Stream"}
 										</button>
-									}
-								>
+									}>
 									<button
 										type="button"
 										class={button.success}
 										onClick={handleStartStream}
-										disabled={streamStatus() === "starting"}
-									>
+										disabled={streamStatus() === "starting"}>
 										{streamStatus() === "starting" ? "Starting..." : "Go Live"}
 									</button>
 								</Show>
 								<button
 									type="button"
 									class={button.secondary}
-									onClick={() => setShowStreamKey(!showStreamKey())}
-								>
+									onClick={() => setShowStreamKey(!showStreamKey())}>
 									{showStreamKey() ? "Hide" : "Show"} Stream Key
 								</button>
 							</div>
@@ -227,8 +219,7 @@ export default function Stream() {
 																: conn.platform === "Facebook"
 																	? "bg-blue-100"
 																	: "bg-green-100")
-													}
-												>
+													}>
 													<svg
 														aria-hidden="true"
 														class={
@@ -242,8 +233,7 @@ export default function Stream() {
 																		: "text-green-600")
 														}
 														fill="currentColor"
-														viewBox="0 0 24 24"
-													>
+														viewBox="0 0 24 24">
 														<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
 													</svg>
 												</div>
@@ -257,8 +247,7 @@ export default function Stream() {
 															<span class="text-gray-500 text-xs">
 																Not connected
 															</span>
-														}
-													>
+														}>
 														<span class="text-green-600 text-xs">
 															Connected
 														</span>
@@ -273,19 +262,16 @@ export default function Stream() {
 														class={`${button.primary} text-sm`}
 														onClick={() =>
 															togglePlatformConnection(conn.platform)
-														}
-													>
+														}>
 														Connect
 													</button>
-												}
-											>
+												}>
 												<button
 													type="button"
 													class={`${button.secondary} text-sm`}
 													onClick={() =>
 														togglePlatformConnection(conn.platform)
-													}
-												>
+													}>
 													Disconnect
 												</button>
 											</Show>

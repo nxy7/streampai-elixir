@@ -59,8 +59,7 @@ export default function ProgressBar(props: ProgressBarProps) {
 				class={cn(
 					"w-full overflow-hidden rounded-full bg-gray-200",
 					sizeClasses[local.size ?? "md"],
-				)}
-			>
+				)}>
 				<div
 					class={cn(
 						"h-full rounded-full transition-all duration-500",

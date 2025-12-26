@@ -69,8 +69,7 @@ export default function TopDonorsWidget(props: TopDonorsWidgetProps) {
 			style={{
 				"font-family":
 					"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
-			}}
-		>
+			}}>
 			<div
 				class="top-donors-widget"
 				style={{
@@ -78,8 +77,7 @@ export default function TopDonorsWidget(props: TopDonorsWidgetProps) {
 					"--text-color": props.config.textColor || "#ffffff",
 					"--highlight-color": props.config.highlightColor || "#ffd700",
 					"font-size": `${props.config.fontSize}px`,
-				}}
-			>
+				}}>
 				<div class="widget-title">
 					<div class="title-glow"></div>
 					<span class="title-text">
@@ -93,8 +91,7 @@ export default function TopDonorsWidget(props: TopDonorsWidgetProps) {
 						<For each={displayedDonors()}>
 							{(donor, index) => (
 								<div
-									class={`donor-item ${getDonorSizeClass(index())} ${index() === 2 ? "last-podium" : ""}`}
-								>
+									class={`donor-item ${getDonorSizeClass(index())} ${index() === 2 ? "last-podium" : ""}`}>
 									<Show when={props.config.showRanking}>
 										<div class="donor-rank">
 											<span class="rank-emoji">

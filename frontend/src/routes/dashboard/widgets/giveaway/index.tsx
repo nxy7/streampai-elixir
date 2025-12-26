@@ -319,8 +319,7 @@ export default function GiveawayWidgetSettings() {
 													| "bounce"
 													| "confetti",
 											)
-										}
-									>
+										}>
 										<option value="fade">Fade</option>
 										<option value="slide">Slide</option>
 										<option value="bounce">Bounce</option>
@@ -334,8 +333,7 @@ export default function GiveawayWidgetSettings() {
 									type="button"
 									class={button.primary}
 									onClick={handleSave}
-									disabled={saving()}
-								>
+									disabled={saving()}>
 									{saving() ? "Saving..." : "Save Configuration"}
 								</button>
 								<Show when={saveMessage()}>
@@ -354,8 +352,7 @@ export default function GiveawayWidgetSettings() {
 									value={demoMode()}
 									onChange={(e) =>
 										setDemoMode(e.target.value as "active" | "winner")
-									}
-								>
+									}>
 									<option value="active">Active Giveaway</option>
 									<option value="winner">Winner Announcement</option>
 								</select>

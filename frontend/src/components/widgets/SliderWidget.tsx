@@ -81,28 +81,24 @@ export default function SliderWidget(props: SliderWidgetProps) {
 				height: "100%",
 				position: "relative",
 				overflow: "hidden",
-			}}
-		>
+			}}>
 			<Show
 				when={slides().length > 0}
 				fallback={
 					<div
-						style={{ color: "white", "text-align": "center", padding: "20px" }}
-					>
+						style={{ color: "white", "text-align": "center", padding: "20px" }}>
 						<p>No images available for slider</p>
 						<p style={{ "font-size": "0.8em", opacity: "0.7" }}>
 							Upload images or wait for demo images to load
 						</p>
 					</div>
-				}
-			>
+				}>
 				<div
 					style={{
 						width: "100%",
 						height: "100%",
 						position: "relative",
-					}}
-				>
+					}}>
 					<Show when={currentSlide()}>
 						{(slide) => (
 							<div
@@ -117,8 +113,7 @@ export default function SliderWidget(props: SliderWidgetProps) {
 									"align-items": "center",
 									"justify-content": "center",
 									"--transition-duration": `${transitionDuration()}ms`,
-								}}
-							>
+								}}>
 								<img
 									src={slide().url}
 									alt={slide().alt || `Slide ${slide().index + 1}`}

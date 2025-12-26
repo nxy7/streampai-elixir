@@ -14,8 +14,7 @@ export default function About() {
 					href="https://solidjs.com"
 					target="_blank"
 					class="text-sky-600 hover:underline"
-					rel="noopener"
-				>
+					rel="noopener">
 					solidjs.com
 				</a>{" "}
 				to learn how to build Solid apps.

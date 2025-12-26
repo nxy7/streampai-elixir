@@ -79,14 +79,12 @@ export default function ChatHistory() {
 							</p>
 							<a
 								href={getLoginUrl()}
-								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-							>
+								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 								Sign In
 							</a>
 						</div>
 					</div>
-				}
-			>
+				}>
 				<ErrorBoundary
 					fallback={(err) => (
 						<div class="mx-auto mt-8 max-w-6xl">
@@ -94,8 +92,7 @@ export default function ChatHistory() {
 								Error loading chat messages: {err.message}
 							</div>
 						</div>
-					)}
-				>
+					)}>
 					<Suspense fallback={<LoadingIndicator />}>
 						<ChatHistoryContent
 							userId={user()?.id}
@@ -192,8 +189,7 @@ function ChatHistoryContent(props: {
 								value={props.platform()}
 								onChange={(e) => {
 									props.setPlatform(e.currentTarget.value as Platform);
-								}}
-							>
+								}}>
 								<option value="">All Platforms</option>
 								<option value="twitch">Twitch</option>
 								<option value="youtube">YouTube</option>
@@ -212,8 +208,7 @@ function ChatHistoryContent(props: {
 								value={props.dateRange()}
 								onChange={(e) => {
 									props.setDateRange(e.currentTarget.value as DateRange);
-								}}
-							>
+								}}>
 								<option value="">All Time</option>
 								<option value="7days">Last 7 Days</option>
 								<option value="30days">Last 30 Days</option>
@@ -263,8 +258,7 @@ function ChatHistoryContent(props: {
 								props.setPlatform("");
 								props.setDateRange("");
 								props.setSearchInput("");
-							}}
-						>
+							}}>
 							Clear all
 						</button>
 					</div>
@@ -284,8 +278,7 @@ function ChatHistoryContent(props: {
 								class="mx-auto mb-4 h-16 w-16 text-gray-400"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -302,8 +295,7 @@ function ChatHistoryContent(props: {
 									: "Connect your streaming accounts to see chat messages"}
 							</p>
 						</div>
-					}
-				>
+					}>
 					<div class="space-y-3">
 						<For each={messages()}>
 							{(msg) => (
@@ -318,12 +310,10 @@ function ChatHistoryContent(props: {
 														<span class="font-semibold text-gray-900">
 															{msg.senderUsername}
 														</span>
-													}
-												>
+													}>
 													<A
 														href={`/dashboard/viewers/${msg.viewerId}`}
-														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline"
-													>
+														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline">
 														{msg.senderUsername}
 													</A>
 												</Show>

@@ -77,8 +77,7 @@ export default function SliderDisplay() {
 				display: "flex",
 				"align-items": "center",
 				"justify-content": "center",
-			}}
-		>
+			}}>
 			<Show when={config()}>
 				{(cfg) => (
 					<div style={{ width: "100%", height: "100%" }}>

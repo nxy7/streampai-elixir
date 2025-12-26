@@ -29,16 +29,14 @@ export default function PollOBS() {
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={activePoll()}
 					fallback={
 						<div class="rounded-2xl bg-gray-900/80 p-8 shadow-2xl backdrop-blur-sm">
 							<div class="text-center text-2xl text-white">No active poll</div>
 						</div>
-					}
-				>
+					}>
 					{(poll) => (
 						<div class="w-full max-w-3xl">
 							<div class="rounded-2xl bg-linear-to-b from-indigo-900/80 to-purple-900/80 p-8 shadow-2xl backdrop-blur-sm">

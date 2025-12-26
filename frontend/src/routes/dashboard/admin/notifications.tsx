@@ -140,8 +140,7 @@ export default function AdminNotifications() {
 					<div class="flex min-h-screen items-center justify-center">
 						<div class="text-gray-500">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show when={currentUser()?.role === "admin"}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<Show when={successMessage()}>
@@ -151,8 +150,7 @@ export default function AdminNotifications() {
 									class="mt-0.5 h-5 w-5 shrink-0 text-green-500"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -168,15 +166,13 @@ export default function AdminNotifications() {
 								<button
 									type="button"
 									onClick={() => setSuccessMessage(null)}
-									class="text-green-500 hover:text-green-700"
-								>
+									class="text-green-500 hover:text-green-700">
 									<svg
 										aria-hidden="true"
 										class="h-5 w-5"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -195,8 +191,7 @@ export default function AdminNotifications() {
 									class="mt-0.5 h-5 w-5 shrink-0 text-red-500"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -210,15 +205,13 @@ export default function AdminNotifications() {
 								<button
 									type="button"
 									onClick={() => setError(null)}
-									class="text-red-500 hover:text-red-700"
-								>
+									class="text-red-500 hover:text-red-700">
 									<svg
 										aria-hidden="true"
 										class="h-5 w-5"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -241,8 +234,7 @@ export default function AdminNotifications() {
 								<button
 									type="button"
 									onClick={openCreateModal}
-									class={button.primary}
-								>
+									class={button.primary}>
 									Create Notification
 								</button>
 							</div>
@@ -277,8 +269,7 @@ export default function AdminNotifications() {
 													<td class="whitespace-nowrap px-6 py-4">
 														<Show
 															when={notification.user_id}
-															fallback={<span class={badge.info}>Global</span>}
-														>
+															fallback={<span class={badge.info}>Global</span>}>
 															<span class={badge.warning}>User-specific</span>
 														</Show>
 													</td>
@@ -291,8 +282,7 @@ export default function AdminNotifications() {
 														<button
 															type="button"
 															onClick={() => openDeleteConfirm(notification)}
-															class="text-red-600 hover:text-red-900 hover:underline"
-														>
+															class="text-red-600 hover:text-red-900 hover:underline">
 															Delete
 														</button>
 													</td>
@@ -309,8 +299,7 @@ export default function AdminNotifications() {
 											class="mx-auto h-12 w-12 text-gray-400"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -324,8 +313,7 @@ export default function AdminNotifications() {
 										<button
 											type="button"
 											onClick={openCreateModal}
-											class={`${button.primary} mt-4`}
-										>
+											class={`${button.primary} mt-4`}>
 											Create your first notification
 										</button>
 									</div>
@@ -344,15 +332,13 @@ export default function AdminNotifications() {
 										<button
 											type="button"
 											onClick={closeCreateModal}
-											class="text-gray-400 hover:text-gray-500"
-										>
+											class="text-gray-400 hover:text-gray-500">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
 												fill="none"
 												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+												viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -375,8 +361,7 @@ export default function AdminNotifications() {
 														e.currentTarget.value as "global" | "user",
 													)
 												}
-												class={input.select}
-											>
+												class={input.select}>
 												<option value="global">Global (All Users)</option>
 												<option value="user">User-specific</option>
 											</select>
@@ -425,16 +410,14 @@ export default function AdminNotifications() {
 									<button
 										type="button"
 										onClick={closeCreateModal}
-										class={button.secondary}
-									>
+										class={button.secondary}>
 										Cancel
 									</button>
 									<button
 										type="button"
 										onClick={handleCreate}
 										disabled={creating() || !notificationContent().trim()}
-										class={button.primary}
-									>
+										class={button.primary}>
 										<Show when={creating()} fallback="Create Notification">
 											Creating...
 										</Show>
@@ -454,15 +437,13 @@ export default function AdminNotifications() {
 										<button
 											type="button"
 											onClick={closeDeleteConfirm}
-											class="text-gray-400 hover:text-gray-500"
-										>
+											class="text-gray-400 hover:text-gray-500">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
 												fill="none"
 												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+												viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -490,16 +471,14 @@ export default function AdminNotifications() {
 									<button
 										type="button"
 										onClick={closeDeleteConfirm}
-										class={button.secondary}
-									>
+										class={button.secondary}>
 										Cancel
 									</button>
 									<button
 										type="button"
 										onClick={handleDelete}
 										disabled={deleting()}
-										class={button.danger}
-									>
+										class={button.danger}>
 										<Show when={deleting()} fallback="Delete">
 											Deleting...
 										</Show>

@@ -195,8 +195,7 @@ export default function AlertboxWidgetSettings() {
 													"animationType",
 													e.target.value as AlertConfig["animationType"],
 												)
-											}
-										>
+											}>
 											<option value="fade">Fade</option>
 											<option value="slide">Slide</option>
 											<option value="bounce">Bounce</option>
@@ -214,8 +213,7 @@ export default function AlertboxWidgetSettings() {
 													"alertPosition",
 													e.target.value as AlertConfig["alertPosition"],
 												)
-											}
-										>
+											}>
 											<option value="top">Top</option>
 											<option value="center">Center</option>
 											<option value="bottom">Bottom</option>
@@ -269,8 +267,7 @@ export default function AlertboxWidgetSettings() {
 										type="button"
 										class={button.primary}
 										onClick={handleSave}
-										disabled={saving()}
-									>
+										disabled={saving()}>
 										{saving() ? "Saving..." : "Save Configuration"}
 									</button>
 									<Show when={saveMessage()}>
@@ -285,14 +282,12 @@ export default function AlertboxWidgetSettings() {
 								<button
 									type="button"
 									class={`${button.secondary} mb-4`}
-									onClick={cycleDemoEvent}
-								>
+									onClick={cycleDemoEvent}>
 									Show Next Alert Type
 								</button>
 								<div
 									class="rounded-lg bg-gray-900 p-8"
-									style={{ height: "400px" }}
-								>
+									style={{ height: "400px" }}>
 									<AlertboxWidget
 										config={config()}
 										event={DEMO_EVENTS[demoIndex()]}

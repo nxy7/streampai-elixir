@@ -13,6 +13,12 @@
 {
 	# Disable auto HTTPS redirect to avoid binding to port 80
 	auto_https disable_redirects
+
+	# Use HTTP/1.1 only - Caddy 2.10.2 has WebSocket issues with HTTP/2
+	# See: https://github.com/caddyserver/caddy/issues/7292
+	servers {
+		protocols h1
+	}
 }
 
 localhost:{$CADDY_PORT:8000} {
@@ -29,6 +35,11 @@ localhost:{$CADDY_PORT:8000} {
 	# Tidewave MCP for Claude integration
 	handle /tidewave/* {
 		reverse_proxy localhost:{$PHOENIX_PORT:4000}
+	}
+
+	# Vite dev server assets and HMR WebSocket
+	handle /_build/* {
+		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}
 
 	# Everything else goes to frontend

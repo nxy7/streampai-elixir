@@ -193,8 +193,7 @@ export default function SmartCanvasWidgetRenderer(props: WidgetRendererProps) {
 				width: `${props.widget.width}px`,
 				height: `${props.widget.height}px`,
 				overflow: "hidden",
-			}}
-		>
+			}}>
 			<div class="flex h-full w-full items-center justify-center">
 				{renderWidgetContent()}
 			</div>

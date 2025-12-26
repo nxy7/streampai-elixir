@@ -95,8 +95,7 @@ export default function PollWidgetDisplay() {
 				"align-items": "center",
 				"justify-content": "center",
 				padding: "1rem",
-			}}
-		>
+			}}>
 			<Show when={config()}>
 				<div style={{ "max-width": "600px", width: "100%" }}>
 					<PollWidget

@@ -44,8 +44,7 @@ export default function Stat(props: StatProps) {
 				class={cn(
 					valueClasses[size],
 					local.highlight ? "text-indigo-600" : "text-gray-900",
-				)}
-			>
+				)}>
 				{local.value}
 			</p>
 			<p class={cn(size === "sm" ? "text-xs" : "text-sm", "text-gray-500")}>
@@ -56,8 +55,7 @@ export default function Stat(props: StatProps) {
 					class={cn(
 						"mt-1 flex items-center justify-center text-xs",
 						isPositiveTrend ? "text-green-600" : "text-red-600",
-					)}
-				>
+					)}>
 					<Show
 						when={isPositiveTrend}
 						fallback={
@@ -65,22 +63,19 @@ export default function Stat(props: StatProps) {
 								aria-hidden="true"
 								class="mr-0.5 h-3 w-3"
 								fill="currentColor"
-								viewBox="0 0 20 20"
-							>
+								viewBox="0 0 20 20">
 								<path
 									fill-rule="evenodd"
 									d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
 									clip-rule="evenodd"
 								/>
 							</svg>
-						}
-					>
+						}>
 						<svg
 							aria-hidden="true"
 							class="mr-0.5 h-3 w-3"
 							fill="currentColor"
-							viewBox="0 0 20 20"
-						>
+							viewBox="0 0 20 20">
 							<path
 								fill-rule="evenodd"
 								d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
@@ -118,8 +113,7 @@ export function StatGroup(props: StatGroupProps) {
 	return (
 		<div
 			class={cn("grid gap-4", columnClasses[local.columns ?? 3], local.class)}
-			{...rest}
-		>
+			{...rest}>
 			{local.children}
 		</div>
 	);

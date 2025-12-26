@@ -26,8 +26,7 @@ export default function Input(props: InputProps) {
 			<Show when={local.label}>
 				<label
 					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm"
-				>
+					class="mb-1 block font-medium text-gray-700 text-sm">
 					{local.label}
 				</label>
 			</Show>
@@ -76,8 +75,7 @@ export function Textarea(props: TextareaProps) {
 			<Show when={local.label}>
 				<label
 					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm"
-				>
+					class="mb-1 block font-medium text-gray-700 text-sm">
 					{local.label}
 				</label>
 			</Show>
@@ -129,8 +127,7 @@ export function Select(props: SelectProps) {
 			<Show when={local.label}>
 				<label
 					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm"
-				>
+					class="mb-1 block font-medium text-gray-700 text-sm">
 					{local.label}
 				</label>
 			</Show>
@@ -145,8 +142,7 @@ export function Select(props: SelectProps) {
 					"disabled:cursor-not-allowed disabled:bg-gray-50",
 					local.class,
 				)}
-				{...rest}
-			>
+				{...rest}>
 				{local.children}
 			</select>
 			<Show when={local.error}>

@@ -63,11 +63,9 @@ export default function TimerWidget(props: TimerWidgetProps) {
 				"font-family": "system-ui, -apple-system, sans-serif",
 				"box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
 				"min-width": "200px",
-			}}
-		>
+			}}>
 			<div
-				style={{ "font-variant-numeric": "tabular-nums", "line-height": "1" }}
-			>
+				style={{ "font-variant-numeric": "tabular-nums", "line-height": "1" }}>
 				{formatTime(seconds())}
 			</div>
 			{props.config.label && (
@@ -76,8 +74,7 @@ export default function TimerWidget(props: TimerWidgetProps) {
 						"font-size": "0.5em",
 						opacity: "0.9",
 						"letter-spacing": "0.05em",
-					}}
-				>
+					}}>
 					{props.config.label}
 				</div>
 			)}

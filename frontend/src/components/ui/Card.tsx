@@ -40,8 +40,7 @@ export default function Card(props: CardProps) {
 				paddingClasses[local.padding ?? "md"],
 				local.class,
 			)}
-			{...rest}
-		>
+			{...rest}>
 			{local.children}
 		</div>
 	);
@@ -57,8 +56,7 @@ export function CardHeader(props: CardHeaderProps) {
 	return (
 		<div
 			class={cn("border-gray-200 border-b px-6 py-4", local.class)}
-			{...rest}
-		>
+			{...rest}>
 			{local.children}
 		</div>
 	);

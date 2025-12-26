@@ -89,8 +89,7 @@ export default function ChatOBS() {
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}
-			>
+				}>
 				<div class="space-y-2">
 					<For each={messages()}>
 						{(message) => (

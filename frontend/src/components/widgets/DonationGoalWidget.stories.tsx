@@ -16,8 +16,7 @@ const meta = {
 					width: "400px",
 					padding: "20px",
 					background: "rgba(0,0,0,0.5)",
-				}}
-			>
+				}}>
 				<Story />
 			</div>
 		),

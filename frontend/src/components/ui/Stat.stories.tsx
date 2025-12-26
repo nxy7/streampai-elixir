@@ -85,8 +85,7 @@ export const WithIcon: Story = {
 				class="h-8 w-8 text-purple-500"
 				fill="none"
 				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
+				viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

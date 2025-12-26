@@ -74,8 +74,7 @@ export const AuthProvider: ParentComponent = (props) => {
 
 	return (
 		<AuthContext.Provider
-			value={{ user: currentUser, isLoading, refresh: fetchCurrentUser }}
-		>
+			value={{ user: currentUser, isLoading, refresh: fetchCurrentUser }}>
 			{props.children}
 		</AuthContext.Provider>
 	);

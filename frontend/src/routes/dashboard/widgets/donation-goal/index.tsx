@@ -227,8 +227,7 @@ export default function DonationGoalWidgetSettings() {
 												"theme",
 												e.target.value as "default" | "minimal" | "modern",
 											)
-										}
-									>
+										}>
 										<option value="default">Default</option>
 										<option value="minimal">Minimal</option>
 										<option value="modern">Modern</option>
@@ -317,8 +316,7 @@ export default function DonationGoalWidgetSettings() {
 									type="button"
 									class={button.primary}
 									onClick={handleSave}
-									disabled={saving()}
-								>
+									disabled={saving()}>
 									{saving() ? "Saving..." : "Save Configuration"}
 								</button>
 								<Show when={saveMessage()}>
@@ -347,8 +345,7 @@ export default function DonationGoalWidgetSettings() {
 							</div>
 							<div
 								class="rounded-lg bg-gray-900 p-8"
-								style={{ height: "300px" }}
-							>
+								style={{ height: "300px" }}>
 								<DonationGoalWidget
 									config={config()}
 									currentAmount={demoAmount()}

@@ -13,8 +13,7 @@ export default function App() {
 					<MetaProvider>
 						<Suspense>{props.children}</Suspense>
 					</MetaProvider>
-				)}
-			>
+				)}>
 				<FileRoutes />
 			</Router>
 		</AuthProvider>

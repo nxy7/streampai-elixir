@@ -142,18 +142,15 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 			<div class={`absolute inset-0 flex justify-center ${positionClass()}`}>
 				<Show when={props.event}>
 					<div
-						class={`alert-card relative mx-4 w-96 rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-8 shadow-2xl backdrop-blur-lg ${fontClass()} animate-${props.config.animationType}-in`}
-					>
+						class={`alert-card relative mx-4 w-96 rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-8 shadow-2xl backdrop-blur-lg ${fontClass()} animate-${props.config.animationType}-in`}>
 						<div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
 						<div
-							class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event?.type)} animate-pulse opacity-10`}
-						></div>
+							class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event?.type)} animate-pulse opacity-10`}></div>
 
 						<div class="relative z-10">
 							<div class="mb-6 text-center">
 								<div
-									class={`font-extrabold text-sm uppercase tracking-wider ${getAlertColor(props.event?.type)} mb-2 drop-shadow-sm`}
-								>
+									class={`font-extrabold text-sm uppercase tracking-wider ${getAlertColor(props.event?.type)} mb-2 drop-shadow-sm`}>
 									{getAlertTypeLabel(props.event?.type)}
 								</div>
 								<div class="font-bold text-2xl text-white drop-shadow-sm">
@@ -202,8 +199,7 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 								style={{
 									width: "100%",
 									animation: `progress-width-shrink ${props.config.displayDuration}s linear forwards`,
-								}}
-							></div>
+								}}></div>
 						</div>
 					</div>
 				</Show>

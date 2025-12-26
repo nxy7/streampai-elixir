@@ -10,8 +10,7 @@ function GoogleIcon() {
 			aria-hidden="true"
 			class="h-5 w-5"
 			viewBox="0 0 24 24"
-			fill="currentColor"
-		>
+			fill="currentColor">
 			<path
 				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 				fill="#4285F4"
@@ -38,8 +37,7 @@ function TwitchIcon() {
 			aria-hidden="true"
 			class="h-5 w-5"
 			viewBox="0 0 24 24"
-			fill="currentColor"
-		>
+			fill="currentColor">
 			<path
 				d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"
 				fill="#9146FF"
@@ -65,13 +63,11 @@ export default function LoginPage() {
 							<p class="mb-6 text-gray-300">You're already logged in.</p>
 							<A
 								href={getDashboardUrl()}
-								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-							>
+								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 								Go to Dashboard
 							</A>
 						</div>
-					}
-				>
+					}>
 					<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg">
 						<div class="mb-8 text-center">
 							<A href="/" class="mb-6 inline-flex items-center space-x-2">
@@ -90,8 +86,7 @@ export default function LoginPage() {
 							<a
 								href={`${BACKEND_URL}/auth/user/google`}
 								rel="external"
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100"
-							>
+								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100">
 								<GoogleIcon />
 								Continue with Google
 							</a>
@@ -99,8 +94,7 @@ export default function LoginPage() {
 							<a
 								href={`${BACKEND_URL}/auth/user/twitch`}
 								rel="external"
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
-							>
+								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]">
 								<TwitchIcon />
 								Continue with Twitch
 							</a>
@@ -120,15 +114,13 @@ export default function LoginPage() {
 						<a
 							href={`${BACKEND_URL}/auth/sign-in`}
 							rel="external"
-							class="flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-3 font-semibold text-white transition-all hover:bg-white/10"
-						>
+							class="flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-3 font-semibold text-white transition-all hover:bg-white/10">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -144,8 +136,7 @@ export default function LoginPage() {
 							<a
 								href={`${BACKEND_URL}/auth/register`}
 								rel="external"
-								class="text-purple-400 hover:text-purple-300"
-							>
+								class="text-purple-400 hover:text-purple-300">
 								Create one
 							</a>
 						</p>

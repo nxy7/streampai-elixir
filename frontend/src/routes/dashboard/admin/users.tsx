@@ -153,8 +153,7 @@ export default function AdminUsers() {
 					<div class="flex min-h-screen items-center justify-center">
 						<div class="text-gray-500">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show when={currentUser()?.role === "admin"}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<Show when={successMessage()}>
@@ -212,8 +211,7 @@ export default function AdminUsers() {
 														currentUser()?.id === user.id
 															? "bg-purple-50"
 															: "hover:bg-gray-50"
-													}
-												>
+													}>
 													<td class="whitespace-nowrap px-6 py-4">
 														<div class="flex items-center">
 															<div class="relative">
@@ -224,8 +222,7 @@ export default function AdminUsers() {
 																			<span class="font-medium text-sm text-white">
 																				{user.email[0].toUpperCase()}
 																			</span>
-																		}
-																	>
+																		}>
 																		<img
 																			src={user.avatar_url ?? ""}
 																			alt={user.name}
@@ -264,8 +261,7 @@ export default function AdminUsers() {
 															when={user.confirmed_at}
 															fallback={
 																<span class={badge.warning}>Pending</span>
-															}
-														>
+															}>
 															<span class={badge.success}>Confirmed</span>
 														</Show>
 													</td>
@@ -277,8 +273,7 @@ export default function AdminUsers() {
 															<button
 																type="button"
 																onClick={() => openGrantModal(user)}
-																class="text-green-600 hover:text-green-900 hover:underline"
-															>
+																class="text-green-600 hover:text-green-900 hover:underline">
 																Grant PRO
 															</button>
 														</div>
@@ -296,8 +291,7 @@ export default function AdminUsers() {
 											class="mx-auto h-12 w-12 text-gray-400"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -321,15 +315,13 @@ export default function AdminUsers() {
 										<button
 											type="button"
 											onClick={closeGrantModal}
-											class="text-gray-400 hover:text-gray-500"
-										>
+											class="text-gray-400 hover:text-gray-500">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
 												fill="none"
 												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+												viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -355,8 +347,7 @@ export default function AdminUsers() {
 											<select
 												value={grantDuration()}
 												onInput={(e) => setGrantDuration(e.currentTarget.value)}
-												class={input.select}
-											>
+												class={input.select}>
 												<option value="7">7 days</option>
 												<option value="30">30 days</option>
 												<option value="90">90 days (3 months)</option>
@@ -387,16 +378,14 @@ export default function AdminUsers() {
 									<button
 										type="button"
 										onClick={closeGrantModal}
-										class={button.secondary}
-									>
+										class={button.secondary}>
 										Cancel
 									</button>
 									<button
 										type="button"
 										onClick={handleGrantPro}
 										disabled={grantingPro() || !grantReason().trim()}
-										class={button.primary}
-									>
+										class={button.primary}>
 										<Show when={grantingPro()} fallback="Grant PRO Access">
 											Granting...
 										</Show>
@@ -415,15 +404,13 @@ export default function AdminUsers() {
 										<button
 											type="button"
 											onClick={closeRevokeConfirm}
-											class="text-gray-400 hover:text-gray-500"
-										>
+											class="text-gray-400 hover:text-gray-500">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
 												fill="none"
 												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+												viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -447,16 +434,14 @@ export default function AdminUsers() {
 									<button
 										type="button"
 										onClick={closeRevokeConfirm}
-										class={button.secondary}
-									>
+										class={button.secondary}>
 										Cancel
 									</button>
 									<button
 										type="button"
 										onClick={handleRevokePro}
 										disabled={revokingPro()}
-										class={button.danger}
-									>
+										class={button.danger}>
 										<Show when={revokingPro()} fallback="Revoke PRO">
 											Revoking...
 										</Show>

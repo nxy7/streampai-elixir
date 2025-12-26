@@ -82,8 +82,7 @@ export default function TopDonorsDisplay() {
 				display: "flex",
 				"align-items": "center",
 				"justify-content": "center",
-			}}
-		>
+			}}>
 			<Show when={config()}>
 				{(cfg) => (
 					<div
@@ -93,8 +92,7 @@ export default function TopDonorsDisplay() {
 							display: "flex",
 							"align-items": "center",
 							"justify-content": "center",
-						}}
-					>
+						}}>
 						<TopDonorsWidget config={cfg()} donors={donors()} />
 					</div>
 				)}

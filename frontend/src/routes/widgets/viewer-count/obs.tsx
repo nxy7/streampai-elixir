@@ -58,8 +58,7 @@ export default function ViewerCountOBS() {
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}
-			>
+				}>
 				<div class="rounded-2xl bg-linear-to-r from-blue-900/80 to-purple-900/80 p-8 shadow-2xl backdrop-blur-sm">
 					<div class="text-center">
 						<div class="mb-2 text-2xl text-white">👥 Viewers</div>
@@ -68,8 +67,7 @@ export default function ViewerCountOBS() {
 							classList={{
 								"scale-125": isAnimating(),
 								"scale-100": !isAnimating(),
-							}}
-						>
+							}}>
 							{viewerCount()}
 						</div>
 					</div>

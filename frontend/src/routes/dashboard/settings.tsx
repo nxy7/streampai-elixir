@@ -506,8 +506,7 @@ export default function Settings() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -521,14 +520,12 @@ export default function Settings() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<div class="rounded-lg bg-linear-to-r from-purple-600 to-pink-600 p-6 text-white shadow-sm">
 							<div class="flex items-center justify-between">
@@ -538,8 +535,7 @@ export default function Settings() {
 								</div>
 								<button
 									type="button"
-									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50"
-								>
+									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50">
 									Upgrade to Pro
 								</button>
 							</div>
@@ -591,8 +587,7 @@ export default function Settings() {
 												isUpdatingName()
 													? "cursor-not-allowed opacity-50"
 													: "hover:bg-purple-700"
-											}`}
-										>
+											}`}>
 											{isUpdatingName() ? "Updating..." : "Update Name"}
 										</button>
 										<Show when={nameSuccess()}>
@@ -607,8 +602,7 @@ export default function Settings() {
 								<div>
 									<label
 										for="avatar-upload"
-										class="mb-2 block font-medium text-gray-700 text-sm"
-									>
+										class="mb-2 block font-medium text-gray-700 text-sm">
 										Profile Avatar
 									</label>
 									<div class="flex items-center space-x-4">
@@ -620,8 +614,7 @@ export default function Settings() {
 														<span class="font-bold text-2xl text-white">
 															{prefs.data()?.name?.[0]?.toUpperCase() || "U"}
 														</span>
-													}
-												>
+													}>
 													<img
 														src={prefs.data()?.avatar_url ?? ""}
 														alt="Avatar"
@@ -652,8 +645,7 @@ export default function Settings() {
 													isUploading()
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
-												}`}
-											>
+												}`}>
 												{isUploading() ? "Uploading..." : "Upload New Avatar"}
 											</button>
 											<p class="mt-1 text-gray-500 text-xs">
@@ -681,8 +673,7 @@ export default function Settings() {
 												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
 													<div class="flex items-center space-x-3">
 														<div
-															class={`h-10 w-10 bg-linear-to-r ${connection.color} flex items-center justify-center rounded-lg`}
-														>
+															class={`h-10 w-10 bg-linear-to-r ${connection.color} flex items-center justify-center rounded-lg`}>
 															<span class="font-bold text-sm text-white">
 																{connection.name[0]}
 															</span>
@@ -704,8 +695,7 @@ export default function Settings() {
 															connection.connected
 																? "font-medium text-red-600 text-sm hover:text-red-700"
 																: "rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700"
-														}
-													>
+														}>
 														{connection.connected ? "Disconnect" : "Connect"}
 													</button>
 												</div>
@@ -727,7 +717,9 @@ export default function Settings() {
 										<div class="mt-2 flex items-center space-x-3">
 											<input
 												type="text"
-												value={`${window.location.origin}/u/${prefs.data()?.name || ""}`}
+												value={`${window.location.origin}/u/${
+													prefs.data()?.name || ""
+												}`}
 												class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
 												readonly
 											/>
@@ -735,11 +727,12 @@ export default function Settings() {
 												type="button"
 												onClick={() => {
 													navigator.clipboard.writeText(
-														`${window.location.origin}/u/${prefs.data()?.name || ""}`,
+														`${window.location.origin}/u/${
+															prefs.data()?.name || ""
+														}`,
 													);
 												}}
-												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700"
-											>
+												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700">
 												Copy URL
 											</button>
 										</div>
@@ -759,8 +752,7 @@ export default function Settings() {
 													<span class="font-bold text-white">
 														{prefs.data()?.name?.[0]?.toUpperCase() || "U"}
 													</span>
-												}
-											>
+												}>
 												<img
 													src={prefs.data()?.avatar_url ?? ""}
 													alt="Avatar"
@@ -778,8 +770,8 @@ export default function Settings() {
 									<a
 										href={`/u/${prefs.data()?.name || ""}`}
 										target="_blank"
-										class="font-medium text-purple-600 text-sm hover:text-purple-700"
-									>
+										rel="noreferrer"
+										class="font-medium text-purple-600 text-sm hover:text-purple-700">
 										Preview →
 									</a>
 								</div>
@@ -850,8 +842,7 @@ export default function Settings() {
 											<select
 												value={currency()}
 												onChange={(e) => setCurrency(e.currentTarget.value)}
-												class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-											>
+												class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500">
 												<For each={currencies}>
 													{(curr) => <option value={curr}>{curr}</option>}
 												</For>
@@ -866,8 +857,7 @@ export default function Settings() {
 										<select
 											value={defaultVoice()}
 											onChange={(e) => setDefaultVoice(e.currentTarget.value)}
-											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-										>
+											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500">
 											<option value="random">
 												Random (different voice each time)
 											</option>
@@ -891,8 +881,7 @@ export default function Settings() {
 										class="mt-0.5 h-5 w-5 shrink-0 text-blue-500"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -928,8 +917,7 @@ export default function Settings() {
 											isSavingSettings()
 												? "cursor-not-allowed opacity-50"
 												: "hover:bg-purple-700"
-										}`}
-									>
+										}`}>
 										{isSavingSettings()
 											? "Saving..."
 											: "Save Donation Settings"}
@@ -959,8 +947,7 @@ export default function Settings() {
 											class="mx-auto mb-3 h-12 w-12 text-gray-400"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -974,8 +961,7 @@ export default function Settings() {
 											moderate their channels
 										</p>
 									</div>
-								}
-							>
+								}>
 								<div class="space-y-3">
 									<For each={pendingInvitations()}>
 										{(invitation) => {
@@ -992,8 +978,7 @@ export default function Settings() {
 																		{granterInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}
-															>
+																}>
 																<img
 																	src={granterInfo()?.displayAvatar ?? ""}
 																	alt={granterInfo()?.name || "User"}
@@ -1023,8 +1008,7 @@ export default function Settings() {
 																handleAcceptInvitation(invitation.id)
 															}
 															disabled={processingRoleId() === invitation.id}
-															class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50"
-														>
+															class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50">
 															{processingRoleId() === invitation.id
 																? "..."
 																: "Accept"}
@@ -1035,8 +1019,7 @@ export default function Settings() {
 																handleDeclineInvitation(invitation.id)
 															}
 															disabled={processingRoleId() === invitation.id}
-															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
-														>
+															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50">
 															Decline
 														</button>
 													</div>
@@ -1061,8 +1044,7 @@ export default function Settings() {
 											class="mx-auto mb-3 h-12 w-12 text-gray-400"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1077,8 +1059,7 @@ export default function Settings() {
 											Roles granted to you by other streamers will appear here
 										</p>
 									</div>
-								}
-							>
+								}>
 								<div class="space-y-3">
 									<For each={myRoles()}>
 										{(role) => {
@@ -1095,8 +1076,7 @@ export default function Settings() {
 																		{granterInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}
-															>
+																}>
 																<img
 																	src={granterInfo()?.displayAvatar ?? ""}
 																	alt={granterInfo()?.name || "User"}
@@ -1168,8 +1148,7 @@ export default function Settings() {
 														e.currentTarget.value as "moderator" | "manager",
 													)
 												}
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-											>
+												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
 												<option value="moderator">Moderator</option>
 												<option value="manager">Manager</option>
 											</select>
@@ -1182,8 +1161,7 @@ export default function Settings() {
 													isInviting()
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
-												}`}
-											>
+												}`}>
 												{isInviting() ? "Sending..." : "Send Invitation"}
 											</button>
 										</div>
@@ -1204,8 +1182,7 @@ export default function Settings() {
 											class="mr-2 h-5 w-5 shrink-0 text-blue-500"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1231,8 +1208,7 @@ export default function Settings() {
 							</div>
 
 							<Show
-								when={!loadingRoles() && pendingInvitationsSent().length > 0}
-							>
+								when={!loadingRoles() && pendingInvitationsSent().length > 0}>
 								<div class="mb-6 space-y-3">
 									<h4 class="font-medium text-gray-700 text-sm">
 										Pending Invitations
@@ -1251,8 +1227,7 @@ export default function Settings() {
 																		{userInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}
-															>
+																}>
 																<img
 																	src={userInfo()?.displayAvatar ?? ""}
 																	alt={userInfo()?.name || "User"}
@@ -1278,8 +1253,7 @@ export default function Settings() {
 														type="button"
 														onClick={() => handleRevokeRole(role.id)}
 														disabled={processingRoleId() === role.id}
-														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
-													>
+														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
 														{processingRoleId() === role.id ? "..." : "Cancel"}
 													</button>
 												</div>
@@ -1299,8 +1273,7 @@ export default function Settings() {
 												class="mx-auto mb-3 h-12 w-12 text-gray-400"
 												fill="none"
 												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+												viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -1314,8 +1287,7 @@ export default function Settings() {
 											</p>
 										</div>
 									</Show>
-								}
-							>
+								}>
 								<div class="space-y-3">
 									<h4 class="font-medium text-gray-700 text-sm">Your Team</h4>
 									<For each={rolesIGranted()}>
@@ -1332,8 +1304,7 @@ export default function Settings() {
 																		{userInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}
-															>
+																}>
 																<img
 																	src={userInfo()?.displayAvatar ?? ""}
 																	alt={userInfo()?.name || "User"}
@@ -1362,8 +1333,7 @@ export default function Settings() {
 														type="button"
 														onClick={() => handleRevokeRole(role.id)}
 														disabled={processingRoleId() === role.id}
-														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
-													>
+														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
 														{processingRoleId() === role.id ? "..." : "Revoke"}
 													</button>
 												</div>
@@ -1397,8 +1367,11 @@ export default function Settings() {
 												prefs.data()?.email_notifications
 													? "bg-purple-600"
 													: "bg-gray-300"
-											} ${isTogglingNotifications() ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-										>
+											} ${
+												isTogglingNotifications()
+													? "cursor-not-allowed opacity-50"
+													: "cursor-pointer"
+											}`}>
 											<span
 												class={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
 													prefs.data()?.email_notifications

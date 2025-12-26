@@ -309,8 +309,7 @@ export default function PlaceholderSettings() {
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -319,8 +318,7 @@ export default function PlaceholderSettings() {
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>

@@ -127,8 +127,7 @@ function PaletteWidgetItem(props: {
 		<button
 			type="button"
 			class="flex cursor-pointer items-center gap-3 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 p-3 text-white transition-shadow hover:shadow-lg"
-			onClick={handleAddWidget}
-		>
+			onClick={handleAddWidget}>
 			<span class="text-2xl">{props.widgetDef.icon}</span>
 			<span class="font-semibold">{props.widgetDef.name}</span>
 		</button>
@@ -212,16 +211,14 @@ function CanvasWidgetComponent(props: {
 				height: `${props.widget.height}px`,
 				"z-index": props.selectedWidgetId === props.widget.id ? 20 : 10,
 			}}
-			onClick={handleSelect}
-		>
+			onClick={handleSelect}>
 			<div
 				role="application"
 				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-purple-500 to-pink-500 p-4 shadow-lg"
 				classList={{
 					"ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
 				}}
-				onMouseDown={handleMouseDown}
-			>
+				onMouseDown={handleMouseDown}>
 				<div class="mb-2 flex items-center gap-2 text-white">
 					<span class="text-xl">{widgetDef()?.icon}</span>
 					<span class="font-semibold text-sm">{widgetDef()?.name}</span>
@@ -243,8 +240,7 @@ function CanvasWidgetComponent(props: {
 				onClick={(e) => {
 					e.stopPropagation();
 					props.onDelete(props.widget.id);
-				}}
-			>
+				}}>
 				×
 			</button>
 
@@ -278,8 +274,7 @@ function CanvasWidgetComponent(props: {
 
 					document.addEventListener("mousemove", handleMouseMove);
 					document.addEventListener("mouseup", handleMouseUp);
-				}}
-			>
+				}}>
 				⇲
 			</button>
 		</button>
@@ -554,8 +549,7 @@ export default function SmartCanvas() {
 										class={button.primary}
 										onClick={() => {
 											navigator.clipboard.writeText(obsUrl());
-										}}
-									>
+										}}>
 										Copy
 									</button>
 								</div>
@@ -573,22 +567,19 @@ export default function SmartCanvas() {
 											? "rounded-lg bg-green-600 px-4 py-2 text-white"
 											: button.primary
 									}
-									onClick={saveLayout}
-								>
+									onClick={saveLayout}>
 									{layoutSaved() ? "✓ Layout Saved" : "Save Layout"}
 								</button>
 								<button
 									type="button"
 									class={button.secondary}
-									onClick={clearWidgets}
-								>
+									onClick={clearWidgets}>
 									Clear All
 								</button>
 								<button
 									type="button"
 									class={button.ghost}
-									onClick={() => setCanvasMaximized(!canvasMaximized())}
-								>
+									onClick={() => setCanvasMaximized(!canvasMaximized())}>
 									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
 								</button>
 							</div>
@@ -618,22 +609,19 @@ export default function SmartCanvas() {
 								class={`${card.default} bg-gray-900 p-4`}
 								classList={{
 									"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
-								}}
-							>
+								}}>
 								<Show when={canvasMaximized()}>
 									<button
 										type="button"
 										class="absolute top-4 right-4 z-50 rounded-lg bg-gray-800 p-2 text-white hover:bg-gray-700"
-										onClick={() => setCanvasMaximized(false)}
-									>
+										onClick={() => setCanvasMaximized(false)}>
 										✕
 									</button>
 								</Show>
 
 								<div
 									class="mb-2 text-gray-400 text-sm"
-									classList={{ hidden: canvasMaximized() }}
-								>
+									classList={{ hidden: canvasMaximized() }}>
 									Canvas: 1920x1080 (16:9)
 								</div>
 
@@ -642,8 +630,7 @@ export default function SmartCanvas() {
 									style={{
 										"aspect-ratio": "16/9",
 										"max-height": canvasMaximized() ? "100vh" : "650px",
-									}}
-								>
+									}}>
 									<div class="relative h-full w-full">
 										<div
 											role="application"
@@ -663,8 +650,7 @@ export default function SmartCanvas() {
 												if (e.key === "Escape") {
 													setSelectedWidgetId(null);
 												}
-											}}
-										>
+											}}>
 											<For each={widgets()}>
 												{(widget) => (
 													<CanvasWidgetComponent

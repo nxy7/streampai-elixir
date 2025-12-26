@@ -56,7 +56,10 @@
 	],
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"enabled": true,
+			"trailingCommas": "all",
+			"quoteStyle": "double",
+			"bracketSameLine": true
 		}
 	},
 	"assist": {

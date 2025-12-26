@@ -27,8 +27,7 @@ export default function PlaceholderWidget(props: PlaceholderWidgetProps) {
 				"font-weight": "600",
 				"text-align": "center",
 				"font-family": "system-ui, -apple-system, sans-serif",
-			}}
-		>
+			}}>
 			{props.config.message}
 		</div>
 	);

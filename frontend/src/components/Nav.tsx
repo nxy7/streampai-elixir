@@ -36,14 +36,12 @@ export default function Nav() {
 								<div class="flex gap-2">
 									<a
 										href={getLoginUrl()}
-										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
-									>
+										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700">
 										Sign In
 									</a>
 									<a
 										href={getLoginUrl("google")}
-										class="flex items-center gap-2 rounded bg-white px-4 py-2 text-gray-900 transition-colors hover:bg-gray-100"
-									>
+										class="flex items-center gap-2 rounded bg-white px-4 py-2 text-gray-900 transition-colors hover:bg-gray-100">
 										<svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24">
 											<path
 												fill="currentColor"
@@ -66,21 +64,18 @@ export default function Nav() {
 									</a>
 									<a
 										href={getLoginUrl("twitch")}
-										class="flex items-center gap-2 rounded bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600"
-									>
+										class="flex items-center gap-2 rounded bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600">
 										<svg
 											aria-hidden="true"
 											class="h-5 w-5"
 											fill="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
 										</svg>
 										Twitch
 									</a>
 								</div>
-							}
-						>
+							}>
 							{(currentUser) => (
 								<div class="flex items-center gap-3">
 									<span class="text-sm">
@@ -90,15 +85,13 @@ export default function Nav() {
 									</span>
 									<A
 										href={getDashboardUrl()}
-										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
-									>
+										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700">
 										Dashboard
 									</A>
 									<a
 										href={getLogoutUrl()}
 										rel="external"
-										class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
-									>
+										class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700">
 										Sign Out
 									</a>
 								</div>

@@ -195,8 +195,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 					"--bg-color": props.config.backgroundColor || "#e5e7eb",
 					"--text-color": props.config.textColor || "#1f2937",
 					color: props.config.textColor || "#1f2937",
-				}}
-			>
+				}}>
 				<Show when={props.config.title}>
 					<div
 						class="widget-title"
@@ -206,8 +205,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 							"margin-bottom": "1rem",
 							overflow: "hidden",
 							"flex-shrink": "0",
-						}}
-					>
+						}}>
 						<span class="title-text" style={{ color: props.config.textColor }}>
 							{props.config.title}
 						</span>
@@ -217,8 +215,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 				<div class="progress-section" style={{ position: "relative" }}>
 					<div
 						class="progress-container"
-						style={{ position: "relative", "margin-bottom": "1rem" }}
-					>
+						style={{ position: "relative", "margin-bottom": "1rem" }}>
 						<div
 							class="progress-labels"
 							style={{
@@ -226,8 +223,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 								"justify-content": "space-between",
 								"margin-bottom": "0.75rem",
 								"font-weight": "600",
-							}}
-						>
+							}}>
 							<Show when={props.config.showAmountRaised}>
 								<div
 									class="current-amount"
@@ -236,8 +232,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 										"font-size": "1.1rem",
 										"font-weight": "800",
 										"text-shadow": "0 1px 2px rgba(0, 0, 0, 0.1)",
-									}}
-								>
+									}}>
 									{formattedCurrent()}
 								</div>
 							</Show>
@@ -246,8 +241,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 								style={{
 									color: `color-mix(in srgb, ${props.config.textColor} 70%, transparent)`,
 									"font-size": "1rem",
-								}}
-							>
+								}}>
 								{formattedGoal()}
 							</div>
 						</div>
@@ -258,8 +252,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 							</div>
 							<div
 								class="progress-bar"
-								style={{ width: `${progressPercentage()}%` }}
-							>
+								style={{ width: `${progressPercentage()}%` }}>
 								<Show when={props.config.animationEnabled}>
 									<div
 										style={{
@@ -272,8 +265,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 												"linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent)",
 											animation: "shimmer 3s infinite",
 											"border-radius": "1.25rem",
-										}}
-									></div>
+										}}></div>
 								</Show>
 								<div
 									style={{
@@ -285,8 +277,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 										background:
 											"linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent)",
 										"border-radius": "1.25rem 1.25rem 0 0",
-									}}
-								></div>
+									}}></div>
 							</div>
 
 							<Show when={props.config.showPercentage}>
@@ -297,8 +288,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 										left: `${Math.min(progressPercentage(), 95)}%`,
 										transform: "translateX(-50%)",
 										"z-index": "20",
-									}}
-								>
+									}}>
 									<div
 										style={{
 											background: props.config.barColor,
@@ -310,8 +300,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 											"white-space": "nowrap",
 											"box-shadow": "0 4px 12px rgba(0, 0, 0, 0.15)",
 											position: "relative",
-										}}
-									>
+										}}>
 										{Math.round(progressPercentage())}%
 									</div>
 								</div>
@@ -322,8 +311,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 							{(bubble) => (
 								<div
 									class="floating-bubble"
-									style={{ left: `${bubble.x}%`, bottom: "0" }}
-								>
+									style={{ left: `${bubble.x}%`, bottom: "0" }}>
 									<div
 										style={{
 											display: "flex",
@@ -339,14 +327,12 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 												"0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
 											position: "relative",
 											"z-index": "2",
-										}}
-									>
+										}}>
 										<span
 											style={{
 												"font-size": "1.1rem",
 												"margin-right": "0.25rem",
-											}}
-										>
+											}}>
 											+
 										</span>
 										<span style={{ "font-weight": "900" }}>
@@ -367,8 +353,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 							gap: "1rem",
 							"flex-wrap": "wrap",
 							"margin-top": "1rem",
-						}}
-					>
+						}}>
 						<Show when={props.config.showDaysLeft && daysLeft() !== null}>
 							<div
 								class="days-left-subtle"
@@ -378,8 +363,7 @@ export default function DonationGoalWidget(props: DonationGoalWidgetProps) {
 									"text-align": "center",
 									"font-weight": "500",
 									"margin-top": "0.5rem",
-								}}
-							>
+								}}>
 								{daysLeft()} days left
 							</div>
 						</Show>

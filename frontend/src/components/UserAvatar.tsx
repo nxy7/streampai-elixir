@@ -24,12 +24,10 @@ export default function UserAvatar(props: UserAvatarProps) {
 				"flex items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500",
 				sizeClasses[size()],
 				props.class,
-			)}
-		>
+			)}>
 			<Show
 				when={props.avatarUrl}
-				fallback={<span class="font-bold text-white">{initial()}</span>}
-			>
+				fallback={<span class="font-bold text-white">{initial()}</span>}>
 				<img
 					src={props.avatarUrl ?? ""}
 					alt={props.name || "User"}

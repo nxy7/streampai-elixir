@@ -56,8 +56,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -82,8 +81,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -107,8 +105,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -127,8 +124,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -147,8 +143,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -173,8 +168,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -198,8 +192,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -218,8 +211,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -243,8 +235,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -277,8 +268,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -297,8 +287,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							class="sidebar-icon h-6 w-6"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -334,14 +323,12 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				style={{
 					"scrollbar-width": "none",
 					"-ms-overflow-style": "none",
-				}}
-			>
+				}}>
 				{/* Sidebar Header */}
 				<div class="relative flex items-center justify-center border-gray-700 border-b p-4">
 					<A
 						href="/"
-						class="flex items-center space-x-2 transition-opacity hover:opacity-80"
-					>
+						class="flex items-center space-x-2 transition-opacity hover:opacity-80">
 						<img
 							src="/images/logo-white.png"
 							alt="Streampai Logo"
@@ -352,23 +339,20 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 								sidebarCollapsed()
 									? "w-0 overflow-hidden opacity-0"
 									: "opacity-100"
-							}`}
-						>
+							}`}>
 							Streampai
 						</span>
 					</A>
 					<button
 						type="button"
 						onClick={() => setSidebarCollapsed(!sidebarCollapsed())}
-						class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-gray-700 md:block"
-					>
+						class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-gray-700 md:block">
 						<svg
 							aria-hidden="true"
 							class="h-4 w-4"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								class={sidebarCollapsed() ? "block" : "hidden"}
 								stroke-linecap="round"
@@ -397,8 +381,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 										sidebarCollapsed()
 											? "h-0 overflow-hidden opacity-0"
 											: "opacity-100"
-									}`}
-								>
+									}`}>
 									{section.title}
 								</h3>
 								<div class="space-y-2">
@@ -412,16 +395,14 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 														? "bg-purple-600 text-white"
 														: "text-gray-300 hover:bg-gray-700 hover:text-white"
 												} ${sidebarCollapsed() ? "justify-center" : ""}`}
-												title={item.label}
-											>
+												title={item.label}>
 												{item.icon}
 												<span
 													class={`ml-3 transition-opacity ${
 														sidebarCollapsed()
 															? "w-0 overflow-hidden opacity-0"
 															: "opacity-100"
-													}`}
-												>
+													}`}>
 													{item.label}
 												</span>
 											</A>
@@ -441,8 +422,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 											sidebarCollapsed()
 												? "h-0 overflow-hidden opacity-0"
 												: "opacity-100"
-										}`}
-									>
+										}`}>
 										{section.title}
 									</h3>
 									<div class="space-y-2">
@@ -456,16 +436,14 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 															? "bg-purple-600 text-white"
 															: "text-gray-300 hover:bg-gray-700 hover:text-white"
 													} ${sidebarCollapsed() ? "justify-center" : ""}`}
-													title={item.label}
-												>
+													title={item.label}>
 													{item.icon}
 													<span
 														class={`ml-3 transition-opacity ${
 															sidebarCollapsed()
 																? "w-0 overflow-hidden opacity-0"
 																: "opacity-100"
-														}`}
-													>
+														}`}>
 														{item.label}
 													</span>
 												</A>
@@ -485,15 +463,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							href="/dashboard/moderate"
 							class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-blue-600 hover:text-white ${
 								sidebarCollapsed() ? "justify-center" : ""
-							}`}
-						>
+							}`}>
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -506,8 +482,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 									sidebarCollapsed()
 										? "w-0 overflow-hidden opacity-0"
 										: "opacity-100"
-								}`}
-							>
+								}`}>
 								Moderate
 							</span>
 						</A>
@@ -518,15 +493,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						rel="external"
 						class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-red-600 hover:text-white ${
 							sidebarCollapsed() ? "justify-center" : ""
-						}`}
-					>
+						}`}>
 						<svg
 							aria-hidden="true"
 							class="h-5 w-5"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -539,8 +512,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 								sidebarCollapsed()
 									? "w-0 overflow-hidden opacity-0"
 									: "opacity-100"
-							}`}
-						>
+							}`}>
 							Sign Out
 						</span>
 					</a>
@@ -551,8 +523,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			<div
 				class={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${
 					sidebarCollapsed() ? "md:ml-20" : "md:ml-64"
-				}`}
-			>
+				}`}>
 				{/* Top Bar */}
 				<header class="border-gray-200 border-b bg-white shadow-sm">
 					<div class="flex items-center justify-between px-6 py-4">
@@ -560,15 +531,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							<button
 								type="button"
 								onClick={() => setMobileSidebarOpen(!mobileSidebarOpen())}
-								class="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden"
-							>
+								class="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden">
 								<svg
 									aria-hidden="true"
 									class="h-5 w-5"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -588,8 +557,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 								<A
 									href="/dashboard/settings"
 									class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
-									title="Go to Settings"
-								>
+									title="Go to Settings">
 									<Show
 										when={prefs.data()?.avatar_url}
 										fallback={
@@ -598,8 +566,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 													user()?.email?.[0]?.toUpperCase() ||
 													"U"}
 											</span>
-										}
-									>
+										}>
 										<img
 											src={prefs.data()?.avatar_url ?? ""}
 											alt="User Avatar"

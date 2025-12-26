@@ -48,8 +48,7 @@ export default function Badge(props: BadgeProps) {
 				sizeClasses[local.size ?? "sm"],
 				local.class,
 			)}
-			{...rest}
-		>
+			{...rest}>
 			{local.children}
 		</span>
 	);

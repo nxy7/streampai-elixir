@@ -228,14 +228,12 @@ export default function StreamHistoryDetail() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<ErrorBoundary
 						fallback={(err) => (
 							<div class="mx-auto mt-8 max-w-7xl">
@@ -244,14 +242,12 @@ export default function StreamHistoryDetail() {
 									<br />
 									<A
 										href="/dashboard/stream-history"
-										class="mt-2 inline-block text-red-600 underline hover:text-red-800"
-									>
+										class="mt-2 inline-block text-red-600 underline hover:text-red-800">
 										← Back to History
 									</A>
 								</div>
 							</div>
-						)}
-					>
+						)}>
 						<Suspense fallback={<LoadingIndicator />}>
 							<StreamDetailContent streamId={params.id ?? ""} />
 						</Suspense>
@@ -457,8 +453,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									<span
 										class={`inline-flex items-center rounded px-2 py-1 font-medium text-xs ${platformBadgeColor(
 											platform,
-										)}`}
-									>
+										)}`}>
 										{platformName(platform)}
 									</span>
 								)}
@@ -479,8 +474,7 @@ function StreamDetailContent(props: { streamId: string }) {
 										class="mr-1 h-3 w-3"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -505,8 +499,7 @@ function StreamDetailContent(props: { streamId: string }) {
 										class="mr-1 h-3 w-3"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -529,8 +522,7 @@ function StreamDetailContent(props: { streamId: string }) {
 					</div>
 					<A
 						href="/dashboard/stream-history"
-						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50"
-					>
+						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50">
 						← Back to History
 					</A>
 				</div>
@@ -554,8 +546,7 @@ function StreamDetailContent(props: { streamId: string }) {
 											class="mx-auto mb-4 h-16 w-16"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -571,15 +562,13 @@ function StreamDetailContent(props: { streamId: string }) {
 										</p>
 									</div>
 								</div>
-							}
-						>
+							}>
 							<div class="relative h-64">
 								<svg
 									aria-hidden="true"
 									class="h-full w-full"
 									viewBox="0 0 800 250"
-									preserveAspectRatio="none"
-								>
+									preserveAspectRatio="none">
 									{/* Grid lines */}
 									<g class="grid-lines" stroke="#e5e7eb" stroke-width="1">
 										<For each={[0, 1, 2, 3, 4]}>
@@ -630,8 +619,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									class="mx-auto mb-4 h-16 w-16"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -725,8 +713,7 @@ function StreamDetailContent(props: { streamId: string }) {
 												insights().peakMoment.timelinePosition,
 											)
 										}
-										class="font-medium text-purple-800 underline hover:text-purple-900"
-									>
+										class="font-medium text-purple-800 underline hover:text-purple-900">
 										<Show when={stream()} fallback="0:00">
 											{formatTimelineTime(
 												stream() as NonNullable<ReturnType<typeof stream>>,
@@ -782,15 +769,13 @@ function StreamDetailContent(props: { streamId: string }) {
 															message.senderIsPatreon
 																? "bg-purple-100"
 																: "bg-gray-100"
-														}`}
-													>
+														}`}>
 														<span
 															class={`font-medium text-xs ${
 																message.senderIsPatreon
 																	? "text-purple-600"
 																	: "text-gray-600"
-															}`}
-														>
+															}`}>
 															{message.senderUsername?.charAt(0) || "?"}
 														</span>
 													</div>
@@ -802,16 +787,14 @@ function StreamDetailContent(props: { streamId: string }) {
 																message.senderIsModerator
 																	? "text-green-600"
 																	: "text-gray-900"
-															}`}
-														>
+															}`}>
 															{message.senderUsername}
 														</span>
 														<Show when={message.platform}>
 															<span
 																class={`inline-flex items-center rounded px-1 py-0.5 font-medium text-xs ${platformBadgeColor(
 																	message.platform ?? "",
-																)}`}
-															>
+																)}`}>
 																{platformInitial(message.platform ?? "")}
 															</span>
 														</Show>

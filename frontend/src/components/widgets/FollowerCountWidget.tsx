@@ -34,8 +34,7 @@ export default function FollowerCountWidget(props: FollowerCountWidgetProps) {
 				transition: props.config.animateOnChange
 					? "transform 0.3s ease"
 					: "none",
-			}}
-		>
+			}}>
 			<Show when={props.config.showIcon}>
 				<svg
 					aria-hidden="true"
@@ -43,8 +42,7 @@ export default function FollowerCountWidget(props: FollowerCountWidgetProps) {
 					height="24"
 					viewBox="0 0 24 24"
 					fill="currentColor"
-					style={{ "flex-shrink": "0" }}
-				>
+					style={{ "flex-shrink": "0" }}>
 					<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 				</svg>
 			</Show>

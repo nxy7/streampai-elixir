@@ -95,8 +95,7 @@ export default function TopDonorsOBS() {
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}
-			>
+				}>
 				<div class="w-full max-w-2xl">
 					<div class="rounded-2xl bg-linear-to-b from-purple-900/80 to-pink-900/80 p-8 shadow-2xl backdrop-blur-sm">
 						<div class="mb-6 text-center font-bold text-3xl text-white">
@@ -110,8 +109,7 @@ export default function TopDonorsOBS() {
 									<div class="py-8 text-center text-white text-xl">
 										Waiting for donations...
 									</div>
-								}
-							>
+								}>
 								{(donor, index) => (
 									<div class="flex items-center gap-4 rounded-lg bg-white/10 p-4 transition-all duration-300 hover:bg-white/20">
 										<div class="text-4xl">{getMedalEmoji(index())}</div>

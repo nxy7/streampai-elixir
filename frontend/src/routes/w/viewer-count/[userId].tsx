@@ -71,8 +71,7 @@ export default function ViewerCountDisplay() {
 					display: "flex",
 					"align-items": "center",
 					"justify-content": "center",
-				}}
-			>
+				}}>
 				<ViewerCountWidget config={config()} data={viewerData()} />
 			</div>
 		</>

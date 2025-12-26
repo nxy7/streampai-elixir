@@ -227,14 +227,12 @@ export default function DonationPage() {
 									</p>
 									<a
 										href="/"
-										class="mt-6 inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-									>
+										class="mt-6 inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 										Go Home
 									</a>
 								</div>
 							</div>
-						}
-					>
+						}>
 						<div class="mx-auto max-w-2xl px-4 py-12">
 							{/* User Header */}
 							<div class="mb-8 text-center">
@@ -245,8 +243,7 @@ export default function DonationPage() {
 											<span class="font-bold text-3xl text-white">
 												{userName()?.[0]?.toUpperCase() || "?"}
 											</span>
-										}
-									>
+										}>
 										<img
 											src={userAvatar() ?? ""}
 											alt={userName() ?? "User"}
@@ -284,8 +281,7 @@ export default function DonationPage() {
 														currentStreamerPrefs().selectedAmount === amount
 															? "bg-linear-to-r from-purple-500 to-pink-500 text-white"
 															: "bg-white/20 text-white hover:bg-white/30"
-													}`}
-												>
+													}`}>
 													{getCurrencySymbol(currency())}
 													{amount}
 												</button>
@@ -339,8 +335,7 @@ export default function DonationPage() {
 										when={
 											prefs()?.min_donation_amount ||
 											prefs()?.max_donation_amount
-										}
-									>
+										}>
 										<p class="mt-2 text-gray-400 text-sm">
 											<Show when={prefs()?.min_donation_amount}>
 												Min: {getCurrencySymbol(currency())}
@@ -350,8 +345,7 @@ export default function DonationPage() {
 												when={
 													prefs()?.min_donation_amount &&
 													prefs()?.max_donation_amount
-												}
-											>
+												}>
 												{" • "}
 											</Show>
 											<Show when={prefs()?.max_donation_amount}>
@@ -430,8 +424,7 @@ export default function DonationPage() {
 										isValidAmount()
 											? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
 											: "cursor-not-allowed bg-gray-600 text-gray-400"
-									}`}
-								>
+									}`}>
 									<Show when={finalAmount()} fallback="Select an amount">
 										Donate {getCurrencySymbol(currency())}
 										{finalAmount()}

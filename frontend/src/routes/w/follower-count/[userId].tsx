@@ -71,8 +71,7 @@ export default function FollowerCountDisplay() {
 					display: "flex",
 					"align-items": "center",
 					"justify-content": "center",
-				}}
-			>
+				}}>
 				<Show when={config()}>
 					{(cfg) => <FollowerCountWidget config={cfg()} count={0} />}
 				</Show>

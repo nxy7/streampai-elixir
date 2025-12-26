@@ -72,8 +72,7 @@ export default function SmartCanvasDisplay() {
 					margin: 0,
 					padding: 0,
 					overflow: "hidden",
-				}}
-			>
+				}}>
 				<For each={widgets()}>
 					{(widget) => <SmartCanvasWidgetRenderer widget={widget} />}
 				</For>
@@ -88,8 +87,7 @@ export default function SmartCanvasDisplay() {
 							"align-items": "center",
 							"justify-content": "center",
 							color: "#9ca3af",
-						}}
-					>
+						}}>
 						<div style={{ "font-size": "4rem", "margin-bottom": "1rem" }}>
 							🎨
 						</div>
@@ -98,8 +96,7 @@ export default function SmartCanvasDisplay() {
 								"font-size": "1.5rem",
 								"font-weight": "600",
 								"margin-bottom": "0.5rem",
-							}}
-						>
+							}}>
 							No Widgets Configured
 						</h3>
 						<p style={{ "font-size": "0.875rem" }}>

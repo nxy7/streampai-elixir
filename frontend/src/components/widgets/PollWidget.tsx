@@ -119,8 +119,7 @@ export default function PollWidget(props: PollWidgetProps) {
 					"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 				color: props.config.textColor,
 				padding: "1rem",
-			}}
-		>
+			}}>
 			<style>{`
         .poll-widget .option-progress {
           transition: width ${animationDuration()} ${animationEasing()};
@@ -159,8 +158,7 @@ export default function PollWidget(props: PollWidgetProps) {
 					"min-height": "200px",
 					display: "flex",
 					"flex-direction": "column",
-				}}
-			>
+				}}>
 				<Show when={props.config.showTitle && props.pollStatus?.title}>
 					<div
 						class="poll-title"
@@ -170,8 +168,7 @@ export default function PollWidget(props: PollWidgetProps) {
 							"text-align": "center",
 							"margin-bottom": "1.5rem",
 							color: props.config.primaryColor,
-						}}
-					>
+						}}>
 						{props.pollStatus?.title}
 					</div>
 				</Show>
@@ -179,8 +176,7 @@ export default function PollWidget(props: PollWidgetProps) {
 				<Show when={props.pollStatus?.status === "active"}>
 					<div
 						class="poll-active"
-						style={{ flex: 1, display: "flex", "flex-direction": "column" }}
-					>
+						style={{ flex: 1, display: "flex", "flex-direction": "column" }}>
 						<div
 							class="poll-options"
 							style={{
@@ -188,8 +184,7 @@ export default function PollWidget(props: PollWidgetProps) {
 								display: "flex",
 								"flex-direction": "column",
 								gap: "1rem",
-							}}
-						>
+							}}>
 							<For each={props.pollStatus?.options}>
 								{(option) => (
 									<div
@@ -200,8 +195,7 @@ export default function PollWidget(props: PollWidgetProps) {
 											"border-radius": "0.5rem",
 											overflow: "hidden",
 											transition: "all 0.3s ease",
-										}}
-									>
+										}}>
 										<div
 											class="option-content"
 											style={{
@@ -211,12 +205,10 @@ export default function PollWidget(props: PollWidgetProps) {
 												display: "flex",
 												"justify-content": "space-between",
 												"align-items": "center",
-											}}
-										>
+											}}>
 											<div
 												class="option-text"
-												style={{ "font-weight": "500", flex: 1 }}
-											>
+												style={{ "font-weight": "500", flex: 1 }}>
 												{option.text}
 											</div>
 											<div
@@ -226,8 +218,7 @@ export default function PollWidget(props: PollWidgetProps) {
 													gap: "1rem",
 													"font-size": "0.875em",
 													opacity: "0.8",
-												}}
-											>
+												}}>
 												<span class="option-votes">{option.votes} votes</span>
 												<span class="option-percentage">
 													{getPercentage(option)}%
@@ -243,8 +234,7 @@ export default function PollWidget(props: PollWidgetProps) {
 												width: "100%",
 												height: "100%",
 												"background-color": "rgba(0, 0, 0, 0.05)",
-											}}
-										>
+											}}>
 											<div
 												class="option-progress"
 												style={{
@@ -273,8 +263,7 @@ export default function PollWidget(props: PollWidgetProps) {
 								opacity: "0.7",
 								"padding-top": "1rem",
 								"border-top": "1px solid rgba(0, 0, 0, 0.1)",
-							}}
-						>
+							}}>
 							<div class="total-votes">{totalVotes()} total votes</div>
 							<Show when={props.pollStatus?.endsAt}>
 								{(endsAt) => (
@@ -297,8 +286,7 @@ export default function PollWidget(props: PollWidgetProps) {
 								"font-weight": "bold",
 								"margin-bottom": "1.5rem",
 								color: props.config.primaryColor,
-							}}
-						>
+							}}>
 							Poll Results
 						</div>
 
@@ -308,8 +296,7 @@ export default function PollWidget(props: PollWidgetProps) {
 								display: "flex",
 								"flex-direction": "column",
 								gap: "0.75rem",
-							}}
-						>
+							}}>
 							<For each={sortedResults()}>
 								{(option, index) => (
 									<div
@@ -329,8 +316,7 @@ export default function PollWidget(props: PollWidgetProps) {
 												index() === 0
 													? "0 0 15px rgba(255, 215, 0, 0.4)"
 													: "none",
-										}}
-									>
+										}}>
 										<div
 											class="result-content"
 											style={{
@@ -340,8 +326,7 @@ export default function PollWidget(props: PollWidgetProps) {
 												display: "flex",
 												"align-items": "center",
 												gap: "1rem",
-											}}
-										>
+											}}>
 											<div
 												class="result-position"
 												style={{
@@ -352,14 +337,12 @@ export default function PollWidget(props: PollWidgetProps) {
 														index() === 0
 															? props.config.winnerColor
 															: "inherit",
-												}}
-											>
+												}}>
 												#{index() + 1}
 											</div>
 											<div
 												class="result-text"
-												style={{ "font-weight": "500", flex: 1 }}
-											>
+												style={{ "font-weight": "500", flex: 1 }}>
 												{option.text}
 											</div>
 											<div
@@ -369,8 +352,7 @@ export default function PollWidget(props: PollWidgetProps) {
 													gap: "1rem",
 													"font-size": "0.875em",
 													opacity: "0.8",
-												}}
-											>
+												}}>
 												<span class="result-votes">{option.votes} votes</span>
 												<span class="result-percentage">
 													{getPercentage(option)}%
@@ -386,8 +368,7 @@ export default function PollWidget(props: PollWidgetProps) {
 												width: "100%",
 												height: "100%",
 												"background-color": "rgba(0, 0, 0, 0.03)",
-											}}
-										>
+											}}>
 											<div
 												class="result-progress"
 												style={{
@@ -417,8 +398,7 @@ export default function PollWidget(props: PollWidgetProps) {
 								opacity: "0.7",
 								"padding-top": "1rem",
 								"border-top": "1px solid rgba(0, 0, 0, 0.1)",
-							}}
-						>
+							}}>
 							<div class="total-votes">{totalVotes()} total votes</div>
 							<div class="poll-ended-text">Poll ended</div>
 						</div>
@@ -433,16 +413,14 @@ export default function PollWidget(props: PollWidgetProps) {
 							display: "flex",
 							"align-items": "center",
 							"justify-content": "center",
-						}}
-					>
+						}}>
 						<div
 							class="waiting-message"
 							style={{
 								"font-size": "1.125em",
 								opacity: "0.6",
 								"text-align": "center",
-							}}
-						>
+							}}>
 							Waiting for poll...
 						</div>
 					</div>

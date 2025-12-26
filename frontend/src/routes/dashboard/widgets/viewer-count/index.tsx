@@ -135,8 +135,7 @@ export default function ViewerCountSettings() {
 								type="button"
 								class={button.secondary}
 								onClick={copyUrlToClipboard}
-								disabled={!userId()}
-							>
+								disabled={!userId()}>
 								Copy URL
 							</button>
 						</div>
@@ -233,8 +232,7 @@ export default function ViewerCountSettings() {
 														| "detailed"
 														| "cards",
 												})
-											}
-										>
+											}>
 											<option value="minimal">Minimal (total only)</option>
 											<option value="detailed">Detailed (list view)</option>
 											<option value="cards">Cards (grid view)</option>
@@ -255,8 +253,7 @@ export default function ViewerCountSettings() {
 														| "medium"
 														| "large",
 												})
-											}
-										>
+											}>
 											<option value="small">Small</option>
 											<option value="medium">Medium</option>
 											<option value="large">Large</option>
@@ -296,8 +293,7 @@ export default function ViewerCountSettings() {
 									saveMessage()?.startsWith("Error")
 										? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 										: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-								}
-							>
+								}>
 								{saveMessage()}
 							</div>
 						</Show>
@@ -306,8 +302,7 @@ export default function ViewerCountSettings() {
 							type="button"
 							class={button.primary}
 							onClick={handleSave}
-							disabled={saving()}
-						>
+							disabled={saving()}>
 							{saving() ? "Saving..." : "Save Configuration"}
 						</button>
 					</div>

@@ -119,8 +119,7 @@ export default function GiveawayWidgetDisplay() {
 				"align-items": "center",
 				"justify-content": "center",
 				padding: "1rem",
-			}}
-		>
+			}}>
 			<Show when={config()}>
 				<div style={{ "max-width": "500px", width: "100%" }}>
 					<GiveawayWidget

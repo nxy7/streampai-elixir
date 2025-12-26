@@ -263,8 +263,7 @@ export default function Viewers() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -278,14 +277,12 @@ export default function Viewers() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						{/* View Mode Tabs */}
 						<div class="flex gap-2 border-gray-200 border-b">
@@ -296,8 +293,7 @@ export default function Viewers() {
 										? "border-purple-600 border-b-2 text-purple-600"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
-								onClick={() => setViewMode("viewers")}
-							>
+								onClick={() => setViewMode("viewers")}>
 								Viewers
 							</button>
 							<button
@@ -307,8 +303,7 @@ export default function Viewers() {
 										? "border-purple-600 border-b-2 text-purple-600"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
-								onClick={() => setViewMode("banned")}
-							>
+								onClick={() => setViewMode("banned")}>
 								Banned Viewers
 							</button>
 						</div>
@@ -330,8 +325,7 @@ export default function Viewers() {
 												onChange={(e) => {
 													setPlatform(e.currentTarget.value as Platform);
 													handleFilterChange();
-												}}
-											>
+												}}>
 												<option value="">All Platforms</option>
 												<option value="twitch">Twitch</option>
 												<option value="youtube">YouTube</option>
@@ -376,8 +370,7 @@ export default function Viewers() {
 												setSearch("");
 												setSearchInput("");
 												handleFilterChange();
-											}}
-										>
+											}}>
 											Clear all
 										</button>
 									</div>
@@ -402,8 +395,7 @@ export default function Viewers() {
 											<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
 											<p class="mt-4 text-gray-600">Loading viewers...</p>
 										</div>
-									}
-								>
+									}>
 									<Show
 										when={viewers().length > 0}
 										fallback={
@@ -413,8 +405,7 @@ export default function Viewers() {
 													class="mx-auto mb-4 h-16 w-16 text-gray-400"
 													fill="none"
 													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+													viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -431,8 +422,7 @@ export default function Viewers() {
 														: "Your viewers will appear here once you start streaming"}
 												</p>
 											</div>
-										}
-									>
+										}>
 										<div class="space-y-3">
 											<For each={viewers()}>
 												{(viewer) => (
@@ -443,8 +433,7 @@ export default function Viewers() {
 															navigate(
 																`/dashboard/viewers/${viewer.viewerId}:${viewer.userId}`,
 															)
-														}
-													>
+														}>
 														<div class="flex items-start gap-3">
 															<Show
 																when={viewer.avatarUrl}
@@ -454,8 +443,7 @@ export default function Viewers() {
 																			{viewer.displayName[0].toUpperCase()}
 																		</span>
 																	</div>
-																}
-															>
+																}>
 																<img
 																	src={viewer.avatarUrl}
 																	alt={viewer.displayName}
@@ -472,8 +460,7 @@ export default function Viewers() {
 																	<span
 																		class={getPlatformBadgeColor(
 																			viewer.platform,
-																		)}
-																	>
+																		)}>
 																		{viewer.platform}
 																	</span>
 																	<Show when={viewer.isOwner}>
@@ -519,8 +506,7 @@ export default function Viewers() {
 													type="button"
 													class={button.primary}
 													onClick={loadMore}
-													disabled={isLoadingViewers()}
-												>
+													disabled={isLoadingViewers()}>
 													{isLoadingViewers() ? "Loading..." : "Load More"}
 												</button>
 											</div>
@@ -552,8 +538,7 @@ export default function Viewers() {
 												Loading banned viewers...
 											</p>
 										</div>
-									}
-								>
+									}>
 									<Show
 										when={bannedViewers().length > 0}
 										fallback={
@@ -563,8 +548,7 @@ export default function Viewers() {
 													class="mx-auto mb-4 h-16 w-16 text-gray-400"
 													fill="none"
 													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+													viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -579,8 +563,7 @@ export default function Viewers() {
 													Banned viewers will appear here
 												</p>
 											</div>
-										}
-									>
+										}>
 										<div class="space-y-3">
 											<For each={bannedViewers()}>
 												{(banned) => (
@@ -595,8 +578,7 @@ export default function Viewers() {
 																	<span
 																		class={getPlatformBadgeColor(
 																			banned.platform,
-																		)}
-																	>
+																		)}>
 																		{banned.platform}
 																	</span>
 																	<Show when={!banned.durationSeconds}>
@@ -642,8 +624,7 @@ export default function Viewers() {
 																class="rounded bg-red-600 px-3 py-1 text-sm text-white transition-colors hover:bg-red-700"
 																onClick={() => {
 																	console.log("Unban viewer:", banned.id);
-																}}
-															>
+																}}>
 																Unban
 															</button>
 														</div>

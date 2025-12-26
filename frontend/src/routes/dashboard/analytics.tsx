@@ -312,8 +312,7 @@ export default function Analytics() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -327,14 +326,12 @@ export default function Analytics() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="space-y-6">
 						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 							<div>
@@ -351,8 +348,7 @@ export default function Analytics() {
 								value={timeframe()}
 								onChange={(e) =>
 									setTimeframe(e.currentTarget.value as Timeframe)
-								}
-							>
+								}>
 								<option value="day">Last 24 Hours</option>
 								<option value="week">Last 7 Days</option>
 								<option value="month">Last 30 Days</option>
@@ -371,8 +367,7 @@ export default function Analytics() {
 									<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
 									<p class="mt-4 text-gray-600">Loading analytics...</p>
 								</div>
-							}
-						>
+							}>
 							<div class="grid grid-cols-1 gap-6">
 								<LineChart title="Viewer Trends" data={viewerData()} />
 							</div>
@@ -524,8 +519,7 @@ function LineChart(props: LineChartProps) {
 								class="mx-auto h-12 w-12 text-gray-400"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -541,15 +535,13 @@ function LineChart(props: LineChartProps) {
 							</p>
 						</div>
 					</div>
-				}
-			>
+				}>
 				<div class="relative h-64 pl-12">
 					<svg
 						aria-hidden="true"
 						class="h-full w-full"
 						viewBox="0 0 800 300"
-						preserveAspectRatio="none"
-					>
+						preserveAspectRatio="none">
 						{/* Grid lines */}
 						<For each={[0, 1, 2, 3, 4]}>
 							{(i) => {
@@ -758,8 +750,7 @@ function StreamTable(props: StreamTableProps) {
 								class="mx-auto h-12 w-12 text-gray-400"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -774,8 +765,7 @@ function StreamTable(props: StreamTableProps) {
 								Start streaming to see your analytics and performance data here.
 							</p>
 						</div>
-					}
-				>
+					}>
 					<div class="-mx-6 overflow-x-auto">
 						<table class="min-w-full divide-y divide-gray-200">
 							<thead class="bg-gray-50">
@@ -807,8 +797,7 @@ function StreamTable(props: StreamTableProps) {
 											<td class="whitespace-nowrap px-6 py-4">
 												<A
 													href={`/dashboard/stream-history/${stream.id}`}
-													class="block hover:text-purple-600"
-												>
+													class="block hover:text-purple-600">
 													<div class="font-medium text-gray-900 text-sm">
 														{stream.title}
 													</div>
@@ -819,8 +808,7 @@ function StreamTable(props: StreamTableProps) {
 											</td>
 											<td class="whitespace-nowrap px-6 py-4">
 												<Badge
-													variant={getPlatformBadgeVariant(stream.platform)}
-												>
+													variant={getPlatformBadgeVariant(stream.platform)}>
 													{stream.platform}
 												</Badge>
 											</td>

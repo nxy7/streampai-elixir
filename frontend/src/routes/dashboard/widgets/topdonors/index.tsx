@@ -189,8 +189,7 @@ export default function TopDonorsSettings() {
 												"topCount",
 												parseInt(e.currentTarget.value, 10),
 											)
-										}
-									>
+										}>
 										<option value="3">Top 3</option>
 										<option value="5">Top 5</option>
 										<option value="10">Top 10</option>
@@ -305,8 +304,7 @@ export default function TopDonorsSettings() {
 								/>
 								<label
 									for="showAmounts"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Donation Amounts
 								</label>
 							</div>
@@ -323,8 +321,7 @@ export default function TopDonorsSettings() {
 								/>
 								<label
 									for="showRanking"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Ranking Numbers
 								</label>
 							</div>
@@ -335,8 +332,7 @@ export default function TopDonorsSettings() {
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -345,8 +341,7 @@ export default function TopDonorsSettings() {
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>
@@ -357,8 +352,7 @@ export default function TopDonorsSettings() {
 						<div class="mt-4 space-y-4">
 							<div
 								class="flex items-center justify-center rounded-lg bg-gray-900"
-								style={{ height: "600px" }}
-							>
+								style={{ height: "600px" }}>
 								<TopDonorsWidget config={config()} donors={donors()} />
 							</div>
 							<div class="space-y-2">

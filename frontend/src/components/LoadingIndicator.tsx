@@ -7,8 +7,7 @@ export default function LoadingIndicator() {
 					<div class="h-20 w-20 animate-spin rounded-full border-4 border-purple-200 border-t-purple-500"></div>
 					<div
 						class="absolute inset-0 h-20 w-20 animate-spin rounded-full border-4 border-transparent border-r-pink-500"
-						style="animation-direction: reverse; animation-duration: 1s;"
-					></div>
+						style="animation-direction: reverse; animation-duration: 1s;"></div>
 				</div>
 
 				{/* Logo/Text */}

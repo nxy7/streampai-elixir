@@ -238,8 +238,7 @@ export default function EventListSettings() {
 												e.currentTarget
 													.value as EventListConfig["animationType"],
 											)
-										}
-									>
+										}>
 										<option value="fade">Fade</option>
 										<option value="slide">Slide</option>
 										<option value="bounce">Bounce</option>
@@ -277,8 +276,7 @@ export default function EventListSettings() {
 												"fontSize",
 												e.currentTarget.value as EventListConfig["fontSize"],
 											)
-										}
-									>
+										}>
 										<option value="small">Small</option>
 										<option value="medium">Medium</option>
 										<option value="large">Large</option>
@@ -303,8 +301,7 @@ export default function EventListSettings() {
 												/>
 												<label
 													for={`event-${type}`}
-													class="font-medium text-gray-700 text-sm capitalize"
-												>
+													class="font-medium text-gray-700 text-sm capitalize">
 													{type}
 												</label>
 											</div>
@@ -325,8 +322,7 @@ export default function EventListSettings() {
 								/>
 								<label
 									for="showTimestamps"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Timestamps
 								</label>
 							</div>
@@ -343,8 +339,7 @@ export default function EventListSettings() {
 								/>
 								<label
 									for="showPlatform"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Platform
 								</label>
 							</div>
@@ -361,8 +356,7 @@ export default function EventListSettings() {
 								/>
 								<label
 									for="showAmounts"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Show Donation Amounts
 								</label>
 							</div>
@@ -379,8 +373,7 @@ export default function EventListSettings() {
 								/>
 								<label
 									for="compactMode"
-									class="font-medium text-gray-700 text-sm"
-								>
+									class="font-medium text-gray-700 text-sm">
 									Compact Mode
 								</label>
 							</div>
@@ -391,8 +384,7 @@ export default function EventListSettings() {
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -401,8 +393,7 @@ export default function EventListSettings() {
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>
@@ -413,8 +404,7 @@ export default function EventListSettings() {
 						<div class="mt-4 space-y-4">
 							<div
 								class="overflow-hidden rounded-lg bg-gray-900"
-								style={{ height: "500px" }}
-							>
+								style={{ height: "500px" }}>
 								<EventListWidget config={config()} events={events()} />
 							</div>
 							<div class="space-y-2">

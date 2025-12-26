@@ -71,8 +71,7 @@ export default function TimerDisplay() {
 					display: "flex",
 					"align-items": "center",
 					"justify-content": "center",
-				}}
-			>
+				}}>
 				<Show when={config()}>{(cfg) => <TimerWidget config={cfg()} />}</Show>
 			</div>
 		</>

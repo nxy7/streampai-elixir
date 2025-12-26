@@ -231,8 +231,7 @@ export default function SliderSettings() {
 												"transitionType",
 												e.currentTarget.value as SliderConfig["transitionType"],
 											)
-										}
-									>
+										}>
 										<option value="fade">Fade</option>
 										<option value="slide">Slide Left</option>
 										<option value="slide-up">Slide Up</option>
@@ -253,8 +252,7 @@ export default function SliderSettings() {
 												"fitMode",
 												e.currentTarget.value as SliderConfig["fitMode"],
 											)
-										}
-									>
+										}>
 										<option value="contain">Fit (Contain)</option>
 										<option value="cover">Fill (Cover)</option>
 										<option value="fill">Stretch (Fill)</option>
@@ -318,8 +316,7 @@ export default function SliderSettings() {
 												<button
 													type="button"
 													class={button.danger}
-													onClick={() => removeImage(image.id)}
-												>
+													onClick={() => removeImage(image.id)}>
 													Remove
 												</button>
 											</div>
@@ -350,8 +347,7 @@ export default function SliderSettings() {
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -360,8 +356,7 @@ export default function SliderSettings() {
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>
@@ -372,8 +367,7 @@ export default function SliderSettings() {
 						<div class="mt-4 space-y-4">
 							<div
 								class="overflow-hidden rounded-lg bg-gray-900"
-								style={{ height: "400px" }}
-							>
+								style={{ height: "400px" }}>
 								<SliderWidget config={config()} />
 							</div>
 							<div class="space-y-2">

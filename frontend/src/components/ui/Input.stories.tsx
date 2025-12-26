@@ -133,8 +133,7 @@ export const SelectWithHelper: StoryObj<typeof Select> = {
 	render: () => (
 		<Select
 			label="Timezone"
-			helperText="This affects when notifications are sent"
-		>
+			helperText="This affects when notifications are sent">
 			<option value="">Select your timezone</option>
 			<option value="pst">Pacific Time (PST)</option>
 			<option value="mst">Mountain Time (MST)</option>

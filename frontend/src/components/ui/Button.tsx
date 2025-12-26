@@ -56,8 +56,7 @@ export default function Button(props: ButtonProps) {
 				local.fullWidth && "w-full",
 				local.class,
 			)}
-			{...rest}
-		>
+			{...rest}>
 			{local.children}
 		</button>
 	);

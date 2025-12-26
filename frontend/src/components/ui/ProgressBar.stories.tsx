@@ -161,8 +161,7 @@ export const DonationGoal: Story = {
 					display: "flex",
 					"justify-content": "space-between",
 					"font-size": "14px",
-				}}
-			>
+				}}>
 				<span style={{ color: "#059669", "font-weight": "600" }}>$340</span>
 				<span style={{ color: "#6b7280" }}>Goal: $500</span>
 			</div>

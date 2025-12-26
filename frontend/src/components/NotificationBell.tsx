@@ -82,15 +82,13 @@ export default function NotificationBell() {
 				type="button"
 				onClick={() => setIsOpen(!isOpen())}
 				class="relative rounded-lg p-2 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-				title="Notifications"
-			>
+				title="Notifications">
 				<svg
 					aria-hidden="true"
 					class="h-6 w-6 text-gray-600"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -123,8 +121,7 @@ export default function NotificationBell() {
 								<button
 									type="button"
 									onClick={handleMarkAllAsRead}
-									class="font-medium text-purple-600 text-xs hover:text-purple-700"
-								>
+									class="font-medium text-purple-600 text-xs hover:text-purple-700">
 									Mark all as read
 								</button>
 							</Show>
@@ -150,8 +147,7 @@ export default function NotificationBell() {
 										class="mx-auto h-12 w-12 text-gray-300"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -165,30 +161,26 @@ export default function NotificationBell() {
 											: "No notifications yet"}
 									</p>
 								</div>
-							}
-						>
+							}>
 							<For each={notifications()}>
 								{(notification) => (
 									<div
 										class={`border-gray-100 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 ${
 											notification.wasSeen ? "opacity-60" : ""
-										}`}
-									>
+										}`}>
 										<div class="flex items-start gap-3">
 											<div class="mt-1 shrink-0">
 												<Show
 													when={!notification.wasSeen}
 													fallback={
 														<div class="h-2 w-2 rounded-full bg-gray-300" />
-													}
-												>
+													}>
 													<div class="h-2 w-2 rounded-full bg-purple-500" />
 												</Show>
 											</div>
 											<div class="min-w-0 flex-1">
 												<p
-													class={`text-sm ${notification.wasSeen ? "text-gray-500" : "text-gray-900"}`}
-												>
+													class={`text-sm ${notification.wasSeen ? "text-gray-500" : "text-gray-900"}`}>
 													{notification.content}
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
@@ -211,8 +203,7 @@ export default function NotificationBell() {
 													notification.wasSeen
 														? "Mark as unread"
 														: "Mark as read"
-												}
-											>
+												}>
 												<Show
 													when={markingRead() !== notification.id}
 													fallback={
@@ -220,8 +211,7 @@ export default function NotificationBell() {
 															aria-hidden="true"
 															class="h-4 w-4 animate-spin text-gray-400"
 															fill="none"
-															viewBox="0 0 24 24"
-														>
+															viewBox="0 0 24 24">
 															<circle
 																class="opacity-25"
 																cx="12"
@@ -236,8 +226,7 @@ export default function NotificationBell() {
 																d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 															/>
 														</svg>
-													}
-												>
+													}>
 													<Show
 														when={!notification.wasSeen}
 														fallback={
@@ -246,8 +235,7 @@ export default function NotificationBell() {
 																class="h-4 w-4 text-gray-400"
 																fill="none"
 																stroke="currentColor"
-																viewBox="0 0 24 24"
-															>
+																viewBox="0 0 24 24">
 																<path
 																	stroke-linecap="round"
 																	stroke-linejoin="round"
@@ -255,15 +243,13 @@ export default function NotificationBell() {
 																	d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 																/>
 															</svg>
-														}
-													>
+														}>
 														<svg
 															aria-hidden="true"
 															class="h-4 w-4 text-gray-400"
 															fill="none"
 															stroke="currentColor"
-															viewBox="0 0 24 24"
-														>
+															viewBox="0 0 24 24">
 															<path
 																stroke-linecap="round"
 																stroke-linejoin="round"

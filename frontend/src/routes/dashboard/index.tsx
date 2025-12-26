@@ -42,8 +42,7 @@ function getEventIcon(type: string) {
 					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -59,8 +58,7 @@ function getEventIcon(type: string) {
 					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -76,8 +74,7 @@ function getEventIcon(type: string) {
 					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -93,8 +90,7 @@ function getEventIcon(type: string) {
 					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -110,8 +106,7 @@ function getEventIcon(type: string) {
 					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -194,8 +189,7 @@ function StreamHealthMonitor() {
 						class="h-5 w-5 text-purple-600"
 						fill="none"
 						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
+						viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -206,8 +200,7 @@ function StreamHealthMonitor() {
 					Stream Health
 				</h3>
 				<div
-					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBg()} bg-opacity-10`}
-				>
+					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBg()} bg-opacity-10`}>
 					<div class={`h-2 w-2 rounded-full ${qualityBg()} animate-pulse`} />
 					<span class={`font-medium text-xs capitalize ${qualityColor()}`}>
 						{connectionQuality()}
@@ -244,15 +237,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 						<button
 							type="button"
 							onClick={props.onTestAlert}
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
-						>
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -264,15 +255,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 						</button>
 						<A
 							href="/dashboard/widgets"
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
-						>
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -284,15 +273,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 						</A>
 						<A
 							href="/dashboard/stream"
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-green-50 hover:text-green-700"
-						>
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-green-50 hover:text-green-700">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -304,15 +291,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 						</A>
 						<A
 							href="/dashboard/settings"
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
-						>
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -338,15 +323,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 					isExpanded()
 						? "rotate-45 bg-gray-700"
 						: "bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-				}`}
-			>
+				}`}>
 				<svg
 					aria-hidden="true"
 					class="h-6 w-6 text-white"
 					fill="none"
 					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+					viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -412,8 +395,7 @@ function ViewerEngagementScore(props: {
 						class="h-5 w-5 text-purple-600"
 						fill="none"
 						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
+						viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -424,15 +406,13 @@ function ViewerEngagementScore(props: {
 					Engagement Score
 				</h3>
 				<span
-					class={`rounded-full bg-gray-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}
-				>
+					class={`rounded-full bg-gray-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}>
 					{scoreLabel()}
 				</span>
 			</div>
 			<div class="flex items-center gap-4">
 				<div
-					class={`relative h-16 w-16 rounded-full bg-linear-to-r ${scoreGradient()} p-1`}
-				>
+					class={`relative h-16 w-16 rounded-full bg-linear-to-r ${scoreGradient()} p-1`}>
 					<div class="flex h-full w-full items-center justify-center rounded-full bg-white">
 						<span class={`font-bold text-xl ${scoreColor()}`}>
 							{engagementScore()}
@@ -530,8 +510,7 @@ function StreamGoalsTracker(props: {
 						class="h-5 w-5 text-purple-600"
 						fill="none"
 						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
+						viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -572,8 +551,7 @@ function StreamGoalsTracker(props: {
 											class="h-4 w-4"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -630,8 +608,7 @@ function ActivityFeed(props: {
 							class="h-5 w-5 text-purple-600"
 							fill="none"
 							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+							viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -656,8 +633,7 @@ function ActivityFeed(props: {
 										? "bg-purple-600 text-white"
 										: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 								}`}
-								data-testid={`filter-${btn.value}`}
-							>
+								data-testid={`filter-${btn.value}`}>
 								{btn.label}
 							</button>
 						)}
@@ -674,8 +650,7 @@ function ActivityFeed(props: {
 								class="mx-auto mb-2 h-10 w-10 text-gray-300"
 								fill="none"
 								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+								viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -687,15 +662,13 @@ function ActivityFeed(props: {
 								No {filter() === "all" ? "" : filter()} events
 							</p>
 						</div>
-					}
-				>
+					}>
 					<div class="divide-y divide-gray-50">
 						<For each={filteredEvents()}>
 							{(event) => (
 								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
 									<div
-										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}
-									>
+										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
 										{getEventIcon(event.type)}
 									</div>
 									<div class="min-w-0 flex-1">
@@ -710,8 +683,7 @@ function ActivityFeed(props: {
 										<p class="truncate text-gray-500 text-xs">
 											{(event.data?.username as string) || "Anonymous"}
 											<Show
-												when={event.type === "donation" && event.data?.amount}
-											>
+												when={event.type === "donation" && event.data?.amount}>
 												{" - "}${Number(event.data?.amount).toFixed(2)}
 											</Show>
 										</p>
@@ -763,8 +735,7 @@ export default function Dashboard() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}
-			>
+				}>
 				<Show
 					when={user()}
 					fallback={
@@ -778,14 +749,12 @@ export default function Dashboard() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<div class="space-y-6">
 						{/* Header with greeting */}
 						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -810,8 +779,7 @@ export default function Dashboard() {
 											class="h-5 w-5 text-blue-600"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -837,8 +805,7 @@ export default function Dashboard() {
 											class="h-5 w-5 text-purple-600"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -870,8 +837,7 @@ export default function Dashboard() {
 											class="h-5 w-5 text-pink-600"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -897,8 +863,7 @@ export default function Dashboard() {
 											class="h-5 w-5 text-green-600"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -941,8 +906,7 @@ export default function Dashboard() {
 									<h3 class={text.h3}>Recent Chat</h3>
 									<A
 										href="/dashboard/chat-history"
-										class="text-purple-600 text-sm hover:text-purple-700"
-									>
+										class="text-purple-600 text-sm hover:text-purple-700">
 										View all
 									</A>
 								</div>
@@ -956,8 +920,7 @@ export default function Dashboard() {
 													class="mx-auto mb-3 h-12 w-12 text-gray-300"
 													fill="none"
 													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+													viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -972,8 +935,7 @@ export default function Dashboard() {
 													Messages will appear here during streams
 												</p>
 											</div>
-										}
-									>
+										}>
 										<For each={recentMessages()}>
 											{(msg) => (
 												<div class="px-6 py-3 hover:bg-gray-50">
@@ -1013,8 +975,7 @@ export default function Dashboard() {
 									<h3 class={text.h3}>Recent Events</h3>
 									<A
 										href="/dashboard/stream-history"
-										class="text-purple-600 text-sm hover:text-purple-700"
-									>
+										class="text-purple-600 text-sm hover:text-purple-700">
 										View all
 									</A>
 								</div>
@@ -1028,8 +989,7 @@ export default function Dashboard() {
 													class="mx-auto mb-3 h-12 w-12 text-gray-300"
 													fill="none"
 													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+													viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -1042,15 +1002,13 @@ export default function Dashboard() {
 													Donations, follows, and subs will show here
 												</p>
 											</div>
-										}
-									>
+										}>
 										<For each={recentEvents()}>
 											{(event) => (
 												<div class="px-6 py-3 hover:bg-gray-50">
 													<div class="flex items-center gap-3">
 														<div
-															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}
-														>
+															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
 															{getEventIcon(event.type)}
 														</div>
 														<div class="min-w-0 flex-1">
@@ -1065,16 +1023,14 @@ export default function Dashboard() {
 															<p class="truncate text-gray-600 text-sm">
 																<Show
 																	when={event.data?.username}
-																	fallback="Anonymous"
-																>
+																	fallback="Anonymous">
 																	{event.data?.username as string}
 																</Show>
 																<Show
 																	when={
 																		event.type === "donation" &&
 																		event.data?.amount
-																	}
-																>
+																	}>
 																	{" - "}$
 																	{Number(event.data?.amount).toFixed(2)}
 																</Show>
@@ -1098,8 +1054,7 @@ export default function Dashboard() {
 								<h3 class={text.h3}>Recent Streams</h3>
 								<A
 									href="/dashboard/stream-history"
-									class="text-purple-600 text-sm hover:text-purple-700"
-								>
+									class="text-purple-600 text-sm hover:text-purple-700">
 									View all
 								</A>
 							</div>
@@ -1112,8 +1067,7 @@ export default function Dashboard() {
 											class="mx-auto mb-3 h-12 w-12 text-gray-300"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1126,15 +1080,13 @@ export default function Dashboard() {
 											Your stream history will appear here
 										</p>
 									</div>
-								}
-							>
+								}>
 								<div class="divide-y divide-gray-100">
 									<For each={recentStreams()}>
 										{(stream) => (
 											<A
 												href={`/dashboard/stream-history/${stream.id}`}
-												class="block px-6 py-4 hover:bg-gray-50"
-											>
+												class="block px-6 py-4 hover:bg-gray-50">
 												<div class="flex items-center justify-between">
 													<div class="flex items-center gap-4">
 														<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
@@ -1143,8 +1095,7 @@ export default function Dashboard() {
 																class="h-6 w-6 text-purple-600"
 																fill="none"
 																stroke="currentColor"
-																viewBox="0 0 24 24"
-															>
+																viewBox="0 0 24 24">
 																<path
 																	stroke-linecap="round"
 																	stroke-linejoin="round"
@@ -1181,8 +1132,7 @@ export default function Dashboard() {
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 							<A
 								href="/dashboard/widgets"
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
-							>
+								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 transition-transform group-hover:scale-105">
 										<svg
@@ -1190,8 +1140,7 @@ export default function Dashboard() {
 											class="h-6 w-6 text-white"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1209,8 +1158,7 @@ export default function Dashboard() {
 
 							<A
 								href="/dashboard/analytics"
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
-							>
+								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105">
 										<svg
@@ -1218,8 +1166,7 @@ export default function Dashboard() {
 											class="h-6 w-6 text-white"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1237,8 +1184,7 @@ export default function Dashboard() {
 
 							<A
 								href="/dashboard/settings"
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
-							>
+								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-pink-500 to-rose-500 transition-transform group-hover:scale-105">
 										<svg
@@ -1246,8 +1192,7 @@ export default function Dashboard() {
 											class="h-6 w-6 text-white"
 											fill="none"
 											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+											viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -1278,8 +1223,7 @@ export default function Dashboard() {
 					<Show when={showTestAlert()}>
 						<div
 							class="fixed top-4 right-4 z-50 animate-slide-in rounded-xl bg-linear-to-r from-purple-600 to-pink-600 px-6 py-4 text-white shadow-2xl"
-							data-testid="test-alert"
-						>
+							data-testid="test-alert">
 							<div class="flex items-center gap-3">
 								<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
 									<svg
@@ -1287,8 +1231,7 @@ export default function Dashboard() {
 										class="h-6 w-6"
 										fill="none"
 										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+										viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"

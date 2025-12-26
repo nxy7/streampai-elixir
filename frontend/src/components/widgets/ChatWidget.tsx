@@ -101,8 +101,7 @@ export default function ChatWidget(props: ChatWidgetProps) {
 			style={{
 				"font-family":
 					"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
-			}}
-		>
+			}}>
 			<div class="flex flex-1 flex-col justify-end overflow-y-hidden p-3">
 				<div class="flex flex-col gap-2">
 					<For each={displayMessages()}>
@@ -111,14 +110,12 @@ export default function ChatWidget(props: ChatWidgetProps) {
 								<Show when={props.config.showPlatform}>
 									<div
 										class={`flex shrink-0 items-center justify-center rounded ${message.platform.color}`}
-										style={{ width: "20px", height: "20px" }}
-									>
+										style={{ width: "20px", height: "20px" }}>
 										<svg
 											aria-hidden="true"
 											fill="currentColor"
 											viewBox="0 0 24 24"
-											style={{ width: "12px", height: "12px", color: "white" }}
-										>
+											style={{ width: "12px", height: "12px", color: "white" }}>
 											<path d={getPlatformIcon(message.platform)} />
 										</svg>
 									</div>
@@ -126,8 +123,7 @@ export default function ChatWidget(props: ChatWidgetProps) {
 
 								<Show when={props.config.showBadges && message.badge}>
 									<div
-										class={`shrink-0 rounded px-2 py-1 font-semibold text-xs ${message.badgeColor}`}
-									>
+										class={`shrink-0 rounded px-2 py-1 font-semibold text-xs ${message.badgeColor}`}>
 										{message.badge}
 									</div>
 								</Show>
@@ -140,8 +136,7 @@ export default function ChatWidget(props: ChatWidgetProps) {
 									</Show>
 									<span
 										class="font-semibold"
-										style={{ color: message.usernameColor }}
-									>
+										style={{ color: message.usernameColor }}>
 										{message.username}:
 									</span>
 									<span class="ml-1 text-gray-100">

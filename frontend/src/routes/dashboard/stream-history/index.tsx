@@ -85,14 +85,12 @@ export default function StreamHistory() {
 								</p>
 								<a
 									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-								>
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
 									Sign In
 								</a>
 							</div>
 						</div>
-					}
-				>
+					}>
 					<ErrorBoundary
 						fallback={(err) => (
 							<div class="mx-auto mt-8 max-w-7xl">
@@ -100,8 +98,7 @@ export default function StreamHistory() {
 									Error loading streams: {err.message}
 								</Alert>
 							</div>
-						)}
-					>
+						)}>
 						<Suspense fallback={<LoadingIndicator />}>
 							<StreamHistoryContent
 								userId={user()?.id}
@@ -259,8 +256,7 @@ function StreamHistoryContent(props: {
 								value={props.platform()}
 								onChange={(e) =>
 									props.setPlatform(e.currentTarget.value as Platform)
-								}
-							>
+								}>
 								<option value="all">All Platforms</option>
 								<option value="twitch">Twitch</option>
 								<option value="youtube">YouTube</option>
@@ -277,8 +273,7 @@ function StreamHistoryContent(props: {
 								value={props.dateRange()}
 								onChange={(e) =>
 									props.setDateRange(e.currentTarget.value as DateRange)
-								}
-							>
+								}>
 								<option value="7days">Last 7 days</option>
 								<option value="30days">Last 30 days</option>
 								<option value="all">All time</option>
@@ -293,8 +288,7 @@ function StreamHistoryContent(props: {
 								value={props.sortBy()}
 								onChange={(e) =>
 									props.setSortBy(e.currentTarget.value as SortBy)
-								}
-							>
+								}>
 								<option value="recent">Most Recent</option>
 								<option value="duration">Longest Duration</option>
 								<option value="viewers">Most Viewers</option>
@@ -317,8 +311,7 @@ function StreamHistoryContent(props: {
 									class="h-8 w-8 text-purple-500"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -340,8 +333,7 @@ function StreamHistoryContent(props: {
 									class="h-8 w-8 text-blue-500"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -363,8 +355,7 @@ function StreamHistoryContent(props: {
 									class="h-8 w-8 text-green-500"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -399,8 +390,7 @@ function StreamHistoryContent(props: {
 									class="mx-auto h-12 w-12 text-gray-400"
 									fill="none"
 									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+									viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -415,15 +405,13 @@ function StreamHistoryContent(props: {
 									No streams match your current filters.
 								</p>
 							</div>
-						}
-					>
+						}>
 						<div class="-mx-6 divide-y divide-gray-200">
 							<For each={filteredAndSortedStreams()}>
 								{(stream) => (
 									<A
 										href={`/dashboard/stream-history/${stream.id}`}
-										class="block p-6 transition-colors hover:bg-gray-50"
-									>
+										class="block p-6 transition-colors hover:bg-gray-50">
 										<div class="flex items-center space-x-4">
 											<Show when={stream.thumbnailUrl}>
 												<div class="shrink-0">
@@ -447,8 +435,7 @@ function StreamHistoryContent(props: {
 															<For each={stream.platforms || []}>
 																{(platform) => (
 																	<Badge
-																		variant={getPlatformBadgeVariant(platform)}
-																	>
+																		variant={getPlatformBadgeVariant(platform)}>
 																		{platform.charAt(0).toUpperCase() +
 																			platform.slice(1)}
 																	</Badge>
@@ -479,8 +466,7 @@ function StreamHistoryContent(props: {
 													class="h-5 w-5 text-gray-400"
 													fill="none"
 													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+													viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"

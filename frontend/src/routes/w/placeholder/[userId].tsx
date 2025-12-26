@@ -76,8 +76,7 @@ export default function PlaceholderDisplay() {
 					display: "flex",
 					"align-items": "center",
 					"justify-content": "center",
-				}}
-			>
+				}}>
 				<Show when={config()}>
 					{(cfg) => <PlaceholderWidget config={cfg()} />}
 				</Show>
