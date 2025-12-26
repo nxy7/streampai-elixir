@@ -4,7 +4,7 @@ import { useLiveQuery } from "@tanstack/solid-db";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { Alert } from "~/components/ui";
 import { useCurrentUser } from "~/lib/auth";
-import { type AdminUser, adminUsersCollection } from "~/lib/electric";
+import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
 import { usePresence } from "~/lib/socket";
 import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
 import { badge, button, card, input, text } from "~/styles/design-system";
@@ -14,9 +14,21 @@ export default function AdminUsers() {
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { users: onlineUsers } = usePresence();
 
-	const usersQuery = useLiveQuery(() => adminUsersCollection);
+	// Check if user is admin
+	const isAdmin = createMemo(() => currentUser()?.role === "admin");
+
+	// Only create the admin collection when user is confirmed to be an admin
+	// The collection is lazily created and cached
+	const usersQuery = useLiveQuery(() => {
+		if (!isAdmin()) {
+			// Return undefined when not admin - useLiveQuery handles this gracefully
+			return undefined as unknown as ReturnType<typeof getAdminUsersCollection>;
+		}
+		return getAdminUsersCollection();
+	});
 
 	const users = createMemo(() => {
+		if (!isAdmin()) return [];
 		const allUsers = usersQuery.data ?? [];
 		return allUsers.sort((a, b) => a.email.localeCompare(b.email));
 	});

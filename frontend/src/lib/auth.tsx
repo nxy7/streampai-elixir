@@ -8,7 +8,7 @@ import {
 } from "solid-js";
 import { getCurrentUser } from "~/sdk/ash_rpc";
 import { AuthContext, type User } from "./AuthContext";
-import { BACKEND_URL } from "./constants";
+import { API_URL } from "./constants";
 import { initPresence, leavePresence } from "./socket";
 
 const currentUserFields = [
@@ -90,13 +90,13 @@ export function useCurrentUser() {
 
 export function getLoginUrl(provider?: string) {
 	if (provider) {
-		return `${BACKEND_URL}/auth/${provider}`;
+		return `${API_URL}/auth/${provider}`;
 	}
 	return "/login";
 }
 
 export function getLogoutUrl() {
-	return `${BACKEND_URL}/auth/sign-out`;
+	return `${API_URL}/auth/sign-out`;
 }
 
 export function getDashboardUrl() {

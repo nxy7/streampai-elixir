@@ -1,6 +1,6 @@
 import { type Channel, Presence, Socket } from "phoenix";
 import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
-import { API_URL, BASE_URL } from "./constants";
+import { API_PATH, BASE_URL } from "./constants";
 
 // Socket singleton
 let socketInstance: Socket | null = null;
@@ -21,7 +21,7 @@ let currentPresenceUsers: PresenceUser[] = [];
  */
 async function fetchSocketToken(): Promise<string | null> {
 	try {
-		const response = await fetch(`${API_URL}/rpc/socket-token`, {
+		const response = await fetch(`${API_PATH}/rpc/socket-token`, {
 			credentials: "include",
 		});
 		const data = await response.json();

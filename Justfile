@@ -39,11 +39,13 @@ dev:
 	PHOENIX_PORT=${PORT:-4000}
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
+	HMR_PORT=${HMR_PORT:-24678}
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
-	echo "   Caddy:    https://localhost:$CADDY_PORT (HTTP/2 enabled)"
+	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo "   HMR:      localhost:$HMR_PORT"
 	echo ""
 	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
 	echo ""
@@ -63,13 +65,13 @@ dev:
 	PORT=$PHOENIX_PORT elixir --sname streampai_dev -S mix phx.server &
 
 	# Start Frontend
-	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" bun dev --port $FRONTEND_PORT &
+	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" HMR_PORT=$HMR_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT bun dev --port $FRONTEND_PORT &
 
 	# Wait a bit for services to start
 	sleep 2
 
 	# Start Caddy
-	PHOENIX_PORT=$PHOENIX_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT caddy run --config Caddyfile
+	PHOENIX_PORT=$PHOENIX_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT HMR_PORT=$HMR_PORT caddy run --config Caddyfile
 
 	wait
 
@@ -79,7 +81,7 @@ caddy:
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$')
 	set +a
-	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} \
+	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} HMR_PORT=${HMR_PORT:-24678} \
 		caddy run --config Caddyfile
 
 caddy-setup:
@@ -136,6 +138,7 @@ worktree-setup:
 	PHOENIX_PORT=$(find_port 4100 4999)
 	FRONTEND_PORT=$(find_port 3100 3999)
 	CADDY_PORT=$(find_port 8100 8999)
+	HMR_PORT=$(find_port 24700 24999)
 
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
@@ -159,6 +162,7 @@ worktree-setup:
 	sed -i '' '/^PORT=/d' .env
 	sed -i '' '/^FRONTEND_PORT=/d' .env
 	sed -i '' '/^CADDY_PORT=/d' .env
+	sed -i '' '/^HMR_PORT=/d' .env
 	sed -i '' '/^DISABLE_LIVE_DEBUGGER=/d' .env
 
 	# Append worktree-specific configuration
@@ -168,6 +172,7 @@ worktree-setup:
 	echo "PORT=$PHOENIX_PORT" >> .env
 	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
 	echo "CADDY_PORT=$CADDY_PORT" >> .env
+	echo "HMR_PORT=$HMR_PORT" >> .env
 	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	echo ""
@@ -175,6 +180,7 @@ worktree-setup:
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo "   HMR:      localhost:$HMR_PORT"
 	echo ""
 
 	# Export environment variables for subsequent commands
@@ -211,6 +217,7 @@ ports:
 	echo "   Phoenix:  ${PORT:-4000}"
 	echo "   Frontend: ${FRONTEND_PORT:-3000}"
 	echo "   Caddy:    ${CADDY_PORT:-8000}"
+	echo "   HMR:      ${HMR_PORT:-24678}"
 
 # ============================================================================
 # Production Commands
