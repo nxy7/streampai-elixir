@@ -200,12 +200,13 @@ just worktree-setup
 ```
 
 This is the **single command** needed to set up any worktree environment. It:
-1. Generates deterministic ports from the directory name
+1. Generates random available ports for Phoenix, Frontend, and Caddy
 2. Creates an isolated PostgreSQL database
 3. Copies `.env` and build artifacts from `~/streampai-elixir`
-4. Appends worktree-specific config (DATABASE_URL, PORT, etc.)
-5. Installs dependencies and runs migrations
-6. Starts Claude Code with permissions skipped
+4. Removes any existing worktree variables from `.env` and appends fresh ones
+5. Installs backend dependencies and runs migrations/seeds
+6. Installs frontend dependencies (`bun install`)
+7. Starts Claude Code with permissions skipped
 
 ### Port Allocation
 
@@ -236,6 +237,24 @@ just si     # Interactive Elixir shell with Phoenix server
 - Main repo must exist at `~/streampai-elixir` with `.env` configured
 - PostgreSQL running locally (user: postgres, password: postgres)
 - Caddy installed (`brew install caddy && caddy trust`)
+
+### Critical Worktree Isolation Details
+
+The following config changes enable multiple worktrees to run simultaneously:
+
+1. **Port Configuration** (`config/runtime.exs`): Phoenix port is configured in runtime.exs (not dev.exs) so it can read from `.env` after dotenvy loads it.
+
+2. **Electric SQL Isolation** (`config/config.exs`): Each worktree uses a unique `stack_id` and `replication_stream_id` derived from the directory name. This prevents PostgreSQL replication slot conflicts.
+
+3. **`.env` Structure**: The setup script removes any existing worktree variables before appending new ones, preventing duplicates even if `just worktree-setup` is run multiple times.
+
+### Troubleshooting Worktree Issues
+
+**Port 4000 in use error**: Run `just worktree-setup` again - it will reassign fresh available ports.
+
+**Electric replication slot conflict**: Each worktree needs a unique database. If you see "replication slot already in use", ensure DATABASE_URL points to a worktree-specific database (the setup handles this automatically).
+
+**Frontend not starting**: Run `bun install` in the frontend directory, or re-run `just worktree-setup` which now includes this step.
 
 ### Example: Vibe-Kanban Workflow
 

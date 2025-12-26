@@ -20,8 +20,9 @@ config :phoenix, :stacktrace_depth, 20
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 # Main endpoint configuration
+# Note: Port is configured in runtime.exs after .env is loaded
 config :streampai, StreampaiWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
+  http: [ip: {127, 0, 0, 1}],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

@@ -3,6 +3,13 @@ import Config
 alias AshMoney.Types.Money
 alias Ueberauth.Strategy.OAuth2
 
+# Phoenix.Sync configuration (embedded Electric)
+# Use a unique stack_id and replication_stream_id per worktree to avoid conflicts
+electric_worktree_id =
+  File.cwd!()
+  |> Path.basename()
+  |> String.replace("-", "_")
+
 config :ash,
   include_embedded_source_by_default?: false,
   default_page_type: :keyset,
@@ -52,11 +59,12 @@ config :logger, :console,
 
 config :phoenix, :json_library, Jason
 
-# Phoenix.Sync configuration (embedded Electric)
 config :phoenix_sync,
   env: Mix.env(),
   mode: :embedded,
-  repo: Streampai.Repo
+  repo: Streampai.Repo,
+  stack_id: "electric_#{electric_worktree_id}",
+  replication_stream_id: electric_worktree_id
 
 config :spark,
   formatter: [
