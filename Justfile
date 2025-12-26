@@ -39,6 +39,7 @@ dev:
 	PHOENIX_PORT=${PORT:-4000}
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
+	HMR_PORT=${HMR_PORT:-24678}
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
@@ -194,6 +195,7 @@ worktree-setup:
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo "   HMR:      localhost:$HMR_PORT"
 	echo ""
 
 	# Export environment variables for subsequent commands
@@ -230,6 +232,7 @@ ports:
 	echo "   Phoenix:  ${PORT:-4000}"
 	echo "   Frontend: ${FRONTEND_PORT:-3000}"
 	echo "   Caddy:    ${CADDY_PORT:-8000}"
+	echo "   HMR:      ${HMR_PORT:-24678}"
 
 # ============================================================================
 # Production Commands
