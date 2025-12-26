@@ -1,4 +1,10 @@
 defmodule Streampai.Integrations.DiscordWebhookTest do
+  @moduledoc """
+  Tests for DiscordWebhook Ash resource.
+
+  These tests verify the resource CRUD operations and policies.
+  For Discord API integration tests, see discord_integration_test.exs
+  """
   use Streampai.DataCase, async: true
 
   alias Streampai.Integrations.DiscordWebhook

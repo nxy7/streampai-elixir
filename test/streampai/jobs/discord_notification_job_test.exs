@@ -1,4 +1,10 @@
 defmodule Streampai.Jobs.DiscordNotificationJobTest do
+  @moduledoc """
+  Tests for Discord notification Oban job.
+
+  These tests verify job scheduling and handling logic.
+  For Discord API integration tests, see discord_integration_test.exs
+  """
   use Streampai.DataCase, async: true
   use Oban.Testing, repo: Streampai.Repo
 
@@ -52,7 +58,7 @@ defmodule Streampai.Jobs.DiscordNotificationJobTest do
           actor: user
         )
 
-      {:ok, webhook_stream} =
+      {:ok, _webhook_stream} =
         DiscordWebhook.create(
           %{
             name: "Stream Webhook",

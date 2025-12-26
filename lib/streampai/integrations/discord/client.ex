@@ -9,8 +9,6 @@ defmodule Streampai.Integrations.Discord.Client do
   - 30 requests per 60 seconds per webhook
   - 5 requests per 2 seconds burst limit
   """
-  alias StreampaiTest.Mocks.DiscordWebhookMock
-
   require Logger
 
   @discord_webhook_base "https://discord.com/api/webhooks"
@@ -70,21 +68,6 @@ defmodule Streampai.Integrations.Discord.Client do
   end
 
   defp do_send_webhook(webhook_url, payload) do
-    # In test environment, use mock if available
-    if mock_enabled?() do
-      DiscordWebhookMock.send_webhook(webhook_url, payload)
-    else
-      do_http_request(webhook_url, payload)
-    end
-  end
-
-  defp mock_enabled? do
-    Application.get_env(:streampai, :env) == :test and
-      function_exported?(DiscordWebhookMock, :running?, 0) and
-      DiscordWebhookMock.running?()
-  end
-
-  defp do_http_request(webhook_url, payload) do
     case Req.post(webhook_url, json: payload) do
       {:ok, %Req.Response{status: status}} when status in 200..299 ->
         {:ok, :sent}
