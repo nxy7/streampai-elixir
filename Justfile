@@ -43,7 +43,7 @@ dev:
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
-	echo "   Caddy:    https://localhost:$CADDY_PORT (HTTP/2 enabled)"
+	echo "   Caddy:    https://localhost:$CADDY_PORT"
 	echo ""
 	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
 	echo ""
@@ -56,20 +56,26 @@ dev:
 		exit 1
 	fi
 
+	# Ensure dependencies are installed
+	echo "📦 Checking dependencies..."
+	mix deps.get --check-unused 2>/dev/null || mix deps.get
+	cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install
+	cd ..
+
 	# Start all services in parallel
 	trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
-	# Start Phoenix (using elixir directly since iex can't be backgrounded)
-	PORT=$PHOENIX_PORT elixir --sname streampai_dev -S mix phx.server &
+	# Start Phoenix (PORT is already set from .env, sname includes port for uniqueness)
+	elixir -S mix phx.server &
 
-	# Start Frontend
-	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" bun dev --port $FRONTEND_PORT &
+	# Start Frontend (override PORT for Vinxi, which reads it for dev server)
+	cd frontend && PORT=$FRONTEND_PORT bun dev &
 
 	# Wait a bit for services to start
 	sleep 2
 
-	# Start Caddy
-	PHOENIX_PORT=$PHOENIX_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT caddy run --config Caddyfile
+	# Start Caddy (reads PHOENIX_PORT, FRONTEND_PORT, CADDY_PORT from env)
+	caddy run --config Caddyfile
 
 	wait
 
@@ -79,8 +85,8 @@ caddy:
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$')
 	set +a
-	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} \
-		caddy run --config Caddyfile
+	# Caddy reads PORT, FRONTEND_PORT, CADDY_PORT from env
+	caddy run --config Caddyfile
 
 caddy-setup:
 	#!/usr/bin/env bash
@@ -136,6 +142,11 @@ worktree-setup:
 	PHOENIX_PORT=$(find_port 4100 4999)
 	FRONTEND_PORT=$(find_port 3100 3999)
 	CADDY_PORT=$(find_port 8100 8999)
+	# HMR ports for each Vinxi router
+	FRONTEND_HMR_CLIENT_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SERVER_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SERVER_FUNCTION_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SSR_PORT=$(find_port 3100 3999)
 
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
@@ -159,6 +170,10 @@ worktree-setup:
 	sed -i '' '/^PORT=/d' .env
 	sed -i '' '/^FRONTEND_PORT=/d' .env
 	sed -i '' '/^CADDY_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_CLIENT_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SERVER_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SERVER_FUNCTION_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SSR_PORT=/d' .env
 	sed -i '' '/^DISABLE_LIVE_DEBUGGER=/d' .env
 
 	# Append worktree-specific configuration
@@ -168,6 +183,10 @@ worktree-setup:
 	echo "PORT=$PHOENIX_PORT" >> .env
 	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
 	echo "CADDY_PORT=$CADDY_PORT" >> .env
+	echo "FRONTEND_HMR_CLIENT_PORT=$FRONTEND_HMR_CLIENT_PORT" >> .env
+	echo "FRONTEND_HMR_SERVER_PORT=$FRONTEND_HMR_SERVER_PORT" >> .env
+	echo "FRONTEND_HMR_SERVER_FUNCTION_PORT=$FRONTEND_HMR_SERVER_FUNCTION_PORT" >> .env
+	echo "FRONTEND_HMR_SSR_PORT=$FRONTEND_HMR_SSR_PORT" >> .env
 	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	echo ""
