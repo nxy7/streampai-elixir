@@ -33,8 +33,25 @@ defmodule StreampaiWeb.AuthController do
   end
 
   def sign_out(conn, _params) do
+    # Get the origin from referer header to redirect back to the frontend
+    redirect_url =
+      case get_req_header(conn, "referer") do
+        [referer | _] ->
+          case URI.parse(referer) do
+            %URI{scheme: scheme, host: host, port: port} when not is_nil(host) ->
+              port_part = if port in [nil, 80, 443], do: "", else: ":#{port}"
+              "#{scheme}://#{host}#{port_part}/"
+
+            _ ->
+              "/"
+          end
+
+        [] ->
+          "/"
+      end
+
     conn
     |> clear_session(:streampai)
-    |> redirect(to: "/")
+    |> redirect(external: redirect_url)
   end
 end

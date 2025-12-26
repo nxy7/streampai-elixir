@@ -105,7 +105,10 @@ just start                  # Start Phoenix server
 just si                     # Interactive shell with server
 just test                   # Run tests (excludes external)
 just format                 # Format code
+just dev                    # Start full dev environment (Phoenix + Frontend + Caddy)
 just worktree name          # Create isolated dev environment
+just worktree-setup         # Setup current worktree (run after checkout)
+just ports                  # Show port configuration for current worktree
 ```
 
 ## Code Generation
@@ -169,6 +172,101 @@ This updates `frontend/src/sdk/ash_rpc.ts` with typed RPC functions.
 - Frontend default: port 3000 (auto-increments if taken)
 - Use `PORT=4001` for additional backend instances
 - Use `DISABLE_LIVE_DEBUGGER=true` to avoid port conflicts
+
+## Worktree Setup (Isolated Development)
+
+Git worktrees allow running multiple branches simultaneously with isolated databases and ports. This is essential for parallel development with tools like vibe-kanban.
+
+### Creating a New Worktree (from main repo)
+
+```bash
+just worktree my-feature-branch
+```
+
+This creates a worktree at `../my-feature-branch` and automatically:
+- Creates a new git branch `my-feature-branch`
+- Generates unique ports based on the branch name hash
+- Creates an isolated database `streampai_my_feature_branch_dev`
+- Copies deps and build artifacts from main repo for faster setup
+- Configures `.env` with worktree-specific settings
+- Runs full setup (deps, migrations, seeds, compile)
+
+### Setting Up an Existing Worktree
+
+If you already have a worktree checked out (e.g., created by vibe-kanban), run:
+
+```bash
+just worktree-setup
+```
+
+This is the **single command** needed to set up any worktree environment. It:
+1. Generates random available ports for Phoenix, Frontend, and Caddy
+2. Creates an isolated PostgreSQL database
+3. Copies `.env` and build artifacts from `~/streampai-elixir`
+4. Removes any existing worktree variables from `.env` and appends fresh ones
+5. Installs backend dependencies and runs migrations/seeds
+6. Installs frontend dependencies (`bun install`)
+7. Starts Claude Code with permissions skipped
+
+### Port Allocation
+
+Ports are randomly assigned from available ports in these ranges:
+- **Phoenix**: 4100-4999
+- **Frontend**: 3100-3999
+- **Caddy**: 8100-8999
+
+Check your worktree's ports with:
+```bash
+just ports
+```
+
+### Starting Development
+
+After setup, start the full dev environment:
+```bash
+just dev    # Starts Phoenix + Frontend + Caddy with HTTPS
+```
+
+Or just the backend:
+```bash
+just si     # Interactive Elixir shell with Phoenix server
+```
+
+### Worktree Requirements
+
+- Main repo must exist at `~/streampai-elixir` with `.env` configured
+- PostgreSQL running locally (user: postgres, password: postgres)
+- Caddy installed (`brew install caddy && caddy trust`)
+
+### Critical Worktree Isolation Details
+
+The following config changes enable multiple worktrees to run simultaneously:
+
+1. **Port Configuration** (`config/runtime.exs`): Phoenix port is configured in runtime.exs (not dev.exs) so it can read from `.env` after dotenvy loads it.
+
+2. **Electric SQL Isolation** (`config/config.exs`): Each worktree uses a unique `stack_id` and `replication_stream_id` derived from the directory name. This prevents PostgreSQL replication slot conflicts.
+
+3. **`.env` Structure**: The setup script removes any existing worktree variables before appending new ones, preventing duplicates even if `just worktree-setup` is run multiple times.
+
+### Troubleshooting Worktree Issues
+
+**Port 4000 in use error**: Run `just worktree-setup` again - it will reassign fresh available ports.
+
+**Electric replication slot conflict**: Each worktree needs a unique database. If you see "replication slot already in use", ensure DATABASE_URL points to a worktree-specific database (the setup handles this automatically).
+
+**Frontend not starting**: Run `bun install` in the frontend directory, or re-run `just worktree-setup` which now includes this step.
+
+### Example: Vibe-Kanban Workflow
+
+When vibe-kanban creates a worktree, it should run:
+```bash
+cd /path/to/worktree/streampai-elixir
+just worktree-setup
+```
+
+This single command handles all environment setup without affecting other worktrees or the main branch.
+
+**Vibe-kanban auto-detection**: The setup script automatically detects vibe-kanban worktrees (where the parent directory matches the pattern `XXXX-branch-name`) and uses the parent directory name for unique port/database generation.
 
 ## Common Patterns
 
@@ -243,3 +341,4 @@ export const Default: Story = {
 - App name is "Streampai" (not "StreamPai")
 - If a port is taken, use another port instead of killing the running app
 - When using Playwright MCP for testing, let the user log in manually unless explicitly asked to automate it
+- **Playwright testing**: Always use HTTPS and the Caddy port (e.g., `https://localhost:8000`), not the direct frontend port. Caddy proxies both frontend and backend, which is required for auth flows to work correctly.

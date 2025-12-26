@@ -1,5 +1,12 @@
-import { A, useLocation } from "@solidjs/router";
-import { createMemo, createSignal, For, type JSX, Show } from "solid-js";
+import { A, useLocation, useNavigate } from "@solidjs/router";
+import {
+	createEffect,
+	createMemo,
+	createSignal,
+	For,
+	type JSX,
+	Show,
+} from "solid-js";
 import { getLogoutUrl, useCurrentUser } from "~/lib/auth";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 import NotificationBell from "./NotificationBell";
@@ -11,8 +18,16 @@ interface DashboardLayoutProps {
 export default function DashboardLayout(props: DashboardLayoutProps) {
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
+	const navigate = useNavigate();
 	const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
+
+	// Redirect to login if user is not authenticated
+	createEffect(() => {
+		if (!isLoading() && !user()) {
+			navigate("/login", { replace: true });
+		}
+	});
 
 	// Use Electric-synced preferences for real-time avatar/name updates
 	const prefs = useUserPreferencesForUser(() => user()?.id);
@@ -307,236 +322,209 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 	}
 
 	return (
-		<div class="flex h-screen">
-			{/* Mobile sidebar backdrop */}
-			<Show when={mobileSidebarOpen()}>
-				<button
-					type="button"
-					class="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
-					onClick={() => setMobileSidebarOpen(false)}
-					aria-label="Close sidebar"
-				/>
-			</Show>
-
-			{/* Sidebar */}
-			<div
-				class={`sidebar fixed inset-y-0 left-0 z-50 flex flex-col overflow-y-auto bg-gray-900 text-white transition-all duration-300 ease-in-out ${
-					sidebarCollapsed() ? "w-20" : "w-64"
-				} ${
-					mobileSidebarOpen() ? "translate-x-0" : "-translate-x-full"
-				} md:translate-x-0`}
-				style={{
-					"scrollbar-width": "none",
-					"-ms-overflow-style": "none",
-				}}>
-				{/* Sidebar Header */}
-				<div class="relative flex items-center justify-center border-gray-700 border-b p-4">
-					<A
-						href="/"
-						class="flex items-center space-x-2 transition-opacity hover:opacity-80">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-8 w-8"
-						/>
-						<span
-							class={`font-bold text-white text-xl transition-opacity ${
-								sidebarCollapsed()
-									? "w-0 overflow-hidden opacity-0"
-									: "opacity-100"
-							}`}>
-							Streampai
-						</span>
-					</A>
-					<button
-						type="button"
-						onClick={() => setSidebarCollapsed(!sidebarCollapsed())}
-						class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-gray-700 md:block">
-						<svg
-							aria-hidden="true"
-							class="h-4 w-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								class={sidebarCollapsed() ? "block" : "hidden"}
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M13 5l7 7-7 7M5 5l7 7-7 7"
-							/>
-							<path
-								class={sidebarCollapsed() ? "hidden" : "block"}
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-							/>
-						</svg>
-					</button>
+		<Show
+			when={!isLoading()}
+			fallback={
+				<div class="flex h-screen items-center justify-center bg-gray-50">
+					<div class="text-center">
+						<div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+						<p class="text-gray-600">Loading...</p>
+					</div>
 				</div>
+			}>
+			<Show when={user()}>
+				<div class="flex h-screen">
+					{/* Mobile sidebar backdrop */}
+					<Show when={mobileSidebarOpen()}>
+						<button
+							type="button"
+							class="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+							onClick={() => setMobileSidebarOpen(false)}
+							aria-label="Close sidebar"
+						/>
+					</Show>
 
-				{/* Main Navigation */}
-				<nav class="mt-6 flex-1">
-					<For each={navSections}>
-						{(section) => (
-							<div class="mb-8 px-4">
-								<h3
-									class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
+					{/* Sidebar */}
+					<div
+						class={`sidebar fixed inset-y-0 left-0 z-50 flex flex-col overflow-y-auto bg-gray-900 text-white transition-all duration-300 ease-in-out ${
+							sidebarCollapsed() ? "w-20" : "w-64"
+						} ${
+							mobileSidebarOpen() ? "translate-x-0" : "-translate-x-full"
+						} md:translate-x-0`}
+						style={{
+							"scrollbar-width": "none",
+							"-ms-overflow-style": "none",
+						}}>
+						{/* Sidebar Header */}
+						<div class="relative flex items-center justify-center border-gray-700 border-b p-4">
+							<A
+								href="/"
+								class="flex items-center space-x-2 transition-opacity hover:opacity-80">
+								<img
+									src="/images/logo-white.png"
+									alt="Streampai Logo"
+									class="h-8 w-8"
+								/>
+								<span
+									class={`font-bold text-white text-xl transition-opacity ${
 										sidebarCollapsed()
-											? "h-0 overflow-hidden opacity-0"
+											? "w-0 overflow-hidden opacity-0"
 											: "opacity-100"
 									}`}>
-									{section.title}
-								</h3>
-								<div class="space-y-2">
-									<For each={section.items}>
-										{(item) => (
-											<A
-												href={item.url}
-												class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-													currentPage() ===
-													item.label.toLowerCase().replace(" ", "-")
-														? "bg-purple-600 text-white"
-														: "text-gray-300 hover:bg-gray-700 hover:text-white"
-												} ${sidebarCollapsed() ? "justify-center" : ""}`}
-												title={item.label}>
-												{item.icon}
-												<span
-													class={`ml-3 transition-opacity ${
-														sidebarCollapsed()
-															? "w-0 overflow-hidden opacity-0"
-															: "opacity-100"
-													}`}>
-													{item.label}
-												</span>
-											</A>
-										)}
-									</For>
-								</div>
-							</div>
-						)}
-					</For>
-
-					<Show when={user()?.role === "admin"}>
-						<For each={adminSections}>
-							{(section) => (
-								<div class="mb-8 px-4">
-									<h3
-										class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
-											sidebarCollapsed()
-												? "h-0 overflow-hidden opacity-0"
-												: "opacity-100"
-										}`}>
-										{section.title}
-									</h3>
-									<div class="space-y-2">
-										<For each={section.items}>
-											{(item) => (
-												<A
-													href={item.url}
-													class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-														currentPage() ===
-														item.label.toLowerCase().replace(" ", "-")
-															? "bg-purple-600 text-white"
-															: "text-gray-300 hover:bg-gray-700 hover:text-white"
-													} ${sidebarCollapsed() ? "justify-center" : ""}`}
-													title={item.label}>
-													{item.icon}
-													<span
-														class={`ml-3 transition-opacity ${
-															sidebarCollapsed()
-																? "w-0 overflow-hidden opacity-0"
-																: "opacity-100"
-														}`}>
-														{item.label}
-													</span>
-												</A>
-											)}
-										</For>
-									</div>
-								</div>
-							)}
-						</For>
-					</Show>
-				</nav>
-
-				{/* Bottom Logout Section */}
-				<div class="space-y-2 border-gray-700 border-t p-4">
-					<Show when={user()?.isModerator}>
-						<A
-							href="/dashboard/moderate"
-							class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-blue-600 hover:text-white ${
-								sidebarCollapsed() ? "justify-center" : ""
-							}`}>
-							<svg
-								aria-hidden="true"
-								class="h-5 w-5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-								/>
-							</svg>
-							<span
-								class={`ml-3 transition-opacity ${
-									sidebarCollapsed()
-										? "w-0 overflow-hidden opacity-0"
-										: "opacity-100"
-								}`}>
-								Moderate
-							</span>
-						</A>
-					</Show>
-
-					<a
-						href={getLogoutUrl()}
-						rel="external"
-						class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-red-600 hover:text-white ${
-							sidebarCollapsed() ? "justify-center" : ""
-						}`}>
-						<svg
-							aria-hidden="true"
-							class="h-5 w-5"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-							/>
-						</svg>
-						<span
-							class={`ml-3 transition-opacity ${
-								sidebarCollapsed()
-									? "w-0 overflow-hidden opacity-0"
-									: "opacity-100"
-							}`}>
-							Sign Out
-						</span>
-					</a>
-				</div>
-			</div>
-
-			{/* Main Content */}
-			<div
-				class={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${
-					sidebarCollapsed() ? "md:ml-20" : "md:ml-64"
-				}`}>
-				{/* Top Bar */}
-				<header class="border-gray-200 border-b bg-white shadow-sm">
-					<div class="flex items-center justify-between px-6 py-4">
-						<div class="flex items-center space-x-4">
+									Streampai
+								</span>
+							</A>
 							<button
 								type="button"
-								onClick={() => setMobileSidebarOpen(!mobileSidebarOpen())}
-								class="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden">
+								onClick={() => setSidebarCollapsed(!sidebarCollapsed())}
+								class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-gray-700 md:block">
+								<svg
+									aria-hidden="true"
+									class="h-4 w-4"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24">
+									<path
+										class={sidebarCollapsed() ? "block" : "hidden"}
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M13 5l7 7-7 7M5 5l7 7-7 7"
+									/>
+									<path
+										class={sidebarCollapsed() ? "hidden" : "block"}
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+									/>
+								</svg>
+							</button>
+						</div>
+
+						{/* Main Navigation */}
+						<nav class="mt-6 flex-1">
+							<For each={navSections}>
+								{(section) => (
+									<div class="mb-8 px-4">
+										<h3
+											class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
+												sidebarCollapsed()
+													? "h-0 overflow-hidden opacity-0"
+													: "opacity-100"
+											}`}>
+											{section.title}
+										</h3>
+										<div class="space-y-2">
+											<For each={section.items}>
+												{(item) => (
+													<A
+														href={item.url}
+														class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
+															currentPage() ===
+															item.label.toLowerCase().replace(" ", "-")
+																? "bg-purple-600 text-white"
+																: "text-gray-300 hover:bg-gray-700 hover:text-white"
+														} ${sidebarCollapsed() ? "justify-center" : ""}`}
+														title={item.label}>
+														{item.icon}
+														<span
+															class={`ml-3 transition-opacity ${
+																sidebarCollapsed()
+																	? "w-0 overflow-hidden opacity-0"
+																	: "opacity-100"
+															}`}>
+															{item.label}
+														</span>
+													</A>
+												)}
+											</For>
+										</div>
+									</div>
+								)}
+							</For>
+
+							<Show when={user()?.role === "admin"}>
+								<For each={adminSections}>
+									{(section) => (
+										<div class="mb-8 px-4">
+											<h3
+												class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
+													sidebarCollapsed()
+														? "h-0 overflow-hidden opacity-0"
+														: "opacity-100"
+												}`}>
+												{section.title}
+											</h3>
+											<div class="space-y-2">
+												<For each={section.items}>
+													{(item) => (
+														<A
+															href={item.url}
+															class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
+																currentPage() ===
+																item.label.toLowerCase().replace(" ", "-")
+																	? "bg-purple-600 text-white"
+																	: "text-gray-300 hover:bg-gray-700 hover:text-white"
+															} ${sidebarCollapsed() ? "justify-center" : ""}`}
+															title={item.label}>
+															{item.icon}
+															<span
+																class={`ml-3 transition-opacity ${
+																	sidebarCollapsed()
+																		? "w-0 overflow-hidden opacity-0"
+																		: "opacity-100"
+																}`}>
+																{item.label}
+															</span>
+														</A>
+													)}
+												</For>
+											</div>
+										</div>
+									)}
+								</For>
+							</Show>
+						</nav>
+
+						{/* Bottom Logout Section */}
+						<div class="space-y-2 border-gray-700 border-t p-4">
+							<Show when={user()?.isModerator}>
+								<A
+									href="/dashboard/moderate"
+									class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-blue-600 hover:text-white ${
+										sidebarCollapsed() ? "justify-center" : ""
+									}`}>
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+										/>
+									</svg>
+									<span
+										class={`ml-3 transition-opacity ${
+											sidebarCollapsed()
+												? "w-0 overflow-hidden opacity-0"
+												: "opacity-100"
+										}`}>
+										Moderate
+									</span>
+								</A>
+							</Show>
+
+							<a
+								href={getLogoutUrl()}
+								rel="external"
+								class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-red-600 hover:text-white ${
+									sidebarCollapsed() ? "justify-center" : ""
+								}`}>
 								<svg
 									aria-hidden="true"
 									class="h-5 w-5"
@@ -547,14 +535,20 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M4 6h16M4 12h16M4 18h16"
+										d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
 									/>
 								</svg>
-							</button>
-							<h1 class="font-semibold text-2xl text-gray-900">
-								{pageTitle()}
-							</h1>
+								<span
+									class={`ml-3 transition-opacity ${
+										sidebarCollapsed()
+											? "w-0 overflow-hidden opacity-0"
+											: "opacity-100"
+									}`}>
+									Sign Out
+								</span>
+							</a>
 						</div>
+					</div>
 
 						<div class="flex items-center space-x-4">
 							<NotificationBell />
@@ -592,11 +586,13 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 					</div>
 				</header>
 
-				{/* Main Content Area */}
-				<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
-					{props.children}
-				</main>
-			</div>
-		</div>
+						{/* Main Content Area */}
+						<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+							{props.children}
+						</main>
+					</div>
+				</div>
+			</Show>
+		</Show>
 	);
 }

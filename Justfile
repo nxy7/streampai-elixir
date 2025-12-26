@@ -10,7 +10,9 @@ format:
 test:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	mix test --max-failures 3 --exclude external
 
 start:
@@ -19,25 +21,30 @@ start:
 si:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	iex -S mix phx.server
 
 dev:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
-	# Load environment variables
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	# Load environment variables (using set -a to auto-export)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 
 	# Get ports from environment or use defaults
 	PHOENIX_PORT=${PORT:-4000}
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
+	HMR_PORT=${HMR_PORT:-24678}
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
-	echo "   Caddy:    https://localhost:$CADDY_PORT (HTTP/2 enabled)"
+	echo "   Caddy:    https://localhost:$CADDY_PORT"
 	echo ""
 	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
 	echo ""
@@ -50,29 +57,37 @@ dev:
 		exit 1
 	fi
 
+	# Ensure dependencies are installed
+	echo "📦 Checking dependencies..."
+	mix deps.get --check-unused 2>/dev/null || mix deps.get
+	cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install
+	cd ..
+
 	# Start all services in parallel
 	trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
-	# Start Phoenix
-	PORT=$PHOENIX_PORT iex -S mix phx.server &
+	# Start Phoenix (PORT is already set from .env, sname includes port for uniqueness)
+	elixir -S mix phx.server &
 
-	# Start Frontend
-	cd frontend && VITE_BASE_URL="https://localhost:$CADDY_PORT" bun dev --port $FRONTEND_PORT &
+	# Start Frontend (override PORT for Vinxi, which reads it for dev server)
+	cd frontend && PORT=$FRONTEND_PORT bun dev &
 
 	# Wait a bit for services to start
 	sleep 2
 
-	# Start Caddy
-	PHOENIX_PORT=$PHOENIX_PORT FRONTEND_PORT=$FRONTEND_PORT CADDY_PORT=$CADDY_PORT caddy run --config Caddyfile
+	# Start Caddy (reads PHOENIX_PORT, FRONTEND_PORT, CADDY_PORT from env)
+	caddy run --config Caddyfile
 
 	wait
 
 caddy:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
-	PHOENIX_PORT=${PORT:-4000} FRONTEND_PORT=${FRONTEND_PORT:-3000} CADDY_PORT=${CADDY_PORT:-8000} \
-		caddy run --config Caddyfile
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
+	# Caddy reads PORT, FRONTEND_PORT, CADDY_PORT from env
+	caddy run --config Caddyfile
 
 caddy-setup:
 	#!/usr/bin/env bash
@@ -96,64 +111,109 @@ worktree name:
 worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	name=$(pwd | awk -F/ '{print $NF}')
+
+	# Detect worktree name: use parent dir if in vibe-kanban structure, otherwise current dir
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+
+	# If current dir is streampai-elixir but parent looks like a vibe-kanban worktree ID
+	# (e.g., "987c-update-claude-md"), use parent for unique naming
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		name="$parent_dir"
+		echo "Detected vibe-kanban worktree: $name"
+	else
+		name="$current_dir"
+	fi
 
 	echo "Setting up worktree: $name"
 
-	# Generate unique ports based on worktree name hash
-	# This ensures consistent ports for the same worktree
-	hash=$(echo -n "$name" | md5sum | cut -c1-4)
-	hash_num=$((16#$hash))
+	# Generate random available ports
+	# Function to find a random available port in a range
+	find_port() {
+		local min=$1 max=$2
+		while true; do
+			port=$((min + RANDOM % (max - min)))
+			if ! lsof -i :$port >/dev/null 2>&1; then
+				echo $port
+				return
+			fi
+		done
+	}
 
-	# Port ranges:
-	# Phoenix: 4000-4999
-	# Frontend: 3000-3999
-	# Caddy: 8000-8999
-	PHOENIX_PORT=$((4000 + (hash_num % 1000)))
-	FRONTEND_PORT=$((3000 + (hash_num % 1000)))
-	CADDY_PORT=$((8000 + (hash_num % 1000)))
+	PHOENIX_PORT=$(find_port 4100 4999)
+	FRONTEND_PORT=$(find_port 3100 3999)
+	CADDY_PORT=$(find_port 8100 8999)
+	# HMR ports for each Vinxi router
+	FRONTEND_HMR_CLIENT_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SERVER_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SERVER_FUNCTION_PORT=$(find_port 3100 3999)
+	FRONTEND_HMR_SSR_PORT=$(find_port 3100 3999)
 
 	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
-	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" || echo "Database $DB_NAME already exists"
+	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "Database $DB_NAME already exists"
 
 	# Add MCP server for this worktree
-	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" || echo "MCP already exists"
+	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
 
-	# Copy base .env and compiled artifacts
-	cp ~/streampai-elixir/.env .
+	# Copy .env from main repo if not already present (vibe-kanban may have copied it)
+	if [ ! -f .env ]; then
+		cp ~/streampai-elixir/.env .
+	fi
+
+	# Copy compiled artifacts for faster setup
 	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 
+	# Remove any existing worktree-specific variables before appending new ones
+	# This prevents duplicates if worktree-setup is run multiple times
+	sed -i '' '/^DATABASE_URL=/d' .env
+	sed -i '' '/^PORT=/d' .env
+	sed -i '' '/^FRONTEND_PORT=/d' .env
+	sed -i '' '/^CADDY_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_CLIENT_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SERVER_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SERVER_FUNCTION_PORT=/d' .env
+	sed -i '' '/^FRONTEND_HMR_SSR_PORT=/d' .env
+	sed -i '' '/^DISABLE_LIVE_DEBUGGER=/d' .env
+
 	# Append worktree-specific configuration
-	cat >> .env << EOF
-		DATABASE_URL=$DB_URL
-		PORT=$PHOENIX_PORT
-		FRONTEND_PORT=$FRONTEND_PORT
-		CADDY_PORT=$CADDY_PORT
-		DISABLE_LIVE_DEBUGGER=true
-		EOF
+	echo "" >> .env
+	echo "# Worktree-specific configuration (auto-generated by just worktree-setup)" >> .env
+	echo "DATABASE_URL=$DB_URL" >> .env
+	echo "PORT=$PHOENIX_PORT" >> .env
+	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
+	echo "CADDY_PORT=$CADDY_PORT" >> .env
+	echo "FRONTEND_HMR_CLIENT_PORT=$FRONTEND_HMR_CLIENT_PORT" >> .env
+	echo "FRONTEND_HMR_SERVER_PORT=$FRONTEND_HMR_SERVER_PORT" >> .env
+	echo "FRONTEND_HMR_SERVER_FUNCTION_PORT=$FRONTEND_HMR_SERVER_FUNCTION_PORT" >> .env
+	echo "FRONTEND_HMR_SSR_PORT=$FRONTEND_HMR_SSR_PORT" >> .env
+	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
 	echo ""
 	echo "📋 Worktree ports for '$name':"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo "   HMR:      localhost:$HMR_PORT"
 	echo ""
 
-	mix deps.get
-	mix assets.setup
-	mix assets.build
-
-	# Export environment variables and run setup
+	# Export environment variables for subsequent commands
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
-	# Create the database first
-	mix ecto.create || echo "Database $DB_NAME already exists"
+	# Install backend dependencies
+	mix deps.get
 
-	# Run ash.setup for migrations and seeds
+	# Create database and run migrations/seeds
+	mix ecto.create 2>/dev/null || echo "Database $DB_NAME already exists"
 	mix ash.setup
+
+	# Compile to verify everything works
 	mix compile
+
+	# Install frontend dependencies
+	echo "Installing frontend dependencies..."
+	cd frontend && bun install
 
 	echo ""
 	echo "✅ Worktree '$name' is ready!"
@@ -165,11 +225,14 @@ worktree-setup:
 # Show port configuration for current worktree
 ports:
 	#!/usr/bin/env bash
-	export $(grep -v '^#' .env | grep -v '^$' | xargs 2>/dev/null) || true
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
+	set +a
 	echo "Port configuration:"
 	echo "   Phoenix:  ${PORT:-4000}"
 	echo "   Frontend: ${FRONTEND_PORT:-3000}"
 	echo "   Caddy:    ${CADDY_PORT:-8000}"
+	echo "   HMR:      ${HMR_PORT:-24678}"
 
 # ============================================================================
 # Production Commands
@@ -179,7 +242,9 @@ ports:
 prod:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	export $(grep -v '^#' .env | grep -v '^$' | xargs)
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$')
+	set +a
 	export MIX_ENV=prod
 	export SECRET_KEY_BASE=$(mix phx.gen.secret)
 	export TOKEN_SIGNING_SECRET=$(openssl rand -base64 32)

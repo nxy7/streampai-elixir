@@ -61,6 +61,27 @@ config :streampai, Streampai.Repo,
   timeout: 15_000,
   ownership_timeout: 30_000
 
+# Configure Electric with unique slot/publication names per database
+# This is required for worktrees that use different databases
+if env == :dev do
+  # Extract database name from URL to create unique Electric identifiers
+  db_name =
+    database_url
+    |> URI.parse()
+    |> Map.get(:path, "/postgres")
+    |> String.trim_leading("/")
+    |> String.split("?")
+    |> List.first()
+    |> String.replace(~r/[^a-z0-9_]/, "_")
+
+  # Use shorter suffix to avoid slot name length limits (63 chars max)
+  # The slot will be named: electric_slot_<replication_stream_id>
+  electric_stream_id = String.slice(db_name, 0, 30)
+
+  config :phoenix_sync,
+    replication_stream_id: electric_stream_id
+end
+
 # Configure SQL logging based on DEBUG_SQL environment variable
 if System.get_env("DEBUG_SQL") == "true" do
   config :logger, level: :info
@@ -108,13 +129,18 @@ config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
   client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
   redirect_uri: System.get_env("TWITCH_STREAMING_REDIRECT_URI")
 
-# Set secret_key_base for development environment
+# Set secret_key_base and port for development environment
 if config_env() == :dev do
   secret_key_base =
     System.get_env("SECRET_KEY") ||
       "dev_secret_key_at_least_64_chars_long_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-  config :streampai, StreampaiWeb.Endpoint, secret_key_base: secret_key_base
+  # Port configuration for worktree isolation
+  port = String.to_integer(System.get_env("PORT") || "4000")
+
+  config :streampai, StreampaiWeb.Endpoint,
+    secret_key_base: secret_key_base,
+    http: [ip: {127, 0, 0, 1}, port: port]
 end
 
 # S3-compatible storage configuration (works with MinIO, R2, AWS S3, etc.)

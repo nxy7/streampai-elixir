@@ -1,31 +1,48 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
+import { loadEnv } from "vite";
 
-// Map router names to fixed HMR ports
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(__dirname, "..");
+
+const env = loadEnv("development", projectRoot, "");
+const frontendPort = parseInt(env.FRONTEND_PORT || "3000", 10);
+const caddyPort = parseInt(env.CADDY_PORT || "8000", 10);
+
 const hmrPorts: Record<string, number> = {
-	client: 24678,
-	server: 24679,
-	"server-function": 24680,
-	ssr: 24681,
+	client: parseInt(env.FRONTEND_HMR_CLIENT_PORT || "3001", 10),
+	server: parseInt(env.FRONTEND_HMR_SERVER_PORT || "3002", 10),
+	"server-function": parseInt(
+		env.FRONTEND_HMR_SERVER_FUNCTION_PORT || "3003",
+		10,
+	),
+	ssr: parseInt(env.FRONTEND_HMR_SSR_PORT || "3004", 10),
 };
 
 export default defineConfig({
 	ssr: false,
-	vite: ({ router }) => ({
+	server: {
+		prerender: {
+			routes: ["/terms", "/privacy", "/support", "/contact"],
+		},
+	},
+	vite: ({ router }: { router: string }) => ({
 		plugins: [tailwindcss()],
 		server: {
-			// HMR through Caddy HTTPS proxy at https://localhost:8000
-			port: 3000,
+			port: frontendPort,
 			strictPort: true,
-			hmr: {
-				// Fixed HMR ports per router (Vinxi 0.5.6+)
-				// Caddy proxies /_build/_hmr/* to these ports
-				port: hmrPorts[router] ?? 24682,
-				path: `/_hmr/${router}`,
-				host: "localhost",
-				clientPort: 8000,
-				protocol: "wss",
-			},
+			hmr:
+				router === "client"
+					? {
+							port: hmrPorts[router],
+							path: `/_hmr/${router}`,
+							host: "localhost",
+							clientPort: caddyPort,
+							protocol: "wss",
+						}
+					: undefined,
 		},
 	}),
 });

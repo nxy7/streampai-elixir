@@ -32,6 +32,9 @@ defmodule Streampai.Application do
       {Task.Supervisor, name: Streampai.TaskSupervisor},
       Streampai.Stream.EventPersister,
       Streampai.YouTube.TokenSupervisor,
+      # Discord bot integration
+      {Registry, keys: :unique, name: Streampai.Integrations.Discord.BotRegistry},
+      Streampai.Integrations.Discord.BotManager,
       {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
     ]
 
