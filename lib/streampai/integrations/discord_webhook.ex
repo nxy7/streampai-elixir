@@ -78,6 +78,31 @@ defmodule Streampai.Integrations.DiscordWebhook do
       ]
     end
 
+    update :record_delivery_success do
+      description "Internal action to record successful delivery"
+
+      accept [
+        :successful_deliveries,
+        :last_error,
+        :last_error_at
+      ]
+    end
+
+    update :record_delivery_failure do
+      description "Internal action to record failed delivery"
+
+      accept [
+        :failed_deliveries,
+        :last_error,
+        :last_error_at
+      ]
+    end
+
+    update :record_test do
+      description "Internal action to record webhook test"
+      accept [:last_tested_at]
+    end
+
     read :get_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
@@ -157,6 +182,11 @@ defmodule Streampai.Integrations.DiscordWebhook do
 
     policy action([:test_webhook, :send_notification]) do
       authorize_if actor_present()
+    end
+
+    # Internal actions used by Oban workers - no actor required
+    policy action([:record_delivery_success, :record_delivery_failure, :record_test]) do
+      authorize_if always()
     end
   end
 
