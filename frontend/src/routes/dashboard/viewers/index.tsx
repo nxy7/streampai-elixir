@@ -1,12 +1,90 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, For, Show } from "solid-js";
+import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
 import { badge, button, card, input, text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type ViewMode = "viewers" | "banned";
+
+// Skeleton for viewers page
+function ViewersPageSkeleton() {
+	return (
+		<div class="mx-auto max-w-6xl space-y-6">
+			{/* View Mode Tabs skeleton */}
+			<div class="flex gap-2 border-gray-200 border-b">
+				<Skeleton class="h-10 w-20" />
+				<Skeleton class="h-10 w-32" />
+			</div>
+
+			{/* Filters skeleton */}
+			<div class={card.default}>
+				<Skeleton class="mb-4 h-6 w-16" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-2 h-4 w-20" />
+								<Skeleton class="h-10 w-full rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+
+			{/* Viewers list skeleton */}
+			<div class={card.default}>
+				<Skeleton class="mb-4 h-6 w-20" />
+				<div class="space-y-3">
+					<For each={[1, 2, 3, 4, 5, 6]}>
+						{() => (
+							<div class="rounded-lg border border-gray-200 p-4">
+								<div class="flex items-start gap-3">
+									<Skeleton class="h-12 w-12 shrink-0" circle />
+									<div class="min-w-0 flex-1">
+										<div class="mb-2 flex flex-wrap items-center gap-2">
+											<Skeleton class="h-5 w-28" />
+											<Skeleton class="h-5 w-16 rounded-full" />
+											<Skeleton class="h-5 w-12 rounded" />
+										</div>
+										<Skeleton class="h-3 w-32" />
+									</div>
+								</div>
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for viewers loading state (used when data is loading)
+function ViewersListSkeleton() {
+	return (
+		<div class="space-y-3">
+			<For each={[1, 2, 3, 4, 5, 6]}>
+				{() => (
+					<div class="rounded-lg border border-gray-200 p-4">
+						<div class="flex items-start gap-3">
+							<Skeleton class="h-12 w-12 shrink-0" circle />
+							<div class="min-w-0 flex-1">
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<Skeleton class="h-5 w-28" />
+									<Skeleton class="h-5 w-16 rounded-full" />
+									<Skeleton class="h-5 w-12 rounded" />
+								</div>
+								<Skeleton class="h-3 w-32" />
+							</div>
+						</div>
+					</div>
+				)}
+			</For>
+		</div>
+	);
+}
 
 interface Viewer {
 	viewerId: string;
@@ -257,13 +335,7 @@ export default function Viewers() {
 	return (
 		<>
 			<Title>Viewers - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<ViewersPageSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
@@ -390,12 +462,7 @@ export default function Viewers() {
 
 								<Show
 									when={!isLoadingViewers() || viewers().length > 0}
-									fallback={
-										<div class="py-12 text-center">
-											<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
-											<p class="mt-4 text-gray-600">Loading viewers...</p>
-										</div>
-									}>
+									fallback={<ViewersListSkeleton />}>
 									<Show
 										when={viewers().length > 0}
 										fallback={
@@ -531,14 +598,7 @@ export default function Viewers() {
 
 								<Show
 									when={!isLoadingViewers() || bannedViewers().length > 0}
-									fallback={
-										<div class="py-12 text-center">
-											<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
-											<p class="mt-4 text-gray-600">
-												Loading banned viewers...
-											</p>
-										</div>
-									}>
+									fallback={<ViewersListSkeleton />}>
 									<Show
 										when={bannedViewers().length > 0}
 										fallback={
