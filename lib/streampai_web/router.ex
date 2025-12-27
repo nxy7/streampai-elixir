@@ -79,14 +79,6 @@ defmodule StreampaiWeb.Router do
       pipe_through(:browser)
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-
-      # Email template previews
-      get "/email-preview", StreampaiWeb.EmailPreviewController, :index
-      get "/email-preview/welcome", StreampaiWeb.EmailPreviewController, :welcome
-      get "/email-preview/newsletter", StreampaiWeb.EmailPreviewController, :newsletter
-      get "/email-preview/confirm", StreampaiWeb.EmailPreviewController, :confirm
-      get "/email-preview/password-reset", StreampaiWeb.EmailPreviewController, :password_reset
-      get "/email-preview/send-test", StreampaiWeb.EmailPreviewController, :send_test
     end
   end
 

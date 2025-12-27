@@ -322,41 +322,6 @@ defmodule Streampai.Emails do
     """
   end
 
-  # Preview functions for email template visualization
-
-  @doc """
-  Returns preview data for welcome email template.
-  Returns {subject, html_body, text_body}
-  """
-  def welcome_email_preview(user) do
-    {"Welcome to Streampai!", welcome_html(user), welcome_text(user)}
-  end
-
-  @doc """
-  Returns preview data for newsletter confirmation email template.
-  """
-  def newsletter_email_preview(email) do
-    {"You're subscribed to Streampai updates!", newsletter_confirmation_html(email), newsletter_confirmation_text(email)}
-  end
-
-  @doc """
-  Returns preview data for email confirmation template.
-  """
-  def confirm_email_preview(user, token) do
-    confirm_url = build_confirm_url(token)
-
-    {"Confirm your Streampai account", confirm_email_html(user, confirm_url), confirm_email_text(user, confirm_url)}
-  end
-
-  @doc """
-  Returns preview data for password reset email template.
-  """
-  def password_reset_email_preview(user, token) do
-    reset_url = build_password_reset_url(token)
-
-    {"Reset your Streampai password", password_reset_html(user, reset_url), password_reset_text(user, reset_url)}
-  end
-
   defp frontend_url do
     Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
   end
