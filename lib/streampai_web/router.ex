@@ -6,6 +6,7 @@ defmodule StreampaiWeb.Router do
   import Oban.Web.Router
 
   alias StreampaiWeb.Plugs.ErrorTracker
+  alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
   alias StreampaiWeb.Plugs.SafeLoadFromSession
 
@@ -52,8 +53,15 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(StreampaiWeb.Plugs.RegistrationLogger)
-    plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
+    plug(RateLimiter, limit: 7, window: 300_000)
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
+  end
+
+  # API pipeline for SPA auth (no CSRF protection)
+  pipeline :api_auth do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(RateLimiter, limit: 7, window: 300_000)
   end
 
   pipeline :electric_sync do
@@ -82,6 +90,15 @@ defmodule StreampaiWeb.Router do
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  # JSON API auth routes for SPA (no CSRF required)
+  # Must come BEFORE the browser scope to avoid CSRF protection
+  scope "/api/auth", StreampaiWeb do
+    pipe_through(:api_auth)
+
+    post("/register", ApiAuthController, :register)
+    post("/sign-in", ApiAuthController, :sign_in)
   end
 
   # All API routes are prefixed with /api for clean proxy configuration

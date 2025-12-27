@@ -117,7 +117,13 @@ defmodule Streampai.Integrations.DiscordActor do
 
         updates =
           Enum.reduce(
-            [:bot_token, :bot_name, :event_types, :announcement_guild_id, :announcement_channel_id],
+            [
+              :bot_token,
+              :bot_name,
+              :event_types,
+              :announcement_guild_id,
+              :announcement_channel_id
+            ],
             %{},
             fn key, acc ->
               case Ash.Changeset.get_argument(changeset, key) do
