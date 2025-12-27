@@ -167,6 +167,23 @@ worktree-setup:
 	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 
+	# Remove all worktree-specific variables and comments first (clean slate for idempotency)
+	grep -v '^DATABASE_URL=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^CADDY_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_CLIENT_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SERVER_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^DB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^PGWEB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^MINIO_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^MINIO_CONSOLE_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^COMPOSE_PROJECT_NAME=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '# Worktree-specific configuration' .env > .env.tmp && mv .env.tmp .env || true
+
 	# Function to find a random available port in a range
 	find_port() {
 		local min=$1 max=$2
@@ -180,10 +197,11 @@ worktree-setup:
 	}
 
 	# Function to get existing port from .env or generate a new one
+	# Now validates that existing port is in the expected range
 	get_or_generate_port() {
 		local var_name=$1 min=$2 max=$3
 		local existing=$(grep "^${var_name}=" .env 2>/dev/null | cut -d= -f2 | tr -d ' ')
-		if [ -n "$existing" ]; then
+		if [ -n "$existing" ] && [ "$existing" -ge "$min" ] && [ "$existing" -le "$max" ]; then
 			echo "$existing"
 		else
 			find_port "$min" "$max"
@@ -207,23 +225,6 @@ worktree-setup:
 	COMPOSE_PROJECT="streampai_$(echo "$name" | tr '-' '_')"
 	DB_NAME="${COMPOSE_PROJECT}_dev"
 	DB_URL="postgresql://postgres:postgres@localhost:$DB_PORT/$DB_NAME?sslmode=disable"
-
-	# Remove all worktree-specific variables and comments (clean slate for idempotency)
-	grep -v '^DATABASE_URL=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^FRONTEND_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^CADDY_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^FRONTEND_HMR_CLIENT_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^FRONTEND_HMR_SERVER_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^DB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^PGWEB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^MINIO_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^MINIO_CONSOLE_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '^COMPOSE_PROJECT_NAME=' .env > .env.tmp && mv .env.tmp .env || true
-	grep -v '# Worktree-specific configuration' .env > .env.tmp && mv .env.tmp .env || true
 
 	# Append worktree-specific configuration
 	echo "" >> .env
