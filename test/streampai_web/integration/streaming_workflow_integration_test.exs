@@ -11,10 +11,10 @@ defmodule StreampaiWeb.Integration.StreamingWorkflowIntegrationTest do
   use StreampaiWeb.ConnCase, async: true
   use Mneme
 
-  @moduletag :integration
-
   import Phoenix.LiveViewTest
   import Streampai.TestHelpers
+
+  @moduletag :integration
 
   # Frontend SPA routes - not verified by Phoenix router
   @dashboard_stream "/dashboard/stream"

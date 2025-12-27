@@ -11,12 +11,12 @@ defmodule StreampaiWeb.Integration.WidgetSystemIntegrationTest do
   use StreampaiWeb.ConnCase, async: true
   use Mneme
 
+  import Phoenix.LiveViewTest
+  import Streampai.TestHelpers
+
   # Tests are excluded because they test frontend SPA routes, not Phoenix LiveView routes
   @moduletag :integration
   @moduletag :skip
-
-  import Phoenix.LiveViewTest
-  import Streampai.TestHelpers
 
   # Frontend SPA routes - not verified by Phoenix router
   @dashboard_widgets_chat "/dashboard/widgets/chat"

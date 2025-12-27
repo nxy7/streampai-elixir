@@ -59,6 +59,7 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   """
   def flash_platform_error(socket, platform, error) do
     require Logger
+
     platform_name = String.capitalize(platform)
     message = "Failed to connect #{platform_name} account"
     Logger.error("Platform error: #{message} - #{inspect(error)}")
@@ -80,11 +81,12 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
     operation_name = to_string(operation)
     message = "Failed to #{operation_name} #{item_name}"
 
-    error_detail = case error do
-      %{message: msg} -> msg
-      msg when is_binary(msg) -> msg
-      _ -> "Unknown error"
-    end
+    error_detail =
+      case error do
+        %{message: msg} -> msg
+        msg when is_binary(msg) -> msg
+        _ -> "Unknown error"
+      end
 
     flash_error(socket, "#{message}: #{error_detail}")
   end
@@ -114,11 +116,12 @@ defmodule StreampaiWeb.LiveHelpers.FlashHelpers do
   Sets flash for maintenance mode.
   """
   def flash_maintenance(socket, feature \\ nil) do
-    message = if feature do
-      "#{String.capitalize(feature)} is temporarily unavailable for maintenance"
-    else
-      "Feature is temporarily unavailable for maintenance"
-    end
+    message =
+      if feature do
+        "#{String.capitalize(feature)} is temporarily unavailable for maintenance"
+      else
+        "Feature is temporarily unavailable for maintenance"
+      end
 
     flash_warning(socket, message)
   end
