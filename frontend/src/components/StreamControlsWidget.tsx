@@ -1801,6 +1801,7 @@ interface StreamControlsWidgetProps extends StreamActionCallbacks {
 	stickyDuration?: number;
 	connectedPlatforms?: Platform[];
 	onSendMessage?: (message: string, platforms: Platform[]) => void;
+	moderationCallbacks?: ModerationCallbacks;
 	// Post-stream props
 	summary?: StreamSummary;
 	onStartNewStream?: () => void;
@@ -1837,6 +1838,7 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 					stickyDuration={props.stickyDuration}
 					connectedPlatforms={props.connectedPlatforms}
 					onSendMessage={props.onSendMessage}
+					moderationCallbacks={props.moderationCallbacks}
 					onStartPoll={props.onStartPoll}
 					onStartGiveaway={props.onStartGiveaway}
 					onModifyTimers={props.onModifyTimers}

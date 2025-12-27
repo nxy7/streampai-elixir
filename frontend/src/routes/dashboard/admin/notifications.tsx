@@ -368,7 +368,10 @@ export default function AdminNotifications() {
 									</tbody>
 								</table>
 
-								<Show when={!notificationsLoading() && notifications().length === 0}>
+								<Show
+									when={
+										!notificationsLoading() && notifications().length === 0
+									}>
 									<div class="py-12 text-center">
 										<svg
 											aria-hidden="true"
@@ -516,7 +519,9 @@ export default function AdminNotifications() {
 																</span>
 																<button
 																	type="button"
-																	onClick={() => removeLocalization(loc().locale)}
+																	onClick={() =>
+																		removeLocalization(loc().locale)
+																	}
 																	class="text-red-500 hover:text-red-700"
 																	title="Remove translation">
 																	<svg
