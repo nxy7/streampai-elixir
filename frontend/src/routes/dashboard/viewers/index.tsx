@@ -1,10 +1,14 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, For, Show } from "solid-js";
-import { Skeleton, SkeletonListItem } from "~/components/ui";
+import Badge from "~/components/ui/Badge";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
+import Input, { Select } from "~/components/ui/Input";
+import { Skeleton } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
-import { badge, button, card, input, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type ViewMode = "viewers" | "banned";
@@ -20,7 +24,7 @@ function ViewersPageSkeleton() {
 			</div>
 
 			{/* Filters skeleton */}
-			<div class={card.default}>
+			<Card>
 				<Skeleton class="mb-4 h-6 w-16" />
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<For each={[1, 2]}>
@@ -32,10 +36,10 @@ function ViewersPageSkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 
 			{/* Viewers list skeleton */}
-			<div class={card.default}>
+			<Card>
 				<Skeleton class="mb-4 h-6 w-20" />
 				<div class="space-y-3">
 					<For each={[1, 2, 3, 4, 5, 6]}>
@@ -56,7 +60,7 @@ function ViewersPageSkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -320,16 +324,16 @@ export default function Viewers() {
 		return `${diffDays}d ago`;
 	};
 
-	const getPlatformBadgeColor = (platformName: string) => {
-		const colors = {
-			twitch: badge.info,
-			youtube: badge.error,
-			facebook: badge.info,
-			kick: badge.success,
+	const getPlatformBadgeVariant = (
+		platformName: string,
+	): "info" | "error" | "success" | "neutral" => {
+		const variants: Record<string, "info" | "error" | "success" | "neutral"> = {
+			twitch: "info",
+			youtube: "error",
+			facebook: "info",
+			kick: "success",
 		};
-		return (
-			colors[platformName.toLowerCase() as keyof typeof colors] || badge.neutral
-		);
+		return variants[platformName.toLowerCase()] || "neutral";
 	};
 
 	return (
@@ -383,7 +387,7 @@ export default function Viewers() {
 						{/* Viewers View */}
 						<Show when={viewMode() === "viewers"}>
 							{/* Filters Section */}
-							<div class={card.default}>
+							<Card>
 								<h3 class={`${text.h3} mb-4`}>Filters</h3>
 
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -391,8 +395,8 @@ export default function Viewers() {
 									<div>
 										<label class="block font-medium text-gray-700 text-sm">
 											Platform
-											<select
-												class={`mt-2 ${input.select}`}
+											<Select
+												class="mt-2"
 												value={platform()}
 												onChange={(e) => {
 													setPlatform(e.currentTarget.value as Platform);
@@ -403,7 +407,7 @@ export default function Viewers() {
 												<option value="youtube">YouTube</option>
 												<option value="facebook">Facebook</option>
 												<option value="kick">Kick</option>
-											</select>
+											</Select>
 										</label>
 									</div>
 
@@ -412,9 +416,9 @@ export default function Viewers() {
 										<label class="block font-medium text-gray-700 text-sm">
 											Search
 											<form onSubmit={handleSearch}>
-												<input
+												<Input
 													type="text"
-													class={`mt-2 ${input.text}`}
+													class="mt-2"
 													placeholder="Search by display name..."
 													value={searchInput()}
 													onInput={(e) => setSearchInput(e.currentTarget.value)}
@@ -429,10 +433,10 @@ export default function Viewers() {
 									<div class="mt-4 flex items-center gap-2 text-gray-600 text-sm">
 										<span class="font-medium">Active filters:</span>
 										<Show when={platform()}>
-											<span class={badge.info}>{platform()}</span>
+											<Badge variant="info">{platform()}</Badge>
 										</Show>
 										<Show when={search()}>
-											<span class={badge.info}>"{search()}"</span>
+											<Badge variant="info">"{search()}"</Badge>
 										</Show>
 										<button
 											type="button"
@@ -447,7 +451,7 @@ export default function Viewers() {
 										</button>
 									</div>
 								</Show>
-							</div>
+							</Card>
 
 							{/* Error Message */}
 							<Show when={error()}>
@@ -457,7 +461,7 @@ export default function Viewers() {
 							</Show>
 
 							{/* Viewers List */}
-							<div class={card.default}>
+							<Card>
 								<h3 class={`${text.h3} mb-4`}>Viewers</h3>
 
 								<Show
@@ -524,22 +528,20 @@ export default function Viewers() {
 																	<h4 class="font-semibold text-gray-900">
 																		{viewer.displayName}
 																	</h4>
-																	<span
-																		class={getPlatformBadgeColor(
+																	<Badge
+																		variant={getPlatformBadgeVariant(
 																			viewer.platform,
 																		)}>
 																		{viewer.platform}
-																	</span>
+																	</Badge>
 																	<Show when={viewer.isOwner}>
-																		<span class="inline-flex items-center rounded bg-yellow-100 px-2 py-0.5 font-medium text-xs text-yellow-800">
-																			Owner
-																		</span>
+																		<Badge variant="warning">Owner</Badge>
 																	</Show>
 																	<Show when={viewer.isVerified}>
-																		<span class={badge.success}>Verified</span>
+																		<Badge variant="success">Verified</Badge>
 																	</Show>
 																	<Show when={viewer.isModerator}>
-																		<span class={badge.success}>MOD</span>
+																		<Badge variant="success">MOD</Badge>
 																	</Show>
 																	<Show when={viewer.isPatreon}>
 																		<span class="inline-flex items-center rounded bg-pink-100 px-2 py-0.5 font-medium text-pink-800 text-xs">
@@ -569,18 +571,16 @@ export default function Viewers() {
 										{/* Load More Button */}
 										<Show when={hasMore()}>
 											<div class="mt-6 text-center">
-												<button
-													type="button"
-													class={button.primary}
+												<Button
 													onClick={loadMore}
 													disabled={isLoadingViewers()}>
 													{isLoadingViewers() ? "Loading..." : "Load More"}
-												</button>
+												</Button>
 											</div>
 										</Show>
 									</Show>
 								</Show>
-							</div>
+							</Card>
 						</Show>
 
 						{/* Banned Viewers View */}
@@ -593,7 +593,7 @@ export default function Viewers() {
 							</Show>
 
 							{/* Banned Viewers List */}
-							<div class={card.default}>
+							<Card>
 								<h3 class={`${text.h3} mb-4`}>Banned Viewers</h3>
 
 								<Show
@@ -635,17 +635,17 @@ export default function Viewers() {
 																	<span class="font-semibold text-gray-900">
 																		{banned.viewerUsername}
 																	</span>
-																	<span
-																		class={getPlatformBadgeColor(
+																	<Badge
+																		variant={getPlatformBadgeVariant(
 																			banned.platform,
 																		)}>
 																		{banned.platform}
-																	</span>
+																	</Badge>
 																	<Show when={!banned.durationSeconds}>
-																		<span class={badge.error}>Permanent</span>
+																		<Badge variant="error">Permanent</Badge>
 																	</Show>
 																	<Show when={banned.durationSeconds}>
-																		<span class={badge.warning}>
+																		<Badge variant="warning">
 																			{(banned.durationSeconds ?? 0) < 3600
 																				? `${Math.floor(
 																						(banned.durationSeconds ?? 0) / 60,
@@ -654,7 +654,7 @@ export default function Viewers() {
 																						(banned.durationSeconds ?? 0) /
 																							3600,
 																					)}h timeout`}
-																		</span>
+																		</Badge>
 																	</Show>
 																</div>
 
@@ -679,14 +679,14 @@ export default function Viewers() {
 															</div>
 
 															{/* Unban Button */}
-															<button
-																type="button"
-																class="rounded bg-red-600 px-3 py-1 text-sm text-white transition-colors hover:bg-red-700"
+															<Button
+																variant="danger"
+																size="sm"
 																onClick={() => {
 																	console.log("Unban viewer:", banned.id);
 																}}>
 																Unban
-															</button>
+															</Button>
 														</div>
 													</div>
 												)}
@@ -694,7 +694,7 @@ export default function Viewers() {
 										</div>
 									</Show>
 								</Show>
-							</div>
+							</Card>
 						</Show>
 					</div>
 				</Show>

@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { input, text } from "~/styles/design-system";
+import { Textarea } from "~/components/ui/Input";
 import type { IntrospectedField } from "../types";
 
 interface TextareaFieldProps {
@@ -11,21 +11,14 @@ interface TextareaFieldProps {
 
 export const TextareaField: Component<TextareaFieldProps> = (props) => {
 	return (
-		<div>
-			<label class="block">
-				<span class={text.label}>{props.field.label}</span>
-				<textarea
-					class={`mt-1 ${input.textarea}`}
-					rows={4}
-					value={props.value ?? ""}
-					onInput={(e) => props.onChange(e.currentTarget.value)}
-					placeholder={props.field.meta.placeholder}
-					disabled={props.disabled}
-				/>
-			</label>
-			{props.field.meta.description && (
-				<p class={`mt-1 ${text.helper}`}>{props.field.meta.description}</p>
-			)}
-		</div>
+		<Textarea
+			label={props.field.label}
+			rows={4}
+			value={props.value ?? ""}
+			onInput={(e) => props.onChange(e.currentTarget.value)}
+			placeholder={props.field.meta.placeholder}
+			disabled={props.disabled}
+			helperText={props.field.meta.description}
+		/>
 	);
 };

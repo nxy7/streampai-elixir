@@ -1,9 +1,13 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createSignal, For, onMount, Show } from "solid-js";
+import Badge from "~/components/ui/Badge";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
 import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { useCurrentUser } from "~/lib/auth";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
+import { text } from "~/styles/design-system";
 
 const viewerFields: (
 	| "viewerId"
@@ -104,14 +108,19 @@ interface StreamEvent {
 }
 
 // Helper functions
-const platformBadgeColor = (platform: string) => {
-	const colors: Record<string, string> = {
-		twitch: "bg-purple-100 text-purple-800",
-		youtube: "bg-red-100 text-red-800",
-		facebook: "bg-blue-100 text-blue-800",
-		kick: "bg-green-100 text-green-800",
+const getPlatformBadgeVariant = (
+	platform: string,
+): "info" | "error" | "success" | "warning" | "neutral" => {
+	const variants: Record<
+		string,
+		"info" | "error" | "success" | "warning" | "neutral"
+	> = {
+		twitch: "info",
+		youtube: "error",
+		facebook: "info",
+		kick: "success",
 	};
-	return colors[platform.toLowerCase()] || "bg-gray-100 text-gray-800";
+	return variants[platform.toLowerCase()] || "neutral";
 };
 
 const platformName = (platform: string) => {
@@ -412,33 +421,23 @@ export default function ViewerDetail() {
 						</div>
 						<div class="flex items-center gap-2">
 							<Show when={viewer()?.isVerified}>
-								<span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800 text-sm">
-									Verified
-								</span>
+								<Badge variant="info">Verified</Badge>
 							</Show>
 							<Show when={viewer()?.isOwner}>
-								<span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 font-medium text-purple-800 text-sm">
-									Owner
-								</span>
+								<Badge variant="info">Owner</Badge>
 							</Show>
 							<Show when={viewer()?.isModerator}>
-								<span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 font-medium text-green-800 text-sm">
-									Moderator
-								</span>
+								<Badge variant="success">Moderator</Badge>
 							</Show>
 							<Show when={viewer()?.isPatreon}>
-								<span class="inline-flex items-center rounded-full bg-pink-100 px-3 py-1 font-medium text-pink-800 text-sm">
-									Patron
-								</span>
+								<Badge variant="warning">Patron</Badge>
 							</Show>
 						</div>
 					</div>
 
 					{/* Activity Info */}
-					<div class="rounded-lg bg-white p-6 shadow">
-						<h3 class="mb-4 font-medium text-gray-900 text-lg">
-							Activity Info
-						</h3>
+					<Card class="p-6">
+						<h3 class={`${text.h3} mb-4`}>Activity Info</h3>
 						<dl class="space-y-3">
 							<div>
 								<dt class="font-medium text-gray-500 text-sm">First Seen</dt>
@@ -459,14 +458,14 @@ export default function ViewerDetail() {
 								</div>
 							</Show>
 						</dl>
-					</div>
+					</Card>
 
 					{/* Recent Messages */}
-					<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+					<Card>
 						<div class="border-gray-200 border-b px-6 py-4">
-							<h3 class="font-medium text-gray-900 text-lg">
+							<h3 class={text.h3}>
 								Recent Messages
-								<span class="ml-2 text-gray-500 text-sm">
+								<span class={`${text.muted} ml-2 text-sm`}>
 									({messages().length})
 								</span>
 							</h3>
@@ -500,17 +499,15 @@ export default function ViewerDetail() {
 										<div class="p-6">
 											<div class="mb-1 flex items-center space-x-2">
 												<Show when={message.platform}>
-													<span
-														class={`inline-flex items-center rounded px-2 py-0.5 font-medium text-xs ${platformBadgeColor(
+													<Badge
+														variant={getPlatformBadgeVariant(
 															message.platform ?? "",
-														)}`}>
+														)}>
 														{platformName(message.platform ?? "")}
-													</span>
+													</Badge>
 												</Show>
 												<Show when={message.senderIsModerator}>
-													<span class="inline-flex items-center rounded bg-green-100 px-2 py-0.5 font-medium text-green-800 text-xs">
-														Moderator
-													</span>
+													<Badge variant="success">Moderator</Badge>
 												</Show>
 												<Show when={message.livestreamId}>
 													<button
@@ -536,14 +533,14 @@ export default function ViewerDetail() {
 								</For>
 							</div>
 						</Show>
-					</div>
+					</Card>
 
 					{/* Recent Events */}
-					<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+					<Card>
 						<div class="border-gray-200 border-b px-6 py-4">
-							<h3 class="font-medium text-gray-900 text-lg">
+							<h3 class={text.h3}>
 								Recent Events
-								<span class="ml-2 text-gray-500 text-sm">
+								<span class={`${text.muted} ml-2 text-sm`}>
 									({events().length})
 								</span>
 							</h3>
@@ -576,16 +573,14 @@ export default function ViewerDetail() {
 									{(event) => (
 										<div class="p-6">
 											<div class="mb-1 flex items-center space-x-2">
-												<span class="inline-flex items-center rounded bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
-													{event.type}
-												</span>
+												<Badge variant="info">{event.type}</Badge>
 												<Show when={event.platform}>
-													<span
-														class={`inline-flex items-center rounded px-2 py-0.5 font-medium text-xs ${platformBadgeColor(
+													<Badge
+														variant={getPlatformBadgeVariant(
 															event.platform ?? "",
-														)}`}>
+														)}>
 														{platformName(event.platform ?? "")}
-													</span>
+													</Badge>
 												</Show>
 												<Show when={event.livestreamId}>
 													<button
@@ -613,7 +608,7 @@ export default function ViewerDetail() {
 								</For>
 							</div>
 						</Show>
-					</div>
+					</Card>
 				</div>
 			</Show>
 		</>

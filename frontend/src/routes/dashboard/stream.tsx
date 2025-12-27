@@ -1,6 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";
@@ -10,7 +12,7 @@ import {
 	getStreamKey,
 	regenerateStreamKey,
 } from "~/sdk/ash_rpc";
-import { badge, button, card, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 // Platform configuration
 const availablePlatforms = [
@@ -49,7 +51,7 @@ function StreamPageSkeleton() {
 	return (
 		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Stream Status Card skeleton */}
-			<div class={card.default}>
+			<Card>
 				<div class="mb-6 flex items-center justify-between">
 					<div>
 						<Skeleton class="mb-2 h-8 w-40" />
@@ -75,10 +77,10 @@ function StreamPageSkeleton() {
 					<Skeleton class="h-10 w-24 rounded-lg" />
 					<Skeleton class="h-10 w-36 rounded-lg" />
 				</div>
-			</div>
+			</Card>
 
 			{/* Platform Connections skeleton */}
-			<div class={card.default}>
+			<Card>
 				<div class="mb-6">
 					<Skeleton class="mb-2 h-6 w-44" />
 					<Skeleton class="h-4 w-64" />
@@ -100,7 +102,7 @@ function StreamPageSkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -318,7 +320,7 @@ export default function Stream() {
 					}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Stream Status Card */}
-						<div class={card.default}>
+						<Card>
 							<div class="mb-6 flex items-center justify-between">
 								<div>
 									<h2 class={text.h2}>Stream Controls</h2>
@@ -327,13 +329,13 @@ export default function Stream() {
 								<Show
 									when={streamStatus() === "live"}
 									fallback={
-										<span class={badge.neutral}>
+										<Badge variant="neutral">
 											{streamStatus().toUpperCase()}
-										</span>
+										</Badge>
 									}>
-									<span class={badge.success}>
-										<span class="mr-2 animate-pulse">●</span> LIVE
-									</span>
+									<Badge variant="success">
+										<span class="mr-2 animate-pulse">*</span> LIVE
+									</Badge>
 								</Show>
 							</div>
 
@@ -380,30 +382,27 @@ export default function Stream() {
 								<Show
 									when={streamStatus() === "offline"}
 									fallback={
-										<button
-											type="button"
-											class={button.danger}
+										<Button
+											variant="danger"
 											onClick={handleStopStream}
 											disabled={streamStatus() === "stopping"}>
 											{streamStatus() === "stopping"
 												? "Stopping..."
 												: "Stop Stream"}
-										</button>
+										</Button>
 									}>
-									<button
-										type="button"
-										class={button.success}
+									<Button
+										variant="success"
 										onClick={handleStartStream}
 										disabled={streamStatus() === "starting"}>
 										{streamStatus() === "starting" ? "Starting..." : "Go Live"}
-									</button>
+									</Button>
 								</Show>
-								<button
-									type="button"
-									class={button.secondary}
+								<Button
+									variant="secondary"
 									onClick={() => setShowStreamKey(!showStreamKey())}>
 									{showStreamKey() ? "Hide" : "Show"} Stream Key
-								</button>
+								</Button>
 							</div>
 
 							{/* Stream Key Display */}
@@ -423,15 +422,16 @@ export default function Stream() {
 											fallback={
 												<div class="text-center">
 													<p class="text-red-600 text-sm">{streamKeyError()}</p>
-													<button
-														type="button"
-														class={`${button.ghost} mt-2 text-sm`}
+													<Button
+														variant="ghost"
+														size="sm"
+														class="mt-2"
 														onClick={() => {
 															const currentUser = user();
 															if (currentUser) fetchStreamKey(currentUser.id);
 														}}>
 														Retry
-													</button>
+													</Button>
 												</div>
 											}>
 											<div class="mb-3 flex items-center justify-between">
@@ -439,21 +439,22 @@ export default function Stream() {
 													Stream Key
 												</span>
 												<div class="flex items-center space-x-2">
-													<button
-														type="button"
-														class={`${button.ghost} text-sm`}
+													<Button
+														variant="ghost"
+														size="sm"
 														onClick={handleCopyStreamKey}>
 														{copied() ? "Copied!" : "Copy Key"}
-													</button>
-													<button
-														type="button"
-														class={`${button.ghost} text-red-600 text-sm hover:bg-red-50`}
+													</Button>
+													<Button
+														variant="ghost"
+														size="sm"
+														class="text-red-600 hover:bg-red-50"
 														onClick={handleRegenerateStreamKey}
 														disabled={isRegenerating()}>
 														{isRegenerating()
 															? "Regenerating..."
 															: "Regenerate"}
-													</button>
+													</Button>
 												</div>
 											</div>
 
@@ -499,10 +500,10 @@ export default function Stream() {
 									</Show>
 								</div>
 							</Show>
-						</div>
+						</Card>
 
 						{/* Platform Connections */}
-						<div class={card.default}>
+						<Card>
 							<div class="mb-6">
 								<h3 class={text.h3}>Platform Connections</h3>
 								<p class={text.muted}>
@@ -616,11 +617,11 @@ export default function Stream() {
 									</For>
 								</div>
 							</Show>
-						</div>
+						</Card>
 
 						{/* Stream Statistics (Placeholder) */}
 						<Show when={streamStatus() === "live"}>
-							<div class={card.default}>
+							<Card>
 								<h3 class={`${text.h3} mb-4`}>Live Statistics</h3>
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 									<div class="rounded-lg bg-purple-50 p-4 text-center">
@@ -636,7 +637,7 @@ export default function Stream() {
 										<div class="text-gray-600 text-sm">Stream Duration</div>
 									</div>
 								</div>
-							</div>
+							</Card>
 						</Show>
 					</div>
 				</Show>

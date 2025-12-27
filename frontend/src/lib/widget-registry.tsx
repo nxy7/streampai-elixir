@@ -22,6 +22,8 @@ import {
 	type JSX,
 } from "solid-js";
 import { z } from "zod";
+import Button from "~/components/ui/Button";
+import { Select } from "~/components/ui/Input";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
 import ChatWidget from "~/components/widgets/ChatWidget";
 import DonationGoalWidget from "~/components/widgets/DonationGoalWidget";
@@ -41,7 +43,7 @@ import {
 	type ViewerData,
 } from "~/lib/fake/viewer-count";
 import type { FormMeta } from "~/lib/schema-form";
-import { button, input, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 // =============================================================================
 // Widget Definition Type
@@ -511,12 +513,13 @@ function AlertboxPreviewWrapper(props: {
 
 	return (
 		<div>
-			<button
+			<Button
 				type="button"
-				class={`${button.secondary} mb-4`}
+				variant="secondary"
+				class="mb-4"
 				onClick={cycleDemoEvent}>
 				Show Next Alert Type
-			</button>
+			</Button>
 			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "400px" }}>
 				<AlertboxWidget
 					config={props.config}
@@ -778,13 +781,14 @@ function GiveawayPreviewWrapper(props: {
 	return (
 		<div>
 			<div class="mb-4">
-				<select
-					class={input.select}
+				<Select
 					value={demoMode()}
-					onChange={(e) => setDemoMode(e.target.value as "active" | "winner")}>
+					onChange={(e) =>
+						setDemoMode(e.currentTarget.value as "active" | "winner")
+					}>
 					<option value="active">Active Giveaway</option>
 					<option value="winner">Winner Announcement</option>
-				</select>
+				</Select>
 			</div>
 			<div class="rounded-lg bg-gray-900 p-8">
 				<GiveawayWidget
@@ -839,16 +843,15 @@ function PollPreviewWrapper(props: {
 	return (
 		<div>
 			<div class="mb-4">
-				<label class="mb-2 block">
-					<span class={text.label}>Preview Mode</span>
-					<select
-						class={`${input.select} mt-1`}
-						value={demoMode()}
-						onChange={(e) => setDemoMode(e.target.value as "active" | "ended")}>
-						<option value="active">Active Poll</option>
-						<option value="ended">Ended Poll (Results)</option>
-					</select>
-				</label>
+				<Select
+					label="Preview Mode"
+					value={demoMode()}
+					onChange={(e) =>
+						setDemoMode(e.currentTarget.value as "active" | "ended")
+					}>
+					<option value="active">Active Poll</option>
+					<option value="ended">Ended Poll (Results)</option>
+				</Select>
 			</div>
 			<div class="rounded-lg bg-gray-900 p-8">
 				<PollWidget
