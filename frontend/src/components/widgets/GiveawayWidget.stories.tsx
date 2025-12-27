@@ -1,3 +1,4 @@
+import { expect, waitFor, within } from "@storybook/test";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import GiveawayWidget from "./GiveawayWidget";
 
@@ -49,6 +50,11 @@ export const Inactive: Story = {
 		config: defaultConfig,
 		event: undefined,
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("Stream Giveaway")).toBeVisible();
+		await expect(canvas.getByText("No Active Giveaway")).toBeVisible();
+	},
 };
 
 export const Active: Story = {
@@ -60,6 +66,17 @@ export const Active: Story = {
 			patreons: 8,
 			isActive: true,
 		},
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("Stream Giveaway")).toBeVisible();
+		await expect(canvas.getByText("Giveaway Active")).toBeVisible();
+		await expect(canvas.getByText("45")).toBeVisible();
+		await expect(canvas.getByText("Participants")).toBeVisible();
+		await expect(canvas.getByText("Type !join to enter")).toBeVisible();
+		await expect(canvas.getByText("8 Patreons (2x entries)")).toBeVisible();
+		// Progress bar should show 45/100
+		await expect(canvas.getByText("45 / 100")).toBeVisible();
 	},
 };
 
@@ -100,6 +117,19 @@ export const WinnerAnnounced: Story = {
 			patreonParticipants: 20,
 		},
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// Wait for animation to complete before checking visibility
+		await waitFor(
+			() => {
+				expect(canvas.getByText("Winner!")).toBeVisible();
+			},
+			{ timeout: 2000 },
+		);
+		await expect(canvas.getByText("LuckyWinner123")).toBeVisible();
+		// Non-patreon winner should not show patreon badge
+		await expect(canvas.queryByText("Patreon")).toBeNull();
+	},
 };
 
 export const PatreonWinner: Story = {
@@ -114,6 +144,19 @@ export const PatreonWinner: Story = {
 			totalParticipants: 85,
 			patreonParticipants: 12,
 		},
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// Wait for animation to complete before checking visibility
+		await waitFor(
+			() => {
+				expect(canvas.getByText("Winner!")).toBeVisible();
+			},
+			{ timeout: 2000 },
+		);
+		await expect(canvas.getByText("PatreonSupporter")).toBeVisible();
+		// Patreon winner should show badge
+		await expect(canvas.getByText("Patreon")).toBeVisible();
 	},
 };
 

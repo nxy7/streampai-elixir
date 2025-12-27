@@ -34,6 +34,7 @@
 		"@storybook/addon-a11y": "^10.1.10",
 		"@storybook/addon-docs": "^10.1.10",
 		"@storybook/addon-vitest": "^10.1.10",
+		"@storybook/test": "^8.6.14",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/node": "^25.0.3",
 		"@types/phoenix": "^1.6.7",
