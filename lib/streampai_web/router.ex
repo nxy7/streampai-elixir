@@ -8,6 +8,7 @@ defmodule StreampaiWeb.Router do
   alias StreampaiWeb.Plugs.ErrorTracker
   alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
+  alias StreampaiWeb.Plugs.RpcLogger
   alias StreampaiWeb.Plugs.SafeLoadFromSession
 
   pipeline :browser do
@@ -46,6 +47,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["json"])
     plug(:fetch_session)
     plug(SafeLoadFromSession)
+    plug(RpcLogger)
     plug(ErrorTracker)
   end
 
