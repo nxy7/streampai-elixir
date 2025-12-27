@@ -1,85 +1,29 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
+import PublicFooter from "~/components/PublicFooter";
+import PublicHeader from "~/components/PublicHeader";
+import { useTranslation } from "~/i18n";
 
 export const route = {
 	prerender: true,
 };
 
-function PageHeader(props: { title: string }) {
-	return (
-		<nav class="border-white/10 border-b bg-black/20">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="flex items-center justify-between py-4">
-					<A href="/" class="flex items-center space-x-2">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-8 w-8"
-						/>
-						<span class="font-bold text-white text-xl">Streampai</span>
-					</A>
-					<h1 class="font-semibold text-white text-xl">{props.title}</h1>
-				</div>
-			</div>
-		</nav>
-	);
-}
-
-function PageFooter() {
-	const currentYear = new Date().getFullYear();
-
-	return (
-		<footer class="border-white/10 border-t bg-black/40 py-8">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-					<A href="/" class="flex items-center space-x-2">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-6 w-6"
-						/>
-						<span class="font-bold text-white">Streampai</span>
-					</A>
-					<div class="flex space-x-6 text-gray-300 text-sm">
-						<A href="/privacy" class="transition-colors hover:text-white">
-							Privacy
-						</A>
-						<A href="/terms" class="transition-colors hover:text-white">
-							Terms
-						</A>
-						<A href="/support" class="transition-colors hover:text-white">
-							Support
-						</A>
-						<A href="/contact" class="transition-colors hover:text-white">
-							Contact
-						</A>
-					</div>
-				</div>
-				<div class="mt-6 text-center text-gray-400 text-sm">
-					<p>&copy; {currentYear} Streampai. All rights reserved.</p>
-				</div>
-			</div>
-		</footer>
-	);
-}
-
 export default function Support() {
+	const { t } = useTranslation();
+
 	return (
 		<>
-			<Title>Support - Streampai</Title>
+			<Title>{t("support.title")} - Streampai</Title>
 			<div class="flex min-h-screen flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-				<PageHeader title="Support" />
+				<PublicHeader title={t("support.title")} />
 
 				<main class="flex-1 py-12">
 					<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 						<div class="mb-8 text-center">
 							<h2 class="mb-4 font-bold text-3xl text-white">
-								How can we help you?
+								{t("support.heading")}
 							</h2>
-							<p class="text-gray-300 text-lg">
-								Find answers to common questions or reach out to our support
-								team.
-							</p>
+							<p class="text-gray-300 text-lg">{t("support.subheading")}</p>
 						</div>
 
 						<div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -100,13 +44,12 @@ export default function Support() {
 									</svg>
 								</div>
 								<h3 class="mb-2 font-semibold text-white text-xl">
-									Documentation
+									{t("support.documentation")}
 								</h3>
 								<p class="mb-4 text-gray-300">
-									Comprehensive guides and tutorials to help you get the most
-									out of Streampai.
+									{t("support.documentationDescription")}
 								</p>
-								<span class="text-purple-400">Coming soon</span>
+								<span class="text-purple-400">{t("support.comingSoon")}</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -125,11 +68,11 @@ export default function Support() {
 										/>
 									</svg>
 								</div>
-								<h3 class="mb-2 font-semibold text-white text-xl">FAQ</h3>
-								<p class="mb-4 text-gray-300">
-									Quick answers to frequently asked questions about our service.
-								</p>
-								<span class="text-purple-400">Coming soon</span>
+								<h3 class="mb-2 font-semibold text-white text-xl">
+									{t("support.faq")}
+								</h3>
+								<p class="mb-4 text-gray-300">{t("support.faqDescription")}</p>
+								<span class="text-purple-400">{t("support.comingSoon")}</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -149,13 +92,12 @@ export default function Support() {
 									</svg>
 								</div>
 								<h3 class="mb-2 font-semibold text-white text-xl">
-									Community Discord
+									{t("support.discord")}
 								</h3>
 								<p class="mb-4 text-gray-300">
-									Join our Discord server to connect with other streamers and
-									get community support.
+									{t("support.discordDescription")}
 								</p>
-								<span class="text-purple-400">Coming soon</span>
+								<span class="text-purple-400">{t("support.comingSoon")}</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -175,90 +117,70 @@ export default function Support() {
 									</svg>
 								</div>
 								<h3 class="mb-2 font-semibold text-white text-xl">
-									Email Support
+									{t("support.emailSupport")}
 								</h3>
 								<p class="mb-4 text-gray-300">
-									Reach out to our support team directly for personalized
-									assistance.
+									{t("support.emailSupportDescription")}
 								</p>
 								<A
 									href="/contact"
 									class="text-purple-400 transition-colors hover:text-purple-300">
-									Contact us
+									{t("support.contactUs")}
 								</A>
 							</div>
 						</div>
 
 						<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 							<h3 class="mb-6 font-semibold text-2xl text-white">
-								Frequently Asked Questions
+								{t("support.faqTitle")}
 							</h3>
 
 							<div class="space-y-6">
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
-										What platforms does Streampai support?
+										{t("support.faqQ1")}
 									</h4>
-									<p class="text-gray-300">
-										Streampai supports multi-platform streaming to Twitch,
-										YouTube, Kick, Facebook, and more. We're constantly adding
-										new platform integrations.
-									</p>
+									<p class="text-gray-300">{t("support.faqA1")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
-										How do I connect my streaming accounts?
+										{t("support.faqQ2")}
 									</h4>
-									<p class="text-gray-300">
-										After signing up, go to your dashboard settings and click on
-										"Connect Accounts". Follow the OAuth prompts to securely
-										link your streaming platform accounts.
-									</p>
+									<p class="text-gray-300">{t("support.faqA2")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
-										Is my data secure?
+										{t("support.faqQ3")}
 									</h4>
 									<p class="text-gray-300">
-										Yes, we take security seriously. All data is encrypted in
-										transit and at rest. We never store your streaming platform
-										passwords - we use secure OAuth tokens for authentication.
-										Read our{" "}
+										{t("support.faqA3")}{" "}
 										<A
 											href="/privacy"
 											class="text-purple-400 hover:text-purple-300">
-											Privacy Policy
+											{t("support.privacyPolicy")}
 										</A>{" "}
-										for more details.
+										{t("support.faqA3End")}
 									</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
-										Can I cancel my subscription anytime?
+										{t("support.faqQ4")}
 									</h4>
-									<p class="text-gray-300">
-										Yes, you can cancel your subscription at any time from your
-										account settings. You'll continue to have access until the
-										end of your billing period.
-									</p>
+									<p class="text-gray-300">{t("support.faqA4")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
-										How do I report a bug or request a feature?
+										{t("support.faqQ5")}
 									</h4>
 									<p class="text-gray-300">
-										We love hearing from our users! Please{" "}
-										<A
-											href="/contact"
-											class="text-purple-400 hover:text-purple-300">
-											contact us
-										</A>{" "}
-										with bug reports or feature requests. You can also join our
-										Discord community to discuss ideas with other users.
+										{t("support.faqA5").replace(
+											"contact us",
+											t("support.contactUs"),
+										)}
 									</p>
 								</div>
 							</div>
@@ -266,7 +188,7 @@ export default function Support() {
 					</div>
 				</main>
 
-				<PageFooter />
+				<PublicFooter />
 			</div>
 		</>
 	);
