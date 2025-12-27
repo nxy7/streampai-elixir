@@ -383,6 +383,10 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 	);
 }
 
+// Available platforms for chat
+const AVAILABLE_PLATFORMS = ["twitch", "youtube", "kick", "facebook"] as const;
+type Platform = (typeof AVAILABLE_PLATFORMS)[number];
+
 // =====================================================
 // Live Stream Control Center Component
 // =====================================================
@@ -391,10 +395,22 @@ interface LiveStreamControlCenterProps {
 	streamDuration: number; // in seconds
 	viewerCount: number;
 	stickyDuration?: number; // how long important events stay sticky (ms)
+	connectedPlatforms?: Platform[]; // platforms the user is connected to
+	onSendMessage?: (message: string, platforms: Platform[]) => void;
 }
 
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	const [stickyItems, setStickyItems] = createSignal<ActivityItem[]>([]);
+	const [chatMessage, setChatMessage] = createSignal("");
+	const [selectedPlatforms, setSelectedPlatforms] = createSignal<Set<Platform>>(
+		new Set(props.connectedPlatforms || AVAILABLE_PLATFORMS),
+	);
+	const [showPlatformPicker, setShowPlatformPicker] = createSignal(false);
+
+	// Get available platforms (either from props or default to all)
+	const availablePlatforms = createMemo(
+		() => props.connectedPlatforms || [...AVAILABLE_PLATFORMS],
+	);
 
 	// Format duration
 	const formatDuration = (seconds: number): string => {
@@ -434,29 +450,83 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	// Non-sticky activities (all activities for the main feed)
 	const feedActivities = createMemo(() => props.activities.slice(0, 100));
 
+	// Toggle platform selection
+	const togglePlatform = (platform: Platform) => {
+		setSelectedPlatforms((current) => {
+			const newSet = new Set(current);
+			if (newSet.has(platform)) {
+				// Don't allow deselecting all platforms
+				if (newSet.size > 1) {
+					newSet.delete(platform);
+				}
+			} else {
+				newSet.add(platform);
+			}
+			return newSet;
+		});
+	};
+
+	// Select all platforms
+	const selectAllPlatforms = () => {
+		setSelectedPlatforms(new Set(availablePlatforms()));
+	};
+
+	// Send message handler
+	const handleSendMessage = () => {
+		const message = chatMessage().trim();
+		if (message && props.onSendMessage) {
+			props.onSendMessage(message, [...selectedPlatforms()]);
+			setChatMessage("");
+		}
+	};
+
+	// Handle key press in chat input
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			handleSendMessage();
+		}
+	};
+
+	// Get platform selection summary text
+	const platformSummary = createMemo(() => {
+		const selected = selectedPlatforms();
+		const available = availablePlatforms();
+		if (selected.size === available.length) {
+			return "All";
+		}
+		if (selected.size === 1) {
+			const platform = [...selected][0];
+			return platform.charAt(0).toUpperCase() + platform.slice(1);
+		}
+		return `${selected.size} platforms`;
+	});
+
 	return (
 		<div class="flex h-full flex-col">
-			{/* Header with live stats */}
-			<div class="flex items-center justify-between border-gray-200 border-b pb-4">
-				<div class="flex items-center gap-4">
-					<span class={badge.success}>
-						<span class="mr-2 animate-pulse">[*]</span> LIVE
-					</span>
-					<div class="text-gray-600 text-sm">
-						<span class="font-medium">{formatDuration(props.streamDuration)}</span>
+			{/* Header with live stats - Fixed at top */}
+			<div class="shrink-0 border-gray-200 border-b pb-4">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-4">
+						<span class={badge.success}>
+							<span class="mr-2 animate-pulse">[*]</span> LIVE
+						</span>
+						<div class="text-gray-600 text-sm">
+							<span class="font-medium">{formatDuration(props.streamDuration)}</span>
+						</div>
 					</div>
-				</div>
-				<div class="flex items-center gap-4">
-					<div class="text-center">
-						<div class="font-bold text-purple-600 text-xl">{props.viewerCount}</div>
-						<div class="text-gray-500 text-xs">Viewers</div>
+					<div class="flex items-center gap-4">
+						<div class="text-center">
+							<div class="font-bold text-purple-600 text-xl">{props.viewerCount}</div>
+							<div class="text-gray-500 text-xs">Viewers</div>
+						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* Sticky Important Events */}
+			{/* Sticky Important Events - Fixed below header */}
 			<Show when={stickyItems().length > 0}>
-				<div class="border-amber-200 border-b bg-amber-50/50 py-3">
+				<div class="shrink-0 border-amber-200 border-b bg-amber-50/50 py-3">
 					<div class="mb-2 px-2 font-medium text-amber-800 text-xs uppercase tracking-wide">
 						Recent Highlights
 					</div>
@@ -493,8 +563,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				</div>
 			</Show>
 
-			{/* Activity Feed */}
-			<div class="flex-1 overflow-y-auto">
+			{/* Activity Feed - Scrollable middle section */}
+			<div class="min-h-0 flex-1 overflow-y-auto">
 				<div class="space-y-1 p-2">
 					<For each={feedActivities()}>
 						{(item) => (
@@ -547,6 +617,76 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							</div>
 						</div>
 					</Show>
+				</div>
+			</div>
+
+			{/* Chat Input - Fixed at bottom */}
+			<div class="shrink-0 border-gray-200 border-t pt-3">
+				{/* Platform Picker */}
+				<div class="relative mb-2">
+					<button
+						type="button"
+						class="flex items-center gap-1.5 text-gray-500 text-xs transition-colors hover:text-gray-700"
+						onClick={() => setShowPlatformPicker(!showPlatformPicker())}>
+						<span>Send to:</span>
+						<span class="font-medium text-gray-700">{platformSummary()}</span>
+						<span class="text-[10px]">{showPlatformPicker() ? "^" : "v"}</span>
+					</button>
+
+					{/* Platform Selection Dropdown */}
+					<Show when={showPlatformPicker()}>
+						<div class="absolute bottom-full left-0 z-10 mb-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="font-medium text-gray-700 text-xs">
+									Select platforms
+								</span>
+								<button
+									type="button"
+									class="text-purple-600 text-xs hover:text-purple-700"
+									onClick={selectAllPlatforms}>
+									Select all
+								</button>
+							</div>
+							<div class="flex flex-wrap gap-1.5">
+								<For each={availablePlatforms()}>
+									{(platform) => (
+										<button
+											type="button"
+											class={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition-all ${
+												selectedPlatforms().has(platform)
+													? `${PLATFORM_COLORS[platform]} text-white`
+													: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+											}`}
+											onClick={() => togglePlatform(platform)}>
+											<span class="font-medium">
+												{PLATFORM_ICONS[platform]}
+											</span>
+											<span class="capitalize">{platform}</span>
+										</button>
+									)}
+								</For>
+							</div>
+						</div>
+					</Show>
+				</div>
+
+				{/* Message Input */}
+				<div class="flex gap-2">
+					<input
+						type="text"
+						class={`${input.text} flex-1`}
+						placeholder="Send a message to chat..."
+						value={chatMessage()}
+						onInput={(e) => setChatMessage(e.currentTarget.value)}
+						onKeyDown={handleKeyDown}
+					/>
+					<button
+						type="button"
+						class={button.primary}
+						onClick={handleSendMessage}
+						disabled={!chatMessage().trim()}>
+						Send
+					</button>
 				</div>
 			</div>
 		</div>
@@ -699,6 +839,9 @@ export function PostStreamSummary(props: PostStreamSummaryProps) {
 // =====================================================
 // Main Stream Controls Widget Component
 // =====================================================
+// Export Platform type for external use
+export type { Platform };
+
 interface StreamControlsWidgetProps {
 	phase: StreamPhase;
 	// Pre-stream props
@@ -715,6 +858,8 @@ interface StreamControlsWidgetProps {
 	streamDuration?: number;
 	viewerCount?: number;
 	stickyDuration?: number;
+	connectedPlatforms?: Platform[];
+	onSendMessage?: (message: string, platforms: Platform[]) => void;
 	// Post-stream props
 	summary?: StreamSummary;
 	onStartNewStream?: () => void;
@@ -749,6 +894,8 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 					streamDuration={props.streamDuration || 0}
 					viewerCount={props.viewerCount || 0}
 					stickyDuration={props.stickyDuration}
+					connectedPlatforms={props.connectedPlatforms}
+					onSendMessage={props.onSendMessage}
 				/>
 			</Show>
 

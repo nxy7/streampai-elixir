@@ -4,6 +4,7 @@ import StreamControlsWidget, {
 	type ActivityItem,
 	type StreamMetadata,
 	type StreamSummary,
+	type Platform,
 	PreStreamSettings,
 	LiveStreamControlCenter,
 	PostStreamSummary,
@@ -18,7 +19,7 @@ const meta = {
 	tags: ["autodocs"],
 	decorators: [
 		(Story) => (
-			<div style={{ width: "500px", "max-height": "700px" }}>
+			<div style={{ width: "500px", height: "600px" }}>
 				<Story />
 			</div>
 		),
@@ -44,6 +45,41 @@ const sampleStreamKeyData = {
 	rtmpsUrl: "rtmps://live.cloudflare.com:443/live",
 	rtmpsStreamKey: "abc123def456ghi789",
 	srtUrl: "srt://live.cloudflare.com:778?streamid=abc123",
+};
+
+// Generate many activities to test scrolling
+const generateActivities = (count: number): ActivityItem[] => {
+	const types: ActivityItem["type"][] = ["chat", "chat", "chat", "donation", "follow", "subscription", "raid", "cheer"];
+	const platforms = ["twitch", "youtube", "kick", "facebook"];
+	const usernames = ["StreamFan", "GamerPro", "ChattyKathy", "ViewerOne", "SuperDonor", "TwitchLover", "YouTubeFan", "KickUser"];
+	const messages = [
+		"Great stream!",
+		"Hello everyone!",
+		"This is amazing!",
+		"Keep up the good work!",
+		"Love this content!",
+		"First time here, loving it!",
+		"Can you play that song again?",
+		"What's your setup?",
+		"GG!",
+		"Poggers!",
+	];
+
+	return Array.from({ length: count }, (_, i) => {
+		const type = types[Math.floor(Math.random() * types.length)];
+		const isMonetary = ["donation", "cheer"].includes(type);
+		return {
+			id: `activity-${i}`,
+			type,
+			username: `${usernames[Math.floor(Math.random() * usernames.length)]}${i}`,
+			message: type !== "follow" ? messages[Math.floor(Math.random() * messages.length)] : undefined,
+			amount: isMonetary ? Math.floor(Math.random() * 100) + 1 : undefined,
+			currency: isMonetary ? "$" : undefined,
+			platform: platforms[Math.floor(Math.random() * platforms.length)],
+			timestamp: new Date(Date.now() - i * 15000),
+			isImportant: ["donation", "raid", "subscription", "cheer"].includes(type),
+		};
+	});
 };
 
 const sampleActivities: ActivityItem[] = [
@@ -138,6 +174,9 @@ const sampleActivities: ActivityItem[] = [
 	},
 ];
 
+// Many activities for scrolling test
+const manyActivities = generateActivities(30);
+
 const sampleSummary: StreamSummary = {
 	duration: 7200, // 2 hours
 	peakViewers: 1250,
@@ -214,13 +253,19 @@ export const PreStreamKeyLoading: Story = {
 // Live Stream Stories
 // =====================================================
 
+const handleSendMessage = (message: string, platforms: Platform[]) => {
+	console.log(`Sending message to ${platforms.join(", ")}: ${message}`);
+};
+
 export const Live: Story = {
 	args: {
 		phase: "live",
-		activities: sampleActivities,
+		activities: manyActivities,
 		streamDuration: 3723, // 1 hour 2 minutes 3 seconds
 		viewerCount: 1024,
 		stickyDuration: 30000,
+		connectedPlatforms: ["twitch", "youtube", "kick"],
+		onSendMessage: handleSendMessage,
 	},
 };
 
@@ -230,23 +275,20 @@ export const LiveEmpty: Story = {
 		activities: [],
 		streamDuration: 60,
 		viewerCount: 5,
+		connectedPlatforms: ["twitch"],
+		onSendMessage: handleSendMessage,
 	},
 };
 
 export const LiveBusy: Story = {
 	args: {
 		phase: "live",
-		activities: [
-			...sampleActivities,
-			...sampleActivities.map((a, i) => ({
-				...a,
-				id: `extra-${i}`,
-				timestamp: new Date(Date.now() - (i + 10) * 30000),
-			})),
-		],
+		activities: generateActivities(50),
 		streamDuration: 10800, // 3 hours
 		viewerCount: 5000,
 		stickyDuration: 30000,
+		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
+		onSendMessage: handleSendMessage,
 	},
 };
 
@@ -256,6 +298,8 @@ export const LiveChatOnly: Story = {
 		activities: sampleActivities.filter((a) => a.type === "chat"),
 		streamDuration: 1800,
 		viewerCount: 150,
+		connectedPlatforms: ["twitch", "youtube"],
+		onSendMessage: handleSendMessage,
 	},
 };
 
@@ -296,10 +340,12 @@ export const LiveManyDonations: Story = {
 				timestamp: new Date(Date.now() - 60000),
 				isImportant: true,
 			},
-			...sampleActivities.filter((a) => a.type === "chat"),
+			...generateActivities(20),
 		],
 		streamDuration: 2400,
 		viewerCount: 2500,
+		connectedPlatforms: ["twitch", "youtube", "kick"],
+		onSendMessage: handleSendMessage,
 	},
 };
 
@@ -395,7 +441,7 @@ export const InteractivePreStream: Story = {
 
 function InteractiveLiveWrapper() {
 	const [activities, setActivities] = createSignal<ActivityItem[]>(
-		sampleActivities.slice(0, 5),
+		generateActivities(15),
 	);
 	const [duration, setDuration] = createSignal(0);
 	const [viewers, setViewers] = createSignal(100);
@@ -432,8 +478,22 @@ function InteractiveLiveWrapper() {
 			isImportant: type === "donation",
 		};
 		setActivities((a) => [newActivity, ...a].slice(0, 50));
-		setViewers((v) => v + Math.floor(Math.random() * 10) - 3);
+		setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
 	}, 3000);
+
+	const handleSendMessage = (message: string, platforms: Platform[]) => {
+		// Add the sent message to the activity feed
+		const newActivity: ActivityItem = {
+			id: `sent-${Date.now()}`,
+			type: "chat",
+			username: "Streamer (You)",
+			message: message,
+			platform: platforms[0] || "twitch",
+			timestamp: new Date(),
+		};
+		setActivities((a) => [newActivity, ...a].slice(0, 50));
+		console.log(`Message sent to ${platforms.join(", ")}: ${message}`);
+	};
 
 	return (
 		<StreamControlsWidget
@@ -442,6 +502,8 @@ function InteractiveLiveWrapper() {
 			streamDuration={duration()}
 			viewerCount={viewers()}
 			stickyDuration={15000}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			onSendMessage={handleSendMessage}
 		/>
 	);
 }
