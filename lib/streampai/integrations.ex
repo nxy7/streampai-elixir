@@ -9,11 +9,13 @@ defmodule Streampai.Integrations do
     resource Streampai.Integrations.Donation
     resource Streampai.Integrations.DiscordWebhook
     resource Streampai.Integrations.DiscordActor
+    resource Streampai.Integrations.IFTTTWebhook
   end
 
   typescript_rpc do
     resource Streampai.Integrations.DiscordWebhook
     resource Streampai.Integrations.DiscordActor
+    resource Streampai.Integrations.IFTTTWebhook
   end
 end
 

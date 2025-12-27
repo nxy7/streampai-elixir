@@ -232,6 +232,15 @@ export type DiscordActorResourceSchema = {
 
 
 
+// IFTTTWebhook Schema
+export type IFTTTWebhookResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
+};
+
+
+
 // Notification Schema
 export type NotificationResourceSchema = {
   __type: "Resource";
@@ -1123,6 +1132,20 @@ export type DiscordActorFilterInput = {
     eq?: "active" | "paused" | "terminated";
     notEq?: "active" | "paused" | "terminated";
     in?: Array<"active" | "paused" | "terminated">;
+  };
+
+
+
+};
+export type IFTTTWebhookFilterInput = {
+  and?: Array<IFTTTWebhookFilterInput>;
+  or?: Array<IFTTTWebhookFilterInput>;
+  not?: Array<IFTTTWebhookFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
   };
 
 
