@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import type { ViewerCountConfig, ViewerData } from "~/lib/fake/viewer-count";
+import { getFontClass } from "~/lib/widgetHelpers";
 
 interface ViewerCountWidgetProps {
 	config: ViewerCountConfig;
@@ -105,16 +106,7 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 		}
 	});
 
-	const fontClass = () => {
-		switch (props.config.font_size) {
-			case "small":
-				return "text-xl";
-			case "large":
-				return "text-5xl";
-			default:
-				return "text-3xl";
-		}
-	};
+	const fontClass = () => getFontClass(props.config.font_size, "counter");
 
 	const platformEntries = () => {
 		if (!props.data?.platform_breakdown) return [];
