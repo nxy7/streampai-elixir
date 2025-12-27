@@ -5,9 +5,9 @@ defmodule StreampaiWeb.ApiAuthController do
   """
   use StreampaiWeb, :controller
 
-  require Logger
-
   alias Streampai.Accounts.User
+
+  require Logger
 
   @doc """
   Register a new user with email and password.
@@ -76,8 +76,7 @@ defmodule StreampaiWeb.ApiAuthController do
   end
 
   defp format_error(%Ash.Error.Invalid{errors: errors}) do
-    errors
-    |> Enum.map(fn
+    Enum.map_join(errors, ", ", fn
       %{field: field, message: message} when not is_nil(field) ->
         "#{field}: #{message}"
 
@@ -87,7 +86,6 @@ defmodule StreampaiWeb.ApiAuthController do
       error ->
         inspect(error)
     end)
-    |> Enum.join(", ")
   end
 
   defp format_error(error), do: inspect(error)

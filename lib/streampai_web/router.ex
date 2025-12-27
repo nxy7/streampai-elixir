@@ -6,6 +6,7 @@ defmodule StreampaiWeb.Router do
   import Oban.Web.Router
 
   alias StreampaiWeb.Plugs.ErrorTracker
+  alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
   alias StreampaiWeb.Plugs.SafeLoadFromSession
 
@@ -50,7 +51,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(StreampaiWeb.Plugs.RegistrationLogger)
-    plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
+    plug(RateLimiter, limit: 7, window: 300_000)
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
   end
 
@@ -58,7 +59,7 @@ defmodule StreampaiWeb.Router do
   pipeline :api_auth do
     plug(:accepts, ["json"])
     plug(:fetch_session)
-    plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
+    plug(RateLimiter, limit: 7, window: 300_000)
   end
 
   pipeline :electric_sync do
