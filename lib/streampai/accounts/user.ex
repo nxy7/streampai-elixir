@@ -129,6 +129,7 @@ defmodule Streampai.Accounts.User do
     define :update_name
     define :toggle_email_notifications
     define :update_donation_settings, args: [:min_amount, :max_amount, :currency, :default_voice]
+    define :update_language_preference, args: [:language]
   end
 
   actions do
@@ -583,6 +584,29 @@ defmodule Streampai.Accounts.User do
         change_attributes(changeset, attrs)
       end
     end
+
+    update :update_language_preference do
+      description "Update user's preferred language for the interface and notifications"
+      require_atomic? false
+
+      argument :language, :string do
+        allow_nil? false
+        description "Language code (en, de, pl, es)"
+      end
+
+      validate fn changeset, _context ->
+        language = Ash.Changeset.get_argument(changeset, :language)
+        valid_languages = ["en", "de", "pl", "es"]
+
+        if language in valid_languages do
+          :ok
+        else
+          {:error, field: :language, message: "must be one of: #{Enum.join(valid_languages, ", ")}"}
+        end
+      end
+
+      change set_attribute(:language_preference, arg(:language))
+    end
   end
 
   policies do
@@ -687,6 +711,12 @@ defmodule Streampai.Accounts.User do
       public? true
       allow_nil? true
       description "Direct URL to user's avatar image (denormalized for Electric sync)"
+    end
+
+    attribute :language_preference, :string do
+      public? true
+      allow_nil? true
+      description "User's preferred language code (en, de, pl, es)"
     end
 
     timestamps()
