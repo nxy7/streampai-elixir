@@ -391,12 +391,12 @@ interface ActivityRowProps {
 	isSticky?: boolean;
 }
 
-function ActivityRow(props: ActivityRowProps) {
+function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 	return (
 		<div
 			class={`flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
 				props.isSticky
-					? "sticky top-0 z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+					? "border-amber-200 border-b bg-amber-50 shadow-sm"
 					: isImportantEvent(props.item.type)
 						? "bg-gray-50/50"
 						: ""
@@ -542,6 +542,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		onCleanup(() => clearTimeout(timeout));
 	});
 
+	// Get the actual sticky items for rendering in the fixed header
+	const stickyActivities = createMemo(() => {
+		const ids = stickyItemIds();
+		if (ids.size === 0) return [];
+		return sortedActivities().filter((item) => ids.has(item.id));
+	});
+
 	// Toggle platform selection
 	const togglePlatform = (platform: Platform) => {
 		setSelectedPlatforms((current) => {
@@ -620,36 +627,44 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				</div>
 			</div>
 
-			{/* Activity Feed - Scrollable middle section */}
-			{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring: */}
-			{/* - Scroll position naturally stays at the bottom (newest content) */}
-			{/* - New items appear at the bottom without JS scroll management */}
-			{/* - User can scroll up to see older messages; position is preserved */}
-			{/* - Wraps content in inner div to "un-reverse" the visual order */}
-			<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
-				<Show
-					when={sortedActivities().length > 0}
-					fallback={
-						<div class="flex h-full items-center justify-center text-gray-400">
-							<div class="text-center">
-								<div class="mb-2 text-3xl">[chat]</div>
-								<div>Waiting for activity...</div>
-							</div>
-						</div>
-					}>
-					{/* Inner div un-reverses the content so it reads top-to-bottom */}
-				{/* mt-auto pushes content to bottom when there are few items */}
-					<div class="mt-auto flex flex-col">
-						<For each={sortedActivities()}>
-							{(item) => (
-								<ActivityRow
-									item={item}
-									isSticky={stickyItemIds().has(item.id)}
-								/>
-							)}
+			{/* Activity Feed - Contains sticky header and scrollable content */}
+			<div class="flex min-h-0 flex-1 flex-col">
+				{/* Sticky important events - fixed at top */}
+				<Show when={stickyActivities().length > 0}>
+					<div class="shrink-0 border-amber-300 border-b bg-amber-50/80 shadow-sm">
+						<For each={stickyActivities()}>
+							{(item) => <ActivityRow item={item} isSticky />}
 						</For>
 					</div>
 				</Show>
+
+				{/* Scrollable activity feed */}
+				{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring */}
+				<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
+					<Show
+						when={sortedActivities().length > 0}
+						fallback={
+							<div class="flex h-full items-center justify-center text-gray-400">
+								<div class="text-center">
+									<div class="mb-2 text-3xl">[chat]</div>
+									<div>Waiting for activity...</div>
+								</div>
+							</div>
+						}>
+						{/* Inner div un-reverses the content so it reads top-to-bottom */}
+						{/* mt-auto pushes content to bottom when there are few items */}
+						<div class="mt-auto flex flex-col">
+							<For each={sortedActivities()}>
+								{(item) => (
+									<ActivityRow
+										item={item}
+										isSticky={stickyItemIds().has(item.id)}
+									/>
+								)}
+							</For>
+						</div>
+					</Show>
+				</div>
 			</div>
 
 			{/* Chat Input - Fixed at bottom */}

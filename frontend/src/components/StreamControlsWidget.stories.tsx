@@ -499,7 +499,7 @@ function InteractiveLiveWrapper() {
 			// Append to end (newest events at bottom)
 			setActivities((a) => [...a, newActivity].slice(-100));
 			setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
-		}, 1000); // 1 event per second
+		}, 333); // 3 events per second
 
 		// Cleanup intervals when component unmounts
 		onCleanup(() => {
