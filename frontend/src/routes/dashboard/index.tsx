@@ -20,7 +20,10 @@ import {
 	useUserPreferencesForUser,
 	useUserStreamEvents,
 } from "~/lib/useElectric";
-import { badge, card, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
+import Card from "~/components/ui/Card";
+import Badge from "~/components/ui/Badge";
+import Button from "~/components/ui/Button";
 
 function getEventIcon(type: string) {
 	switch (type) {
@@ -107,14 +110,16 @@ function getEventIcon(type: string) {
 	}
 }
 
-function getStreamStatusBadge(status: string) {
+function getStreamStatusBadgeVariant(
+	status: string,
+): "success" | "neutral" | "warning" {
 	switch (status) {
 		case "live":
-			return badge.success;
+			return "success";
 		case "ended":
-			return badge.neutral;
+			return "neutral";
 		default:
-			return badge.warning;
+			return "warning";
 	}
 }
 
@@ -124,9 +129,9 @@ function QuickStatsSkeleton() {
 		<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
 			<For each={[1, 2, 3, 4]}>
 				{() => (
-					<div class={`${card.base} p-4`}>
+					<Card padding="sm">
 						<SkeletonStat showIcon />
-					</div>
+					</Card>
 				)}
 			</For>
 		</div>
@@ -136,7 +141,7 @@ function QuickStatsSkeleton() {
 // Skeleton for Recent Chat section
 function RecentChatSkeleton() {
 	return (
-		<div class={card.base}>
+		<Card padding="none">
 			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-28" />
 				<Skeleton class="h-4 w-16" />
@@ -150,14 +155,14 @@ function RecentChatSkeleton() {
 					)}
 				</For>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
 // Skeleton for Recent Events section
 function RecentEventsSkeleton() {
 	return (
-		<div class={card.base}>
+		<Card padding="none">
 			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
@@ -171,14 +176,14 @@ function RecentEventsSkeleton() {
 					)}
 				</For>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
 // Skeleton for Activity Feed
 function ActivityFeedSkeleton() {
 	return (
-		<div class={card.base}>
+		<Card padding="none">
 			<div class="border-gray-100 border-b px-4 py-3">
 				<div class="mb-3 flex items-center justify-between">
 					<Skeleton class="h-5 w-28" />
@@ -206,14 +211,14 @@ function ActivityFeedSkeleton() {
 					)}
 				</For>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
 // Skeleton for Recent Streams section
 function RecentStreamsSkeleton() {
 	return (
-		<div class={card.base}>
+		<Card padding="none">
 			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
@@ -221,7 +226,7 @@ function RecentStreamsSkeleton() {
 			<div class="divide-y divide-gray-100">
 				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -289,7 +294,7 @@ function StreamHealthMonitor() {
 	};
 
 	return (
-		<div class={`${card.base} p-4`} data-testid="stream-health-monitor">
+		<Card padding="sm" data-testid="stream-health-monitor">
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
 					<svg
@@ -329,7 +334,7 @@ function StreamHealthMonitor() {
 					<p class="text-gray-500 text-xs">{t("dashboard.uptime")}</p>
 				</div>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -499,7 +504,7 @@ function ViewerEngagementScore(props: {
 	};
 
 	return (
-		<div class={`${card.base} p-4`} data-testid="engagement-score">
+		<Card padding="sm" data-testid="engagement-score">
 			<div class="mb-3 flex items-center justify-between">
 				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
 					<svg
@@ -545,7 +550,7 @@ function ViewerEngagementScore(props: {
 					</div>
 				</div>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -614,7 +619,7 @@ function StreamGoalsTracker(props: {
 	};
 
 	return (
-		<div class={card.base} data-testid="stream-goals">
+		<Card padding="none" data-testid="stream-goals">
 			<div class="border-gray-100 border-b px-4 py-3">
 				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
 					<svg
@@ -679,7 +684,7 @@ function StreamGoalsTracker(props: {
 					}}
 				</For>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -713,7 +718,7 @@ function ActivityFeed(props: {
 	);
 
 	return (
-		<div class={card.base} data-testid="activity-feed">
+		<Card padding="none" data-testid="activity-feed">
 			<div class="border-gray-100 border-b px-4 py-3">
 				<div class="mb-3 flex items-center justify-between">
 					<h3 class="flex items-center gap-2 font-semibold text-gray-900">
@@ -809,7 +814,7 @@ function ActivityFeed(props: {
 					</div>
 				</Show>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -904,7 +909,7 @@ export default function Dashboard() {
 
 						{/* Quick Stats */}
 						<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-							<div class={`${card.base} p-4`}>
+							<Card padding="sm" class="p-4">
 								<div class="flex items-center gap-3">
 									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
 										<svg
@@ -930,9 +935,9 @@ export default function Dashboard() {
 										</p>
 									</div>
 								</div>
-							</div>
+							</Card>
 
-							<div class={`${card.base} p-4`}>
+							<Card padding="sm" class="p-4">
 								<div class="flex items-center gap-3">
 									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
 										<svg
@@ -964,9 +969,9 @@ export default function Dashboard() {
 										</p>
 									</div>
 								</div>
-							</div>
+							</Card>
 
-							<div class={`${card.base} p-4`}>
+							<Card padding="sm" class="p-4">
 								<div class="flex items-center gap-3">
 									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
 										<svg
@@ -992,9 +997,9 @@ export default function Dashboard() {
 										</p>
 									</div>
 								</div>
-							</div>
+							</Card>
 
-							<div class={`${card.base} p-4`}>
+							<Card padding="sm" class="p-4">
 								<div class="flex items-center gap-3">
 									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
 										<svg
@@ -1020,7 +1025,7 @@ export default function Dashboard() {
 										</p>
 									</div>
 								</div>
-							</div>
+							</Card>
 						</div>
 
 						{/* New Features Row: Stream Health, Engagement Score, Goals */}
@@ -1042,7 +1047,7 @@ export default function Dashboard() {
 						{/* Main Content Grid */}
 						<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 							{/* Recent Chat Messages */}
-							<div class={card.base}>
+							<Card padding="none">
 								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 									<h3 class={text.h3}>{t("dashboard.recentChat")}</h3>
 									<A
@@ -1092,7 +1097,7 @@ export default function Dashboard() {
 																	{msg.sender_username}
 																</span>
 																<Show when={msg.sender_is_moderator}>
-																	<span class={badge.info}>Mod</span>
+																	<Badge variant="info">Mod</Badge>
 																</Show>
 																<span class="text-gray-400 text-xs">
 																	{formatTimeAgo(msg.inserted_at)}
@@ -1108,10 +1113,10 @@ export default function Dashboard() {
 										</For>
 									</Show>
 								</div>
-							</div>
+							</Card>
 
 							{/* Recent Events */}
-							<div class={card.base}>
+							<Card padding="none">
 								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 									<h3 class={text.h3}>{t("dashboard.recentEvents")}</h3>
 									<A
@@ -1185,14 +1190,14 @@ export default function Dashboard() {
 										</For>
 									</Show>
 								</div>
-							</div>
+							</Card>
 						</div>
 
 						{/* Activity Feed with Filters */}
 						<ActivityFeed events={allEvents()} />
 
 						{/* Recent Streams */}
-						<div class={card.base}>
+						<Card padding="none">
 							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 								<h3 class={text.h3}>{t("dashboard.recentStreams")}</h3>
 								<A
@@ -1262,16 +1267,19 @@ export default function Dashboard() {
 															</p>
 														</div>
 													</div>
-													<span class={getStreamStatusBadge(stream.status)}>
+													<Badge
+														variant={getStreamStatusBadgeVariant(
+															stream.status,
+														)}>
 														{stream.status}
-													</span>
+													</Badge>
 												</div>
 											</A>
 										)}
 									</For>
 								</div>
 							</Show>
-						</div>
+						</Card>
 
 						{/* Quick Actions */}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">

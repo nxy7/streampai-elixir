@@ -1,10 +1,14 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, For, Show } from "solid-js";
+import Badge from "~/components/ui/Badge";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
+import Input, { Select, Textarea } from "~/components/ui/Input";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
-import { badge, button, card, input, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 export default function AdminNotifications() {
 	const navigate = useNavigate();
@@ -223,7 +227,7 @@ export default function AdminNotifications() {
 							</div>
 						</Show>
 
-						<div class={card.base}>
+						<Card>
 							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 								<div>
 									<h3 class={text.h3}>Notifications</h3>
@@ -231,12 +235,7 @@ export default function AdminNotifications() {
 										Create and manage system notifications
 									</p>
 								</div>
-								<button
-									type="button"
-									onClick={openCreateModal}
-									class={button.primary}>
-									Create Notification
-								</button>
+								<Button onClick={openCreateModal}>Create Notification</Button>
 							</div>
 
 							<div class="overflow-x-auto">
@@ -269,8 +268,8 @@ export default function AdminNotifications() {
 													<td class="whitespace-nowrap px-6 py-4">
 														<Show
 															when={notification.user_id}
-															fallback={<span class={badge.info}>Global</span>}>
-															<span class={badge.warning}>User-specific</span>
+															fallback={<Badge variant="info">Global</Badge>}>
+															<Badge variant="warning">User-specific</Badge>
 														</Show>
 													</td>
 													<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
@@ -310,16 +309,13 @@ export default function AdminNotifications() {
 										<p class="mt-4 text-gray-500 text-sm">
 											No notifications yet
 										</p>
-										<button
-											type="button"
-											onClick={openCreateModal}
-											class={`${button.primary} mt-4`}>
+										<Button onClick={openCreateModal} class="mt-4">
 											Create your first notification
-										</button>
+										</Button>
 									</div>
 								</Show>
 							</div>
-						</div>
+						</Card>
 					</div>
 
 					{/* Create Modal */}
@@ -354,17 +350,16 @@ export default function AdminNotifications() {
 									<div>
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
 											Notification Type
-											<select
+											<Select
 												value={notificationType()}
 												onInput={(e) =>
 													setNotificationType(
 														e.currentTarget.value as "global" | "user",
 													)
-												}
-												class={input.select}>
+												}>
 												<option value="global">Global (All Users)</option>
 												<option value="user">User-specific</option>
-											</select>
+											</Select>
 										</label>
 										<p class={text.helper}>
 											{notificationType() === "global"
@@ -377,13 +372,12 @@ export default function AdminNotifications() {
 										<div>
 											<label class="mb-2 block font-medium text-gray-700 text-sm">
 												User ID <span class="text-red-500">*</span>
-												<input
+												<Input
 													type="text"
 													value={targetUserId()}
 													onInput={(e) =>
 														setTargetUserId(e.currentTarget.value)
 													}
-													class={input.text}
 													placeholder="Enter user UUID"
 												/>
 											</label>
@@ -393,13 +387,12 @@ export default function AdminNotifications() {
 									<div>
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
 											Content <span class="text-red-500">*</span>
-											<textarea
+											<Textarea
 												value={notificationContent()}
 												onInput={(e) =>
 													setNotificationContent(e.currentTarget.value)
 												}
 												rows={4}
-												class={input.textarea}
 												placeholder="Enter notification message..."
 											/>
 										</label>
@@ -407,21 +400,16 @@ export default function AdminNotifications() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<button
-										type="button"
-										onClick={closeCreateModal}
-										class={button.secondary}>
+									<Button variant="secondary" onClick={closeCreateModal}>
 										Cancel
-									</button>
-									<button
-										type="button"
+									</Button>
+									<Button
 										onClick={handleCreate}
-										disabled={creating() || !notificationContent().trim()}
-										class={button.primary}>
+										disabled={creating() || !notificationContent().trim()}>
 										<Show when={creating()} fallback="Create Notification">
 											Creating...
 										</Show>
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
@@ -468,21 +456,17 @@ export default function AdminNotifications() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<button
-										type="button"
-										onClick={closeDeleteConfirm}
-										class={button.secondary}>
+									<Button variant="secondary" onClick={closeDeleteConfirm}>
 										Cancel
-									</button>
-									<button
-										type="button"
+									</Button>
+									<Button
+										variant="danger"
 										onClick={handleDelete}
-										disabled={deleting()}
-										class={button.danger}>
+										disabled={deleting()}>
 										<Show when={deleting()} fallback="Delete">
 											Deleting...
 										</Show>
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>

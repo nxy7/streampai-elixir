@@ -15,7 +15,8 @@ import { useParams, useNavigate } from "@solidjs/router";
 import { Show, createMemo } from "solid-js";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
 import { getWidgetDefinition } from "~/lib/widget-registry";
-import { text, button } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
+import Button from "~/components/ui/Button";
 
 export default function WidgetSettingsRoute() {
 	const params = useParams<{ slug: string }>();
@@ -30,12 +31,9 @@ export default function WidgetSettingsRoute() {
 				<div class="space-y-4 text-center">
 					<h1 class={text.h1}>Widget Not Found</h1>
 					<p class={text.muted}>The widget "{params.slug}" does not exist.</p>
-					<button
-						type="button"
-						class={button.primary}
-						onClick={() => navigate("/dashboard/widgets")}>
+					<Button type="button" onClick={() => navigate("/dashboard/widgets")}>
 						Back to Widgets
-					</button>
+					</Button>
 				</div>
 			}>
 			{(def) => (

@@ -2,12 +2,16 @@ import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import Badge from "~/components/ui/Badge";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
+import Input, { Select, Textarea } from "~/components/ui/Input";
 import { Alert } from "~/components/ui";
 import { useCurrentUser } from "~/lib/auth";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
 import { usePresence } from "~/lib/socket";
 import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
-import { badge, button, card, input, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 export default function AdminUsers() {
 	const navigate = useNavigate();
@@ -180,7 +184,7 @@ export default function AdminUsers() {
 							</Alert>
 						</Show>
 
-						<div class={card.base}>
+						<Card>
 							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
 								<div>
 									<h3 class={text.h3}>All Users</h3>
@@ -259,7 +263,7 @@ export default function AdminUsers() {
 																		{user.name}
 																	</span>
 																	<Show when={currentUser()?.id === user.id}>
-																		<span class={badge.info}>Current User</span>
+																		<Badge variant="info">Current User</Badge>
 																	</Show>
 																</div>
 															</div>
@@ -272,9 +276,9 @@ export default function AdminUsers() {
 														<Show
 															when={user.confirmed_at}
 															fallback={
-																<span class={badge.warning}>Pending</span>
+																<Badge variant="warning">Pending</Badge>
 															}>
-															<span class={badge.success}>Confirmed</span>
+															<Badge variant="success">Confirmed</Badge>
 														</Show>
 													</td>
 													<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
@@ -315,7 +319,7 @@ export default function AdminUsers() {
 									</div>
 								</Show>
 							</div>
-						</div>
+						</Card>
 					</div>
 
 					<Show when={showGrantModal()}>
@@ -356,27 +360,28 @@ export default function AdminUsers() {
 									<div>
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
 											Duration
-											<select
+											<Select
 												value={grantDuration()}
-												onInput={(e) => setGrantDuration(e.currentTarget.value)}
-												class={input.select}>
+												onInput={(e) =>
+													setGrantDuration(e.currentTarget.value)
+												}>
 												<option value="7">7 days</option>
 												<option value="30">30 days</option>
 												<option value="90">90 days (3 months)</option>
 												<option value="180">180 days (6 months)</option>
 												<option value="365">365 days (1 year)</option>
-											</select>
+											</Select>
 										</label>
 									</div>
 
 									<div>
 										<label class="block font-medium text-gray-700 text-sm">
 											Reason <span class="text-red-500">*</span>
-											<textarea
+											<Textarea
 												value={grantReason()}
 												onInput={(e) => setGrantReason(e.currentTarget.value)}
 												rows={3}
-												class={`mt-2 ${input.textarea}`}
+												class="mt-2"
 												placeholder="e.g., Beta tester, Partner program, Promotional access..."
 											/>
 										</label>
@@ -387,21 +392,16 @@ export default function AdminUsers() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<button
-										type="button"
-										onClick={closeGrantModal}
-										class={button.secondary}>
+									<Button variant="secondary" onClick={closeGrantModal}>
 										Cancel
-									</button>
-									<button
-										type="button"
+									</Button>
+									<Button
 										onClick={handleGrantPro}
-										disabled={grantingPro() || !grantReason().trim()}
-										class={button.primary}>
+										disabled={grantingPro() || !grantReason().trim()}>
 										<Show when={grantingPro()} fallback="Grant PRO Access">
 											Granting...
 										</Show>
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
@@ -443,21 +443,17 @@ export default function AdminUsers() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<button
-										type="button"
-										onClick={closeRevokeConfirm}
-										class={button.secondary}>
+									<Button variant="secondary" onClick={closeRevokeConfirm}>
 										Cancel
-									</button>
-									<button
-										type="button"
+									</Button>
+									<Button
+										variant="danger"
 										onClick={handleRevokePro}
-										disabled={revokingPro()}
-										class={button.danger}>
+										disabled={revokingPro()}>
 										<Show when={revokingPro()} fallback="Revoke PRO">
 											Revoking...
 										</Show>
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
