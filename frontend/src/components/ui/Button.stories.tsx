@@ -135,3 +135,33 @@ export const AllSizes: Story = {
 		</div>
 	),
 };
+
+export const AsAnchor: Story = {
+	args: {
+		as: "a",
+		href: "https://example.com",
+		children: "External Link (a)",
+	},
+};
+
+export const AsRouterLink: Story = {
+	args: {
+		as: "link",
+		href: "/dashboard",
+		children: "Internal Link (A)",
+	},
+};
+
+export const LinkVariants: Story = {
+	render: () => (
+		<div style={{ display: "flex", gap: "12px", "flex-wrap": "wrap" }}>
+			<Button>Button (default)</Button>
+			<Button as="a" href="https://example.com">
+				External (a)
+			</Button>
+			<Button as="link" href="/dashboard">
+				Internal (A)
+			</Button>
+		</div>
+	),
+};

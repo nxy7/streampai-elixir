@@ -168,6 +168,38 @@ defmodule StreampaiWeb.SyncController do
     )
   end
 
+  # Safe columns to sync from streaming_account table (excludes sensitive tokens)
+  @streaming_account_sync_columns [
+    "user_id",
+    "platform",
+    "extra_data",
+    "sponsor_count",
+    "views_last_30d",
+    "follower_count",
+    "subscriber_count",
+    "stats_last_refreshed_at",
+    "inserted_at",
+    "updated_at"
+  ]
+
+  def streaming_accounts(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "streaming_account",
+      columns: @streaming_account_sync_columns,
+      where: "false"
+    )
+  end
+
+  def streaming_accounts(conn, %{"user_id" => user_id} = params) do
+    # User-scoped streaming accounts - syncs all connected accounts for a specific user
+    sync_render(conn, params,
+      table: "streaming_account",
+      columns: @streaming_account_sync_columns,
+      where: "user_id = '#{user_id}'"
+    )
+  end
+
   def livestream_metrics(conn, %{"user_id" => user_id} = params) do
     # User-scoped livestream metrics - syncs metrics for all streams of a specific user
     sync_render(conn, params,

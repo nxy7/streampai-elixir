@@ -226,7 +226,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     Twitch EventSub disconnected: Missing OAuth scopes.
 
     Chat messages will not be received until the Twitch account is reconnected.
-    Please disconnect and reconnect Twitch at: /streaming/connect/twitch
+    Please disconnect and reconnect Twitch at: /api/streaming/connect/twitch
     """)
 
     {:noreply, %{state | eventsub_client_pid: nil}}

@@ -155,7 +155,7 @@ config :streampai,
 config :tesla, disable_deprecated_builder_warning: true
 
 config :ueberauth, Ueberauth,
-  base_path: "/streaming/connect",
+  base_path: "/api/streaming/connect",
   providers: [
     google:
       {Ueberauth.Strategy.Google,
@@ -164,12 +164,19 @@ config :ueberauth, Ueberauth,
          prompt: "consent select_account",
          approval_prompt: "force",
          include_granted_scopes: true,
+         # Always use port 8000 for OAuth callbacks (main Caddy instance)
+         # This allows worktrees on different ports to share the same Google OAuth config
+         callback_port: 8000,
+         callback_scheme: "https",
          default_scope:
            "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
        ]},
     twitch:
       {Ueberauth.Strategy.Twitch,
        [
+         # Always use port 8000 for OAuth callbacks (main Caddy instance)
+         callback_port: 8000,
+         callback_scheme: "https",
          default_scope:
            "user:read:email user:read:chat user:write:chat channel:bot channel:read:subscriptions channel:read:stream_key channel:manage:broadcast"
        ]},
