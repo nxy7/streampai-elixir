@@ -1,3 +1,4 @@
+import { expect, within } from "@storybook/test";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import TimerWidget from "./TimerWidget";
 
@@ -27,6 +28,12 @@ export const Default: Story = {
 	args: {
 		config: defaultConfig,
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("Stream Timer")).toBeVisible();
+		// 10 minutes = 10:00
+		await expect(canvas.getByText("10:00")).toBeVisible();
+	},
 };
 
 export const AutoStart: Story = {
@@ -39,11 +46,21 @@ export const FiveMinutes: Story = {
 	args: {
 		config: { ...defaultConfig, countdownMinutes: 5, label: "5 Min Countdown" },
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("5 Min Countdown")).toBeVisible();
+		await expect(canvas.getByText("05:00")).toBeVisible();
+	},
 };
 
 export const OneHour: Story = {
 	args: {
 		config: { ...defaultConfig, countdownMinutes: 60, label: "1 Hour Timer" },
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("1 Hour Timer")).toBeVisible();
+		await expect(canvas.getByText("60:00")).toBeVisible();
 	},
 };
 
@@ -62,6 +79,13 @@ export const SmallFont: Story = {
 export const NoLabel: Story = {
 	args: {
 		config: { ...defaultConfig, label: "" },
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// Timer should still show time even without label
+		await expect(canvas.getByText("10:00")).toBeVisible();
+		// No label should be present
+		await expect(canvas.queryByText("Stream Timer")).toBeNull();
 	},
 };
 
