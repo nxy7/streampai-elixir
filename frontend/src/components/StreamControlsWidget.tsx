@@ -1,13 +1,19 @@
+import { createVirtualList } from "@solid-primitives/virtual";
 import {
 	createEffect,
 	createMemo,
 	createSignal,
 	For,
 	onCleanup,
+	onMount,
 	Show,
 } from "solid-js";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
+
+// Constants for virtualization
+const ROW_HEIGHT = 56; // Fixed height for all activity rows in pixels
+const OVERSCAN_COUNT = 5; // Number of items to render outside viewport
 
 // Types for stream metadata
 export interface StreamMetadata {
@@ -388,6 +394,62 @@ const AVAILABLE_PLATFORMS = ["twitch", "youtube", "kick", "facebook"] as const;
 type Platform = (typeof AVAILABLE_PLATFORMS)[number];
 
 // =====================================================
+// Activity Row Component (fixed height for virtualization)
+// =====================================================
+interface ActivityRowProps {
+	item: ActivityItem;
+	isSticky?: boolean;
+}
+
+function ActivityRow(props: ActivityRowProps) {
+	return (
+		<div
+			class={`flex items-center gap-2 rounded px-2 transition-colors hover:bg-gray-50 ${
+				props.isSticky
+					? "sticky top-0 z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+					: isImportantEvent(props.item.type)
+						? "bg-gray-50/50"
+						: ""
+			}`}
+			style={{ height: `${ROW_HEIGHT}px` }}>
+			{/* Platform badge */}
+			<span
+				class={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[props.item.platform] || "bg-gray-500"}`}>
+				{PLATFORM_ICONS[props.item.platform] || "?"}
+			</span>
+
+			{/* Content */}
+			<div class="min-w-0 flex-1">
+				<div class="flex items-center gap-1.5">
+					<Show when={props.item.type !== "chat"}>
+						<span class={`text-xs ${getEventColor(props.item.type)}`}>
+							{getEventIcon(props.item.type)}
+						</span>
+					</Show>
+					<span
+						class={`font-medium text-sm ${props.item.type === "chat" ? "text-gray-800" : getEventColor(props.item.type)}`}>
+						{props.item.username}
+					</span>
+					<Show when={props.item.amount}>
+						<span class="font-bold text-green-600 text-sm">
+							{formatAmount(props.item.amount, props.item.currency)}
+						</span>
+					</Show>
+					<span class="ml-auto text-gray-400 text-xs">
+						{formatTimestamp(props.item.timestamp)}
+					</span>
+				</div>
+				<Show when={props.item.message}>
+					<div class="mt-0.5 truncate text-gray-700 text-sm">
+						{props.item.message}
+					</div>
+				</Show>
+			</div>
+		</div>
+	);
+}
+
+// =====================================================
 // Live Stream Control Center Component
 // =====================================================
 interface LiveStreamControlCenterProps {
@@ -400,12 +462,17 @@ interface LiveStreamControlCenterProps {
 }
 
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
-	const [stickyItems, setStickyItems] = createSignal<ActivityItem[]>([]);
 	const [chatMessage, setChatMessage] = createSignal("");
 	const [selectedPlatforms, setSelectedPlatforms] = createSignal<Set<Platform>>(
 		new Set(props.connectedPlatforms || AVAILABLE_PLATFORMS),
 	);
 	const [showPlatformPicker, setShowPlatformPicker] = createSignal(false);
+	const [containerHeight, setContainerHeight] = createSignal(400);
+	const [stickyItemIds, setStickyItemIds] = createSignal<Set<string>>(
+		new Set(),
+	);
+
+	let scrollContainerRef: HTMLDivElement | undefined;
 
 	// Get available platforms (either from props or default to all)
 	const availablePlatforms = createMemo(
@@ -420,35 +487,108 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
-	// Handle sticky items
+	// Sort activities chronologically (oldest first, newest at bottom)
+	const sortedActivities = createMemo(() => {
+		return [...props.activities].sort((a, b) => {
+			const timeA =
+				a.timestamp instanceof Date
+					? a.timestamp.getTime()
+					: new Date(a.timestamp).getTime();
+			const timeB =
+				b.timestamp instanceof Date
+					? b.timestamp.getTime()
+					: new Date(b.timestamp).getTime();
+			return timeA - timeB; // Ascending order: oldest first
+		});
+	});
+
+	// Track sticky items based on time
 	createEffect(() => {
-		const importantActivities = props.activities.filter(
-			(a) => isImportantEvent(a.type) && a.isImportant !== false,
-		);
-
-		// Add new important items to sticky
-		const newSticky = importantActivities.slice(0, 3);
-		setStickyItems(newSticky);
-
-		// Auto-remove sticky items after duration
 		const duration = props.stickyDuration || 30000;
+		const now = Date.now();
+
+		// Find important items that are within the sticky duration
+		const newStickyIds = new Set<string>();
+		for (const item of props.activities) {
+			if (isImportantEvent(item.type) && item.isImportant !== false) {
+				const itemTime =
+					item.timestamp instanceof Date
+						? item.timestamp.getTime()
+						: new Date(item.timestamp).getTime();
+				if (now - itemTime < duration) {
+					newStickyIds.add(item.id);
+				}
+			}
+		}
+		setStickyItemIds(newStickyIds);
+
+		// Set up cleanup timer
 		const timeout = setTimeout(() => {
-			setStickyItems((current) =>
-				current.filter((item) => {
-					const itemTime =
-						item.timestamp instanceof Date
-							? item.timestamp.getTime()
-							: new Date(item.timestamp).getTime();
-					return Date.now() - itemTime < duration;
-				}),
-			);
+			setStickyItemIds((current) => {
+				const updated = new Set<string>();
+				const nowInner = Date.now();
+				for (const id of current) {
+					const item = props.activities.find((a) => a.id === id);
+					if (item) {
+						const itemTime =
+							item.timestamp instanceof Date
+								? item.timestamp.getTime()
+								: new Date(item.timestamp).getTime();
+						if (nowInner - itemTime < duration) {
+							updated.add(id);
+						}
+					}
+				}
+				return updated;
+			});
 		}, duration);
 
 		onCleanup(() => clearTimeout(timeout));
 	});
 
-	// Non-sticky activities (all activities for the main feed)
-	const feedActivities = createMemo(() => props.activities.slice(0, 100));
+	// Create virtualized list - returns [state accessor, onScroll handler]
+	const [virtualState, onVirtualScroll] = createVirtualList({
+		items: sortedActivities,
+		rootHeight: containerHeight,
+		rowHeight: () => ROW_HEIGHT,
+		overscanCount: OVERSCAN_COUNT,
+	});
+
+	// Measure container height on mount and resize
+	onMount(() => {
+		if (scrollContainerRef) {
+			const updateHeight = () => {
+				if (scrollContainerRef) {
+					setContainerHeight(scrollContainerRef.clientHeight);
+				}
+			};
+			updateHeight();
+
+			const resizeObserver = new ResizeObserver(updateHeight);
+			resizeObserver.observe(scrollContainerRef);
+
+			onCleanup(() => resizeObserver.disconnect());
+		}
+	});
+
+	// Auto-scroll to bottom when new activities arrive
+	createEffect(() => {
+		const activities = sortedActivities();
+		if (scrollContainerRef && activities.length > 0) {
+			// Only auto-scroll if user is near the bottom
+			const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
+			const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+			if (isNearBottom) {
+				// Use requestAnimationFrame for smoother scrolling
+				requestAnimationFrame(() => {
+					if (scrollContainerRef) {
+						scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
+					}
+				});
+			}
+		}
+	});
 
 	// Toggle platform selection
 	const togglePlatform = (platform: Platform) => {
@@ -512,112 +652,60 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							<span class="mr-2 animate-pulse">[*]</span> LIVE
 						</span>
 						<div class="text-gray-600 text-sm">
-							<span class="font-medium">{formatDuration(props.streamDuration)}</span>
+							<span class="font-medium">
+								{formatDuration(props.streamDuration)}
+							</span>
 						</div>
 					</div>
 					<div class="flex items-center gap-4">
 						<div class="text-center">
-							<div class="font-bold text-purple-600 text-xl">{props.viewerCount}</div>
+							<div class="font-bold text-purple-600 text-xl">
+								{props.viewerCount}
+							</div>
 							<div class="text-gray-500 text-xs">Viewers</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* Sticky Important Events - Fixed below header */}
-			<Show when={stickyItems().length > 0}>
-				<div class="shrink-0 border-amber-200 border-b bg-amber-50/50 py-3">
-					<div class="mb-2 px-2 font-medium text-amber-800 text-xs uppercase tracking-wide">
-						Recent Highlights
-					</div>
-					<div class="space-y-2 px-2">
-						<For each={stickyItems()}>
-							{(item) => (
-								<div class="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm">
-									<span
-										class={`flex h-6 w-6 items-center justify-center rounded-full text-white text-xs ${PLATFORM_COLORS[item.platform] || "bg-gray-500"}`}>
-										{PLATFORM_ICONS[item.platform] || "?"}
-									</span>
-									<div class="flex-1">
-										<div class="flex items-center gap-2">
-											<span class="text-sm">{getEventIcon(item.type)}</span>
-											<span class={`font-medium ${getEventColor(item.type)}`}>
-												{item.username}
-											</span>
-											<Show when={item.amount}>
-												<span class="font-bold text-green-600">
-													{formatAmount(item.amount, item.currency)}
-												</span>
-											</Show>
-										</div>
-										<Show when={item.message}>
-											<div class="truncate text-gray-600 text-xs">
-												{item.message}
-											</div>
-										</Show>
-									</div>
-								</div>
-							)}
-						</For>
-					</div>
-				</div>
-			</Show>
-
-			{/* Activity Feed - Scrollable middle section */}
-			<div class="min-h-0 flex-1 overflow-y-auto">
-				<div class="space-y-1 p-2">
-					<For each={feedActivities()}>
-						{(item) => (
-							<div
-								class={`flex items-start gap-2 rounded p-2 transition-colors hover:bg-gray-50 ${
-									isImportantEvent(item.type) ? "bg-gray-50" : ""
-								}`}>
-								{/* Platform badge */}
-								<span
-									class={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[item.platform] || "bg-gray-500"}`}>
-									{PLATFORM_ICONS[item.platform] || "?"}
-								</span>
-
-								{/* Content */}
-								<div class="min-w-0 flex-1">
-									<div class="flex items-center gap-1.5">
-										<Show when={item.type !== "chat"}>
-											<span class={`text-xs ${getEventColor(item.type)}`}>
-												{getEventIcon(item.type)}
-											</span>
-										</Show>
-										<span
-											class={`font-medium text-sm ${item.type === "chat" ? "text-gray-800" : getEventColor(item.type)}`}>
-											{item.username}
-										</span>
-										<Show when={item.amount}>
-											<span class="font-bold text-green-600 text-sm">
-												{formatAmount(item.amount, item.currency)}
-											</span>
-										</Show>
-										<span class="text-gray-400 text-xs">
-											{formatTimestamp(item.timestamp)}
-										</span>
-									</div>
-									<Show when={item.message}>
-										<div class="mt-0.5 text-gray-700 text-sm">
-											{item.message}
-										</div>
-									</Show>
-								</div>
-							</div>
-						)}
-					</For>
-
-					<Show when={feedActivities().length === 0}>
-						<div class="flex h-40 items-center justify-center text-gray-400">
+			{/* Virtualized Activity Feed - Scrollable middle section */}
+			<div
+				ref={scrollContainerRef}
+				class="min-h-0 flex-1 overflow-y-auto"
+				onScroll={onVirtualScroll}>
+				<Show
+					when={sortedActivities().length > 0}
+					fallback={
+						<div class="flex h-full items-center justify-center text-gray-400">
 							<div class="text-center">
 								<div class="mb-2 text-3xl">[chat]</div>
 								<div>Waiting for activity...</div>
 							</div>
 						</div>
-					</Show>
-				</div>
+					}>
+					<div
+						style={{
+							height: `${virtualState().containerHeight}px`,
+							position: "relative",
+						}}>
+						<div
+							style={{
+								position: "absolute",
+								top: `${virtualState().viewerTop}px`,
+								left: 0,
+								right: 0,
+							}}>
+							<For each={virtualState().visibleItems}>
+								{(item) => (
+									<ActivityRow
+										item={item}
+										isSticky={stickyItemIds().has(item.id)}
+									/>
+								)}
+							</For>
+						</div>
+					</div>
+				</Show>
 			</div>
 
 			{/* Chat Input - Fixed at bottom */}

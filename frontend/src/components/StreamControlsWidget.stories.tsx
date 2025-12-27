@@ -47,7 +47,8 @@ const sampleStreamKeyData = {
 	srtUrl: "srt://live.cloudflare.com:778?streamid=abc123",
 };
 
-// Generate many activities to test scrolling
+// Generate many activities to test scrolling and virtualization
+// Activities are generated in chronological order (oldest first, newest last)
 const generateActivities = (count: number): ActivityItem[] => {
 	const types: ActivityItem["type"][] = ["chat", "chat", "chat", "donation", "follow", "subscription", "raid", "cheer"];
 	const platforms = ["twitch", "youtube", "kick", "facebook"];
@@ -65,9 +66,12 @@ const generateActivities = (count: number): ActivityItem[] => {
 		"Poggers!",
 	];
 
+	// Generate activities from oldest to newest (newest events at end of array)
 	return Array.from({ length: count }, (_, i) => {
 		const type = types[Math.floor(Math.random() * types.length)];
 		const isMonetary = ["donation", "cheer"].includes(type);
+		// Oldest events first: subtract more time for lower indices
+		const ageMs = (count - 1 - i) * 15000; // i=0 is oldest, i=count-1 is newest
 		return {
 			id: `activity-${i}`,
 			type,
@@ -76,7 +80,7 @@ const generateActivities = (count: number): ActivityItem[] => {
 			amount: isMonetary ? Math.floor(Math.random() * 100) + 1 : undefined,
 			currency: isMonetary ? "$" : undefined,
 			platform: platforms[Math.floor(Math.random() * platforms.length)],
-			timestamp: new Date(Date.now() - i * 15000),
+			timestamp: new Date(Date.now() - ageMs),
 			isImportant: ["donation", "raid", "subscription", "cheer"].includes(type),
 		};
 	});
@@ -292,6 +296,19 @@ export const LiveBusy: Story = {
 	},
 };
 
+// Story with 1000+ events to test virtualization performance
+export const LiveVirtualized: Story = {
+	args: {
+		phase: "live",
+		activities: generateActivities(1000),
+		streamDuration: 36000, // 10 hours
+		viewerCount: 15000,
+		stickyDuration: 30000,
+		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
+		onSendMessage: handleSendMessage,
+	},
+};
+
 export const LiveChatOnly: Story = {
 	args: {
 		phase: "live",
@@ -451,7 +468,7 @@ function InteractiveLiveWrapper() {
 		setDuration((d) => d + 1);
 	}, 1000);
 
-	// Simulate random activity
+	// Simulate random activity - new events are added at the END (newest at bottom)
 	setInterval(() => {
 		const types: ActivityItem["type"][] = [
 			"chat",
@@ -477,12 +494,13 @@ function InteractiveLiveWrapper() {
 			timestamp: new Date(),
 			isImportant: type === "donation",
 		};
-		setActivities((a) => [newActivity, ...a].slice(0, 50));
+		// Append to end (newest events at bottom)
+		setActivities((a) => [...a, newActivity].slice(-100)); // Keep last 100
 		setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
 	}, 3000);
 
 	const handleSendMessage = (message: string, platforms: Platform[]) => {
-		// Add the sent message to the activity feed
+		// Add the sent message to the activity feed (at the end, since it's newest)
 		const newActivity: ActivityItem = {
 			id: `sent-${Date.now()}`,
 			type: "chat",
@@ -491,7 +509,8 @@ function InteractiveLiveWrapper() {
 			platform: platforms[0] || "twitch",
 			timestamp: new Date(),
 		};
-		setActivities((a) => [newActivity, ...a].slice(0, 50));
+		// Append to end (newest events at bottom)
+		setActivities((a) => [...a, newActivity].slice(-100));
 		console.log(`Message sent to ${platforms.join(", ")}: ${message}`);
 	};
 
