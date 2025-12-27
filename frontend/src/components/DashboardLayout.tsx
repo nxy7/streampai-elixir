@@ -316,8 +316,9 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 		},
 	];
 
-	// Wait for both auth and Electric sync to complete before rendering
-	const isFullyLoaded = () => !isLoading() && user() && prefs.isReady();
+	// Wait for auth to complete before rendering
+	// Electric sync (prefs) can load in the background - header shows skeleton fallback
+	const isFullyLoaded = () => !isLoading() && user();
 
 	return (
 		<Show
@@ -583,7 +584,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							<NotificationBell />
 							<Show when={user()}>
 								<Show
-									when={prefs.data()}
+									when={!prefs.isLoading() || prefs.data()}
 									fallback={
 										<div class="flex items-center space-x-3">
 											<div class="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
