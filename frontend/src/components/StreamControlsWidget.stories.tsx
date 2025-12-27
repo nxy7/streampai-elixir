@@ -282,6 +282,13 @@ const handleSendMessage = (message: string, platforms: Platform[]) => {
 	console.log(`Sending message to ${platforms.join(", ")}: ${message}`);
 };
 
+// Stream action handlers for Storybook
+const handleStartPoll = () => console.log("Start poll clicked");
+const handleStartGiveaway = () => console.log("Start giveaway clicked");
+const handleModifyTimers = () => console.log("Modify timers clicked");
+const handleChangeStreamSettings = () =>
+	console.log("Change stream settings clicked");
+
 export const Live: Story = {
 	args: {
 		phase: "live",
@@ -291,6 +298,10 @@ export const Live: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
@@ -302,6 +313,10 @@ export const LiveEmpty: Story = {
 		viewerCount: 5,
 		connectedPlatforms: ["twitch"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
@@ -314,6 +329,10 @@ export const LiveBusy: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
@@ -327,6 +346,10 @@ export const LiveVirtualized: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
@@ -338,6 +361,10 @@ export const LiveChatOnly: Story = {
 		viewerCount: 150,
 		connectedPlatforms: ["twitch", "youtube"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
@@ -384,6 +411,10 @@ export const LiveManyDonations: Story = {
 		viewerCount: 2500,
 		connectedPlatforms: ["twitch", "youtube", "kick"],
 		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onModifyTimers: handleModifyTimers,
+		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
