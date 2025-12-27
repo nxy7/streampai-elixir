@@ -1,4 +1,11 @@
 import { For, Show } from "solid-js";
+import {
+	getEventColor,
+	getEventIcon,
+	getEventLabel,
+	getPlatformName,
+} from "~/lib/eventMetadata";
+import { formatAmount, formatTimestamp } from "~/lib/formatters";
 
 interface StreamEvent {
 	id: string;
@@ -40,63 +47,6 @@ export default function EventListWidget(props: EventListWidgetProps) {
 			default:
 				return "text-base";
 		}
-	};
-
-	const getEventColor = (type: string) => {
-		const colors: Record<string, string> = {
-			donation: "text-green-400",
-			follow: "text-blue-400",
-			subscription: "text-purple-400",
-			raid: "text-yellow-400",
-			chat_message: "text-gray-300",
-		};
-		return colors[type] || colors.chat_message;
-	};
-
-	const getEventIcon = (type: string) => {
-		const icons: Record<string, string> = {
-			donation: "💰",
-			follow: "❤️",
-			subscription: "⭐",
-			raid: "⚡",
-			chat_message: "💬",
-		};
-		return icons[type] || icons.chat_message;
-	};
-
-	const getEventLabel = (type: string) => {
-		const labels: Record<string, string> = {
-			donation: "Donation",
-			follow: "Follow",
-			subscription: "Sub",
-			raid: "Raid",
-			chat_message: "Chat",
-		};
-		return labels[type] || "Event";
-	};
-
-	const getPlatformName = (icon: string) => {
-		const platformNames: Record<string, string> = {
-			twitch: "Twitch",
-			youtube: "YouTube",
-			facebook: "Facebook",
-			kick: "Kick",
-		};
-		return platformNames[icon] || icon;
-	};
-
-	const formatAmount = (amount?: number, currency?: string) => {
-		if (!amount) return "";
-		return `${currency || "$"}${amount.toFixed(2)}`;
-	};
-
-	const formatTimestamp = (timestamp: Date | string) => {
-		const ts = timestamp instanceof Date ? timestamp : new Date(timestamp);
-		return ts.toLocaleTimeString("en-US", {
-			hour12: false,
-			hour: "2-digit",
-			minute: "2-digit",
-		});
 	};
 
 	const displayedEvents = () => {
