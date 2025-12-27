@@ -4098,6 +4098,107 @@ export async function listStreamingAccountsChannel<Fields extends ListStreamingA
 }
 
 
+export type RefreshStreamingAccountStatsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
+
+export type InferRefreshStreamingAccountStatsResult<
+  Fields extends RefreshStreamingAccountStatsFields | undefined,
+> = InferResult<StreamingAccountResourceSchema, Fields>;
+
+export type RefreshStreamingAccountStatsResult<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined> = | { success: true; data: InferRefreshStreamingAccountStatsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function refreshStreamingAccountStats<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(
+  config: {
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "refresh_streaming_account_stats",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function refreshStreamingAccountStatsChannel<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  fields?: Fields;
+  resultHandler: (result: RefreshStreamingAccountStatsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<RefreshStreamingAccountStatsResult<Fields>>(
+    config.channel,
+    {
+    action: "refresh_streaming_account_stats",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+
+export type DisconnectStreamingAccountResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function disconnectStreamingAccount(
+  config: {
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DisconnectStreamingAccountResult> {
+  const payload = {
+    action: "disconnect_streaming_account",
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DisconnectStreamingAccountResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function disconnectStreamingAccountChannel(config: {
+  channel: Channel;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  resultHandler: (result: DisconnectStreamingAccountResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DisconnectStreamingAccountResult>(
+    config.channel,
+    {
+    action: "disconnect_streaming_account",
+    identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
 export type GetSmartCanvasLayoutInput = {
   userId: UUID;
 };

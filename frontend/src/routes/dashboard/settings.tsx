@@ -1,14 +1,21 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import StreamingAccountStats from "~/components/StreamingAccountStats";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { useUserPreferencesForUser, useUserRolesData } from "~/lib/useElectric";
+import {
+	useStreamingAccounts,
+	useUserPreferencesForUser,
+	useUserRolesData,
+} from "~/lib/useElectric";
 import {
 	acceptRoleInvitation,
 	confirmFileUpload,
 	declineRoleInvitation,
+	disconnectStreamingAccount,
 	getUserByName,
 	getUserInfo,
 	inviteUserRole,
+	refreshStreamingAccountStats,
 	requestFileUpload,
 	revokeUserRole,
 	saveDonationSettings,
@@ -23,6 +30,7 @@ export default function Settings() {
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const rolesData = useUserRolesData(() => user()?.id);
+	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 	const [isUploading, setIsUploading] = createSignal(false);
 	const [uploadError, setUploadError] = createSignal<string | null>(null);
 	const [uploadSuccess, setUploadSuccess] = createSignal(false);
@@ -468,32 +476,81 @@ export default function Settings() {
 		}
 	};
 
-	const platformConnections = [
-		{
-			name: "Twitch",
-			platform: "twitch",
-			connected: false,
-			color: "from-purple-600 to-purple-700",
-		},
+	const availablePlatforms = [
 		{
 			name: "YouTube",
-			platform: "youtube",
-			connected: false,
+			platform: "google" as const,
+			targetPlatform: "youtube" as const,
 			color: "from-red-600 to-red-700",
 		},
 		{
-			name: "Facebook",
-			platform: "facebook",
-			connected: false,
-			color: "from-blue-600 to-blue-700",
-		},
-		{
-			name: "Kick",
-			platform: "kick",
-			connected: false,
-			color: "from-green-600 to-green-700",
+			name: "Twitch",
+			platform: "twitch" as const,
+			targetPlatform: "twitch" as const,
+			color: "from-purple-600 to-purple-700",
 		},
 	];
+
+	const connectedPlatforms = createMemo(() => {
+		const accounts = streamingAccounts.data();
+		return new Set(accounts.map((a) => a.platform));
+	});
+
+	const handleRefreshStats = async (
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
+	) => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		const result = await refreshStreamingAccountStats({
+			identity: { userId: currentUser.id, platform },
+			fields: [
+				"platform",
+				"sponsorCount",
+				"viewsLast30d",
+				"followerCount",
+				"subscriberCount",
+				"statsLastRefreshedAt",
+			],
+			fetchOptions: { credentials: "include" },
+		});
+
+		if (!result.success) {
+			console.error("Failed to refresh stats:", result.errors);
+		}
+	};
+
+	const handleDisconnectAccount = async (
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
+	) => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		const result = await disconnectStreamingAccount({
+			identity: { userId: currentUser.id, platform },
+			fetchOptions: { credentials: "include" },
+		});
+
+		if (!result.success) {
+			console.error("Failed to disconnect account:", result.errors);
+		}
+	};
 
 	const currencies = ["USD", "EUR", "GBP", "CAD", "AUD"];
 
@@ -667,38 +724,67 @@ export default function Settings() {
 									<p class="mb-2 block font-medium text-gray-700 text-sm">
 										Streaming Platforms
 									</p>
+
+									<Show when={streamingAccounts.data().length > 0}>
+										<div class="mb-4 space-y-3">
+											<For each={streamingAccounts.data()}>
+												{(account) => (
+													<StreamingAccountStats
+														data={{
+															platform: account.platform,
+															accountName:
+																account.extra_data?.name ||
+																account.extra_data?.nickname ||
+																account.platform,
+															accountImage: account.extra_data?.image || null,
+															sponsorCount: account.sponsor_count,
+															viewsLast30d: account.views_last_30d,
+															followerCount: account.follower_count,
+															subscriberCount: account.subscriber_count,
+															statsLastRefreshedAt:
+																account.stats_last_refreshed_at,
+														}}
+														onRefresh={() =>
+															handleRefreshStats(account.platform)
+														}
+														onDisconnect={() =>
+															handleDisconnectAccount(account.platform)
+														}
+													/>
+												)}
+											</For>
+										</div>
+									</Show>
+
 									<div class="space-y-2">
-										<For each={platformConnections}>
-											{(connection) => (
-												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-													<div class="flex items-center space-x-3">
-														<div
-															class={`h-10 w-10 bg-linear-to-r ${connection.color} flex items-center justify-center rounded-lg`}>
-															<span class="font-bold text-sm text-white">
-																{connection.name[0]}
-															</span>
+										<For each={availablePlatforms}>
+											{(platform) => (
+												<Show
+													when={!connectedPlatforms().has(platform.targetPlatform)}>
+													<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+														<div class="flex items-center space-x-3">
+															<div
+																class={`h-10 w-10 bg-linear-to-r ${platform.color} flex items-center justify-center rounded-lg`}>
+																<span class="font-bold text-sm text-white">
+																	{platform.name[0]}
+																</span>
+															</div>
+															<div>
+																<p class="font-medium text-gray-900">
+																	{platform.name}
+																</p>
+																<p class="text-gray-500 text-sm">
+																	Not connected
+																</p>
+															</div>
 														</div>
-														<div>
-															<p class="font-medium text-gray-900">
-																{connection.name}
-															</p>
-															<p class="text-gray-500 text-sm">
-																{connection.connected
-																	? "Connected"
-																	: "Not connected"}
-															</p>
-														</div>
+														<a
+															href={`/api/streaming/connect/${platform.platform}`}
+															class="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700">
+															Connect
+														</a>
 													</div>
-													<button
-														type="button"
-														class={
-															connection.connected
-																? "font-medium text-red-600 text-sm hover:text-red-700"
-																: "rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700"
-														}>
-														{connection.connected ? "Disconnect" : "Connect"}
-													</button>
-												</div>
+												</Show>
 											)}
 										</For>
 									</div>

@@ -131,6 +131,7 @@ defmodule StreampaiWeb.Router do
     get "/chat_messages/:user_id", SyncController, :user_chat_messages
     get "/livestreams/:user_id", SyncController, :user_livestreams
     get "/viewers/:user_id", SyncController, :user_viewers
+    get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
   end
 
   scope "/api/shapes", StreampaiWeb do
