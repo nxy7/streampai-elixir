@@ -3,6 +3,7 @@ import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
 	chatMessagesCollection,
+	createNotificationLocalizationsCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
@@ -12,6 +13,7 @@ import {
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
 	createWidgetConfigsCollection,
+	emptyNotificationLocalizationsCollection,
 	emptyNotificationReadsCollection,
 	emptyNotificationsCollection,
 	emptyStreamingAccountsCollection,
@@ -21,6 +23,7 @@ import {
 	type Livestream,
 	livestreamsCollection,
 	type Notification,
+	type NotificationLocalization,
 	type NotificationRead,
 	type StreamEvent,
 	streamEventsCollection,
@@ -327,6 +330,9 @@ const getNotificationsCollection = createCollectionCache(
 const getNotificationReadsCollection = createCollectionCache(
 	createNotificationReadsCollection,
 );
+const getNotificationLocalizationsCollection = createCollectionCache(
+	createNotificationLocalizationsCollection,
+);
 
 export function useNotifications(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -360,13 +366,41 @@ export function useNotificationReads(userId: () => string | undefined) {
 	};
 }
 
-export type NotificationWithReadStatus = Notification & {
+export function useNotificationLocalizations(userId: () => string | undefined) {
+	const query = useLiveQuery(() => {
+		const currentId = userId();
+		if (!currentId) return emptyNotificationLocalizationsCollection;
+		return getNotificationLocalizationsCollection(currentId);
+	});
+
+	return {
+		...query,
+		data: createMemo(() => {
+			if (!userId()) return [];
+			return (query.data || []) as NotificationLocalization[];
+		}),
+	};
+}
+
+export type NotificationWithReadStatus = {
+	id: string;
+	user_id: string | null;
+	content: string;
+	inserted_at: string;
 	wasSeen: boolean;
 	seenAt: string | null;
+	localizedContent: string;
+	localizations: Record<string, string>;
 };
 
+/**
+ * Returns notifications with read status and localized content.
+ * If a localization for the given locale exists, it will be used.
+ * Otherwise, falls back to the default (English) content.
+ */
 export function useNotificationsWithReadStatus(
 	userId: () => string | undefined,
+	locale?: () => string,
 ): {
 	data: () => NotificationWithReadStatus[];
 	unreadCount: () => number | null;
@@ -374,23 +408,53 @@ export function useNotificationsWithReadStatus(
 } {
 	const notificationsQuery = useNotifications(userId);
 	const readsQuery = useNotificationReads(userId);
+	const localizationsQuery = useNotificationLocalizations(userId);
 
 	const isLoading = createMemo(
-		() => notificationsQuery.isLoading() || readsQuery.isLoading(),
+		() =>
+			notificationsQuery.isLoading() ||
+			readsQuery.isLoading() ||
+			localizationsQuery.isLoading(),
 	);
 
 	return {
 		data: createMemo((): NotificationWithReadStatus[] => {
 			const notifications = notificationsQuery.data();
 			const reads = readsQuery.data();
+			const localizations = localizationsQuery.data();
+			const currentLocale = locale?.() || "en";
+
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
 
+			// Build a map of notification_id -> Record<locale, content>
+			const localizationMap = new Map<string, Record<string, string>>();
+			for (const loc of localizations) {
+				let notificationLocs = localizationMap.get(loc.notification_id);
+				if (!notificationLocs) {
+					notificationLocs = {};
+					localizationMap.set(loc.notification_id, notificationLocs);
+				}
+				notificationLocs[loc.locale] = loc.content;
+			}
+
 			const withStatus = notifications.map(
-				(n): NotificationWithReadStatus => ({
-					...n,
-					wasSeen: readMap.has(n.id),
-					seenAt: readMap.get(n.id) || null,
-				}),
+				(n): NotificationWithReadStatus => {
+					const notificationLocs = localizationMap.get(n.id) || {};
+					// Use localized content if available, otherwise fall back to default content
+					const localizedContent =
+						notificationLocs[currentLocale] || n.content;
+
+					return {
+						id: n.id,
+						user_id: n.user_id,
+						content: n.content,
+						inserted_at: n.inserted_at,
+						wasSeen: readMap.has(n.id),
+						seenAt: readMap.get(n.id) || null,
+						localizedContent,
+						localizations: notificationLocs,
+					};
+				},
 			);
 			return sortByInsertedAt(withStatus);
 		}),
@@ -523,6 +587,7 @@ export type {
 	WidgetType,
 	Notification,
 	NotificationRead,
+	NotificationLocalization,
 	UserRole,
 	StreamingAccount,
 };

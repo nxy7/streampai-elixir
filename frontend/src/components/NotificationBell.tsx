@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
+import { useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { formatTimeAgo } from "~/lib/formatters";
 import { useNotificationsWithReadStatus } from "~/lib/useElectric";
@@ -7,9 +8,11 @@ import { markNotificationRead, markNotificationUnread } from "~/sdk/ash_rpc";
 
 export default function NotificationBell() {
 	const { user } = useCurrentUser();
+	const { locale } = useI18n();
 	const userId = createMemo(() => user()?.id);
+	// Pass the current locale to get localized notification content
 	const { data: allNotifications, unreadCount } =
-		useNotificationsWithReadStatus(userId);
+		useNotificationsWithReadStatus(userId, locale);
 
 	const [isOpen, setIsOpen] = createSignal(false);
 	const [showUnreadOnly, setShowUnreadOnly] = createLocalStorageSignal(
@@ -169,7 +172,7 @@ export default function NotificationBell() {
 											<div class="min-w-0 flex-1">
 												<p
 													class={`text-sm ${notification.wasSeen ? "text-gray-500" : "text-gray-900"}`}>
-													{notification.content}
+													{notification.localizedContent}
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
 													{formatTimeAgo(notification.inserted_at)}
