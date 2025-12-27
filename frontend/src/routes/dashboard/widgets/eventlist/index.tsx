@@ -1,9 +1,8 @@
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { createSignal, onMount, type JSX } from "solid-js";
+import { z } from "zod";
 import EventListWidget from "~/components/widgets/EventListWidget";
-import { useCurrentUser } from "~/lib/auth";
-import { useWidgetConfig } from "~/lib/useElectric";
-import { saveWidgetConfig } from "~/sdk/ash_rpc";
-import { button, card, input, text } from "~/styles/design-system";
+import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
+import type { FormMeta } from "~/lib/schema-form";
 
 interface StreamEvent {
 	id: string;
@@ -16,58 +15,33 @@ interface StreamEvent {
 	platform: { icon: string; color: string };
 }
 
-interface EventListConfig {
-	animationType: "slide" | "fade" | "bounce";
-	maxEvents: number;
-	eventTypes: string[];
-	showTimestamps: boolean;
-	showPlatform: boolean;
-	showAmounts: boolean;
-	fontSize: "small" | "medium" | "large";
-	compactMode: boolean;
-}
+/**
+ * Event list widget configuration schema.
+ */
+export const eventListSchema = z.object({
+	animationType: z.enum(["slide", "fade", "bounce"]).default("fade"),
+	maxEvents: z.number().min(1).max(50).default(10),
+	showTimestamps: z.boolean().default(false),
+	showPlatform: z.boolean().default(false),
+	showAmounts: z.boolean().default(true),
+	fontSize: z.enum(["small", "medium", "large"]).default("medium"),
+	compactMode: z.boolean().default(true),
+});
 
-interface BackendEventListConfig {
-	animation_type?: string;
-	max_events?: number;
-	event_types?: string[];
-	show_timestamps?: boolean;
-	show_platform?: boolean;
-	show_amounts?: boolean;
-	font_size?: string;
-	compact_mode?: boolean;
-}
+export type EventListConfig = z.infer<typeof eventListSchema>;
 
-const DEFAULT_CONFIG: EventListConfig = {
-	animationType: "fade",
-	maxEvents: 10,
-	eventTypes: ["donation", "follow", "subscription", "raid"],
-	showTimestamps: false,
-	showPlatform: false,
-	showAmounts: true,
-	fontSize: "medium",
-	compactMode: true,
+/**
+ * Event list widget form metadata.
+ */
+export const eventListMeta: FormMeta<typeof eventListSchema.shape> = {
+	animationType: { label: "Animation Type" },
+	maxEvents: { label: "Max Events", description: "Maximum number of events to display" },
+	showTimestamps: { label: "Show Timestamps" },
+	showPlatform: { label: "Show Platform Icons" },
+	showAmounts: { label: "Show Donation Amounts" },
+	fontSize: { label: "Font Size" },
+	compactMode: { label: "Compact Mode", description: "Use condensed layout" },
 };
-
-function parseBackendConfig(
-	backendConfig: BackendEventListConfig,
-): EventListConfig {
-	return {
-		animationType:
-			(backendConfig.animation_type as EventListConfig["animationType"]) ||
-			DEFAULT_CONFIG.animationType,
-		maxEvents: backendConfig.max_events || DEFAULT_CONFIG.maxEvents,
-		eventTypes: backendConfig.event_types || DEFAULT_CONFIG.eventTypes,
-		showTimestamps:
-			backendConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
-		showPlatform: backendConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
-		showAmounts: backendConfig.show_amounts ?? DEFAULT_CONFIG.showAmounts,
-		fontSize:
-			(backendConfig.font_size as EventListConfig["fontSize"]) ||
-			DEFAULT_CONFIG.fontSize,
-		compactMode: backendConfig.compact_mode ?? DEFAULT_CONFIG.compactMode,
-	};
-}
 
 const MOCK_EVENTS: StreamEvent[] = [
 	{
@@ -98,31 +72,14 @@ const MOCK_EVENTS: StreamEvent[] = [
 	},
 ];
 
-export default function EventListSettings() {
-	const { user, isLoading } = useCurrentUser();
-	const userId = createMemo(() => user()?.id);
+// Default event types to display
+const DEFAULT_EVENT_TYPES = ["donation", "follow", "subscription", "raid"];
 
-	const widgetConfigQuery = useWidgetConfig<BackendEventListConfig>(
-		userId,
-		() => "eventlist_widget",
-	);
-
+function EventListPreviewWrapper(props: {
+	config: EventListConfig;
+	children: JSX.Element;
+}): JSX.Element {
 	const [events, setEvents] = createSignal<StreamEvent[]>(MOCK_EVENTS);
-	const [saving, setSaving] = createSignal(false);
-	const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-	const [localOverrides, setLocalOverrides] = createSignal<
-		Partial<EventListConfig>
-	>({});
-
-	const config = createMemo(() => {
-		const syncedConfig = widgetConfigQuery.data();
-		const baseConfig = syncedConfig?.config
-			? parseBackendConfig(syncedConfig.config)
-			: DEFAULT_CONFIG;
-		return { ...baseConfig, ...localOverrides() };
-	});
-
-	const loading = createMemo(() => isLoading());
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -157,275 +114,37 @@ export default function EventListSettings() {
 		return () => clearInterval(interval);
 	});
 
-	async function handleSave() {
-		if (!userId()) {
-			setSaveMessage("Error: Not logged in");
-			return;
-		}
-
-		setSaving(true);
-		setSaveMessage(null);
-
-		const currentConfig = config();
-		const backendConfig = {
-			animation_type: currentConfig.animationType,
-			max_events: currentConfig.maxEvents,
-			event_types: currentConfig.eventTypes,
-			show_timestamps: currentConfig.showTimestamps,
-			show_platform: currentConfig.showPlatform,
-			show_amounts: currentConfig.showAmounts,
-			font_size: currentConfig.fontSize,
-			compact_mode: currentConfig.compactMode,
-		};
-
-		const result = await saveWidgetConfig({
-			input: {
-				userId: userId() ?? "",
-				type: "eventlist_widget",
-				config: backendConfig,
-			},
-			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
-		});
-
-		setSaving(false);
-
-		if (!result.success) {
-			setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
-		} else {
-			setSaveMessage("Configuration saved successfully!");
-			setLocalOverrides({});
-			setTimeout(() => setSaveMessage(null), 3000);
-		}
-	}
-
-	function updateConfig<K extends keyof EventListConfig>(
-		field: K,
-		value: EventListConfig[K],
-	) {
-		setLocalOverrides((prev) => ({ ...prev, [field]: value }));
-	}
-
-	function toggleEventType(type: string) {
-		const types = config().eventTypes;
-		const updated = types.includes(type)
-			? types.filter((t) => t !== type)
-			: [...types, type];
-		updateConfig("eventTypes", updated);
-	}
+	// Add eventTypes to config for the widget (not part of schema-form)
+	const fullConfig = () => ({
+		...props.config,
+		eventTypes: DEFAULT_EVENT_TYPES,
+	});
 
 	return (
-		<div class="space-y-6">
-			<div>
-				<h1 class={text.h1}>Event List Widget Settings</h1>
-				<p class={text.muted}>Configure your stream events widget for OBS</p>
-			</div>
-
-			<Show when={!loading()} fallback={<div>Loading...</div>}>
-				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-					<div class={card.default}>
-						<h2 class={text.h2}>Configuration</h2>
-						<div class="mt-4 space-y-4">
-							<div>
-								<label class="block font-medium text-gray-700 text-sm">
-									Animation Type
-									<select
-										class={`mt-1 ${input.select}`}
-										value={config().animationType}
-										onChange={(e) =>
-											updateConfig(
-												"animationType",
-												e.currentTarget
-													.value as EventListConfig["animationType"],
-											)
-										}>
-										<option value="fade">Fade</option>
-										<option value="slide">Slide</option>
-										<option value="bounce">Bounce</option>
-									</select>
-								</label>
-							</div>
-
-							<div>
-								<label class="block font-medium text-gray-700 text-sm">
-									Max Events
-									<input
-										type="number"
-										class={`mt-1 ${input.text}`}
-										value={config().maxEvents}
-										onInput={(e) =>
-											updateConfig(
-												"maxEvents",
-												parseInt(e.currentTarget.value, 10),
-											)
-										}
-										min="1"
-										max="50"
-									/>
-								</label>
-							</div>
-
-							<div>
-								<label class="block font-medium text-gray-700 text-sm">
-									Font Size
-									<select
-										class={`mt-1 ${input.select}`}
-										value={config().fontSize}
-										onChange={(e) =>
-											updateConfig(
-												"fontSize",
-												e.currentTarget.value as EventListConfig["fontSize"],
-											)
-										}>
-										<option value="small">Small</option>
-										<option value="medium">Medium</option>
-										<option value="large">Large</option>
-									</select>
-								</label>
-							</div>
-
-							<div>
-								<p class="mb-2 block font-medium text-gray-700 text-sm">
-									Event Types
-								</p>
-								<div class="space-y-2">
-									{["donation", "follow", "subscription", "raid"].map(
-										(type) => (
-											<div class="flex items-center gap-2">
-												<input
-													type="checkbox"
-													id={`event-${type}`}
-													checked={config().eventTypes.includes(type)}
-													onChange={() => toggleEventType(type)}
-													class="rounded"
-												/>
-												<label
-													for={`event-${type}`}
-													class="font-medium text-gray-700 text-sm capitalize">
-													{type}
-												</label>
-											</div>
-										),
-									)}
-								</div>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showTimestamps"
-									checked={config().showTimestamps}
-									onChange={(e) =>
-										updateConfig("showTimestamps", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showTimestamps"
-									class="font-medium text-gray-700 text-sm">
-									Show Timestamps
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showPlatform"
-									checked={config().showPlatform}
-									onChange={(e) =>
-										updateConfig("showPlatform", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showPlatform"
-									class="font-medium text-gray-700 text-sm">
-									Show Platform
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showAmounts"
-									checked={config().showAmounts}
-									onChange={(e) =>
-										updateConfig("showAmounts", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showAmounts"
-									class="font-medium text-gray-700 text-sm">
-									Show Donation Amounts
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="compactMode"
-									checked={config().compactMode}
-									onChange={(e) =>
-										updateConfig("compactMode", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="compactMode"
-									class="font-medium text-gray-700 text-sm">
-									Compact Mode
-								</label>
-							</div>
-
-							<Show when={saveMessage()}>
-								<div
-									class={
-										saveMessage()?.startsWith("Error")
-											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
-											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}>
-									{saveMessage()}
-								</div>
-							</Show>
-
-							<button
-								type="button"
-								class={button.primary}
-								onClick={handleSave}
-								disabled={saving()}>
-								{saving() ? "Saving..." : "Save Configuration"}
-							</button>
-						</div>
-					</div>
-
-					<div class={card.default}>
-						<h2 class={text.h2}>Preview</h2>
-						<div class="mt-4 space-y-4">
-							<div
-								class="overflow-hidden rounded-lg bg-gray-900"
-								style={{ height: "500px" }}>
-								<EventListWidget config={config()} events={events()} />
-							</div>
-							<div class="space-y-2">
-								<h3 class={text.h3}>OBS Browser Source URL</h3>
-								<p class={text.helper}>
-									Add this URL to OBS as a Browser Source:
-								</p>
-								<div class="break-all rounded bg-gray-100 p-3 font-mono text-sm">
-									{window.location.origin}/w/eventlist/{userId()}
-								</div>
-								<p class={text.helper}>Recommended Browser Source settings:</p>
-								<ul class={`${text.helper} ml-4 list-disc`}>
-									<li>Width: 400</li>
-									<li>Height: 800</li>
-									<li>Enable "Shutdown source when not visible"</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
-			</Show>
+		<div
+			class="overflow-hidden rounded-lg bg-gray-900"
+			style={{ height: "500px" }}>
+			<EventListWidget config={fullConfig()} events={events()} />
 		</div>
+	);
+}
+
+export default function EventListSettings() {
+	return (
+		<WidgetSettingsPage
+			title="Event List Widget Settings"
+			description="Configure your stream events widget for OBS"
+			widgetType="eventlist_widget"
+			widgetUrlPath="eventlist"
+			schema={eventListSchema}
+			meta={eventListMeta}
+			PreviewComponent={EventListWidget}
+			previewWrapper={EventListPreviewWrapper}
+			obsSettings={{
+				width: 400,
+				height: 800,
+				customTips: ['Enable "Shutdown source when not visible"'],
+			}}
+		/>
 	);
 }

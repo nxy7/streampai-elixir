@@ -23,7 +23,7 @@ interface ChatMessage {
  */
 export const chatSchema = z.object({
 	fontSize: z.enum(["small", "medium", "large"]).default("medium"),
-	maxMessages: z.number().min(5).max(100).default(25),
+	maxMessages: z.number().min(1).max(45).default(15),
 	showTimestamps: z.boolean().default(false),
 	showBadges: z.boolean().default(true),
 	showPlatform: z.boolean().default(true),

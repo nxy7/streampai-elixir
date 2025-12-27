@@ -1,63 +1,45 @@
-import { Title } from "@solidjs/meta";
-import { createMemo, createSignal, Show } from "solid-js";
+import { createSignal, type JSX } from "solid-js";
+import { z } from "zod";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
-import { useCurrentUser } from "~/lib/auth";
-import { useWidgetConfig } from "~/lib/useElectric";
-import { saveWidgetConfig } from "~/sdk/ash_rpc";
-import { button, card, input, text } from "~/styles/design-system";
+import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
+import type { FormMeta } from "~/lib/schema-form";
+import { button } from "~/styles/design-system";
 
-interface AlertConfig {
-	animationType: "slide" | "fade" | "bounce";
-	displayDuration: number;
-	soundEnabled: boolean;
-	soundVolume: number;
-	showMessage: boolean;
-	showAmount: boolean;
-	fontSize: "small" | "medium" | "large";
-	alertPosition: "top" | "center" | "bottom";
-}
+/**
+ * Alertbox widget configuration schema.
+ */
+export const alertboxSchema = z.object({
+	animationType: z.enum(["slide", "fade", "bounce"]).default("fade"),
+	displayDuration: z.number().min(1).max(30).default(5),
+	soundEnabled: z.boolean().default(true),
+	soundVolume: z.number().min(0).max(100).default(80),
+	showMessage: z.boolean().default(true),
+	showAmount: z.boolean().default(true),
+	fontSize: z.enum(["small", "medium", "large"]).default("medium"),
+	alertPosition: z.enum(["top", "center", "bottom"]).default("center"),
+});
 
-interface BackendAlertConfig {
-	animation_type?: string;
-	display_duration?: number;
-	sound_enabled?: boolean;
-	sound_volume?: number;
-	show_message?: boolean;
-	show_amount?: boolean;
-	font_size?: string;
-	alert_position?: string;
-}
+export type AlertboxConfig = z.infer<typeof alertboxSchema>;
 
-const DEFAULT_CONFIG: AlertConfig = {
-	animationType: "fade",
-	displayDuration: 5,
-	soundEnabled: true,
-	soundVolume: 80,
-	showMessage: true,
-	showAmount: true,
-	fontSize: "medium",
-	alertPosition: "center",
+/**
+ * Alertbox widget form metadata.
+ */
+export const alertboxMeta: FormMeta<typeof alertboxSchema.shape> = {
+	animationType: { label: "Animation Type" },
+	displayDuration: { label: "Display Duration", unit: "seconds" },
+	soundEnabled: { label: "Sound Enabled", description: "Play sound on alerts" },
+	soundVolume: { label: "Sound Volume", unit: "%" },
+	showMessage: {
+		label: "Show Message",
+		description: "Display message text on alerts",
+	},
+	showAmount: {
+		label: "Show Amount",
+		description: "Show amount for donations/raids",
+	},
+	fontSize: { label: "Font Size" },
+	alertPosition: { label: "Alert Position" },
 };
-
-function parseBackendConfig(backendConfig: BackendAlertConfig): AlertConfig {
-	return {
-		animationType:
-			(backendConfig.animation_type as AlertConfig["animationType"]) ||
-			DEFAULT_CONFIG.animationType,
-		displayDuration:
-			backendConfig.display_duration ?? DEFAULT_CONFIG.displayDuration,
-		soundEnabled: backendConfig.sound_enabled ?? DEFAULT_CONFIG.soundEnabled,
-		soundVolume: backendConfig.sound_volume ?? DEFAULT_CONFIG.soundVolume,
-		showMessage: backendConfig.show_message ?? DEFAULT_CONFIG.showMessage,
-		showAmount: backendConfig.show_amount ?? DEFAULT_CONFIG.showAmount,
-		fontSize:
-			(backendConfig.font_size as AlertConfig["fontSize"]) ||
-			DEFAULT_CONFIG.fontSize,
-		alertPosition:
-			(backendConfig.alert_position as AlertConfig["alertPosition"]) ||
-			DEFAULT_CONFIG.alertPosition,
-	};
-}
 
 const DEMO_EVENTS = [
 	{
@@ -94,218 +76,40 @@ const DEMO_EVENTS = [
 	},
 ];
 
-export default function AlertboxWidgetSettings() {
-	const { user, isLoading } = useCurrentUser();
-	const userId = createMemo(() => user()?.id);
-
-	const widgetConfigQuery = useWidgetConfig<BackendAlertConfig>(
-		userId,
-		() => "alertbox_widget",
-	);
-
-	const [saving, setSaving] = createSignal(false);
-	const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-	const [localOverrides, setLocalOverrides] = createSignal<
-		Partial<AlertConfig>
-	>({});
+function AlertboxPreviewWrapper(props: {
+	config: AlertboxConfig;
+	children: JSX.Element;
+}): JSX.Element {
 	const [demoIndex, setDemoIndex] = createSignal(0);
-
-	const config = createMemo(() => {
-		const syncedConfig = widgetConfigQuery.data();
-		const baseConfig = syncedConfig?.config
-			? parseBackendConfig(syncedConfig.config)
-			: DEFAULT_CONFIG;
-		return { ...baseConfig, ...localOverrides() };
-	});
-
-	const loading = createMemo(() => isLoading());
-
-	async function handleSave() {
-		if (!userId()) return;
-		setSaving(true);
-		setSaveMessage(null);
-
-		const currentConfig = config();
-		const backendConfig = {
-			animation_type: currentConfig.animationType,
-			display_duration: currentConfig.displayDuration,
-			sound_enabled: currentConfig.soundEnabled,
-			sound_volume: currentConfig.soundVolume,
-			show_message: currentConfig.showMessage,
-			show_amount: currentConfig.showAmount,
-			font_size: currentConfig.fontSize,
-			alert_position: currentConfig.alertPosition,
-		};
-
-		const result = await saveWidgetConfig({
-			input: {
-				userId: userId() ?? "",
-				type: "alertbox_widget",
-				config: backendConfig,
-			},
-			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
-		});
-
-		setSaving(false);
-		if (!result.success) {
-			setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
-		} else {
-			setSaveMessage("Configuration saved successfully!");
-			setLocalOverrides({});
-			setTimeout(() => setSaveMessage(null), 3000);
-		}
-	}
-
-	function updateConfig<K extends keyof AlertConfig>(
-		field: K,
-		value: AlertConfig[K],
-	) {
-		setLocalOverrides((prev) => ({ ...prev, [field]: value }));
-	}
 
 	function cycleDemoEvent() {
 		setDemoIndex((demoIndex() + 1) % DEMO_EVENTS.length);
 	}
 
 	return (
-		<>
-			<Title>Alertbox Widget - Streampai</Title>
-			<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-				<div class="mb-8">
-					<h1 class={text.h1}>Alertbox Widget Settings</h1>
-					<p class={`${text.body} mt-2`}>
-						Configure alert notifications for donations, follows, subscriptions,
-						and raids.
-					</p>
-				</div>
-				<Show when={!loading()} fallback={<div>Loading...</div>}>
-					<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<div class={card.default}>
-							<h2 class={`${text.h2} mb-6`}>Configuration</h2>
-							<div class="space-y-6">
-								<div>
-									<label class="mb-2 block">
-										<span class={text.label}>Animation Type</span>
-										<select
-											class={`${input.select} mt-1`}
-											value={config().animationType}
-											onChange={(e) =>
-												updateConfig(
-													"animationType",
-													e.target.value as AlertConfig["animationType"],
-												)
-											}>
-											<option value="fade">Fade</option>
-											<option value="slide">Slide</option>
-											<option value="bounce">Bounce</option>
-										</select>
-									</label>
-								</div>
-								<div>
-									<label class="mb-2 block">
-										<span class={text.label}>Alert Position</span>
-										<select
-											class={`${input.select} mt-1`}
-											value={config().alertPosition}
-											onChange={(e) =>
-												updateConfig(
-													"alertPosition",
-													e.target.value as AlertConfig["alertPosition"],
-												)
-											}>
-											<option value="top">Top</option>
-											<option value="center">Center</option>
-											<option value="bottom">Bottom</option>
-										</select>
-									</label>
-								</div>
-								<div>
-									<label class="mb-2 block">
-										<span class={text.label}>Display Duration (seconds)</span>
-										<input
-											type="number"
-											class={`${input.text} mt-1`}
-											value={config().displayDuration}
-											onInput={(e) =>
-												updateConfig(
-													"displayDuration",
-													parseInt(e.target.value, 10) || 5,
-												)
-											}
-											min="1"
-											max="30"
-										/>
-									</label>
-								</div>
-								<div class="space-y-3">
-									<label class="flex items-center">
-										<input
-											type="checkbox"
-											checked={config().showAmount}
-											onChange={(e) =>
-												updateConfig("showAmount", e.target.checked)
-											}
-											class="mr-2"
-										/>
-										<span>Show Amount (for donations/raids)</span>
-									</label>
-									<label class="flex items-center">
-										<input
-											type="checkbox"
-											checked={config().showMessage}
-											onChange={(e) =>
-												updateConfig("showMessage", e.target.checked)
-											}
-											class="mr-2"
-										/>
-										<span>Show Message</span>
-									</label>
-								</div>
-								<div class="border-gray-200 border-t pt-4">
-									<button
-										type="button"
-										class={button.primary}
-										onClick={handleSave}
-										disabled={saving()}>
-										{saving() ? "Saving..." : "Save Configuration"}
-									</button>
-									<Show when={saveMessage()}>
-										<p class="mt-2 text-green-600 text-sm">{saveMessage()}</p>
-									</Show>
-								</div>
-							</div>
-						</div>
-						<div class="space-y-6">
-							<div class={card.default}>
-								<h2 class={`${text.h2} mb-4`}>Preview</h2>
-								<button
-									type="button"
-									class={`${button.secondary} mb-4`}
-									onClick={cycleDemoEvent}>
-									Show Next Alert Type
-								</button>
-								<div
-									class="rounded-lg bg-gray-900 p-8"
-									style={{ height: "400px" }}>
-									<AlertboxWidget
-										config={config()}
-										event={DEMO_EVENTS[demoIndex()]}
-									/>
-								</div>
-							</div>
-							<div class={card.default}>
-								<h2 class={`${text.h3} mb-3`}>OBS Browser Source</h2>
-								<div class="rounded border border-gray-300 bg-gray-100 p-3">
-									<code class="break-all text-sm">
-										{window.location.origin}/w/alertbox/{userId()}
-									</code>
-								</div>
-							</div>
-						</div>
-					</div>
-				</Show>
+		<div>
+			<button type="button" class={`${button.secondary} mb-4`} onClick={cycleDemoEvent}>
+				Show Next Alert Type
+			</button>
+			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "400px" }}>
+				<AlertboxWidget config={props.config} event={DEMO_EVENTS[demoIndex()]} />
 			</div>
-		</>
+		</div>
+	);
+}
+
+export default function AlertboxWidgetSettings() {
+	return (
+		<WidgetSettingsPage
+			title="Alertbox Widget Settings"
+			description="Configure alert notifications for donations, follows, subscriptions, and raids"
+			widgetType="alertbox_widget"
+			widgetUrlPath="alertbox"
+			schema={alertboxSchema}
+			meta={alertboxMeta}
+			PreviewComponent={AlertboxWidget}
+			previewWrapper={AlertboxPreviewWrapper}
+			obsSettings={{ width: 800, height: 600 }}
+		/>
 	);
 }
