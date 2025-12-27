@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
+import EventIcon from "~/components/EventIcon";
 import {
 	Skeleton,
 	SkeletonListItem,
@@ -24,91 +25,6 @@ import { text } from "~/styles/design-system";
 import Card from "~/components/ui/Card";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
-
-function getEventIcon(type: string) {
-	switch (type) {
-		case "donation":
-			return (
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
-			);
-		case "follow":
-			return (
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-					/>
-				</svg>
-			);
-		case "subscription":
-			return (
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-					/>
-				</svg>
-			);
-		case "raid":
-			return (
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-					/>
-				</svg>
-			);
-		default:
-			return (
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 10V3L4 14h7v7l9-11h-7z"
-					/>
-				</svg>
-			);
-	}
-}
 
 function getStreamStatusBadgeVariant(
 	status: string,
@@ -788,7 +704,7 @@ function ActivityFeed(props: {
 								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
 									<div
 										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
-										{getEventIcon(event.type)}
+										<EventIcon type={event.type} />
 									</div>
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2">
@@ -1157,7 +1073,7 @@ export default function Dashboard() {
 													<div class="flex items-center gap-3">
 														<div
 															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
-															{getEventIcon(event.type)}
+															<EventIcon type={event.type} />
 														</div>
 														<div class="min-w-0 flex-1">
 															<div class="flex items-center gap-2">

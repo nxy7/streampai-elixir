@@ -1,4 +1,5 @@
 import { For, Show } from "solid-js";
+import { getFontClass } from "~/lib/widgetHelpers";
 
 interface Platform {
 	icon: string;
@@ -31,16 +32,7 @@ interface ChatWidgetProps {
 }
 
 export default function ChatWidget(props: ChatWidgetProps) {
-	const fontClass = () => {
-		switch (props.config.fontSize) {
-			case "small":
-				return "text-xs";
-			case "large":
-				return "text-lg";
-			default:
-				return "text-sm";
-		}
-	};
+	const fontClass = () => getFontClass(props.config.fontSize, "standard");
 
 	const displayMessages = () => {
 		const msgs = props.messages || [];
