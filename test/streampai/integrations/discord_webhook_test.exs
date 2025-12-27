@@ -5,7 +5,7 @@ defmodule Streampai.Integrations.DiscordWebhookTest do
   These tests verify the resource CRUD operations and policies.
   For Discord API integration tests, see discord_integration_test.exs
   """
-  use Streampai.DataCase, async: true
+  use Streampai.DataCase, async: false
 
   alias Streampai.Integrations.DiscordWebhook
 
@@ -242,14 +242,22 @@ defmodule Streampai.Integrations.DiscordWebhookTest do
 
   # Helper to generate a user for testing
   defp generate_user do
+    unique_id = System.unique_integer([:positive])
+    email = "test_#{unique_id}@example.com"
+    username = "TestUser#{unique_id}"
+
     {:ok, user} =
       Streampai.Accounts.User
-      |> Ash.Changeset.for_create(:register_with_oauth, %{
-        provider: :google,
-        uid: "test_#{System.unique_integer([:positive])}",
-        provider_token: "fake_token",
-        email: "test_#{System.unique_integer([:positive])}@example.com",
-        email_verified: true
+      |> Ash.Changeset.for_create(:register_with_google, %{
+        user_info: %{
+          "email" => email,
+          "email_verified" => true,
+          "preferred_username" => username
+        },
+        oauth_tokens: %{
+          "access_token" => "fake_token",
+          "refresh_token" => "fake_refresh_token"
+        }
       })
       |> Ash.create(authorize?: false)
 
