@@ -5,10 +5,19 @@ import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import Input, { Select, Textarea } from "~/components/ui/Input";
+import { LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
-import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
+import {
+	createNotificationWithLocalizations,
+	deleteNotification,
+} from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
+
+type LocalizationEntry = {
+	locale: Locale;
+	content: string;
+};
 
 export default function AdminNotifications() {
 	const navigate = useNavigate();
@@ -25,6 +34,31 @@ export default function AdminNotifications() {
 	>("global");
 	const [targetUserId, setTargetUserId] = createSignal("");
 	const [creating, setCreating] = createSignal(false);
+	const [showLocalizations, setShowLocalizations] = createSignal(false);
+	const [localizations, setLocalizations] = createSignal<LocalizationEntry[]>(
+		[],
+	);
+
+	// Get locales that haven't been added yet (excluding 'en' as it's the default content)
+	const availableLocales = () =>
+		SUPPORTED_LOCALES.filter(
+			(locale) =>
+				locale !== "en" && !localizations().some((l) => l.locale === locale),
+		);
+
+	const addLocalization = (locale: Locale) => {
+		setLocalizations([...localizations(), { locale, content: "" }]);
+	};
+
+	const removeLocalization = (locale: Locale) => {
+		setLocalizations(localizations().filter((l) => l.locale !== locale));
+	};
+
+	const updateLocalizationContent = (locale: Locale, content: string) => {
+		setLocalizations(
+			localizations().map((l) => (l.locale === locale ? { ...l, content } : l)),
+		);
+	};
 
 	const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
 	const [notificationToDelete, setNotificationToDelete] =
@@ -42,6 +76,8 @@ export default function AdminNotifications() {
 		setNotificationContent("");
 		setNotificationType("global");
 		setTargetUserId("");
+		setLocalizations([]);
+		setShowLocalizations(false);
 		setShowCreateModal(true);
 		setError(null);
 		setSuccessMessage(null);
@@ -51,6 +87,8 @@ export default function AdminNotifications() {
 		setShowCreateModal(false);
 		setNotificationContent("");
 		setTargetUserId("");
+		setLocalizations([]);
+		setShowLocalizations(false);
 	};
 
 	const handleCreate = async () => {
@@ -69,12 +107,26 @@ export default function AdminNotifications() {
 		setError(null);
 
 		try {
-			const input: { content: string; userId?: string | null } = { content };
+			// Filter out empty localizations and format for API
+			const validLocalizations = localizations()
+				.filter((l) => l.content.trim())
+				.map((l) => ({ locale: l.locale, content: l.content.trim() }));
+
+			const input: {
+				content: string;
+				userId?: string | null;
+				localizations?: Array<{ locale: string; content: string }>;
+			} = { content };
+
 			if (notificationType() === "user") {
 				input.userId = targetUserId().trim();
 			}
 
-			const result = await createNotification({
+			if (validLocalizations.length > 0) {
+				input.localizations = validLocalizations;
+			}
+
+			const result = await createNotificationWithLocalizations({
 				input,
 				fields: ["id", "content", "userId", "insertedAt"],
 				fetchOptions: { credentials: "include" },
@@ -386,16 +438,122 @@ export default function AdminNotifications() {
 
 									<div>
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
-											Content <span class="text-red-500">*</span>
+											Content (English - Default){" "}
+											<span class="text-red-500">*</span>
 											<Textarea
 												value={notificationContent()}
 												onInput={(e) =>
 													setNotificationContent(e.currentTarget.value)
 												}
-												rows={4}
+												rows={3}
 												placeholder="Enter notification message..."
 											/>
 										</label>
+									</div>
+
+									{/* Localizations Section */}
+									<div class="border-gray-200 border-t pt-4">
+										<button
+											type="button"
+											onClick={() => setShowLocalizations(!showLocalizations())}
+											class="flex w-full items-center justify-between text-left">
+											<span class="font-medium text-gray-700 text-sm">
+												Translations (Optional)
+											</span>
+											<svg
+												aria-hidden="true"
+												class={`h-5 w-5 text-gray-500 transition-transform ${showLocalizations() ? "rotate-180" : ""}`}
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24">
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M19 9l-7 7-7-7"
+												/>
+											</svg>
+										</button>
+										<p class={`${text.helper} mt-1`}>
+											Add translations for users with different language
+											preferences
+										</p>
+
+										<Show when={showLocalizations()}>
+											<div class="mt-3 space-y-3">
+												{/* Existing localizations */}
+												<For each={localizations()}>
+													{(loc) => (
+														<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+															<div class="mb-2 flex items-center justify-between">
+																<span class="font-medium text-gray-700 text-sm">
+																	{LOCALE_NAMES[loc.locale]}
+																</span>
+																<button
+																	type="button"
+																	onClick={() => removeLocalization(loc.locale)}
+																	class="text-red-500 hover:text-red-700"
+																	title="Remove translation">
+																	<svg
+																		aria-hidden="true"
+																		class="h-4 w-4"
+																		fill="none"
+																		stroke="currentColor"
+																		viewBox="0 0 24 24">
+																		<path
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			stroke-width="2"
+																			d="M6 18L18 6M6 6l12 12"
+																		/>
+																	</svg>
+																</button>
+															</div>
+															<Textarea
+																value={loc.content}
+																onInput={(e) =>
+																	updateLocalizationContent(
+																		loc.locale,
+																		e.currentTarget.value,
+																	)
+																}
+																rows={2}
+																placeholder={`Enter ${LOCALE_NAMES[loc.locale]} translation...`}
+															/>
+														</div>
+													)}
+												</For>
+
+												{/* Add new localization */}
+												<Show when={availableLocales().length > 0}>
+													<div class="flex items-center gap-2">
+														<Select
+															onChange={(e) => {
+																const locale = e.currentTarget.value as Locale;
+																if (locale) {
+																	addLocalization(locale);
+																	e.currentTarget.value = "";
+																}
+															}}>
+															<option value="">Add translation...</option>
+															<For each={availableLocales()}>
+																{(locale) => (
+																	<option value={locale}>
+																		{LOCALE_NAMES[locale]}
+																	</option>
+																)}
+															</For>
+														</Select>
+													</div>
+												</Show>
+
+												<Show when={availableLocales().length === 0}>
+													<p class="text-center text-gray-500 text-sm">
+														All available languages have been added
+													</p>
+												</Show>
+											</div>
+										</Show>
 									</div>
 								</div>
 

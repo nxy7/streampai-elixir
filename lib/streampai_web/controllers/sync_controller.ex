@@ -112,6 +112,22 @@ defmodule StreampaiWeb.SyncController do
     )
   end
 
+  def notification_localizations(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    sync_render(conn, params,
+      table: "notification_localizations",
+      where: "false"
+    )
+  end
+
+  def notification_localizations(conn, %{"user_id" => user_id} = params) do
+    # Syncs localizations for notifications visible to a user (global + user-specific)
+    sync_render(conn, params,
+      table: "notification_localizations",
+      where: "notification_id IN (SELECT id FROM notifications WHERE user_id IS NULL OR user_id = '#{user_id}')"
+    )
+  end
+
   def user_roles(conn, %{"user_id" => "_empty"} = params) do
     # Return empty result for placeholder requests (no logged in user)
     sync_render(conn, params,
