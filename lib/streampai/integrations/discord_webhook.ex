@@ -178,7 +178,11 @@ defmodule Streampai.Integrations.DiscordWebhook do
       authorize_if expr(user_id == ^actor(:id))
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action_type(:create) do
+      authorize_if actor_present()
+    end
+
+    policy action_type([:update, :destroy]) do
       authorize_if expr(user_id == ^actor(:id))
     end
 
