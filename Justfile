@@ -31,7 +31,7 @@ dev:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
-	# Load environment variables (using set -a to auto-export)
+	# Load environment variables
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$')
 	set +a
@@ -40,7 +40,19 @@ dev:
 	PHOENIX_PORT=${PORT:-4000}
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
-	HMR_PORT=${HMR_PORT:-24678}
+
+	# Determine worktree name for Electric slot cleanup
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		WORKTREE_NAME="$parent_dir"
+	else
+		WORKTREE_NAME="$current_dir"
+	fi
+	SLOT_PREFIX="electric_slot_streampai_$(echo "$WORKTREE_NAME" | tr '-' '_' | cut -c1-30)"
+
+	# Set terminal title to show ports (visible in terminal tab/title bar)
+	echo -ne "\033]0;Streampai | Phoenix:$PHOENIX_PORT | Caddy:$CADDY_PORT\007"
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
@@ -49,8 +61,12 @@ dev:
 	echo ""
 	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
 	echo ""
+	echo "💡 Tips:"
+	echo "   overmind connect <service>  - attach to a service (phoenix, frontend, caddy)"
+	echo "   Ctrl+C                      - stop all services"
+	echo ""
 
-	# Check if caddy is installed
+	# Check required tools
 	if ! command -v caddy &> /dev/null; then
 		echo "❌ Caddy is not installed. Please install it:"
 		echo "   brew install caddy"
@@ -58,28 +74,36 @@ dev:
 		exit 1
 	fi
 
-	# Ensure dependencies are installed
+	if ! command -v overmind &> /dev/null; then
+		echo "❌ Overmind is not installed. Enter nix shell:"
+		echo "   nix develop"
+		exit 1
+	fi
+
+	# Ensure dependencies are installed (in parallel)
 	echo "📦 Checking dependencies..."
-	mix deps.get --check-unused 2>/dev/null || mix deps.get
-	cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install
-	cd ..
-
-	# Start all services in parallel
-	trap 'kill $(jobs -p) 2>/dev/null' EXIT
-
-	# Start Phoenix (PORT is already set from .env, sname includes port for uniqueness)
-	elixir -S mix phx.server &
-
-	# Start Frontend (override PORT for Vinxi, which reads it for dev server)
-	cd frontend && PORT=$FRONTEND_PORT bun dev &
-
-	# Wait a bit for services to start
-	sleep 2
-
-	# Start Caddy (reads PHOENIX_PORT, FRONTEND_PORT, CADDY_PORT from env)
-	caddy run --config Caddyfile
-
+	(mix deps.get --check-unused 2>/dev/null || mix deps.get) &
+	(cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install) &
 	wait
+	echo "📦 Dependencies ready"
+	echo ""
+
+	# Cleanup function to drop replication slot after overmind exits
+	cleanup() {
+		echo ""
+		echo "🧹 Cleaning up Electric replication slot..."
+		sleep 2
+		PGPASSWORD=postgres psql -U postgres -h localhost -c \
+			"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE '${SLOT_PREFIX}%';" \
+			2>/dev/null || true
+		echo "✅ Cleanup complete"
+	}
+
+	trap cleanup EXIT
+
+	# Use overmind to manage processes (provides tmux-based log separation)
+	# -N disables overmind's automatic PORT assignment which conflicts with ours
+	overmind start -f Procfile.dev -N
 
 caddy:
 	#!/usr/bin/env bash
@@ -112,6 +136,12 @@ worktree name:
 worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
+
+	# Allow direnv for this worktree to load flake.nix dependencies
+	if command -v direnv &> /dev/null; then
+		echo "🔧 Allowing direnv for this worktree..."
+		direnv allow .
+	fi
 
 	# Detect worktree name: use parent dir if in vibe-kanban structure, otherwise current dir
 	current_dir=$(pwd | awk -F/ '{print $NF}')
@@ -225,6 +255,46 @@ worktree-setup:
 	echo "   Run 'just si' to start without Caddy"
 
 	claude --dangerously-skip-permissions .
+
+# Clean up orphaned Electric replication slots
+cleanup-slots:
+	#!/usr/bin/env bash
+	echo "🔍 Checking for orphaned Electric replication slots..."
+	slots=$(PGPASSWORD=postgres psql -U postgres -h localhost -t -c \
+		"SELECT slot_name FROM pg_replication_slots WHERE active = false AND slot_name LIKE 'electric_slot_%';" 2>/dev/null | tr -d ' ')
+	if [ -z "$slots" ]; then
+		echo "✅ No orphaned slots found"
+	else
+		echo "Found orphaned slots:"
+		echo "$slots" | while read slot; do
+			[ -n "$slot" ] && echo "  - $slot"
+		done
+		echo ""
+		echo "Dropping orphaned slots..."
+		PGPASSWORD=postgres psql -U postgres -h localhost -c \
+			"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE 'electric_slot_%';" \
+			>/dev/null 2>&1
+		echo "✅ Orphaned slots cleaned up"
+	fi
+
+# Clean up current worktree's Electric replication slot
+cleanup-worktree-slot:
+	#!/usr/bin/env bash
+	# Determine worktree name
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		name="$parent_dir"
+	else
+		name="$current_dir"
+	fi
+	SLOT_PREFIX="electric_slot_streampai_$(echo "$name" | tr '-' '_' | cut -c1-30)"
+	echo "🧹 Cleaning up Electric slot for worktree: $name"
+	echo "   Slot prefix: $SLOT_PREFIX"
+	PGPASSWORD=postgres psql -U postgres -h localhost -c \
+		"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE '${SLOT_PREFIX}%';" \
+		2>/dev/null || echo "No matching slots found"
+	echo "✅ Done"
 
 # Show port configuration for current worktree
 ports:

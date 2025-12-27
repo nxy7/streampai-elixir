@@ -1,9 +1,71 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, For, Show } from "solid-js";
 import Button from "~/components/ui/Button";
+import { Skeleton } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";
 import { badge, button, card, text } from "~/styles/design-system";
+
+// Skeleton for stream page loading state
+function StreamPageSkeleton() {
+	return (
+		<div class="mx-auto max-w-7xl space-y-6">
+			{/* Stream Status Card skeleton */}
+			<div class={card.default}>
+				<div class="mb-6 flex items-center justify-between">
+					<div>
+						<Skeleton class="mb-2 h-8 w-40" />
+						<Skeleton class="h-4 w-56" />
+					</div>
+					<Skeleton class="h-6 w-20 rounded-full" />
+				</div>
+
+				{/* Stream Metadata skeleton */}
+				<div class="mb-6 space-y-4">
+					<div>
+						<Skeleton class="mb-2 h-4 w-24" />
+						<Skeleton class="h-10 w-full rounded-lg" />
+					</div>
+					<div>
+						<Skeleton class="mb-2 h-4 w-20" />
+						<Skeleton class="h-20 w-full rounded-lg" />
+					</div>
+				</div>
+
+				{/* Stream Controls skeleton */}
+				<div class="flex items-center space-x-3">
+					<Skeleton class="h-10 w-24 rounded-lg" />
+					<Skeleton class="h-10 w-36 rounded-lg" />
+				</div>
+			</div>
+
+			{/* Platform Connections skeleton */}
+			<div class={card.default}>
+				<div class="mb-6">
+					<Skeleton class="mb-2 h-6 w-44" />
+					<Skeleton class="h-4 w-64" />
+				</div>
+
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center space-x-3">
+									<Skeleton class="h-10 w-10 rounded-lg" />
+									<div>
+										<Skeleton class="mb-1 h-5 w-20" />
+										<Skeleton class="h-3 w-24" />
+									</div>
+								</div>
+								<Skeleton class="h-9 w-20 rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 type PlatformConnection = {
 	platform: string;
@@ -54,13 +116,7 @@ export default function Stream() {
 	return (
 		<>
 			<Title>Stream - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<StreamPageSkeleton />}>
 				<Show
 					when={user()}
 					fallback={

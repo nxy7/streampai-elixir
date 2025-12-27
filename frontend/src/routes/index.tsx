@@ -9,7 +9,7 @@ const navItems = [
 ];
 
 function LandingNavigation() {
-	const { user } = useCurrentUser();
+	const { user, isLoading: isUserLoading } = useCurrentUser();
 	const [mobileMenuOpen, setMobileMenuOpen] = createSignal(false);
 
 	return (
@@ -35,20 +35,22 @@ function LandingNavigation() {
 								{item.label}
 							</a>
 						))}
-						<Show
-							when={user()}
-							fallback={
-								<a
-									href={getLoginUrl()}
+						<Show when={!isUserLoading()}>
+							<Show
+								when={user()}
+								fallback={
+									<a
+										href={getLoginUrl()}
+										class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600">
+										Get Started
+									</a>
+								}>
+								<A
+									href={getDashboardUrl()}
 									class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600">
-									Get Started
-								</a>
-							}>
-							<A
-								href={getDashboardUrl()}
-								class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600">
-								Dashboard
-							</A>
+									Dashboard
+								</A>
+							</Show>
 						</Show>
 					</div>
 
@@ -84,23 +86,25 @@ function LandingNavigation() {
 									{item.label}
 								</a>
 							))}
-							<div class="pt-2">
-								<Show
-									when={user()}
-									fallback={
-										<a
-											href={getLoginUrl()}
+							<Show when={!isUserLoading()}>
+								<div class="pt-2">
+									<Show
+										when={user()}
+										fallback={
+											<a
+												href={getLoginUrl()}
+												class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600">
+												Get Started
+											</a>
+										}>
+										<A
+											href={getDashboardUrl()}
 											class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600">
-											Get Started
-										</a>
-									}>
-									<A
-										href={getDashboardUrl()}
-										class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600">
-										Dashboard
-									</A>
-								</Show>
-							</div>
+											Dashboard
+										</A>
+									</Show>
+								</div>
+							</Show>
 						</div>
 					</div>
 				</Show>

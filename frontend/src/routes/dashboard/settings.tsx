@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
 import Button from "~/components/ui/Button";
+import { Skeleton } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";
 import {
@@ -27,6 +28,81 @@ import {
 } from "~/sdk/ash_rpc";
 
 type UserInfo = { id: string; name: string; displayAvatar: string | null };
+
+// Skeleton for settings page
+function SettingsPageSkeleton() {
+	return (
+		<div class="mx-auto max-w-6xl space-y-6">
+			{/* Plan Banner skeleton */}
+			<Skeleton class="h-24 w-full rounded-lg" />
+
+			{/* Account Settings skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-36" />
+				<div class="space-y-6">
+					{/* Profile section */}
+					<div class="flex items-center space-x-4">
+						<Skeleton class="h-16 w-16 shrink-0" circle />
+						<div class="flex-1 space-y-2">
+							<Skeleton class="h-4 w-32" />
+							<Skeleton class="h-9 w-32 rounded-lg" />
+						</div>
+					</div>
+					{/* Display Name */}
+					<div class="space-y-2">
+						<Skeleton class="h-4 w-24" />
+						<div class="flex gap-3">
+							<Skeleton class="h-10 flex-1 rounded-lg" />
+							<Skeleton class="h-10 w-24 rounded-lg" />
+						</div>
+					</div>
+					{/* Notifications */}
+					<div class="flex items-center justify-between">
+						<div class="space-y-1">
+							<Skeleton class="h-5 w-36" />
+							<Skeleton class="h-4 w-64" />
+						</div>
+						<Skeleton class="h-6 w-12 rounded-full" />
+					</div>
+				</div>
+			</div>
+
+			{/* Donation Settings skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-36" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-2 h-4 w-28" />
+								<Skeleton class="h-10 w-full rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+				<Skeleton class="mt-4 h-10 w-36 rounded-lg" />
+			</div>
+
+			{/* Platform Connections skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-44" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center space-x-3">
+									<Skeleton class="h-10 w-10 rounded-lg" />
+									<Skeleton class="h-5 w-20" />
+								</div>
+								<Skeleton class="h-9 w-20 rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 export default function Settings() {
 	const { user, isLoading } = useCurrentUser();
@@ -559,13 +635,7 @@ export default function Settings() {
 	return (
 		<>
 			<Title>Settings - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<SettingsPageSkeleton />}>
 				<Show
 					when={user()}
 					fallback={

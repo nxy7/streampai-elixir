@@ -8,13 +8,55 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
-import LoadingIndicator from "~/components/LoadingIndicator";
+import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getChatHistory } from "~/sdk/ash_rpc";
 import { badge, card, input, text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type DateRange = "7days" | "30days" | "3months" | "";
+
+// Skeleton for chat history page
+function ChatHistorySkeleton() {
+	return (
+		<div class="mx-auto max-w-6xl space-y-6">
+			{/* Filters skeleton */}
+			<div class={card.default}>
+				<Skeleton class="mb-4 h-6 w-20" />
+				<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+					<For each={[1, 2, 3]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-2 h-4 w-20" />
+								<Skeleton class="h-10 w-full rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+
+			{/* Messages skeleton */}
+			<div class={card.default}>
+				<Skeleton class="mb-4 h-6 w-24" />
+				<div class="space-y-3">
+					<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
+						{() => (
+							<div class="rounded-lg border border-gray-200 p-4">
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<Skeleton class="h-5 w-24" />
+									<Skeleton class="h-5 w-16 rounded-full" />
+									<Skeleton class="h-4 w-32" />
+								</div>
+								<Skeleton class="h-4 w-full" />
+								<Skeleton class="mt-1 h-4 w-2/3" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 const chatMessageFields: (
 	| "id"
@@ -93,7 +135,7 @@ export default function ChatHistory() {
 							</div>
 						</div>
 					)}>
-					<Suspense fallback={<LoadingIndicator />}>
+					<Suspense fallback={<ChatHistorySkeleton />}>
 						<ChatHistoryContent
 							userId={user()?.id}
 							platform={platform}

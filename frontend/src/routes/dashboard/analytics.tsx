@@ -16,6 +16,9 @@ import {
 	CardHeader,
 	CardTitle,
 	ProgressBar,
+	Skeleton,
+	SkeletonChart,
+	SkeletonTableRow,
 	Stat,
 	StatGroup,
 } from "~/components/ui";
@@ -23,6 +26,73 @@ import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
+
+// Skeleton for analytics page loading state
+function AnalyticsSkeleton() {
+	return (
+		<div class="space-y-6">
+			{/* Header skeleton */}
+			<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+				<div>
+					<Skeleton class="mb-2 h-8 w-48" />
+					<Skeleton class="h-4 w-72" />
+				</div>
+				<Skeleton class="h-10 w-40 rounded-md" />
+			</div>
+
+			{/* Charts skeleton */}
+			<Card>
+				<SkeletonChart />
+			</Card>
+
+			<Card>
+				<div class="space-y-4">
+					<Skeleton class="h-5 w-40" />
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="space-y-2">
+								<div class="flex items-center justify-between">
+									<Skeleton class="h-4 w-20" />
+									<Skeleton class="h-4 w-12" />
+								</div>
+								<Skeleton class="h-2 w-full rounded-full" />
+							</div>
+						)}
+					</For>
+				</div>
+			</Card>
+
+			{/* Table skeleton */}
+			<Card>
+				<CardHeader>
+					<Skeleton class="h-6 w-32" />
+				</CardHeader>
+				<CardContent>
+					<div class="-mx-6 overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<For each={[1, 2, 3, 4, 5, 6]}>
+										{() => (
+											<th class="px-6 py-3">
+												<Skeleton class="h-4 w-20" />
+											</th>
+										)}
+									</For>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-gray-200 bg-white">
+								<For each={[1, 2, 3, 4, 5]}>
+									{() => <SkeletonTableRow columns={6} />}
+								</For>
+							</tbody>
+						</table>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
 
 interface ViewerDataPoint {
 	time: Date;
@@ -306,13 +376,7 @@ export default function Analytics() {
 	return (
 		<>
 			<Title>Analytics - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<AnalyticsSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
@@ -363,10 +427,54 @@ export default function Analytics() {
 						<Show
 							when={!isLoadingStreams()}
 							fallback={
-								<div class="py-12 text-center">
-									<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
-									<p class="mt-4 text-gray-600">Loading analytics...</p>
-								</div>
+								<>
+									<Card>
+										<SkeletonChart />
+									</Card>
+									<Card>
+										<div class="space-y-4">
+											<Skeleton class="h-5 w-40" />
+											<For each={[1, 2, 3, 4]}>
+												{() => (
+													<div class="space-y-2">
+														<div class="flex items-center justify-between">
+															<Skeleton class="h-4 w-20" />
+															<Skeleton class="h-4 w-12" />
+														</div>
+														<Skeleton class="h-2 w-full rounded-full" />
+													</div>
+												)}
+											</For>
+										</div>
+									</Card>
+									<Card>
+										<CardHeader>
+											<Skeleton class="h-6 w-32" />
+										</CardHeader>
+										<CardContent>
+											<div class="-mx-6 overflow-x-auto">
+												<table class="min-w-full divide-y divide-gray-200">
+													<thead class="bg-gray-50">
+														<tr>
+															<For each={[1, 2, 3, 4, 5, 6]}>
+																{() => (
+																	<th class="px-6 py-3">
+																		<Skeleton class="h-4 w-20" />
+																	</th>
+																)}
+															</For>
+														</tr>
+													</thead>
+													<tbody class="divide-y divide-gray-200 bg-white">
+														<For each={[1, 2, 3, 4, 5]}>
+															{() => <SkeletonTableRow columns={6} />}
+														</For>
+													</tbody>
+												</table>
+											</div>
+										</CardContent>
+									</Card>
+								</>
 							}>
 							<div class="grid grid-cols-1 gap-6">
 								<LineChart title="Viewer Trends" data={viewerData()} />
