@@ -45,13 +45,15 @@ defmodule Streampai.Integrations.Discord.BotManager do
   Fetches guilds (servers) the bot has access to.
   """
   def fetch_guilds(%DiscordActor{} = actor) do
+    bot_token = DiscordActor.get_bot_token(actor)
+
     case get_bot_pid(actor.id) do
       {:ok, pid} ->
         GenServer.call(pid, :fetch_guilds)
 
       {:error, :not_running} ->
         # Try to fetch directly using the token
-        fetch_guilds_direct(actor.bot_token)
+        fetch_guilds_direct(bot_token)
     end
   end
 
@@ -59,12 +61,14 @@ defmodule Streampai.Integrations.Discord.BotManager do
   Fetches channels for a specific guild.
   """
   def fetch_channels(%DiscordActor{} = actor, guild_id) do
+    bot_token = DiscordActor.get_bot_token(actor)
+
     case get_bot_pid(actor.id) do
       {:ok, pid} ->
         GenServer.call(pid, {:fetch_channels, guild_id})
 
       {:error, :not_running} ->
-        fetch_channels_direct(actor.bot_token, guild_id)
+        fetch_channels_direct(bot_token, guild_id)
     end
   end
 
@@ -72,8 +76,10 @@ defmodule Streampai.Integrations.Discord.BotManager do
   Sends a message to the configured announcement channel.
   """
   def send_announcement(%DiscordActor{} = actor, content, opts \\ []) do
-    if actor.announcement_channel_id do
-      send_message(actor, actor.announcement_channel_id, content, opts)
+    channel_id = Map.get(actor.data || %{}, "announcement_channel_id")
+
+    if channel_id do
+      send_message(actor, channel_id, content, opts)
     else
       {:error, :no_channel_configured}
     end
@@ -84,13 +90,14 @@ defmodule Streampai.Integrations.Discord.BotManager do
   """
   def send_message(%DiscordActor{} = actor, channel_id, content, opts \\ []) do
     embeds = Keyword.get(opts, :embeds, [])
+    bot_token = DiscordActor.get_bot_token(actor)
 
     case get_bot_pid(actor.id) do
       {:ok, pid} ->
         GenServer.call(pid, {:send_message, channel_id, content, embeds})
 
       {:error, :not_running} ->
-        send_message_direct(actor.bot_token, channel_id, content, embeds)
+        send_message_direct(bot_token, channel_id, content, embeds)
     end
   end
 
@@ -183,7 +190,7 @@ defmodule Streampai.Integrations.Discord.BotManager do
     end
   end
 
-  defp update_actor_status(actor_id, status, error \\ nil) do
+  defp update_actor_status(actor_id, status, error) do
     case Ash.get(DiscordActor, actor_id, authorize?: false) do
       {:ok, actor} ->
         attrs =

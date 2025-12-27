@@ -29,9 +29,11 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   def init(actor) do
     Logger.info("Starting Discord bot worker for actor #{actor.id}")
 
+    bot_token = DiscordActor.get_bot_token(actor)
+
     state = %{
       actor_id: actor.id,
-      bot_token: actor.bot_token,
+      bot_token: bot_token,
       status: :connecting,
       guilds: [],
       channels: %{}
@@ -207,14 +209,9 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   defp update_actor_state(actor_id, guilds, channels) do
     case Ash.get(DiscordActor, actor_id, authorize?: false) do
       {:ok, actor} ->
-        new_state = %{
-          "guilds" => guilds,
-          "channels" => channels
-        }
-
         Ash.update(
           actor,
-          %{actor_state: new_state, status: :connected, last_synced_at: DateTime.utc_now()},
+          %{guilds: guilds, channels: channels, last_synced_at: DateTime.utc_now()},
           action: :update_actor_state,
           authorize?: false
         )
@@ -240,7 +237,7 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   defp increment_message_count(actor_id) do
     case Ash.get(DiscordActor, actor_id, authorize?: false) do
       {:ok, actor} ->
-        Ash.update(actor, %{messages_sent: actor.messages_sent + 1},
+        Ash.update(actor, %{},
           action: :record_message_sent,
           authorize?: false
         )

@@ -2,11 +2,16 @@ defmodule Streampai.Integrations do
   @moduledoc """
   Domain for third-party integrations (PayPal, Stripe, etc.) and donations.
   """
-  use Ash.Domain
+  use Ash.Domain, extensions: [AshTypescript.Rpc]
 
   resources do
     resource Streampai.Integrations.PayPalConnection
     resource Streampai.Integrations.Donation
+    resource Streampai.Integrations.DiscordWebhook
+    resource Streampai.Integrations.DiscordActor
+  end
+
+  typescript_rpc do
     resource Streampai.Integrations.DiscordWebhook
     resource Streampai.Integrations.DiscordActor
   end

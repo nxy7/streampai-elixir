@@ -28,7 +28,6 @@ defmodule Streampai.Integrations.DiscordIntegrationTest do
   """
   use ExUnit.Case, async: false
 
-  alias Streampai.Integrations.Discord.BotManager
   alias Streampai.Integrations.Discord.Client
 
   @moduletag :external
@@ -40,22 +39,7 @@ defmodule Streampai.Integrations.DiscordIntegrationTest do
   @webhook_url System.get_env("DISCORD_WEBHOOK_URL")
 
   setup do
-    # Skip if credentials not configured
-    if @bot_token do
-      :ok
-    else
-      skip_message = """
-      Discord integration tests require environment variables:
-        - DISCORD_BOT_TOKEN
-        - DISCORD_TEST_GUILD_ID
-        - DISCORD_TEST_CHANNEL_ID
-        - DISCORD_WEBHOOK_URL
-
-      Set these and run: mix test test/streampai/integrations/discord_integration_test.exs --include external
-      """
-
-      {:skip, skip_message}
-    end
+    :ok
   end
 
   describe "Bot API - fetch guilds" do

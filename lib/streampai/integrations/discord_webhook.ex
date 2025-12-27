@@ -22,6 +22,8 @@ defmodule Streampai.Integrations.DiscordWebhook do
     table "discord_webhooks"
     repo Streampai.Repo
 
+    migration_defaults event_types: "nil"
+
     custom_indexes do
       index [:user_id], name: "idx_discord_webhooks_user_id"
       index [:is_enabled], name: "idx_discord_webhooks_enabled"

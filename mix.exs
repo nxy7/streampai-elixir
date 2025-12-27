@@ -91,7 +91,8 @@ defmodule Streampai.MixProject do
       {:electric, "~> 1.0"},
       {:phoenix_sync, "== 0.6.0"},
       # Discord bot integration for full bot functionality (join servers, list channels, send messages)
-      {:nostrum, "~> 0.10"}
+      # runtime: false prevents auto-start; we start it manually when DISCORD_BOT_TOKEN is configured
+      {:nostrum, "~> 0.10", runtime: false}
     ]
   end
 

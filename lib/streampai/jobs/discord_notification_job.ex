@@ -46,6 +46,10 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
           :ok
         end
 
+      {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} | _]}} ->
+        Logger.warning("Webhook not found, skipping notification", webhook_id: webhook_id)
+        :ok
+
       {:error, %Ash.Error.Query.NotFound{}} ->
         Logger.warning("Webhook not found, skipping notification", webhook_id: webhook_id)
         :ok

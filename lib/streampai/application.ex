@@ -16,6 +16,9 @@ defmodule Streampai.Application do
       run_migrations()
     end
 
+    # Start Nostrum only if Discord is configured
+    maybe_start_nostrum()
+
     children = [
       StreampaiWeb.Telemetry,
       Streampai.Repo,
@@ -40,6 +43,19 @@ defmodule Streampai.Application do
 
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp maybe_start_nostrum do
+    if Application.get_env(:streampai, :discord_enabled, false) do
+      Logger.info("Starting Nostrum (Discord bot)...")
+
+      case Application.ensure_all_started(:nostrum) do
+        {:ok, _} -> Logger.info("Nostrum started successfully")
+        {:error, reason} -> Logger.warning("Failed to start Nostrum: #{inspect(reason)}")
+      end
+    else
+      Logger.info("Discord bot disabled (DISCORD_BOT_TOKEN not configured)")
+    end
   end
 
   @impl true

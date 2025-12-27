@@ -129,6 +129,17 @@ config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
   client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
   redirect_uri: System.get_env("TWITCH_STREAMING_REDIRECT_URI")
 
+# Discord bot configuration (Nostrum)
+# Configure based on whether DISCORD_BOT_TOKEN is provided
+discord_token = System.get_env("DISCORD_BOT_TOKEN")
+
+config :nostrum,
+  token: discord_token || "not_configured",
+  gateway_intents: [:guilds, :guild_messages]
+
+# Store whether Discord is enabled for application startup decisions
+config :streampai, :discord_enabled, discord_token != nil
+
 # Set secret_key_base and port for development environment
 if config_env() == :dev do
   secret_key_base =

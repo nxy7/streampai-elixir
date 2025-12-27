@@ -19,11 +19,14 @@ defmodule Streampai.Jobs.DiscordNotificationJobTest do
 
       assert {:ok, job} = DiscordNotificationJob.schedule(webhook_id, event_type, data)
       assert job.worker == "Streampai.Jobs.DiscordNotificationJob"
-      assert job.args["webhook_id"] == webhook_id
-      assert job.args["event_type"] == "donation"
-      assert job.args["data"]["donor_name"] == "TestDonor"
-      assert job.args["data"]["amount"] == "10.00"
-      assert is_binary(job.args["event_id"])
+      # Oban converts atom keys to strings when storing in DB
+      assert job.args[:webhook_id] == webhook_id || job.args["webhook_id"] == webhook_id
+      assert job.args[:event_type] == "donation" || job.args["event_type"] == "donation"
+      data_args = job.args[:data] || job.args["data"]
+      assert data_args["donor_name"] == "TestDonor"
+      assert data_args["amount"] == "10.00"
+      event_id = job.args[:event_id] || job.args["event_id"]
+      assert is_binary(event_id)
     end
 
     test "uses provided event_id for deduplication" do
@@ -38,7 +41,8 @@ defmodule Streampai.Jobs.DiscordNotificationJobTest do
                  event_id: custom_event_id
                )
 
-      assert job.args["event_id"] == custom_event_id
+      event_id = job.args[:event_id] || job.args["event_id"]
+      assert event_id == custom_event_id
     end
   end
 
@@ -88,7 +92,8 @@ defmodule Streampai.Jobs.DiscordNotificationJobTest do
       assert length(results) == 1
 
       [{:ok, job}] = results
-      assert job.args["webhook_id"] == webhook_donation.id
+      webhook_id = job.args[:webhook_id] || job.args["webhook_id"]
+      assert webhook_id == webhook_donation.id
     end
 
     test "returns empty list when no webhooks match" do
@@ -161,14 +166,14 @@ defmodule Streampai.Jobs.DiscordNotificationJobTest do
 
   # Helper to generate a user for testing
   defp generate_user do
+    unique_id = System.unique_integer([:positive])
+
     {:ok, user} =
       Streampai.Accounts.User
-      |> Ash.Changeset.for_create(:register_with_oauth, %{
-        provider: :google,
-        uid: "test_#{System.unique_integer([:positive])}",
-        provider_token: "fake_token",
-        email: "test_#{System.unique_integer([:positive])}@example.com",
-        email_verified: true
+      |> Ash.Changeset.for_create(:register_with_password, %{
+        email: "test_#{unique_id}@example.com",
+        password: "TestPassword123!",
+        password_confirmation: "TestPassword123!"
       })
       |> Ash.create(authorize?: false)
 

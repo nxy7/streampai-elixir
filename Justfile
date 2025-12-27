@@ -161,21 +161,25 @@ worktree-setup:
 		cp ~/streampai-elixir/.env .
 	fi
 
+	# Always copy the latest justfile from main repo to ensure worktree has latest setup scripts
+	cp ~/streampai-elixir/justfile . 2>/dev/null || true
+
 	# Copy compiled artifacts for faster setup
 	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
 	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
 
 	# Remove any existing worktree-specific variables before appending new ones
 	# This prevents duplicates if worktree-setup is run multiple times
-	sed -i '' '/^DATABASE_URL=/d' .env
-	sed -i '' '/^PORT=/d' .env
-	sed -i '' '/^FRONTEND_PORT=/d' .env
-	sed -i '' '/^CADDY_PORT=/d' .env
-	sed -i '' '/^FRONTEND_HMR_CLIENT_PORT=/d' .env
-	sed -i '' '/^FRONTEND_HMR_SERVER_PORT=/d' .env
-	sed -i '' '/^FRONTEND_HMR_SERVER_FUNCTION_PORT=/d' .env
-	sed -i '' '/^FRONTEND_HMR_SSR_PORT=/d' .env
-	sed -i '' '/^DISABLE_LIVE_DEBUGGER=/d' .env
+	# Use grep to filter out lines instead of sed -i (avoids BSD vs GNU sed issues)
+	grep -v '^DATABASE_URL=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^CADDY_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_CLIENT_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SERVER_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
 
 	# Append worktree-specific configuration
 	echo "" >> .env
@@ -195,7 +199,6 @@ worktree-setup:
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
-	echo "   HMR:      localhost:$HMR_PORT"
 	echo ""
 
 	# Export environment variables for subsequent commands
