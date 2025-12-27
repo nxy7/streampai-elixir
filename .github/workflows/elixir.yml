@@ -13,6 +13,29 @@ permissions:
   packages: write
 
 jobs:
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          bun install --frozen-lockfile
+
+      - name: Run tests
+        run: |
+          cd frontend
+          bun run test
+
   test:
     name: Test
     runs-on: ubuntu-24.04-arm
@@ -144,7 +167,7 @@ jobs:
   build:
     name: Build Docker image
     runs-on: ubuntu-24.04-arm
-    needs: test
+    needs: [test, test-frontend]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
