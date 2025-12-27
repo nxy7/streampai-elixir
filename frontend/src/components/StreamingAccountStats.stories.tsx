@@ -108,9 +108,7 @@ export const TikTok: Story = {
 			viewsLast30d: 2500000,
 			followerCount: 890000,
 			subscriberCount: null,
-			statsLastRefreshedAt: new Date(
-				Date.now() - 45 * 60 * 1000,
-			).toISOString(),
+			statsLastRefreshedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
 		},
 		onRefresh: simulateRefresh,
 		onDisconnect: simulateDisconnect,

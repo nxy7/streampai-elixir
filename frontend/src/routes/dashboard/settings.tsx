@@ -760,7 +760,9 @@ export default function Settings() {
 										<For each={availablePlatforms}>
 											{(platform) => (
 												<Show
-													when={!connectedPlatforms().has(platform.targetPlatform)}>
+													when={
+														!connectedPlatforms().has(platform.targetPlatform)
+													}>
 													<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
 														<div class="flex items-center space-x-3">
 															<div
