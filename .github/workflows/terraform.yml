@@ -50,10 +50,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22'
+          bun-version: latest
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -62,15 +62,18 @@ jobs:
           terraform_wrapper: false
 
       - name: Install dependencies
-        run: npm install
+        run: bun install
+
+      - name: Lint
+        run: bun run lint
 
       - name: Build TypeScript
         id: build
-        run: npm run build
+        run: bun run build
 
       - name: Synthesize Terraform
         id: synth
-        run: npm run synth
+        run: bun run synth
 
       - name: Terraform Plan
         id: plan

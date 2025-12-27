@@ -1,10 +1,10 @@
 {
-  "language": "typescript",
-  "app": "npx ts-node src/main.ts",
-  "projectId": "streampai-cloudflare",
-  "sendCrashReports": false,
-  "terraformProviders": [],
-  "terraformModules": [],
-  "codeMakerOutput": "src/.gen",
-  "context": {}
+	"language": "typescript",
+	"app": "npx ts-node src/main.ts",
+	"projectId": "streampai-cloudflare",
+	"sendCrashReports": false,
+	"terraformProviders": [],
+	"terraformModules": [],
+	"codeMakerOutput": "src/.gen",
+	"context": {}
 }

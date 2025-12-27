@@ -33,7 +33,7 @@ User Request → Cloudflare (CDN/Proxy/WAF)
 
 ## Prerequisites
 
-1. **Node.js** >= 18
+1. **Bun** >= 1.0 (or Node.js >= 18)
 2. **Terraform** >= 1.0 (CDKTF synthesizes to Terraform)
 3. **Cloudflare API Token** with permissions:
    - Zone:Edit
@@ -47,7 +47,7 @@ User Request → Cloudflare (CDN/Proxy/WAF)
 
 ```bash
 cd cdk
-npm install
+bun install
 ```
 
 ### 2. Create Cloudflare API Token
@@ -81,13 +81,13 @@ export ENVIRONMENT="prod"
 
 ```bash
 # Preview changes
-npm run plan
+bun run plan
 
 # Apply changes
-npm run deploy
+bun run deploy
 
 # Destroy (use with caution!)
-npm run destroy
+bun run destroy
 ```
 
 ## Project Structure
@@ -107,12 +107,14 @@ cdk/
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Compile TypeScript |
-| `npm run synth` | Synthesize Terraform JSON |
-| `npm run plan` | Preview infrastructure changes |
-| `npm run deploy` | Apply infrastructure changes |
-| `npm run destroy` | Destroy all resources |
-| `npm run diff` | Show differences |
+| `bun run build` | Compile TypeScript |
+| `bun run synth` | Synthesize Terraform JSON |
+| `bun run plan` | Preview infrastructure changes |
+| `bun run deploy` | Apply infrastructure changes |
+| `bun run destroy` | Destroy all resources |
+| `bun run diff` | Show differences |
+| `bun run lint` | Run Biome linter |
+| `bun run format` | Format code with Biome |
 
 ## GitHub Actions Integration
 
@@ -188,7 +190,7 @@ export ORIGIN_SERVER_IP="..."
 
 ### CDKTF synth fails
 
-Run `npm run build` first to compile TypeScript, then `npm run synth`.
+Run `bun run build` first to compile TypeScript, then `bun run synth`.
 
 ### WebSocket Connection Issues
 

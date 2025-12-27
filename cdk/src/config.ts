@@ -10,32 +10,32 @@
  */
 
 export interface CloudflareConfig {
-  /** Cloudflare API token */
-  apiToken: string;
-  /** Zone ID for the domain */
-  zoneId: string;
-  /** Primary domain name */
-  domain: string;
-  /** Origin server IP address */
-  originServerIp: string;
-  /** Environment (prod, staging) */
-  environment: string;
+	/** Cloudflare API token */
+	apiToken: string;
+	/** Zone ID for the domain */
+	zoneId: string;
+	/** Primary domain name */
+	domain: string;
+	/** Origin server IP address */
+	originServerIp: string;
+	/** Environment (prod, staging) */
+	environment: string;
 }
 
 function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Required environment variable ${name} is not set`);
-  }
-  return value;
+	const value = process.env[name];
+	if (!value) {
+		throw new Error(`Required environment variable ${name} is not set`);
+	}
+	return value;
 }
 
 export function getConfig(): CloudflareConfig {
-  return {
-    apiToken: requireEnv("CLOUDFLARE_API_TOKEN"),
-    zoneId: requireEnv("CLOUDFLARE_ZONE_ID"),
-    originServerIp: requireEnv("ORIGIN_SERVER_IP"),
-    domain: process.env.DOMAIN || "streampai.com",
-    environment: process.env.ENVIRONMENT || "prod",
-  };
+	return {
+		apiToken: requireEnv("CLOUDFLARE_API_TOKEN"),
+		zoneId: requireEnv("CLOUDFLARE_ZONE_ID"),
+		originServerIp: requireEnv("ORIGIN_SERVER_IP"),
+		domain: process.env.DOMAIN || "streampai.com",
+		environment: process.env.ENVIRONMENT || "prod",
+	};
 }

@@ -6,8 +6,8 @@
 		"build": "vinxi build",
 		"start": "vinxi start",
 		"typecheck": "tsc --noEmit",
-		"format": "biome format --write",
-		"lint": "biome check",
+		"format": "cd .. && bunx biome format --write frontend/",
+		"lint": "cd .. && bunx biome check frontend/",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build"
 	},

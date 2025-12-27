@@ -1,35 +1,37 @@
 {
-  "name": "streampai-cdk",
-  "version": "1.0.0",
-  "description": "Cloudflare infrastructure for Streampai using CDKTF",
-  "main": "main.js",
-  "types": "main.d.ts",
-  "scripts": {
-    "get": "npx cdktf get",
-    "build": "tsc",
-    "synth": "npx cdktf synth",
-    "compile": "tsc --pretty",
-    "watch": "tsc -w",
-    "test": "echo \"No tests yet\"",
-    "upgrade": "npm i cdktf@latest cdktf-cli@latest",
-    "upgrade:next": "npm i cdktf@next cdktf-cli@next",
-    "deploy": "npx cdktf deploy",
-    "destroy": "npx cdktf destroy",
-    "diff": "npx cdktf diff",
-    "plan": "npx cdktf diff"
-  },
-  "engines": {
-    "node": ">=18.0"
-  },
-  "dependencies": {
-    "@cdktf/provider-cloudflare": "^11.0.0",
-    "cdktf": "^0.20.0",
-    "constructs": "^10.3.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.0.0",
-    "cdktf-cli": "^0.20.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
-  }
+	"name": "streampai-cdk",
+	"version": "1.0.0",
+	"description": "Cloudflare infrastructure for Streampai using CDKTF",
+	"main": "main.js",
+	"types": "main.d.ts",
+	"scripts": {
+		"get": "bunx cdktf get",
+		"build": "tsc",
+		"synth": "bunx cdktf synth",
+		"compile": "tsc --pretty",
+		"watch": "tsc -w",
+		"test": "echo \"No tests yet\"",
+		"upgrade": "bun add cdktf@latest cdktf-cli@latest",
+		"upgrade:next": "bun add cdktf@next cdktf-cli@next",
+		"deploy": "bunx cdktf deploy",
+		"destroy": "bunx cdktf destroy",
+		"diff": "bunx cdktf diff",
+		"plan": "bunx cdktf diff",
+		"format": "cd .. && bunx biome format --write cdk/",
+		"lint": "cd .. && bunx biome check cdk/"
+	},
+	"engines": {
+		"node": ">=18.0"
+	},
+	"dependencies": {
+		"@cdktf/provider-cloudflare": "^11.0.0",
+		"cdktf": "^0.20.0",
+		"constructs": "^10.3.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.10",
+		"@types/node": "^22.0.0",
+		"cdktf-cli": "^0.20.0",
+		"typescript": "^5.0.0"
+	}
 }
