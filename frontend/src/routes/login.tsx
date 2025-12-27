@@ -3,6 +3,7 @@ import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH } from "~/lib/constants";
+import { useTranslation } from "~/i18n";
 
 function GoogleIcon() {
 	return (
@@ -48,23 +49,24 @@ function TwitchIcon() {
 
 export default function LoginPage() {
 	const { user } = useCurrentUser();
+	const { t } = useTranslation();
 
 	return (
 		<>
-			<Title>Sign In - Streampai</Title>
+			<Title>{t("auth.pageTitle")}</Title>
 			<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
 				<Show
 					when={!user()}
 					fallback={
 						<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 text-center backdrop-blur-lg">
 							<h2 class="mb-4 font-bold text-2xl text-white">
-								Already signed in!
+								{t("auth.alreadySignedIn")}
 							</h2>
-							<p class="mb-6 text-gray-300">You're already logged in.</p>
+							<p class="mb-6 text-gray-300">{t("auth.alreadyLoggedIn")}</p>
 							<A
 								href={getDashboardUrl()}
 								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
-								Go to Dashboard
+								{t("auth.goToDashboard")}
 							</A>
 						</div>
 					}>
@@ -78,8 +80,10 @@ export default function LoginPage() {
 								/>
 								<span class="font-bold text-2xl text-white">Streampai</span>
 							</A>
-							<h1 class="mb-2 font-bold text-3xl text-white">Welcome back</h1>
-							<p class="text-gray-300">Sign in to your account to continue</p>
+							<h1 class="mb-2 font-bold text-3xl text-white">
+								{t("auth.welcomeBack")}
+							</h1>
+							<p class="text-gray-300">{t("auth.signInToContinue")}</p>
 						</div>
 
 						<div class="space-y-4">
@@ -88,7 +92,7 @@ export default function LoginPage() {
 								rel="external"
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100">
 								<GoogleIcon />
-								Continue with Google
+								{t("auth.continueWithGoogle")}
 							</a>
 
 							<a
@@ -96,7 +100,7 @@ export default function LoginPage() {
 								rel="external"
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]">
 								<TwitchIcon />
-								Continue with Twitch
+								{t("auth.continueWithTwitch")}
 							</a>
 						</div>
 
@@ -106,7 +110,7 @@ export default function LoginPage() {
 							</div>
 							<div class="relative flex justify-center text-sm">
 								<span class="bg-transparent px-4 text-gray-400">
-									Or continue with email
+									{t("auth.orContinueWithEmail")}
 								</span>
 							</div>
 						</div>
@@ -128,27 +132,27 @@ export default function LoginPage() {
 									d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 								/>
 							</svg>
-							Sign in with Email
+							{t("auth.signInWithEmail")}
 						</a>
 
 						<p class="mt-8 text-center text-gray-400 text-sm">
-							Don't have an account?{" "}
+							{t("auth.noAccount")}{" "}
 							<a
 								href={`${API_PATH}/auth/register`}
 								rel="external"
 								class="text-purple-400 hover:text-purple-300">
-								Create one
+								{t("auth.createOne")}
 							</a>
 						</p>
 
 						<p class="mt-4 text-center text-gray-500 text-xs">
-							By signing in, you agree to our{" "}
+							{t("auth.agreeToTerms")}{" "}
 							<A href="/terms" class="text-gray-400 hover:text-white">
-								Terms of Service
+								{t("auth.termsOfService")}
 							</A>{" "}
-							and{" "}
+							{t("auth.and")}{" "}
 							<A href="/privacy" class="text-gray-400 hover:text-white">
-								Privacy Policy
+								{t("auth.privacyPolicy")}
 							</A>
 						</p>
 					</div>
