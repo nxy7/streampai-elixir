@@ -1,0 +1,22 @@
+# Cloudflare Terraform Variables
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to version control!
+
+# Cloudflare API Token
+# Create at: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions: Zone:Edit, DNS:Edit, Cache Purge:Purge
+cloudflare_api_token = "your-cloudflare-api-token"
+
+# Zone ID for streampai.com
+# Find in Cloudflare Dashboard → Your Domain → Overview → Zone ID (right sidebar)
+zone_id = "your-zone-id"
+
+# Domain name
+domain = "streampai.com"
+
+# Oracle Cloud origin server IP
+# This is the IP address where your Phoenix server is running
+origin_server_ip = "your-oracle-cloud-ip"
+
+# Environment (prod or staging)
+environment = "prod"
