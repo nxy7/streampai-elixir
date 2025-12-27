@@ -182,7 +182,7 @@ defmodule Streampai.Integrations.PayPal.Orders do
   defp format_amount(amount) when is_number(amount), do: :erlang.float_to_binary(amount / 1, decimals: 2)
 
   defp build_description(streamer, donor_info) do
-    base = "Donation to #{streamer.display_name || streamer.email}"
+    base = "Donation to #{streamer.name || streamer.email}"
 
     case donor_info[:message] do
       nil -> base

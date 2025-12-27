@@ -22,7 +22,7 @@ defmodule Streampai.Changes.NotifyUser do
       change {Streampai.Changes.NotifyUser,
         to: :user_id,
         message: fn record, context ->
-          "\#{context.actor.display_name} commented on your post"
+          "\#{context.actor.name} commented on your post"
         end
       }
 
