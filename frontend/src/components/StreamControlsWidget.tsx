@@ -777,7 +777,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			</div>
 
 			{/* Filter Controls */}
-			<div class="shrink-0 border-gray-200 border-b py-2">
+			<div class="relative shrink-0 border-gray-200 border-b py-2">
 				{/* Filter toggle button and search */}
 				<div class="flex items-center gap-2">
 					<button
@@ -822,9 +822,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					</div>
 				</div>
 
-				{/* Expandable filter panel */}
+				{/* Expandable filter panel - absolute positioned to prevent layout shift */}
 				<Show when={showFilters()}>
-					<div class="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-2">
+					<div class="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
 						<div class="mb-1.5 flex items-center justify-between">
 							<span class="font-medium text-gray-600 text-xs">
 								Event Types
