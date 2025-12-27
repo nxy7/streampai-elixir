@@ -254,6 +254,39 @@ export const table = {
 	empty: "px-6 py-12 text-center",
 };
 
+export const skeleton = {
+	// Base skeleton with pulse animation
+	base: "animate-pulse bg-gray-200 rounded",
+
+	// Rounded variants
+	rounded: "animate-pulse bg-gray-200 rounded",
+	roundedLg: "animate-pulse bg-gray-200 rounded-lg",
+	roundedFull: "animate-pulse bg-gray-200 rounded-full",
+	rounded2xl: "animate-pulse bg-gray-200 rounded-2xl",
+
+	// Common sizes
+	text: "h-4 animate-pulse bg-gray-200 rounded",
+	textSm: "h-3 animate-pulse bg-gray-200 rounded",
+	textLg: "h-5 animate-pulse bg-gray-200 rounded",
+
+	// Avatar sizes
+	avatarSm: "h-6 w-6 animate-pulse bg-gray-200 rounded-full",
+	avatarMd: "h-8 w-8 animate-pulse bg-gray-200 rounded-full",
+	avatarLg: "h-10 w-10 animate-pulse bg-gray-200 rounded-full",
+	avatarXl: "h-12 w-12 animate-pulse bg-gray-200 rounded-full",
+
+	// Icon placeholder
+	icon: "h-5 w-5 animate-pulse bg-gray-200 rounded",
+	iconLg: "h-10 w-10 animate-pulse bg-gray-200 rounded-lg",
+
+	// Button placeholder
+	button: "h-9 animate-pulse bg-gray-200 rounded-lg",
+	buttonSm: "h-8 animate-pulse bg-gray-200 rounded-lg",
+
+	// Card skeleton
+	card: "animate-pulse bg-gray-200 rounded-2xl border border-gray-200",
+};
+
 /**
  * Helper function to merge class names
  * Usage: cn(button.primary, "text-lg") => "bg-purple-600 ... text-lg"

@@ -9,7 +9,6 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import {
 	Alert,
 	Badge,
@@ -17,6 +16,9 @@ import {
 	CardContent,
 	CardHeader,
 	CardTitle,
+	Skeleton,
+	SkeletonStat,
+	SkeletonStreamCard,
 	Stat,
 } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
@@ -25,6 +27,74 @@ import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
 type DateRange = "7days" | "30days" | "all";
 type SortBy = "recent" | "duration" | "viewers";
+
+// Skeleton for stream history page
+function StreamHistorySkeleton() {
+	return (
+		<div class="mx-auto max-w-7xl space-y-6">
+			{/* Filters skeleton */}
+			<Card>
+				<Skeleton class="mb-4 h-6 w-32" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+					<For each={[1, 2, 3]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-2 h-4 w-20" />
+								<Skeleton class="h-10 w-full rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</Card>
+
+			{/* Stats skeleton */}
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+				<For each={[1, 2, 3]}>
+					{() => (
+						<Card>
+							<div class="flex flex-col items-center gap-2">
+								<Skeleton class="h-8 w-8 rounded-lg" />
+								<Skeleton class="h-8 w-16" />
+								<Skeleton class="h-4 w-24" />
+							</div>
+						</Card>
+					)}
+				</For>
+			</div>
+
+			{/* Stream list skeleton */}
+			<Card>
+				<CardHeader>
+					<Skeleton class="h-6 w-32" />
+				</CardHeader>
+				<CardContent>
+					<div class="-mx-6 divide-y divide-gray-200">
+						<For each={[1, 2, 3, 4, 5]}>
+							{() => (
+								<div class="flex items-center space-x-4 p-6">
+									<Skeleton class="aspect-video h-18 w-32 shrink-0 rounded-lg" />
+									<div class="min-w-0 flex-1 space-y-2">
+										<Skeleton class="h-5 w-3/4" />
+										<div class="flex items-center gap-2">
+											<Skeleton class="h-5 w-16 rounded-full" />
+											<Skeleton class="h-4 w-20" />
+											<Skeleton class="h-4 w-16" />
+										</div>
+									</div>
+									<div class="space-y-1 text-right">
+										<Skeleton class="h-4 w-24" />
+										<Skeleton class="h-3 w-32" />
+									</div>
+									<Skeleton class="h-5 w-5 shrink-0" />
+								</div>
+							)}
+						</For>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
 
 interface StreamStats {
 	totalStreams: number;
@@ -71,7 +141,7 @@ export default function StreamHistory() {
 	return (
 		<>
 			<Title>Stream History - Streampai</Title>
-			<Show when={!isLoading()} fallback={<LoadingIndicator />}>
+			<Show when={!isLoading()} fallback={<StreamHistorySkeleton />}>
 				<Show
 					when={user()}
 					fallback={
@@ -99,7 +169,7 @@ export default function StreamHistory() {
 								</Alert>
 							</div>
 						)}>
-						<Suspense fallback={<LoadingIndicator />}>
+						<Suspense fallback={<StreamHistorySkeleton />}>
 							<StreamHistoryContent
 								userId={user()?.id}
 								platform={platform}

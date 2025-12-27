@@ -1,6 +1,13 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
+import {
+	Skeleton,
+	SkeletonListItem,
+	SkeletonMetricCard,
+	SkeletonStat,
+	SkeletonStreamCard,
+} from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getEventBgColor } from "~/lib/eventMetadata";
 import { formatTimeAgo, getGreeting, sortByInsertedAt } from "~/lib/formatters";
@@ -110,6 +117,114 @@ function getStreamStatusBadge(status: string) {
 	}
 }
 
+// Skeleton for Quick Stats grid
+function QuickStatsSkeleton() {
+	return (
+		<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+			<For each={[1, 2, 3, 4]}>
+				{() => (
+					<div class={`${card.base} p-4`}>
+						<SkeletonStat showIcon />
+					</div>
+				)}
+			</For>
+		</div>
+	);
+}
+
+// Skeleton for Recent Chat section
+function RecentChatSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-28" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="px-6 py-3">
+							<SkeletonListItem showAvatar lines={2} />
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Recent Events section
+function RecentEventsSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-32" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="px-6 py-3">
+							<SkeletonListItem showAvatar lines={2} />
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Activity Feed
+function ActivityFeedSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="border-gray-100 border-b px-4 py-3">
+				<div class="mb-3 flex items-center justify-between">
+					<Skeleton class="h-5 w-28" />
+					<Skeleton class="h-4 w-16" />
+				</div>
+				<div class="flex flex-wrap gap-1">
+					<For each={[1, 2, 3, 4, 5]}>
+						{() => <Skeleton class="h-7 w-20 rounded-full" />}
+					</For>
+				</div>
+			</div>
+			<div class="divide-y divide-gray-50">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="flex items-center gap-3 px-4 py-2.5">
+							<Skeleton class="h-8 w-8 shrink-0" circle />
+							<div class="min-w-0 flex-1 space-y-1.5">
+								<div class="flex items-center gap-2">
+									<Skeleton class="h-4 w-16" />
+									<Skeleton class="h-3 w-12" />
+								</div>
+								<Skeleton class="h-3 w-24" />
+							</div>
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Recent Streams section
+function RecentStreamsSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-32" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
+			</div>
+		</div>
+	);
+}
+
+// Feature 1: Stream Health Monitor Component
 function StreamHealthMonitor() {
 	// Simulated stream health data - in production this would come from actual stream metrics
 	const [connectionQuality] = createSignal<
@@ -686,8 +801,34 @@ export default function Dashboard() {
 			<Show
 				when={!isLoading()}
 				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
+					<div class="space-y-6">
+						{/* Header skeleton */}
+						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+							<Skeleton class="mb-2 h-9 w-64" />
+							<Skeleton class="h-5 w-48" />
+						</div>
+
+						{/* Quick Stats skeleton */}
+						<QuickStatsSkeleton />
+
+						{/* Metric cards skeleton */}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<SkeletonMetricCard rows={3} />
+							<SkeletonMetricCard rows={1} />
+							<SkeletonMetricCard rows={3} />
+						</div>
+
+						{/* Main content grid skeleton */}
+						<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+							<RecentChatSkeleton />
+							<RecentEventsSkeleton />
+						</div>
+
+						{/* Activity feed skeleton */}
+						<ActivityFeedSkeleton />
+
+						{/* Recent streams skeleton */}
+						<RecentStreamsSkeleton />
 					</div>
 				}>
 				<Show
