@@ -7,6 +7,8 @@ defmodule Streampai.Integrations.PayPal.Client do
   """
   require Logger
 
+  import Streampai.HTTP.ResponseHandler, only: [handle_raw_response: 2]
+
   @sandbox_base_url "https://api.sandbox.paypal.com"
   @production_base_url "https://api.paypal.com"
 
@@ -70,7 +72,7 @@ defmodule Streampai.Integrations.PayPal.Client do
     with {:ok, token} <- get_or_refresh_token(),
          {:ok, headers} <- build_headers(token, opts),
          {:ok, response} <- make_request(method, path, body, headers) do
-      handle_response(response)
+      handle_raw_response(response, "PayPal")
     end
   end
 
@@ -133,15 +135,6 @@ defmodule Streampai.Integrations.PayPal.Client do
       {k, v} when is_binary(k) -> {String.downcase(k), v}
       {k, v} -> {k, v}
     end)
-  end
-
-  defp handle_response(%{status: status, body: body}) when status in 200..299 do
-    {:ok, body}
-  end
-
-  defp handle_response(%{status: status, body: body}) do
-    Logger.warning("PayPal API error #{status}: #{inspect(body)}")
-    {:error, {:http_error, status, body}}
   end
 
   defp generate_auth_assertion(merchant_id) do
