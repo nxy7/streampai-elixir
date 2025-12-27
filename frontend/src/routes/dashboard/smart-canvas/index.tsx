@@ -295,10 +295,11 @@ export default function SmartCanvas() {
 	const [canvasRef, setCanvasRef] = createSignal<HTMLDivElement | undefined>();
 
 	async function loadLayout() {
-		if (!user()?.id) return;
+		const userId = user()?.id;
+		if (!userId) return;
 
 		const result = await getSmartCanvasLayout({
-			input: { userId: user()?.id },
+			input: { userId },
 			fields: [...layoutFields],
 			fetchOptions: { credentials: "include" },
 		});
@@ -330,7 +331,8 @@ export default function SmartCanvas() {
 	}
 
 	async function saveLayout() {
-		if (!user()?.id) return;
+		const userId = user()?.id;
+		if (!userId) return;
 
 		const widgetsData = widgets().map((w) => ({
 			id: w.id,
@@ -344,7 +346,7 @@ export default function SmartCanvas() {
 
 		// The create action uses upsert, so we can use it for both create and update
 		const result = await saveSmartCanvasLayout({
-			input: { userId: user()?.id, widgets: widgetsData },
+			input: { userId, widgets: widgetsData },
 			fields: [...layoutFields],
 			fetchOptions: { credentials: "include" },
 		});

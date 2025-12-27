@@ -30,6 +30,21 @@ import {
 	type WidgetConfig,
 	type WidgetType,
 } from "./electric";
+import { sortByInsertedAt } from "./formatters";
+
+type CollectionFactory<T> = (userId: string) => T;
+
+function createCollectionCache<T>(factory: CollectionFactory<T>) {
+	const cache = new Map<string, T>();
+	return (userId: string): T => {
+		let collection = cache.get(userId);
+		if (!collection) {
+			collection = factory(userId);
+			cache.set(userId, collection);
+		}
+		return collection;
+	};
+}
 
 export function useStreamEvents() {
 	return useLiveQuery(() => streamEventsCollection);
@@ -47,52 +62,30 @@ export function useViewers() {
 	return useLiveQuery(() => viewersCollection);
 }
 
-export function useDonations() {
+function useFilteredStreamEvents(eventType: string) {
 	const query = useStreamEvents();
-
 	return {
 		...query,
-		data: createMemo(() => {
-			const data = query.data || [];
-			return data.filter((e) => e.type === "donation");
-		}),
+		data: createMemo(() =>
+			(query.data || []).filter((e) => e.type === eventType),
+		),
 	};
+}
+
+export function useDonations() {
+	return useFilteredStreamEvents("donation");
 }
 
 export function useFollows() {
-	const query = useStreamEvents();
-
-	return {
-		...query,
-		data: createMemo(() => {
-			const data = query.data || [];
-			return data.filter((e) => e.type === "follow");
-		}),
-	};
+	return useFilteredStreamEvents("follow");
 }
 
 export function useRaids() {
-	const query = useStreamEvents();
-
-	return {
-		...query,
-		data: createMemo(() => {
-			const data = query.data || [];
-			return data.filter((e) => e.type === "raid");
-		}),
-	};
+	return useFilteredStreamEvents("raid");
 }
 
 export function useCheers() {
-	const query = useStreamEvents();
-
-	return {
-		...query,
-		data: createMemo(() => {
-			const data = query.data || [];
-			return data.filter((e) => e.type === "cheer");
-		}),
-	};
+	return useFilteredStreamEvents("cheer");
 }
 
 export function useTopDonors(limit: number = 10) {
@@ -139,16 +132,7 @@ export function useTotalDonations() {
 
 export function useRecentEvents(limit: number = 20) {
 	const query = useStreamEvents();
-
-	return createMemo(() => {
-		const data = query.data || [];
-		return [...data]
-			.sort(
-				(a, b) =>
-					new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-			)
-			.slice(0, limit);
-	});
+	return createMemo(() => sortByInsertedAt(query.data || []).slice(0, limit));
 }
 
 export function useUserPreferences() {
@@ -169,59 +153,18 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 	};
 }
 
-// Cache for user-scoped collections
-const userScopedChatCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedChatMessagesCollection>
->();
-const userScopedEventsCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-const userScopedLivestreamsCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedLivestreamsCollection>
->();
-const userScopedViewersCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedViewersCollection>
->();
-
-function getUserScopedChatCollection(userId: string) {
-	let collection = userScopedChatCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedChatMessagesCollection(userId);
-		userScopedChatCollections.set(userId, collection);
-	}
-	return collection;
-}
-
-function getUserScopedEventsCollection(userId: string) {
-	let collection = userScopedEventsCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		userScopedEventsCollections.set(userId, collection);
-	}
-	return collection;
-}
-
-function getUserScopedLivestreamsCollection(userId: string) {
-	let collection = userScopedLivestreamsCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedLivestreamsCollection(userId);
-		userScopedLivestreamsCollections.set(userId, collection);
-	}
-	return collection;
-}
-
-function getUserScopedViewersCollection(userId: string) {
-	let collection = userScopedViewersCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedViewersCollection(userId);
-		userScopedViewersCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getUserScopedChatCollection = createCollectionCache(
+	createUserScopedChatMessagesCollection,
+);
+const getUserScopedEventsCollection = createCollectionCache(
+	createUserScopedStreamEventsCollection,
+);
+const getUserScopedLivestreamsCollection = createCollectionCache(
+	createUserScopedLivestreamsCollection,
+);
+const getUserScopedViewersCollection = createCollectionCache(
+	createUserScopedViewersCollection,
+);
 
 export function useUserChatMessages(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -244,16 +187,7 @@ export function useRecentUserChatMessages(
 	limit = 10,
 ) {
 	const query = useUserChatMessages(userId);
-
-	return createMemo(() => {
-		const messages = query.data();
-		return [...messages]
-			.sort(
-				(a, b) =>
-					new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-			)
-			.slice(0, limit);
-	});
+	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
@@ -277,16 +211,7 @@ export function useRecentUserStreamEvents(
 	limit = 10,
 ) {
 	const query = useUserStreamEvents(userId);
-
-	return createMemo(() => {
-		const events = query.data();
-		return [...events]
-			.sort(
-				(a, b) =>
-					new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-			)
-			.slice(0, limit);
-	});
+	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
@@ -310,16 +235,7 @@ export function useRecentUserLivestreams(
 	limit = 5,
 ) {
 	const query = useUserLivestreams(userId);
-
-	return createMemo(() => {
-		const streams = query.data();
-		return [...streams]
-			.sort(
-				(a, b) =>
-					new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-			)
-			.slice(0, limit);
-	});
+	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
 
 export function useUserViewers(userId: () => string | undefined) {
@@ -364,20 +280,9 @@ export function useDashboardStats(userId: () => string | undefined) {
 	};
 }
 
-// Cache for widget config collections by user ID
-const widgetConfigCollections = new Map<
-	string,
-	ReturnType<typeof createWidgetConfigsCollection>
->();
-
-function getWidgetConfigsCollection(userId: string) {
-	let collection = widgetConfigCollections.get(userId);
-	if (!collection) {
-		collection = createWidgetConfigsCollection(userId);
-		widgetConfigCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getWidgetConfigsCollection = createCollectionCache(
+	createWidgetConfigsCollection,
+);
 
 export function useWidgetConfigs(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -413,33 +318,12 @@ export function useWidgetConfig<T = Record<string, unknown>>(
 	};
 }
 
-// Cache for notification collections by user ID
-const notificationCollections = new Map<
-	string,
-	ReturnType<typeof createNotificationsCollection>
->();
-const notificationReadCollections = new Map<
-	string,
-	ReturnType<typeof createNotificationReadsCollection>
->();
-
-function getNotificationsCollection(userId: string) {
-	let collection = notificationCollections.get(userId);
-	if (!collection) {
-		collection = createNotificationsCollection(userId);
-		notificationCollections.set(userId, collection);
-	}
-	return collection;
-}
-
-function getNotificationReadsCollection(userId: string) {
-	let collection = notificationReadCollections.get(userId);
-	if (!collection) {
-		collection = createNotificationReadsCollection(userId);
-		notificationReadCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getNotificationsCollection = createCollectionCache(
+	createNotificationsCollection,
+);
+const getNotificationReadsCollection = createCollectionCache(
+	createNotificationReadsCollection,
+);
 
 export function useNotifications(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -482,10 +366,15 @@ export function useNotificationsWithReadStatus(
 	userId: () => string | undefined,
 ): {
 	data: () => NotificationWithReadStatus[];
-	unreadCount: () => number;
+	unreadCount: () => number | null;
+	isLoading: () => boolean;
 } {
 	const notificationsQuery = useNotifications(userId);
 	const readsQuery = useNotificationReads(userId);
+
+	const isLoading = createMemo(
+		() => notificationsQuery.isLoading() || readsQuery.isLoading(),
+	);
 
 	return {
 		data: createMemo((): NotificationWithReadStatus[] => {
@@ -493,58 +382,36 @@ export function useNotificationsWithReadStatus(
 			const reads = readsQuery.data();
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
 
-			return notifications
-				.map(
-					(n): NotificationWithReadStatus => ({
-						...n,
-						wasSeen: readMap.has(n.id),
-						seenAt: readMap.get(n.id) || null,
-					}),
-				)
-				.sort(
-					(a, b) =>
-						new Date(b.inserted_at).getTime() -
-						new Date(a.inserted_at).getTime(),
-				);
+			const withStatus = notifications.map(
+				(n): NotificationWithReadStatus => ({
+					...n,
+					wasSeen: readMap.has(n.id),
+					seenAt: readMap.get(n.id) || null,
+				}),
+			);
+			return sortByInsertedAt(withStatus);
 		}),
 		unreadCount: createMemo(() => {
+			// Return null while either shape is still loading to prevent blinking
+			if (isLoading()) return null;
 			const notifications = notificationsQuery.data();
 			const reads = readsQuery.data();
 			const readIds = new Set(reads.map((r) => r.notification_id));
 			return notifications.filter((n) => !readIds.has(n.id)).length;
 		}),
+		isLoading,
 	};
 }
 
 export function useGlobalNotifications() {
 	const query = useLiveQuery(() => globalNotificationsCollection);
-
 	return {
 		...query,
-		data: createMemo(() => {
-			const data = query.data || [];
-			return [...data].sort(
-				(a, b) =>
-					new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-			);
-		}),
+		data: createMemo(() => sortByInsertedAt(query.data || [])),
 	};
 }
 
-// Cache for user roles collection by user ID
-const userRolesCollections = new Map<
-	string,
-	ReturnType<typeof createUserRolesCollection>
->();
-
-function getUserRolesCollection(userId: string) {
-	let collection = userRolesCollections.get(userId);
-	if (!collection) {
-		collection = createUserRolesCollection(userId);
-		userRolesCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
