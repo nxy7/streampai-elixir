@@ -51,6 +51,9 @@
 			"includes": ["src/sdk/**"],
 			"linter": {
 				"enabled": false
+			},
+			"formatter": {
+				"enabled": false
 			}
 		}
 	],
