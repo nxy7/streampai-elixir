@@ -14,6 +14,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
     tags: ["discord", "notification"],
     unique: [period: 30, keys: [:webhook_id, :event_type, :event_id]]
 
+  alias Ash.Error.Query.NotFound
   alias Streampai.Integrations.Discord.Client
   alias Streampai.Integrations.DiscordWebhook
 
@@ -46,11 +47,11 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
           :ok
         end
 
-      {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} | _]}} ->
+      {:error, %Ash.Error.Invalid{errors: [%NotFound{} | _]}} ->
         Logger.warning("Webhook not found, skipping notification", webhook_id: webhook_id)
         :ok
 
-      {:error, %Ash.Error.Query.NotFound{}} ->
+      {:error, %NotFound{}} ->
         Logger.warning("Webhook not found, skipping notification", webhook_id: webhook_id)
         :ok
 

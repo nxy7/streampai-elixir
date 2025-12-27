@@ -8,11 +8,5 @@ defmodule Streampai do
   if it comes from the database, an external API or others.
   """
   def start(_type, _args) do
-    # unless Mix.env() == :prod do
-    # Dotenv.load()
-    # Mix.Task.run("loadconfig")
-    # end
-
-    # rest of your start function
   end
 end
