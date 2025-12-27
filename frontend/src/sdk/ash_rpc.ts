@@ -223,6 +223,17 @@ export type SmartCanvasLayoutResourceSchema = {
 
 
 
+// LiveInput Schema
+export type LiveInputResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "userId" | "orientation" | "data";
+  userId: UUID;
+  orientation: "horizontal" | "vertical";
+  data: Record<string, any>;
+};
+
+
+
 // DiscordWebhook Schema
 export type DiscordWebhookResourceSchema = {
   __type: "Resource";
@@ -1133,6 +1144,32 @@ export type SmartCanvasLayoutFilterInput = {
 
 
   user?: UserFilterInput;
+
+};
+export type LiveInputFilterInput = {
+  and?: Array<LiveInputFilterInput>;
+  or?: Array<LiveInputFilterInput>;
+  not?: Array<LiveInputFilterInput>;
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  orientation?: {
+    eq?: "horizontal" | "vertical";
+    notEq?: "horizontal" | "vertical";
+    in?: Array<"horizontal" | "vertical">;
+  };
+
+  data?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
 
 };
 export type DiscordWebhookFilterInput = {
@@ -4309,6 +4346,128 @@ export async function saveSmartCanvasLayoutChannel<Fields extends SaveSmartCanva
     {
     action: "save_smart_canvas_layout",
     input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamKeyInput = {
+  userId: UUID;
+  orientation?: string;
+};
+
+export type GetStreamKeyFields = UnifiedFieldSelection<LiveInputResourceSchema>[];
+export type InferGetStreamKeyResult<
+  Fields extends GetStreamKeyFields,
+> = Array<InferResult<LiveInputResourceSchema, Fields>>;
+
+export type GetStreamKeyResult<Fields extends GetStreamKeyFields> = | { success: true; data: InferGetStreamKeyResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getStreamKey<Fields extends GetStreamKeyFields>(
+  config: {
+  input: GetStreamKeyInput;
+  fields: Fields;
+  filter?: LiveInputFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamKeyResult<Fields>> {
+  const payload = {
+    action: "get_stream_key",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamKeyResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getStreamKeyChannel<Fields extends GetStreamKeyFields>(config: {
+  channel: Channel;
+  input: GetStreamKeyInput;
+  fields: Fields;
+  filter?: LiveInputFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamKeyResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamKeyResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_key",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type RegenerateStreamKeyFields = UnifiedFieldSelection<LiveInputResourceSchema>[];
+
+export type InferRegenerateStreamKeyResult<
+  Fields extends RegenerateStreamKeyFields | undefined,
+> = InferResult<LiveInputResourceSchema, Fields>;
+
+export type RegenerateStreamKeyResult<Fields extends RegenerateStreamKeyFields | undefined = undefined> = | { success: true; data: InferRegenerateStreamKeyResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function regenerateStreamKey<Fields extends RegenerateStreamKeyFields | undefined = undefined>(
+  config: {
+  identity: { userId: UUID; orientation: "horizontal" | "vertical" };
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RegenerateStreamKeyResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "regenerate_stream_key",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RegenerateStreamKeyResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function regenerateStreamKeyChannel<Fields extends RegenerateStreamKeyFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: { userId: UUID; orientation: "horizontal" | "vertical" };
+  fields?: Fields;
+  resultHandler: (result: RegenerateStreamKeyResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<RegenerateStreamKeyResult<Fields>>(
+    config.channel,
+    {
+    action: "regenerate_stream_key",
+    identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,

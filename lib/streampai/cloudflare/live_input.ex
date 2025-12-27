@@ -4,6 +4,7 @@ defmodule Streampai.Cloudflare.LiveInput do
     otp_app: :streampai,
     domain: Streampai.Cloudflare,
     authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   postgres do
@@ -11,6 +12,10 @@ defmodule Streampai.Cloudflare.LiveInput do
     repo Streampai.Repo
 
     identity_index_names one_live_input_per_user_orientation: "cf_live_inputs_user_orientation_idx"
+  end
+
+  typescript do
+    type_name("LiveInput")
   end
 
   code_interface do
@@ -73,6 +78,12 @@ defmodule Streampai.Cloudflare.LiveInput do
 
       filter expr(fragment("(?)->>'uid' = ?", data, ^arg(:cloudflare_uid)))
     end
+
+    update :regenerate do
+      @doc "Regenerates the stream key by deleting the old Cloudflare input and creating a new one"
+      require_atomic? false
+      change Streampai.Cloudflare.LiveInput.Changes.Regenerate
+    end
   end
 
   policies do
@@ -97,17 +108,20 @@ defmodule Streampai.Cloudflare.LiveInput do
     attribute :user_id, :uuid do
       primary_key? true
       allow_nil? false
+      public? true
     end
 
     attribute :orientation, :atom do
       primary_key? true
       allow_nil? false
       default :horizontal
+      public? true
       constraints one_of: [:horizontal, :vertical]
     end
 
     attribute :data, :map do
       allow_nil? false
+      public? true
     end
 
     timestamps()

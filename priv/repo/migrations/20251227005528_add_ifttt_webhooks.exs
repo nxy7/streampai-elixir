@@ -43,7 +43,9 @@ defmodule Streampai.Repo.Migrations.AddIftttWebhooks do
 
     create index(:ifttt_webhooks, [:user_id], name: "idx_ifttt_webhooks_user_id")
 
-    create unique_index(:ifttt_webhooks, [:user_id, :name], name: "ifttt_webhooks_unique_user_ifttt_webhook_name_index")
+    create unique_index(:ifttt_webhooks, [:user_id, :name],
+             name: "ifttt_webhooks_unique_user_ifttt_webhook_name_index"
+           )
   end
 
   def down do

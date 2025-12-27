@@ -23,8 +23,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
       |> send_resp(500, "OAuth configuration error: Ueberauth did not intercept the request")
     else
       # User is not logged in - redirect to login
-      conn
-      |> redirect(to: "/login")
+      redirect(conn, to: "/login")
     end
   end
 
