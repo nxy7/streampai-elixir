@@ -169,7 +169,7 @@ config :ueberauth, Ueberauth,
          callback_port: 8000,
          callback_scheme: "https",
          default_scope:
-           "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator"
+           "openid profile email https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.channel-memberships.creator https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly"
        ]},
     twitch:
       {Ueberauth.Strategy.Twitch,
@@ -178,7 +178,7 @@ config :ueberauth, Ueberauth,
          callback_port: 8000,
          callback_scheme: "https",
          default_scope:
-           "user:read:email user:read:chat user:write:chat channel:bot channel:read:subscriptions channel:read:stream_key channel:manage:broadcast"
+           "user:read:email user:read:chat user:write:chat channel:bot channel:read:subscriptions channel:read:stream_key channel:manage:broadcast moderator:read:followers"
        ]},
     facebook:
       {Ueberauth.Strategy.Facebook,

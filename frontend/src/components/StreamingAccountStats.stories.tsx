@@ -23,7 +23,7 @@ const mockYouTubeData: StreamingAccountData = {
 	sponsorCount: 1250,
 	viewsLast30d: 485000,
 	followerCount: 52400,
-	subscriberCount: 48750,
+	uniqueViewersLast30d: 48750,
 	statsLastRefreshedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
 };
 
@@ -34,7 +34,7 @@ const mockTwitchData: StreamingAccountData = {
 	sponsorCount: 3420,
 	viewsLast30d: 892000,
 	followerCount: 125000,
-	subscriberCount: 8750,
+	uniqueViewersLast30d: 8750,
 	statsLastRefreshedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
 };
 
@@ -45,7 +45,7 @@ const mockFacebookData: StreamingAccountData = {
 	sponsorCount: 450,
 	viewsLast30d: 156000,
 	followerCount: 28500,
-	subscriberCount: null,
+	uniqueViewersLast30d: null,
 	statsLastRefreshedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
 };
 
@@ -56,7 +56,7 @@ const mockKickData: StreamingAccountData = {
 	sponsorCount: 890,
 	viewsLast30d: 234000,
 	followerCount: 45600,
-	subscriberCount: 2100,
+	uniqueViewersLast30d: 2100,
 	statsLastRefreshedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
 };
 
@@ -107,7 +107,7 @@ export const TikTok: Story = {
 			sponsorCount: null,
 			viewsLast30d: 2500000,
 			followerCount: 890000,
-			subscriberCount: null,
+			uniqueViewersLast30d: null,
 			statsLastRefreshedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
 		},
 		onRefresh: simulateRefresh,
@@ -124,7 +124,7 @@ export const Instagram: Story = {
 			sponsorCount: 1500,
 			viewsLast30d: 450000,
 			followerCount: 95000,
-			subscriberCount: null,
+			uniqueViewersLast30d: null,
 			statsLastRefreshedAt: new Date(
 				Date.now() - 3 * 60 * 60 * 1000,
 			).toISOString(),
@@ -143,7 +143,7 @@ export const Rumble: Story = {
 			sponsorCount: 350,
 			viewsLast30d: 125000,
 			followerCount: 18500,
-			subscriberCount: 4200,
+			uniqueViewersLast30d: 4200,
 			statsLastRefreshedAt: new Date(
 				Date.now() - 8 * 60 * 60 * 1000,
 			).toISOString(),
@@ -162,7 +162,7 @@ export const Trovo: Story = {
 			sponsorCount: 220,
 			viewsLast30d: 78000,
 			followerCount: 12400,
-			subscriberCount: 850,
+			uniqueViewersLast30d: 850,
 			statsLastRefreshedAt: new Date(
 				Date.now() - 12 * 60 * 60 * 1000,
 			).toISOString(),
@@ -181,7 +181,7 @@ export const NeverRefreshed: Story = {
 			sponsorCount: null,
 			viewsLast30d: null,
 			followerCount: null,
-			subscriberCount: null,
+			uniqueViewersLast30d: null,
 			statsLastRefreshedAt: null,
 		},
 		onRefresh: simulateRefresh,
@@ -198,7 +198,7 @@ export const LargeNumbers: Story = {
 			sponsorCount: 125000,
 			viewsLast30d: 45000000,
 			followerCount: 8500000,
-			subscriberCount: 350000,
+			uniqueViewersLast30d: 350000,
 			statsLastRefreshedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
 		},
 		onRefresh: simulateRefresh,
@@ -215,7 +215,7 @@ export const SmallNumbers: Story = {
 			sponsorCount: 5,
 			viewsLast30d: 250,
 			followerCount: 42,
-			subscriberCount: 3,
+			uniqueViewersLast30d: 3,
 			statsLastRefreshedAt: new Date(Date.now() - 60 * 1000).toISOString(),
 		},
 		onRefresh: simulateRefresh,

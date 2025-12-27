@@ -232,8 +232,8 @@ defmodule Streampai.Accounts.StreamingAccount do
       default nil
     end
 
-    attribute :subscriber_count, :integer do
-      description "Total subscriber count (YouTube) or equivalent"
+    attribute :unique_viewers_last_30d, :integer do
+      description "Unique viewers in the last 30 days"
       allow_nil? true
       default nil
     end
