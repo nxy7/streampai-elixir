@@ -43,24 +43,19 @@ defmodule StreampaiWeb.ApiAuthController do
   Sign in with email and password.
   """
   def sign_in(conn, %{"email" => email, "password" => password}) do
-    case User
-         |> Ash.Query.for_read(:sign_in_with_password, %{email: email, password: password})
-         |> Ash.read_one() do
-      {:ok, user} when not is_nil(user) ->
+    strategy = AshAuthentication.Info.strategy!(User, :password)
+
+    case AshAuthentication.Strategy.action(strategy, :sign_in, %{
+           "email" => email,
+           "password" => password
+         }) do
+      {:ok, user} ->
         conn
         |> AshAuthentication.Phoenix.Plug.store_in_session(user)
         |> put_status(:ok)
         |> json(%{
           success: true,
           user: %{id: user.id, email: user.email, name: user.name}
-        })
-
-      {:ok, nil} ->
-        conn
-        |> put_status(:unauthorized)
-        |> json(%{
-          success: false,
-          error: "Invalid email or password"
         })
 
       {:error, error} ->
