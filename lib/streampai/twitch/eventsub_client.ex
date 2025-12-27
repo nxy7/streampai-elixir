@@ -392,7 +392,7 @@ defmodule Streampai.Twitch.EventsubClient do
         - user:read:chat (to read chat messages)
         - channel:bot (to send chat messages)
 
-        Please disconnect and reconnect your Twitch account at: /streaming/connect/twitch
+        Please disconnect and reconnect your Twitch account at: /api/streaming/connect/twitch
 
         Error: #{inspect(response_body)}
         """)
