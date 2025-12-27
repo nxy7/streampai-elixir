@@ -17,7 +17,7 @@ export interface StreamingAccountData {
 	sponsorCount: number | null;
 	viewsLast30d: number | null;
 	followerCount: number | null;
-	subscriberCount: number | null;
+	uniqueViewersLast30d: number | null;
 	statsLastRefreshedAt: string | null;
 }
 
@@ -94,11 +94,12 @@ const platformConfig = {
 	},
 };
 
-function formatNumber(num: number | null): string {
+function formatNumber(num: number | bigint | null): string {
 	if (num === null) return "-";
-	if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
-	if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-	return num.toLocaleString();
+	const n = typeof num === "bigint" ? Number(num) : num;
+	if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+	if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+	return n.toLocaleString();
 }
 
 function formatRelativeTime(dateString: string | null): string {
@@ -239,13 +240,7 @@ export default function StreamingAccountStats(
 				</div>
 			</div>
 
-			<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<Card padding="sm" class="rounded-lg">
-					<div class="text-gray-500 text-xs uppercase">Sponsors</div>
-					<div class="mt-1 font-bold text-gray-900 text-xl">
-						{formatNumber(props.data.sponsorCount)}
-					</div>
-				</Card>
+			<div class="mt-4 grid grid-cols-3 gap-3">
 				<Card padding="sm" class="rounded-lg">
 					<div class="text-gray-500 text-xs uppercase">Views (30d)</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
@@ -253,15 +248,15 @@ export default function StreamingAccountStats(
 					</div>
 				</Card>
 				<Card padding="sm" class="rounded-lg">
-					<div class="text-gray-500 text-xs uppercase">Followers</div>
+					<div class="text-gray-500 text-xs uppercase">Sponsors</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
-						{formatNumber(props.data.followerCount)}
+						{formatNumber(props.data.sponsorCount)}
 					</div>
 				</Card>
 				<Card padding="sm" class="rounded-lg">
-					<div class="text-gray-500 text-xs uppercase">Subscribers</div>
+					<div class="text-gray-500 text-xs uppercase">Followers</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
-						{formatNumber(props.data.subscriberCount)}
+						{formatNumber(props.data.followerCount)}
 					</div>
 				</Card>
 			</div>
