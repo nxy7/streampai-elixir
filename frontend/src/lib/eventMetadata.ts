@@ -1,4 +1,10 @@
-export type EventType = "donation" | "follow" | "subscription" | "raid" | "cheer" | "chat_message";
+export type EventType =
+	| "donation"
+	| "follow"
+	| "subscription"
+	| "raid"
+	| "cheer"
+	| "chat_message";
 
 export interface EventMetadata {
 	icon: string;
@@ -85,7 +91,10 @@ const PLATFORM_METADATA: Record<string, PlatformMetadata> = {
 	kick: { name: "Kick", color: "text-green-500" },
 };
 
-const DEFAULT_PLATFORM: PlatformMetadata = { name: "Unknown", color: "text-gray-500" };
+const DEFAULT_PLATFORM: PlatformMetadata = {
+	name: "Unknown",
+	color: "text-gray-500",
+};
 
 export function getPlatformMetadata(platform: string): PlatformMetadata {
 	return PLATFORM_METADATA[platform.toLowerCase()] || DEFAULT_PLATFORM;

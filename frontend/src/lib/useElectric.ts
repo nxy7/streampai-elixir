@@ -66,7 +66,9 @@ function useFilteredStreamEvents(eventType: string) {
 	const query = useStreamEvents();
 	return {
 		...query,
-		data: createMemo(() => (query.data || []).filter((e) => e.type === eventType)),
+		data: createMemo(() =>
+			(query.data || []).filter((e) => e.type === eventType),
+		),
 	};
 }
 
@@ -151,10 +153,18 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 	};
 }
 
-const getUserScopedChatCollection = createCollectionCache(createUserScopedChatMessagesCollection);
-const getUserScopedEventsCollection = createCollectionCache(createUserScopedStreamEventsCollection);
-const getUserScopedLivestreamsCollection = createCollectionCache(createUserScopedLivestreamsCollection);
-const getUserScopedViewersCollection = createCollectionCache(createUserScopedViewersCollection);
+const getUserScopedChatCollection = createCollectionCache(
+	createUserScopedChatMessagesCollection,
+);
+const getUserScopedEventsCollection = createCollectionCache(
+	createUserScopedStreamEventsCollection,
+);
+const getUserScopedLivestreamsCollection = createCollectionCache(
+	createUserScopedLivestreamsCollection,
+);
+const getUserScopedViewersCollection = createCollectionCache(
+	createUserScopedViewersCollection,
+);
 
 export function useUserChatMessages(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -172,7 +182,10 @@ export function useUserChatMessages(userId: () => string | undefined) {
 	};
 }
 
-export function useRecentUserChatMessages(userId: () => string | undefined, limit = 10) {
+export function useRecentUserChatMessages(
+	userId: () => string | undefined,
+	limit = 10,
+) {
 	const query = useUserChatMessages(userId);
 	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
@@ -193,7 +206,10 @@ export function useUserStreamEvents(userId: () => string | undefined) {
 	};
 }
 
-export function useRecentUserStreamEvents(userId: () => string | undefined, limit = 10) {
+export function useRecentUserStreamEvents(
+	userId: () => string | undefined,
+	limit = 10,
+) {
 	const query = useUserStreamEvents(userId);
 	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
@@ -214,7 +230,10 @@ export function useUserLivestreams(userId: () => string | undefined) {
 	};
 }
 
-export function useRecentUserLivestreams(userId: () => string | undefined, limit = 5) {
+export function useRecentUserLivestreams(
+	userId: () => string | undefined,
+	limit = 5,
+) {
 	const query = useUserLivestreams(userId);
 	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
@@ -261,7 +280,9 @@ export function useDashboardStats(userId: () => string | undefined) {
 	};
 }
 
-const getWidgetConfigsCollection = createCollectionCache(createWidgetConfigsCollection);
+const getWidgetConfigsCollection = createCollectionCache(
+	createWidgetConfigsCollection,
+);
 
 export function useWidgetConfigs(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -297,8 +318,12 @@ export function useWidgetConfig<T = Record<string, unknown>>(
 	};
 }
 
-const getNotificationsCollection = createCollectionCache(createNotificationsCollection);
-const getNotificationReadsCollection = createCollectionCache(createNotificationReadsCollection);
+const getNotificationsCollection = createCollectionCache(
+	createNotificationsCollection,
+);
+const getNotificationReadsCollection = createCollectionCache(
+	createNotificationReadsCollection,
+);
 
 export function useNotifications(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {

@@ -26,7 +26,10 @@ export function formatTimestamp(timestamp: Date | string): string {
 	});
 }
 
-export function formatAmount(amount: number | undefined, currency?: string): string {
+export function formatAmount(
+	amount: number | undefined,
+	currency?: string,
+): string {
 	if (!amount) return "";
 	return `${currency || "$"}${amount.toFixed(2)}`;
 }
@@ -38,8 +41,11 @@ export function getGreeting(): string {
 	return "Good evening";
 }
 
-export function sortByInsertedAt<T extends { inserted_at: string }>(items: T[]): T[] {
+export function sortByInsertedAt<T extends { inserted_at: string }>(
+	items: T[],
+): T[] {
 	return [...items].sort(
-		(a, b) => new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime()
+		(a, b) =>
+			new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
 	);
 }

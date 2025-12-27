@@ -99,7 +99,6 @@ function getEventIcon(type: string) {
 	}
 }
 
-
 function getStreamStatusBadge(status: string) {
 	switch (status) {
 		case "live":
