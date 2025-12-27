@@ -1,10 +1,5 @@
 import { For } from "solid-js";
-import {
-	LOCALE_NAMES,
-	SUPPORTED_LOCALES,
-	useI18n,
-	type Locale,
-} from "~/i18n";
+import { LOCALE_NAMES, SUPPORTED_LOCALES, useI18n, type Locale } from "~/i18n";
 
 interface LanguageSwitcherProps {
 	class?: string;

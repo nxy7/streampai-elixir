@@ -93,7 +93,9 @@ export default function Button(props: ButtonProps) {
 	}
 
 	return (
-		<button class={classes} {...(rest as JSX.ButtonHTMLAttributes<HTMLButtonElement>)}>
+		<button
+			class={classes}
+			{...(rest as JSX.ButtonHTMLAttributes<HTMLButtonElement>)}>
 			{local.children}
 		</button>
 	);

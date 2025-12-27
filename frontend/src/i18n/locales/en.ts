@@ -183,24 +183,30 @@ export const dict = {
 		title: "Privacy Policy",
 		lastUpdated: "Last updated: December 2024",
 		section1Title: "1. Information We Collect",
-		section1Intro: "We collect information you provide directly to us, including:",
+		section1Intro:
+			"We collect information you provide directly to us, including:",
 		section1Item1: "Account information (name, email, password)",
 		section1Item2: "Profile information from connected streaming platforms",
 		section1Item3: "Stream metadata and analytics data",
 		section1Item4: "Chat messages and moderation actions",
-		section1Item5: "Payment information (processed securely by third-party providers)",
+		section1Item5:
+			"Payment information (processed securely by third-party providers)",
 		section2Title: "2. How We Use Your Information",
 		section2Intro: "We use the information we collect to:",
 		section2Item1: "Provide, maintain, and improve our services",
-		section2Item2: "Connect and sync your content across multiple streaming platforms",
-		section2Item3: "Generate analytics and insights about your streaming performance",
+		section2Item2:
+			"Connect and sync your content across multiple streaming platforms",
+		section2Item3:
+			"Generate analytics and insights about your streaming performance",
 		section2Item4: "Send you technical notices and support messages",
 		section2Item5: "Respond to your comments and questions",
 		section3Title: "3. Information Sharing",
 		section3Intro:
 			"We do not sell your personal information. We may share your information in the following circumstances:",
-		section3Item1: "With streaming platforms you connect (to enable multi-platform streaming)",
-		section3Item2: "With service providers who assist in operating our platform",
+		section3Item1:
+			"With streaming platforms you connect (to enable multi-platform streaming)",
+		section3Item2:
+			"With service providers who assist in operating our platform",
 		section3Item3: "When required by law or to protect our rights",
 		section3Item4: "With your consent or at your direction",
 		section4Title: "4. Data Security",
@@ -227,9 +233,10 @@ export const dict = {
 			"Our service is not intended for users under 13 years of age. We do not knowingly collect personal information from children under 13.",
 		section10Title: "10. Changes to This Policy",
 		section10Text:
-			"We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the \"Last updated\" date.",
+			'We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.',
 		section11Title: "11. Contact Us",
-		section11Text: "If you have any questions about this Privacy Policy, please",
+		section11Text:
+			"If you have any questions about this Privacy Policy, please",
 		contactUs: "contact us",
 	},
 
@@ -249,10 +256,13 @@ export const dict = {
 		section4Title: "4. Acceptable Use",
 		section4Intro: "You agree not to:",
 		section4Item1: "Use the service for any illegal or unauthorized purpose",
-		section4Item2: "Violate any laws in your jurisdiction, including copyright laws",
+		section4Item2:
+			"Violate any laws in your jurisdiction, including copyright laws",
 		section4Item3: "Transmit harmful content or malware",
-		section4Item4: "Interfere with or disrupt the service or servers connected to the service",
-		section4Item5: "Attempt to gain unauthorized access to any part of the service",
+		section4Item4:
+			"Interfere with or disrupt the service or servers connected to the service",
+		section4Item5:
+			"Attempt to gain unauthorized access to any part of the service",
 		section5Title: "5. Content Responsibility",
 		section5Text:
 			"You are solely responsible for the content you stream, share, or distribute through our platform. You retain all ownership rights to your content, but grant us a license to display and distribute it through our service.",
@@ -269,7 +279,8 @@ export const dict = {
 		section9Text:
 			"We may terminate or suspend your account and access to the service immediately, without prior notice, for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties.",
 		section10Title: "10. Contact Information",
-		section10Text: "If you have any questions about these Terms of Service, please",
+		section10Text:
+			"If you have any questions about these Terms of Service, please",
 		contactUs: "contact us",
 	},
 
@@ -277,12 +288,14 @@ export const dict = {
 	support: {
 		title: "Support",
 		heading: "How can we help you?",
-		subheading: "Find answers to common questions or reach out to our support team.",
+		subheading:
+			"Find answers to common questions or reach out to our support team.",
 		documentation: "Documentation",
 		documentationDescription:
 			"Comprehensive guides and tutorials to help you get the most out of Streampai.",
 		faq: "FAQ",
-		faqDescription: "Quick answers to frequently asked questions about our service.",
+		faqDescription:
+			"Quick answers to frequently asked questions about our service.",
 		discord: "Community Discord",
 		discordDescription:
 			"Join our Discord server to connect with other streamers and get community support.",
@@ -297,7 +310,7 @@ export const dict = {
 			"Streampai supports multi-platform streaming to Twitch, YouTube, Kick, Facebook, and more. We're constantly adding new platform integrations.",
 		faqQ2: "How do I connect my streaming accounts?",
 		faqA2:
-			"After signing up, go to your dashboard settings and click on \"Connect Accounts\". Follow the OAuth prompts to securely link your streaming platform accounts.",
+			'After signing up, go to your dashboard settings and click on "Connect Accounts". Follow the OAuth prompts to securely link your streaming platform accounts.',
 		faqQ3: "Is my data secure?",
 		faqA3:
 			"Yes, we take security seriously. All data is encrypted in transit and at rest. We never store your streaming platform passwords - we use secure OAuth tokens for authentication. Read our",
@@ -315,7 +328,8 @@ export const dict = {
 	contact: {
 		title: "Contact Us",
 		heading: "Get in Touch",
-		subheading: "Have a question, suggestion, or need help? We'd love to hear from you.",
+		subheading:
+			"Have a question, suggestion, or need help? We'd love to hear from you.",
 		emailTitle: "Email",
 		discordTitle: "Discord",
 		discordDescription: "Join our community",

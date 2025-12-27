@@ -181,7 +181,8 @@ export const dict: Dictionary = {
 		section1Item2: "Dane profilu z połączonych platform streamingowych",
 		section1Item3: "Metadane streamów i dane analityczne",
 		section1Item4: "Wiadomości czatu i akcje moderacyjne",
-		section1Item5: "Dane płatności (bezpiecznie przetwarzane przez zewnętrznych dostawców)",
+		section1Item5:
+			"Dane płatności (bezpiecznie przetwarzane przez zewnętrznych dostawców)",
 		section2Title: "2. Jak wykorzystujemy Twoje dane",
 		section2Intro: "Wykorzystujemy zebrane dane, aby:",
 		section2Item1: "Świadczyć, utrzymywać i ulepszać nasze usługi",
@@ -247,7 +248,8 @@ export const dict: Dictionary = {
 		section4Item2: "Łamać przepisów prawa, w tym praw autorskich",
 		section4Item3: "Przesyłać szkodliwych treści lub złośliwego oprogramowania",
 		section4Item4: "Zakłócać działania usługi lub połączonych z nią serwerów",
-		section4Item5: "Próbować uzyskać nieautoryzowany dostęp do jakiejkolwiek części usługi",
+		section4Item5:
+			"Próbować uzyskać nieautoryzowany dostęp do jakiejkolwiek części usługi",
 		section5Title: "5. Odpowiedzialność za treści",
 		section5Text:
 			"Ponosisz wyłączną odpowiedzialność za treści, które streamujesz, udostępniasz lub rozpowszechniasz przez naszą platformę. Zachowujesz wszystkie prawa własności do swoich treści, ale udzielasz nam licencji na ich wyświetlanie i dystrybucję przez naszą usługę.",
@@ -294,7 +296,7 @@ export const dict: Dictionary = {
 			"Streampai obsługuje streaming na Twitch, YouTube, Kick, Facebook i inne. Stale dodajemy nowe integracje.",
 		faqQ2: "Jak połączyć moje konta streamingowe?",
 		faqA2:
-			"Po rejestracji przejdź do ustawień i kliknij \"Połącz konta\". Postępuj zgodnie z instrukcjami OAuth, by bezpiecznie połączyć swoje konta.",
+			'Po rejestracji przejdź do ustawień i kliknij "Połącz konta". Postępuj zgodnie z instrukcjami OAuth, by bezpiecznie połączyć swoje konta.',
 		faqQ3: "Czy moje dane są bezpieczne?",
 		faqA3:
 			"Tak, bezpieczeństwo traktujemy poważnie. Wszystkie dane są szyfrowane podczas przesyłania i przechowywania. Nie przechowujemy haseł do platform – używamy bezpiecznych tokenów OAuth. Przeczytaj naszą",

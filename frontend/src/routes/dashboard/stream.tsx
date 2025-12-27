@@ -120,10 +120,14 @@ export default function Stream() {
 	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 	const [streamStatus, setStreamStatus] = createSignal<StreamStatus>("offline");
 	const [showStreamKey, setShowStreamKey] = createSignal(false);
-	const [disconnectingPlatform, setDisconnectingPlatform] = createSignal<string | null>(null);
+	const [disconnectingPlatform, setDisconnectingPlatform] = createSignal<
+		string | null
+	>(null);
 
 	// Stream key state
-	const [streamKeyData, setStreamKeyData] = createSignal<StreamKeyData | null>(null);
+	const [streamKeyData, setStreamKeyData] = createSignal<StreamKeyData | null>(
+		null,
+	);
 	const [isLoadingStreamKey, setIsLoadingStreamKey] = createSignal(false);
 	const [isRegenerating, setIsRegenerating] = createSignal(false);
 	const [streamKeyError, setStreamKeyError] = createSignal<string | null>(null);
@@ -143,7 +147,13 @@ export default function Stream() {
 	// Fetch stream key when showStreamKey becomes true
 	createEffect(() => {
 		const currentUser = user();
-		if (showStreamKey() && currentUser && !streamKeyData() && !isLoadingStreamKey() && !streamKeyError()) {
+		if (
+			showStreamKey() &&
+			currentUser &&
+			!streamKeyData() &&
+			!isLoadingStreamKey() &&
+			!streamKeyError()
+		) {
 			fetchStreamKey(currentUser.id);
 		}
 	});
@@ -161,7 +171,9 @@ export default function Stream() {
 
 			if (result.success && result.data) {
 				// RPC returns { data: { data: { rtmps: {...}, srt: {...} } } }
-				const liveInput = Array.isArray(result.data) ? result.data[0] : result.data;
+				const liveInput = Array.isArray(result.data)
+					? result.data[0]
+					: result.data;
 				const cloudflareData = liveInput?.data;
 				if (cloudflareData?.rtmps) {
 					setStreamKeyData({
@@ -188,7 +200,11 @@ export default function Stream() {
 		const currentUser = user();
 		if (!currentUser) return;
 
-		if (!confirm("Are you sure you want to regenerate your stream key? Your old key will stop working immediately.")) {
+		if (
+			!confirm(
+				"Are you sure you want to regenerate your stream key? Your old key will stop working immediately.",
+			)
+		) {
 			return;
 		}
 
@@ -249,7 +265,15 @@ export default function Stream() {
 	};
 
 	const handleDisconnectAccount = async (
-		platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble",
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
 	) => {
 		const currentUser = user();
 		if (!currentUser) return;
@@ -426,7 +450,9 @@ export default function Stream() {
 														class={`${button.ghost} text-red-600 text-sm hover:bg-red-50`}
 														onClick={handleRegenerateStreamKey}
 														disabled={isRegenerating()}>
-														{isRegenerating() ? "Regenerating..." : "Regenerate"}
+														{isRegenerating()
+															? "Regenerating..."
+															: "Regenerate"}
 													</button>
 												</div>
 											</div>
@@ -518,7 +544,8 @@ export default function Stream() {
 															class={`flex h-10 w-10 items-center justify-center rounded-lg ${platformConfig?.bgColor ?? "bg-gray-100"}`}>
 															<span
 																class={`font-bold text-sm ${platformConfig?.textColor ?? "text-gray-600"}`}>
-																{platformConfig?.name[0] ?? account.platform[0].toUpperCase()}
+																{platformConfig?.name[0] ??
+																	account.platform[0].toUpperCase()}
 															</span>
 														</div>
 														<div>
@@ -535,7 +562,9 @@ export default function Stream() {
 													<Button
 														variant="secondary"
 														size="sm"
-														disabled={disconnectingPlatform() === account.platform}
+														disabled={
+															disconnectingPlatform() === account.platform
+														}
 														onClick={() =>
 															handleDisconnectAccount(account.platform)
 														}>
@@ -552,7 +581,9 @@ export default function Stream() {
 									<For each={availablePlatforms}>
 										{(platform) => (
 											<Show
-												when={!connectedPlatforms().has(platform.targetPlatform)}>
+												when={
+													!connectedPlatforms().has(platform.targetPlatform)
+												}>
 												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
 													<div class="flex items-center space-x-3">
 														<div
@@ -573,7 +604,9 @@ export default function Stream() {
 													</div>
 													<Button
 														as="a"
-														href={apiRoutes.streaming.connect(platform.platform)}
+														href={apiRoutes.streaming.connect(
+															platform.platform,
+														)}
 														size="sm">
 														Connect
 													</Button>

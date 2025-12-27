@@ -156,8 +156,7 @@ export const dict: Dictionary = {
 		aiPoweredGrowthDescription:
 			"Recomendaciones inteligentes para optimizar tu estrategia de contenido",
 		ctaTitle: "¿Listo para llevar tu stream al siguiente nivel?",
-		ctaSubtitle:
-			"Únete a los streamers que ya están creciendo con Streampai",
+		ctaSubtitle: "Únete a los streamers que ya están creciendo con Streampai",
 	},
 
 	// Footer
@@ -199,7 +198,8 @@ export const dict: Dictionary = {
 			"Con plataformas de streaming que conectas (para streaming multiplataforma)",
 		section3Item2:
 			"Con proveedores de servicios que ayudan a operar nuestra plataforma",
-		section3Item3: "Cuando lo requiera la ley o para proteger nuestros derechos",
+		section3Item3:
+			"Cuando lo requiera la ley o para proteger nuestros derechos",
 		section3Item4: "Con tu consentimiento o por tu indicación",
 		section4Title: "4. Seguridad de datos",
 		section4Text:
@@ -250,8 +250,10 @@ export const dict: Dictionary = {
 		section4Item1: "Usar el servicio para fines ilegales o no autorizados",
 		section4Item2: "Violar leyes, incluyendo derechos de autor",
 		section4Item3: "Transmitir contenido dañino o malware",
-		section4Item4: "Interferir o interrumpir el servicio o servidores conectados",
-		section4Item5: "Intentar obtener acceso no autorizado a cualquier parte del servicio",
+		section4Item4:
+			"Interferir o interrumpir el servicio o servidores conectados",
+		section4Item5:
+			"Intentar obtener acceso no autorizado a cualquier parte del servicio",
 		section5Title: "5. Responsabilidad del contenido",
 		section5Text:
 			"Eres el único responsable del contenido que transmites, compartes o distribuyes a través de nuestra plataforma. Conservas todos los derechos de propiedad, pero nos otorgas licencia para mostrarlo y distribuirlo a través de nuestro servicio.",
@@ -283,7 +285,8 @@ export const dict: Dictionary = {
 		documentationDescription:
 			"Guías completas y tutoriales para sacar el máximo provecho de Streampai.",
 		faq: "FAQ",
-		faqDescription: "Respuestas rápidas a preguntas frecuentes sobre nuestro servicio.",
+		faqDescription:
+			"Respuestas rápidas a preguntas frecuentes sobre nuestro servicio.",
 		discord: "Discord de la comunidad",
 		discordDescription:
 			"Únete a nuestro Discord para conectar con otros streamers y obtener ayuda.",
@@ -298,7 +301,7 @@ export const dict: Dictionary = {
 			"Streampai soporta streaming a Twitch, YouTube, Kick, Facebook y más. Constantemente añadimos nuevas integraciones.",
 		faqQ2: "¿Cómo conecto mis cuentas de streaming?",
 		faqA2:
-			"Después de registrarte, ve a configuración del panel y haz clic en \"Conectar cuentas\". Sigue las instrucciones de OAuth para vincular tus cuentas de forma segura.",
+			'Después de registrarte, ve a configuración del panel y haz clic en "Conectar cuentas". Sigue las instrucciones de OAuth para vincular tus cuentas de forma segura.',
 		faqQ3: "¿Están seguros mis datos?",
 		faqA3:
 			"Sí, la seguridad es nuestra prioridad. Todos los datos están cifrados en tránsito y en reposo. Nunca guardamos contraseñas de plataformas, usamos tokens OAuth seguros. Lee nuestra",
@@ -341,7 +344,6 @@ export const dict: Dictionary = {
 		messagePlaceholder: "¿Cómo podemos ayudarte?",
 		sending: "Enviando...",
 		sendButton: "Enviar mensaje",
-		successMessage:
-			"¡Gracias por tu mensaje! Te responderemos pronto.",
+		successMessage: "¡Gracias por tu mensaje! Te responderemos pronto.",
 	},
 };
