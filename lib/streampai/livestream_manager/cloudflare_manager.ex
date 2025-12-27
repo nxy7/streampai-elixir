@@ -196,6 +196,13 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
       {:error, reason} ->
         Logger.error("Failed to create live inputs for user #{state.user_id}: #{inspect(reason)}")
+
+        # Report error to StreamActor
+        UserStreamManager.report_stream_error(
+          state.user_id,
+          "Failed to initialize Cloudflare live input: #{inspect(reason)}"
+        )
+
         # Retry after 30 seconds
         Process.send_after(self(), :initialize_live_input, 30_000)
         {:noreply, %{state | stream_status: :error}}
@@ -233,6 +240,12 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   def handle_info(:disconnect_timeout, state) do
     Logger.warning(
       "⚠️  AUTO-STOP: User #{state.user_id} stream disconnected for 30+ seconds, automatically ending livestream"
+    )
+
+    # Report error to StreamActor
+    UserStreamManager.report_stream_error(
+      state.user_id,
+      "Stream disconnected for 30+ seconds - auto-stopped"
     )
 
     # Fully stop the stream through UserStreamManager (async to avoid deadlock)
@@ -845,6 +858,9 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
         update_stream_state(state)
         broadcast_stream_event(state, :input_streaming_started, %{})
 
+        # Update StreamActor with input streaming status
+        update_stream_actor_input_status(state.user_id, true, "Input connected")
+
         state
 
       {:live, :offline} ->
@@ -868,6 +884,9 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
 
         update_stream_state(state)
         broadcast_stream_event(state, :input_streaming_stopped, %{})
+
+        # Update StreamActor with input streaming status
+        update_stream_actor_input_status(state.user_id, false, "Input disconnected")
 
         state
 
@@ -934,5 +953,24 @@ defmodule Streampai.LivestreamManager.CloudflareManager do
   defp extract_streaming_status(input_data) do
     Logger.debug("No status.current in input data: #{inspect(input_data)}")
     false
+  end
+
+  # StreamActor helper functions
+
+  defp update_stream_actor_input_status(user_id, input_streaming, status_message) do
+    alias Streampai.Stream.StreamActor
+
+    Task.start(fn ->
+      case StreamActor.update_for_user(user_id, %{
+             input_streaming: input_streaming,
+             status_message: status_message
+           }) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor input_streaming=#{input_streaming} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor input status: #{inspect(reason)}")
+      end
+    end)
   end
 end

@@ -66,8 +66,7 @@ defmodule StreampaiWeb do
     quote do
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
-      import StreampaiWeb.CoreComponents
+      # Translation
       import StreampaiWeb.Gettext
 
       # Routes generation with the ~p sigil

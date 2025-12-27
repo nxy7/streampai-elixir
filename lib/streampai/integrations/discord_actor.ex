@@ -116,14 +116,28 @@ defmodule Streampai.Integrations.DiscordActor do
         current_data = Ash.Changeset.get_data(changeset, :data) || %{}
 
         updates =
-          [:bot_token, :bot_name, :event_types, :announcement_guild_id, :announcement_channel_id]
-          |> Enum.reduce(%{}, fn key, acc ->
-            case Ash.Changeset.get_argument(changeset, key) do
-              nil -> acc
-              value when key == :event_types -> Map.put(acc, to_string(key), Enum.map(value, &to_string/1))
-              value -> Map.put(acc, to_string(key), value)
+          Enum.reduce(
+            [
+              :bot_token,
+              :bot_name,
+              :event_types,
+              :announcement_guild_id,
+              :announcement_channel_id
+            ],
+            %{},
+            fn key, acc ->
+              case Ash.Changeset.get_argument(changeset, key) do
+                nil ->
+                  acc
+
+                value when key == :event_types ->
+                  Map.put(acc, to_string(key), Enum.map(value, &to_string/1))
+
+                value ->
+                  Map.put(acc, to_string(key), value)
+              end
             end
-          end)
+          )
 
         if map_size(updates) > 0 do
           new_data = Map.merge(current_data, updates)
@@ -155,7 +169,7 @@ defmodule Streampai.Integrations.DiscordActor do
              :ok <- BotManager.start_bot(actor) do
           update_data_field(actor, %{
             "status" => "connected",
-            "last_connected_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+            "last_connected_at" => DateTime.to_iso8601(DateTime.utc_now())
           })
 
           {:ok, %{success: true, message: "Bot connected successfully"}}
@@ -191,7 +205,7 @@ defmodule Streampai.Integrations.DiscordActor do
              {:ok, guilds_data} <- BotManager.fetch_guilds(actor) do
           update_data_field(actor, %{
             "guilds" => guilds_data,
-            "last_synced_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+            "last_synced_at" => DateTime.to_iso8601(DateTime.utc_now())
           })
 
           {:ok, %{success: true, guilds: guilds_data}}
@@ -260,12 +274,16 @@ defmodule Streampai.Integrations.DiscordActor do
         current_data = Ash.Changeset.get_data(changeset, :data) || %{}
 
         updates =
-          [:guilds, :channels, :last_synced_at]
-          |> Enum.reduce(%{}, fn key, acc ->
+          Enum.reduce([:guilds, :channels, :last_synced_at], %{}, fn key, acc ->
             case Ash.Changeset.get_argument(changeset, key) do
-              nil -> acc
-              value when key == :last_synced_at -> Map.put(acc, to_string(key), DateTime.to_iso8601(value))
-              value -> Map.put(acc, to_string(key), value)
+              nil ->
+                acc
+
+              value when key == :last_synced_at ->
+                Map.put(acc, to_string(key), DateTime.to_iso8601(value))
+
+              value ->
+                Map.put(acc, to_string(key), value)
             end
           end)
 
@@ -280,6 +298,7 @@ defmodule Streampai.Integrations.DiscordActor do
 
     update :record_message_sent do
       require_atomic? false
+
       change fn changeset, _context ->
         current_data = Ash.Changeset.get_data(changeset, :data) || %{}
         current_count = Map.get(current_data, "messages_sent", 0)
@@ -346,10 +365,6 @@ defmodule Streampai.Integrations.DiscordActor do
     end
   end
 
-  identities do
-    identity :unique_type_user, [:type, :user_id], nils_distinct?: false
-  end
-
   # Calculated attributes to access data fields
   calculations do
     calculate :bot_token, :string, expr(data[:bot_token]) do
@@ -368,6 +383,10 @@ defmodule Streampai.Integrations.DiscordActor do
     calculate :last_error, :string, expr(data[:last_error])
     calculate :last_error_at, :string, expr(data[:last_error_at])
     calculate :messages_sent, :integer, expr(data[:messages_sent])
+  end
+
+  identities do
+    identity :unique_type_user, [:type, :user_id], nils_distinct?: false
   end
 
   # Helper function to update data fields

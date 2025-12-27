@@ -1,0 +1,4 @@
+postgres: docker compose up
+phoenix: sleep 5 && elixir -S mix phx.server
+frontend: cd frontend && PORT=$FRONTEND_PORT bun dev
+caddy: caddy run --config Caddyfile

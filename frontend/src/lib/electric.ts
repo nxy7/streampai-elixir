@@ -80,6 +80,7 @@ export type UserPreferences = Row & {
 	donation_currency: string;
 	default_voice: string | null;
 	avatar_url: string | null;
+	language_preference: string | null;
 	inserted_at: string;
 	updated_at: string;
 };
@@ -125,6 +126,33 @@ export type UserRole = Row & {
 	granted_at: string;
 	accepted_at: string | null;
 	revoked_at: string | null;
+	inserted_at: string;
+	updated_at: string;
+};
+
+export type StreamingAccount = Row & {
+	user_id: string;
+	platform:
+		| "youtube"
+		| "twitch"
+		| "facebook"
+		| "kick"
+		| "tiktok"
+		| "trovo"
+		| "instagram"
+		| "rumble";
+	extra_data: {
+		email?: string;
+		name?: string;
+		nickname?: string;
+		image?: string;
+		uid?: string;
+	};
+	sponsor_count: number | null;
+	views_last_30d: number | null;
+	follower_count: number | null;
+	subscriber_count: number | null;
+	stats_last_refreshed_at: string | null;
 	inserted_at: string;
 	updated_at: string;
 };
@@ -412,6 +440,28 @@ export function createUserRolesCollection(userId: string) {
 				url: `${SHAPES_URL}/user_roles/${userId}`,
 			},
 			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export const emptyStreamingAccountsCollection = createCollection(
+	electricCollectionOptions<StreamingAccount>({
+		id: "empty_streaming_accounts",
+		shapeOptions: {
+			url: `${SHAPES_URL}/streaming_accounts/_empty`,
+		},
+		getKey: (item) => `${item.user_id}_${item.platform}`,
+	}),
+);
+
+export function createStreamingAccountsCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<StreamingAccount>({
+			id: `streaming_accounts_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/streaming_accounts/${userId}`,
+			},
+			getKey: (item) => `${item.user_id}_${item.platform}`,
 		}),
 	);
 }

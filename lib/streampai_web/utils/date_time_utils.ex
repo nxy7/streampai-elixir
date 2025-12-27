@@ -1,7 +1,6 @@
 defmodule StreampaiWeb.Utils.DateTimeUtils do
   @moduledoc """
   Utility functions for date and time formatting across the application.
-  Consolidates common date/time operations used in LiveViews and components.
   """
 
   @doc """

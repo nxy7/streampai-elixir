@@ -1,33 +1,258 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import Button from "~/components/ui/Button";
+import { Skeleton } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { apiRoutes } from "~/lib/constants";
+import { useStreamingAccounts } from "~/lib/useElectric";
+import {
+	disconnectStreamingAccount,
+	getStreamKey,
+	regenerateStreamKey,
+} from "~/sdk/ash_rpc";
 import { badge, button, card, text } from "~/styles/design-system";
 
-type PlatformConnection = {
-	platform: string;
-	connected: boolean;
-	username?: string;
-};
+// Platform configuration
+const availablePlatforms = [
+	{
+		name: "YouTube",
+		platform: "google" as const,
+		targetPlatform: "youtube" as const,
+		bgColor: "bg-red-100",
+		textColor: "text-red-600",
+	},
+	{
+		name: "Twitch",
+		platform: "twitch" as const,
+		targetPlatform: "twitch" as const,
+		bgColor: "bg-purple-100",
+		textColor: "text-purple-600",
+	},
+	{
+		name: "Facebook",
+		platform: "facebook" as const,
+		targetPlatform: "facebook" as const,
+		bgColor: "bg-blue-100",
+		textColor: "text-blue-600",
+	},
+	{
+		name: "Kick",
+		platform: "kick" as const,
+		targetPlatform: "kick" as const,
+		bgColor: "bg-green-100",
+		textColor: "text-green-600",
+	},
+];
+
+// Skeleton for stream page loading state
+function StreamPageSkeleton() {
+	return (
+		<div class="mx-auto max-w-7xl space-y-6">
+			{/* Stream Status Card skeleton */}
+			<div class={card.default}>
+				<div class="mb-6 flex items-center justify-between">
+					<div>
+						<Skeleton class="mb-2 h-8 w-40" />
+						<Skeleton class="h-4 w-56" />
+					</div>
+					<Skeleton class="h-6 w-20 rounded-full" />
+				</div>
+
+				{/* Stream Metadata skeleton */}
+				<div class="mb-6 space-y-4">
+					<div>
+						<Skeleton class="mb-2 h-4 w-24" />
+						<Skeleton class="h-10 w-full rounded-lg" />
+					</div>
+					<div>
+						<Skeleton class="mb-2 h-4 w-20" />
+						<Skeleton class="h-20 w-full rounded-lg" />
+					</div>
+				</div>
+
+				{/* Stream Controls skeleton */}
+				<div class="flex items-center space-x-3">
+					<Skeleton class="h-10 w-24 rounded-lg" />
+					<Skeleton class="h-10 w-36 rounded-lg" />
+				</div>
+			</div>
+
+			{/* Platform Connections skeleton */}
+			<div class={card.default}>
+				<div class="mb-6">
+					<Skeleton class="mb-2 h-6 w-44" />
+					<Skeleton class="h-4 w-64" />
+				</div>
+
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center space-x-3">
+									<Skeleton class="h-10 w-10 rounded-lg" />
+									<div>
+										<Skeleton class="mb-1 h-5 w-20" />
+										<Skeleton class="h-3 w-24" />
+									</div>
+								</div>
+								<Skeleton class="h-9 w-20 rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 type StreamStatus = "offline" | "starting" | "live" | "stopping";
 
+// Stream key data type
+type StreamKeyData = {
+	rtmpsUrl: string;
+	rtmpsStreamKey: string;
+	srtUrl?: string;
+	webRtcUrl?: string;
+};
+
 export default function Stream() {
 	const { user, isLoading } = useCurrentUser();
+	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 	const [streamStatus, setStreamStatus] = createSignal<StreamStatus>("offline");
 	const [showStreamKey, setShowStreamKey] = createSignal(false);
-	const [platformConnections, setPlatformConnections] = createSignal<
-		PlatformConnection[]
-	>([
-		{ platform: "Twitch", connected: false },
-		{ platform: "YouTube", connected: false },
-		{ platform: "Facebook", connected: false },
-		{ platform: "Kick", connected: false },
-	]);
+	const [disconnectingPlatform, setDisconnectingPlatform] = createSignal<
+		string | null
+	>(null);
+
+	// Stream key state
+	const [streamKeyData, setStreamKeyData] = createSignal<StreamKeyData | null>(
+		null,
+	);
+	const [isLoadingStreamKey, setIsLoadingStreamKey] = createSignal(false);
+	const [isRegenerating, setIsRegenerating] = createSignal(false);
+	const [streamKeyError, setStreamKeyError] = createSignal<string | null>(null);
+	const [copied, setCopied] = createSignal(false);
 
 	const [streamMetadata, setStreamMetadata] = createSignal({
 		title: "",
 		description: "",
 	});
+
+	// Track which platforms are connected
+	const connectedPlatforms = createMemo(() => {
+		const accounts = streamingAccounts.data();
+		return new Set(accounts.map((a) => a.platform));
+	});
+
+	// Fetch stream key when showStreamKey becomes true
+	createEffect(() => {
+		const currentUser = user();
+		if (
+			showStreamKey() &&
+			currentUser &&
+			!streamKeyData() &&
+			!isLoadingStreamKey() &&
+			!streamKeyError()
+		) {
+			fetchStreamKey(currentUser.id);
+		}
+	});
+
+	const fetchStreamKey = async (userId: string) => {
+		setIsLoadingStreamKey(true);
+		setStreamKeyError(null);
+
+		try {
+			const result = await getStreamKey({
+				input: { userId, orientation: "horizontal" },
+				fields: ["data"],
+				fetchOptions: { credentials: "include" },
+			});
+
+			if (result.success && result.data) {
+				// RPC returns { data: { data: { rtmps: {...}, srt: {...} } } }
+				const liveInput = Array.isArray(result.data)
+					? result.data[0]
+					: result.data;
+				const cloudflareData = liveInput?.data;
+				if (cloudflareData?.rtmps) {
+					setStreamKeyData({
+						rtmpsUrl: cloudflareData.rtmps.url ?? "",
+						rtmpsStreamKey: cloudflareData.rtmps.streamKey ?? "",
+						srtUrl: cloudflareData.srt?.url,
+						webRtcUrl: cloudflareData.webRTC?.url,
+					});
+				} else {
+					setStreamKeyError("Invalid stream key data received");
+				}
+			} else {
+				setStreamKeyError("Failed to fetch stream key");
+			}
+		} catch (error) {
+			console.error("Failed to fetch stream key:", error);
+			setStreamKeyError("Failed to fetch stream key");
+		} finally {
+			setIsLoadingStreamKey(false);
+		}
+	};
+
+	const handleRegenerateStreamKey = async () => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		if (
+			!confirm(
+				"Are you sure you want to regenerate your stream key? Your old key will stop working immediately.",
+			)
+		) {
+			return;
+		}
+
+		setIsRegenerating(true);
+		setStreamKeyError(null);
+
+		try {
+			const result = await regenerateStreamKey({
+				identity: { userId: currentUser.id, orientation: "horizontal" },
+				fields: ["data"],
+				fetchOptions: { credentials: "include" },
+			});
+
+			if (result.success && result.data) {
+				const cloudflareData = result.data.data;
+				if (cloudflareData?.rtmps) {
+					setStreamKeyData({
+						rtmpsUrl: cloudflareData.rtmps.url ?? "",
+						rtmpsStreamKey: cloudflareData.rtmps.streamKey ?? "",
+						srtUrl: cloudflareData.srt?.url,
+						webRtcUrl: cloudflareData.webRTC?.url,
+					});
+				} else {
+					setStreamKeyError("Failed to regenerate stream key");
+				}
+			} else {
+				setStreamKeyError("Failed to regenerate stream key");
+			}
+		} catch (error) {
+			console.error("Failed to regenerate stream key:", error);
+			setStreamKeyError("Failed to regenerate stream key");
+		} finally {
+			setIsRegenerating(false);
+		}
+	};
+
+	const handleCopyStreamKey = async () => {
+		const data = streamKeyData();
+		if (!data) return;
+
+		try {
+			await navigator.clipboard.writeText(data.rtmpsStreamKey);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		} catch (error) {
+			console.error("Failed to copy stream key:", error);
+		}
+	};
 
 	const handleStartStream = () => {
 		setStreamStatus("starting");
@@ -39,26 +264,39 @@ export default function Stream() {
 		setTimeout(() => setStreamStatus("offline"), 1500);
 	};
 
-	const togglePlatformConnection = (platform: string) => {
-		setPlatformConnections((prev) =>
-			prev.map((conn) =>
-				conn.platform === platform
-					? { ...conn, connected: !conn.connected }
-					: conn,
-			),
-		);
+	const handleDisconnectAccount = async (
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
+	) => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		setDisconnectingPlatform(platform);
+		try {
+			const result = await disconnectStreamingAccount({
+				identity: { userId: currentUser.id, platform },
+				fetchOptions: { credentials: "include" },
+			});
+
+			if (!result.success) {
+				console.error("Failed to disconnect account:", result.errors);
+			}
+		} finally {
+			setDisconnectingPlatform(null);
+		}
 	};
 
 	return (
 		<>
 			<Title>Stream - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<StreamPageSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
@@ -171,26 +409,94 @@ export default function Stream() {
 							{/* Stream Key Display */}
 							<Show when={showStreamKey()}>
 								<div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-									<div class="mb-2 flex items-center justify-between">
-										<span class="font-medium text-gray-700 text-sm">
-											Stream Key
-										</span>
-										<button type="button" class={`${button.ghost} text-sm`}>
-											Copy
-										</button>
-									</div>
-									<code class="font-mono text-gray-900 text-sm">
-										rtmps://live.streampai.com/live
-									</code>
-									<div class="mt-2">
-										<code class="font-mono text-gray-600 text-sm">
-											sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-										</code>
-									</div>
-									<p class="mt-2 text-gray-500 text-xs">
-										Use this RTMP URL and stream key in your streaming software
-										(OBS, Streamlabs, etc.)
-									</p>
+									<Show
+										when={!isLoadingStreamKey()}
+										fallback={
+											<div class="space-y-3">
+												<Skeleton class="h-4 w-24" />
+												<Skeleton class="h-5 w-full" />
+												<Skeleton class="h-5 w-3/4" />
+											</div>
+										}>
+										<Show
+											when={!streamKeyError()}
+											fallback={
+												<div class="text-center">
+													<p class="text-red-600 text-sm">{streamKeyError()}</p>
+													<button
+														type="button"
+														class={`${button.ghost} mt-2 text-sm`}
+														onClick={() => {
+															const currentUser = user();
+															if (currentUser) fetchStreamKey(currentUser.id);
+														}}>
+														Retry
+													</button>
+												</div>
+											}>
+											<div class="mb-3 flex items-center justify-between">
+												<span class="font-medium text-gray-700 text-sm">
+													Stream Key
+												</span>
+												<div class="flex items-center space-x-2">
+													<button
+														type="button"
+														class={`${button.ghost} text-sm`}
+														onClick={handleCopyStreamKey}>
+														{copied() ? "Copied!" : "Copy Key"}
+													</button>
+													<button
+														type="button"
+														class={`${button.ghost} text-red-600 text-sm hover:bg-red-50`}
+														onClick={handleRegenerateStreamKey}
+														disabled={isRegenerating()}>
+														{isRegenerating()
+															? "Regenerating..."
+															: "Regenerate"}
+													</button>
+												</div>
+											</div>
+
+											<Show when={streamKeyData()}>
+												{(data) => (
+													<>
+														<div class="mb-2">
+															<label class="mb-1 block text-gray-500 text-xs">
+																RTMP URL
+															</label>
+															<code class="block rounded bg-white px-2 py-1 font-mono text-gray-900 text-sm">
+																{data().rtmpsUrl}
+															</code>
+														</div>
+														<div class="mb-3">
+															<label class="mb-1 block text-gray-500 text-xs">
+																Stream Key
+															</label>
+															<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-sm">
+																{data().rtmpsStreamKey}
+															</code>
+														</div>
+
+														<Show when={data().srtUrl}>
+															<div class="mb-2 border-gray-200 border-t pt-2">
+																<label class="mb-1 block text-gray-500 text-xs">
+																	SRT URL (Alternative)
+																</label>
+																<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-xs">
+																	{data().srtUrl}
+																</code>
+															</div>
+														</Show>
+
+														<p class="mt-3 text-gray-500 text-xs">
+															Use this RTMP URL and stream key in your streaming
+															software (OBS, Streamlabs, etc.)
+														</p>
+													</>
+												)}
+											</Show>
+										</Show>
+									</Show>
 								</div>
 							</Show>
 						</div>
@@ -204,81 +510,112 @@ export default function Stream() {
 								</p>
 							</div>
 
-							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-								<For each={platformConnections()}>
-									{(conn) => (
-										<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
-											<div class="flex items-center space-x-3">
-												<div
-													class={
-														"flex h-10 w-10 items-center justify-center rounded-lg" +
-														(conn.platform === "Twitch"
-															? "bg-purple-100"
-															: conn.platform === "YouTube"
-																? "bg-red-100"
-																: conn.platform === "Facebook"
-																	? "bg-blue-100"
-																	: "bg-green-100")
-													}>
-													<svg
-														aria-hidden="true"
-														class={
-															"h-5 w-5" +
-															(conn.platform === "Twitch"
-																? "text-purple-600"
-																: conn.platform === "YouTube"
-																	? "text-red-600"
-																	: conn.platform === "Facebook"
-																		? "text-blue-600"
-																		: "text-green-600")
-														}
-														fill="currentColor"
-														viewBox="0 0 24 24">
-														<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-													</svg>
-												</div>
-												<div>
-													<div class="font-medium text-gray-900">
-														{conn.platform}
+							<Show
+								when={!streamingAccounts.isLoading()}
+								fallback={
+									<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+										<For each={[1, 2, 3, 4]}>
+											{() => (
+												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+													<div class="flex items-center space-x-3">
+														<Skeleton class="h-10 w-10 rounded-lg" />
+														<div>
+															<Skeleton class="mb-1 h-5 w-20" />
+															<Skeleton class="h-3 w-24" />
+														</div>
 													</div>
-													<Show
-														when={conn.connected}
-														fallback={
+													<Skeleton class="h-9 w-20 rounded-lg" />
+												</div>
+											)}
+										</For>
+									</div>
+								}>
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+									{/* Connected accounts first */}
+									<For each={streamingAccounts.data()}>
+										{(account) => {
+											const platformConfig = availablePlatforms.find(
+												(p) => p.targetPlatform === account.platform,
+											);
+											return (
+												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+													<div class="flex items-center space-x-3">
+														<div
+															class={`flex h-10 w-10 items-center justify-center rounded-lg ${platformConfig?.bgColor ?? "bg-gray-100"}`}>
+															<span
+																class={`font-bold text-sm ${platformConfig?.textColor ?? "text-gray-600"}`}>
+																{platformConfig?.name[0] ??
+																	account.platform[0].toUpperCase()}
+															</span>
+														</div>
+														<div>
+															<div class="font-medium text-gray-900">
+																{platformConfig?.name ?? account.platform}
+															</div>
+															<span class="text-green-600 text-xs">
+																{account.extra_data?.name ||
+																	account.extra_data?.nickname ||
+																	"Connected"}
+															</span>
+														</div>
+													</div>
+													<Button
+														variant="secondary"
+														size="sm"
+														disabled={
+															disconnectingPlatform() === account.platform
+														}
+														onClick={() =>
+															handleDisconnectAccount(account.platform)
+														}>
+														{disconnectingPlatform() === account.platform
+															? "..."
+															: "Disconnect"}
+													</Button>
+												</div>
+											);
+										}}
+									</For>
+
+									{/* Unconnected platforms */}
+									<For each={availablePlatforms}>
+										{(platform) => (
+											<Show
+												when={
+													!connectedPlatforms().has(platform.targetPlatform)
+												}>
+												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+													<div class="flex items-center space-x-3">
+														<div
+															class={`flex h-10 w-10 items-center justify-center rounded-lg ${platform.bgColor}`}>
+															<span
+																class={`font-bold text-sm ${platform.textColor}`}>
+																{platform.name[0]}
+															</span>
+														</div>
+														<div>
+															<div class="font-medium text-gray-900">
+																{platform.name}
+															</div>
 															<span class="text-gray-500 text-xs">
 																Not connected
 															</span>
-														}>
-														<span class="text-green-600 text-xs">
-															Connected
-														</span>
-													</Show>
-												</div>
-											</div>
-											<Show
-												when={conn.connected}
-												fallback={
-													<button
-														type="button"
-														class={`${button.primary} text-sm`}
-														onClick={() =>
-															togglePlatformConnection(conn.platform)
-														}>
+														</div>
+													</div>
+													<Button
+														as="a"
+														href={apiRoutes.streaming.connect(
+															platform.platform,
+														)}
+														size="sm">
 														Connect
-													</button>
-												}>
-												<button
-													type="button"
-													class={`${button.secondary} text-sm`}
-													onClick={() =>
-														togglePlatformConnection(conn.platform)
-													}>
-													Disconnect
-												</button>
+													</Button>
+												</div>
 											</Show>
-										</div>
-									)}
-								</For>
-							</div>
+										)}
+									</For>
+								</div>
+							</Show>
 						</div>
 
 						{/* Stream Statistics (Placeholder) */}

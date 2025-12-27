@@ -7,6 +7,7 @@ import {
 	type JSX,
 	Show,
 } from "solid-js";
+import { useTranslation } from "~/i18n";
 import { getLogoutUrl, useCurrentUser } from "~/lib/auth";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 import NotificationBell from "./NotificationBell";
@@ -16,6 +17,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout(props: DashboardLayoutProps) {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -48,23 +50,33 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 		return "";
 	});
 
-	// Extract page title from current page
+	// Extract page title from current page (translated)
 	const pageTitle = createMemo(() => {
 		const page = currentPage();
-		if (!page) return "Dashboard";
-		return page
-			.split("-")
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-			.join(" ");
+		const pageTitleMap: Record<string, string> = {
+			dashboard: "dashboardNav.dashboard",
+			analytics: "dashboardNav.analytics",
+			stream: "dashboardNav.stream",
+			"chat-history": "dashboardNav.chatHistory",
+			viewers: "dashboardNav.viewers",
+			"stream-history": "dashboardNav.streamHistory",
+			widgets: "dashboardNav.widgets",
+			"smart-canvas": "dashboardNav.smartCanvas",
+			settings: "dashboardNav.settings",
+			users: "dashboardNav.users",
+		};
+		const key = pageTitleMap[page] || "dashboardNav.dashboard";
+		return t(key);
 	});
 
-	const navSections = [
+	// Navigation sections with translation keys
+	const navSections = createMemo(() => [
 		{
-			title: "Overview",
+			titleKey: "sidebar.overview",
 			items: [
 				{
 					url: "/dashboard",
-					label: "Dashboard",
+					labelKey: "dashboardNav.dashboard",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -89,7 +101,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/analytics",
-					label: "Analytics",
+					labelKey: "dashboardNav.analytics",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -109,11 +121,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			],
 		},
 		{
-			title: "Streaming",
+			titleKey: "sidebar.streaming",
 			items: [
 				{
 					url: "/dashboard/stream",
-					label: "Stream",
+					labelKey: "dashboardNav.stream",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -132,7 +144,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/chat-history",
-					label: "Chat History",
+					labelKey: "dashboardNav.chatHistory",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -151,7 +163,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/viewers",
-					label: "Viewers",
+					labelKey: "dashboardNav.viewers",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -176,7 +188,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/stream-history",
-					label: "Stream History",
+					labelKey: "dashboardNav.streamHistory",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -196,11 +208,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			],
 		},
 		{
-			title: "Widgets",
+			titleKey: "sidebar.widgets",
 			items: [
 				{
 					url: "/dashboard/widgets",
-					label: "Widgets",
+					labelKey: "dashboardNav.widgets",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -219,7 +231,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/smart-canvas",
-					label: "Smart Canvas",
+					labelKey: "dashboardNav.smartCanvas",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -239,11 +251,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 			],
 		},
 		{
-			title: "Account",
+			titleKey: "sidebar.account",
 			items: [
 				{
 					url: "/dashboard/settings",
-					label: "Settings",
+					labelKey: "dashboardNav.settings",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -268,15 +280,15 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 			],
 		},
-	];
+	]);
 
-	const adminSections = [
+	const adminSections = createMemo(() => [
 		{
-			title: "Admin",
+			titleKey: "sidebar.admin",
 			items: [
 				{
 					url: "/dashboard/admin/users",
-					label: "Users",
+					labelKey: "dashboardNav.users",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -295,7 +307,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 				{
 					url: "/dashboard/admin/notifications",
-					label: "Notifications",
+					labelKey: "dashboardNav.notifications",
 					icon: (
 						<svg
 							aria-hidden="true"
@@ -314,10 +326,11 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				},
 			],
 		},
-	];
+	]);
 
-	// Wait for both auth and Electric sync to complete before rendering
-	const isFullyLoaded = () => !isLoading() && user() && prefs.isReady();
+	// Wait for auth to complete before rendering
+	// Electric sync (prefs) can load in the background - header shows skeleton fallback
+	const isFullyLoaded = () => !isLoading() && user();
 
 	return (
 		<Show
@@ -326,7 +339,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 				<div class="flex h-screen items-center justify-center bg-gray-50">
 					<div class="text-center">
 						<div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-						<p class="text-gray-600">Loading...</p>
+						<p class="text-gray-600">{t("common.loading")}</p>
 					</div>
 				</div>
 			}>
@@ -337,7 +350,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						type="button"
 						class="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
 						onClick={() => setMobileSidebarOpen(false)}
-						aria-label="Close sidebar"
+						aria-label={t("dashboard.closeSidebar")}
 					/>
 				</Show>
 
@@ -401,7 +414,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 
 					{/* Main Navigation */}
 					<nav class="mt-6 flex-1">
-						<For each={navSections}>
+						<For each={navSections()}>
 							{(section) => (
 								<div class="mb-8 px-4">
 									<h3
@@ -410,31 +423,34 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 												? "h-0 overflow-hidden opacity-0"
 												: "opacity-100"
 										}`}>
-										{section.title}
+										{t(section.titleKey)}
 									</h3>
 									<div class="space-y-2">
 										<For each={section.items}>
-											{(item) => (
-												<A
-													href={item.url}
-													class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-														currentPage() ===
-														item.label.toLowerCase().replace(" ", "-")
-															? "bg-purple-600 text-white"
-															: "text-gray-300 hover:bg-gray-700 hover:text-white"
-													} ${sidebarCollapsed() ? "justify-center" : ""}`}
-													title={item.label}>
-													{item.icon}
-													<span
-														class={`ml-3 transition-opacity ${
-															sidebarCollapsed()
-																? "w-0 overflow-hidden opacity-0"
-																: "opacity-100"
-														}`}>
-														{item.label}
-													</span>
-												</A>
-											)}
+											{(item) => {
+												const label = () => t(item.labelKey);
+												return (
+													<A
+														href={item.url}
+														class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
+															currentPage() ===
+															item.url.split("/").pop()?.replace("-", "-")
+																? "bg-purple-600 text-white"
+																: "text-gray-300 hover:bg-gray-700 hover:text-white"
+														} ${sidebarCollapsed() ? "justify-center" : ""}`}
+														title={label()}>
+														{item.icon}
+														<span
+															class={`ml-3 transition-opacity ${
+																sidebarCollapsed()
+																	? "w-0 overflow-hidden opacity-0"
+																	: "opacity-100"
+															}`}>
+															{label()}
+														</span>
+													</A>
+												);
+											}}
 										</For>
 									</div>
 								</div>
@@ -442,7 +458,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						</For>
 
 						<Show when={user()?.role === "admin"}>
-							<For each={adminSections}>
+							<For each={adminSections()}>
 								{(section) => (
 									<div class="mb-8 px-4">
 										<h3
@@ -451,31 +467,34 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 													? "h-0 overflow-hidden opacity-0"
 													: "opacity-100"
 											}`}>
-											{section.title}
+											{t(section.titleKey)}
 										</h3>
 										<div class="space-y-2">
 											<For each={section.items}>
-												{(item) => (
-													<A
-														href={item.url}
-														class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-															currentPage() ===
-															item.label.toLowerCase().replace(" ", "-")
-																? "bg-purple-600 text-white"
-																: "text-gray-300 hover:bg-gray-700 hover:text-white"
-														} ${sidebarCollapsed() ? "justify-center" : ""}`}
-														title={item.label}>
-														{item.icon}
-														<span
-															class={`ml-3 transition-opacity ${
-																sidebarCollapsed()
-																	? "w-0 overflow-hidden opacity-0"
-																	: "opacity-100"
-															}`}>
-															{item.label}
-														</span>
-													</A>
-												)}
+												{(item) => {
+													const label = () => t(item.labelKey);
+													return (
+														<A
+															href={item.url}
+															class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
+																currentPage() ===
+																item.url.split("/").pop()?.replace("-", "-")
+																	? "bg-purple-600 text-white"
+																	: "text-gray-300 hover:bg-gray-700 hover:text-white"
+															} ${sidebarCollapsed() ? "justify-center" : ""}`}
+															title={label()}>
+															{item.icon}
+															<span
+																class={`ml-3 transition-opacity ${
+																	sidebarCollapsed()
+																		? "w-0 overflow-hidden opacity-0"
+																		: "opacity-100"
+																}`}>
+																{label()}
+															</span>
+														</A>
+													);
+												}}
 											</For>
 										</div>
 									</div>
@@ -511,7 +530,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 											? "w-0 overflow-hidden opacity-0"
 											: "opacity-100"
 									}`}>
-									Moderate
+									{t("dashboardNav.moderate")}
 								</span>
 							</A>
 						</Show>
@@ -541,7 +560,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 										? "w-0 overflow-hidden opacity-0"
 										: "opacity-100"
 								}`}>
-								Sign Out
+								{t("nav.signOut")}
 							</span>
 						</a>
 					</div>
@@ -583,7 +602,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 							<NotificationBell />
 							<Show when={user()}>
 								<Show
-									when={prefs.data()}
+									when={!prefs.isLoading() || prefs.data()}
 									fallback={
 										<div class="flex items-center space-x-3">
 											<div class="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
@@ -597,7 +616,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 										<A
 											href="/dashboard/settings"
 											class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
-											title="Go to Settings">
+											title={t("dashboard.goToSettings")}>
 											<Show
 												when={prefs.data()?.avatar_url}
 												fallback={
@@ -618,7 +637,9 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 											<p class="font-medium text-gray-900 text-sm">
 												{prefs.data()?.name || user()?.email || ""}
 											</p>
-											<p class="text-gray-500 text-xs">Free Plan</p>
+											<p class="text-gray-500 text-xs">
+												{t("dashboard.freePlan")}
+											</p>
 										</div>
 									</div>
 								</Show>

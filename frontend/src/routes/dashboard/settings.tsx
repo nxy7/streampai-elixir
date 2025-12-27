@@ -1,14 +1,26 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import StreamingAccountStats from "~/components/StreamingAccountStats";
+import Button from "~/components/ui/Button";
+import { Skeleton } from "~/components/ui";
+import LanguageSwitcher from "~/components/LanguageSwitcher";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { useUserPreferencesForUser, useUserRolesData } from "~/lib/useElectric";
+import { apiRoutes } from "~/lib/constants";
+import {
+	useStreamingAccounts,
+	useUserPreferencesForUser,
+	useUserRolesData,
+} from "~/lib/useElectric";
 import {
 	acceptRoleInvitation,
 	confirmFileUpload,
 	declineRoleInvitation,
+	disconnectStreamingAccount,
 	getUserByName,
 	getUserInfo,
 	inviteUserRole,
+	refreshStreamingAccountStats,
 	requestFileUpload,
 	revokeUserRole,
 	saveDonationSettings,
@@ -19,10 +31,87 @@ import {
 
 type UserInfo = { id: string; name: string; displayAvatar: string | null };
 
+// Skeleton for settings page
+function SettingsPageSkeleton() {
+	return (
+		<div class="mx-auto max-w-6xl space-y-6">
+			{/* Plan Banner skeleton */}
+			<Skeleton class="h-24 w-full rounded-lg" />
+
+			{/* Account Settings skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-36" />
+				<div class="space-y-6">
+					{/* Profile section */}
+					<div class="flex items-center space-x-4">
+						<Skeleton class="h-16 w-16 shrink-0" circle />
+						<div class="flex-1 space-y-2">
+							<Skeleton class="h-4 w-32" />
+							<Skeleton class="h-9 w-32 rounded-lg" />
+						</div>
+					</div>
+					{/* Display Name */}
+					<div class="space-y-2">
+						<Skeleton class="h-4 w-24" />
+						<div class="flex gap-3">
+							<Skeleton class="h-10 flex-1 rounded-lg" />
+							<Skeleton class="h-10 w-24 rounded-lg" />
+						</div>
+					</div>
+					{/* Notifications */}
+					<div class="flex items-center justify-between">
+						<div class="space-y-1">
+							<Skeleton class="h-5 w-36" />
+							<Skeleton class="h-4 w-64" />
+						</div>
+						<Skeleton class="h-6 w-12 rounded-full" />
+					</div>
+				</div>
+			</div>
+
+			{/* Donation Settings skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-36" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-2 h-4 w-28" />
+								<Skeleton class="h-10 w-full rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+				<Skeleton class="mt-4 h-10 w-36 rounded-lg" />
+			</div>
+
+			{/* Platform Connections skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<Skeleton class="mb-6 h-6 w-44" />
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center space-x-3">
+									<Skeleton class="h-10 w-10 rounded-lg" />
+									<Skeleton class="h-5 w-20" />
+								</div>
+								<Skeleton class="h-9 w-20 rounded-lg" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export default function Settings() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const rolesData = useUserRolesData(() => user()?.id);
+	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 	const [isUploading, setIsUploading] = createSignal(false);
 	const [uploadError, setUploadError] = createSignal<string | null>(null);
 	const [uploadSuccess, setUploadSuccess] = createSignal(false);
@@ -468,60 +557,103 @@ export default function Settings() {
 		}
 	};
 
-	const platformConnections = [
-		{
-			name: "Twitch",
-			platform: "twitch",
-			connected: false,
-			color: "from-purple-600 to-purple-700",
-		},
+	const availablePlatforms = [
 		{
 			name: "YouTube",
-			platform: "youtube",
-			connected: false,
+			platform: "google" as const,
+			targetPlatform: "youtube" as const,
 			color: "from-red-600 to-red-700",
 		},
 		{
-			name: "Facebook",
-			platform: "facebook",
-			connected: false,
-			color: "from-blue-600 to-blue-700",
-		},
-		{
-			name: "Kick",
-			platform: "kick",
-			connected: false,
-			color: "from-green-600 to-green-700",
+			name: "Twitch",
+			platform: "twitch" as const,
+			targetPlatform: "twitch" as const,
+			color: "from-purple-600 to-purple-700",
 		},
 	];
+
+	const connectedPlatforms = createMemo(() => {
+		const accounts = streamingAccounts.data();
+		return new Set(accounts.map((a) => a.platform));
+	});
+
+	const handleRefreshStats = async (
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
+	) => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		const result = await refreshStreamingAccountStats({
+			identity: { userId: currentUser.id, platform },
+			fields: [
+				"platform",
+				"sponsorCount",
+				"viewsLast30d",
+				"followerCount",
+				"subscriberCount",
+				"statsLastRefreshedAt",
+			],
+			fetchOptions: { credentials: "include" },
+		});
+
+		if (!result.success) {
+			console.error("Failed to refresh stats:", result.errors);
+		}
+	};
+
+	const handleDisconnectAccount = async (
+		platform:
+			| "youtube"
+			| "twitch"
+			| "facebook"
+			| "kick"
+			| "tiktok"
+			| "trovo"
+			| "instagram"
+			| "rumble",
+	) => {
+		const currentUser = user();
+		if (!currentUser) return;
+
+		const result = await disconnectStreamingAccount({
+			identity: { userId: currentUser.id, platform },
+			fetchOptions: { credentials: "include" },
+		});
+
+		if (!result.success) {
+			console.error("Failed to disconnect account:", result.errors);
+		}
+	};
 
 	const currencies = ["USD", "EUR", "GBP", "CAD", "AUD"];
 
 	return (
 		<>
 			<Title>Settings - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<SettingsPageSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
 								<h2 class="mb-4 font-bold text-2xl text-white">
-									Not Authenticated
+									{t("dashboard.notAuthenticated")}
 								</h2>
 								<p class="mb-6 text-gray-300">
-									Please sign in to access settings.
+									{t("dashboard.signInToAccess")}
 								</p>
 								<a
 									href={getLoginUrl()}
 									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
-									Sign In
+									{t("nav.signIn")}
 								</a>
 							</div>
 						</div>
@@ -530,25 +662,27 @@ export default function Settings() {
 						<div class="rounded-lg bg-linear-to-r from-purple-600 to-pink-600 p-6 text-white shadow-sm">
 							<div class="flex items-center justify-between">
 								<div>
-									<h3 class="mb-2 font-bold text-xl">Free Plan</h3>
-									<p class="text-purple-100">Get started with basic features</p>
+									<h3 class="mb-2 font-bold text-xl">
+										{t("dashboard.freePlan")}
+									</h3>
+									<p class="text-purple-100">{t("settings.getStarted")}</p>
 								</div>
 								<button
 									type="button"
 									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50">
-									Upgrade to Pro
+									{t("settings.upgradeToPro")}
 								</button>
 							</div>
 						</div>
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								Account Settings
+								{t("settings.accountSettings")}
 							</h3>
 							<div class="space-y-6">
 								<div>
 									<label class="block font-medium text-gray-700 text-sm">
-										Email
+										{t("settings.email")}
 										<input
 											type="email"
 											value={user()?.email || ""}
@@ -557,26 +691,25 @@ export default function Settings() {
 										/>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
-										Your email address cannot be changed
+										{t("settings.emailCannotChange")}
 									</p>
 								</div>
 
 								<div>
 									<label class="block font-medium text-gray-700 text-sm">
-										Display Name
+										{t("settings.displayName")}
 										<div class="relative mt-2">
 											<input
 												type="text"
 												value={displayName() || prefs.data()?.name || ""}
 												onInput={(e) => setDisplayName(e.currentTarget.value)}
-												placeholder="Enter display name"
+												placeholder={t("settings.displayNamePlaceholder")}
 												class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10"
 											/>
 										</div>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
-										Name must be 3-30 characters and contain only letters,
-										numbers, and underscores
+										{t("settings.displayNameHelp")}
 									</p>
 									<div class="mt-3 flex items-center gap-3">
 										<button
@@ -588,10 +721,14 @@ export default function Settings() {
 													? "cursor-not-allowed opacity-50"
 													: "hover:bg-purple-700"
 											}`}>
-											{isUpdatingName() ? "Updating..." : "Update Name"}
+											{isUpdatingName()
+												? t("settings.updating")
+												: t("settings.updateName")}
 										</button>
 										<Show when={nameSuccess()}>
-											<span class="text-green-600 text-sm">Name updated!</span>
+											<span class="text-green-600 text-sm">
+												{t("settings.nameUpdated")}
+											</span>
 										</Show>
 										<Show when={nameError()}>
 											<span class="text-red-600 text-sm">{nameError()}</span>
@@ -603,7 +740,7 @@ export default function Settings() {
 									<label
 										for="avatar-upload"
 										class="mb-2 block font-medium text-gray-700 text-sm">
-										Profile Avatar
+										{t("settings.profileAvatar")}
 									</label>
 									<div class="flex items-center space-x-4">
 										<div class="relative h-20 w-20">
@@ -646,17 +783,19 @@ export default function Settings() {
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
 												}`}>
-												{isUploading() ? "Uploading..." : "Upload New Avatar"}
+												{isUploading()
+													? t("settings.uploading")
+													: t("settings.uploadNewAvatar")}
 											</button>
 											<p class="mt-1 text-gray-500 text-xs">
-												JPG, PNG or GIF. Max size 5MB. Recommended: 256x256px
+												{t("settings.avatarHelp")}
 											</p>
 											<Show when={uploadError()}>
 												<p class="mt-1 text-red-600 text-xs">{uploadError()}</p>
 											</Show>
 											<Show when={uploadSuccess()}>
 												<p class="mt-1 text-green-600 text-xs">
-													Avatar updated successfully!
+													{t("settings.avatarUpdated")}
 												</p>
 											</Show>
 										</div>
@@ -665,55 +804,129 @@ export default function Settings() {
 
 								<div>
 									<p class="mb-2 block font-medium text-gray-700 text-sm">
-										Streaming Platforms
+										{t("settings.streamingPlatforms")}
 									</p>
-									<div class="space-y-2">
-										<For each={platformConnections}>
-											{(connection) => (
-												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-													<div class="flex items-center space-x-3">
-														<div
-															class={`h-10 w-10 bg-linear-to-r ${connection.color} flex items-center justify-center rounded-lg`}>
-															<span class="font-bold text-sm text-white">
-																{connection.name[0]}
-															</span>
+
+									<Show
+										when={!streamingAccounts.isLoading()}
+										fallback={
+											<div class="space-y-2">
+												<For each={[1, 2]}>
+													{() => (
+														<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+															<div class="flex items-center space-x-3">
+																<Skeleton class="h-10 w-10 rounded-lg" />
+																<div class="space-y-1">
+																	<Skeleton class="h-4 w-20" />
+																	<Skeleton class="h-3 w-16" />
+																</div>
+															</div>
+															<Skeleton class="h-8 w-20 rounded-lg" />
 														</div>
-														<div>
-															<p class="font-medium text-gray-900">
-																{connection.name}
-															</p>
-															<p class="text-gray-500 text-sm">
-																{connection.connected
-																	? "Connected"
-																	: "Not connected"}
-															</p>
-														</div>
-													</div>
-													<button
-														type="button"
-														class={
-															connection.connected
-																? "font-medium text-red-600 text-sm hover:text-red-700"
-																: "rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700"
+													)}
+												</For>
+											</div>
+										}>
+										<Show when={streamingAccounts.data().length > 0}>
+											<div class="mb-4 space-y-3">
+												<For each={streamingAccounts.data()}>
+													{(account) => (
+														<StreamingAccountStats
+															data={{
+																platform: account.platform,
+																accountName:
+																	account.extra_data?.name ||
+																	account.extra_data?.nickname ||
+																	account.platform,
+																accountImage: account.extra_data?.image || null,
+																sponsorCount: account.sponsor_count,
+																viewsLast30d: account.views_last_30d,
+																followerCount: account.follower_count,
+																subscriberCount: account.subscriber_count,
+																statsLastRefreshedAt:
+																	account.stats_last_refreshed_at,
+															}}
+															onRefresh={() =>
+																handleRefreshStats(account.platform)
+															}
+															onDisconnect={() =>
+																handleDisconnectAccount(account.platform)
+															}
+														/>
+													)}
+												</For>
+											</div>
+										</Show>
+
+										<div class="space-y-2">
+											<For each={availablePlatforms}>
+												{(platform) => (
+													<Show
+														when={
+															!connectedPlatforms().has(platform.targetPlatform)
 														}>
-														{connection.connected ? "Disconnect" : "Connect"}
-													</button>
-												</div>
-											)}
-										</For>
-									</div>
+														<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+															<div class="flex items-center space-x-3">
+																<div
+																	class={`h-10 w-10 bg-linear-to-r ${platform.color} flex items-center justify-center rounded-lg`}>
+																	<span class="font-bold text-sm text-white">
+																		{platform.name[0]}
+																	</span>
+																</div>
+																<div>
+																	<p class="font-medium text-gray-900">
+																		{platform.name}
+																	</p>
+																	<p class="text-gray-500 text-sm">
+																		{t("settings.notConnected")}
+																	</p>
+																</div>
+															</div>
+															<Button
+																as="a"
+																href={apiRoutes.streaming.connect(
+																	platform.platform,
+																)}
+																size="sm">
+																{t("settings.connect")}
+															</Button>
+														</div>
+													</Show>
+												)}
+											</For>
+										</div>
+									</Show>
 								</div>
 							</div>
 						</div>
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								Donation Page
+								{t("settings.language")}
 							</h3>
 							<div class="space-y-4">
 								<div>
 									<label class="block font-medium text-gray-700 text-sm">
-										Public Donation URL
+										{t("settings.language")}
+										<div class="mt-2">
+											<LanguageSwitcher class="w-full md:w-48" />
+										</div>
+									</label>
+									<p class="mt-1 text-gray-500 text-xs">
+										{t("settings.languageDescription")}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+								{t("settings.donationPage")}
+							</h3>
+							<div class="space-y-4">
+								<div>
+									<label class="block font-medium text-gray-700 text-sm">
+										{t("settings.publicDonationUrl")}
 										<div class="mt-2 flex items-center space-x-3">
 											<input
 												type="text"
@@ -733,13 +946,12 @@ export default function Settings() {
 													);
 												}}
 												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700">
-												Copy URL
+												{t("settings.copyUrl")}
 											</button>
 										</div>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
-										Share this link with your viewers so they can support you
-										with donations
+										{t("settings.donationUrlHelp")}
 									</p>
 								</div>
 
@@ -762,9 +974,11 @@ export default function Settings() {
 										</div>
 										<div>
 											<h4 class="font-medium text-gray-900">
-												Support {prefs.data()?.name}
+												{t("settings.support")} {prefs.data()?.name}
 											</h4>
-											<p class="text-gray-600 text-sm">Public donation page</p>
+											<p class="text-gray-600 text-sm">
+												{t("settings.publicDonationPage")}
+											</p>
 										</div>
 									</div>
 									<a
@@ -772,7 +986,7 @@ export default function Settings() {
 										target="_blank"
 										rel="noreferrer"
 										class="font-medium text-purple-600 text-sm hover:text-purple-700">
-										Preview →
+										{t("settings.preview")} →
 									</a>
 								</div>
 							</div>
@@ -780,13 +994,13 @@ export default function Settings() {
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								Donation Settings
+								{t("settings.donationSettings")}
 							</h3>
 							<form class="space-y-4" onSubmit={handleSaveDonationSettings}>
 								<div class="grid gap-4 md:grid-cols-3">
 									<div>
 										<label class="block font-medium text-gray-700 text-sm">
-											Minimum Amount
+											{t("settings.minimumAmount")}
 											<div class="relative mt-2">
 												<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 													<span class="text-gray-500 text-sm">
@@ -795,7 +1009,7 @@ export default function Settings() {
 												</div>
 												<input
 													type="number"
-													placeholder="No minimum"
+													placeholder={t("settings.noMinimum")}
 													value={minAmount() ?? ""}
 													onInput={(e) => {
 														const val = e.currentTarget.value;
@@ -806,13 +1020,13 @@ export default function Settings() {
 											</div>
 										</label>
 										<p class="mt-1 text-gray-500 text-xs">
-											Leave empty for no minimum
+											{t("settings.leaveEmptyNoMin")}
 										</p>
 									</div>
 
 									<div>
 										<label class="block font-medium text-gray-700 text-sm">
-											Maximum Amount
+											{t("settings.maximumAmount")}
 											<div class="relative mt-2">
 												<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 													<span class="text-gray-500 text-sm">
@@ -821,7 +1035,7 @@ export default function Settings() {
 												</div>
 												<input
 													type="number"
-													placeholder="No maximum"
+													placeholder={t("settings.noMaximum")}
 													value={maxAmount() ?? ""}
 													onInput={(e) => {
 														const val = e.currentTarget.value;
@@ -832,13 +1046,13 @@ export default function Settings() {
 											</div>
 										</label>
 										<p class="mt-1 text-gray-500 text-xs">
-											Leave empty for no maximum
+											{t("settings.leaveEmptyNoMax")}
 										</p>
 									</div>
 
 									<div>
 										<label class="block font-medium text-gray-700 text-sm">
-											Currency
+											{t("settings.currency")}
 											<select
 												value={currency()}
 												onChange={(e) => setCurrency(e.currentTarget.value)}
@@ -853,13 +1067,13 @@ export default function Settings() {
 
 								<div>
 									<label class="block font-medium text-gray-700 text-sm">
-										Default TTS Voice
+										{t("settings.defaultTtsVoice")}
 										<select
 											value={defaultVoice()}
 											onChange={(e) => setDefaultVoice(e.currentTarget.value)}
 											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500">
 											<option value="random">
-												Random (different voice each time)
+												{t("settings.randomVoice")}
 											</option>
 											<option value="google_en_us_male">
 												Google TTS - English (US) Male
@@ -870,8 +1084,7 @@ export default function Settings() {
 										</select>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
-										This voice will be used when donors don't select a voice,
-										and for donations from streaming platforms
+										{t("settings.voiceHelp")}
 									</p>
 								</div>
 
@@ -890,21 +1103,14 @@ export default function Settings() {
 										/>
 									</svg>
 									<div class="text-blue-800 text-sm">
-										<p class="mb-1 font-medium">How donation limits work:</p>
+										<p class="mb-1 font-medium">
+											{t("settings.donationLimitsInfo")}
+										</p>
 										<ul class="space-y-1 text-blue-700">
-											<li>
-												• Set limits to control the donation amounts your
-												viewers can send
-											</li>
-											<li>
-												• Both fields are optional - leave empty to allow any
-												amount
-											</li>
-											<li>
-												• Preset buttons and custom input will be filtered based
-												on your limits
-											</li>
-											<li>• Changes apply immediately to your donation page</li>
+											<li>• {t("settings.donationLimitsItem1")}</li>
+											<li>• {t("settings.donationLimitsItem2")}</li>
+											<li>• {t("settings.donationLimitsItem3")}</li>
+											<li>• {t("settings.donationLimitsItem4")}</li>
 										</ul>
 									</div>
 								</div>
@@ -919,12 +1125,12 @@ export default function Settings() {
 												: "hover:bg-purple-700"
 										}`}>
 										{isSavingSettings()
-											? "Saving..."
-											: "Save Donation Settings"}
+											? t("settings.saving")
+											: t("settings.saveDonationSettings")}
 									</button>
 									<Show when={saveSuccess()}>
 										<span class="text-green-600 text-sm">
-											Settings saved successfully!
+											{t("settings.settingsSaved")}
 										</span>
 									</Show>
 									<Show when={saveError()}>
@@ -936,7 +1142,7 @@ export default function Settings() {
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								Role Invitations
+								{t("settings.roleInvitations")}
 							</h3>
 							<Show
 								when={!loadingRoles() && pendingInvitations().length > 0}
@@ -955,10 +1161,9 @@ export default function Settings() {
 												d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 											/>
 										</svg>
-										<p class="text-sm">No pending role invitations</p>
+										<p class="text-sm">{t("settings.noPendingInvitations")}</p>
 										<p class="mt-1 text-gray-400 text-xs">
-											You'll see invitations here when streamers invite you to
-											moderate their channels
+											{t("settings.invitationsHelp")}
 										</p>
 									</div>
 								}>
@@ -991,7 +1196,7 @@ export default function Settings() {
 																{granterInfo()?.name || "Loading..."}
 															</p>
 															<p class="text-gray-500 text-sm">
-																Invited you as{" "}
+																{t("settings.invitedYouAs")}{" "}
 																<span class="font-medium text-purple-600">
 																	{formatRoleType(invitation.role_type)}
 																</span>
@@ -1011,7 +1216,7 @@ export default function Settings() {
 															class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50">
 															{processingRoleId() === invitation.id
 																? "..."
-																: "Accept"}
+																: t("settings.accept")}
 														</button>
 														<button
 															type="button"
@@ -1020,7 +1225,7 @@ export default function Settings() {
 															}
 															disabled={processingRoleId() === invitation.id}
 															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50">
-															Decline
+															{t("settings.decline")}
 														</button>
 													</div>
 												</div>
@@ -1033,7 +1238,7 @@ export default function Settings() {
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								My Roles in Other Channels
+								{t("settings.myRolesInChannels")}
 							</h3>
 							<Show
 								when={!loadingRoles() && myRoles().length > 0}
@@ -1052,11 +1257,9 @@ export default function Settings() {
 												d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
 											/>
 										</svg>
-										<p class="text-sm">
-											You don't have any roles in other channels
-										</p>
+										<p class="text-sm">{t("settings.noRolesInChannels")}</p>
 										<p class="mt-1 text-gray-400 text-xs">
-											Roles granted to you by other streamers will appear here
+											{t("settings.rolesGrantedHelp")}
 										</p>
 									</div>
 								}>
@@ -1086,7 +1289,8 @@ export default function Settings() {
 														</div>
 														<div>
 															<p class="font-medium text-gray-900">
-																{granterInfo()?.name || "Loading..."}'s channel
+																{granterInfo()?.name || "Loading..."}
+																{t("settings.channel")}
 															</p>
 															<p class="text-gray-500 text-sm">
 																<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
@@ -1094,7 +1298,7 @@ export default function Settings() {
 																</span>
 															</p>
 															<p class="mt-1 text-gray-400 text-xs">
-																Since{" "}
+																{t("settings.since")}{" "}
 																{formatDate(
 																	role.accepted_at || role.granted_at,
 																)}
@@ -1115,24 +1319,26 @@ export default function Settings() {
 							</div>
 							<div class="relative flex justify-center text-sm">
 								<span class="bg-gray-50 px-2 text-gray-500">
-									Channel Management
+									{t("settings.channelManagement")}
 								</span>
 							</div>
 						</div>
 
 						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
-								Role Management
+								{t("settings.roleManagement")}
 							</h3>
 
 							<div class="mb-6 rounded-lg bg-gray-50 p-4">
-								<h4 class="mb-3 font-medium text-gray-900">Invite User</h4>
+								<h4 class="mb-3 font-medium text-gray-900">
+									{t("settings.inviteUser")}
+								</h4>
 								<form class="space-y-3" onSubmit={handleInviteUser}>
 									<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 										<div>
 											<input
 												type="text"
-												placeholder="Enter username"
+												placeholder={t("settings.enterUsername")}
 												value={inviteUsername()}
 												onInput={(e) =>
 													setInviteUsername(e.currentTarget.value)
@@ -1149,8 +1355,10 @@ export default function Settings() {
 													)
 												}
 												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-												<option value="moderator">Moderator</option>
-												<option value="manager">Manager</option>
+												<option value="moderator">
+													{t("settings.moderator")}
+												</option>
+												<option value="manager">{t("settings.manager")}</option>
 											</select>
 										</div>
 										<div>
@@ -1162,7 +1370,9 @@ export default function Settings() {
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
 												}`}>
-												{isInviting() ? "Sending..." : "Send Invitation"}
+												{isInviting()
+													? t("settings.sending")
+													: t("settings.sendInvitation")}
 											</button>
 										</div>
 									</div>
@@ -1171,7 +1381,7 @@ export default function Settings() {
 									</Show>
 									<Show when={inviteSuccess()}>
 										<p class="text-green-600 text-sm">
-											Invitation sent successfully!
+											{t("settings.invitationSent")}
 										</p>
 									</Show>
 								</form>
@@ -1191,15 +1401,15 @@ export default function Settings() {
 											/>
 										</svg>
 										<div class="text-blue-800 text-sm">
-											<p class="font-medium">Role Permissions:</p>
+											<p class="font-medium">{t("settings.rolePermissions")}</p>
 											<ul class="mt-1 space-y-1 text-blue-700 text-xs">
 												<li>
-													• <strong>Moderator:</strong> Can moderate chat and
-													manage stream settings
+													• <strong>{t("settings.moderator")}:</strong>{" "}
+													{t("settings.moderatorDesc")}
 												</li>
 												<li>
-													• <strong>Manager:</strong> Can manage channel
-													operations and configurations
+													• <strong>{t("settings.manager")}:</strong>{" "}
+													{t("settings.managerDesc")}
 												</li>
 											</ul>
 										</div>
@@ -1211,7 +1421,7 @@ export default function Settings() {
 								when={!loadingRoles() && pendingInvitationsSent().length > 0}>
 								<div class="mb-6 space-y-3">
 									<h4 class="font-medium text-gray-700 text-sm">
-										Pending Invitations
+										{t("settings.pendingInvitations")}
 									</h4>
 									<For each={pendingInvitationsSent()}>
 										{(role) => {
@@ -1241,7 +1451,8 @@ export default function Settings() {
 															</p>
 															<p class="text-gray-500 text-sm">
 																<span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 font-medium text-xs text-yellow-800">
-																	{formatRoleType(role.role_type)} (Pending)
+																	{formatRoleType(role.role_type)} (
+																	{t("settings.pending")})
 																</span>
 															</p>
 															<p class="mt-1 text-gray-400 text-xs">
@@ -1254,7 +1465,9 @@ export default function Settings() {
 														onClick={() => handleRevokeRole(role.id)}
 														disabled={processingRoleId() === role.id}
 														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
-														{processingRoleId() === role.id ? "..." : "Cancel"}
+														{processingRoleId() === role.id
+															? "..."
+															: t("settings.cancel")}
 													</button>
 												</div>
 											);
@@ -1281,15 +1494,17 @@ export default function Settings() {
 													d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 												/>
 											</svg>
-											<p class="text-sm">No roles granted yet</p>
+											<p class="text-sm">{t("settings.noRolesGranted")}</p>
 											<p class="mt-1 text-gray-400 text-xs">
-												Users you've granted permissions to will appear here
+												{t("settings.rolesGrantedToHelp")}
 											</p>
 										</div>
 									</Show>
 								}>
 								<div class="space-y-3">
-									<h4 class="font-medium text-gray-700 text-sm">Your Team</h4>
+									<h4 class="font-medium text-gray-700 text-sm">
+										{t("settings.yourTeam")}
+									</h4>
 									<For each={rolesIGranted()}>
 										{(role) => {
 											const userInfo = () => getUserInfo_cached(role.user_id);
@@ -1322,7 +1537,7 @@ export default function Settings() {
 																</span>
 															</p>
 															<p class="mt-1 text-gray-400 text-xs">
-																Since{" "}
+																{t("settings.since")}{" "}
 																{formatDate(
 																	role.accepted_at || role.granted_at,
 																)}
@@ -1334,7 +1549,9 @@ export default function Settings() {
 														onClick={() => handleRevokeRole(role.id)}
 														disabled={processingRoleId() === role.id}
 														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
-														{processingRoleId() === role.id ? "..." : "Revoke"}
+														{processingRoleId() === role.id
+															? "..."
+															: t("settings.revoke")}
 													</button>
 												</div>
 											);
@@ -1347,16 +1564,16 @@ export default function Settings() {
 						<Show when={user()}>
 							<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 								<h3 class="mb-6 font-medium text-gray-900 text-lg">
-									Notification Preferences
+									{t("settings.notificationPreferences")}
 								</h3>
 								<div class="space-y-4">
 									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
 										<div>
 											<p class="font-medium text-gray-900">
-												Email Notifications
+												{t("settings.emailNotifications")}
 											</p>
 											<p class="text-gray-600 text-sm">
-												Receive notifications about important events
+												{t("settings.emailNotificationsDesc")}
 											</p>
 										</div>
 										<button

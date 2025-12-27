@@ -6,12 +6,14 @@ defmodule StreampaiWeb.Router do
   import Oban.Web.Router
 
   alias StreampaiWeb.Plugs.ErrorTracker
+  alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
   alias StreampaiWeb.Plugs.SafeLoadFromSession
 
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
+    plug(:fetch_flash)
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
@@ -24,6 +26,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html"])
     plug(:require_admin_access)
     plug(:fetch_session)
+    plug(:fetch_flash)
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
@@ -50,8 +53,15 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(StreampaiWeb.Plugs.RegistrationLogger)
-    plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
+    plug(RateLimiter, limit: 7, window: 300_000)
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
+  end
+
+  # API pipeline for SPA auth (no CSRF protection)
+  pipeline :api_auth do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(RateLimiter, limit: 7, window: 300_000)
   end
 
   pipeline :electric_sync do
@@ -82,12 +92,20 @@ defmodule StreampaiWeb.Router do
     end
   end
 
+  # JSON API auth routes for SPA (no CSRF required)
+  # Must come BEFORE the browser scope to avoid CSRF protection
+  scope "/api/auth", StreampaiWeb do
+    pipe_through(:api_auth)
+
+    post("/register", ApiAuthController, :register)
+    post("/sign-in", ApiAuthController, :sign_in)
+  end
+
   # All API routes are prefixed with /api for clean proxy configuration
   scope "/api", StreampaiWeb do
     pipe_through(:browser)
 
     get("/slider_images/*path", SliderImageController, :serve)
-    get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
     get("/streaming/connect/:provider/callback", MultiProviderAuth, :callback)
     get("/settings/paypal/callback", PayPalCallbackController, :handle_callback)
@@ -132,6 +150,7 @@ defmodule StreampaiWeb.Router do
     get "/chat_messages/:user_id", SyncController, :user_chat_messages
     get "/livestreams/:user_id", SyncController, :user_livestreams
     get "/viewers/:user_id", SyncController, :user_viewers
+    get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
   end
 
   scope "/api/shapes", StreampaiWeb do

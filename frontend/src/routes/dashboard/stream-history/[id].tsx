@@ -9,7 +9,12 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
-import LoadingIndicator from "~/components/LoadingIndicator";
+import {
+	Card,
+	Skeleton,
+	SkeletonListItem,
+	SkeletonText,
+} from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import {
 	getLivestream,
@@ -186,6 +191,98 @@ const languageName = (code?: string | null) => {
 	return names[code] || code;
 };
 
+// Skeleton for stream detail page
+function StreamDetailSkeleton() {
+	return (
+		<div class="mx-auto max-w-7xl">
+			{/* Stream Header skeleton */}
+			<div class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<div class="flex items-start space-x-4">
+					<Skeleton class="aspect-video w-48 shrink-0 rounded-lg" />
+					<div class="flex-1 space-y-3">
+						<Skeleton class="h-8 w-3/4" />
+						<div class="flex items-center gap-2">
+							<Skeleton class="h-6 w-16 rounded" />
+							<Skeleton class="h-4 w-32" />
+							<Skeleton class="h-4 w-24" />
+							<Skeleton class="h-4 w-28" />
+						</div>
+						<div class="flex items-center gap-2">
+							<Skeleton class="h-6 w-20 rounded-md" />
+							<Skeleton class="h-6 w-16 rounded-md" />
+							<Skeleton class="h-6 w-14 rounded-md" />
+						</div>
+					</div>
+					<Skeleton class="h-10 w-32 shrink-0 rounded-md" />
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+				{/* Main Content skeleton */}
+				<div class="space-y-6 lg:col-span-2">
+					{/* Chart skeleton */}
+					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Skeleton class="mb-4 h-6 w-48" />
+						<Skeleton class="h-64 w-full rounded-lg" />
+					</div>
+
+					{/* Player skeleton */}
+					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Skeleton class="mb-4 h-6 w-36" />
+						<Skeleton class="aspect-video w-full rounded-lg" />
+					</div>
+
+					{/* Timeline skeleton */}
+					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Skeleton class="mb-4 h-6 w-36" />
+						<Skeleton class="mb-6 h-3 w-full rounded-full" />
+						<Skeleton class="h-2 w-full rounded-lg" />
+						<div class="mt-4 flex items-center space-x-4">
+							<For each={[1, 2, 3, 4]}>
+								{() => (
+									<div class="flex items-center">
+										<Skeleton class="mr-1 h-3 w-3 rounded-full" />
+										<Skeleton class="h-3 w-16" />
+									</div>
+								)}
+							</For>
+						</div>
+					</div>
+				</div>
+
+				{/* Sidebar skeleton */}
+				<div class="space-y-6">
+					{/* Insights skeleton */}
+					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Skeleton class="mb-4 h-6 w-32" />
+						<div class="space-y-4">
+							<Skeleton class="h-24 w-full rounded-lg" />
+							<Skeleton class="h-24 w-full rounded-lg" />
+						</div>
+					</div>
+
+					{/* Chat skeleton */}
+					<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+						<div class="border-gray-200 border-b px-6 py-4">
+							<Skeleton class="h-6 w-28" />
+							<Skeleton class="mt-1 h-3 w-40" />
+						</div>
+						<div class="h-96 overflow-y-auto p-3">
+							<div class="space-y-3">
+								<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
+									{() => (
+										<SkeletonListItem showAvatar avatarSize="sm" lines={2} />
+									)}
+								</For>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 interface StreamInsights {
 	peakMoment: {
 		time: string;
@@ -214,7 +311,7 @@ export default function StreamHistoryDetail() {
 	return (
 		<>
 			<Title>Stream Details - Streampai</Title>
-			<Show when={!isLoading()} fallback={<LoadingIndicator />}>
+			<Show when={!isLoading()} fallback={<StreamDetailSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
@@ -248,7 +345,7 @@ export default function StreamHistoryDetail() {
 								</div>
 							</div>
 						)}>
-						<Suspense fallback={<LoadingIndicator />}>
+						<Suspense fallback={<StreamDetailSkeleton />}>
 							<StreamDetailContent streamId={params.id ?? ""} />
 						</Suspense>
 					</ErrorBoundary>

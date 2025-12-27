@@ -16,13 +16,84 @@ import {
 	CardHeader,
 	CardTitle,
 	ProgressBar,
+	Skeleton,
+	SkeletonChart,
+	SkeletonTableRow,
 	Stat,
 	StatGroup,
 } from "~/components/ui";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
+
+// Skeleton for analytics page loading state
+function AnalyticsSkeleton() {
+	return (
+		<div class="space-y-6">
+			{/* Header skeleton */}
+			<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+				<div>
+					<Skeleton class="mb-2 h-8 w-48" />
+					<Skeleton class="h-4 w-72" />
+				</div>
+				<Skeleton class="h-10 w-40 rounded-md" />
+			</div>
+
+			{/* Charts skeleton */}
+			<Card>
+				<SkeletonChart />
+			</Card>
+
+			<Card>
+				<div class="space-y-4">
+					<Skeleton class="h-5 w-40" />
+					<For each={[1, 2, 3, 4]}>
+						{() => (
+							<div class="space-y-2">
+								<div class="flex items-center justify-between">
+									<Skeleton class="h-4 w-20" />
+									<Skeleton class="h-4 w-12" />
+								</div>
+								<Skeleton class="h-2 w-full rounded-full" />
+							</div>
+						)}
+					</For>
+				</div>
+			</Card>
+
+			{/* Table skeleton */}
+			<Card>
+				<CardHeader>
+					<Skeleton class="h-6 w-32" />
+				</CardHeader>
+				<CardContent>
+					<div class="-mx-6 overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<For each={[1, 2, 3, 4, 5, 6]}>
+										{() => (
+											<th class="px-6 py-3">
+												<Skeleton class="h-4 w-20" />
+											</th>
+										)}
+									</For>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-gray-200 bg-white">
+								<For each={[1, 2, 3, 4, 5]}>
+									{() => <SkeletonTableRow columns={6} />}
+								</For>
+							</tbody>
+						</table>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
 
 interface ViewerDataPoint {
 	time: Date;
@@ -76,6 +147,7 @@ type Livestream = SuccessDataFunc<
 >[number];
 
 export default function Analytics() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 
 	const [timeframe, setTimeframe] = createSignal<Timeframe>("week");
@@ -98,13 +170,13 @@ export default function Analytics() {
 			});
 
 			if (!result.success) {
-				setError("Failed to load analytics data");
+				setError(t("analytics.failedToLoad"));
 				console.error("RPC error:", result.errors);
 			} else {
 				setStreams(result.data);
 			}
 		} catch (err) {
-			setError("Failed to load analytics data");
+			setError(t("analytics.failedToLoad"));
 			console.error("Error loading streams:", err);
 		} finally {
 			setIsLoadingStreams(false);
@@ -306,28 +378,20 @@ export default function Analytics() {
 	return (
 		<>
 			<Title>Analytics - Streampai</Title>
-			<Show
-				when={!isLoading()}
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
-					</div>
-				}>
+			<Show when={!isLoading()} fallback={<AnalyticsSkeleton />}>
 				<Show
 					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
 								<h2 class="mb-4 font-bold text-2xl text-white">
-									Not Authenticated
+									{t("dashboard.notAuthenticated")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									Please sign in to view analytics.
-								</p>
+								<p class="mb-6 text-gray-300">{t("analytics.signInToView")}</p>
 								<a
 									href={getLoginUrl()}
 									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
-									Sign In
+									{t("nav.signIn")}
 								</a>
 							</div>
 						</div>
@@ -336,10 +400,10 @@ export default function Analytics() {
 						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 							<div>
 								<h1 class="font-bold text-2xl text-gray-900">
-									Stream Analytics
+									{t("analytics.title")}
 								</h1>
 								<p class="mt-1 text-gray-500 text-sm">
-									Track your streaming performance and audience metrics
+									{t("analytics.subtitle")}
 								</p>
 							</div>
 
@@ -349,10 +413,10 @@ export default function Analytics() {
 								onChange={(e) =>
 									setTimeframe(e.currentTarget.value as Timeframe)
 								}>
-								<option value="day">Last 24 Hours</option>
-								<option value="week">Last 7 Days</option>
-								<option value="month">Last 30 Days</option>
-								<option value="year">Last Year</option>
+								<option value="day">{t("analytics.last24Hours")}</option>
+								<option value="week">{t("analytics.last7Days")}</option>
+								<option value="month">{t("analytics.last30Days")}</option>
+								<option value="year">{t("analytics.lastYear")}</option>
 							</select>
 						</div>
 
@@ -363,18 +427,65 @@ export default function Analytics() {
 						<Show
 							when={!isLoadingStreams()}
 							fallback={
-								<div class="py-12 text-center">
-									<div class="mx-auto h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
-									<p class="mt-4 text-gray-600">Loading analytics...</p>
-								</div>
+								<>
+									<Card>
+										<SkeletonChart />
+									</Card>
+									<Card>
+										<div class="space-y-4">
+											<Skeleton class="h-5 w-40" />
+											<For each={[1, 2, 3, 4]}>
+												{() => (
+													<div class="space-y-2">
+														<div class="flex items-center justify-between">
+															<Skeleton class="h-4 w-20" />
+															<Skeleton class="h-4 w-12" />
+														</div>
+														<Skeleton class="h-2 w-full rounded-full" />
+													</div>
+												)}
+											</For>
+										</div>
+									</Card>
+									<Card>
+										<CardHeader>
+											<Skeleton class="h-6 w-32" />
+										</CardHeader>
+										<CardContent>
+											<div class="-mx-6 overflow-x-auto">
+												<table class="min-w-full divide-y divide-gray-200">
+													<thead class="bg-gray-50">
+														<tr>
+															<For each={[1, 2, 3, 4, 5, 6]}>
+																{() => (
+																	<th class="px-6 py-3">
+																		<Skeleton class="h-4 w-20" />
+																	</th>
+																)}
+															</For>
+														</tr>
+													</thead>
+													<tbody class="divide-y divide-gray-200 bg-white">
+														<For each={[1, 2, 3, 4, 5]}>
+															{() => <SkeletonTableRow columns={6} />}
+														</For>
+													</tbody>
+												</table>
+											</div>
+										</CardContent>
+									</Card>
+								</>
 							}>
 							<div class="grid grid-cols-1 gap-6">
-								<LineChart title="Viewer Trends" data={viewerData()} />
+								<LineChart
+									title={t("analytics.viewerTrends")}
+									data={viewerData()}
+								/>
 							</div>
 
 							<div class="grid grid-cols-1 gap-6">
 								<BarChart
-									title="Platform Distribution"
+									title={t("analytics.platformDistribution")}
 									data={platformBreakdown()}
 								/>
 							</div>
@@ -403,6 +514,7 @@ interface DailyStreamData {
 }
 
 function LineChart(props: LineChartProps) {
+	const { t } = useTranslation();
 	// Aggregate hourly data into daily summaries
 	const dailyData = createMemo((): DailyStreamData[] => {
 		const dailyMap = new Map<
@@ -499,11 +611,11 @@ function LineChart(props: LineChartProps) {
 					<div class="flex items-center gap-4 text-gray-500 text-xs">
 						<div class="flex items-center gap-1">
 							<div class="h-3 w-3 rounded-full bg-indigo-500" />
-							<span>Peak viewers</span>
+							<span>{t("analytics.peakViewers")}</span>
 						</div>
 						<div class="flex items-center gap-1">
 							<div class="h-3 w-3 rounded-full bg-indigo-300" />
-							<span>Avg viewers</span>
+							<span>{t("analytics.avgViewers")}</span>
 						</div>
 					</div>
 				</Show>
@@ -528,10 +640,10 @@ function LineChart(props: LineChartProps) {
 								/>
 							</svg>
 							<p class="mt-2 font-medium text-gray-900 text-sm">
-								No streaming data for this period
+								{t("analytics.noStreamingData")}
 							</p>
 							<p class="mt-1 text-gray-500 text-xs">
-								Stream to see your viewer trends here
+								{t("analytics.streamToSee")}
 							</p>
 						</div>
 					</div>
@@ -648,14 +760,17 @@ function LineChart(props: LineChartProps) {
 				{/* Summary stats below chart */}
 				<div class="mt-8">
 					<StatGroup columns={3}>
-						<Stat value={String(daysWithData().length)} label="Days streamed" />
+						<Stat
+							value={String(daysWithData().length)}
+							label={t("analytics.daysStreamed")}
+						/>
 						<Stat
 							value={String(
 								hasAnyData()
 									? Math.max(...daysWithData().map((d) => d.peakViewers))
 									: 0,
 							)}
-							label="Peak viewers"
+							label={t("analytics.peakViewers")}
 							highlight
 						/>
 						<Stat
@@ -667,7 +782,7 @@ function LineChart(props: LineChartProps) {
 										)
 									: 0,
 							)}
-							label="Avg viewers"
+							label={t("analytics.avgViewers")}
 						/>
 					</StatGroup>
 				</div>
@@ -710,6 +825,7 @@ interface StreamTableProps {
 }
 
 function StreamTable(props: StreamTableProps) {
+	const { t } = useTranslation();
 	const formatNumber = (num: number): string => {
 		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	};
@@ -738,7 +854,7 @@ function StreamTable(props: StreamTableProps) {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Recent Streams</CardTitle>
+				<CardTitle>{t("analytics.recentStreams")}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<Show
@@ -759,10 +875,10 @@ function StreamTable(props: StreamTableProps) {
 								/>
 							</svg>
 							<h3 class="mt-2 font-medium text-gray-900 text-sm">
-								No streams yet
+								{t("analytics.noStreamsYet")}
 							</h3>
 							<p class="mt-1 text-gray-500 text-sm">
-								Start streaming to see your analytics and performance data here.
+								{t("analytics.startStreaming")}
 							</p>
 						</div>
 					}>
@@ -771,22 +887,22 @@ function StreamTable(props: StreamTableProps) {
 							<thead class="bg-gray-50">
 								<tr>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Stream
+										{t("analytics.stream")}
 									</th>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Platform
+										{t("analytics.platform")}
 									</th>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Duration
+										{t("analytics.duration")}
 									</th>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Peak Viewers
+										{t("analytics.peakViewers")}
 									</th>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Avg Viewers
+										{t("analytics.avgViewers")}
 									</th>
 									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
-										Chat Messages
+										{t("analytics.chatMessages")}
 									</th>
 								</tr>
 							</thead>

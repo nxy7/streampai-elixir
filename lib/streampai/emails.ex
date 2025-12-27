@@ -18,7 +18,7 @@ defmodule Streampai.Emails do
   """
   def send_welcome_email(user) do
     new()
-    |> to({user.display_name || user.email, user.email})
+    |> to({user.name || user.email, user.email})
     |> from({@from_name, @from_email})
     |> subject("Welcome to Streampai!")
     |> html_body(welcome_html(user))
@@ -46,7 +46,7 @@ defmodule Streampai.Emails do
     confirm_url = build_confirm_url(token)
 
     new()
-    |> to({user.display_name || user.email, user.email})
+    |> to({user.name || user.email, user.email})
     |> from({@from_name, @from_email})
     |> subject("Confirm your Streampai account")
     |> html_body(confirm_email_html(user, confirm_url))
@@ -61,7 +61,7 @@ defmodule Streampai.Emails do
     reset_url = build_password_reset_url(token)
 
     new()
-    |> to({user.display_name || user.email, user.email})
+    |> to({user.name || user.email, user.email})
     |> from({@from_name, @from_email})
     |> subject("Reset your Streampai password")
     |> html_body(password_reset_html(user, reset_url))
@@ -84,7 +84,7 @@ defmodule Streampai.Emails do
   # Email Templates
 
   defp welcome_html(user) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     layout_html("""
     <h1 style="color: #1a1a2e; margin-bottom: 24px;">Welcome to Streampai!</h1>
@@ -129,7 +129,7 @@ defmodule Streampai.Emails do
   end
 
   defp welcome_text(user) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     """
     Welcome to Streampai!
@@ -206,7 +206,7 @@ defmodule Streampai.Emails do
   end
 
   defp confirm_email_html(user, confirm_url) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     layout_html("""
     <h1 style="color: #1a1a2e; margin-bottom: 24px;">Confirm your email</h1>
@@ -244,7 +244,7 @@ defmodule Streampai.Emails do
   end
 
   defp confirm_email_text(user, confirm_url) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     """
     Confirm your email
@@ -264,7 +264,7 @@ defmodule Streampai.Emails do
   end
 
   defp password_reset_html(user, reset_url) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     layout_html("""
     <h1 style="color: #1a1a2e; margin-bottom: 24px;">Reset your password</h1>
@@ -303,7 +303,7 @@ defmodule Streampai.Emails do
   end
 
   defp password_reset_text(user, reset_url) do
-    name = user.display_name || "there"
+    name = user.name || "there"
 
     """
     Reset your password

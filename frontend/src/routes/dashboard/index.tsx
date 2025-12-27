@@ -1,7 +1,17 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
+import {
+	Skeleton,
+	SkeletonListItem,
+	SkeletonMetricCard,
+	SkeletonStat,
+	SkeletonStreamCard,
+} from "~/components/ui";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { getEventBgColor } from "~/lib/eventMetadata";
+import { formatTimeAgo, getGreeting, sortByInsertedAt } from "~/lib/formatters";
 import {
 	useDashboardStats,
 	useRecentUserChatMessages,
@@ -11,27 +21,6 @@ import {
 	useUserStreamEvents,
 } from "~/lib/useElectric";
 import { badge, card, text } from "~/styles/design-system";
-
-function getGreeting() {
-	const hour = new Date().getHours();
-	if (hour < 12) return "Good morning";
-	if (hour < 18) return "Good afternoon";
-	return "Good evening";
-}
-
-function formatTimeAgo(dateStr: string): string {
-	const date = new Date(dateStr);
-	const now = new Date();
-	const diffMs = now.getTime() - date.getTime();
-	const diffMins = Math.floor(diffMs / 60000);
-	const diffHours = Math.floor(diffMs / 3600000);
-	const diffDays = Math.floor(diffMs / 86400000);
-
-	if (diffMins < 1) return "just now";
-	if (diffMins < 60) return `${diffMins}m ago`;
-	if (diffHours < 24) return `${diffHours}h ago`;
-	return `${diffDays}d ago`;
-}
 
 function getEventIcon(type: string) {
 	switch (type) {
@@ -118,21 +107,6 @@ function getEventIcon(type: string) {
 	}
 }
 
-function getEventColor(type: string) {
-	switch (type) {
-		case "donation":
-			return "bg-green-100 text-green-600";
-		case "follow":
-			return "bg-pink-100 text-pink-600";
-		case "subscription":
-			return "bg-yellow-100 text-yellow-600";
-		case "raid":
-			return "bg-purple-100 text-purple-600";
-		default:
-			return "bg-blue-100 text-blue-600";
-	}
-}
-
 function getStreamStatusBadge(status: string) {
 	switch (status) {
 		case "live":
@@ -144,8 +118,116 @@ function getStreamStatusBadge(status: string) {
 	}
 }
 
+// Skeleton for Quick Stats grid
+function QuickStatsSkeleton() {
+	return (
+		<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+			<For each={[1, 2, 3, 4]}>
+				{() => (
+					<div class={`${card.base} p-4`}>
+						<SkeletonStat showIcon />
+					</div>
+				)}
+			</For>
+		</div>
+	);
+}
+
+// Skeleton for Recent Chat section
+function RecentChatSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-28" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="px-6 py-3">
+							<SkeletonListItem showAvatar lines={2} />
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Recent Events section
+function RecentEventsSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-32" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="px-6 py-3">
+							<SkeletonListItem showAvatar lines={2} />
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Activity Feed
+function ActivityFeedSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="border-gray-100 border-b px-4 py-3">
+				<div class="mb-3 flex items-center justify-between">
+					<Skeleton class="h-5 w-28" />
+					<Skeleton class="h-4 w-16" />
+				</div>
+				<div class="flex flex-wrap gap-1">
+					<For each={[1, 2, 3, 4, 5]}>
+						{() => <Skeleton class="h-7 w-20 rounded-full" />}
+					</For>
+				</div>
+			</div>
+			<div class="divide-y divide-gray-50">
+				<For each={[1, 2, 3, 4, 5]}>
+					{() => (
+						<div class="flex items-center gap-3 px-4 py-2.5">
+							<Skeleton class="h-8 w-8 shrink-0" circle />
+							<div class="min-w-0 flex-1 space-y-1.5">
+								<div class="flex items-center gap-2">
+									<Skeleton class="h-4 w-16" />
+									<Skeleton class="h-3 w-12" />
+								</div>
+								<Skeleton class="h-3 w-24" />
+							</div>
+						</div>
+					)}
+				</For>
+			</div>
+		</div>
+	);
+}
+
+// Skeleton for Recent Streams section
+function RecentStreamsSkeleton() {
+	return (
+		<div class={card.base}>
+			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+				<Skeleton class="h-5 w-32" />
+				<Skeleton class="h-4 w-16" />
+			</div>
+			<div class="divide-y divide-gray-100">
+				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
+			</div>
+		</div>
+	);
+}
+
 // Feature 1: Stream Health Monitor Component
 function StreamHealthMonitor() {
+	const { t } = useTranslation();
 	// Simulated stream health data - in production this would come from actual stream metrics
 	const [connectionQuality] = createSignal<
 		"excellent" | "good" | "fair" | "poor"
@@ -180,6 +262,32 @@ function StreamHealthMonitor() {
 		}
 	};
 
+	const qualityBgLight = () => {
+		switch (connectionQuality()) {
+			case "excellent":
+				return "bg-green-500/10";
+			case "good":
+				return "bg-blue-500/10";
+			case "fair":
+				return "bg-yellow-500/10";
+			case "poor":
+				return "bg-red-500/10";
+		}
+	};
+
+	const qualityLabel = () => {
+		switch (connectionQuality()) {
+			case "excellent":
+				return t("dashboard.excellent");
+			case "good":
+				return t("dashboard.good");
+			case "fair":
+				return t("dashboard.fair");
+			case "poor":
+				return t("dashboard.poor");
+		}
+	};
+
 	return (
 		<div class={`${card.base} p-4`} data-testid="stream-health-monitor">
 			<div class="mb-4 flex items-center justify-between">
@@ -197,36 +305,36 @@ function StreamHealthMonitor() {
 							d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 						/>
 					</svg>
-					Stream Health
+					{t("dashboard.streamHealth")}
 				</h3>
 				<div
-					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBg()} bg-opacity-10`}>
+					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBgLight()}`}>
 					<div class={`h-2 w-2 rounded-full ${qualityBg()} animate-pulse`} />
 					<span class={`font-medium text-xs capitalize ${qualityColor()}`}>
-						{connectionQuality()}
+						{qualityLabel()}
 					</span>
 				</div>
 			</div>
 			<div class="grid grid-cols-3 gap-3">
 				<div class="rounded-lg bg-gray-50 p-2 text-center">
 					<p class="font-bold text-gray-900 text-lg">{bitrate()} kbps</p>
-					<p class="text-gray-500 text-xs">Bitrate</p>
+					<p class="text-gray-500 text-xs">{t("dashboard.bitrate")}</p>
 				</div>
 				<div class="rounded-lg bg-gray-50 p-2 text-center">
 					<p class="font-bold text-gray-900 text-lg">{droppedFrames()}</p>
-					<p class="text-gray-500 text-xs">Dropped</p>
+					<p class="text-gray-500 text-xs">{t("dashboard.dropped")}</p>
 				</div>
 				<div class="rounded-lg bg-gray-50 p-2 text-center">
 					<p class="font-bold text-gray-900 text-lg">{uptime()}</p>
-					<p class="text-gray-500 text-xs">Uptime</p>
+					<p class="text-gray-500 text-xs">{t("dashboard.uptime")}</p>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-// Feature 2: Quick Actions Floating Panel
 function QuickActionsPanel(props: { onTestAlert: () => void }) {
+	const { t } = useTranslation();
 	const [isExpanded, setIsExpanded] = createSignal(false);
 
 	return (
@@ -251,7 +359,9 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 									d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 								/>
 							</svg>
-							<span class="font-medium text-sm">Test Alert</span>
+							<span class="font-medium text-sm">
+								{t("dashboard.testAlert")}
+							</span>
 						</button>
 						<A
 							href="/dashboard/widgets"
@@ -269,7 +379,7 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 									d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"
 								/>
 							</svg>
-							<span class="font-medium text-sm">Widgets</span>
+							<span class="font-medium text-sm">{t("dashboard.widgets")}</span>
 						</A>
 						<A
 							href="/dashboard/stream"
@@ -287,7 +397,7 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 									d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 								/>
 							</svg>
-							<span class="font-medium text-sm">Go Live</span>
+							<span class="font-medium text-sm">{t("dashboard.goLive")}</span>
 						</A>
 						<A
 							href="/dashboard/settings"
@@ -311,7 +421,9 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 								/>
 							</svg>
-							<span class="font-medium text-sm">Settings</span>
+							<span class="font-medium text-sm">
+								{t("dashboardNav.settings")}
+							</span>
 						</A>
 					</div>
 				</div>
@@ -342,13 +454,13 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 	);
 }
 
-// Feature 3: Viewer Engagement Score Component
 function ViewerEngagementScore(props: {
 	chatMessages: number;
 	follows: number;
 	donations: number;
 	totalDonationAmount: number;
 }) {
+	const { t } = useTranslation();
 	const engagementScore = createMemo(() => {
 		// Calculate engagement score based on various metrics
 		// Weighted formula: chat activity (30%), follows (30%), donations count (20%), donation value (20%)
@@ -380,10 +492,10 @@ function ViewerEngagementScore(props: {
 
 	const scoreLabel = () => {
 		const score = engagementScore();
-		if (score >= 80) return "Excellent";
-		if (score >= 60) return "Good";
-		if (score >= 40) return "Growing";
-		return "Building";
+		if (score >= 80) return t("dashboard.excellent");
+		if (score >= 60) return t("dashboard.good");
+		if (score >= 40) return t("dashboard.growing");
+		return t("dashboard.building");
 	};
 
 	return (
@@ -403,7 +515,7 @@ function ViewerEngagementScore(props: {
 							d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
 						/>
 					</svg>
-					Engagement Score
+					{t("dashboard.engagementScore")}
 				</h3>
 				<span
 					class={`rounded-full bg-gray-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}>
@@ -437,17 +549,17 @@ function ViewerEngagementScore(props: {
 	);
 }
 
-// Feature 4: Stream Goals Tracker Component
 function StreamGoalsTracker(props: {
 	currentFollowers: number;
 	currentDonations: number;
 	currentMessages: number;
 }) {
+	const { t } = useTranslation();
 	// Example goals - in production these would be configurable
-	const goals = [
+	const goals = createMemo(() => [
 		{
 			id: "followers",
-			label: "Daily Followers",
+			label: t("dashboard.dailyFollowers"),
 			current: Math.min(props.currentFollowers, 100),
 			target: 100,
 			icon: "heart",
@@ -455,7 +567,7 @@ function StreamGoalsTracker(props: {
 		},
 		{
 			id: "donations",
-			label: "Donation Goal",
+			label: t("dashboard.donationGoal"),
 			current: Math.min(props.currentDonations, 500),
 			target: 500,
 			icon: "dollar",
@@ -464,13 +576,13 @@ function StreamGoalsTracker(props: {
 		},
 		{
 			id: "chat",
-			label: "Chat Activity",
+			label: t("dashboard.chatActivity"),
 			current: Math.min(props.currentMessages, 1000),
 			target: 1000,
 			icon: "chat",
 			color: "blue",
 		},
-	];
+	]);
 
 	const getColorClasses = (color: string) => {
 		switch (color) {
@@ -518,11 +630,11 @@ function StreamGoalsTracker(props: {
 							d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
 						/>
 					</svg>
-					Stream Goals
+					{t("dashboard.streamGoals")}
 				</h3>
 			</div>
 			<div class="space-y-4 p-4">
-				<For each={goals}>
+				<For each={goals()}>
 					{(goal) => {
 						const colors = getColorClasses(goal.color);
 						const percentage = Math.round((goal.current / goal.target) * 100);
@@ -559,7 +671,7 @@ function StreamGoalsTracker(props: {
 												d="M5 13l4 4L19 7"
 											/>
 										</svg>
-										Goal reached!
+										{t("dashboard.goalReached")}
 									</div>
 								</Show>
 							</div>
@@ -571,7 +683,6 @@ function StreamGoalsTracker(props: {
 	);
 }
 
-// Feature 5: Activity Feed with Filters
 type EventFilter = "all" | "donation" | "follow" | "subscription" | "raid";
 
 function ActivityFeed(props: {
@@ -582,6 +693,7 @@ function ActivityFeed(props: {
 		inserted_at: string;
 	}>;
 }) {
+	const { t } = useTranslation();
 	const [filter, setFilter] = createSignal<EventFilter>("all");
 
 	const filteredEvents = createMemo(() => {
@@ -590,13 +702,15 @@ function ActivityFeed(props: {
 		return props.events.filter((e) => e.type === f).slice(0, 10);
 	});
 
-	const filterButtons: { value: EventFilter; label: string }[] = [
-		{ value: "all", label: "All" },
-		{ value: "donation", label: "Donations" },
-		{ value: "follow", label: "Follows" },
-		{ value: "subscription", label: "Subs" },
-		{ value: "raid", label: "Raids" },
-	];
+	const filterButtons = createMemo<{ value: EventFilter; label: string }[]>(
+		() => [
+			{ value: "all", label: t("dashboard.all") },
+			{ value: "donation", label: t("dashboard.donationsFilter") },
+			{ value: "follow", label: t("dashboard.follows") },
+			{ value: "subscription", label: t("dashboard.subs") },
+			{ value: "raid", label: t("dashboard.raids") },
+		],
+	);
 
 	return (
 		<div class={card.base} data-testid="activity-feed">
@@ -616,14 +730,14 @@ function ActivityFeed(props: {
 								d="M13 10V3L4 14h7v7l9-11h-7z"
 							/>
 						</svg>
-						Activity Feed
+						{t("dashboard.activityFeed")}
 					</h3>
 					<span class="text-gray-500 text-xs">
-						{filteredEvents().length} events
+						{filteredEvents().length} {t("dashboard.events")}
 					</span>
 				</div>
 				<div class="flex flex-wrap gap-1">
-					<For each={filterButtons}>
+					<For each={filterButtons()}>
 						{(btn) => (
 							<button
 								type="button"
@@ -659,7 +773,7 @@ function ActivityFeed(props: {
 								/>
 							</svg>
 							<p class="text-gray-500 text-sm">
-								No {filter() === "all" ? "" : filter()} events
+								{t("dashboard.noEvents")} {filter() === "all" ? "" : filter()}
 							</p>
 						</div>
 					}>
@@ -668,7 +782,7 @@ function ActivityFeed(props: {
 							{(event) => (
 								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
 									<div
-										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
+										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 										{getEventIcon(event.type)}
 									</div>
 									<div class="min-w-0 flex-1">
@@ -681,7 +795,8 @@ function ActivityFeed(props: {
 											</span>
 										</div>
 										<p class="truncate text-gray-500 text-xs">
-											{(event.data?.username as string) || "Anonymous"}
+											{(event.data?.username as string) ||
+												t("dashboard.anonymous")}
 											<Show
 												when={event.type === "donation" && event.data?.amount}>
 												{" - "}${Number(event.data?.amount).toFixed(2)}
@@ -699,6 +814,7 @@ function ActivityFeed(props: {
 }
 
 export default function Dashboard() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const greeting = getGreeting();
@@ -709,15 +825,8 @@ export default function Dashboard() {
 	const recentStreams = useRecentUserLivestreams(() => user()?.id, 3);
 	const stats = useDashboardStats(() => user()?.id);
 
-	// Full events list for Activity Feed
 	const allEventsQuery = useUserStreamEvents(() => user()?.id);
-	const allEvents = createMemo(() => {
-		const events = allEventsQuery.data();
-		return [...events].sort(
-			(a, b) =>
-				new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-		);
-	});
+	const allEvents = createMemo(() => sortByInsertedAt(allEventsQuery.data()));
 
 	// Alert test handler
 	const [showTestAlert, setShowTestAlert] = createSignal(false);
@@ -732,8 +841,34 @@ export default function Dashboard() {
 			<Show
 				when={!isLoading()}
 				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
+					<div class="space-y-6">
+						{/* Header skeleton */}
+						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+							<Skeleton class="mb-2 h-9 w-64" />
+							<Skeleton class="h-5 w-48" />
+						</div>
+
+						{/* Quick Stats skeleton */}
+						<QuickStatsSkeleton />
+
+						{/* Metric cards skeleton */}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<SkeletonMetricCard rows={3} />
+							<SkeletonMetricCard rows={1} />
+							<SkeletonMetricCard rows={3} />
+						</div>
+
+						{/* Main content grid skeleton */}
+						<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+							<RecentChatSkeleton />
+							<RecentEventsSkeleton />
+						</div>
+
+						{/* Activity feed skeleton */}
+						<ActivityFeedSkeleton />
+
+						{/* Recent streams skeleton */}
+						<RecentStreamsSkeleton />
 					</div>
 				}>
 				<Show
@@ -742,15 +877,15 @@ export default function Dashboard() {
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
 								<h2 class="mb-4 font-bold text-2xl text-white">
-									Not Authenticated
+									{t("dashboard.notAuthenticated")}
 								</h2>
 								<p class="mb-6 text-gray-300">
-									Please sign in to access the dashboard.
+									{t("dashboard.signInToAccess")}
 								</p>
 								<a
 									href={getLoginUrl()}
 									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
-									Sign In
+									{t("nav.signIn")}
 								</a>
 							</div>
 						</div>
@@ -763,9 +898,7 @@ export default function Dashboard() {
 									{greeting}, {prefs.data()?.name || user()?.name || "Streamer"}
 									!
 								</h1>
-								<p class="text-gray-600">
-									Welcome to your Streampai dashboard.
-								</p>
+								<p class="text-gray-600">{t("dashboard.welcomeMessage")}</p>
 							</div>
 						</div>
 
@@ -792,7 +925,9 @@ export default function Dashboard() {
 										<p class="font-bold text-2xl text-gray-900">
 											{stats.totalMessages()}
 										</p>
-										<p class="text-gray-500 text-sm">Messages</p>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.messages")}
+										</p>
 									</div>
 								</div>
 							</div>
@@ -824,7 +959,9 @@ export default function Dashboard() {
 										<p class="font-bold text-2xl text-gray-900">
 											{stats.uniqueViewers()}
 										</p>
-										<p class="text-gray-500 text-sm">Viewers</p>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.viewers")}
+										</p>
 									</div>
 								</div>
 							</div>
@@ -850,7 +987,9 @@ export default function Dashboard() {
 										<p class="font-bold text-2xl text-gray-900">
 											{stats.followCount()}
 										</p>
-										<p class="text-gray-500 text-sm">Followers</p>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.followers")}
+										</p>
 									</div>
 								</div>
 							</div>
@@ -876,7 +1015,9 @@ export default function Dashboard() {
 										<p class="font-bold text-2xl text-gray-900">
 											${stats.totalDonations().toFixed(2)}
 										</p>
-										<p class="text-gray-500 text-sm">Donations</p>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.donations")}
+										</p>
 									</div>
 								</div>
 							</div>
@@ -903,11 +1044,11 @@ export default function Dashboard() {
 							{/* Recent Chat Messages */}
 							<div class={card.base}>
 								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
-									<h3 class={text.h3}>Recent Chat</h3>
+									<h3 class={text.h3}>{t("dashboard.recentChat")}</h3>
 									<A
 										href="/dashboard/chat-history"
 										class="text-purple-600 text-sm hover:text-purple-700">
-										View all
+										{t("dashboard.viewAll")}
 									</A>
 								</div>
 								<div class="divide-y divide-gray-100">
@@ -929,10 +1070,10 @@ export default function Dashboard() {
 													/>
 												</svg>
 												<p class="text-gray-500 text-sm">
-													No chat messages yet
+													{t("dashboard.noChatMessages")}
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
-													Messages will appear here during streams
+													{t("dashboard.messagesWillAppear")}
 												</p>
 											</div>
 										}>
@@ -972,11 +1113,11 @@ export default function Dashboard() {
 							{/* Recent Events */}
 							<div class={card.base}>
 								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
-									<h3 class={text.h3}>Recent Events</h3>
+									<h3 class={text.h3}>{t("dashboard.recentEvents")}</h3>
 									<A
 										href="/dashboard/stream-history"
 										class="text-purple-600 text-sm hover:text-purple-700">
-										View all
+										{t("dashboard.viewAll")}
 									</A>
 								</div>
 								<div class="divide-y divide-gray-100">
@@ -997,9 +1138,11 @@ export default function Dashboard() {
 														d="M13 10V3L4 14h7v7l9-11h-7z"
 													/>
 												</svg>
-												<p class="text-gray-500 text-sm">No events yet</p>
+												<p class="text-gray-500 text-sm">
+													{t("dashboard.noEventsYet")}
+												</p>
 												<p class="mt-1 text-gray-400 text-xs">
-													Donations, follows, and subs will show here
+													{t("dashboard.eventsWillAppear")}
 												</p>
 											</div>
 										}>
@@ -1008,7 +1151,7 @@ export default function Dashboard() {
 												<div class="px-6 py-3 hover:bg-gray-50">
 													<div class="flex items-center gap-3">
 														<div
-															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
+															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 															{getEventIcon(event.type)}
 														</div>
 														<div class="min-w-0 flex-1">
@@ -1023,7 +1166,7 @@ export default function Dashboard() {
 															<p class="truncate text-gray-600 text-sm">
 																<Show
 																	when={event.data?.username}
-																	fallback="Anonymous">
+																	fallback={t("dashboard.anonymous")}>
 																	{event.data?.username as string}
 																</Show>
 																<Show
@@ -1051,11 +1194,11 @@ export default function Dashboard() {
 						{/* Recent Streams */}
 						<div class={card.base}>
 							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
-								<h3 class={text.h3}>Recent Streams</h3>
+								<h3 class={text.h3}>{t("dashboard.recentStreams")}</h3>
 								<A
 									href="/dashboard/stream-history"
 									class="text-purple-600 text-sm hover:text-purple-700">
-									View all
+									{t("dashboard.viewAll")}
 								</A>
 							</div>
 							<Show
@@ -1075,9 +1218,11 @@ export default function Dashboard() {
 												d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 											/>
 										</svg>
-										<p class="text-gray-500 text-sm">No streams yet</p>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.noStreamsYet")}
+										</p>
 										<p class="mt-1 text-gray-400 text-xs">
-											Your stream history will appear here
+											{t("dashboard.streamsWillAppear")}
 										</p>
 									</div>
 								}>
@@ -1106,14 +1251,14 @@ export default function Dashboard() {
 														</div>
 														<div>
 															<h4 class="font-medium text-gray-900">
-																{stream.title || "Untitled Stream"}
+																{stream.title || t("dashboard.untitledStream")}
 															</h4>
 															<p class="text-gray-500 text-sm">
 																{stream.started_at
 																	? new Date(
 																			stream.started_at,
 																		).toLocaleDateString()
-																	: "Not started"}
+																	: t("dashboard.notStarted")}
 															</p>
 														</div>
 													</div>
@@ -1150,8 +1295,12 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">Widgets</h3>
-										<p class="text-gray-500 text-sm">Customize your overlays</p>
+										<h3 class="font-semibold text-gray-900">
+											{t("dashboard.widgets")}
+										</h3>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.customizeOverlays")}
+										</p>
 									</div>
 								</div>
 							</A>
@@ -1176,8 +1325,12 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">Analytics</h3>
-										<p class="text-gray-500 text-sm">View your stats</p>
+										<h3 class="font-semibold text-gray-900">
+											{t("dashboardNav.analytics")}
+										</h3>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.viewStats")}
+										</p>
 									</div>
 								</div>
 							</A>
@@ -1208,8 +1361,12 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">Settings</h3>
-										<p class="text-gray-500 text-sm">Configure your account</p>
+										<h3 class="font-semibold text-gray-900">
+											{t("dashboardNav.settings")}
+										</h3>
+										<p class="text-gray-500 text-sm">
+											{t("dashboard.configureAccount")}
+										</p>
 									</div>
 								</div>
 							</A>
@@ -1241,9 +1398,9 @@ export default function Dashboard() {
 									</svg>
 								</div>
 								<div>
-									<p class="font-bold">Test Alert!</p>
+									<p class="font-bold">{t("dashboard.testAlertTitle")}</p>
 									<p class="text-sm opacity-90">
-										Your alerts are working correctly.
+										{t("dashboard.alertsWorking")}
 									</p>
 								</div>
 							</div>

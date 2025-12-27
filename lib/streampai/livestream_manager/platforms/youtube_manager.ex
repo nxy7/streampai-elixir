@@ -9,7 +9,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
+  alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Stream.MetadataHelper
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
@@ -302,6 +304,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       "viewer_counts:#{state.user_id}",
       {:viewer_update, :youtube, viewer_count}
     )
+
+    # Update StreamActor with viewer count
+    UserStreamManager.update_stream_actor_viewers(state.user_id, :youtube, viewer_count)
 
     {:noreply, %{state | viewer_count: viewer_count}}
   end
@@ -614,10 +619,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp create_cloudflare_output(state, rtmp_url, stream_key) do
-    registry_name = get_registry_name()
-
     CloudflareManager.create_platform_output(
-      {:via, Registry, {registry_name, {:cloudflare_manager, state.user_id}}},
+      RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
       :youtube,
       rtmp_url,
       stream_key
@@ -625,10 +628,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp delete_cloudflare_output(state) do
-    registry_name = get_registry_name()
-
     case CloudflareManager.delete_platform_output(
-           {:via, Registry, {registry_name, {:cloudflare_manager, state.user_id}}},
+           RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
            :youtube
          ) do
       :ok ->
@@ -793,18 +794,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp via_tuple(user_id) do
-    registry_name = get_registry_name()
-    {:via, Registry, {registry_name, {:platform_manager, user_id, :youtube}}}
-  end
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
+    RegistryHelpers.via_tuple(:platform_manager, user_id, :youtube)
   end
 end

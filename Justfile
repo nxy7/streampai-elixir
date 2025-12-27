@@ -31,7 +31,7 @@ dev:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
-	# Load environment variables (using set -a to auto-export)
+	# Load environment variables
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$')
 	set +a
@@ -40,7 +40,19 @@ dev:
 	PHOENIX_PORT=${PORT:-4000}
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
-	HMR_PORT=${HMR_PORT:-24678}
+
+	# Determine worktree name for Electric slot cleanup
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		WORKTREE_NAME="$parent_dir"
+	else
+		WORKTREE_NAME="$current_dir"
+	fi
+	SLOT_PREFIX="electric_slot_streampai_$(echo "$WORKTREE_NAME" | tr '-' '_' | cut -c1-30)"
+
+	# Set terminal title to show ports (visible in terminal tab/title bar)
+	echo -ne "\033]0;Streampai | Phoenix:$PHOENIX_PORT | Caddy:$CADDY_PORT\007"
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
@@ -49,8 +61,12 @@ dev:
 	echo ""
 	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
 	echo ""
+	echo "💡 Tips:"
+	echo "   overmind connect <service>  - attach to a service (phoenix, frontend, caddy)"
+	echo "   Ctrl+C                      - stop all services"
+	echo ""
 
-	# Check if caddy is installed
+	# Check required tools
 	if ! command -v caddy &> /dev/null; then
 		echo "❌ Caddy is not installed. Please install it:"
 		echo "   brew install caddy"
@@ -58,28 +74,36 @@ dev:
 		exit 1
 	fi
 
-	# Ensure dependencies are installed
+	if ! command -v overmind &> /dev/null; then
+		echo "❌ Overmind is not installed. Enter nix shell:"
+		echo "   nix develop"
+		exit 1
+	fi
+
+	# Ensure dependencies are installed (in parallel)
 	echo "📦 Checking dependencies..."
-	mix deps.get --check-unused 2>/dev/null || mix deps.get
-	cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install
-	cd ..
-
-	# Start all services in parallel
-	trap 'kill $(jobs -p) 2>/dev/null' EXIT
-
-	# Start Phoenix (PORT is already set from .env, sname includes port for uniqueness)
-	elixir -S mix phx.server &
-
-	# Start Frontend (override PORT for Vinxi, which reads it for dev server)
-	cd frontend && PORT=$FRONTEND_PORT bun dev &
-
-	# Wait a bit for services to start
-	sleep 2
-
-	# Start Caddy (reads PHOENIX_PORT, FRONTEND_PORT, CADDY_PORT from env)
-	caddy run --config Caddyfile
-
+	(mix deps.get --check-unused 2>/dev/null || mix deps.get) &
+	(cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install) &
 	wait
+	echo "📦 Dependencies ready"
+	echo ""
+
+	# Cleanup function to drop replication slot after overmind exits
+	cleanup() {
+		echo ""
+		echo "🧹 Cleaning up Electric replication slot..."
+		sleep 2
+		PGPASSWORD=postgres psql -U postgres -h localhost -c \
+			"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE '${SLOT_PREFIX}%';" \
+			2>/dev/null || true
+		echo "✅ Cleanup complete"
+	}
+
+	trap cleanup EXIT
+
+	# Use overmind to manage processes (provides tmux-based log separation)
+	# -N disables overmind's automatic PORT assignment which conflicts with ours
+	overmind start -f Procfile.dev -N
 
 caddy:
 	#!/usr/bin/env bash
@@ -113,6 +137,12 @@ worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
+	# Allow direnv for this worktree to load flake.nix dependencies
+	if command -v direnv &> /dev/null; then
+		echo "🔧 Allowing direnv for this worktree..."
+		direnv allow .
+	fi
+
 	# Detect worktree name: use parent dir if in vibe-kanban structure, otherwise current dir
 	current_dir=$(pwd | awk -F/ '{print $NF}')
 	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
@@ -128,7 +158,15 @@ worktree-setup:
 
 	echo "Setting up worktree: $name"
 
-	# Generate random available ports
+	# Copy .env from main repo if not already present (vibe-kanban may have copied it)
+	if [ ! -f .env ]; then
+		cp ~/streampai-elixir/.env .
+	fi
+
+	# Copy compiled artifacts for faster setup
+	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
+	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
+
 	# Function to find a random available port in a range
 	find_port() {
 		local min=$1 max=$2
@@ -141,37 +179,36 @@ worktree-setup:
 		done
 	}
 
-	PHOENIX_PORT=$(find_port 4100 4999)
-	FRONTEND_PORT=$(find_port 3100 3999)
-	CADDY_PORT=$(find_port 8100 8999)
-	# HMR ports for each Vinxi router
-	FRONTEND_HMR_CLIENT_PORT=$(find_port 3100 3999)
-	FRONTEND_HMR_SERVER_PORT=$(find_port 3100 3999)
-	FRONTEND_HMR_SERVER_FUNCTION_PORT=$(find_port 3100 3999)
-	FRONTEND_HMR_SSR_PORT=$(find_port 3100 3999)
+	# Function to get existing port from .env or generate a new one
+	get_or_generate_port() {
+		local var_name=$1 min=$2 max=$3
+		local existing=$(grep "^${var_name}=" .env 2>/dev/null | cut -d= -f2 | tr -d ' ')
+		if [ -n "$existing" ]; then
+			echo "$existing"
+		else
+			find_port "$min" "$max"
+		fi
+	}
 
-	DB_NAME="streampai_$(echo "$name" | tr '-' '_')_dev"
-	DB_URL="postgresql://postgres:postgres@localhost:5432/$DB_NAME?sslmode=disable"
-	PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "Database $DB_NAME already exists"
+	# Reuse existing ports if already configured (idempotent), otherwise generate new ones
+	DB_PORT=$(get_or_generate_port DB_PORT 5433 5999)
+	PGWEB_PORT=$(get_or_generate_port PGWEB_PORT 8083 8199)
+	MINIO_PORT=$(get_or_generate_port MINIO_PORT 9002 9099)
+	MINIO_CONSOLE_PORT=$(get_or_generate_port MINIO_CONSOLE_PORT 9100 9199)
+	PHOENIX_PORT=$(get_or_generate_port PORT 4100 4999)
+	FRONTEND_PORT=$(get_or_generate_port FRONTEND_PORT 3100 3999)
+	CADDY_PORT=$(get_or_generate_port CADDY_PORT 8100 8999)
+	FRONTEND_HMR_CLIENT_PORT=$(get_or_generate_port FRONTEND_HMR_CLIENT_PORT 3100 3999)
+	FRONTEND_HMR_SERVER_PORT=$(get_or_generate_port FRONTEND_HMR_SERVER_PORT 3100 3999)
+	FRONTEND_HMR_SERVER_FUNCTION_PORT=$(get_or_generate_port FRONTEND_HMR_SERVER_FUNCTION_PORT 3100 3999)
+	FRONTEND_HMR_SSR_PORT=$(get_or_generate_port FRONTEND_HMR_SSR_PORT 3100 3999)
 
-	# Add MCP server for this worktree
-	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
+	# Use worktree name as compose project name for isolated containers/volumes
+	COMPOSE_PROJECT="streampai_$(echo "$name" | tr '-' '_')"
+	DB_NAME="${COMPOSE_PROJECT}_dev"
+	DB_URL="postgresql://postgres:postgres@localhost:$DB_PORT/$DB_NAME?sslmode=disable"
 
-	# Copy .env from main repo if not already present (vibe-kanban may have copied it)
-	if [ ! -f .env ]; then
-		cp ~/streampai-elixir/.env .
-	fi
-
-	# Always copy the latest justfile from main repo to ensure worktree has latest setup scripts
-	cp ~/streampai-elixir/justfile . 2>/dev/null || true
-
-	# Copy compiled artifacts for faster setup
-	cp -r ~/streampai-elixir/deps . 2>/dev/null || true
-	cp -r ~/streampai-elixir/_build . 2>/dev/null || true
-
-	# Remove any existing worktree-specific variables before appending new ones
-	# This prevents duplicates if worktree-setup is run multiple times
-	# Use grep to filter out lines instead of sed -i (avoids BSD vs GNU sed issues)
+	# Remove all worktree-specific variables and comments (clean slate for idempotency)
 	grep -v '^DATABASE_URL=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^PORT=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^FRONTEND_PORT=' .env > .env.tmp && mv .env.tmp .env || true
@@ -181,10 +218,21 @@ worktree-setup:
 	grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^DB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^PGWEB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^MINIO_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^MINIO_CONSOLE_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^COMPOSE_PROJECT_NAME=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '# Worktree-specific configuration' .env > .env.tmp && mv .env.tmp .env || true
 
 	# Append worktree-specific configuration
 	echo "" >> .env
 	echo "# Worktree-specific configuration (auto-generated by just worktree-setup)" >> .env
+	echo "COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT" >> .env
+	echo "DB_PORT=$DB_PORT" >> .env
+	echo "PGWEB_PORT=$PGWEB_PORT" >> .env
+	echo "MINIO_PORT=$MINIO_PORT" >> .env
+	echo "MINIO_CONSOLE_PORT=$MINIO_CONSOLE_PORT" >> .env
 	echo "DATABASE_URL=$DB_URL" >> .env
 	echo "PORT=$PHOENIX_PORT" >> .env
 	echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
@@ -197,19 +245,40 @@ worktree-setup:
 
 	echo ""
 	echo "📋 Worktree ports for '$name':"
-	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
-	echo "   Frontend: http://localhost:$FRONTEND_PORT"
-	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	echo "   PostgreSQL: localhost:$DB_PORT"
+	echo "   Phoenix:    http://localhost:$PHOENIX_PORT"
+	echo "   Frontend:   http://localhost:$FRONTEND_PORT"
+	echo "   Caddy:      https://localhost:$CADDY_PORT"
+	echo "   PgWeb:      http://localhost:$PGWEB_PORT"
+	echo "   Minio:      http://localhost:$MINIO_PORT (console: $MINIO_CONSOLE_PORT)"
 	echo ""
 
 	# Export environment variables for subsequent commands
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
+	# Start Docker containers for this worktree
+	echo "🐳 Starting Docker containers..."
+	docker compose up -d
+
+	# Wait for PostgreSQL to be ready
+	echo "⏳ Waiting for PostgreSQL to be ready..."
+	for i in {1..30}; do
+		if PGPASSWORD=postgres psql -U postgres -h localhost -p $DB_PORT -c "SELECT 1" >/dev/null 2>&1; then
+			echo "✅ PostgreSQL is ready"
+			break
+		fi
+		if [ $i -eq 30 ]; then
+			echo "❌ PostgreSQL failed to start. Check 'docker compose logs timescaledb'"
+			exit 1
+		fi
+		sleep 1
+	done
+
 	# Install backend dependencies
 	mix deps.get
 
 	# Create database and run migrations/seeds
-	mix ecto.create 2>/dev/null || echo "Database $DB_NAME already exists"
+	mix ecto.create 2>/dev/null || echo "Database already exists"
 	mix ash.setup
 
 	# Compile to verify everything works
@@ -219,12 +288,63 @@ worktree-setup:
 	echo "Installing frontend dependencies..."
 	cd frontend && bun install
 
+	# Add MCP server for this worktree
+	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
+
 	echo ""
 	echo "✅ Worktree '$name' is ready!"
 	echo "   Run 'just dev' to start with Caddy (recommended)"
 	echo "   Run 'just si' to start without Caddy"
+	echo ""
+	echo "   Docker containers are running in background."
+	echo "   Use 'docker compose down' to stop them when done."
 
 	claude --dangerously-skip-permissions .
+
+# Clean up orphaned Electric replication slots
+cleanup-slots:
+	#!/usr/bin/env bash
+	echo "🔍 Checking for orphaned Electric replication slots..."
+	slots=$(PGPASSWORD=postgres psql -U postgres -h localhost -t -c \
+		"SELECT slot_name FROM pg_replication_slots WHERE active = false AND slot_name LIKE 'electric_slot_%';" 2>/dev/null | tr -d ' ')
+	if [ -z "$slots" ]; then
+		echo "✅ No orphaned slots found"
+	else
+		echo "Found orphaned slots:"
+		echo "$slots" | while read slot; do
+			[ -n "$slot" ] && echo "  - $slot"
+		done
+		echo ""
+		echo "Dropping orphaned slots..."
+		PGPASSWORD=postgres psql -U postgres -h localhost -c \
+			"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE 'electric_slot_%';" \
+			>/dev/null 2>&1
+		echo "✅ Orphaned slots cleaned up"
+	fi
+
+# Clean up current worktree's Electric replication slot
+cleanup-worktree-slot:
+	#!/usr/bin/env bash
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
+	set +a
+	DB_PORT=${DB_PORT:-5432}
+	# Determine worktree name
+	current_dir=$(pwd | awk -F/ '{print $NF}')
+	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
+	if [[ "$current_dir" == "streampai-elixir" && "$parent_dir" =~ ^[a-f0-9]{4}- ]]; then
+		name="$parent_dir"
+	else
+		name="$current_dir"
+	fi
+	SLOT_PREFIX="electric_slot_streampai_$(echo "$name" | tr '-' '_' | cut -c1-30)"
+	echo "🧹 Cleaning up Electric slot for worktree: $name"
+	echo "   Slot prefix: $SLOT_PREFIX"
+	echo "   Database port: $DB_PORT"
+	PGPASSWORD=postgres psql -U postgres -h localhost -p $DB_PORT -c \
+		"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE '${SLOT_PREFIX}%';" \
+		2>/dev/null || echo "No matching slots found"
+	echo "✅ Done"
 
 # Show port configuration for current worktree
 ports:
@@ -233,10 +353,53 @@ ports:
 	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
 	set +a
 	echo "Port configuration:"
-	echo "   Phoenix:  ${PORT:-4000}"
-	echo "   Frontend: ${FRONTEND_PORT:-3000}"
-	echo "   Caddy:    ${CADDY_PORT:-8000}"
-	echo "   HMR:      ${HMR_PORT:-24678}"
+	echo "   PostgreSQL: ${DB_PORT:-5432}"
+	echo "   Phoenix:    ${PORT:-4000}"
+	echo "   Frontend:   ${FRONTEND_PORT:-3000}"
+	echo "   Caddy:      ${CADDY_PORT:-8000}"
+	echo "   PgWeb:      ${PGWEB_PORT:-8082}"
+	echo "   Minio:      ${MINIO_PORT:-9000} (console: ${MINIO_CONSOLE_PORT:-9001})"
+
+# Kill processes running on overmind ports (Phoenix, Frontend, Caddy)
+kill-ports:
+	#!/usr/bin/env bash
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
+	set +a
+
+	PHOENIX_PORT=${PORT:-4000}
+	FRONTEND_PORT=${FRONTEND_PORT:-3000}
+	CADDY_PORT=${CADDY_PORT:-8000}
+	FRONTEND_HMR_CLIENT_PORT=${FRONTEND_HMR_CLIENT_PORT:-3001}
+	FRONTEND_HMR_SERVER_PORT=${FRONTEND_HMR_SERVER_PORT:-3002}
+	FRONTEND_HMR_SERVER_FUNCTION_PORT=${FRONTEND_HMR_SERVER_FUNCTION_PORT:-3003}
+	FRONTEND_HMR_SSR_PORT=${FRONTEND_HMR_SSR_PORT:-3004}
+
+
+	echo "🔪 Killing processes on overmind ports..."
+
+	kill_port() {
+		local port=$1
+		local name=$2
+		local pids=$(lsof -ti :$port 2>/dev/null)
+		if [ -n "$pids" ]; then
+			echo "   Killing $name on port $port (PIDs: $pids)"
+			echo "$pids" | xargs kill -9 2>/dev/null || true
+		else
+			echo "   $name port $port: no process running"
+		fi
+	}
+
+	kill_port $PHOENIX_PORT "Phoenix"
+	kill_port $FRONTEND_PORT "Frontend"
+	kill_port $CADDY_PORT "Caddy"
+	kill_port $FRONTEND_HMR_CLIENT_PORT "Frontend HMR Client"
+	kill_port $FRONTEND_HMR_SERVER_PORT "Frontend HMR Server"
+	kill_port $FRONTEND_HMR_SERVER_FUNCTION_PORT "Frontend HMR Server Function"
+	kill_port $FRONTEND_HMR_SSR_PORT "Frontend HMR SSR"
+	rm .overmind.sock 2>/dev/null || true
+
+	echo "✅ Done"
 
 # ============================================================================
 # Production Commands

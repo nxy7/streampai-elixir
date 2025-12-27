@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createSignal, For, onMount, Show } from "solid-js";
+import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { useCurrentUser } from "~/lib/auth";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
 
@@ -168,6 +169,88 @@ const formatEventData = (event: StreamEvent) => {
 		.join(", ");
 };
 
+// Skeleton for viewer detail page
+function ViewerDetailSkeleton() {
+	return (
+		<div class="space-y-6">
+			{/* Header skeleton */}
+			<div class="flex items-center justify-between">
+				<div class="flex items-center space-x-4">
+					<Skeleton class="h-6 w-6" />
+					<div class="flex items-center">
+						<Skeleton class="h-12 w-12 shrink-0" circle />
+						<div class="ml-4 space-y-2">
+							<Skeleton class="h-8 w-48" />
+							<Skeleton class="h-4 w-24" />
+						</div>
+					</div>
+				</div>
+				<div class="flex items-center gap-2">
+					<Skeleton class="h-7 w-20 rounded-full" />
+					<Skeleton class="h-7 w-24 rounded-full" />
+				</div>
+			</div>
+
+			{/* Activity Info skeleton */}
+			<div class="rounded-lg bg-white p-6 shadow">
+				<Skeleton class="mb-4 h-6 w-28" />
+				<div class="space-y-3">
+					<For each={[1, 2]}>
+						{() => (
+							<div>
+								<Skeleton class="mb-1 h-4 w-20" />
+								<Skeleton class="h-4 w-40" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+
+			{/* Recent Messages skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+				<div class="border-gray-200 border-b px-6 py-4">
+					<Skeleton class="h-6 w-40" />
+				</div>
+				<div class="divide-y divide-gray-200">
+					<For each={[1, 2, 3, 4, 5]}>
+						{() => (
+							<div class="p-6">
+								<div class="mb-1 flex items-center space-x-2">
+									<Skeleton class="h-5 w-16 rounded" />
+									<Skeleton class="h-4 w-24" />
+								</div>
+								<Skeleton class="mt-2 h-4 w-full" />
+								<Skeleton class="mt-1 h-4 w-3/4" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+
+			{/* Recent Events skeleton */}
+			<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+				<div class="border-gray-200 border-b px-6 py-4">
+					<Skeleton class="h-6 w-32" />
+				</div>
+				<div class="divide-y divide-gray-200">
+					<For each={[1, 2, 3]}>
+						{() => (
+							<div class="p-6">
+								<div class="mb-1 flex items-center space-x-2">
+									<Skeleton class="h-5 w-20 rounded" />
+									<Skeleton class="h-5 w-16 rounded" />
+									<Skeleton class="h-4 w-24" />
+								</div>
+								<Skeleton class="mt-2 h-4 w-2/3" />
+							</div>
+						)}
+					</For>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export default function ViewerDetail() {
 	const params = useParams();
 	const navigate = useNavigate();
@@ -260,12 +343,7 @@ export default function ViewerDetail() {
 			<Title>Viewer Details - Streampai</Title>
 
 			<Show when={loading()}>
-				<div class="flex h-64 items-center justify-center">
-					<div class="text-center">
-						<div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-purple-600 border-b-2"></div>
-						<p class="text-gray-600">Loading viewer details...</p>
-					</div>
-				</div>
+				<ViewerDetailSkeleton />
 			</Show>
 
 			<Show when={error()}>
