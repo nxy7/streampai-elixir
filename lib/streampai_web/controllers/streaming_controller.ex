@@ -11,17 +11,20 @@ defmodule StreampaiWeb.MultiProviderAuth do
   @redirect_url "/dashboard/settings"
 
   def request(conn, _params) do
-    # Check if user is logged in before starting OAuth flow
-    current_user = conn.assigns.current_user
+    # Ueberauth should intercept this request and redirect to the OAuth provider.
+    # If we reach here, it means Ueberauth didn't intercept (e.g., config mismatch).
+    # Return a meaningful error instead of leaving the connection unsent.
+    current_user = Map.get(conn.assigns, :current_user)
 
     if current_user do
-      # This action should never be reached as Ueberauth intercepts the request
-      # But we need it defined for the route to work
+      # User is logged in but Ueberauth didn't redirect - this is a config issue
       conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(500, "OAuth configuration error: Ueberauth did not intercept the request")
     else
+      # User is not logged in - redirect to login
       conn
-      |> put_flash(:error, "You must be logged in to connect streaming accounts")
-      |> redirect(to: "/")
+      |> redirect(to: "/login")
     end
   end
 

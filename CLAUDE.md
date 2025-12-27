@@ -340,5 +340,28 @@ export const Default: Story = {
 
 - App name is "Streampai" (not "StreamPai")
 - If a port is taken, use another port instead of killing the running app
-- When using Playwright MCP for testing, let the user log in manually unless explicitly asked to automate it
 - **Playwright testing**: Always use HTTPS and the Caddy port (e.g., `https://localhost:8000`), not the direct frontend port. Caddy proxies both frontend and backend, which is required for auth flows to work correctly.
+
+## Playwright Testing with Google Login
+
+Test credentials are stored in `.env`:
+- `TEST_GOOGLE_EMAIL` - Google test account email
+- `TEST_GOOGLE_PASSWORD` - Google test account password
+
+**Important**: Google blocks automated logins in headless browsers with "This browser or app may not be secure" error. For testing OAuth flows:
+1. Use headed mode (`headless: false`) or let the user log in manually
+2. After Google auth, fix the port in the URL if needed (Google redirects to port 8000, but worktrees use different Caddy ports like 8681)
+
+To manually test in Playwright:
+1. Navigate to login page and click "Continue with Google"
+2. Complete Google sign-in manually in the browser window
+3. After redirect back to app, update the port in URL if using a worktree
+
+### OAuth Callbacks in Worktrees
+
+OAuth callbacks always redirect to port 8000 (configured in Ueberauth). When testing in a worktree:
+
+1. The callback URL will be `https://localhost:8000/api/streaming/connect/{provider}/callback?code=...&state=...`
+2. If port 8000 isn't running, the page will fail to load
+3. Simply change the port in the URL to your worktree's Caddy port (e.g., `8681`) and press Enter
+4. The OAuth flow will complete successfully - the code and state parameters remain valid

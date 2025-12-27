@@ -1,6 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, For, Show } from "solid-js";
+import Button from "~/components/ui/Button";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { apiRoutes } from "~/lib/constants";
 import { badge, button, card, text } from "~/styles/design-system";
 
 type PlatformConnection = {
@@ -257,23 +259,21 @@ export default function Stream() {
 											<Show
 												when={conn.connected}
 												fallback={
-													<button
-														type="button"
-														class={`${button.primary} text-sm`}
-														onClick={() =>
-															togglePlatformConnection(conn.platform)
-														}>
+													<Button
+														as="a"
+														href={apiRoutes.streaming.connect(conn.platform)}
+														size="sm">
 														Connect
-													</button>
+													</Button>
 												}>
-												<button
-													type="button"
-													class={`${button.secondary} text-sm`}
+												<Button
+													variant="secondary"
+													size="sm"
 													onClick={() =>
 														togglePlatformConnection(conn.platform)
 													}>
 													Disconnect
-												</button>
+												</Button>
 											</Show>
 										</div>
 									)}

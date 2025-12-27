@@ -1,3 +1,4 @@
+import { A } from "@solidjs/router";
 import { type JSX, splitProps } from "solid-js";
 import { cn } from "~/styles/design-system";
 
@@ -30,33 +31,69 @@ const sizeClasses: Record<ButtonSize, string> = {
 	lg: "px-6 py-3 text-base",
 };
 
-export interface ButtonProps
-	extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
+type BaseButtonProps = {
 	variant?: ButtonVariant;
 	size?: ButtonSize;
 	fullWidth?: boolean;
 	children: JSX.Element;
-}
+	class?: string;
+};
+
+type ButtonAsButton = BaseButtonProps & {
+	as?: "button";
+} & Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseButtonProps>;
+
+type ButtonAsAnchor = BaseButtonProps & {
+	as: "a";
+	href: string;
+} & Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseButtonProps>;
+
+type ButtonAsLink = BaseButtonProps & {
+	as: "link";
+	href: string;
+} & Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseButtonProps>;
+
+export type ButtonProps = ButtonAsButton | ButtonAsAnchor | ButtonAsLink;
 
 export default function Button(props: ButtonProps) {
-	const [local, rest] = splitProps(props, [
-		"variant",
-		"size",
-		"fullWidth",
-		"children",
-		"class",
-	]);
+	const [local, rest] = splitProps(
+		props as BaseButtonProps & { as?: string; href?: string },
+		["as", "variant", "size", "fullWidth", "children", "class", "href"],
+	);
+
+	const classes = cn(
+		"inline-flex items-center justify-center rounded-lg font-medium transition-colors",
+		variantClasses[local.variant ?? "primary"],
+		sizeClasses[local.size ?? "md"],
+		local.fullWidth && "w-full",
+		local.class,
+	);
+
+	if (local.as === "a") {
+		return (
+			<a
+				href={local.href}
+				class={classes}
+				rel="external"
+				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
+				{local.children}
+			</a>
+		);
+	}
+
+	if (local.as === "link") {
+		return (
+			<A
+				href={local.href!}
+				class={classes}
+				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
+				{local.children}
+			</A>
+		);
+	}
 
 	return (
-		<button
-			class={cn(
-				"inline-flex items-center justify-center rounded-lg font-medium transition-colors",
-				variantClasses[local.variant ?? "primary"],
-				sizeClasses[local.size ?? "md"],
-				local.fullWidth && "w-full",
-				local.class,
-			)}
-			{...rest}>
+		<button class={classes} {...(rest as JSX.ButtonHTMLAttributes<HTMLButtonElement>)}>
 			{local.children}
 		</button>
 	);

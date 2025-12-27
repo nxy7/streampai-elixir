@@ -13,7 +13,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Twitch",
       manage_name: "Manage Twitch",
       description: "Link your Twitch account",
-      connect_url: "/streaming/connect/twitch",
+      connect_url: "/api/streaming/connect/twitch",
       icon: "twitch",
       connect_color: "purple",
       manage_color: "green"
@@ -24,7 +24,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect YouTube",
       manage_name: "Manage YouTube",
       description: "Link your YouTube channel",
-      connect_url: "/streaming/connect/google",
+      connect_url: "/api/streaming/connect/google",
       icon: "youtube",
       connect_color: "red",
       manage_color: "green"
@@ -35,7 +35,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Facebook",
       manage_name: "Manage Facebook",
       description: "Link your Facebook account",
-      connect_url: "/streaming/connect/facebook",
+      connect_url: "/api/streaming/connect/facebook",
       icon: "facebook",
       connect_color: "blue",
       manage_color: "green"
@@ -46,7 +46,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Kick",
       manage_name: "Manage Kick",
       description: "Link your Kick account",
-      connect_url: "/streaming/connect/kick",
+      connect_url: "/api/streaming/connect/kick",
       icon: "kick",
       connect_color: "green",
       manage_color: "green"
@@ -57,7 +57,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect TikTok",
       manage_name: "Manage TikTok",
       description: "Link your TikTok account",
-      connect_url: "/streaming/connect/tiktok",
+      connect_url: "/api/streaming/connect/tiktok",
       icon: "tiktok",
       connect_color: "slate",
       manage_color: "green"
@@ -68,7 +68,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Trovo",
       manage_name: "Manage Trovo",
       description: "Link your Trovo account",
-      connect_url: "/streaming/connect/trovo",
+      connect_url: "/api/streaming/connect/trovo",
       icon: "trovo",
       connect_color: "green",
       manage_color: "green"
@@ -79,7 +79,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Instagram",
       manage_name: "Manage Instagram",
       description: "Link your Instagram account",
-      connect_url: "/streaming/connect/instagram",
+      connect_url: "/api/streaming/connect/instagram",
       icon: "instagram",
       connect_color: "pink",
       manage_color: "green"
@@ -90,7 +90,7 @@ defmodule Streampai.Dashboard do
       connect_name: "Connect Rumble",
       manage_name: "Manage Rumble",
       description: "Link your Rumble account",
-      connect_url: "/streaming/connect/rumble",
+      connect_url: "/api/streaming/connect/rumble",
       icon: "rumble",
       connect_color: "emerald",
       manage_color: "green"

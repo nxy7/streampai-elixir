@@ -1,7 +1,9 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
+import Button from "~/components/ui/Button";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { apiRoutes } from "~/lib/constants";
 import {
 	useStreamingAccounts,
 	useUserPreferencesForUser,
@@ -780,11 +782,12 @@ export default function Settings() {
 																</p>
 															</div>
 														</div>
-														<a
-															href={`/api/streaming/connect/${platform.platform}`}
-															class="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700">
+														<Button
+															as="a"
+															href={apiRoutes.streaming.connect(platform.platform)}
+															size="sm">
 															Connect
-														</a>
+														</Button>
 													</div>
 												</Show>
 											)}
