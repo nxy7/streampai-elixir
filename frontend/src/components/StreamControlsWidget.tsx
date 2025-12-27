@@ -1,19 +1,9 @@
-import { createVirtualList } from "@solid-primitives/virtual";
-import {
-	createEffect,
-	createMemo,
-	createSignal,
-	For,
-	onCleanup,
-	onMount,
-	Show,
-} from "solid-js";
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
 
-// Constants for virtualization
-const ROW_HEIGHT = 56; // Fixed height for all activity rows in pixels
-const OVERSCAN_COUNT = 5; // Number of items to render outside viewport
+// Maximum number of activities to keep in memory for performance
+const MAX_ACTIVITIES = 200;
 
 // Types for stream metadata
 export interface StreamMetadata {
@@ -404,14 +394,13 @@ interface ActivityRowProps {
 function ActivityRow(props: ActivityRowProps) {
 	return (
 		<div
-			class={`flex items-center gap-2 rounded px-2 transition-colors hover:bg-gray-50 ${
+			class={`flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
 				props.isSticky
 					? "sticky top-0 z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
 					: isImportantEvent(props.item.type)
 						? "bg-gray-50/50"
 						: ""
-			}`}
-			style={{ height: `${ROW_HEIGHT}px` }}>
+			}`}>
 			{/* Platform badge */}
 			<span
 				class={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[props.item.platform] || "bg-gray-500"}`}>
@@ -467,12 +456,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		new Set(props.connectedPlatforms || AVAILABLE_PLATFORMS),
 	);
 	const [showPlatformPicker, setShowPlatformPicker] = createSignal(false);
-	const [containerHeight, setContainerHeight] = createSignal(400);
 	const [stickyItemIds, setStickyItemIds] = createSignal<Set<string>>(
 		new Set(),
 	);
-
-	let scrollContainerRef: HTMLDivElement | undefined;
 
 	// Get available platforms (either from props or default to all)
 	const availablePlatforms = createMemo(
@@ -488,8 +474,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	};
 
 	// Sort activities chronologically (oldest first, newest at bottom)
+	// With flex-direction: column-reverse, the container naturally anchors to bottom
+	// Items are sorted oldest-first so newest appear at visual bottom
 	const sortedActivities = createMemo(() => {
-		return [...props.activities].sort((a, b) => {
+		const sorted = [...props.activities].sort((a, b) => {
 			const timeA =
 				a.timestamp instanceof Date
 					? a.timestamp.getTime()
@@ -500,6 +488,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					: new Date(b.timestamp).getTime();
 			return timeA - timeB; // Ascending order: oldest first
 		});
+		// Limit to MAX_ACTIVITIES for performance
+		return sorted.slice(-MAX_ACTIVITIES);
 	});
 
 	// Track sticky items based on time
@@ -544,63 +534,6 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		}, duration);
 
 		onCleanup(() => clearTimeout(timeout));
-	});
-
-	// Create virtualized list - returns [state accessor, onScroll handler]
-	const [virtualState, onVirtualScroll] = createVirtualList({
-		items: sortedActivities,
-		rootHeight: containerHeight,
-		rowHeight: () => ROW_HEIGHT,
-		overscanCount: OVERSCAN_COUNT,
-	});
-
-	// Track if we should auto-scroll (user hasn't scrolled away from bottom)
-	const [shouldAutoScroll, setShouldAutoScroll] = createSignal(true);
-
-	// Measure container height on mount and resize
-	onMount(() => {
-		if (scrollContainerRef) {
-			const updateHeight = () => {
-				if (scrollContainerRef) {
-					setContainerHeight(scrollContainerRef.clientHeight);
-				}
-			};
-			updateHeight();
-
-			const resizeObserver = new ResizeObserver(updateHeight);
-			resizeObserver.observe(scrollContainerRef);
-
-			// Scroll to bottom on mount
-			requestAnimationFrame(() => {
-				if (scrollContainerRef) {
-					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
-				}
-			});
-
-			onCleanup(() => resizeObserver.disconnect());
-		}
-	});
-
-	// Track scroll position to determine if user scrolled away from bottom
-	const handleScroll = (e: Event) => {
-		onVirtualScroll(e);
-		if (scrollContainerRef) {
-			const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
-			const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-			setShouldAutoScroll(isNearBottom);
-		}
-	};
-
-	// Auto-scroll to bottom when new activities arrive (if user hasn't scrolled away)
-	createEffect(() => {
-		const activities = sortedActivities();
-		if (scrollContainerRef && activities.length > 0 && shouldAutoScroll()) {
-			requestAnimationFrame(() => {
-				if (scrollContainerRef) {
-					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
-				}
-			});
-		}
 	});
 
 	// Toggle platform selection
@@ -681,12 +614,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				</div>
 			</div>
 
-			{/* Virtualized Activity Feed - Scrollable middle section */}
-			{/* Auto-scrolls to bottom on mount and when new events arrive */}
-			<div
-				ref={scrollContainerRef}
-				class="min-h-0 flex-1 overflow-y-auto"
-				onScroll={handleScroll}>
+			{/* Activity Feed - Scrollable middle section */}
+			{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring: */}
+			{/* - Scroll position naturally stays at the bottom (newest content) */}
+			{/* - New items appear at the bottom without JS scroll management */}
+			{/* - User can scroll up to see older messages; position is preserved */}
+			{/* - Wraps content in inner div to "un-reverse" the visual order */}
+			<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
 				<Show
 					when={sortedActivities().length > 0}
 					fallback={
@@ -697,28 +631,16 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							</div>
 						</div>
 					}>
-					{/* This inner div provides the scrollable height for virtualization */}
-					<div
-						style={{
-							height: `${virtualState().containerHeight}px`,
-							position: "relative",
-						}}>
-						<div
-							style={{
-								position: "absolute",
-								top: `${virtualState().viewerTop}px`,
-								left: 0,
-								right: 0,
-							}}>
-							<For each={virtualState().visibleItems}>
-								{(item) => (
-									<ActivityRow
-										item={item}
-										isSticky={stickyItemIds().has(item.id)}
-									/>
-								)}
-							</For>
-						</div>
+					{/* Inner div un-reverses the content so it reads top-to-bottom */}
+					<div class="flex flex-col">
+						<For each={sortedActivities()}>
+							{(item) => (
+								<ActivityRow
+									item={item}
+									isSticky={stickyItemIds().has(item.id)}
+								/>
+							)}
+						</For>
 					</div>
 				</Show>
 			</div>
