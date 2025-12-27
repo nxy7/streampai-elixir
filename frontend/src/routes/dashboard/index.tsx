@@ -2,6 +2,8 @@ import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { getEventBgColor } from "~/lib/eventMetadata";
+import { formatTimeAgo, getGreeting, sortByInsertedAt } from "~/lib/formatters";
 import {
 	useDashboardStats,
 	useRecentUserChatMessages,
@@ -11,27 +13,6 @@ import {
 	useUserStreamEvents,
 } from "~/lib/useElectric";
 import { badge, card, text } from "~/styles/design-system";
-
-function getGreeting() {
-	const hour = new Date().getHours();
-	if (hour < 12) return "Good morning";
-	if (hour < 18) return "Good afternoon";
-	return "Good evening";
-}
-
-function formatTimeAgo(dateStr: string): string {
-	const date = new Date(dateStr);
-	const now = new Date();
-	const diffMs = now.getTime() - date.getTime();
-	const diffMins = Math.floor(diffMs / 60000);
-	const diffHours = Math.floor(diffMs / 3600000);
-	const diffDays = Math.floor(diffMs / 86400000);
-
-	if (diffMins < 1) return "just now";
-	if (diffMins < 60) return `${diffMins}m ago`;
-	if (diffHours < 24) return `${diffHours}h ago`;
-	return `${diffDays}d ago`;
-}
 
 function getEventIcon(type: string) {
 	switch (type) {
@@ -118,21 +99,6 @@ function getEventIcon(type: string) {
 	}
 }
 
-function getEventColor(type: string) {
-	switch (type) {
-		case "donation":
-			return "bg-green-100 text-green-600";
-		case "follow":
-			return "bg-pink-100 text-pink-600";
-		case "subscription":
-			return "bg-yellow-100 text-yellow-600";
-		case "raid":
-			return "bg-purple-100 text-purple-600";
-		default:
-			return "bg-blue-100 text-blue-600";
-	}
-}
-
 function getStreamStatusBadge(status: string) {
 	switch (status) {
 		case "live":
@@ -144,7 +110,6 @@ function getStreamStatusBadge(status: string) {
 	}
 }
 
-// Feature 1: Stream Health Monitor Component
 function StreamHealthMonitor() {
 	// Simulated stream health data - in production this would come from actual stream metrics
 	const [connectionQuality] = createSignal<
@@ -225,7 +190,6 @@ function StreamHealthMonitor() {
 	);
 }
 
-// Feature 2: Quick Actions Floating Panel
 function QuickActionsPanel(props: { onTestAlert: () => void }) {
 	const [isExpanded, setIsExpanded] = createSignal(false);
 
@@ -342,7 +306,6 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 	);
 }
 
-// Feature 3: Viewer Engagement Score Component
 function ViewerEngagementScore(props: {
 	chatMessages: number;
 	follows: number;
@@ -437,7 +400,6 @@ function ViewerEngagementScore(props: {
 	);
 }
 
-// Feature 4: Stream Goals Tracker Component
 function StreamGoalsTracker(props: {
 	currentFollowers: number;
 	currentDonations: number;
@@ -571,7 +533,6 @@ function StreamGoalsTracker(props: {
 	);
 }
 
-// Feature 5: Activity Feed with Filters
 type EventFilter = "all" | "donation" | "follow" | "subscription" | "raid";
 
 function ActivityFeed(props: {
@@ -668,7 +629,7 @@ function ActivityFeed(props: {
 							{(event) => (
 								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
 									<div
-										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
+										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 										{getEventIcon(event.type)}
 									</div>
 									<div class="min-w-0 flex-1">
@@ -709,15 +670,8 @@ export default function Dashboard() {
 	const recentStreams = useRecentUserLivestreams(() => user()?.id, 3);
 	const stats = useDashboardStats(() => user()?.id);
 
-	// Full events list for Activity Feed
 	const allEventsQuery = useUserStreamEvents(() => user()?.id);
-	const allEvents = createMemo(() => {
-		const events = allEventsQuery.data();
-		return [...events].sort(
-			(a, b) =>
-				new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
-		);
-	});
+	const allEvents = createMemo(() => sortByInsertedAt(allEventsQuery.data()));
 
 	// Alert test handler
 	const [showTestAlert, setShowTestAlert] = createSignal(false);
@@ -1008,7 +962,7 @@ export default function Dashboard() {
 												<div class="px-6 py-3 hover:bg-gray-50">
 													<div class="flex items-center gap-3">
 														<div
-															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventColor(event.type)}`}>
+															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 															{getEventIcon(event.type)}
 														</div>
 														<div class="min-w-0 flex-1">
