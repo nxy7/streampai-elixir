@@ -360,6 +360,47 @@ ports:
 	echo "   PgWeb:      ${PGWEB_PORT:-8082}"
 	echo "   Minio:      ${MINIO_PORT:-9000} (console: ${MINIO_CONSOLE_PORT:-9001})"
 
+# Kill processes running on overmind ports (Phoenix, Frontend, Caddy)
+kill-ports:
+	#!/usr/bin/env bash
+	set -a
+	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
+	set +a
+
+	PHOENIX_PORT=${PORT:-4000}
+	FRONTEND_PORT=${FRONTEND_PORT:-3000}
+	CADDY_PORT=${CADDY_PORT:-8000}
+	FRONTEND_HMR_CLIENT_PORT=${FRONTEND_HMR_CLIENT_PORT:-3001}
+	FRONTEND_HMR_SERVER_PORT=${FRONTEND_HMR_SERVER_PORT:-3002}
+	FRONTEND_HMR_SERVER_FUNCTION_PORT=${FRONTEND_HMR_SERVER_FUNCTION_PORT:-3003}
+	FRONTEND_HMR_SSR_PORT=${FRONTEND_HMR_SSR_PORT:-3004}
+
+
+	echo "🔪 Killing processes on overmind ports..."
+
+	kill_port() {
+		local port=$1
+		local name=$2
+		local pids=$(lsof -ti :$port 2>/dev/null)
+		if [ -n "$pids" ]; then
+			echo "   Killing $name on port $port (PIDs: $pids)"
+			echo "$pids" | xargs kill -9 2>/dev/null || true
+		else
+			echo "   $name port $port: no process running"
+		fi
+	}
+
+	kill_port $PHOENIX_PORT "Phoenix"
+	kill_port $FRONTEND_PORT "Frontend"
+	kill_port $CADDY_PORT "Caddy"
+	kill_port $FRONTEND_HMR_CLIENT_PORT "Frontend HMR Client"
+	kill_port $FRONTEND_HMR_SERVER_PORT "Frontend HMR Server"
+	kill_port $FRONTEND_HMR_SERVER_FUNCTION_PORT "Frontend HMR Server Function"
+	kill_port $FRONTEND_HMR_SSR_PORT "Frontend HMR SSR"
+	rm .overmind.sock 2>/dev/null || true
+
+	echo "✅ Done"
+
 # ============================================================================
 # Production Commands
 # ============================================================================
