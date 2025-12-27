@@ -50,7 +50,13 @@
  * ```
  */
 
-import { createMemo, createSignal, Show, type Component, type JSX } from "solid-js";
+import {
+	createMemo,
+	createSignal,
+	Show,
+	type Component,
+	type JSX,
+} from "solid-js";
 import type { z } from "zod";
 import { useCurrentUser } from "~/lib/auth";
 import type { WidgetType } from "~/lib/electric";
@@ -238,8 +244,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 										saveMessage()?.startsWith("Error")
 											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
 											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}
-								>
+									}>
 									{saveMessage()}
 								</div>
 							</Show>
@@ -248,8 +253,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								type="button"
 								class={button.primary}
 								onClick={handleSave}
-								disabled={saving()}
-							>
+								disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
 							</button>
 						</div>
@@ -264,13 +268,19 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 									config: config(),
 									children: (
 										<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-gray-900 p-8">
-											<props.PreviewComponent config={config()} {...(props.previewProps as P)} />
+											<props.PreviewComponent
+												config={config()}
+												{...(props.previewProps as P)}
+											/>
 										</div>
 									),
 								})
 							) : (
 								<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-gray-900 p-8">
-									<props.PreviewComponent config={config()} {...(props.previewProps as P)} />
+									<props.PreviewComponent
+										config={config()}
+										{...(props.previewProps as P)}
+									/>
 								</div>
 							)}
 

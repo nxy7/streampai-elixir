@@ -71,7 +71,10 @@ export interface WidgetDefinition<T extends z.ZodRawShape = z.ZodRawShape> {
 	// biome-ignore lint/suspicious/noExplicitAny: Preview props vary by widget
 	previewProps?: Record<string, any>;
 	// biome-ignore lint/suspicious/noExplicitAny: Wrapper receives config of widget's type
-	previewWrapper?: (props: { config: any; children: JSX.Element }) => JSX.Element;
+	previewWrapper?: (props: {
+		config: any;
+		children: JSX.Element;
+	}) => JSX.Element;
 	obsSettings?: {
 		width?: number;
 		height?: number;
@@ -147,9 +150,14 @@ export const donationGoalSchema = z.object({
 	startingAmount: z.number().min(0).default(0),
 	currency: z.string().default("$"),
 	startDate: z.string().default(() => new Date().toISOString().split("T")[0]),
-	endDate: z.string().default(
-		() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-	),
+	endDate: z
+		.string()
+		.default(
+			() =>
+				new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+					.toISOString()
+					.split("T")[0],
+		),
 	title: z.string().default("Donation Goal"),
 	showPercentage: z.boolean().default(true),
 	showAmountRaised: z.boolean().default(true),
@@ -185,12 +193,16 @@ export const giveawaySchema = z.object({
 	targetParticipants: z.number().min(1).default(100),
 	patreonMultiplier: z.number().min(1).max(10).default(2),
 	patreonBadgeText: z.string().default("Patreon"),
-	winnerAnimation: z.enum(["fade", "slide", "bounce", "confetti"]).default("confetti"),
+	winnerAnimation: z
+		.enum(["fade", "slide", "bounce", "confetti"])
+		.default("confetti"),
 	titleColor: z.string().default("#9333ea"),
 	textColor: z.string().default("#1f2937"),
 	backgroundColor: z.string().default("#ffffff"),
 	accentColor: z.string().default("#10b981"),
-	fontSize: z.enum(["small", "medium", "large", "extra-large"]).default("medium"),
+	fontSize: z
+		.enum(["small", "medium", "large", "extra-large"])
+		.default("medium"),
 	showPatreonInfo: z.boolean().default(true),
 });
 
@@ -198,7 +210,9 @@ export const pollSchema = z.object({
 	showTitle: z.boolean().default(true),
 	showPercentages: z.boolean().default(true),
 	showVoteCounts: z.boolean().default(true),
-	fontSize: z.enum(["small", "medium", "large", "extra-large"]).default("medium"),
+	fontSize: z
+		.enum(["small", "medium", "large", "extra-large"])
+		.default("medium"),
 	primaryColor: z.string().default("#9333ea"),
 	secondaryColor: z.string().default("#3b82f6"),
 	backgroundColor: z.string().default("#ffffff"),
@@ -213,7 +227,9 @@ export const pollSchema = z.object({
 export const sliderSchema = z.object({
 	slideDuration: z.number().min(1).max(60).default(5),
 	transitionDuration: z.number().min(100).max(3000).default(500),
-	transitionType: z.enum(["fade", "slide", "slide-up", "zoom", "flip"]).default("fade"),
+	transitionType: z
+		.enum(["fade", "slide", "slide-up", "zoom", "flip"])
+		.default("fade"),
 	fitMode: z.enum(["contain", "cover", "fill"]).default("contain"),
 	backgroundColor: z.string().default("transparent"),
 });
@@ -261,7 +277,10 @@ const followerCountMeta: FormMeta<typeof followerCountSchema.shape> = {
 	textColor: { label: "Text Color", inputType: "color" },
 	backgroundColor: { label: "Background Color", inputType: "color" },
 	showIcon: { label: "Show User Icon" },
-	animateOnChange: { label: "Animate on Change", description: "Animate the count when it changes" },
+	animateOnChange: {
+		label: "Animate on Change",
+		description: "Animate the count when it changes",
+	},
 };
 
 const placeholderMeta: FormMeta<typeof placeholderSchema.shape> = {
@@ -277,10 +296,19 @@ const placeholderMeta: FormMeta<typeof placeholderSchema.shape> = {
 
 const chatMeta: FormMeta<typeof chatSchema.shape> = {
 	fontSize: { label: "Font Size" },
-	maxMessages: { label: "Max Messages", description: "Maximum number of messages to display" },
+	maxMessages: {
+		label: "Max Messages",
+		description: "Maximum number of messages to display",
+	},
 	showTimestamps: { label: "Show Timestamps" },
-	showBadges: { label: "Show User Badges", description: "Display subscriber, moderator, and VIP badges" },
-	showPlatform: { label: "Show Platform Icons", description: "Display Twitch/YouTube icons next to messages" },
+	showBadges: {
+		label: "Show User Badges",
+		description: "Display subscriber, moderator, and VIP badges",
+	},
+	showPlatform: {
+		label: "Show Platform Icons",
+		description: "Display Twitch/YouTube icons next to messages",
+	},
 	showEmotes: { label: "Show Emotes", description: "Render emotes as images" },
 };
 
@@ -289,8 +317,14 @@ const alertboxMeta: FormMeta<typeof alertboxSchema.shape> = {
 	displayDuration: { label: "Display Duration", unit: "seconds" },
 	soundEnabled: { label: "Sound Enabled", description: "Play sound on alerts" },
 	soundVolume: { label: "Sound Volume", unit: "%" },
-	showMessage: { label: "Show Message", description: "Display message text on alerts" },
-	showAmount: { label: "Show Amount", description: "Show amount for donations/raids" },
+	showMessage: {
+		label: "Show Message",
+		description: "Display message text on alerts",
+	},
+	showAmount: {
+		label: "Show Amount",
+		description: "Show amount for donations/raids",
+	},
 	fontSize: { label: "Font Size" },
 	alertPosition: { label: "Alert Position" },
 };
@@ -309,12 +343,18 @@ const donationGoalMeta: FormMeta<typeof donationGoalSchema.shape> = {
 	barColor: { label: "Progress Bar Color", inputType: "color" },
 	backgroundColor: { label: "Background Color", inputType: "color" },
 	textColor: { label: "Text Color", inputType: "color" },
-	animationEnabled: { label: "Enable Animations", description: "Smooth progress bar animations" },
+	animationEnabled: {
+		label: "Enable Animations",
+		description: "Smooth progress bar animations",
+	},
 };
 
 const eventListMeta: FormMeta<typeof eventListSchema.shape> = {
 	animationType: { label: "Animation Type" },
-	maxEvents: { label: "Max Events", description: "Maximum number of events to display" },
+	maxEvents: {
+		label: "Max Events",
+		description: "Maximum number of events to display",
+	},
 	showTimestamps: { label: "Show Timestamps" },
 	showPlatform: { label: "Show Platform Icons" },
 	showAmounts: { label: "Show Donation Amounts" },
@@ -334,7 +374,10 @@ const giveawayMeta: FormMeta<typeof giveawaySchema.shape> = {
 	showEntryMethod: { label: "Show Entry Method" },
 	showProgressBar: { label: "Show Progress Bar" },
 	targetParticipants: { label: "Target Participants" },
-	patreonMultiplier: { label: "Patreon Multiplier", description: "Bonus entries for Patreon supporters" },
+	patreonMultiplier: {
+		label: "Patreon Multiplier",
+		description: "Bonus entries for Patreon supporters",
+	},
 	patreonBadgeText: { label: "Patreon Badge Text" },
 	winnerAnimation: { label: "Winner Animation" },
 	titleColor: { label: "Title Color", inputType: "color" },
@@ -362,22 +405,44 @@ const pollMeta: FormMeta<typeof pollSchema.shape> = {
 };
 
 const sliderMeta: FormMeta<typeof sliderSchema.shape> = {
-	slideDuration: { label: "Slide Duration", unit: "seconds", description: "How long each slide is displayed" },
-	transitionDuration: { label: "Transition Duration", unit: "ms", description: "Speed of the transition animation" },
+	slideDuration: {
+		label: "Slide Duration",
+		unit: "seconds",
+		description: "How long each slide is displayed",
+	},
+	transitionDuration: {
+		label: "Transition Duration",
+		unit: "ms",
+		description: "Speed of the transition animation",
+	},
 	transitionType: { label: "Transition Type" },
-	fitMode: { label: "Image Fit Mode", description: "How images are scaled to fit the container" },
-	backgroundColor: { label: "Background Color", inputType: "color", placeholder: "transparent or #000000" },
+	fitMode: {
+		label: "Image Fit Mode",
+		description: "How images are scaled to fit the container",
+	},
+	backgroundColor: {
+		label: "Background Color",
+		inputType: "color",
+		placeholder: "transparent or #000000",
+	},
 };
 
 const topDonorsMeta: FormMeta<typeof topDonorsSchema.shape> = {
 	title: { label: "Widget Title", placeholder: "Enter widget title" },
-	topCount: { label: "Top Count", description: "Number of top donors to display" },
+	topCount: {
+		label: "Top Count",
+		description: "Number of top donors to display",
+	},
 	fontSize: { label: "Font Size", unit: "px" },
 	showAmounts: { label: "Show Donation Amounts" },
 	showRanking: { label: "Show Ranking Numbers" },
 	backgroundColor: { label: "Background Color", inputType: "color" },
 	textColor: { label: "Text Color", inputType: "color" },
-	highlightColor: { label: "Highlight Color", inputType: "color", description: "Used for podium positions (top 3)" },
+	highlightColor: {
+		label: "Highlight Color",
+		inputType: "color",
+		description: "Used for podium positions (top 3)",
+	},
 };
 
 const viewerCountMeta: FormMeta<typeof viewerCountSchema.shape> = {
@@ -387,7 +452,11 @@ const viewerCountMeta: FormMeta<typeof viewerCountSchema.shape> = {
 	displayStyle: { label: "Display Style" },
 	animationEnabled: { label: "Enable Smooth Number Animations" },
 	iconColor: { label: "Icon Color", inputType: "color" },
-	viewerLabel: { label: "Viewer Label", placeholder: "viewers", description: "Text displayed next to the viewer count" },
+	viewerLabel: {
+		label: "Viewer Label",
+		placeholder: "viewers",
+		description: "Text displayed next to the viewer count",
+	},
 };
 
 // =============================================================================
@@ -442,11 +511,17 @@ function AlertboxPreviewWrapper(props: {
 
 	return (
 		<div>
-			<button type="button" class={`${button.secondary} mb-4`} onClick={cycleDemoEvent}>
+			<button
+				type="button"
+				class={`${button.secondary} mb-4`}
+				onClick={cycleDemoEvent}>
 				Show Next Alert Type
 			</button>
 			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "400px" }}>
-				<AlertboxWidget config={props.config} event={ALERTBOX_DEMO_EVENTS[demoIndex()]} />
+				<AlertboxWidget
+					config={props.config}
+					event={ALERTBOX_DEMO_EVENTS[demoIndex()]}
+				/>
 			</div>
 		</div>
 	);
@@ -499,26 +574,38 @@ function ChatPreviewWrapper(props: {
 	config: z.infer<typeof chatSchema>;
 	children: JSX.Element;
 }): JSX.Element {
-	const [messages, setMessages] = createSignal<ChatMessage[]>(CHAT_MOCK_MESSAGES);
+	const [messages, setMessages] =
+		createSignal<ChatMessage[]>(CHAT_MOCK_MESSAGES);
 
 	onMount(() => {
 		const interval = setInterval(() => {
 			const newMessage: ChatMessage = {
 				id: `msg_${Date.now()}`,
 				username:
-					["StreamFan", "GamerPro", "ChatUser", "NewViewer"][Math.floor(Math.random() * 4)] +
-					Math.floor(Math.random() * 100),
-				content: ["This is awesome!", "Love the stream!", "Amazing content!", "Keep it up!", "You're the best!"][
-					Math.floor(Math.random() * 5)
-				],
+					["StreamFan", "GamerPro", "ChatUser", "NewViewer"][
+						Math.floor(Math.random() * 4)
+					] + Math.floor(Math.random() * 100),
+				content: [
+					"This is awesome!",
+					"Love the stream!",
+					"Amazing content!",
+					"Keep it up!",
+					"You're the best!",
+				][Math.floor(Math.random() * 5)],
 				timestamp: new Date(),
 				platform: {
 					icon: ["twitch", "youtube"][Math.floor(Math.random() * 2)],
 					color: ["bg-purple-500", "bg-red-500"][Math.floor(Math.random() * 2)],
 				},
-				badge: Math.random() > 0.5 ? ["SUB", "MOD", "VIP"][Math.floor(Math.random() * 3)] : undefined,
-				badgeColor: Math.random() > 0.5 ? "bg-purple-500 text-white" : undefined,
-				usernameColor: ["#9333ea", "#10b981", "#3b82f6", "#ef4444"][Math.floor(Math.random() * 4)],
+				badge:
+					Math.random() > 0.5
+						? ["SUB", "MOD", "VIP"][Math.floor(Math.random() * 3)]
+						: undefined,
+				badgeColor:
+					Math.random() > 0.5 ? "bg-purple-500 text-white" : undefined,
+				usernameColor: ["#9333ea", "#10b981", "#3b82f6", "#ef4444"][
+					Math.floor(Math.random() * 4)
+				],
 			};
 			setMessages((prev) => [...prev, newMessage]);
 		}, 3000);
@@ -527,7 +614,9 @@ function ChatPreviewWrapper(props: {
 	});
 
 	return (
-		<div class="overflow-hidden rounded-lg bg-gray-900" style={{ height: "400px" }}>
+		<div
+			class="overflow-hidden rounded-lg bg-gray-900"
+			style={{ height: "400px" }}>
 			<ChatWidget config={props.config} messages={messages()} />
 		</div>
 	);
@@ -558,7 +647,10 @@ function DonationGoalPreviewWrapper(props: {
 				</label>
 			</div>
 			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "300px" }}>
-				<DonationGoalWidget config={props.config} currentAmount={demoAmount()} />
+				<DonationGoalWidget
+					config={props.config}
+					currentAmount={demoAmount()}
+				/>
 			</div>
 		</div>
 	);
@@ -611,7 +703,9 @@ function EventListPreviewWrapper(props: {
 	config: z.infer<typeof eventListSchema>;
 	children: JSX.Element;
 }): JSX.Element {
-	const [events, setEvents] = createSignal<StreamEvent[]>(EVENTLIST_MOCK_EVENTS);
+	const [events, setEvents] = createSignal<StreamEvent[]>(
+		EVENTLIST_MOCK_EVENTS,
+	);
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -624,11 +718,15 @@ function EventListPreviewWrapper(props: {
 			const newEvent: StreamEvent = {
 				id: `evt_${Date.now()}`,
 				type: eventTypes[Math.floor(Math.random() * eventTypes.length)],
-				username: [`User${Math.floor(Math.random() * 100)}`, `Viewer${Math.floor(Math.random() * 100)}`][
-					Math.floor(Math.random() * 2)
+				username: [
+					`User${Math.floor(Math.random() * 100)}`,
+					`Viewer${Math.floor(Math.random() * 100)}`,
+				][Math.floor(Math.random() * 2)],
+				message: ["Amazing stream!", "Love the content!", "Keep it up!"][
+					Math.floor(Math.random() * 3)
 				],
-				message: ["Amazing stream!", "Love the content!", "Keep it up!"][Math.floor(Math.random() * 3)],
-				amount: Math.random() > 0.7 ? Math.floor(Math.random() * 50) + 5 : undefined,
+				amount:
+					Math.random() > 0.7 ? Math.floor(Math.random() * 50) + 5 : undefined,
 				currency: "$",
 				timestamp: new Date(),
 				platform: {
@@ -648,7 +746,9 @@ function EventListPreviewWrapper(props: {
 	});
 
 	return (
-		<div class="overflow-hidden rounded-lg bg-gray-900" style={{ height: "500px" }}>
+		<div
+			class="overflow-hidden rounded-lg bg-gray-900"
+			style={{ height: "500px" }}>
 			<EventListWidget config={fullConfig()} events={events()} />
 		</div>
 	);
@@ -681,14 +781,20 @@ function GiveawayPreviewWrapper(props: {
 				<select
 					class={input.select}
 					value={demoMode()}
-					onChange={(e) => setDemoMode(e.target.value as "active" | "winner")}
-				>
+					onChange={(e) => setDemoMode(e.target.value as "active" | "winner")}>
 					<option value="active">Active Giveaway</option>
 					<option value="winner">Winner Announcement</option>
 				</select>
 			</div>
 			<div class="rounded-lg bg-gray-900 p-8">
-				<GiveawayWidget config={props.config} event={demoMode() === "active" ? GIVEAWAY_DEMO_ACTIVE : GIVEAWAY_DEMO_WINNER} />
+				<GiveawayWidget
+					config={props.config}
+					event={
+						demoMode() === "active"
+							? GIVEAWAY_DEMO_ACTIVE
+							: GIVEAWAY_DEMO_WINNER
+					}
+				/>
 			</div>
 		</div>
 	);
@@ -738,15 +844,19 @@ function PollPreviewWrapper(props: {
 					<select
 						class={`${input.select} mt-1`}
 						value={demoMode()}
-						onChange={(e) => setDemoMode(e.target.value as "active" | "ended")}
-					>
+						onChange={(e) => setDemoMode(e.target.value as "active" | "ended")}>
 						<option value="active">Active Poll</option>
 						<option value="ended">Ended Poll (Results)</option>
 					</select>
 				</label>
 			</div>
 			<div class="rounded-lg bg-gray-900 p-8">
-				<PollWidget config={props.config} pollStatus={demoMode() === "active" ? POLL_DEMO_ACTIVE : POLL_DEMO_ENDED} />
+				<PollWidget
+					config={props.config}
+					pollStatus={
+						demoMode() === "active" ? POLL_DEMO_ACTIVE : POLL_DEMO_ENDED
+					}
+				/>
 			</div>
 		</div>
 	);
@@ -757,7 +867,9 @@ function ViewerCountPreviewWrapper(props: {
 	config: z.infer<typeof viewerCountSchema>;
 	children: JSX.Element;
 }): JSX.Element {
-	const [currentData, setCurrentData] = createSignal<ViewerData>(generateViewerData());
+	const [currentData, setCurrentData] = createSignal<ViewerData>(
+		generateViewerData(),
+	);
 
 	let demoInterval: number | undefined;
 
@@ -787,7 +899,11 @@ function ViewerCountPreviewWrapper(props: {
 
 	return (
 		<div class="relative min-h-64 overflow-hidden rounded border border-gray-200 bg-gray-900 p-4">
-			<ViewerCountWidget config={snakeCaseConfig()} data={currentData()} id="preview-viewer-count-widget" />
+			<ViewerCountWidget
+				config={snakeCaseConfig()}
+				data={currentData()}
+				id="preview-viewer-count-widget"
+			/>
 		</div>
 	);
 }
@@ -797,9 +913,24 @@ function ViewerCountPreviewWrapper(props: {
 // =============================================================================
 
 const SLIDER_SAMPLE_IMAGES = [
-	{ id: "1", url: "https://picsum.photos/800/450?random=1", alt: "Sample 1", index: 0 },
-	{ id: "2", url: "https://picsum.photos/800/450?random=2", alt: "Sample 2", index: 1 },
-	{ id: "3", url: "https://picsum.photos/800/450?random=3", alt: "Sample 3", index: 2 },
+	{
+		id: "1",
+		url: "https://picsum.photos/800/450?random=1",
+		alt: "Sample 1",
+		index: 0,
+	},
+	{
+		id: "2",
+		url: "https://picsum.photos/800/450?random=2",
+		alt: "Sample 2",
+		index: 1,
+	},
+	{
+		id: "3",
+		url: "https://picsum.photos/800/450?random=3",
+		alt: "Sample 3",
+		index: 2,
+	},
 ];
 
 const TOPDONORS_MOCK_DONORS = [
@@ -822,7 +953,8 @@ const TOPDONORS_MOCK_DONORS = [
 export const widgetRegistry: Record<string, WidgetDefinition> = {
 	alertbox: {
 		title: "Alertbox Widget Settings",
-		description: "Configure alert notifications for donations, follows, subscriptions, and raids",
+		description:
+			"Configure alert notifications for donations, follows, subscriptions, and raids",
 		widgetType: "alertbox_widget",
 		schema: alertboxSchema,
 		meta: alertboxMeta,
@@ -831,7 +963,8 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		obsSettings: { width: 800, height: 600 },
 		catalog: {
 			name: "Alertbox",
-			shortDescription: "Display alerts for donations, follows, subscriptions, and more",
+			shortDescription:
+				"Display alerts for donations, follows, subscriptions, and more",
 			category: "Engagement",
 			icon: "🔔",
 			priority: "high",
@@ -858,7 +991,8 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 	},
 	"viewer-count": {
 		title: "Viewer Count Widget Settings",
-		description: "Configure your viewer count widget and OBS browser source URL generation",
+		description:
+			"Configure your viewer count widget and OBS browser source URL generation",
 		widgetType: "viewer_count_widget",
 		schema: viewerCountSchema,
 		meta: viewerCountMeta,
@@ -876,7 +1010,8 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 	},
 	"donation-goal": {
 		title: "Donation Goal Widget Settings",
-		description: "Track progress toward your donation goals with animated progress bars",
+		description:
+			"Track progress toward your donation goals with animated progress bars",
 		widgetType: "donation_goal_widget",
 		schema: donationGoalSchema,
 		meta: donationGoalMeta,
@@ -900,7 +1035,11 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		meta: eventListMeta,
 		component: EventListWidget,
 		previewWrapper: EventListPreviewWrapper,
-		obsSettings: { width: 400, height: 800, customTips: ['Enable "Shutdown source when not visible"'] },
+		obsSettings: {
+			width: 400,
+			height: 800,
+			customTips: ['Enable "Shutdown source when not visible"'],
+		},
 		catalog: {
 			name: "Event List",
 			shortDescription: "Show recent stream events (follows, subs, donations)",
@@ -935,7 +1074,11 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		meta: topDonorsMeta,
 		component: TopDonorsWidget,
 		previewProps: { donors: TOPDONORS_MOCK_DONORS },
-		obsSettings: { width: 400, height: 800, customTips: ['Enable "Shutdown source when not visible"'] },
+		obsSettings: {
+			width: 400,
+			height: 800,
+			customTips: ['Enable "Shutdown source when not visible"'],
+		},
 		catalog: {
 			name: "Top Donors",
 			shortDescription: "Leaderboard of your top donors",
@@ -947,7 +1090,8 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 	},
 	poll: {
 		title: "Poll Widget Settings",
-		description: "Configure your interactive poll widget for live voting on stream",
+		description:
+			"Configure your interactive poll widget for live voting on stream",
 		widgetType: "poll_widget",
 		schema: pollSchema,
 		meta: pollMeta,
@@ -1008,11 +1152,15 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		obsSettings: {
 			width: 1920,
 			height: 1080,
-			customTips: ['Enable "Shutdown source when not visible"', 'Enable "Refresh browser when scene becomes active"'],
+			customTips: [
+				'Enable "Shutdown source when not visible"',
+				'Enable "Refresh browser when scene becomes active"',
+			],
 		},
 		catalog: {
 			name: "Slider Widget",
-			shortDescription: "Rotating carousel for sponsors, announcements, and more",
+			shortDescription:
+				"Rotating carousel for sponsors, announcements, and more",
 			category: "Display",
 			icon: "🎠",
 			priority: "low",
@@ -1040,7 +1188,9 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 /**
  * Get a widget definition by slug.
  */
-export function getWidgetDefinition(slug: string): WidgetDefinition | undefined {
+export function getWidgetDefinition(
+	slug: string,
+): WidgetDefinition | undefined {
 	return widgetRegistry[slug];
 }
 
@@ -1089,7 +1239,8 @@ export function getWidgetCatalog(): WidgetCatalogEntry[] {
 			status: def.catalog.status,
 		}))
 		.sort((a, b) => {
-			const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+			const priorityDiff =
+				priorityOrder[a.priority] - priorityOrder[b.priority];
 			if (priorityDiff !== 0) return priorityDiff;
 			return a.name.localeCompare(b.name);
 		});

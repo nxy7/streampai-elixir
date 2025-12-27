@@ -88,7 +88,9 @@ export const Basic: Story = {
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-					<h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3>
+					<h3 class="mb-2 font-medium text-gray-700 text-sm">
+						Current Values:
+					</h3>
 					<pre class="text-gray-600 text-xs">
 						{JSON.stringify(values(), null, 2)}
 					</pre>
@@ -294,7 +296,9 @@ export const AllFieldTypes: Story = {
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-					<h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3>
+					<h3 class="mb-2 font-medium text-gray-700 text-sm">
+						Current Values:
+					</h3>
 					<pre class="text-gray-600 text-xs">
 						{JSON.stringify(values(), null, 2)}
 					</pre>
@@ -336,7 +340,8 @@ export const NoMetadata: Story = {
 						No Metadata (Auto-Inference)
 					</h2>
 					<p class="mb-4 text-gray-500 text-sm">
-						Labels and input types are auto-inferred from field names and Zod types
+						Labels and input types are auto-inferred from field names and Zod
+						types
 					</p>
 					<SchemaForm
 						schema={autoSchema}
@@ -347,7 +352,9 @@ export const NoMetadata: Story = {
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-					<h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3>
+					<h3 class="mb-2 font-medium text-gray-700 text-sm">
+						Current Values:
+					</h3>
 					<pre class="text-gray-600 text-xs">
 						{JSON.stringify(values(), null, 2)}
 					</pre>

@@ -181,11 +181,11 @@ export const dict: Dictionary = {
 		section1Item2: "Profildaten von verbundenen Streaming-Plattformen",
 		section1Item3: "Stream-Metadaten und Analysedaten",
 		section1Item4: "Chat-Nachrichten und Moderationsaktionen",
-		section1Item5:
-			"Zahlungsdaten (sicher verarbeitet durch Drittanbieter)",
+		section1Item5: "Zahlungsdaten (sicher verarbeitet durch Drittanbieter)",
 		section2Title: "2. Wie wir deine Daten nutzen",
 		section2Intro: "Wir nutzen die erhobenen Daten, um:",
-		section2Item1: "Unsere Dienste bereitzustellen, zu warten und zu verbessern",
+		section2Item1:
+			"Unsere Dienste bereitzustellen, zu warten und zu verbessern",
 		section2Item2:
 			"Deinen Content über mehrere Streaming-Plattformen zu verbinden und zu synchronisieren",
 		section2Item3:
@@ -199,7 +199,8 @@ export const dict: Dictionary = {
 			"An Streaming-Plattformen, die du verbindest (für Multi-Plattform-Streaming)",
 		section3Item2:
 			"An Dienstleister, die uns beim Betrieb der Plattform unterstützen",
-		section3Item3: "Wenn gesetzlich vorgeschrieben oder zum Schutz unserer Rechte",
+		section3Item3:
+			"Wenn gesetzlich vorgeschrieben oder zum Schutz unserer Rechte",
 		section3Item4: "Mit deiner Zustimmung oder auf deine Anweisung",
 		section4Title: "4. Datensicherheit",
 		section4Text:
@@ -227,8 +228,7 @@ export const dict: Dictionary = {
 		section10Text:
 			"Wir können diese Datenschutzerklärung gelegentlich aktualisieren. Über Änderungen informieren wir, indem wir die neue Version hier veröffentlichen und das Datum aktualisieren.",
 		section11Title: "11. Kontakt",
-		section11Text:
-			"Bei Fragen zu dieser Datenschutzerklärung kannst du uns",
+		section11Text: "Bei Fragen zu dieser Datenschutzerklärung kannst du uns",
 		contactUs: "kontaktieren",
 	},
 
@@ -247,7 +247,8 @@ export const dict: Dictionary = {
 			"Du bist für die Geheimhaltung deiner Zugangsdaten und alle Aktivitäten unter deinem Konto verantwortlich. Bei unbefugter Nutzung informiere uns bitte sofort.",
 		section4Title: "4. Akzeptable Nutzung",
 		section4Intro: "Du verpflichtest dich, Folgendes zu unterlassen:",
-		section4Item1: "Den Dienst für illegale oder nicht autorisierte Zwecke nutzen",
+		section4Item1:
+			"Den Dienst für illegale oder nicht autorisierte Zwecke nutzen",
 		section4Item2: "Gesetze zu verletzen, einschließlich Urheberrechte",
 		section4Item3: "Schädliche Inhalte oder Malware zu übertragen",
 		section4Item4:
@@ -298,7 +299,7 @@ export const dict: Dictionary = {
 			"Streampai unterstützt Multi-Plattform-Streaming zu Twitch, YouTube, Kick, Facebook und mehr. Wir fügen ständig neue Integrationen hinzu.",
 		faqQ2: "Wie verbinde ich meine Streaming-Konten?",
 		faqA2:
-			"Nach der Registrierung gehst du zu den Dashboard-Einstellungen und klickst auf \"Konten verbinden\". Folge den OAuth-Anweisungen, um deine Konten sicher zu verknüpfen.",
+			'Nach der Registrierung gehst du zu den Dashboard-Einstellungen und klickst auf "Konten verbinden". Folge den OAuth-Anweisungen, um deine Konten sicher zu verknüpfen.',
 		faqQ3: "Sind meine Daten sicher?",
 		faqA3:
 			"Ja, Sicherheit ist uns wichtig. Alle Daten werden bei Übertragung und Speicherung verschlüsselt. Wir speichern nie deine Plattform-Passwörter – wir nutzen sichere OAuth-Tokens. Lies unsere",
@@ -341,7 +342,6 @@ export const dict: Dictionary = {
 		messagePlaceholder: "Wie können wir dir helfen?",
 		sending: "Wird gesendet...",
 		sendButton: "Nachricht senden",
-		successMessage:
-			"Danke für deine Nachricht! Wir melden uns bald bei dir.",
+		successMessage: "Danke für deine Nachricht! Wir melden uns bald bei dir.",
 	},
 };

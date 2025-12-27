@@ -31,8 +31,7 @@ export const SelectField: Component<SelectFieldProps> = (props) => {
 					class={`mt-1 ${input.select}`}
 					value={props.value ?? ""}
 					onChange={(e) => props.onChange(e.currentTarget.value)}
-					disabled={props.disabled}
-				>
+					disabled={props.disabled}>
 					<For each={props.field.enumValues ?? []}>
 						{(option) => (
 							<option value={option}>{enumValueToLabel(option)}</option>

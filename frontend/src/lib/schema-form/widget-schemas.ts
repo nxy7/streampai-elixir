@@ -118,7 +118,11 @@ export const alertboxConfigMeta: FormMeta<typeof alertboxConfigSchema.shape> = {
 	// Animation group
 	animationType: { label: "Animation Type", group: "Animation" },
 	alertPosition: { label: "Alert Position", group: "Animation" },
-	displayDuration: { label: "Display Duration", unit: "seconds", group: "Animation" },
+	displayDuration: {
+		label: "Display Duration",
+		unit: "seconds",
+		group: "Animation",
+	},
 	// Appearance group
 	fontSize: { label: "Font Size", group: "Appearance" },
 	// Content group
@@ -161,7 +165,9 @@ export type DonationGoalConfig = z.infer<typeof donationGoalConfigSchema>;
 /**
  * Donation goal widget metadata
  */
-export const donationGoalConfigMeta: FormMeta<typeof donationGoalConfigSchema.shape> = {
+export const donationGoalConfigMeta: FormMeta<
+	typeof donationGoalConfigSchema.shape
+> = {
 	title: { label: "Goal Title", placeholder: "Enter goal title" },
 	targetAmount: { label: "Target Amount", unit: "$", inputType: "number" },
 	currentAmount: {
@@ -170,11 +176,22 @@ export const donationGoalConfigMeta: FormMeta<typeof donationGoalConfigSchema.sh
 		inputType: "number",
 		description: "Initial amount (updates automatically with donations)",
 	},
-	barColor: { label: "Progress Bar Color", inputType: "color", group: "Appearance" },
-	backgroundColor: { label: "Background Color", inputType: "color", group: "Appearance" },
+	barColor: {
+		label: "Progress Bar Color",
+		inputType: "color",
+		group: "Appearance",
+	},
+	backgroundColor: {
+		label: "Background Color",
+		inputType: "color",
+		group: "Appearance",
+	},
 	textColor: { label: "Text Color", inputType: "color", group: "Appearance" },
 	showPercentage: { label: "Show Percentage" },
-	showAmount: { label: "Show Amount", description: "Display current/target amounts" },
+	showAmount: {
+		label: "Show Amount",
+		description: "Display current/target amounts",
+	},
 };
 
 // =============================================================================
@@ -198,7 +215,9 @@ export type FollowerCountConfig = z.infer<typeof followerCountConfigSchema>;
 /**
  * Follower count widget metadata
  */
-export const followerCountConfigMeta: FormMeta<typeof followerCountConfigSchema.shape> = {
+export const followerCountConfigMeta: FormMeta<
+	typeof followerCountConfigSchema.shape
+> = {
 	label: { label: "Label Text", placeholder: "Enter label" },
 	fontSize: { label: "Font Size", unit: "px" },
 	textColor: { label: "Text Color", inputType: "color" },
@@ -236,7 +255,11 @@ export type PollConfig = z.infer<typeof pollConfigSchema>;
 export const pollConfigMeta: FormMeta<typeof pollConfigSchema.shape> = {
 	title: { label: "Poll Title", placeholder: "Enter poll question" },
 	barColor: { label: "Bar Color", inputType: "color", group: "Appearance" },
-	backgroundColor: { label: "Background Color", inputType: "color", group: "Appearance" },
+	backgroundColor: {
+		label: "Background Color",
+		inputType: "color",
+		group: "Appearance",
+	},
 	textColor: { label: "Text Color", inputType: "color", group: "Appearance" },
 	showPercentages: { label: "Show Percentages" },
 	showVoteCount: { label: "Show Vote Count" },
@@ -277,7 +300,11 @@ export type AllFieldTypesConfig = z.infer<typeof allFieldTypesSchema>;
  */
 export const allFieldTypesMeta: FormMeta<typeof allFieldTypesSchema.shape> = {
 	name: { label: "Name", placeholder: "Enter your name" },
-	description: { label: "Description", inputType: "textarea", placeholder: "Enter description..." },
+	description: {
+		label: "Description",
+		inputType: "textarea",
+		placeholder: "Enter description...",
+	},
 	count: { label: "Count", unit: "items" },
 	opacity: { label: "Opacity", unit: "%" },
 	color: { label: "Favorite Color", inputType: "color" },

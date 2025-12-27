@@ -29,19 +29,15 @@ export default function WidgetSettingsRoute() {
 			fallback={
 				<div class="space-y-4 text-center">
 					<h1 class={text.h1}>Widget Not Found</h1>
-					<p class={text.muted}>
-						The widget "{params.slug}" does not exist.
-					</p>
+					<p class={text.muted}>The widget "{params.slug}" does not exist.</p>
 					<button
 						type="button"
 						class={button.primary}
-						onClick={() => navigate("/dashboard/widgets")}
-					>
+						onClick={() => navigate("/dashboard/widgets")}>
 						Back to Widgets
 					</button>
 				</div>
-			}
-		>
+			}>
 			{(def) => (
 				<WidgetSettingsPage
 					title={def().title}

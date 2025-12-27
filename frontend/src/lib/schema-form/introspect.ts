@@ -56,7 +56,8 @@ function unwrapSchema(schema: z.ZodTypeAny): {
 		if (typeName === "default") {
 			// biome-ignore lint/suspicious/noExplicitAny: Zod internal
 			const defaultDef = def.defaultValue as any;
-			defaultValue = typeof defaultDef === "function" ? defaultDef() : defaultDef;
+			defaultValue =
+				typeof defaultDef === "function" ? defaultDef() : defaultDef;
 			current = def.innerType as z.ZodTypeAny;
 			if (!current) break;
 			continue;
@@ -112,7 +113,10 @@ function getTypeInfo(schema: z.ZodTypeAny): {
 					// Zod v4 uses "greater_than" for min and "less_than" for max
 					if (checkDef.check === "greater_than" || checkDef.check === "min") {
 						min = checkDef.value as number;
-					} else if (checkDef.check === "less_than" || checkDef.check === "max") {
+					} else if (
+						checkDef.check === "less_than" ||
+						checkDef.check === "max"
+					) {
 						max = checkDef.value as number;
 					}
 				} else {
@@ -121,7 +125,10 @@ function getTypeInfo(schema: z.ZodTypeAny): {
 					const legacyCheck = check as any;
 					if (legacyCheck.kind === "min" || legacyCheck.kind === "minimum") {
 						min = legacyCheck.value;
-					} else if (legacyCheck.kind === "max" || legacyCheck.kind === "maximum") {
+					} else if (
+						legacyCheck.kind === "max" ||
+						legacyCheck.kind === "maximum"
+					) {
 						max = legacyCheck.value;
 					}
 				}

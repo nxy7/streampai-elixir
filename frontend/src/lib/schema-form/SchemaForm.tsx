@@ -158,7 +158,9 @@ export function SchemaForm<T extends z.ZodRawShape>(
 								{(field) => (
 									<SchemaField
 										field={field}
-										value={props.values[field.name as keyof typeof props.values]}
+										value={
+											props.values[field.name as keyof typeof props.values]
+										}
 										onChange={(value) =>
 											props.onChange(
 												field.name as keyof z.infer<z.ZodObject<T>>,

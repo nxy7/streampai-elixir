@@ -637,7 +637,9 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 											<p class="font-medium text-gray-900 text-sm">
 												{prefs.data()?.name || user()?.email || ""}
 											</p>
-											<p class="text-gray-500 text-xs">{t("dashboard.freePlan")}</p>
+											<p class="text-gray-500 text-xs">
+												{t("dashboard.freePlan")}
+											</p>
 										</div>
 									</div>
 								</Show>

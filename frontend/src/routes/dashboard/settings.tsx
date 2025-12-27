@@ -877,7 +877,9 @@ export default function Settings() {
 															</div>
 															<Button
 																as="a"
-																href={apiRoutes.streaming.connect(platform.platform)}
+																href={apiRoutes.streaming.connect(
+																	platform.platform,
+																)}
 																size="sm">
 																Connect
 															</Button>
