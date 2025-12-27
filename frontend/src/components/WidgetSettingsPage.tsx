@@ -165,7 +165,9 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 		} as Config;
 	});
 
-	const loading = createMemo(() => isLoading());
+	// Ready when user is loaded and widget config sync is ready (not just loading finished)
+	// Using isReady() ensures we wait for the initial Electric sync to complete
+	const ready = createMemo(() => !isLoading() && widgetConfigQuery.isReady());
 
 	// Handle field changes
 	function handleChange<K extends keyof Config>(field: K, value: Config[K]) {
@@ -217,7 +219,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 				<p class={text.muted}>{props.description}</p>
 			</div>
 
-			<Show when={!loading()} fallback={<div>Loading...</div>}>
+			<Show when={ready()} fallback={<div>Loading...</div>}>
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{/* Configuration Form */}
 					<div class={card.default}>
