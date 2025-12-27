@@ -1,4 +1,15 @@
 import { createMemo, Show } from "solid-js";
+import {
+	getEventColor,
+	getEventGradient,
+	getEventLabel,
+	getPlatformName,
+} from "~/lib/eventMetadata";
+import {
+	formatAmount,
+	getFontClass,
+	getPositionClass,
+} from "~/lib/widgetHelpers";
 
 interface AlertEvent {
 	id: string;
@@ -33,71 +44,23 @@ interface AlertboxWidgetProps {
 }
 
 export default function AlertboxWidget(props: AlertboxWidgetProps) {
-	const fontClass = createMemo(() => {
-		switch (props.config.fontSize) {
-			case "small":
-				return "text-lg";
-			case "large":
-				return "text-4xl";
-			default:
-				return "text-2xl";
-		}
-	});
+	const fontClass = createMemo(() =>
+		getFontClass(props.config.fontSize, "alertbox"),
+	);
 
-	const positionClass = createMemo(() => {
-		switch (props.config.alertPosition) {
-			case "top":
-				return "items-start pt-8";
-			case "bottom":
-				return "items-end pb-8";
-			default:
-				return "items-center";
-		}
-	});
+	const positionClass = createMemo(() =>
+		getPositionClass(props.config.alertPosition),
+	);
 
-	const getAlertColor = (type: string) => {
-		const colors = {
-			donation: "text-green-400",
-			follow: "text-blue-400",
-			subscription: "text-purple-400",
-			raid: "text-yellow-400",
-		};
-		return colors[type as keyof typeof colors] || colors.donation;
-	};
-
-	const getGradientColor = (type: string) => {
-		const gradients = {
-			donation: "from-green-500 to-emerald-600",
-			follow: "from-blue-500 to-cyan-600",
-			subscription: "from-purple-500 to-violet-600",
-			raid: "from-yellow-500 to-orange-600",
-		};
-		return gradients[type as keyof typeof gradients] || gradients.donation;
-	};
-
+	// Custom label mapping for alertbox (slightly different from generic labels)
 	const getAlertTypeLabel = (type: string) => {
-		const labels = {
+		const labels: Record<string, string> = {
 			donation: "Donation",
 			follow: "New Follower",
 			subscription: "New Subscriber",
 			raid: "Raid",
 		};
-		return labels[type as keyof typeof labels] || "Alert";
-	};
-
-	const getPlatformName = (icon: string) => {
-		const platformNames = {
-			twitch: "Twitch",
-			youtube: "YouTube",
-			facebook: "Facebook",
-			kick: "Kick",
-		};
-		return platformNames[icon as keyof typeof platformNames] || icon;
-	};
-
-	const formatAmount = (amount?: number, currency?: string) => {
-		if (!amount) return "";
-		return `${currency || "$"}${amount.toFixed(2)}`;
+		return labels[type] || getEventLabel(type);
 	};
 
 	return (
@@ -145,13 +108,13 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 						class={`alert-card relative mx-4 w-96 rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-8 shadow-2xl backdrop-blur-lg ${fontClass()} animate-${props.config.animationType}-in`}>
 						<div class="absolute inset-0 rounded-lg bg-linear-to-r from-purple-500/50 to-pink-500/50 opacity-20 blur-sm"></div>
 						<div
-							class={`absolute inset-0 rounded-lg bg-linear-to-r ${getGradientColor(props.event?.type)} animate-pulse opacity-10`}></div>
+							class={`absolute inset-0 rounded-lg bg-linear-to-r ${getEventGradient(props.event?.type || "donation")} animate-pulse opacity-10`}></div>
 
 						<div class="relative z-10">
 							<div class="mb-6 text-center">
 								<div
-									class={`font-extrabold text-sm uppercase tracking-wider ${getAlertColor(props.event?.type)} mb-2 drop-shadow-sm`}>
-									{getAlertTypeLabel(props.event?.type)}
+									class={`font-extrabold text-sm uppercase tracking-wider ${getEventColor(props.event?.type || "donation")} mb-2 drop-shadow-sm`}>
+									{getAlertTypeLabel(props.event?.type || "donation")}
 								</div>
 								<div class="font-bold text-2xl text-white drop-shadow-sm">
 									{props.event?.username}
@@ -160,7 +123,7 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 									<div class="rounded-full border border-white/20 bg-white/10 px-3 py-1 font-semibold text-white text-xs backdrop-blur-sm">
 										<span class="opacity-70">via</span>{" "}
 										<span class="font-bold">
-											{getPlatformName(props.event?.platform.icon)}
+											{getPlatformName(props.event?.platform.icon || "")}
 										</span>
 									</div>
 								</div>

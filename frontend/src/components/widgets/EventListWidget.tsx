@@ -6,6 +6,7 @@ import {
 	getPlatformName,
 } from "~/lib/eventMetadata";
 import { formatAmount, formatTimestamp } from "~/lib/formatters";
+import { getAnimationClass, getFontClass } from "~/lib/widgetHelpers";
 
 interface StreamEvent {
 	id: string;
@@ -38,16 +39,7 @@ interface EventListWidgetProps {
 }
 
 export default function EventListWidget(props: EventListWidgetProps) {
-	const fontClass = () => {
-		switch (props.config.fontSize) {
-			case "small":
-				return "text-sm";
-			case "large":
-				return "text-lg";
-			default:
-				return "text-base";
-		}
-	};
+	const fontClass = () => getFontClass(props.config.fontSize, "content");
 
 	const displayedEvents = () => {
 		return (props.events || [])
@@ -55,16 +47,8 @@ export default function EventListWidget(props: EventListWidgetProps) {
 			.slice(0, props.config.maxEvents);
 	};
 
-	const getAnimationClass = () => {
-		switch (props.config.animationType) {
-			case "slide":
-				return "animate-slide-in";
-			case "bounce":
-				return "animate-bounce-in";
-			default:
-				return "animate-fade-in";
-		}
-	};
+	const animationClass = () =>
+		getAnimationClass(props.config.animationType, "in");
 
 	return (
 		<div
@@ -92,7 +76,7 @@ export default function EventListWidget(props: EventListWidgetProps) {
 						<For each={displayedEvents()}>
 							{(event, index) => (
 								<div
-									class={`relative transition-all duration-300 ${getAnimationClass()} ${
+									class={`relative transition-all duration-300 ${animationClass()} ${
 										props.config.compactMode
 											? "rounded border border-white/10 bg-gray-900/80 p-2"
 											: "rounded-lg border border-white/20 bg-linear-to-br from-gray-900/95 to-gray-800/95 p-4 shadow-lg backdrop-blur-lg"
