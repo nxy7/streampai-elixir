@@ -4,18 +4,22 @@ defmodule Streampai.Integrations do
   """
   use Ash.Domain, extensions: [AshTypescript.Rpc]
 
+  alias Streampai.Integrations.DiscordActor
+  alias Streampai.Integrations.DiscordWebhook
+  alias Streampai.Integrations.IFTTTWebhook
+
+  typescript_rpc do
+    resource DiscordWebhook
+    resource DiscordActor
+    resource IFTTTWebhook
+  end
+
   resources do
     resource Streampai.Integrations.PayPalConnection
     resource Streampai.Integrations.Donation
-    resource Streampai.Integrations.DiscordWebhook
-    resource Streampai.Integrations.DiscordActor
-    resource Streampai.Integrations.IFTTTWebhook
-  end
-
-  typescript_rpc do
-    resource Streampai.Integrations.DiscordWebhook
-    resource Streampai.Integrations.DiscordActor
-    resource Streampai.Integrations.IFTTTWebhook
+    resource DiscordWebhook
+    resource DiscordActor
+    resource IFTTTWebhook
   end
 end
 
