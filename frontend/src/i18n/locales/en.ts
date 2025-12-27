@@ -74,7 +74,7 @@ export const dict = {
 		en: "English",
 		de: "Deutsch",
 		pl: "Polski",
-		es: "Espanol",
+		es: "Español",
 	},
 
 	// Auth
