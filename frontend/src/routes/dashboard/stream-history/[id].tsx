@@ -9,7 +9,12 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
-import { Card, Skeleton, SkeletonListItem, SkeletonText } from "~/components/ui";
+import {
+	Card,
+	Skeleton,
+	SkeletonListItem,
+	SkeletonText,
+} from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import {
 	getLivestream,
@@ -265,7 +270,9 @@ function StreamDetailSkeleton() {
 						<div class="h-96 overflow-y-auto p-3">
 							<div class="space-y-3">
 								<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-									{() => <SkeletonListItem showAvatar avatarSize="sm" lines={2} />}
+									{() => (
+										<SkeletonListItem showAvatar avatarSize="sm" lines={2} />
+									)}
 								</For>
 							</div>
 						</div>

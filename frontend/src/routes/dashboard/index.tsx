@@ -252,9 +252,7 @@ function RecentStreamsSkeleton() {
 				<Skeleton class="h-4 w-16" />
 			</div>
 			<div class="divide-y divide-gray-100">
-				<For each={[1, 2, 3]}>
-					{() => <SkeletonStreamCard />}
-				</For>
+				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
 			</div>
 		</div>
 	);

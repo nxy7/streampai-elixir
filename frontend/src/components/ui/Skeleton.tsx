@@ -32,11 +32,7 @@ export default function Skeleton(props: SkeletonProps) {
 
 	return (
 		<div
-			class={cn(
-				"animate-pulse bg-gray-200",
-				roundedClass,
-				local.class,
-			)}
+			class={cn("animate-pulse bg-gray-200", roundedClass, local.class)}
 			style={{
 				width: local.width,
 				height: local.height,
@@ -293,10 +289,7 @@ export function SkeletonChart(props: SkeletonChartProps) {
 				<div class="absolute inset-0 flex items-end justify-between gap-2 px-12 pb-6">
 					<For each={Array(12).fill(0)}>
 						{() => (
-							<Skeleton
-								class="flex-1"
-								height={`${Math.random() * 60 + 20}%`}
-							/>
+							<Skeleton class="flex-1" height={`${Math.random() * 60 + 20}%`} />
 						)}
 					</For>
 				</div>
