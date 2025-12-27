@@ -8,8 +8,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   use GenServer
 
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamStateServer
+  alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Twitch.ApiClient
   alias Streampai.Twitch.EventsubClient
 
@@ -185,6 +187,13 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
       # Update stream state
       update_platform_status(state, %{viewer_count: stream_info.viewer_count})
+
+      # Update StreamActor with viewer count
+      UserStreamManager.update_stream_actor_viewers(
+        state.user_id,
+        :twitch,
+        stream_info.viewer_count
+      )
     end
 
     schedule_viewer_count_check()
@@ -615,19 +624,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   defp via_tuple(user_id) do
-    registry_name = get_registry_name()
-    {:via, Registry, {registry_name, {:platform_manager, user_id, :twitch}}}
-  end
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
+    RegistryHelpers.via_tuple(:platform_manager, user_id, :twitch)
   end
 
   defp create_cloudflare_output(%{stream_key: nil}) do
@@ -635,7 +632,6 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   defp create_cloudflare_output(state) do
-    registry_name = get_registry_name()
     # Twitch's primary RTMP ingest server
     rtmp_url = "rtmp://live.twitch.tv/app"
 
@@ -644,7 +640,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     )
 
     CloudflareManager.create_platform_output(
-      {:via, Registry, {registry_name, {:cloudflare_manager, state.user_id}}},
+      RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
       :twitch,
       rtmp_url,
       state.stream_key
@@ -655,10 +651,9 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   defp cleanup_cloudflare_output(state) do
     Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-    registry_name = get_registry_name()
 
     case CloudflareManager.delete_platform_output(
-           {:via, Registry, {registry_name, {:cloudflare_manager, state.user_id}}},
+           RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
            :twitch
          ) do
       :ok ->

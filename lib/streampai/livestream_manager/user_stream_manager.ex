@@ -15,8 +15,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.LivestreamManager.Platforms.TwitchManager
   alias Streampai.LivestreamManager.Platforms.YouTubeManager
   alias Streampai.LivestreamManager.PlatformSupervisor
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamStateServer
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamActor
 
   require Logger
 
@@ -43,7 +45,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   # Public API
 
   def get_state(user_id) when is_binary(user_id) do
-    StreamStateServer.get_state({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
+    StreamStateServer.get_state(RegistryHelpers.via_tuple(:stream_state, user_id))
   end
 
   def send_chat_message(user_id, message, platforms) when is_binary(user_id) do
@@ -56,7 +58,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
   def configure_stream_outputs(user_id, platform_configs) when is_binary(user_id) do
     CloudflareManager.configure_outputs(
-      {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}},
+      RegistryHelpers.via_tuple(:cloudflare_manager, user_id),
       platform_configs
     )
   end
@@ -70,30 +72,27 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   def enqueue_alert(user_id, event) when is_binary(user_id) do
-    AlertQueue.enqueue_event(
-      {:via, Registry, {get_registry_name(), {:alert_queue, user_id}}},
-      event
-    )
+    AlertQueue.enqueue_event(RegistryHelpers.via_tuple(:alert_queue, user_id), event)
   end
 
   def pause_alerts(user_id) when is_binary(user_id) do
-    AlertQueue.pause_queue({:via, Registry, {get_registry_name(), {:alert_queue, user_id}}})
+    AlertQueue.pause_queue(RegistryHelpers.via_tuple(:alert_queue, user_id))
   end
 
   def resume_alerts(user_id) when is_binary(user_id) do
-    AlertQueue.resume_queue({:via, Registry, {get_registry_name(), {:alert_queue, user_id}}})
+    AlertQueue.resume_queue(RegistryHelpers.via_tuple(:alert_queue, user_id))
   end
 
   def skip_alert(user_id) when is_binary(user_id) do
-    AlertQueue.skip_event({:via, Registry, {get_registry_name(), {:alert_queue, user_id}}})
+    AlertQueue.skip_event(RegistryHelpers.via_tuple(:alert_queue, user_id))
   end
 
   def clear_alert_queue(user_id) when is_binary(user_id) do
-    AlertQueue.clear_queue({:via, Registry, {get_registry_name(), {:alert_queue, user_id}}})
+    AlertQueue.clear_queue(RegistryHelpers.via_tuple(:alert_queue, user_id))
   end
 
   def get_alert_queue_status(user_id) when is_binary(user_id) do
-    AlertQueue.get_queue_status({:via, Registry, {get_registry_name(), {:alert_queue, user_id}}})
+    AlertQueue.get_queue_status(RegistryHelpers.via_tuple(:alert_queue, user_id))
   end
 
   @doc """
@@ -121,13 +120,16 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     livestream_id = livestream.id
 
+    # Update StreamActor state to streaming
+    update_stream_actor_state(user_id, :streaming, livestream_id, "Starting stream...")
+
     StreamStateServer.start_stream(
-      {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
+      RegistryHelpers.via_tuple(:stream_state, user_id),
       livestream_id
     )
 
     # Clean up any leftover outputs from previous streams before starting
-    cloudflare_server = {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}}
+    cloudflare_server = RegistryHelpers.via_tuple(:cloudflare_manager, user_id)
     CloudflareManager.cleanup_all_outputs(cloudflare_server)
 
     CloudflareManager.start_streaming(cloudflare_server)
@@ -135,6 +137,18 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     start_metrics_collector(user_id, livestream_id)
 
     start_platform_streaming(user_id, livestream_id, metadata)
+
+    # Update StreamActor with platforms info
+    active_platforms = get_active_platforms(user_id)
+
+    platforms_status =
+      Map.new(active_platforms, fn platform -> {to_string(platform), "connecting"} end)
+
+    update_stream_actor_platforms(
+      user_id,
+      platforms_status,
+      "Streaming to #{length(active_platforms)} platform(s)"
+    )
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
@@ -152,6 +166,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   """
   def stop_stream(user_id) when is_binary(user_id) do
     Logger.info("stop_stream called for user #{user_id}")
+
+    # Update StreamActor state to stopping
+    update_stream_actor_status(user_id, :stopping, "Stopping stream...")
 
     # Get current livestream ID before stopping
     stream_state = get_state(user_id)
@@ -175,7 +192,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     safe_cleanup(fn -> stop_metrics_collector(user_id) end, "stop metrics collector")
 
     # Stop CloudflareManager streaming (disables live outputs and sets status to :inactive)
-    cloudflare_server = {:via, Registry, {get_registry_name(), {:cloudflare_manager, user_id}}}
+    cloudflare_server = RegistryHelpers.via_tuple(:cloudflare_manager, user_id)
 
     safe_cleanup(
       fn -> CloudflareManager.stop_streaming(cloudflare_server) end,
@@ -191,10 +208,13 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     # Update stream state
     safe_cleanup(
       fn ->
-        StreamStateServer.stop_stream({:via, Registry, {get_registry_name(), {:stream_state, user_id}}})
+        StreamStateServer.stop_stream(RegistryHelpers.via_tuple(:stream_state, user_id))
       end,
       "update stream state"
     )
+
+    # Update StreamActor state to idle
+    update_stream_actor_stopped(user_id, "Stream ended")
 
     # Broadcast stream status change
     Phoenix.PubSub.broadcast(
@@ -404,11 +424,10 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp get_active_platforms(user_id) do
-    with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
-         {:ok, user_with_accounts} <-
-           Ash.get(User, user_id, actor: user, load: [:streaming_accounts]) do
-      Enum.map(user_with_accounts.streaming_accounts, & &1.platform)
-    else
+    case load_user_with_streaming_accounts(user_id) do
+      {:ok, user} ->
+        Enum.map(user.streaming_accounts, & &1.platform)
+
       {:error, reason} ->
         Logger.warning("Could not load user or streaming accounts: #{inspect(reason)}")
         []
@@ -420,11 +439,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp ensure_platform_manager_started(user_id, platform) do
-    case Registry.lookup(get_registry_name(), {:platform_manager, user_id, platform}) do
-      [{_pid, _}] ->
+    case RegistryHelpers.lookup(:platform_manager, user_id, platform) do
+      {:ok, _pid} ->
         :ok
 
-      [] ->
+      :error ->
         start_new_platform_manager(user_id, platform)
     end
   end
@@ -441,11 +460,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp get_platform_config(user_id, platform) do
-    with {:ok, user} <- Ash.get(User, user_id, authorize?: false),
-         {:ok, user_with_accounts} <-
-           Ash.get(User, user_id, actor: user, load: [:streaming_accounts]),
+    with {:ok, user} <- load_user_with_streaming_accounts(user_id),
          %{} = account <-
-           Enum.find(user_with_accounts.streaming_accounts, &(&1.platform == platform)) do
+           Enum.find(user.streaming_accounts, &(&1.platform == platform)) do
       format_platform_config(account)
     else
       nil -> {:error, :platform_not_found}
@@ -455,6 +472,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     e ->
       Logger.error("Exception getting platform config: #{inspect(e)}")
       {:error, e}
+  end
+
+  # Consolidated helper to load user with streaming accounts - avoids duplicate Ash.get() calls
+  defp load_user_with_streaming_accounts(user_id) do
+    Ash.get(User, user_id, authorize?: false, load: [:streaming_accounts])
   end
 
   defp format_platform_config(%{
@@ -503,17 +525,92 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   end
 
   defp via_tuple(user_id) do
-    {:via, Registry, {get_registry_name(), {:user_stream_manager, user_id}}}
+    RegistryHelpers.via_tuple(:user_stream_manager, user_id)
   end
 
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
+  # StreamActor helper functions
+
+  defp update_stream_actor_state(user_id, status, livestream_id, status_message) do
+    Task.start(fn ->
+      case StreamActor.mark_streaming(user_id, livestream_id, status_message) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor to #{status} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor: #{inspect(reason)}")
       end
-    else
-      Streampai.LivestreamManager.Registry
-    end
+    end)
+  end
+
+  defp update_stream_actor_status(user_id, status, status_message) do
+    Task.start(fn ->
+      case StreamActor.update_for_user(user_id, %{status: status, status_message: status_message}) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor status to #{status} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor status: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  defp update_stream_actor_platforms(user_id, platforms_status, status_message) do
+    Task.start(fn ->
+      case StreamActor.update_for_user(user_id, %{
+             platforms: platforms_status,
+             status_message: status_message
+           }) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor platforms for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor platforms: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  defp update_stream_actor_stopped(user_id, status_message) do
+    Task.start(fn ->
+      case StreamActor.mark_stopped(user_id, status_message) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor to stopped for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor stopped: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  @doc """
+  Updates the StreamActor viewer count for a specific platform.
+  Called by platform managers when they receive viewer count updates.
+  """
+  def update_stream_actor_viewers(user_id, platform, viewer_count)
+      when is_binary(user_id) and is_atom(platform) and is_integer(viewer_count) do
+    Task.start(fn ->
+      case StreamActor.update_viewer_count(user_id, platform, viewer_count) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor #{platform} viewers to #{viewer_count} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor viewers: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  @doc """
+  Reports an error to the StreamActor.
+  Called when the stream encounters an error condition.
+  """
+  def report_stream_error(user_id, error_message) when is_binary(user_id) and is_binary(error_message) do
+    Task.start(fn ->
+      case StreamActor.mark_error(user_id, error_message) do
+        {:ok, _actor} ->
+          Logger.info("Reported error to StreamActor for user #{user_id}: #{error_message}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to report error to StreamActor: #{inspect(reason)}")
+      end
+    end)
   end
 end

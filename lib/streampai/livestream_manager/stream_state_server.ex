@@ -6,6 +6,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   use GenServer
 
   alias Streampai.Accounts.StreamingAccount
+  alias Streampai.LivestreamManager.RegistryHelpers
 
   require Logger
 
@@ -213,18 +214,7 @@ defmodule Streampai.LivestreamManager.StreamStateServer do
   # Helper functions
 
   defp via_tuple(user_id) do
-    registry_name =
-      if Application.get_env(:streampai, :test_mode, false) do
-        # In test mode, check if there's a process dictionary with the registry name
-        case Process.get(:test_registry_name) do
-          nil -> Streampai.LivestreamManager.Registry
-          test_registry -> test_registry
-        end
-      else
-        Streampai.LivestreamManager.Registry
-      end
-
-    {:via, Registry, {registry_name, {:stream_state, user_id}}}
+    RegistryHelpers.via_tuple(:stream_state, user_id)
   end
 
   defp load_user_platforms(user_id) do
