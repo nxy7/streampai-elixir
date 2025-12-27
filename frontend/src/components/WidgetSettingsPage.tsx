@@ -63,7 +63,9 @@ import type { WidgetType } from "~/lib/electric";
 import { SchemaForm, getDefaultValues, type FormMeta } from "~/lib/schema-form";
 import { useWidgetConfig } from "~/lib/useElectric";
 import { saveWidgetConfig } from "~/sdk/ash_rpc";
-import { button, card, text } from "~/styles/design-system";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
+import { text } from "~/styles/design-system";
 
 /**
  * Convert camelCase to snake_case for backend
@@ -228,7 +230,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 			<Show when={ready()} fallback={<div>Loading...</div>}>
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{/* Configuration Form */}
-					<div class={card.default}>
+					<Card>
 						<h2 class={text.h2}>Configuration</h2>
 						<div class="mt-4 space-y-4">
 							<SchemaForm
@@ -249,18 +251,14 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								</div>
 							</Show>
 
-							<button
-								type="button"
-								class={button.primary}
-								onClick={handleSave}
-								disabled={saving()}>
+							<Button type="button" onClick={handleSave} disabled={saving()}>
 								{saving() ? "Saving..." : "Save Configuration"}
-							</button>
+							</Button>
 						</div>
-					</div>
+					</Card>
 
 					{/* Preview */}
-					<div class={card.default}>
+					<Card>
 						<h2 class={text.h2}>Preview</h2>
 						<div class="mt-4 space-y-4">
 							{props.previewWrapper ? (
@@ -304,7 +302,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								</ul>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</Show>
 		</div>

@@ -1,5 +1,6 @@
 import type { Component } from "solid-js";
-import { input, text } from "~/styles/design-system";
+import Input from "~/components/ui/Input";
+import { text } from "~/styles/design-system";
 import type { IntrospectedField } from "../types";
 
 interface ColorFieldProps {
@@ -22,9 +23,8 @@ export const ColorField: Component<ColorFieldProps> = (props) => {
 						onInput={(e) => props.onChange(e.currentTarget.value)}
 						disabled={props.disabled}
 					/>
-					<input
+					<Input
 						type="text"
-						class={input.text}
 						value={props.value ?? ""}
 						onInput={(e) => props.onChange(e.currentTarget.value)}
 						placeholder="#000000"

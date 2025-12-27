@@ -1,5 +1,5 @@
 import { For, type Component } from "solid-js";
-import { input, text } from "~/styles/design-system";
+import { Select } from "~/components/ui/Input";
 import type { IntrospectedField } from "../types";
 
 interface SelectFieldProps {
@@ -24,24 +24,15 @@ function enumValueToLabel(value: string): string {
 
 export const SelectField: Component<SelectFieldProps> = (props) => {
 	return (
-		<div>
-			<label class="block">
-				<span class={text.label}>{props.field.label}</span>
-				<select
-					class={`mt-1 ${input.select}`}
-					value={props.value ?? ""}
-					onChange={(e) => props.onChange(e.currentTarget.value)}
-					disabled={props.disabled}>
-					<For each={props.field.enumValues ?? []}>
-						{(option) => (
-							<option value={option}>{enumValueToLabel(option)}</option>
-						)}
-					</For>
-				</select>
-			</label>
-			{props.field.meta.description && (
-				<p class={`mt-1 ${text.helper}`}>{props.field.meta.description}</p>
-			)}
-		</div>
+		<Select
+			label={props.field.label}
+			value={props.value ?? ""}
+			onChange={(e) => props.onChange(e.currentTarget.value)}
+			disabled={props.disabled}
+			helperText={props.field.meta.description}>
+			<For each={props.field.enumValues ?? []}>
+				{(option) => <option value={option}>{enumValueToLabel(option)}</option>}
+			</For>
+		</Select>
 	);
 };

@@ -1,43 +1,13 @@
 /**
- * Design System - Reusable component class patterns
- * Update CSS variables in app.css to change colors globally.
+ * Design System - Reusable utilities
+ *
+ * Note: Most component-level styles have been migrated to UI components in ~/components/ui/
+ * - Button: ~/components/ui/Button.tsx
+ * - Card: ~/components/ui/Card.tsx
+ * - Badge: ~/components/ui/Badge.tsx
+ * - Alert: ~/components/ui/Alert.tsx
+ * - Input/Select/Textarea: ~/components/ui/Input.tsx
  */
-
-export const button = {
-	primary:
-		"bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed",
-	secondary:
-		"bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed",
-	danger:
-		"bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed",
-	success:
-		"bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed",
-	ghost:
-		"text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors font-medium",
-	icon: "p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center",
-	gradient:
-		"bg-linear-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-600 transition-all font-semibold shadow-md",
-};
-
-export const input = {
-	text: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed",
-	error:
-		"w-full border border-red-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent",
-	select:
-		"w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white",
-	textarea:
-		"w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none",
-};
-
-export const card = {
-	base: "bg-white border border-gray-200 rounded-2xl shadow-sm",
-	default: "bg-white border border-gray-200 rounded-2xl shadow-sm p-6",
-	interactive:
-		"bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer",
-	gradient:
-		"bg-linear-to-r from-purple-600 to-pink-600 rounded-lg shadow-sm p-6 text-white",
-	section: "bg-white rounded-lg shadow-sm border border-gray-200 p-6",
-};
 
 export const text = {
 	h1: "text-3xl font-bold text-gray-900",
@@ -50,28 +20,6 @@ export const text = {
 	helper: "text-xs text-gray-500",
 	error: "text-sm text-red-600",
 	success: "text-sm text-green-600",
-};
-
-export const badge = {
-	success:
-		"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
-	warning:
-		"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
-	error:
-		"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
-	info: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800",
-	neutral:
-		"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800",
-};
-
-export const alert = {
-	success:
-		"flex items-start space-x-3 p-3 bg-green-50 rounded-lg border border-green-200",
-	warning:
-		"flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200",
-	error:
-		"flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200",
-	info: "flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200",
 };
 
 export const link = {

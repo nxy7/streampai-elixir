@@ -1,8 +1,10 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
 import { useCurrentUser } from "~/lib/auth";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
-import { button, card, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 interface CanvasWidget {
 	id: string;
@@ -520,13 +522,13 @@ export default function SmartCanvas() {
 			<Title>Smart Canvas - Streampai</Title>
 			<Show when={user()}>
 				<div class="space-y-6">
-					<div class={card.default}>
+					<Card>
 						<h1 class={text.h1}>Smart Canvas</h1>
 						<p class={`${text.muted} mt-2`}>
 							Compose your stream overlay with interactive widgets. Click
 							widgets from the palette to add them to the canvas.
 						</p>
-					</div>
+					</Card>
 
 					<div class="rounded-2xl border border-blue-200 bg-blue-50 p-4">
 						<div class="flex items-start gap-3">
@@ -546,54 +548,43 @@ export default function SmartCanvas() {
 										value={obsUrl()}
 										class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-sm"
 									/>
-									<button
-										type="button"
-										class={button.primary}
+									<Button
 										onClick={() => {
 											navigator.clipboard.writeText(obsUrl());
 										}}>
 										Copy
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
 					</div>
 
-					<div class={card.default}>
+					<Card>
 						<div class="flex items-center justify-between">
 							<div class="flex gap-2">
-								<button
-									type="button"
-									class={
-										layoutSaved()
-											? "rounded-lg bg-green-600 px-4 py-2 text-white"
-											: button.primary
-									}
+								<Button
+									variant={layoutSaved() ? "success" : "primary"}
 									onClick={saveLayout}>
-									{layoutSaved() ? "✓ Layout Saved" : "Save Layout"}
-								</button>
-								<button
-									type="button"
-									class={button.secondary}
-									onClick={clearWidgets}>
+									{layoutSaved() ? "Layout Saved" : "Save Layout"}
+								</Button>
+								<Button variant="secondary" onClick={clearWidgets}>
 									Clear All
-								</button>
-								<button
-									type="button"
-									class={button.ghost}
+								</Button>
+								<Button
+									variant="ghost"
 									onClick={() => setCanvasMaximized(!canvasMaximized())}>
 									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
-								</button>
+								</Button>
 							</div>
 							<div class="text-gray-600 text-sm">
 								Widgets: {widgets().length}
 							</div>
 						</div>
-					</div>
+					</Card>
 
 					<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 						<div class="lg:col-span-1">
-							<div class={`${card.default} max-h-[700px] overflow-y-auto`}>
+							<Card class="max-h-[700px] overflow-y-auto">
 								<h3 class={`${text.h3} mb-4`}>Widget Palette</h3>
 								<p class="mb-4 text-gray-600 text-sm">
 									Click a widget to add it to the canvas
@@ -603,12 +594,12 @@ export default function SmartCanvas() {
 										{(widgetDef) => <PaletteWidgetItem widgetDef={widgetDef} />}
 									</For>
 								</div>
-							</div>
+							</Card>
 						</div>
 
 						<div class="lg:col-span-3">
-							<div
-								class={`${card.default} bg-gray-900 p-4`}
+							<Card
+								class="bg-gray-900 p-4"
 								classList={{
 									"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
 								}}>
@@ -682,7 +673,7 @@ export default function SmartCanvas() {
 										</div>
 									</div>
 								</div>
-							</div>
+							</Card>
 						</div>
 					</div>
 				</div>

@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { input, text } from "~/styles/design-system";
+import Input from "~/components/ui/Input";
 import type { IntrospectedField } from "../types";
 
 interface NumberFieldProps {
@@ -10,32 +10,27 @@ interface NumberFieldProps {
 }
 
 export const NumberField: Component<NumberFieldProps> = (props) => {
+	const labelWithUnit = () => {
+		if (props.field.meta.unit) {
+			return `${props.field.label} (${props.field.meta.unit})`;
+		}
+		return props.field.label;
+	};
+
 	return (
-		<div>
-			<label class="block">
-				<span class={text.label}>
-					{props.field.label}
-					{props.field.meta.unit && (
-						<span class="ml-1 text-gray-400">({props.field.meta.unit})</span>
-					)}
-				</span>
-				<input
-					type="number"
-					class={`mt-1 ${input.text}`}
-					value={props.value ?? 0}
-					onInput={(e) => {
-						const val = parseFloat(e.currentTarget.value);
-						if (!isNaN(val)) props.onChange(val);
-					}}
-					min={props.field.min}
-					max={props.field.max}
-					step={props.field.meta.step ?? 1}
-					disabled={props.disabled}
-				/>
-			</label>
-			{props.field.meta.description && (
-				<p class={`mt-1 ${text.helper}`}>{props.field.meta.description}</p>
-			)}
-		</div>
+		<Input
+			type="number"
+			label={labelWithUnit()}
+			value={props.value ?? 0}
+			onInput={(e) => {
+				const val = Number.parseFloat(e.currentTarget.value);
+				if (!Number.isNaN(val)) props.onChange(val);
+			}}
+			min={props.field.min}
+			max={props.field.max}
+			step={props.field.meta.step ?? 1}
+			disabled={props.disabled}
+			helperText={props.field.meta.description}
+		/>
 	);
 };
