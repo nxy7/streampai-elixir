@@ -104,8 +104,7 @@ config :streampai, Oban,
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"0 3 * * *", Streampai.Storage.CleanupOrphanedFiles},
-       {"*/30 * * * *", Streampai.Accounts.Workers.RefreshStreamingStatsWorker}
+       {"0 3 * * *", Streampai.Storage.CleanupOrphanedFiles}
      ]},
     {Oban.Plugins.Pruner, max_age: 300},
     {Oban.Plugins.Lifeline, rescue_after: to_timeout(minute: 30)}

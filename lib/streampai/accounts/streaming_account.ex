@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshTypescript.Resource],
+    extensions: [AshOban, AshTypescript.Resource],
     data_layer: AshPostgres.DataLayer
 
   require Ash.Query
@@ -22,6 +22,28 @@ defmodule Streampai.Accounts.StreamingAccount do
       index [:user_id, :platform],
         name: "idx_streaming_account_user_platform",
         unique: true
+    end
+  end
+
+  oban do
+    triggers do
+      trigger :refresh_stats_periodically do
+        action :refresh_stats
+
+        # Run every 30 minutes, refreshing accounts not updated in 6+ hours
+        scheduler_cron "*/30 * * * *"
+        max_attempts 3
+
+        # Filter: only accounts that haven't been refreshed in 6+ hours (or never)
+        where expr(
+                is_nil(stats_last_refreshed_at) or
+                  stats_last_refreshed_at < ago(6, :hour)
+              )
+
+        queue :maintenance
+        worker_module_name StreamingAccount.AshOban.Worker.RefreshStats
+        scheduler_module_name StreamingAccount.AshOban.Scheduler.RefreshStats
+      end
     end
   end
 
@@ -135,6 +157,11 @@ defmodule Streampai.Accounts.StreamingAccount do
   end
 
   policies do
+    # Allow AshOban to bypass authorization for background jobs
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     # Allow all read operations for users viewing their own accounts or admins
     policy action_type(:read) do
       authorize_if expr(user_id == ^actor(:id))
