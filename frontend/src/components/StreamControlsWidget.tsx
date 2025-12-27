@@ -632,7 +632,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						</div>
 					}>
 					{/* Inner div un-reverses the content so it reads top-to-bottom */}
-					<div class="flex flex-col">
+				{/* mt-auto pushes content to bottom when there are few items */}
+					<div class="mt-auto flex flex-col">
 						<For each={sortedActivities()}>
 							{(item) => (
 								<ActivityRow
