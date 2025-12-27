@@ -11,6 +11,8 @@ defmodule Streampai.Twitch.ApiClient do
 
   require Logger
 
+  import Streampai.HTTP.ResponseHandler, only: [handle_http_response: 2]
+
   @base_url "https://api.twitch.tv/helix"
   @default_timeout 30_000
 
@@ -51,7 +53,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> extract_stream_key()
   end
 
@@ -84,7 +86,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> extract_stream_data()
   end
 
@@ -129,7 +131,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.patch()
-    |> handle_response()
+    |> handle_http_response("Twitch")
   end
 
   @doc """
@@ -159,7 +161,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> extract_first_user()
   end
 
@@ -205,7 +207,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("Twitch")
   end
 
   @doc """
@@ -263,7 +265,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> extract_first_ban()
   end
 
@@ -351,7 +353,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> case do
       {:ok, %{"total" => total}} -> {:ok, %{follower_count: total}}
       {:ok, response} -> {:error, {:unexpected_response, response}}
@@ -393,7 +395,7 @@ defmodule Streampai.Twitch.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("Twitch")
     |> case do
       {:ok, %{"total" => total, "points" => points}} ->
         {:ok, %{subscriber_count: total, points: points}}
@@ -450,20 +452,6 @@ defmodule Streampai.Twitch.ApiClient do
   end
 
   ## Private Functions
-
-  defp handle_response({:ok, %{status: status, body: body}}) when status in 200..299 do
-    {:ok, body}
-  end
-
-  defp handle_response({:ok, %{status: status, body: body}}) do
-    Logger.warning("Twitch API request failed with status #{status}: #{inspect(body)}")
-    {:error, {:http_error, status, body}}
-  end
-
-  defp handle_response({:error, reason}) do
-    Logger.error("Twitch API request failed: #{inspect(reason)}")
-    {:error, reason}
-  end
 
   defp extract_stream_key({:ok, %{"data" => [%{"stream_key" => stream_key}]}}) do
     {:ok, stream_key}

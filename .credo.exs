@@ -27,16 +27,43 @@ alias Credo.Check.Readability.ModuleDoc
           {Credo.Check.Warning.MissedMetadataKeyInLoggerConfig,
            [
              metadata_keys: [
+               # Request tracking
                :request_id,
                :error_id,
                :user_id,
                :path,
                :duration,
+               # Stream management
                :livestream_id,
+               :stream_id,
                :component,
                :chat_id,
                :input_status,
-               :stream_id
+               # API response handling
+               :status,
+               :body,
+               :reason,
+               :error,
+               :error_type,
+               :stacktrace,
+               # TTS processing
+               :voice,
+               :voice_name,
+               :audio_size,
+               :message_length,
+               :hash,
+               :has_tts,
+               # Webhook/notification handling
+               :webhook_id,
+               :event_type,
+               :event_id,
+               :retry_after,
+               :attempt,
+               # Donation processing
+               :donor_name,
+               :amount,
+               # File operations
+               :size
              ]
            ]}
         ],
