@@ -140,6 +140,30 @@ export interface ActivityItem {
 	platform: string;
 	timestamp: Date | string;
 	isImportant?: boolean;
+	// Additional fields needed for moderation actions
+	viewerId?: string;
+	viewerPlatformId?: string;
+}
+
+// Moderation action callbacks
+export interface ModerationCallbacks {
+	onReplayEvent?: (eventId: string) => void;
+	onBanUser?: (
+		userId: string,
+		platform: string,
+		viewerPlatformId: string,
+		username: string,
+		reason?: string,
+	) => void;
+	onTimeoutUser?: (
+		userId: string,
+		platform: string,
+		viewerPlatformId: string,
+		username: string,
+		durationSeconds: number,
+		reason?: string,
+	) => void;
+	onDeleteMessage?: (eventId: string) => void;
 }
 
 // Types for stream summary
@@ -491,12 +515,25 @@ type Platform = (typeof AVAILABLE_PLATFORMS)[number];
 interface ActivityRowProps {
 	item: ActivityItem;
 	isSticky?: boolean;
+	moderationCallbacks?: ModerationCallbacks;
 }
 
 // Row height constant for sticky offset calculations
 const ACTIVITY_ROW_HEIGHT = 52; // px - accounts for padding and content
 
+// Timeout duration presets in seconds
+const TIMEOUT_PRESETS = [
+	{ label: "1m", seconds: 60 },
+	{ label: "5m", seconds: 300 },
+	{ label: "10m", seconds: 600 },
+	{ label: "1h", seconds: 3600 },
+	{ label: "24h", seconds: 86400 },
+] as const;
+
 function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
+	const [isHovered, setIsHovered] = createSignal(false);
+	const [showTimeoutMenu, setShowTimeoutMenu] = createSignal(false);
+
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
 	const stickyStyle = () => {
 		if (props.isSticky && props.stickyIndex !== undefined) {
@@ -505,16 +542,77 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		return {};
 	};
 
+	// Determine if this row should show moderation actions
+	const showModerationActions = () => {
+		if (!props.moderationCallbacks) return false;
+		if (props.item.type === "chat") {
+			return !!(
+				props.moderationCallbacks.onBanUser ||
+				props.moderationCallbacks.onTimeoutUser ||
+				props.moderationCallbacks.onDeleteMessage
+			);
+		}
+		if (isImportantEvent(props.item.type)) {
+			return !!props.moderationCallbacks.onReplayEvent;
+		}
+		return false;
+	};
+
+	// Handle replay action
+	const handleReplay = (e: MouseEvent) => {
+		e.stopPropagation();
+		props.moderationCallbacks?.onReplayEvent?.(props.item.id);
+	};
+
+	// Handle ban action
+	const handleBan = (e: MouseEvent) => {
+		e.stopPropagation();
+		if (props.item.viewerId && props.item.viewerPlatformId) {
+			props.moderationCallbacks?.onBanUser?.(
+				props.item.viewerId,
+				props.item.platform,
+				props.item.viewerPlatformId,
+				props.item.username,
+			);
+		}
+	};
+
+	// Handle timeout action
+	const handleTimeout = (e: MouseEvent, seconds: number) => {
+		e.stopPropagation();
+		setShowTimeoutMenu(false);
+		if (props.item.viewerId && props.item.viewerPlatformId) {
+			props.moderationCallbacks?.onTimeoutUser?.(
+				props.item.viewerId,
+				props.item.platform,
+				props.item.viewerPlatformId,
+				props.item.username,
+				seconds,
+			);
+		}
+	};
+
+	// Handle delete action
+	const handleDelete = (e: MouseEvent) => {
+		e.stopPropagation();
+		props.moderationCallbacks?.onDeleteMessage?.(props.item.id);
+	};
+
 	return (
 		<div
-			class={`flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
+			class={`group relative flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
 				props.isSticky
 					? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
 					: isImportantEvent(props.item.type)
 						? "bg-gray-50/50"
 						: ""
 			}`}
-			style={stickyStyle()}>
+			style={stickyStyle()}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => {
+				setIsHovered(false);
+				setShowTimeoutMenu(false);
+			}}>
 			{/* Platform badge */}
 			<span
 				class={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[props.item.platform] || "bg-gray-500"}`}>
@@ -548,6 +646,86 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 					</div>
 				</Show>
 			</div>
+
+			{/* Hover Actions - Icon-only buttons with tooltips */}
+			<Show when={isHovered() && showModerationActions()}>
+				<div class="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-gray-200">
+					{/* Replay button for important events */}
+					<Show
+						when={
+							isImportantEvent(props.item.type) &&
+							props.moderationCallbacks?.onReplayEvent
+						}>
+						<button
+							type="button"
+							class="rounded p-1 text-purple-600 transition-colors hover:bg-purple-50"
+							onClick={handleReplay}
+							title="Replay alert"
+							data-testid="replay-button">
+							<span class="text-xs">&#x21bb;</span>
+						</button>
+					</Show>
+
+					{/* Chat moderation actions */}
+					<Show when={props.item.type === "chat"}>
+						{/* Delete message button */}
+						<Show when={props.moderationCallbacks?.onDeleteMessage}>
+							<button
+								type="button"
+								class="rounded p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+								onClick={handleDelete}
+								title="Delete message"
+								data-testid="delete-button">
+								<span class="text-xs">&#x2715;</span>
+							</button>
+						</Show>
+
+						{/* Timeout button with dropdown */}
+						<Show when={props.moderationCallbacks?.onTimeoutUser}>
+							<div class="relative">
+								<button
+									type="button"
+									class="rounded p-1 text-amber-600 transition-colors hover:bg-amber-50"
+									onClick={(e) => {
+										e.stopPropagation();
+										setShowTimeoutMenu(!showTimeoutMenu());
+									}}
+									title="Timeout user"
+									data-testid="timeout-button">
+									<span class="text-xs">&#x23F1;</span>
+								</button>
+								<Show when={showTimeoutMenu()}>
+									<div class="absolute top-full right-0 z-20 mt-1 min-w-[60px] rounded border border-gray-200 bg-white py-0.5 shadow-lg">
+										<For each={TIMEOUT_PRESETS}>
+											{(preset) => (
+												<button
+													type="button"
+													class="block w-full px-2 py-0.5 text-left text-gray-700 text-xs transition-colors hover:bg-amber-50"
+													onClick={(e) => handleTimeout(e, preset.seconds)}
+													data-testid={`timeout-${preset.label}`}>
+													{preset.label}
+												</button>
+											)}
+										</For>
+									</div>
+								</Show>
+							</div>
+						</Show>
+
+						{/* Ban button */}
+						<Show when={props.moderationCallbacks?.onBanUser}>
+							<button
+								type="button"
+								class="rounded p-1 text-red-600 transition-colors hover:bg-red-50"
+								onClick={handleBan}
+								title="Ban user"
+								data-testid="ban-button">
+								<span class="text-xs">&#x26D4;</span>
+							</button>
+						</Show>
+					</Show>
+				</div>
+			</Show>
 		</div>
 	);
 }
@@ -673,6 +851,7 @@ interface LiveStreamControlCenterProps extends StreamActionCallbacks {
 	stickyDuration?: number; // how long important events stay sticky (ms)
 	connectedPlatforms?: Platform[]; // platforms the user is connected to
 	onSendMessage?: (message: string, platforms: Platform[]) => void;
+	moderationCallbacks?: ModerationCallbacks;
 }
 
 // All available activity types for filtering
@@ -1260,6 +1439,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 										item={item}
 										isSticky={isSticky()}
 										stickyIndex={stickyIndex()}
+										moderationCallbacks={props.moderationCallbacks}
 									/>
 								);
 							}}

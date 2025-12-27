@@ -5,6 +5,7 @@ import StreamControlsWidget, {
 	type StreamMetadata,
 	type StreamSummary,
 	type Platform,
+	type ModerationCallbacks,
 	PreStreamSettings,
 	LiveStreamControlCenter,
 	PostStreamSummary,
@@ -842,6 +843,142 @@ export const FilterTest: Story = {
 			description: {
 				story:
 					"Test story for verifying event filtering. Use the filter button to filter by event type, or the search box to find events by username or message content. Try searching for 'ChatFan' or 'amazing' to test text filtering.",
+			},
+		},
+	},
+};
+
+// =====================================================
+// Moderation Actions Test Story
+// =====================================================
+
+// Generate activities with viewer info for moderation testing
+const generateModerationTestActivities = (): ActivityItem[] => {
+	const now = Date.now();
+	return [
+		// Chat messages with viewer info for moderation
+		{
+			id: "chat-mod-1",
+			type: "chat" as const,
+			username: "ToxicUser",
+			message: "This is a test chat message that can be deleted",
+			platform: "twitch",
+			timestamp: new Date(now - 60000),
+			viewerId: "viewer-123",
+			viewerPlatformId: "twitch-user-123",
+		},
+		{
+			id: "chat-mod-2",
+			type: "chat" as const,
+			username: "AnotherChatter",
+			message: "Hello everyone! Hover over me to see moderation options.",
+			platform: "youtube",
+			timestamp: new Date(now - 50000),
+			viewerId: "viewer-456",
+			viewerPlatformId: "yt-user-456",
+		},
+		{
+			id: "chat-mod-3",
+			type: "chat" as const,
+			username: "SpamBot",
+			message: "Buy cheap stuff at spam.com!",
+			platform: "kick",
+			timestamp: new Date(now - 40000),
+			viewerId: "viewer-789",
+			viewerPlatformId: "kick-user-789",
+		},
+		// Important events with replay option
+		{
+			id: "donation-mod-1",
+			type: "donation" as const,
+			username: "GenerousDonor",
+			message: "Hover to replay this donation alert!",
+			amount: 50,
+			currency: "$",
+			platform: "twitch",
+			timestamp: new Date(now - 30000),
+			isImportant: true,
+		},
+		{
+			id: "sub-mod-1",
+			type: "subscription" as const,
+			username: "LoyalSubscriber",
+			message: "Hover to replay this sub alert!",
+			platform: "twitch",
+			timestamp: new Date(now - 20000),
+			isImportant: true,
+		},
+		{
+			id: "raid-mod-1",
+			type: "raid" as const,
+			username: "RaidLeader",
+			message: "Hover to replay this raid alert!",
+			platform: "twitch",
+			timestamp: new Date(now - 10000),
+			isImportant: true,
+		},
+		// More recent chat
+		{
+			id: "chat-mod-4",
+			type: "chat" as const,
+			username: "NiceViewer",
+			message: "Great stream! Love the new moderation features!",
+			platform: "twitch",
+			timestamp: new Date(now - 5000),
+			viewerId: "viewer-abc",
+			viewerPlatformId: "twitch-user-abc",
+		},
+	];
+};
+
+// Moderation callbacks for testing
+const moderationCallbacks: ModerationCallbacks = {
+	onReplayEvent: (eventId) => {
+		console.log(`Replay event: ${eventId}`);
+		alert(`Replaying alert for event: ${eventId}`);
+	},
+	onBanUser: (userId, platform, viewerPlatformId, username) => {
+		console.log(`Ban user: ${username} (${userId}) on ${platform}`);
+		alert(
+			`Banning user: ${username} on ${platform}\nViewer ID: ${viewerPlatformId}`,
+		);
+	},
+	onTimeoutUser: (
+		userId,
+		platform,
+		viewerPlatformId,
+		username,
+		durationSeconds,
+	) => {
+		const durationLabel =
+			durationSeconds >= 3600
+				? `${Math.floor(durationSeconds / 3600)}h`
+				: `${Math.floor(durationSeconds / 60)}m`;
+		console.log(`Timeout user: ${username} for ${durationLabel}`);
+		alert(`Timing out: ${username} for ${durationLabel} on ${platform}`);
+	},
+	onDeleteMessage: (eventId) => {
+		console.log(`Delete message: ${eventId}`);
+		alert(`Deleting message: ${eventId}`);
+	},
+};
+
+export const ModerationActionsTest: Story = {
+	args: {
+		phase: "live",
+		activities: generateModerationTestActivities(),
+		streamDuration: 1800,
+		viewerCount: 500,
+		stickyDuration: 120000,
+		connectedPlatforms: ["twitch", "youtube", "kick"],
+		onSendMessage: handleSendMessage,
+		moderationCallbacks,
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					"Test story for moderation actions on hover. Hover over chat messages to see Ban, Timeout, and Delete options. Hover over important events (donations, subscriptions, raids) to see the Replay option.",
 			},
 		},
 	},
