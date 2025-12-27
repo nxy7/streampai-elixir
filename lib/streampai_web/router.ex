@@ -54,6 +54,13 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
   end
 
+  # API pipeline for SPA auth (no CSRF protection)
+  pipeline :api_auth do
+    plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(StreampaiWeb.Plugs.RateLimiter, limit: 7, window: 300_000)
+  end
+
   pipeline :electric_sync do
     plug(:accepts, ["json"])
   end
@@ -82,19 +89,13 @@ defmodule StreampaiWeb.Router do
     end
   end
 
-  # LiveView sign-in and registration forms (outside /api scope to avoid double-prefixing)
-  scope "/" do
-    pipe_through(:browser)
+  # JSON API auth routes for SPA (no CSRF required)
+  # Must come BEFORE the browser scope to avoid CSRF protection
+  scope "/api/auth", StreampaiWeb do
+    pipe_through(:api_auth)
 
-    sign_in_route(
-      path: "/api/auth/sign-in",
-      register_path: "/api/auth/register",
-      reset_path: "/api/auth/reset",
-      auth_routes_prefix: "/api/auth"
-    )
-
-    # Password reset form (after clicking reset link in email)
-    reset_route(path: "/api/auth/password-reset", auth_routes_prefix: "/api/auth")
+    post("/register", ApiAuthController, :register)
+    post("/sign-in", ApiAuthController, :sign_in)
   end
 
   # All API routes are prefixed with /api for clean proxy configuration

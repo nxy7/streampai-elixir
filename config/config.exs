@@ -130,8 +130,7 @@ config :streampai, StreampaiWeb.Endpoint,
     ],
     layout: false
   ],
-  pubsub_server: Streampai.PubSub,
-  live_view: [signing_salt: "streampai_live_view_salt"]
+  pubsub_server: Streampai.PubSub
 
 config :streampai,
   ecto_repos: [Streampai.Repo],
