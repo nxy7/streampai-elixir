@@ -262,6 +262,19 @@ function StreamHealthMonitor() {
 		}
 	};
 
+	const qualityBgLight = () => {
+		switch (connectionQuality()) {
+			case "excellent":
+				return "bg-green-500/10";
+			case "good":
+				return "bg-blue-500/10";
+			case "fair":
+				return "bg-yellow-500/10";
+			case "poor":
+				return "bg-red-500/10";
+		}
+	};
+
 	const qualityLabel = () => {
 		switch (connectionQuality()) {
 			case "excellent":
@@ -295,7 +308,7 @@ function StreamHealthMonitor() {
 					{t("dashboard.streamHealth")}
 				</h3>
 				<div
-					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBg()} bg-opacity-10`}>
+					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBgLight()}`}>
 					<div class={`h-2 w-2 rounded-full ${qualityBg()} animate-pulse`} />
 					<span class={`font-medium text-xs capitalize ${qualityColor()}`}>
 						{qualityLabel()}
