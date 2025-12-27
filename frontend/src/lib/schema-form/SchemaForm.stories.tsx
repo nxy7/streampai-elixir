@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { z } from "zod";
 import { SchemaForm } from "./SchemaForm";
-import { withMeta } from "./introspect";
+import { formField } from "./introspect";
 import {
 	alertboxConfigSchema,
 	chatConfigSchema,
@@ -12,6 +12,7 @@ import {
 /**
  * SchemaForm automatically generates form UI from Zod schemas.
  * It introspects the schema to determine field types and renders appropriate controls.
+ * Fields are rendered in declaration order (top to bottom).
  */
 const meta = {
 	title: "Forms/SchemaForm",
@@ -32,21 +33,19 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Simple schema for basic demo
+// Simple schema for basic demo using type-safe formField builders
 const simpleSchema = z.object({
-	name: withMeta(z.string().default(""), {
+	name: formField.text(z.string().default(""), {
 		label: "Your Name",
 		placeholder: "Enter your name",
 	}),
-	age: withMeta(z.number().min(0).max(120).default(25), {
+	age: formField.slider(z.number().min(0).max(120).default(25), {
 		label: "Age",
-		inputType: "slider",
 	}),
-	favoriteColor: withMeta(z.string().default("#6366f1"), {
+	favoriteColor: formField.color(z.string().default("#6366f1"), {
 		label: "Favorite Color",
-		inputType: "color",
 	}),
-	newsletter: withMeta(z.boolean().default(false), {
+	newsletter: formField.checkbox(z.boolean().default(false), {
 		label: "Subscribe to newsletter",
 		description: "Get weekly updates about new features",
 	}),
@@ -108,7 +107,7 @@ export const TimerConfig: Story = {
 						Timer Widget Settings
 					</h2>
 					<p class="mb-4 text-gray-500 text-sm">
-						Auto-generated from Zod schema
+						Auto-generated from Zod schema (fields in declaration order)
 					</p>
 					<SchemaForm
 						schema={timerConfigSchema}
@@ -244,30 +243,26 @@ export const Disabled: Story = {
 	},
 };
 
-// Schema demonstrating all field types
+// Schema demonstrating all field types using type-safe formField builders
 const allFieldTypesSchema = z.object({
-	textField: withMeta(z.string().default("Hello"), {
+	textField: formField.text(z.string().default("Hello"), {
 		label: "Text Input",
 		placeholder: "Type something...",
 	}),
-	numberField: withMeta(z.number().default(42), {
+	numberField: formField.number(z.number().default(42), {
 		label: "Number Input",
-		inputType: "number",
 	}),
-	sliderField: withMeta(z.number().min(0).max(100).default(50), {
+	sliderField: formField.slider(z.number().min(0).max(100).default(50), {
 		label: "Slider Input",
-		inputType: "slider",
 		unit: "%",
 	}),
-	colorField: withMeta(z.string().default("#ff6b6b"), {
+	colorField: formField.color(z.string().default("#ff6b6b"), {
 		label: "Color Picker",
-		inputType: "color",
 	}),
-	selectField: withMeta(z.enum(["option1", "option2", "option3"]).default("option1"), {
+	selectField: formField.select(z.enum(["option1", "option2", "option3"]).default("option1"), {
 		label: "Select Dropdown",
-		inputType: "select",
 	}),
-	checkboxField: withMeta(z.boolean().default(true), {
+	checkboxField: formField.checkbox(z.boolean().default(true), {
 		label: "Checkbox Toggle",
 		description: "This is a boolean field rendered as a checkbox",
 	}),

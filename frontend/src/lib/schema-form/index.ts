@@ -7,26 +7,24 @@
  *
  * ## Usage
  *
- * ### Define a schema with metadata:
+ * ### Define a schema with type-safe field builders:
  * ```tsx
  * import { z } from "zod";
- * import { withMeta, field } from "~/lib/schema-form";
+ * import { formField } from "~/lib/schema-form";
  *
  * const timerSchema = z.object({
- *   label: withMeta(z.string().default("TIMER"), {
+ *   label: formField.text(z.string().default("TIMER"), {
  *     label: "Timer Label",
  *     placeholder: "Enter label text",
  *   }),
- *   fontSize: withMeta(z.number().min(24).max(120).default(48), {
+ *   fontSize: formField.slider(z.number().min(24).max(120).default(48), {
  *     label: "Font Size",
  *     unit: "px",
- *     inputType: "slider",
  *   }),
- *   textColor: withMeta(z.string().default("#ffffff"), {
+ *   textColor: formField.color(z.string().default("#ffffff"), {
  *     label: "Text Color",
- *     inputType: "color",
  *   }),
- *   autoStart: withMeta(z.boolean().default(false), {
+ *   autoStart: formField.checkbox(z.boolean().default(false), {
  *     label: "Auto Start on Load",
  *     description: "Start the timer automatically when the widget loads",
  *   }),
@@ -44,39 +42,46 @@
  * />
  * ```
  *
- * ## Field Types
+ * ## Type-Safe Field Builders (formField.*)
  *
- * The system automatically detects field types from Zod schemas:
- * - `z.string()` -> text input
- * - `z.number()` -> number input (or slider if min/max defined)
- * - `z.boolean()` -> checkbox
- * - `z.enum()` -> select dropdown
+ * Each builder enforces correct metadata for its input type:
+ * - `formField.text(z.string(), { label, placeholder? })`
+ * - `formField.textarea(z.string(), { label, placeholder? })`
+ * - `formField.number(z.number(), { label, unit?, step? })`
+ * - `formField.slider(z.number().min().max(), { label, unit?, step? })`
+ * - `formField.color(z.string(), { label })`
+ * - `formField.checkbox(z.boolean(), { label, description? })`
+ * - `formField.select(z.enum([...]), { label })`
  *
- * Override with `inputType` in metadata:
- * - "text", "number", "color", "checkbox", "select", "slider", "textarea"
+ * ## Common Metadata Options
  *
- * ## Metadata Options
- *
- * - `label`: Human-readable field label
+ * - `label`: Human-readable field label (required)
  * - `description`: Help text shown below the field
- * - `placeholder`: Placeholder for text inputs
- * - `inputType`: Override auto-detected input type
- * - `min`, `max`: Number constraints
- * - `step`: Number input step increment
- * - `unit`: Unit label (e.g., "px", "s", "%")
  * - `group`: Group fields into sections
- * - `order`: Sort order (lower = earlier)
  * - `hidden`: Hide field from form
+ *
+ * ## Field Order
+ *
+ * Fields are rendered in declaration order (top to bottom in the schema).
+ * No explicit ordering is needed.
  */
 
 // Core exports
 export { SchemaForm } from "./SchemaForm";
-export { introspectSchema, withMeta, field } from "./introspect";
+export { introspectSchema, formField, withMeta, field } from "./introspect";
 export type {
 	FieldMeta,
+	InputType,
 	IntrospectedField,
 	IntrospectedSchema,
 	SchemaFormProps,
+	TextFieldMeta,
+	TextareaFieldMeta,
+	NumberFieldMeta,
+	SliderFieldMeta,
+	ColorFieldMeta,
+	CheckboxFieldMeta,
+	SelectFieldMeta,
 } from "./types";
 
 // Field components (for custom form layouts)

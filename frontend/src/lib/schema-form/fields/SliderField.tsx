@@ -12,8 +12,10 @@ interface SliderFieldProps {
 export const SliderField: Component<SliderFieldProps> = (props) => {
 	const min = () => props.field.min ?? 0;
 	const max = () => props.field.max ?? 100;
-	const step = () => props.field.meta.step ?? 1;
-	const showValue = () => props.field.meta.showValue !== false;
+	// biome-ignore lint/suspicious/noExplicitAny: meta is Partial<FieldMeta> union type
+	const meta = () => props.field.meta as any;
+	const step = () => meta().step ?? 1;
+	const unit = () => meta().unit as string | undefined;
 
 	return (
 		<div>
@@ -21,18 +23,16 @@ export const SliderField: Component<SliderFieldProps> = (props) => {
 				<div class="flex items-center justify-between">
 					<span class={text.label}>
 						{props.field.label}
-						{props.field.meta.unit && (
-							<span class="ml-1 text-gray-400">({props.field.meta.unit})</span>
-						)}
+						<Show when={unit()}>
+							<span class="ml-1 text-gray-400">({unit()})</span>
+						</Show>
 					</span>
-					<Show when={showValue()}>
-						<span class="font-medium text-gray-900 text-sm">
-							{props.value ?? min()}
-							{props.field.meta.unit && (
-								<span class="text-gray-400">{props.field.meta.unit}</span>
-							)}
-						</span>
-					</Show>
+					<span class="font-medium text-gray-900 text-sm">
+						{props.value ?? min()}
+						<Show when={unit()}>
+							<span class="text-gray-400">{unit()}</span>
+						</Show>
+					</span>
 				</div>
 				<div class="mt-2 flex items-center gap-3">
 					<span class="text-gray-400 text-xs">{min()}</span>
