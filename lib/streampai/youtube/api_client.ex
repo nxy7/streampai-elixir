@@ -14,6 +14,8 @@ defmodule Streampai.YouTube.ApiClient do
 
   require Logger
 
+  import Streampai.HTTP.ResponseHandler, only: [handle_http_response: 2]
+
   @base_url "https://www.googleapis.com/youtube/v3"
   @analytics_url "https://youtubeanalytics.googleapis.com/v2"
   @token_info_url "https://www.googleapis.com/oauth2/v3/tokeninfo"
@@ -62,7 +64,7 @@ defmodule Streampai.YouTube.ApiClient do
       receive_timeout: @default_timeout
     ]
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Live Chat Messages API
@@ -113,7 +115,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -131,7 +133,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.delete()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -175,7 +177,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -192,7 +194,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.delete()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Live Broadcasts API
@@ -236,7 +238,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -264,7 +266,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts = base_opts(access_token) ++ [url: "/liveBroadcasts", params: params]
 
-    case req_opts |> Req.get() |> handle_response() do
+    case req_opts |> Req.get() |> handle_http_response("YouTube") do
       {:ok, %{"items" => [broadcast | _]}} -> {:ok, broadcast}
       {:ok, %{"items" => []}} -> {:error, :not_found}
       error -> error
@@ -310,7 +312,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -337,7 +339,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.put()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -371,7 +373,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -401,7 +403,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -428,7 +430,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("YouTube")
     |> case do
       {:ok, %{"items" => []}} ->
         {:error, :video_not_found}
@@ -465,7 +467,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.delete()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Live Streams API
@@ -505,7 +507,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -546,7 +548,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.post()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -572,7 +574,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.put()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   @doc """
@@ -599,7 +601,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.delete()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Members API
@@ -641,7 +643,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.get()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Thumbnails API
@@ -693,7 +695,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts
     |> Req.request()
-    |> handle_response()
+    |> handle_http_response("YouTube")
   end
 
   ## Utility Functions
@@ -738,7 +740,7 @@ defmodule Streampai.YouTube.ApiClient do
     params = %{part: "statistics", mine: true}
     req_opts = base_opts(access_token) ++ [url: "/channels", params: params]
 
-    case req_opts |> Req.get() |> handle_response() do
+    case req_opts |> Req.get() |> handle_http_response("YouTube") do
       {:ok, %{"items" => [channel | _]}} ->
         stats = get_in(channel, ["statistics"]) || %{}
 
@@ -791,7 +793,7 @@ defmodule Streampai.YouTube.ApiClient do
       receive_timeout: @default_timeout
     ]
 
-    case req_opts |> Req.get() |> handle_response() do
+    case req_opts |> Req.get() |> handle_http_response("YouTube") do
       {:ok, %{"rows" => [[views, _watch_time] | _]}} ->
         # Note: Unique viewers is not available via YouTube Analytics API
         # It's only available in YouTube Studio interface
@@ -835,7 +837,7 @@ defmodule Streampai.YouTube.ApiClient do
 
     req_opts = base_opts(access_token) ++ [url: "/members", params: params]
 
-    case req_opts |> Req.get() |> handle_response() do
+    case req_opts |> Req.get() |> handle_http_response("YouTube") do
       {:ok, %{"items" => items, "nextPageToken" => next_token}} when is_list(items) ->
         count_members(access_token, next_token, acc + length(items))
 
@@ -893,20 +895,5 @@ defmodule Streampai.YouTube.ApiClient do
       {key, value} when is_atom(key) -> {Atom.to_string(key), value}
       {key, value} -> {key, value}
     end)
-  end
-
-  # Handles HTTP responses consistently
-  defp handle_response({:ok, %{status: status, body: body}}) when status in 200..299 do
-    {:ok, body}
-  end
-
-  defp handle_response({:ok, %{status: status, body: body}}) do
-    Logger.warning("YouTube API request failed with status #{status}: #{inspect(body)}")
-    {:error, {:http_error, status, body}}
-  end
-
-  defp handle_response({:error, reason}) do
-    Logger.error("YouTube API request failed: #{inspect(reason)}")
-    {:error, reason}
   end
 end
