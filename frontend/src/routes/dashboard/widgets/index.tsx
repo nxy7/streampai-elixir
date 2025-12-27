@@ -7,7 +7,10 @@ import {
 	getWidgetCategories,
 	type WidgetCatalogEntry,
 } from "~/lib/widget-registry";
-import { badge, button, card, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
+import Button from "~/components/ui/Button";
+import Card from "~/components/ui/Card";
+import Badge from "~/components/ui/Badge";
 
 // Get widgets and categories from the central registry
 const widgets = getWidgetCatalog();
@@ -56,43 +59,41 @@ export default function Widgets() {
 					}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Header */}
-						<div class={card.default}>
+						<Card>
 							<h1 class={text.h1}>Stream Widgets</h1>
 							<p class={`${text.muted} mt-2`}>
 								Customize your stream with beautiful, interactive widgets for
 								OBS
 							</p>
-						</div>
+						</Card>
 
 						{/* Category Filter */}
-						<div class={card.default}>
+						<Card>
 							<div class="flex flex-wrap gap-2">
 								<For each={categories}>
 									{(category) => (
-										<button
+										<Button
 											type="button"
-											class={
+											variant={
 												selectedCategory() === category.value
-													? button.primary
-													: button.secondary
+													? "primary"
+													: "secondary"
 											}
 											onClick={() => setSelectedCategory(category.value)}>
 											{category.name}
-										</button>
+										</Button>
 									)}
 								</For>
 							</div>
-						</div>
+						</Card>
 
 						{/* Widgets Grid */}
 						<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 							<For each={filteredWidgets()}>
 								{(widget) => (
-									<div
-										class={
-											card.base +
-											"overflow-hidden transition-shadow hover:shadow-lg"
-										}>
+									<Card
+										padding="none"
+										class="overflow-hidden transition-shadow hover:shadow-lg">
 										{/* Widget Icon Header */}
 										<div class="bg-linear-to-r from-purple-500 to-pink-500 p-6 text-center">
 											<div class="mb-2 text-6xl">{widget.icon}</div>
@@ -104,12 +105,12 @@ export default function Widgets() {
 										{/* Widget Content */}
 										<div class="p-6">
 											<div class="mb-3 flex items-center gap-2">
-												<span class={badge.info}>{widget.category}</span>
+												<Badge variant="info">{widget.category}</Badge>
 												<Show when={widget.status === "coming-soon"}>
-													<span class={badge.warning}>Coming Soon</span>
+													<Badge variant="warning">Coming Soon</Badge>
 												</Show>
 												<Show when={widget.priority === "high"}>
-													<span class={badge.success}>Popular</span>
+													<Badge variant="success">Popular</Badge>
 												</Show>
 											</div>
 
@@ -121,23 +122,22 @@ export default function Widgets() {
 												<Show
 													when={widget.status === "available"}
 													fallback={
-														<button
-															type="button"
-															class={button.secondary}
-															disabled>
+														<Button type="button" variant="secondary" disabled>
 															Configure
-														</button>
+														</Button>
 													}>
-													<A
+													<Button
+														as="link"
 														href={widget.settingsRoute}
-														class={`${button.primary} flex-1 text-center`}>
+														class="flex-1 text-center">
 														Configure
-													</A>
+													</Button>
 												</Show>
 												<Show when={widget.status === "available"}>
-													<a
+													<Button
+														as="a"
 														href={`${widget.displayRoute}/${user()?.id}`}
-														class={button.ghost}
+														variant="ghost"
 														target="_blank"
 														rel="noopener noreferrer">
 														<span class="sr-only">
@@ -156,11 +156,11 @@ export default function Widgets() {
 																d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
 															/>
 														</svg>
-													</a>
+													</Button>
 												</Show>
 											</div>
 										</div>
-									</div>
+									</Card>
 								)}
 							</For>
 						</div>

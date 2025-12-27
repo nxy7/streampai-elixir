@@ -1,4 +1,6 @@
 import { createSignal, Show } from "solid-js";
+import Badge, { type BadgeVariant } from "~/components/ui/Badge";
+import Card from "~/components/ui/Card";
 
 export interface StreamingAccountData {
 	platform:
@@ -32,6 +34,7 @@ const platformConfig = {
 		bgColor: "bg-red-50",
 		textColor: "text-red-700",
 		borderColor: "border-red-200",
+		badgeVariant: "error" as BadgeVariant,
 	},
 	twitch: {
 		name: "Twitch",
@@ -39,6 +42,7 @@ const platformConfig = {
 		bgColor: "bg-purple-50",
 		textColor: "text-purple-700",
 		borderColor: "border-purple-200",
+		badgeVariant: "purple" as BadgeVariant,
 	},
 	facebook: {
 		name: "Facebook",
@@ -46,6 +50,7 @@ const platformConfig = {
 		bgColor: "bg-blue-50",
 		textColor: "text-blue-700",
 		borderColor: "border-blue-200",
+		badgeVariant: "info" as BadgeVariant,
 	},
 	kick: {
 		name: "Kick",
@@ -53,6 +58,7 @@ const platformConfig = {
 		bgColor: "bg-green-50",
 		textColor: "text-green-700",
 		borderColor: "border-green-200",
+		badgeVariant: "success" as BadgeVariant,
 	},
 	tiktok: {
 		name: "TikTok",
@@ -60,6 +66,7 @@ const platformConfig = {
 		bgColor: "bg-gray-50",
 		textColor: "text-gray-700",
 		borderColor: "border-gray-200",
+		badgeVariant: "neutral" as BadgeVariant,
 	},
 	trovo: {
 		name: "Trovo",
@@ -67,6 +74,7 @@ const platformConfig = {
 		bgColor: "bg-teal-50",
 		textColor: "text-teal-700",
 		borderColor: "border-teal-200",
+		badgeVariant: "success" as BadgeVariant,
 	},
 	instagram: {
 		name: "Instagram",
@@ -74,6 +82,7 @@ const platformConfig = {
 		bgColor: "bg-pink-50",
 		textColor: "text-pink-700",
 		borderColor: "border-pink-200",
+		badgeVariant: "pink" as BadgeVariant,
 	},
 	rumble: {
 		name: "Rumble",
@@ -81,6 +90,7 @@ const platformConfig = {
 		bgColor: "bg-green-50",
 		textColor: "text-green-700",
 		borderColor: "border-green-200",
+		badgeVariant: "success" as BadgeVariant,
 	},
 };
 
@@ -163,10 +173,9 @@ export default function StreamingAccountStats(
 							<span class="font-semibold text-gray-900">
 								{props.data.accountName}
 							</span>
-							<span
-								class={`rounded-full px-2 py-0.5 text-xs ${config().bgColor} ${config().textColor}`}>
+							<Badge variant={config().badgeVariant} size="sm">
 								{config().name}
-							</span>
+							</Badge>
 						</div>
 						<div class="text-gray-500 text-sm">Connected</div>
 					</div>
@@ -231,30 +240,30 @@ export default function StreamingAccountStats(
 			</div>
 
 			<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<div class="rounded-lg bg-white p-3 shadow-sm">
+				<Card padding="sm" class="rounded-lg">
 					<div class="text-gray-500 text-xs uppercase">Sponsors</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.sponsorCount)}
 					</div>
-				</div>
-				<div class="rounded-lg bg-white p-3 shadow-sm">
+				</Card>
+				<Card padding="sm" class="rounded-lg">
 					<div class="text-gray-500 text-xs uppercase">Views (30d)</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.viewsLast30d)}
 					</div>
-				</div>
-				<div class="rounded-lg bg-white p-3 shadow-sm">
+				</Card>
+				<Card padding="sm" class="rounded-lg">
 					<div class="text-gray-500 text-xs uppercase">Followers</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.followerCount)}
 					</div>
-				</div>
-				<div class="rounded-lg bg-white p-3 shadow-sm">
+				</Card>
+				<Card padding="sm" class="rounded-lg">
 					<div class="text-gray-500 text-xs uppercase">Subscribers</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.subscriberCount)}
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			<div class="mt-3 flex items-center justify-between text-gray-500 text-xs">

@@ -9,6 +9,7 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
+import Badge from "~/components/ui/Badge";
 import {
 	Card,
 	Skeleton,
@@ -131,14 +132,19 @@ const formatTimelineTime = (stream: Livestream, position: number) => {
 	return formatDuration(seconds);
 };
 
-const platformBadgeColor = (platform: string) => {
-	const colors: Record<string, string> = {
-		twitch: "bg-purple-100 text-purple-800",
-		youtube: "bg-red-100 text-red-800",
-		facebook: "bg-blue-100 text-blue-800",
-		kick: "bg-green-100 text-green-800",
+const getPlatformBadgeVariant = (
+	platform: string,
+): "info" | "error" | "success" | "warning" | "neutral" => {
+	const variants: Record<
+		string,
+		"info" | "error" | "success" | "warning" | "neutral"
+	> = {
+		twitch: "info",
+		youtube: "error",
+		facebook: "info",
+		kick: "success",
 	};
-	return colors[platform.toLowerCase()] || "bg-gray-100 text-gray-800";
+	return variants[platform.toLowerCase()] || "neutral";
 };
 
 const platformName = (platform: string) => {
@@ -547,12 +553,9 @@ function StreamDetailContent(props: { streamId: string }) {
 						<div class="flex flex-wrap items-center gap-y-2 space-x-2 text-gray-600 text-sm">
 							<For each={stream()?.platforms || []}>
 								{(platform) => (
-									<span
-										class={`inline-flex items-center rounded px-2 py-1 font-medium text-xs ${platformBadgeColor(
-											platform,
-										)}`}>
+									<Badge variant={getPlatformBadgeVariant(platform)}>
 										{platformName(platform)}
-									</span>
+									</Badge>
 								)}
 							</For>
 							<span>{formatDate(stream()?.startedAt || "")}</span>
@@ -888,22 +891,18 @@ function StreamDetailContent(props: { streamId: string }) {
 															{message.senderUsername}
 														</span>
 														<Show when={message.platform}>
-															<span
-																class={`inline-flex items-center rounded px-1 py-0.5 font-medium text-xs ${platformBadgeColor(
+															<Badge
+																variant={getPlatformBadgeVariant(
 																	message.platform ?? "",
-																)}`}>
+																)}>
 																{platformInitial(message.platform ?? "")}
-															</span>
+															</Badge>
 														</Show>
 														<Show when={message.senderIsModerator}>
-															<span class="inline-flex items-center rounded bg-green-100 px-1 py-0.5 font-medium text-green-800 text-xs">
-																MOD
-															</span>
+															<Badge variant="success">MOD</Badge>
 														</Show>
 														<Show when={message.senderIsPatreon}>
-															<span class="inline-flex items-center rounded bg-purple-100 px-1 py-0.5 font-medium text-purple-800 text-xs">
-																SUB
-															</span>
+															<Badge variant="info">SUB</Badge>
 														</Show>
 													</div>
 													<p class="mt-0.5 text-gray-600 text-xs">

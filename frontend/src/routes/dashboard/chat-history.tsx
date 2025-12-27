@@ -8,10 +8,13 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
+import Badge from "~/components/ui/Badge";
+import Card from "~/components/ui/Card";
+import Input, { Select } from "~/components/ui/Input";
 import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getChatHistory } from "~/sdk/ash_rpc";
-import { badge, card, input, text } from "~/styles/design-system";
+import { text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type DateRange = "7days" | "30days" | "3months" | "";
@@ -21,7 +24,7 @@ function ChatHistorySkeleton() {
 	return (
 		<div class="mx-auto max-w-6xl space-y-6">
 			{/* Filters skeleton */}
-			<div class={card.default}>
+			<Card>
 				<Skeleton class="mb-4 h-6 w-20" />
 				<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 					<For each={[1, 2, 3]}>
@@ -33,10 +36,10 @@ function ChatHistorySkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 
 			{/* Messages skeleton */}
-			<div class={card.default}>
+			<Card>
 				<Skeleton class="mb-4 h-6 w-24" />
 				<div class="space-y-3">
 					<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
@@ -53,7 +56,7 @@ function ChatHistorySkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -203,22 +206,25 @@ function ChatHistoryContent(props: {
 		return date.toLocaleString();
 	};
 
-	const getPlatformBadgeColor = (platformName: string) => {
-		const colors = {
-			twitch: badge.info,
-			youtube: badge.error,
-			facebook: badge.info,
-			kick: badge.success,
+	const getPlatformBadgeVariant = (
+		platformName: string,
+	): "info" | "error" | "success" | "warning" | "neutral" => {
+		const variants: Record<
+			string,
+			"info" | "error" | "success" | "warning" | "neutral"
+		> = {
+			twitch: "info",
+			youtube: "error",
+			facebook: "info",
+			kick: "success",
 		};
-		return (
-			colors[platformName.toLowerCase() as keyof typeof colors] || badge.neutral
-		);
+		return variants[platformName.toLowerCase()] || "neutral";
 	};
 
 	return (
 		<div class="mx-auto max-w-6xl space-y-6">
 			{/* Filters Section */}
-			<div class={card.default}>
+			<Card>
 				<h3 class={`${text.h3} mb-4`}>Filters</h3>
 
 				<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -226,8 +232,8 @@ function ChatHistoryContent(props: {
 					<div>
 						<label class="block font-medium text-gray-700 text-sm">
 							Platform
-							<select
-								class={`mt-2 ${input.select}`}
+							<Select
+								class="mt-2"
 								value={props.platform()}
 								onChange={(e) => {
 									props.setPlatform(e.currentTarget.value as Platform);
@@ -237,7 +243,7 @@ function ChatHistoryContent(props: {
 								<option value="youtube">YouTube</option>
 								<option value="facebook">Facebook</option>
 								<option value="kick">Kick</option>
-							</select>
+							</Select>
 						</label>
 					</div>
 
@@ -245,8 +251,8 @@ function ChatHistoryContent(props: {
 					<div>
 						<label class="block font-medium text-gray-700 text-sm">
 							Date Range
-							<select
-								class={`mt-2 ${input.select}`}
+							<Select
+								class="mt-2"
 								value={props.dateRange()}
 								onChange={(e) => {
 									props.setDateRange(e.currentTarget.value as DateRange);
@@ -255,7 +261,7 @@ function ChatHistoryContent(props: {
 								<option value="7days">Last 7 Days</option>
 								<option value="30days">Last 30 Days</option>
 								<option value="3months">Last 3 Months</option>
-							</select>
+							</Select>
 						</label>
 					</div>
 
@@ -264,9 +270,9 @@ function ChatHistoryContent(props: {
 						<label class="block font-medium text-gray-700 text-sm">
 							Search
 							<form onSubmit={props.handleSearch}>
-								<input
+								<Input
 									type="text"
-									class={`mt-2 ${input.text}`}
+									class="mt-2"
 									placeholder="Search messages..."
 									value={props.searchInput()}
 									onInput={(e) => props.setSearchInput(e.currentTarget.value)}
@@ -281,17 +287,17 @@ function ChatHistoryContent(props: {
 					<div class="flex items-center gap-2 text-gray-600 text-sm">
 						<span class="font-medium">Active filters:</span>
 						<Show when={props.platform()}>
-							<span class={badge.info}>{props.platform()}</span>
+							<Badge variant="info">{props.platform()}</Badge>
 						</Show>
 						<Show when={props.dateRange()}>
-							<span class={badge.info}>
+							<Badge variant="info">
 								{props.dateRange() === "7days" && "Last 7 Days"}
 								{props.dateRange() === "30days" && "Last 30 Days"}
 								{props.dateRange() === "3months" && "Last 3 Months"}
-							</span>
+							</Badge>
 						</Show>
 						<Show when={props.search()}>
-							<span class={badge.info}>"{props.search()}"</span>
+							<Badge variant="info">"{props.search()}"</Badge>
 						</Show>
 						<button
 							type="button"
@@ -305,10 +311,10 @@ function ChatHistoryContent(props: {
 						</button>
 					</div>
 				</Show>
-			</div>
+			</Card>
 
 			{/* Messages List */}
-			<div class={card.default}>
+			<Card>
 				<h3 class={`${text.h3} mb-4`}>Messages</h3>
 
 				<Show
@@ -359,16 +365,14 @@ function ChatHistoryContent(props: {
 														{msg.senderUsername}
 													</A>
 												</Show>
-												<span class={getPlatformBadgeColor(msg.platform)}>
+												<Badge variant={getPlatformBadgeVariant(msg.platform)}>
 													{msg.platform}
-												</span>
+												</Badge>
 												<Show when={msg.senderIsModerator}>
-													<span class={badge.success}>MOD</span>
+													<Badge variant="success">MOD</Badge>
 												</Show>
 												<Show when={msg.senderIsPatreon}>
-													<span class="inline-flex items-center rounded-full bg-pink-100 px-2.5 py-0.5 font-medium text-pink-800 text-xs">
-														Patron
-													</span>
+													<Badge variant="warning">Patron</Badge>
 												</Show>
 												<span class={text.muted}>
 													{formatDate(msg.insertedAt as string)}
@@ -384,7 +388,7 @@ function ChatHistoryContent(props: {
 						</For>
 					</div>
 				</Show>
-			</div>
+			</Card>
 		</div>
 	);
 }
