@@ -5,66 +5,16 @@
 		"clientKind": "git",
 		"useIgnoreFile": true
 	},
-	"files": {
-		"ignoreUnknown": false,
-		"includes": ["frontend/**", "cdk/**"]
-	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
 	},
-	"css": {
-		"parser": {
-			"cssModules": true,
-			"tailwindDirectives": true
-		},
-		"linter": {
-			"enabled": false
-		},
-		"formatter": {
-			"enabled": false
-		}
-	},
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
-			"nursery": {
-				"useSortedClasses": "error"
-			}
+			"recommended": true
 		}
 	},
-	"overrides": [
-		{
-			"includes": ["frontend/**/*.stories.tsx"],
-			"linter": {
-				"rules": {
-					"a11y": {
-						"noSvgWithoutTitle": "off"
-					},
-					"suspicious": {
-						"noShadowRestrictedNames": "off"
-					}
-				}
-			}
-		},
-		{
-			"includes": ["frontend/src/sdk/**"],
-			"linter": {
-				"enabled": false
-			}
-		},
-		{
-			"includes": ["cdk/**"],
-			"linter": {
-				"rules": {
-					"nursery": {
-						"useSortedClasses": "off"
-					}
-				}
-			}
-		}
-	],
 	"javascript": {
 		"formatter": {
 			"enabled": true,

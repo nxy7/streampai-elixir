@@ -1,0 +1,47 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+	"extends": ["../biome.json"],
+	"files": {
+		"ignoreUnknown": false
+	},
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"tailwindDirectives": true
+		},
+		"linter": {
+			"enabled": false
+		},
+		"formatter": {
+			"enabled": false
+		}
+	},
+	"linter": {
+		"rules": {
+			"nursery": {
+				"useSortedClasses": "error"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.stories.tsx"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noSvgWithoutTitle": "off"
+					},
+					"suspicious": {
+						"noShadowRestrictedNames": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/sdk/**"],
+			"linter": {
+				"enabled": false
+			}
+		}
+	]
+}

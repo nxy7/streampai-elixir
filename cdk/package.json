@@ -17,8 +17,8 @@
 		"destroy": "bunx cdktf destroy",
 		"diff": "bunx cdktf diff",
 		"plan": "bunx cdktf diff",
-		"format": "cd .. && bunx biome format --write cdk/",
-		"lint": "cd .. && bunx biome check cdk/"
+		"format": "bunx biome format --write .",
+		"lint": "bunx biome check ."
 	},
 	"engines": {
 		"node": ">=18.0"
