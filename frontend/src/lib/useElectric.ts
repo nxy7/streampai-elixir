@@ -482,10 +482,15 @@ export function useNotificationsWithReadStatus(
 	userId: () => string | undefined,
 ): {
 	data: () => NotificationWithReadStatus[];
-	unreadCount: () => number;
+	unreadCount: () => number | null;
+	isLoading: () => boolean;
 } {
 	const notificationsQuery = useNotifications(userId);
 	const readsQuery = useNotificationReads(userId);
+
+	const isLoading = createMemo(
+		() => notificationsQuery.isLoading() || readsQuery.isLoading(),
+	);
 
 	return {
 		data: createMemo((): NotificationWithReadStatus[] => {
@@ -508,11 +513,14 @@ export function useNotificationsWithReadStatus(
 				);
 		}),
 		unreadCount: createMemo(() => {
+			// Return null while either shape is still loading to prevent blinking
+			if (isLoading()) return null;
 			const notifications = notificationsQuery.data();
 			const reads = readsQuery.data();
 			const readIds = new Set(reads.map((r) => r.notification_id));
 			return notifications.filter((n) => !readIds.has(n.id)).length;
 		}),
+		isLoading,
 	};
 }
 
