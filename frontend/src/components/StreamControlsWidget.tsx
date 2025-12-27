@@ -492,13 +492,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		return sorted.slice(-MAX_ACTIVITIES);
 	});
 
-	// Track sticky items based on time
+	// Track sticky items based on time (max 3 most recent, 2 minute default duration)
+	const MAX_STICKY_ITEMS = 3;
 	createEffect(() => {
-		const duration = props.stickyDuration || 30000;
+		const duration = props.stickyDuration || 120000; // 2 minutes default
 		const now = Date.now();
 
 		// Find important items that are within the sticky duration
-		const newStickyIds = new Set<string>();
+		const stickyItems: { id: string; time: number }[] = [];
 		for (const item of props.activities) {
 			if (isImportantEvent(item.type) && item.isImportant !== false) {
 				const itemTime =
@@ -506,10 +507,15 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						? item.timestamp.getTime()
 						: new Date(item.timestamp).getTime();
 				if (now - itemTime < duration) {
-					newStickyIds.add(item.id);
+					stickyItems.push({ id: item.id, time: itemTime });
 				}
 			}
 		}
+		// Sort by time descending (most recent first) and take top 3
+		stickyItems.sort((a, b) => b.time - a.time);
+		const newStickyIds = new Set(
+			stickyItems.slice(0, MAX_STICKY_ITEMS).map((s) => s.id),
+		);
 		setStickyItemIds(newStickyIds);
 
 		// Set up cleanup timer
