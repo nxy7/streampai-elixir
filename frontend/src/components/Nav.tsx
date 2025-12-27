@@ -1,5 +1,6 @@
 import { A, useLocation } from "@solidjs/router";
 import { Show } from "solid-js";
+import { useTranslation } from "~/i18n";
 import {
 	getDashboardUrl,
 	getLoginUrl,
@@ -8,6 +9,7 @@ import {
 } from "~/lib/auth";
 
 export default function Nav() {
+	const { t } = useTranslation();
 	const location = useLocation();
 	const { user, isLoading } = useCurrentUser();
 
@@ -21,10 +23,10 @@ export default function Nav() {
 			<div class="container flex items-center justify-between p-3 text-gray-200">
 				<ul class="flex items-center">
 					<li class={`border-b-2 ${active("/")} mx-1.5 sm:mx-6`}>
-						<A href="/">Home</A>
+						<A href="/">{t("nav.home")}</A>
 					</li>
 					<li class={`border-b-2 ${active("/about")} mx-1.5 sm:mx-6`}>
-						<A href="/about">About</A>
+						<A href="/about">{t("nav.about")}</A>
 					</li>
 				</ul>
 
@@ -37,7 +39,7 @@ export default function Nav() {
 									<a
 										href={getLoginUrl()}
 										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700">
-										Sign In
+										{t("nav.signIn")}
 									</a>
 									<a
 										href={getLoginUrl("google")}
@@ -60,7 +62,7 @@ export default function Nav() {
 												d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 											/>
 										</svg>
-										Google
+										{t("nav.google")}
 									</a>
 									<a
 										href={getLoginUrl("twitch")}
@@ -72,27 +74,27 @@ export default function Nav() {
 											viewBox="0 0 24 24">
 											<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
 										</svg>
-										Twitch
+										{t("nav.twitch")}
 									</a>
 								</div>
 							}>
 							{(currentUser) => (
 								<div class="flex items-center gap-3">
 									<span class="text-sm">
-										Welcome,{" "}
-										<strong>{currentUser().name || currentUser().email}</strong>
-										!
+										{t("nav.welcome", {
+											name: currentUser().name || currentUser().email || "",
+										})}
 									</span>
 									<A
 										href={getDashboardUrl()}
 										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700">
-										Dashboard
+										{t("nav.dashboard")}
 									</A>
 									<a
 										href={getLogoutUrl()}
 										rel="external"
 										class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700">
-										Sign Out
+										{t("nav.signOut")}
 									</a>
 								</div>
 							)}

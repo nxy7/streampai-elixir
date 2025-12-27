@@ -1,16 +1,19 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
+import PublicFooter from "~/components/PublicFooter";
+import { useTranslation } from "~/i18n";
 import { getDashboardUrl, getLoginUrl, useCurrentUser } from "~/lib/auth";
 
-const navItems = [
-	{ url: "#features", label: "Features" },
-	{ url: "#about", label: "About" },
-];
-
 function LandingNavigation() {
+	const { t } = useTranslation();
 	const { user, isLoading: isUserLoading } = useCurrentUser();
 	const [mobileMenuOpen, setMobileMenuOpen] = createSignal(false);
+
+	const navItems = [
+		{ url: "#features", labelKey: "landing.features" },
+		{ url: "#about", labelKey: "landing.about" },
+	];
 
 	return (
 		<nav class="relative z-50 border-white/10 border-b bg-black/20">
@@ -32,7 +35,7 @@ function LandingNavigation() {
 							<a
 								href={item.url}
 								class="text-gray-300 transition-colors hover:text-white">
-								{item.label}
+								{t(item.labelKey)}
 							</a>
 						))}
 						<Show when={!isUserLoading()}>
@@ -42,13 +45,13 @@ function LandingNavigation() {
 									<a
 										href={getLoginUrl()}
 										class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600">
-										Get Started
+										{t("landing.getStarted")}
 									</a>
 								}>
 								<A
 									href={getDashboardUrl()}
 									class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600">
-									Dashboard
+									{t("nav.dashboard")}
 								</A>
 							</Show>
 						</Show>
@@ -83,7 +86,7 @@ function LandingNavigation() {
 								<a
 									href={item.url}
 									class="block py-2 text-gray-300 hover:text-white">
-									{item.label}
+									{t(item.labelKey)}
 								</a>
 							))}
 							<Show when={!isUserLoading()}>
@@ -94,13 +97,13 @@ function LandingNavigation() {
 											<a
 												href={getLoginUrl()}
 												class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600">
-												Get Started
+												{t("landing.getStarted")}
 											</a>
 										}>
 										<A
 											href={getDashboardUrl()}
 											class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600">
-											Dashboard
+											{t("nav.dashboard")}
 										</A>
 									</Show>
 								</div>
@@ -114,6 +117,7 @@ function LandingNavigation() {
 }
 
 function LandingHero() {
+	const { t } = useTranslation();
 	const [email, setEmail] = createSignal("");
 	const [message, setMessage] = createSignal<string | null>(null);
 	const [error, setError] = createSignal<string | null>(null);
@@ -127,7 +131,7 @@ function LandingHero() {
 
 		// TODO: Implement newsletter signup via RPC
 		setTimeout(() => {
-			setMessage("Your email has been added to our newsletter");
+			setMessage(t("landing.newsletterSuccess"));
 			setLoading(false);
 			setEmail("");
 			setTimeout(() => setMessage(null), 7000);
@@ -140,12 +144,12 @@ function LandingHero() {
 			<div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
 				<div class="text-center">
 					<h1 class="mb-8 font-bold text-5xl text-white md:text-7xl">
-						Stream to{" "}
+						{t("landing.heroTitle1")}{" "}
 						<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-							Everyone
+							{t("landing.heroTitle2")}
 						</span>
 						<br />
-						at Once
+						{t("landing.heroTitle3")}
 					</h1>
 
 					<div class="mx-auto mb-8 max-w-2xl rounded-2xl border border-yellow-500/30 bg-linear-to-r from-yellow-500/20 to-orange-500/20 p-6 backdrop-blur-lg">
@@ -164,13 +168,11 @@ function LandingHero() {
 								/>
 							</svg>
 							<h2 class="font-bold text-2xl text-yellow-400">
-								Under Construction
+								{t("landing.underConstruction")}
 							</h2>
 						</div>
 						<p class="mb-6 text-center text-lg text-white">
-							We're building something amazing! Streampai is currently under
-							development. Join our newsletter to be the first to know when we
-							launch.
+							{t("landing.underConstructionText")}
 						</p>
 
 						<form
@@ -180,7 +182,7 @@ function LandingHero() {
 								type="email"
 								value={email()}
 								onInput={(e) => setEmail(e.currentTarget.value)}
-								placeholder="Enter your email address"
+								placeholder={t("landing.emailPlaceholder")}
 								required
 								class="flex-1 rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
 							/>
@@ -188,7 +190,7 @@ function LandingHero() {
 								type="submit"
 								disabled={loading()}
 								class="transform rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-xl transition-all hover:scale-105 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50">
-								{loading() ? "Submitting..." : "Notify Me"}
+								{loading() ? t("landing.submitting") : t("landing.notifyMe")}
 							</button>
 						</form>
 
@@ -206,9 +208,7 @@ function LandingHero() {
 					</div>
 
 					<p class="mx-auto mb-12 max-w-3xl text-gray-300 text-xl leading-relaxed">
-						Connect all your streaming platforms, unify your audience, and
-						supercharge your content with AI-powered tools. Stream to Twitch,
-						YouTube, Kick, Facebook and more simultaneously.
+						{t("landing.heroDescription")}
 					</p>
 
 					<div class="flex flex-wrap items-center justify-center gap-8 opacity-70">
@@ -270,7 +270,7 @@ function LandingHero() {
 									/>
 								</svg>
 							</div>
-							<span class="font-medium text-white">More</span>
+							<span class="font-medium text-white">{t("landing.more")}</span>
 						</div>
 					</div>
 				</div>
@@ -288,20 +288,21 @@ function LandingHero() {
 }
 
 function LandingFeatures() {
+	const { t } = useTranslation();
+
 	return (
 		<>
 			<section id="features" class="bg-black/20 py-24">
 				<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div class="mb-20 text-center">
 						<h2 class="mb-6 font-bold text-4xl text-white md:text-5xl">
-							Everything You Need to{" "}
+							{t("landing.featuresTitle1")}{" "}
 							<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-								Dominate
+								{t("landing.featuresTitle2")}
 							</span>
 						</h2>
 						<p class="mx-auto max-w-3xl text-gray-300 text-xl">
-							Powerful tools designed for serious streamers who want to grow
-							their audience across all platforms
+							{t("landing.featuresSubtitle")}
 						</p>
 					</div>
 
@@ -324,12 +325,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									Multi-Platform Streaming
+									{t("landing.multiPlatformTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Stream to Twitch, YouTube, Kick, Facebook, and more
-								simultaneously. One stream, maximum reach.
+								{t("landing.multiPlatformDescription")}
 							</p>
 						</div>
 
@@ -351,12 +351,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									Unified Chat Management
+									{t("landing.unifiedChatTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Merge all platform chats into one stream. Never miss a message
-								from any platform again.
+								{t("landing.unifiedChatDescription")}
 							</p>
 						</div>
 
@@ -378,12 +377,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									Real-time Analytics
+									{t("landing.analyticsTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Track viewers, engagement, revenue, and growth across all
-								platforms in one beautiful dashboard.
+								{t("landing.analyticsDescription")}
 							</p>
 						</div>
 
@@ -405,12 +403,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									AI-Powered Moderation
+									{t("landing.moderationTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Auto-moderation with custom rules, spam detection, and toxicity
-								filtering across all platforms.
+								{t("landing.moderationDescription")}
 							</p>
 						</div>
 
@@ -432,12 +429,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									Custom Stream Widgets
+									{t("landing.widgetsTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Beautiful, customizable widgets for donations, follows, chat,
-								and more. Perfect for your brand.
+								{t("landing.widgetsDescription")}
 							</p>
 						</div>
 
@@ -459,12 +455,11 @@ function LandingFeatures() {
 									</svg>
 								</div>
 								<h3 class="grow font-bold text-white text-xl">
-									Team & Moderator Tools
+									{t("landing.teamTitle")}
 								</h3>
 							</div>
 							<p class="text-gray-300 leading-relaxed">
-								Powerful moderator dashboard, team management, and collaborative
-								stream management tools.
+								{t("landing.teamDescription")}
 							</p>
 						</div>
 					</div>
@@ -476,39 +471,27 @@ function LandingFeatures() {
 					<div class="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
 						<div>
 							<h2 class="mb-8 font-bold text-4xl text-white md:text-5xl">
-								Built by Streamers,{" "}
+								{t("landing.aboutTitle1")}{" "}
 								<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-									for Streamers
+									{t("landing.aboutTitle2")}
 								</span>
 							</h2>
 							<div class="space-y-6 text-gray-300 text-lg">
-								<p>
-									We understand the struggle of managing multiple streaming
-									platforms. That's why we created Streampai - the ultimate
-									solution for content creators who want to maximize their reach
-									without the complexity.
-								</p>
-								<p>
-									Gone are the days of juggling multiple chat windows, donation
-									alerts, and analytics dashboards. Streampai brings everything
-									together in one powerful, intuitive platform that scales with
-									your growth.
-								</p>
-								<p>
-									Whether you're a weekend warrior or a full-time content
-									creator, our AI-powered tools help you focus on what matters
-									most: creating amazing content and building your community.
-								</p>
+								<p>{t("landing.aboutParagraph1")}</p>
+								<p>{t("landing.aboutParagraph2")}</p>
+								<p>{t("landing.aboutParagraph3")}</p>
 							</div>
 
 							<div class="mt-12 grid grid-cols-2 gap-8">
 								<div class="text-center">
 									<div class="mb-2 font-bold text-3xl text-purple-400">5+</div>
-									<div class="text-gray-300">Platform Integrations</div>
+									<div class="text-gray-300">
+										{t("landing.platformIntegrations")}
+									</div>
 								</div>
 								<div class="text-center">
 									<div class="mb-2 font-bold text-3xl text-pink-400">99.9%</div>
-									<div class="text-gray-300">Uptime</div>
+									<div class="text-gray-300">{t("landing.uptime")}</div>
 								</div>
 							</div>
 						</div>
@@ -533,10 +516,11 @@ function LandingFeatures() {
 											</svg>
 										</div>
 										<div>
-											<h4 class="font-semibold text-white">Real-time Sync</h4>
+											<h4 class="font-semibold text-white">
+												{t("landing.realTimeSync")}
+											</h4>
 											<p class="text-gray-300">
-												Chat and events synchronized across all platforms
-												instantly
+												{t("landing.realTimeSyncDescription")}
 											</p>
 										</div>
 									</div>
@@ -559,11 +543,10 @@ function LandingFeatures() {
 										</div>
 										<div>
 											<h4 class="font-semibold text-white">
-												Advanced Analytics
+												{t("landing.advancedAnalytics")}
 											</h4>
 											<p class="text-gray-300">
-												Deep insights into viewer behavior and engagement
-												patterns
+												{t("landing.advancedAnalyticsDescription")}
 											</p>
 										</div>
 									</div>
@@ -586,10 +569,10 @@ function LandingFeatures() {
 										</div>
 										<div>
 											<h4 class="font-semibold text-white">
-												AI-Powered Growth
+												{t("landing.aiPoweredGrowth")}
 											</h4>
 											<p class="text-gray-300">
-												Smart recommendations to optimize your content strategy
+												{t("landing.aiPoweredGrowthDescription")}
 											</p>
 										</div>
 									</div>
@@ -606,60 +589,17 @@ function LandingFeatures() {
 }
 
 function LandingCTA() {
+	const { t } = useTranslation();
+
 	return (
 		<section class="bg-linear-to-r from-purple-600/20 to-pink-600/20 py-24">
 			<div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
 				<h2 class="mb-6 font-bold text-4xl text-white md:text-5xl">
-					Ready to Level Up Your Stream?
+					{t("landing.ctaTitle")}
 				</h2>
-				<p class="text-gray-300 text-xl">
-					Join streamers who are already growing their audience with Streampai
-				</p>
+				<p class="text-gray-300 text-xl">{t("landing.ctaSubtitle")}</p>
 			</div>
 		</section>
-	);
-}
-
-function LandingFooter() {
-	const currentYear = new Date().getFullYear();
-
-	return (
-		<footer class="border-white/10 border-t bg-black/40 py-12">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="flex flex-col items-center justify-between md:flex-row">
-					<div class="mb-4 flex items-center space-x-2 md:mb-0">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-8 w-8"
-						/>
-						<span class="font-bold text-white text-xl">Streampai</span>
-					</div>
-
-					<div class="flex space-x-6 text-gray-300">
-						<A href="/privacy" class="transition-colors hover:text-white">
-							Privacy
-						</A>
-						<A href="/terms" class="transition-colors hover:text-white">
-							Terms
-						</A>
-						<A href="/support" class="transition-colors hover:text-white">
-							Support
-						</A>
-						<A href="/contact" class="transition-colors hover:text-white">
-							Contact
-						</A>
-					</div>
-				</div>
-
-				<div class="mt-8 border-white/10 border-t pt-8 text-center text-gray-400">
-					<p>
-						&copy; {currentYear} Streampai. All rights reserved. Made with ❤️ for
-						streamers.
-					</p>
-				</div>
-			</div>
-		</footer>
 	);
 }
 
@@ -672,7 +612,7 @@ export default function Home() {
 				<LandingHero />
 				<LandingFeatures />
 				<LandingCTA />
-				<LandingFooter />
+				<PublicFooter showTagline />
 			</div>
 		</>
 	);

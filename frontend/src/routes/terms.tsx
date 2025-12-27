@@ -1,191 +1,89 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
+import PublicFooter from "~/components/PublicFooter";
+import PublicHeader from "~/components/PublicHeader";
+import { useTranslation } from "~/i18n";
 
 export const route = {
 	prerender: true,
 };
 
-function PageHeader(props: { title: string }) {
-	return (
-		<nav class="border-white/10 border-b bg-black/20">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="flex items-center justify-between py-4">
-					<A href="/" class="flex items-center space-x-2">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-8 w-8"
-						/>
-						<span class="font-bold text-white text-xl">Streampai</span>
-					</A>
-					<h1 class="font-semibold text-white text-xl">{props.title}</h1>
-				</div>
-			</div>
-		</nav>
-	);
-}
-
-function PageFooter() {
-	const currentYear = new Date().getFullYear();
-
-	return (
-		<footer class="border-white/10 border-t bg-black/40 py-8">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-					<A href="/" class="flex items-center space-x-2">
-						<img
-							src="/images/logo-white.png"
-							alt="Streampai Logo"
-							class="h-6 w-6"
-						/>
-						<span class="font-bold text-white">Streampai</span>
-					</A>
-					<div class="flex space-x-6 text-gray-300 text-sm">
-						<A href="/privacy" class="transition-colors hover:text-white">
-							Privacy
-						</A>
-						<A href="/terms" class="transition-colors hover:text-white">
-							Terms
-						</A>
-						<A href="/support" class="transition-colors hover:text-white">
-							Support
-						</A>
-						<A href="/contact" class="transition-colors hover:text-white">
-							Contact
-						</A>
-					</div>
-				</div>
-				<div class="mt-6 text-center text-gray-400 text-sm">
-					<p>&copy; {currentYear} Streampai. All rights reserved.</p>
-				</div>
-			</div>
-		</footer>
-	);
-}
-
 export default function Terms() {
+	const { t } = useTranslation();
+
 	return (
 		<>
-			<Title>Terms of Service - Streampai</Title>
+			<Title>{t("terms.title")} - Streampai</Title>
 			<div class="flex min-h-screen flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-				<PageHeader title="Terms of Service" />
+				<PublicHeader title={t("terms.title")} />
 
 				<main class="flex-1 py-12">
 					<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 						<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 							<div class="prose prose-invert max-w-none">
-								<p class="mb-6 text-gray-300">Last updated: December 2024</p>
+								<p class="mb-6 text-gray-300">{t("terms.lastUpdated")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									1. Acceptance of Terms
+									{t("terms.section1Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									By accessing or using Streampai's services, you agree to be
-									bound by these Terms of Service. If you do not agree to these
-									terms, please do not use our services.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section1Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									2. Description of Service
+									{t("terms.section2Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									Streampai provides a multi-platform streaming management
-									solution that allows users to stream content to multiple
-									platforms simultaneously, manage unified chat, and access
-									analytics across platforms.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section2Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									3. User Accounts
+									{t("terms.section3Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									You are responsible for maintaining the confidentiality of
-									your account credentials and for all activities that occur
-									under your account. You must notify us immediately of any
-									unauthorized use of your account.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section3Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									4. Acceptable Use
+									{t("terms.section4Title")}
 								</h2>
-								<p class="mb-4 text-gray-300">You agree not to:</p>
+								<p class="mb-4 text-gray-300">{t("terms.section4Intro")}</p>
 								<ul class="mb-6 list-disc space-y-2 pl-6 text-gray-300">
-									<li>
-										Use the service for any illegal or unauthorized purpose
-									</li>
-									<li>
-										Violate any laws in your jurisdiction, including copyright
-										laws
-									</li>
-									<li>Transmit harmful content or malware</li>
-									<li>
-										Interfere with or disrupt the service or servers connected
-										to the service
-									</li>
-									<li>
-										Attempt to gain unauthorized access to any part of the
-										service
-									</li>
+									<li>{t("terms.section4Item1")}</li>
+									<li>{t("terms.section4Item2")}</li>
+									<li>{t("terms.section4Item3")}</li>
+									<li>{t("terms.section4Item4")}</li>
+									<li>{t("terms.section4Item5")}</li>
 								</ul>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									5. Content Responsibility
+									{t("terms.section5Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									You are solely responsible for the content you stream, share,
-									or distribute through our platform. You retain all ownership
-									rights to your content, but grant us a license to display and
-									distribute it through our service.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section5Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									6. Third-Party Integrations
+									{t("terms.section6Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									Our service integrates with third-party platforms such as
-									Twitch, YouTube, and others. Your use of these platforms is
-									subject to their respective terms of service and privacy
-									policies.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section6Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									7. Limitation of Liability
+									{t("terms.section7Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									Streampai shall not be liable for any indirect, incidental,
-									special, consequential, or punitive damages resulting from
-									your use of or inability to use the service.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section7Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									8. Modifications to Terms
+									{t("terms.section8Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									We reserve the right to modify these terms at any time. We
-									will notify users of any material changes via email or through
-									the service. Continued use of the service after such changes
-									constitutes acceptance of the new terms.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section8Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									9. Termination
+									{t("terms.section9Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">
-									We may terminate or suspend your account and access to the
-									service immediately, without prior notice, for conduct that we
-									believe violates these Terms of Service or is harmful to other
-									users, us, or third parties.
-								</p>
+								<p class="mb-6 text-gray-300">{t("terms.section9Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
-									10. Contact Information
+									{t("terms.section10Title")}
 								</h2>
 								<p class="text-gray-300">
-									If you have any questions about these Terms of Service, please{" "}
+									{t("terms.section10Text")}{" "}
 									<A
 										href="/contact"
 										class="text-purple-400 hover:text-purple-300">
-										contact us
+										{t("terms.contactUs")}
 									</A>
 									.
 								</p>
@@ -194,7 +92,7 @@ export default function Terms() {
 					</div>
 				</main>
 
-				<PageFooter />
+				<PublicFooter />
 			</div>
 		</>
 	);
