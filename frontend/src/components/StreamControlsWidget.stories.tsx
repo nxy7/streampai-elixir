@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import StreamControlsWidget, {
 	type ActivityItem,
@@ -463,41 +463,50 @@ function InteractiveLiveWrapper() {
 	const [duration, setDuration] = createSignal(0);
 	const [viewers, setViewers] = createSignal(100);
 
-	// Simulate stream timer
-	setInterval(() => {
-		setDuration((d) => d + 1);
-	}, 1000);
+	// Use onMount to set up intervals properly in SolidJS
+	onMount(() => {
+		// Simulate stream timer
+		const timerInterval = setInterval(() => {
+			setDuration((d) => d + 1);
+		}, 1000);
 
-	// Simulate random activity - 1 event per second, added at the END (newest at bottom)
-	setInterval(() => {
-		const types: ActivityItem["type"][] = [
-			"chat",
-			"chat",
-			"chat",
-			"follow",
-			"donation",
-		];
-		const type = types[Math.floor(Math.random() * types.length)];
-		const newActivity: ActivityItem = {
-			id: `sim-${Date.now()}`,
-			type,
-			username: `User${Math.floor(Math.random() * 1000)}`,
-			message:
-				type === "chat"
-					? "Random chat message!"
-					: type === "donation"
-						? "Thanks for the stream!"
-						: undefined,
-			amount: type === "donation" ? Math.floor(Math.random() * 50) + 1 : undefined,
-			currency: "$",
-			platform: ["twitch", "youtube", "kick"][Math.floor(Math.random() * 3)],
-			timestamp: new Date(),
-			isImportant: type === "donation",
-		};
-		// Append to end (newest events at bottom)
-		setActivities((a) => [...a, newActivity].slice(-100)); // Keep last 100
-		setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
-	}, 1000); // 1 event per second
+		// Simulate random activity - 1 event per second, added at the END (newest at bottom)
+		const activityInterval = setInterval(() => {
+			const types: ActivityItem["type"][] = [
+				"chat",
+				"chat",
+				"chat",
+				"follow",
+				"donation",
+			];
+			const type = types[Math.floor(Math.random() * types.length)];
+			const newActivity: ActivityItem = {
+				id: `sim-${Date.now()}`,
+				type,
+				username: `User${Math.floor(Math.random() * 1000)}`,
+				message:
+					type === "chat"
+						? "Random chat message!"
+						: type === "donation"
+							? "Thanks for the stream!"
+							: undefined,
+				amount: type === "donation" ? Math.floor(Math.random() * 50) + 1 : undefined,
+				currency: "$",
+				platform: ["twitch", "youtube", "kick"][Math.floor(Math.random() * 3)],
+				timestamp: new Date(),
+				isImportant: type === "donation",
+			};
+			// Append to end (newest events at bottom)
+			setActivities((a) => [...a, newActivity].slice(-100)); // Keep last 100
+			setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
+		}, 1000); // 1 event per second
+
+		// Cleanup intervals when component unmounts
+		onCleanup(() => {
+			clearInterval(timerInterval);
+			clearInterval(activityInterval);
+		});
+	});
 
 	const handleSendMessage = (message: string, platforms: Platform[]) => {
 		// Add the sent message to the activity feed (at the end, since it's newest)
