@@ -10,6 +10,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   alias Streampai.LivestreamManager.CloudflareManager
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.StreamEvents
+  alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Stream.MetadataHelper
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
@@ -302,6 +303,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       "viewer_counts:#{state.user_id}",
       {:viewer_update, :youtube, viewer_count}
     )
+
+    # Update StreamActor with viewer count
+    UserStreamManager.update_stream_actor_viewers(state.user_id, :youtube, viewer_count)
 
     {:noreply, %{state | viewer_count: viewer_count}}
   end

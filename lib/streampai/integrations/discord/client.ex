@@ -59,6 +59,10 @@ defmodule Streampai.Integrations.Discord.Client do
   @doc """
   Sends a raw message payload to a Discord webhook.
   """
+  def send_webhook(webhook_url, _payload) when not is_binary(webhook_url) do
+    {:error, :invalid_webhook_url}
+  end
+
   def send_webhook(webhook_url, payload) when is_binary(webhook_url) do
     if valid_webhook_url?(webhook_url) do
       do_send_webhook(webhook_url, payload)
@@ -121,7 +125,7 @@ defmodule Streampai.Integrations.Discord.Client do
       end
 
     fields =
-      if webhook.include_message and Map.get(data, :message) and data.message != "" do
+      if webhook.include_message and not is_nil(Map.get(data, :message)) and data.message != "" do
         [%{name: "Message", value: data.message, inline: false} | fields]
       else
         fields

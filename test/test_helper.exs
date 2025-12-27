@@ -28,6 +28,8 @@ ExUnit.configure(
     # Exclude slow tests by default
     :slow,
     # Exclude external integration tests by default (require credentials)
-    :external
+    :external,
+    # Exclude integration tests that require frontend routes
+    :integration
   ]
 )
