@@ -797,72 +797,93 @@ export default function Settings() {
 										Streaming Platforms
 									</p>
 
-									<Show when={streamingAccounts.data().length > 0}>
-										<div class="mb-4 space-y-3">
-											<For each={streamingAccounts.data()}>
-												{(account) => (
-													<StreamingAccountStats
-														data={{
-															platform: account.platform,
-															accountName:
-																account.extra_data?.name ||
-																account.extra_data?.nickname ||
-																account.platform,
-															accountImage: account.extra_data?.image || null,
-															sponsorCount: account.sponsor_count,
-															viewsLast30d: account.views_last_30d,
-															followerCount: account.follower_count,
-															subscriberCount: account.subscriber_count,
-															statsLastRefreshedAt:
-																account.stats_last_refreshed_at,
-														}}
-														onRefresh={() =>
-															handleRefreshStats(account.platform)
-														}
-														onDisconnect={() =>
-															handleDisconnectAccount(account.platform)
-														}
-													/>
+									<Show
+										when={!streamingAccounts.isLoading()}
+										fallback={
+											<div class="space-y-2">
+												<For each={[1, 2]}>
+													{() => (
+														<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+															<div class="flex items-center space-x-3">
+																<Skeleton class="h-10 w-10 rounded-lg" />
+																<div class="space-y-1">
+																	<Skeleton class="h-4 w-20" />
+																	<Skeleton class="h-3 w-16" />
+																</div>
+															</div>
+															<Skeleton class="h-8 w-20 rounded-lg" />
+														</div>
+													)}
+												</For>
+											</div>
+										}>
+										<Show when={streamingAccounts.data().length > 0}>
+											<div class="mb-4 space-y-3">
+												<For each={streamingAccounts.data()}>
+													{(account) => (
+														<StreamingAccountStats
+															data={{
+																platform: account.platform,
+																accountName:
+																	account.extra_data?.name ||
+																	account.extra_data?.nickname ||
+																	account.platform,
+																accountImage: account.extra_data?.image || null,
+																sponsorCount: account.sponsor_count,
+																viewsLast30d: account.views_last_30d,
+																followerCount: account.follower_count,
+																subscriberCount: account.subscriber_count,
+																statsLastRefreshedAt:
+																	account.stats_last_refreshed_at,
+															}}
+															onRefresh={() =>
+																handleRefreshStats(account.platform)
+															}
+															onDisconnect={() =>
+																handleDisconnectAccount(account.platform)
+															}
+														/>
+													)}
+												</For>
+											</div>
+										</Show>
+
+										<div class="space-y-2">
+											<For each={availablePlatforms}>
+												{(platform) => (
+													<Show
+														when={
+															!connectedPlatforms().has(platform.targetPlatform)
+														}>
+														<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+															<div class="flex items-center space-x-3">
+																<div
+																	class={`h-10 w-10 bg-linear-to-r ${platform.color} flex items-center justify-center rounded-lg`}>
+																	<span class="font-bold text-sm text-white">
+																		{platform.name[0]}
+																	</span>
+																</div>
+																<div>
+																	<p class="font-medium text-gray-900">
+																		{platform.name}
+																	</p>
+																	<p class="text-gray-500 text-sm">
+																		Not connected
+																	</p>
+																</div>
+															</div>
+															<Button
+																as="a"
+																href={apiRoutes.streaming.connect(platform.platform)}
+																size="sm">
+																Connect
+															</Button>
+														</div>
+													</Show>
 												)}
 											</For>
 										</div>
 									</Show>
-
-									<div class="space-y-2">
-										<For each={availablePlatforms}>
-											{(platform) => (
-												<Show
-													when={
-														!connectedPlatforms().has(platform.targetPlatform)
-													}>
-													<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-														<div class="flex items-center space-x-3">
-															<div
-																class={`h-10 w-10 bg-linear-to-r ${platform.color} flex items-center justify-center rounded-lg`}>
-																<span class="font-bold text-sm text-white">
-																	{platform.name[0]}
-																</span>
-															</div>
-															<div>
-																<p class="font-medium text-gray-900">
-																	{platform.name}
-																</p>
-																<p class="text-gray-500 text-sm">
-																	Not connected
-																</p>
-															</div>
-														</div>
-														<Button
-															as="a"
-															href={apiRoutes.streaming.connect(platform.platform)}
-															size="sm">
-															Connect
-														</Button>
-													</div>
-												</Show>
-											)}
-										</For>
-									</div>
 								</div>
 							</div>
 						</div>
