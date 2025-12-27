@@ -37,7 +37,7 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
     |> maybe_update_stat(:sponsor_count, stats[:sponsor_count])
     |> maybe_update_stat(:views_last_30d, stats[:views_last_30d])
     |> maybe_update_stat(:follower_count, stats[:follower_count])
-    |> maybe_update_stat(:subscriber_count, stats[:subscriber_count])
+    |> maybe_update_stat(:unique_viewers_last_30d, stats[:unique_viewers_last_30d])
     |> Ash.Changeset.force_change_attribute(:stats_last_refreshed_at, DateTime.utc_now())
   end
 
@@ -168,14 +168,17 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
           nil
       end
 
-    views_last_30d =
+    {views_last_30d, unique_viewers_last_30d} =
       case analytics_result do
+        {:ok, %{views_last_30d: views, unique_viewers_last_30d: unique_viewers}} ->
+          {views, unique_viewers}
+
         {:ok, %{views_last_30d: views}} ->
-          views
+          {views, nil}
 
         {:error, reason} ->
           Logger.warning("Failed to fetch YouTube analytics: #{inspect(reason)}")
-          nil
+          {nil, nil}
       end
 
     sponsor_count =
@@ -193,7 +196,8 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
       views_last_30d: views_last_30d,
       # YouTube doesn't have "followers" - subscribers are what we track
       follower_count: subscriber_count,
-      subscriber_count: subscriber_count
+      # Note: Unique viewers is not available via YouTube Analytics API
+      unique_viewers_last_30d: unique_viewers_last_30d
     }
   end
 
@@ -215,8 +219,8 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
             # Twitch doesn't provide view analytics via API easily
             views_last_30d: nil,
             follower_count: stats[:follower_count],
-            # For Twitch, subscriber_count same as sponsor_count (paid subs)
-            subscriber_count: stats[:subscriber_count]
+            # Unique viewers not available via Twitch API
+            unique_viewers_last_30d: nil
           }
 
         {:error, reason} ->

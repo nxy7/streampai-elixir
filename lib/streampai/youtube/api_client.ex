@@ -762,12 +762,15 @@ defmodule Streampai.YouTube.ApiClient do
 
   Requires the `yt-analytics.readonly` scope.
 
+  Note: Unique viewers count is not available via the YouTube Analytics API.
+  It's only visible in YouTube Studio. This function returns nil for unique_viewers_last_30d.
+
   ## Returns
-  - `{:ok, %{views_last_30d: integer}}` - View statistics
+  - `{:ok, %{views_last_30d: integer, unique_viewers_last_30d: integer | nil}}` - View statistics
   - `{:error, reason}` - Failed to fetch analytics
 
   ## Example
-      {:ok, %{views_last_30d: 50000}} = ApiClient.get_analytics_views(access_token)
+      {:ok, %{views_last_30d: 50000, unique_viewers_last_30d: nil}} = ApiClient.get_analytics_views(access_token)
   """
   @spec get_analytics_views(access_token) :: {:ok, map()} | {:error, term()}
   def get_analytics_views(access_token) do
@@ -790,17 +793,19 @@ defmodule Streampai.YouTube.ApiClient do
 
     case req_opts |> Req.get() |> handle_response() do
       {:ok, %{"rows" => [[views, _watch_time] | _]}} ->
-        {:ok, %{views_last_30d: views}}
+        # Note: Unique viewers is not available via YouTube Analytics API
+        # It's only available in YouTube Studio interface
+        {:ok, %{views_last_30d: views, unique_viewers_last_30d: nil}}
 
       {:ok, %{"rows" => []}} ->
-        {:ok, %{views_last_30d: 0}}
+        {:ok, %{views_last_30d: 0, unique_viewers_last_30d: nil}}
 
       {:ok, %{"rows" => nil}} ->
-        {:ok, %{views_last_30d: 0}}
+        {:ok, %{views_last_30d: 0, unique_viewers_last_30d: nil}}
 
       {:ok, response} ->
         Logger.warning("Unexpected YouTube Analytics response: #{inspect(response)}")
-        {:ok, %{views_last_30d: 0}}
+        {:ok, %{views_last_30d: 0, unique_viewers_last_30d: nil}}
 
       error ->
         error
