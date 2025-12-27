@@ -1,4 +1,11 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+	createEffect,
+	createMemo,
+	createSignal,
+	For,
+	onCleanup,
+	Show,
+} from "solid-js";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
 
@@ -564,8 +571,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		const stickyItems = sortedActivities()
 			.filter((item) => ids.has(item.id))
 			.sort((a, b) => {
-				const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
-				const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+				const timeA =
+					a.timestamp instanceof Date
+						? a.timestamp.getTime()
+						: new Date(a.timestamp).getTime();
+				const timeB =
+					b.timestamp instanceof Date
+						? b.timestamp.getTime()
+						: new Date(b.timestamp).getTime();
 				return timeA - timeB;
 			});
 
@@ -673,7 +686,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						<For each={sortedActivities()}>
 							{(item) => {
 								const isSticky = stickyItemIds().has(item.id);
-								const stickyIndex = isSticky ? stickyIndexMap().get(item.id) : undefined;
+								const stickyIndex = isSticky
+									? stickyIndexMap().get(item.id)
+									: undefined;
 								return (
 									<ActivityRow
 										item={item}

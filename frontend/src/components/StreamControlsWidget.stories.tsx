@@ -50,9 +50,27 @@ const sampleStreamKeyData = {
 // Generate many activities to test scrolling and virtualization
 // Activities are generated in chronological order (oldest first, newest last)
 const generateActivities = (count: number): ActivityItem[] => {
-	const types: ActivityItem["type"][] = ["chat", "chat", "chat", "donation", "follow", "subscription", "raid", "cheer"];
+	const types: ActivityItem["type"][] = [
+		"chat",
+		"chat",
+		"chat",
+		"donation",
+		"follow",
+		"subscription",
+		"raid",
+		"cheer",
+	];
 	const platforms = ["twitch", "youtube", "kick", "facebook"];
-	const usernames = ["StreamFan", "GamerPro", "ChattyKathy", "ViewerOne", "SuperDonor", "TwitchLover", "YouTubeFan", "KickUser"];
+	const usernames = [
+		"StreamFan",
+		"GamerPro",
+		"ChattyKathy",
+		"ViewerOne",
+		"SuperDonor",
+		"TwitchLover",
+		"YouTubeFan",
+		"KickUser",
+	];
 	const messages = [
 		"Great stream!",
 		"Hello everyone!",
@@ -76,7 +94,10 @@ const generateActivities = (count: number): ActivityItem[] => {
 			id: `activity-${i}`,
 			type,
 			username: `${usernames[Math.floor(Math.random() * usernames.length)]}${i}`,
-			message: type !== "follow" ? messages[Math.floor(Math.random() * messages.length)] : undefined,
+			message:
+				type !== "follow"
+					? messages[Math.floor(Math.random() * messages.length)]
+					: undefined,
 			amount: isMonetary ? Math.floor(Math.random() * 100) + 1 : undefined,
 			currency: isMonetary ? "$" : undefined,
 			platform: platforms[Math.floor(Math.random() * platforms.length)],
@@ -490,7 +511,8 @@ function InteractiveLiveWrapper() {
 						: type === "donation"
 							? "Thanks for the stream!"
 							: undefined,
-				amount: type === "donation" ? Math.floor(Math.random() * 50) + 1 : undefined,
+				amount:
+					type === "donation" ? Math.floor(Math.random() * 50) + 1 : undefined,
 				currency: "$",
 				platform: ["twitch", "youtube", "kick"][Math.floor(Math.random() * 3)],
 				timestamp: new Date(),
