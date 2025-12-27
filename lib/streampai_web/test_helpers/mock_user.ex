@@ -91,38 +91,9 @@ defmodule StreampaiWeb.TestHelpers.MockUser do
     |> Plug.Conn.put_session("current_user_id", user.id)
     |> Plug.Conn.put_session("current_user_email", user.email)
     |> Plug.Conn.put_session("user_token", mock_token_for_user(user))
-    |> Plug.Conn.put_session("live_socket_id", "users_socket:#{user.id}")
     |> maybe_add_impersonator_session(impersonator)
     |> Plug.Conn.assign(:current_user, user)
     |> maybe_assign_impersonator(impersonator)
-  end
-
-  @doc """
-  Mounts a LiveView with mock user authentication.
-
-  ## Examples
-
-      # Mount dashboard as regular user
-      {:ok, view, html} = MockUser.mock_live(conn, "/dashboard")
-
-      # Mount as admin
-      {:ok, view, html} = MockUser.mock_live(conn, "/dashboard", admin: true)
-
-      # Mount with impersonation
-      {:ok, view, html} = MockUser.mock_live(conn, "/dashboard",
-        user_opts: [email: "user@example.com"],
-        impersonator_opts: [admin: true]
-      )
-  """
-  defmacro mock_live(conn, path, opts \\ []) do
-    quote do
-      import Phoenix.LiveViewTest
-
-      unquote(conn)
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
-      |> StreampaiWeb.TestHelpers.MockUser.mock_user_conn(unquote(opts))
-      |> live(unquote(path))
-    end
   end
 
   @doc """
