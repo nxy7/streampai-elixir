@@ -188,7 +188,11 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       update_platform_status(state, %{viewer_count: stream_info.viewer_count})
 
       # Update StreamActor with viewer count
-      UserStreamManager.update_stream_actor_viewers(state.user_id, :twitch, stream_info.viewer_count)
+      UserStreamManager.update_stream_actor_viewers(
+        state.user_id,
+        :twitch,
+        stream_info.viewer_count
+      )
     end
 
     schedule_viewer_count_check()

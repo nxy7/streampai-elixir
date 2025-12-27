@@ -96,7 +96,7 @@ defmodule Streampai.Stream.StreamActor do
           "total_viewers" => 0,
           "platforms" => %{},
           "input_streaming" => false,
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         Ash.Changeset.change_attribute(changeset, :data, data)
@@ -128,7 +128,7 @@ defmodule Streampai.Stream.StreamActor do
           "total_viewers" => 0,
           "platforms" => %{},
           "input_streaming" => false,
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         Ash.Changeset.change_attribute(changeset, :data, data)
@@ -156,7 +156,7 @@ defmodule Streampai.Stream.StreamActor do
               value -> Map.put(acc, to_string(key), value)
             end
           end)
-          |> Map.put("last_updated_at", DateTime.utc_now() |> DateTime.to_iso8601())
+          |> Map.put("last_updated_at", DateTime.to_iso8601(DateTime.utc_now()))
 
         new_data = Map.merge(current_data, updates)
         Ash.Changeset.change_attribute(changeset, :data, new_data)
@@ -177,10 +177,10 @@ defmodule Streampai.Stream.StreamActor do
         updates = %{
           "status" => "streaming",
           "livestream_id" => livestream_id,
-          "started_at" => DateTime.utc_now() |> DateTime.to_iso8601(),
+          "started_at" => DateTime.to_iso8601(DateTime.utc_now()),
           "error_message" => nil,
           "error_at" => nil,
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         updates =
@@ -209,7 +209,7 @@ defmodule Streampai.Stream.StreamActor do
           "viewers" => %{},
           "total_viewers" => 0,
           "input_streaming" => false,
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         updates =
@@ -236,9 +236,9 @@ defmodule Streampai.Stream.StreamActor do
         updates = %{
           "status" => "error",
           "error_message" => error_message,
-          "error_at" => DateTime.utc_now() |> DateTime.to_iso8601(),
+          "error_at" => DateTime.to_iso8601(DateTime.utc_now()),
           "status_message" => "Error: #{error_message}",
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         new_data = Map.merge(current_data, updates)
@@ -264,7 +264,7 @@ defmodule Streampai.Stream.StreamActor do
         updates = %{
           "viewers" => updated_viewers,
           "total_viewers" => total,
-          "last_updated_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
         }
 
         new_data = Map.merge(current_data, updates)
@@ -333,10 +333,6 @@ defmodule Streampai.Stream.StreamActor do
     end
   end
 
-  identities do
-    identity :unique_type_user, [:type, :user_id], nils_distinct?: false
-  end
-
   # Calculated attributes to access data fields
   calculations do
     calculate :agent_status, :string, expr(data[:status])
@@ -350,6 +346,10 @@ defmodule Streampai.Stream.StreamActor do
     calculate :platforms, :map, expr(data[:platforms])
     calculate :input_streaming, :boolean, expr(data[:input_streaming])
     calculate :last_updated_at, :string, expr(data[:last_updated_at])
+  end
+
+  identities do
+    identity :unique_type_user, [:type, :user_id], nils_distinct?: false
   end
 
   @doc """
@@ -425,8 +425,7 @@ defmodule Streampai.Stream.StreamActor do
   @doc """
   Updates viewer count for a platform.
   """
-  def update_viewer_count(user_id, platform, count)
-      when is_binary(user_id) and is_atom(platform) and is_integer(count) do
+  def update_viewer_count(user_id, platform, count) when is_binary(user_id) and is_atom(platform) and is_integer(count) do
     case get_or_create_for_user(user_id) do
       {:ok, actor} ->
         Ash.update(actor, %{platform: platform, viewer_count: count},

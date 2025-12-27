@@ -146,7 +146,11 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     platforms_status =
       Map.new(active_platforms, fn platform -> {to_string(platform), "connecting"} end)
 
-    update_stream_actor_platforms(user_id, platforms_status, "Streaming to #{length(active_platforms)} platform(s)")
+    update_stream_actor_platforms(
+      user_id,
+      platforms_status,
+      "Streaming to #{length(active_platforms)} platform(s)"
+    )
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
