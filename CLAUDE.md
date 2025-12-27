@@ -109,6 +109,8 @@ just dev                    # Start full dev environment (Phoenix + Frontend + C
 just worktree name          # Create isolated dev environment
 just worktree-setup         # Setup current worktree (run after checkout)
 just ports                  # Show port configuration for current worktree
+just cleanup-slots          # Clean up ALL orphaned Electric replication slots
+just cleanup-worktree-slot  # Clean up current worktree's replication slot
 ```
 
 ## Code Generation
@@ -253,6 +255,8 @@ The following config changes enable multiple worktrees to run simultaneously:
 **Port 4000 in use error**: Run `just worktree-setup` again - it will reassign fresh available ports.
 
 **Electric replication slot conflict**: Each worktree needs a unique database. If you see "replication slot already in use", ensure DATABASE_URL points to a worktree-specific database (the setup handles this automatically).
+
+**"All replication slots are in use" error**: PostgreSQL has a limited number of replication slots (default: 10). When worktrees are stopped, their Electric slots may persist. Run `just cleanup-slots` to drop all inactive slots, or `just cleanup-worktree-slot` to clean just the current worktree's slot. The `just dev` command now automatically cleans up its slot on exit.
 
 **Frontend not starting**: Run `bun install` in the frontend directory, or re-run `just worktree-setup` which now includes this step.
 
