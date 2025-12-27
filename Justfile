@@ -137,6 +137,12 @@ worktree-setup:
 	#!/usr/bin/env bash
 	set -euo pipefail
 
+	# Allow direnv for this worktree to load flake.nix dependencies
+	if command -v direnv &> /dev/null; then
+		echo "🔧 Allowing direnv for this worktree..."
+		direnv allow .
+	fi
+
 	# Detect worktree name: use parent dir if in vibe-kanban structure, otherwise current dir
 	current_dir=$(pwd | awk -F/ '{print $NF}')
 	parent_dir=$(dirname "$(pwd)" | awk -F/ '{print $NF}')
