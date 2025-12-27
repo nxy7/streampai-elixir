@@ -1,20 +1,31 @@
 /**
  * SchemaForm - Auto-generates form UI from Zod schemas.
  *
- * This component introspects a Zod object schema and renders appropriate
- * form fields for each property based on its type and metadata.
+ * Design: Schema and metadata are SEPARATE.
+ * - Schema: Plain Zod schema (can be auto-generated from Ash)
+ * - Metadata: Optional UI hints passed as a separate prop
  *
  * @example
  * ```tsx
+ * // Schema can be auto-generated from Ash
  * const timerSchema = z.object({
- *   label: withMeta(z.string(), { label: "Timer Label" }),
- *   fontSize: withMeta(z.number().min(12).max(72), { label: "Font Size", unit: "px" }),
- *   textColor: withMeta(z.string(), { label: "Text Color", inputType: "color" }),
- *   autoStart: withMeta(z.boolean(), { label: "Auto Start on Load" }),
+ *   label: z.string().default("TIMER"),
+ *   fontSize: z.number().min(12).max(72).default(16),
+ *   textColor: z.string().default("#ffffff"),
+ *   autoStart: z.boolean().default(false),
  * });
+ *
+ * // Metadata is separate - only for UI customization
+ * const timerMeta = {
+ *   label: { label: "Timer Label", placeholder: "Enter label" },
+ *   fontSize: { label: "Font Size", unit: "px" },
+ *   textColor: { label: "Text Color", inputType: "color" },
+ *   autoStart: { label: "Auto Start on Load" },
+ * };
  *
  * <SchemaForm
  *   schema={timerSchema}
+ *   meta={timerMeta}
  *   values={config()}
  *   onChange={(field, value) => updateConfig(field, value)}
  * />
@@ -33,11 +44,13 @@ import {
 	TextareaField,
 } from "./fields";
 import { introspectSchema } from "./introspect";
-import type { IntrospectedField } from "./types";
+import type { FormMeta, IntrospectedField } from "./types";
 
 interface SchemaFormProps<T extends z.ZodRawShape> {
 	/** The Zod schema defining the form structure */
 	schema: z.ZodObject<T>;
+	/** Optional metadata for customizing field rendering */
+	meta?: FormMeta<T>;
 	/** Current form values */
 	values: z.infer<z.ZodObject<T>>;
 	/** Callback when any field value changes */
@@ -52,41 +65,6 @@ interface SchemaFormProps<T extends z.ZodRawShape> {
 }
 
 /**
- * Determine the best input type for a field based on its type and metadata.
- */
-function getInputType(field: IntrospectedField): string {
-	// Explicit inputType takes precedence
-	if (field.meta.inputType) {
-		return field.meta.inputType;
-	}
-
-	// Infer from Zod type
-	switch (field.type) {
-		case "boolean":
-			return "checkbox";
-		case "enum":
-			return "select";
-		case "number":
-			// Use slider if min and max are both defined
-			if (field.min !== undefined && field.max !== undefined) {
-				return "slider";
-			}
-			return "number";
-		case "string":
-			// Check if field name suggests a color
-			if (
-				field.name.toLowerCase().includes("color") ||
-				field.name.toLowerCase().includes("colour")
-			) {
-				return "color";
-			}
-			return "text";
-		default:
-			return "text";
-	}
-}
-
-/**
  * Render a single field based on its introspected type.
  */
 const SchemaField: Component<{
@@ -95,11 +73,9 @@ const SchemaField: Component<{
 	onChange: (value: unknown) => void;
 	disabled?: boolean;
 }> = (props) => {
-	const inputType = () => getInputType(props.field);
-
 	return (
 		<Switch fallback={<div>Unsupported field type: {props.field.type}</div>}>
-			<Match when={inputType() === "text"}>
+			<Match when={props.field.inputType === "text"}>
 				<TextField
 					field={props.field}
 					value={props.value as string}
@@ -107,7 +83,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "number"}>
+			<Match when={props.field.inputType === "number"}>
 				<NumberField
 					field={props.field}
 					value={props.value as number}
@@ -115,7 +91,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "color"}>
+			<Match when={props.field.inputType === "color"}>
 				<ColorField
 					field={props.field}
 					value={props.value as string}
@@ -123,7 +99,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "checkbox"}>
+			<Match when={props.field.inputType === "checkbox"}>
 				<CheckboxField
 					field={props.field}
 					value={props.value as boolean}
@@ -131,7 +107,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "select"}>
+			<Match when={props.field.inputType === "select"}>
 				<SelectField
 					field={props.field}
 					value={props.value as string}
@@ -139,7 +115,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "slider"}>
+			<Match when={props.field.inputType === "slider"}>
 				<SliderField
 					field={props.field}
 					value={props.value as number}
@@ -147,7 +123,7 @@ const SchemaField: Component<{
 					disabled={props.disabled}
 				/>
 			</Match>
-			<Match when={inputType() === "textarea"}>
+			<Match when={props.field.inputType === "textarea"}>
 				<TextareaField
 					field={props.field}
 					value={props.value as string}
@@ -165,8 +141,8 @@ const SchemaField: Component<{
 export function SchemaForm<T extends z.ZodRawShape>(
 	props: SchemaFormProps<T>,
 ): ReturnType<Component> {
-	// Introspect the schema once
-	const introspected = () => introspectSchema(props.schema);
+	// Introspect the schema with metadata
+	const introspected = () => introspectSchema(props.schema, props.meta);
 
 	return (
 		<div class={props.class ?? "space-y-4"}>

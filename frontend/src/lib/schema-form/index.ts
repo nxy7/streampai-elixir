@@ -5,30 +5,42 @@
  * from Zod schemas. It introspects the schema to determine field types,
  * constraints, and metadata, then renders appropriate form controls.
  *
+ * ## Design Principle: Schema and Metadata are SEPARATE
+ *
+ * - **Schema**: Plain Zod schema (can be auto-generated from Ash TypeScript)
+ * - **Metadata**: Optional UI hints passed separately
+ *
+ * This separation allows schemas to be auto-generated while metadata
+ * can be hand-written or derived from Ash attributes.
+ *
  * ## Usage
  *
- * ### Define a schema with type-safe field builders:
+ * ### Define a plain Zod schema:
  * ```tsx
  * import { z } from "zod";
- * import { formField } from "~/lib/schema-form";
  *
+ * // This could be auto-generated from Ash
  * const timerSchema = z.object({
- *   label: formField.text(z.string().default("TIMER"), {
- *     label: "Timer Label",
- *     placeholder: "Enter label text",
- *   }),
- *   fontSize: formField.slider(z.number().min(24).max(120).default(48), {
- *     label: "Font Size",
- *     unit: "px",
- *   }),
- *   textColor: formField.color(z.string().default("#ffffff"), {
- *     label: "Text Color",
- *   }),
- *   autoStart: formField.checkbox(z.boolean().default(false), {
+ *   label: z.string().default("TIMER"),
+ *   fontSize: z.number().min(24).max(120).default(48),
+ *   textColor: z.string().default("#ffffff"),
+ *   autoStart: z.boolean().default(false),
+ * });
+ * ```
+ *
+ * ### Define optional metadata for UI customization:
+ * ```tsx
+ * import type { FormMeta } from "~/lib/schema-form";
+ *
+ * const timerMeta: FormMeta<typeof timerSchema.shape> = {
+ *   label: { label: "Timer Label", placeholder: "Enter label text" },
+ *   fontSize: { label: "Font Size", unit: "px" },
+ *   textColor: { label: "Text Color", inputType: "color" },
+ *   autoStart: {
  *     label: "Auto Start on Load",
  *     description: "Start the timer automatically when the widget loads",
- *   }),
- * });
+ *   },
+ * };
  * ```
  *
  * ### Render the form:
@@ -37,26 +49,35 @@
  *
  * <SchemaForm
  *   schema={timerSchema}
+ *   meta={timerMeta}
  *   values={config()}
  *   onChange={(field, value) => updateConfig(field, value)}
  * />
  * ```
  *
- * ## Type-Safe Field Builders (formField.*)
+ * ## Automatic Input Type Inference
  *
- * Each builder enforces correct metadata for its input type:
- * - `formField.text(z.string(), { label, placeholder? })`
- * - `formField.textarea(z.string(), { label, placeholder? })`
- * - `formField.number(z.number(), { label, unit?, step? })`
- * - `formField.slider(z.number().min().max(), { label, unit?, step? })`
- * - `formField.color(z.string(), { label })`
- * - `formField.checkbox(z.boolean(), { label, description? })`
- * - `formField.select(z.enum([...]), { label })`
+ * Without metadata, input types are inferred from Zod types:
+ * - `z.string()` -> text input
+ * - `z.number()` with min/max -> slider
+ * - `z.number()` without min/max -> number input
+ * - `z.boolean()` -> checkbox
+ * - `z.enum([...])` -> select dropdown
  *
- * ## Common Metadata Options
+ * Use `inputType` in metadata to override:
+ * ```tsx
+ * textColor: { inputType: "color" }  // Force color picker for string
+ * bio: { inputType: "textarea" }     // Force textarea for string
+ * ```
  *
- * - `label`: Human-readable field label (required)
+ * ## Metadata Options
+ *
+ * - `label`: Human-readable field label (default: derived from field name)
+ * - `inputType`: Override auto-detected input type
  * - `description`: Help text shown below the field
+ * - `placeholder`: Placeholder text (for text/textarea)
+ * - `unit`: Unit label (for number/slider, e.g., "px", "%")
+ * - `step`: Step increment (for number/slider)
  * - `group`: Group fields into sections
  * - `hidden`: Hide field from form
  *
@@ -68,20 +89,14 @@
 
 // Core exports
 export { SchemaForm } from "./SchemaForm";
-export { introspectSchema, formField, withMeta, field } from "./introspect";
+export { introspectSchema, getDefaultValues } from "./introspect";
 export type {
 	FieldMeta,
+	FormMeta,
 	InputType,
 	IntrospectedField,
 	IntrospectedSchema,
 	SchemaFormProps,
-	TextFieldMeta,
-	TextareaFieldMeta,
-	NumberFieldMeta,
-	SliderFieldMeta,
-	ColorFieldMeta,
-	CheckboxFieldMeta,
-	SelectFieldMeta,
 } from "./types";
 
 // Field components (for custom form layouts)

@@ -1,67 +1,34 @@
 /**
- * Schema introspection utilities for Zod v4.
- * These functions extract metadata from Zod schemas to enable automatic form generation.
+ * Schema introspection utilities for auto-generating forms from Zod schemas.
  *
- * Note: Zod v4 uses ._zod.def instead of ._def for internal schema definitions.
+ * Design: Schema and metadata are SEPARATE.
+ * - Schema: Plain Zod schema (can be auto-generated from Ash)
+ * - Metadata: Optional UI configuration passed separately
  */
 
 import { z } from "zod";
 import type {
-	CheckboxFieldMeta,
-	ColorFieldMeta,
 	FieldMeta,
+	FormMeta,
+	InputType,
 	IntrospectedField,
 	IntrospectedSchema,
-	NumberFieldMeta,
-	SelectFieldMeta,
-	SliderFieldMeta,
-	TextFieldMeta,
-	TextareaFieldMeta,
 } from "./types";
 
 /**
- * Convert a camelCase or snake_case field name to a human-readable label.
- * Examples: "fontSize" -> "Font Size", "show_timestamps" -> "Show Timestamps"
+ * Get the internal definition from a Zod schema.
+ * Handles both Zod v3 (_def) and Zod v4 (_zod.def) structures.
  */
-function fieldNameToLabel(name: string): string {
-	const withoutUnderscores = name.replace(/_/g, " ");
-	const withSpaces = withoutUnderscores.replace(/([a-z])([A-Z])/g, "$1 $2");
-	return withSpaces
-		.split(" ")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-		.join(" ");
-}
-
-/**
- * Parse field metadata from the Zod schema description.
- */
-function parseFieldMeta(schema: z.ZodTypeAny): Partial<FieldMeta> {
-	const description = schema.description;
-	if (!description) return {};
-
-	try {
-		const parsed = JSON.parse(description);
-		if (typeof parsed === "object" && parsed !== null) {
-			return parsed as Partial<FieldMeta>;
-		}
-	} catch {
-		// Not JSON, use as plain description
-	}
-
-	return { description } as Partial<FieldMeta>;
-}
-
-/**
- * Get the Zod internal definition - works with Zod v4's new structure.
- */
-function getDef(schema: z.ZodTypeAny): Record<string, unknown> {
-	// biome-ignore lint/suspicious/noExplicitAny: Zod v4 internal structure
+// biome-ignore lint/suspicious/noExplicitAny: Zod internal types
+function getDef(schema: z.ZodTypeAny): any {
+	// biome-ignore lint/suspicious/noExplicitAny: Zod internal
 	const s = schema as any;
+	// Zod v4 uses _zod.def, v3 uses _def
 	return s._zod?.def ?? s._def ?? {};
 }
 
 /**
- * Get the type name from a Zod schema in v4
+ * Get the type name from a Zod schema.
  */
 function getTypeName(schema: z.ZodTypeAny): string {
 	const def = getDef(schema);
@@ -69,48 +36,54 @@ function getTypeName(schema: z.ZodTypeAny): string {
 }
 
 /**
- * Unwrap a Zod schema to get the inner type (unwraps optional, default, nullable, etc.)
+ * Unwrap wrapper types (default, optional, nullable) to get the inner schema.
  */
 function unwrapSchema(schema: z.ZodTypeAny): {
 	inner: z.ZodTypeAny;
 	optional: boolean;
-	defaultValue?: unknown;
+	defaultValue: unknown;
 } {
 	let current = schema;
 	let optional = false;
 	let defaultValue: unknown = undefined;
 
+	// Keep unwrapping until we hit a non-wrapper type
+	// biome-ignore lint/suspicious/noConstantCondition: loop until break
 	while (true) {
 		const typeName = getTypeName(current);
 		const def = getDef(current);
 
-		if (typeName === "optional") {
-			optional = true;
-			// biome-ignore lint/suspicious/noExplicitAny: Zod internal
-			current = (def.innerType ?? (current as any).unwrap?.()) as z.ZodTypeAny;
-			if (!current) break;
-		} else if (typeName === "default") {
+		if (typeName === "default") {
 			// biome-ignore lint/suspicious/noExplicitAny: Zod internal
 			const defaultDef = def.defaultValue as any;
 			defaultValue = typeof defaultDef === "function" ? defaultDef() : defaultDef;
-			// biome-ignore lint/suspicious/noExplicitAny: Zod internal
-			current = (def.innerType ?? (current as any).unwrap?.()) as z.ZodTypeAny;
+			current = def.innerType as z.ZodTypeAny;
 			if (!current) break;
-		} else if (typeName === "nullable") {
-			optional = true;
-			// biome-ignore lint/suspicious/noExplicitAny: Zod internal
-			current = (def.innerType ?? (current as any).unwrap?.()) as z.ZodTypeAny;
-			if (!current) break;
-		} else {
-			break;
+			continue;
 		}
+
+		if (typeName === "optional") {
+			optional = true;
+			current = def.innerType as z.ZodTypeAny;
+			if (!current) break;
+			continue;
+		}
+
+		if (typeName === "nullable") {
+			optional = true;
+			current = def.innerType as z.ZodTypeAny;
+			if (!current) break;
+			continue;
+		}
+
+		break;
 	}
 
 	return { inner: current, optional, defaultValue };
 }
 
 /**
- * Get the Zod type name and any relevant constraints.
+ * Extract type information from a Zod schema.
  */
 function getTypeInfo(schema: z.ZodTypeAny): {
 	type: string;
@@ -175,77 +148,73 @@ function getTypeInfo(schema: z.ZodTypeAny): {
 		return { type: "enum", enumValues };
 	}
 
-	if (typeName === "literal") {
-		const values = def.values as Set<unknown> | undefined;
-		const value = def.value as unknown;
-
-		if (values && values.size > 0) {
-			const firstValue = Array.from(values)[0];
-			if (typeof firstValue === "string") {
-				return { type: "enum", enumValues: Array.from(values) as string[] };
-			}
-			return { type: typeof firstValue as string };
-		} else if (value !== undefined) {
-			if (typeof value === "string") {
-				return { type: "enum", enumValues: [value] };
-			}
-			return { type: typeof value };
-		}
-		return { type: "unknown" };
-	}
-
-	if (typeName === "union") {
-		const options = def.options as z.ZodTypeAny[] | undefined;
-		if (options) {
-			const allLiterals = options.every((opt) => getTypeName(opt) === "literal");
-			if (allLiterals) {
-				const values: string[] = [];
-				for (const opt of options) {
-					const optDef = getDef(opt);
-					const literalValues = optDef.values as Set<unknown> | undefined;
-					const literalValue = optDef.value as unknown;
-
-					if (literalValues && literalValues.size > 0) {
-						const val = Array.from(literalValues)[0];
-						if (typeof val === "string") values.push(val);
-					} else if (typeof literalValue === "string") {
-						values.push(literalValue);
-					}
-				}
-				if (values.length > 0) {
-					return { type: "enum", enumValues: values };
-				}
-			}
-		}
-	}
-
-	if (typeName === "array") {
-		return { type: "array" };
-	}
-
-	if (typeName === "object") {
-		return { type: "object" };
-	}
-
 	return { type: typeName || "unknown" };
+}
+
+/**
+ * Convert a field name to a human-readable label.
+ * "fontSize" -> "Font Size", "show_timestamps" -> "Show Timestamps"
+ */
+function fieldNameToLabel(name: string): string {
+	const withoutUnderscores = name.replace(/_/g, " ");
+	const withSpaces = withoutUnderscores.replace(/([a-z])([A-Z])/g, "$1 $2");
+	return withSpaces
+		.split(" ")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(" ");
+}
+
+/**
+ * Determine the input type based on schema type and metadata.
+ */
+function resolveInputType(
+	typeInfo: { type: string; min?: number; max?: number },
+	meta: FieldMeta,
+): InputType {
+	// If explicitly specified in metadata, use that
+	if (meta.inputType) {
+		return meta.inputType;
+	}
+
+	// Otherwise infer from Zod type
+	switch (typeInfo.type) {
+		case "string":
+			return "text";
+		case "number":
+			// Use slider if both min and max are defined
+			if (typeInfo.min !== undefined && typeInfo.max !== undefined) {
+				return "slider";
+			}
+			return "number";
+		case "boolean":
+			return "checkbox";
+		case "enum":
+			return "select";
+		default:
+			return "text";
+	}
 }
 
 /**
  * Introspect a single field from a Zod object schema.
  */
-function introspectField(name: string, schema: z.ZodTypeAny): IntrospectedField {
+function introspectField(
+	name: string,
+	schema: z.ZodTypeAny,
+	meta: FieldMeta,
+): IntrospectedField {
 	const { inner, optional, defaultValue } = unwrapSchema(schema);
 	const typeInfo = getTypeInfo(inner);
-	const meta = parseFieldMeta(schema);
+	const inputType = resolveInputType(typeInfo, meta);
 
 	return {
 		name,
 		label: meta.label || fieldNameToLabel(name),
+		inputType,
 		type: typeInfo.type,
 		defaultValue,
 		optional,
 		enumValues: typeInfo.enumValues,
-		// Use min/max from schema constraints (not from meta)
 		min: typeInfo.min,
 		max: typeInfo.max,
 		meta,
@@ -255,33 +224,56 @@ function introspectField(name: string, schema: z.ZodTypeAny): IntrospectedField 
 
 /**
  * Introspect a Zod object schema to extract all field information.
- * Fields are returned in declaration order (no sorting).
+ *
+ * @param schema - The Zod object schema to introspect
+ * @param meta - Optional metadata for customizing field rendering
+ * @returns Introspected schema with fields, groups, and ungrouped fields
+ *
+ * @example
+ * // Schema can be plain Zod (auto-generated from Ash)
+ * const schema = z.object({
+ *   fontSize: z.number().min(12).max(72).default(16),
+ *   textColor: z.string().default("#ffffff"),
+ *   showLabel: z.boolean().default(true),
+ *   position: z.enum(["top", "bottom"]).default("top"),
+ * });
+ *
+ * // Metadata is separate - only needed for customization
+ * const meta = {
+ *   fontSize: { label: "Font Size", unit: "px" },
+ *   textColor: { label: "Text Color", inputType: "color" },
+ *   showLabel: { label: "Show Label" },
+ *   position: { label: "Position" },
+ * };
+ *
+ * const introspected = introspectSchema(schema, meta);
  */
 export function introspectSchema<T extends z.ZodRawShape>(
 	schema: z.ZodObject<T>,
+	meta?: FormMeta<T>,
 ): IntrospectedSchema {
 	const shape = schema.shape;
 	const fields: IntrospectedField[] = [];
-
-	// Object.entries preserves insertion order in modern JS
-	for (const [name, fieldSchema] of Object.entries(shape)) {
-		const field = introspectField(name, fieldSchema as z.ZodTypeAny);
-		if (!field.meta.hidden) {
-			fields.push(field);
-		}
-	}
-
-	// No sorting - use declaration order
-	// Group fields by their group metadata, preserving order
 	const groups: Record<string, IntrospectedField[]> = {};
 	const ungrouped: IntrospectedField[] = [];
 
-	for (const field of fields) {
-		if (field.meta.group) {
-			if (!groups[field.meta.group]) {
-				groups[field.meta.group] = [];
+	// Use Object.entries to preserve declaration order
+	for (const [name, fieldSchema] of Object.entries(shape)) {
+		const fieldMeta = (meta?.[name as keyof T] as FieldMeta) ?? {};
+		const field = introspectField(name, fieldSchema as z.ZodTypeAny, fieldMeta);
+
+		// Skip hidden fields
+		if (fieldMeta.hidden) {
+			continue;
+		}
+
+		fields.push(field);
+
+		if (fieldMeta.group) {
+			if (!groups[fieldMeta.group]) {
+				groups[fieldMeta.group] = [];
 			}
-			groups[field.meta.group].push(field);
+			groups[fieldMeta.group].push(field);
 		} else {
 			ungrouped.push(field);
 		}
@@ -290,122 +282,22 @@ export function introspectSchema<T extends z.ZodRawShape>(
 	return { fields, groups, ungrouped };
 }
 
-// ============================================================================
-// Type-safe field builders
-// ============================================================================
-
 /**
- * Store metadata as JSON in the schema description
+ * Get default values from a Zod schema.
+ * Uses schema defaults where defined.
  */
-function withMeta<T extends z.ZodTypeAny>(schema: T, meta: FieldMeta): T {
-	return schema.describe(JSON.stringify(meta)) as T;
+export function getDefaultValues<T extends z.ZodRawShape>(
+	schema: z.ZodObject<T>,
+): z.infer<z.ZodObject<T>> {
+	const shape = schema.shape;
+	const defaults: Record<string, unknown> = {};
+
+	for (const [name, fieldSchema] of Object.entries(shape)) {
+		const { defaultValue } = unwrapSchema(fieldSchema as z.ZodTypeAny);
+		if (defaultValue !== undefined) {
+			defaults[name] = defaultValue;
+		}
+	}
+
+	return defaults as z.infer<z.ZodObject<T>>;
 }
-
-/**
- * Type-safe field builders that enforce correct metadata for each input type.
- *
- * @example
- * const schema = z.object({
- *   name: formField.text(z.string(), { label: "Name", placeholder: "Enter name" }),
- *   age: formField.slider(z.number().min(0).max(120), { label: "Age", unit: "years" }),
- *   color: formField.color(z.string(), { label: "Favorite Color" }),
- *   active: formField.checkbox(z.boolean(), { label: "Active" }),
- *   size: formField.select(z.enum(["s", "m", "l"]), { label: "Size" }),
- * });
- */
-export const formField = {
-	/**
-	 * Text input field
-	 */
-	text: <T extends z.ZodString>(
-		schema: T,
-		meta: Omit<TextFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "text" }),
-
-	/**
-	 * Textarea field for longer text
-	 */
-	textarea: <T extends z.ZodString>(
-		schema: T,
-		meta: Omit<TextareaFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "textarea" }),
-
-	/**
-	 * Number input field
-	 */
-	number: <T extends z.ZodNumber>(
-		schema: T,
-		meta: Omit<NumberFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "number" }),
-
-	/**
-	 * Slider field for numbers with min/max constraints.
-	 * The slider will use min/max from the Zod schema (e.g., z.number().min(0).max(100))
-	 */
-	slider: <T extends z.ZodNumber>(
-		schema: T,
-		meta: Omit<SliderFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "slider" }),
-
-	/**
-	 * Color picker field
-	 */
-	color: <T extends z.ZodString>(
-		schema: T,
-		meta: Omit<ColorFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "color" }),
-
-	/**
-	 * Checkbox field for boolean values
-	 */
-	checkbox: <T extends z.ZodBoolean>(
-		schema: T,
-		meta: Omit<CheckboxFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "checkbox" }),
-
-	/**
-	 * Select dropdown for enum values
-	 */
-	select: <T extends z.ZodEnum<[string, ...string[]]>>(
-		schema: T,
-		meta: Omit<SelectFieldMeta, "inputType">,
-	) => withMeta(schema, { ...meta, inputType: "select" }),
-};
-
-// Keep backwards compatibility with old API
-export { withMeta };
-
-/**
- * @deprecated Use formField.* instead for type safety
- */
-export const field = {
-	text: (meta?: Partial<Omit<TextFieldMeta, "inputType">>) =>
-		withMeta(z.string(), { label: meta?.label ?? "", ...meta, inputType: "text" }),
-
-	number: (options?: { min?: number; max?: number } & Partial<Omit<NumberFieldMeta, "inputType">>) => {
-		let schema = z.number();
-		if (options?.min !== undefined) schema = schema.min(options.min);
-		if (options?.max !== undefined) schema = schema.max(options.max);
-		return withMeta(schema, { label: options?.label ?? "", ...options, inputType: "number" });
-	},
-
-	color: (meta?: Partial<Omit<ColorFieldMeta, "inputType">>) =>
-		withMeta(z.string(), { label: meta?.label ?? "", ...meta, inputType: "color" }),
-
-	checkbox: (meta?: Partial<Omit<CheckboxFieldMeta, "inputType">>) =>
-		withMeta(z.boolean(), { label: meta?.label ?? "", ...meta, inputType: "checkbox" }),
-
-	select: <T extends string>(values: readonly T[], meta?: Partial<Omit<SelectFieldMeta, "inputType">>) =>
-		withMeta(z.enum(values as unknown as [T, ...T[]]), {
-			label: meta?.label ?? "",
-			...meta,
-			inputType: "select",
-		}),
-
-	slider: (options: { min: number; max: number; step?: number } & Partial<Omit<SliderFieldMeta, "inputType">>) =>
-		withMeta(z.number().min(options.min).max(options.max), {
-			label: options.label ?? "",
-			...options,
-			inputType: "slider",
-		}),
-};

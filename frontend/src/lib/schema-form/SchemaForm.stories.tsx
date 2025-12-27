@@ -2,17 +2,26 @@ import { createSignal } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { z } from "zod";
 import { SchemaForm } from "./SchemaForm";
-import { formField } from "./introspect";
+import type { FormMeta } from "./types";
 import {
+	alertboxConfigMeta,
 	alertboxConfigSchema,
+	chatConfigMeta,
 	chatConfigSchema,
+	timerConfigMeta,
 	timerConfigSchema,
+	allFieldTypesMeta,
+	allFieldTypesSchema,
 } from "./widget-schemas";
 
 /**
  * SchemaForm automatically generates form UI from Zod schemas.
- * It introspects the schema to determine field types and renders appropriate controls.
- * Fields are rendered in declaration order (top to bottom).
+ *
+ * Design: Schema and metadata are SEPARATE.
+ * - Schema: Plain Zod schema (can be auto-generated from Ash TypeScript)
+ * - Metadata: Optional UI hints for field rendering
+ *
+ * This allows schemas to be auto-generated while metadata is hand-written.
  */
 const meta = {
 	title: "Forms/SchemaForm",
@@ -33,26 +42,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Simple schema for basic demo using type-safe formField builders
+// Simple schema - plain Zod, could be auto-generated
 const simpleSchema = z.object({
-	name: formField.text(z.string().default(""), {
-		label: "Your Name",
-		placeholder: "Enter your name",
-	}),
-	age: formField.slider(z.number().min(0).max(120).default(25), {
-		label: "Age",
-	}),
-	favoriteColor: formField.color(z.string().default("#6366f1"), {
-		label: "Favorite Color",
-	}),
-	newsletter: formField.checkbox(z.boolean().default(false), {
-		label: "Subscribe to newsletter",
-		description: "Get weekly updates about new features",
-	}),
+	name: z.string().default(""),
+	age: z.number().min(0).max(120).default(25),
+	favoriteColor: z.string().default("#6366f1"),
+	newsletter: z.boolean().default(false),
 });
 
+// Metadata for simple schema - UI hints
+const simpleMeta: FormMeta<typeof simpleSchema.shape> = {
+	name: { label: "Your Name", placeholder: "Enter your name" },
+	age: { label: "Age" },
+	favoriteColor: { label: "Favorite Color", inputType: "color" },
+	newsletter: {
+		label: "Subscribe to newsletter",
+		description: "Get weekly updates about new features",
+	},
+};
+
 /**
- * Basic example showing all field types with auto-detection.
+ * Basic example showing separate schema and metadata.
+ * Note how the schema is plain Zod - it could be auto-generated from Ash.
  */
 export const Basic: Story = {
 	render: () => {
@@ -69,6 +80,7 @@ export const Basic: Story = {
 					<h2 class="mb-4 font-semibold text-gray-900 text-lg">Basic Form</h2>
 					<SchemaForm
 						schema={simpleSchema}
+						meta={simpleMeta}
 						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
@@ -87,7 +99,8 @@ export const Basic: Story = {
 };
 
 /**
- * Timer widget configuration form - demonstrates number sliders, colors, and booleans.
+ * Timer widget configuration form.
+ * Schema is plain Zod, metadata provides labels, units, and input types.
  */
 export const TimerConfig: Story = {
 	render: () => {
@@ -107,10 +120,11 @@ export const TimerConfig: Story = {
 						Timer Widget Settings
 					</h2>
 					<p class="mb-4 text-gray-500 text-sm">
-						Auto-generated from Zod schema (fields in declaration order)
+						Schema and metadata are separate (schema could be auto-generated)
 					</p>
 					<SchemaForm
 						schema={timerConfigSchema}
+						meta={timerConfigMeta}
 						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
@@ -129,7 +143,7 @@ export const TimerConfig: Story = {
 };
 
 /**
- * Chat widget configuration - demonstrates select dropdowns and multiple booleans.
+ * Chat widget configuration - select dropdowns and multiple booleans.
  */
 export const ChatConfig: Story = {
 	render: () => {
@@ -153,6 +167,7 @@ export const ChatConfig: Story = {
 					</p>
 					<SchemaForm
 						schema={chatConfigSchema}
+						meta={chatConfigMeta}
 						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
@@ -171,7 +186,7 @@ export const ChatConfig: Story = {
 };
 
 /**
- * Alertbox configuration - demonstrates grouped fields organized into sections.
+ * Alertbox configuration - grouped fields organized into sections.
  */
 export const AlertboxConfig: Story = {
 	render: () => {
@@ -197,6 +212,7 @@ export const AlertboxConfig: Story = {
 					</p>
 					<SchemaForm
 						schema={alertboxConfigSchema}
+						meta={alertboxConfigMeta}
 						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
@@ -234,6 +250,7 @@ export const Disabled: Story = {
 				</p>
 				<SchemaForm
 					schema={simpleSchema}
+					meta={simpleMeta}
 					values={values}
 					onChange={() => {}}
 					disabled={true}
@@ -243,43 +260,19 @@ export const Disabled: Story = {
 	},
 };
 
-// Schema demonstrating all field types using type-safe formField builders
-const allFieldTypesSchema = z.object({
-	textField: formField.text(z.string().default("Hello"), {
-		label: "Text Input",
-		placeholder: "Type something...",
-	}),
-	numberField: formField.number(z.number().default(42), {
-		label: "Number Input",
-	}),
-	sliderField: formField.slider(z.number().min(0).max(100).default(50), {
-		label: "Slider Input",
-		unit: "%",
-	}),
-	colorField: formField.color(z.string().default("#ff6b6b"), {
-		label: "Color Picker",
-	}),
-	selectField: formField.select(z.enum(["option1", "option2", "option3"]).default("option1"), {
-		label: "Select Dropdown",
-	}),
-	checkboxField: formField.checkbox(z.boolean().default(true), {
-		label: "Checkbox Toggle",
-		description: "This is a boolean field rendered as a checkbox",
-	}),
-});
-
 /**
  * Shows all available field types in one form.
  */
 export const AllFieldTypes: Story = {
 	render: () => {
 		const [values, setValues] = createSignal({
-			textField: "Hello",
-			numberField: 42,
-			sliderField: 50,
-			colorField: "#ff6b6b",
-			selectField: "option1" as const,
-			checkboxField: true,
+			name: "",
+			description: "",
+			count: 0,
+			opacity: 100,
+			color: "#3b82f6",
+			enabled: true,
+			size: "medium" as const,
 		});
 
 		return (
@@ -293,6 +286,60 @@ export const AllFieldTypes: Story = {
 					</p>
 					<SchemaForm
 						schema={allFieldTypesSchema}
+						meta={allFieldTypesMeta}
+						values={values()}
+						onChange={(field, value) => {
+							setValues((prev) => ({ ...prev, [field]: value }));
+						}}
+					/>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+					<h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3>
+					<pre class="text-gray-600 text-xs">
+						{JSON.stringify(values(), null, 2)}
+					</pre>
+				</div>
+			</div>
+		);
+	},
+};
+
+/**
+ * Demonstrates that forms work WITHOUT metadata - using auto-inference.
+ * Input types are inferred from Zod types:
+ * - z.string() -> text input
+ * - z.number() with min/max -> slider
+ * - z.boolean() -> checkbox
+ * - z.enum() -> select
+ */
+export const NoMetadata: Story = {
+	render: () => {
+		// Plain schema without any metadata - fully auto-inferred
+		const autoSchema = z.object({
+			userName: z.string().default(""),
+			userAge: z.number().min(0).max(100).default(25),
+			isActive: z.boolean().default(true),
+			priority: z.enum(["low", "medium", "high"]).default("medium"),
+		});
+
+		const [values, setValues] = createSignal({
+			userName: "",
+			userAge: 25,
+			isActive: true,
+			priority: "medium" as const,
+		});
+
+		return (
+			<div class="space-y-6">
+				<div>
+					<h2 class="mb-1 font-semibold text-gray-900 text-lg">
+						No Metadata (Auto-Inference)
+					</h2>
+					<p class="mb-4 text-gray-500 text-sm">
+						Labels and input types are auto-inferred from field names and Zod types
+					</p>
+					<SchemaForm
+						schema={autoSchema}
 						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));

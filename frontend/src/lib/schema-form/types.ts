@@ -1,109 +1,82 @@
 /**
  * Type-safe form field definitions for schema-based form generation.
+ *
+ * Design principle: Schema and metadata are SEPARATE concerns.
+ * - Schema: Plain Zod schema (can be auto-generated from Ash)
+ * - Metadata: Optional UI hints keyed by field name
  */
 
 import type { z } from "zod";
 
 /**
- * Base metadata shared by all field types
+ * Input types that can be used for form fields.
+ * If not specified, inferred from Zod type:
+ * - z.string() -> "text"
+ * - z.number() with min/max -> "slider", otherwise "number"
+ * - z.boolean() -> "checkbox"
+ * - z.enum() -> "select"
  */
-interface BaseFieldMeta {
-	/** Human-readable label for the field */
-	label: string;
-	/** Optional description/helper text shown below the field */
+export type InputType =
+	| "text"
+	| "textarea"
+	| "number"
+	| "slider"
+	| "color"
+	| "checkbox"
+	| "select";
+
+/**
+ * Metadata for a single form field.
+ * All properties are optional - sensible defaults are derived from schema.
+ */
+export interface FieldMeta {
+	/** Human-readable label (default: derived from field name) */
+	label?: string;
+	/** Override the auto-detected input type */
+	inputType?: InputType;
+	/** Description/helper text shown below the field */
 	description?: string;
-	/** Group fields together under a section */
+	/** Group fields together under a section header */
 	group?: string;
 	/** Hide this field in the form */
 	hidden?: boolean;
-}
-
-/**
- * Text field metadata
- */
-export interface TextFieldMeta extends BaseFieldMeta {
-	inputType: "text";
-	/** Placeholder text */
+	/** Placeholder text (for text/textarea fields) */
 	placeholder?: string;
-}
-
-/**
- * Textarea field metadata
- */
-export interface TextareaFieldMeta extends BaseFieldMeta {
-	inputType: "textarea";
-	/** Placeholder text */
-	placeholder?: string;
-}
-
-/**
- * Number field metadata
- */
-export interface NumberFieldMeta extends BaseFieldMeta {
-	inputType: "number";
-	/** Unit label (e.g., "px", "s", "%") */
+	/** Unit label (for number/slider fields, e.g., "px", "s", "%") */
 	unit?: string;
-	/** Step increment */
+	/** Step increment (for number/slider fields) */
 	step?: number;
 }
 
 /**
- * Slider field metadata
+ * Metadata for all fields in a schema, keyed by field name.
+ * This is kept SEPARATE from the schema so schemas can be auto-generated.
+ *
+ * @example
+ * const schema = z.object({
+ *   fontSize: z.number().min(12).max(72).default(16),
+ *   textColor: z.string().default("#ffffff"),
+ * });
+ *
+ * const meta: FormMeta<typeof schema> = {
+ *   fontSize: { label: "Font Size", unit: "px", inputType: "slider" },
+ *   textColor: { label: "Text Color", inputType: "color" },
+ * };
  */
-export interface SliderFieldMeta extends BaseFieldMeta {
-	inputType: "slider";
-	/** Unit label (e.g., "px", "s", "%") */
-	unit?: string;
-	/** Step increment */
-	step?: number;
-}
+export type FormMeta<T extends z.ZodRawShape> = {
+	[K in keyof T]?: FieldMeta;
+};
 
 /**
- * Color picker field metadata
- */
-export interface ColorFieldMeta extends BaseFieldMeta {
-	inputType: "color";
-}
-
-/**
- * Checkbox field metadata
- */
-export interface CheckboxFieldMeta extends BaseFieldMeta {
-	inputType: "checkbox";
-}
-
-/**
- * Select dropdown field metadata
- */
-export interface SelectFieldMeta extends BaseFieldMeta {
-	inputType: "select";
-}
-
-/**
- * Union of all field metadata types
- */
-export type FieldMeta =
-	| TextFieldMeta
-	| TextareaFieldMeta
-	| NumberFieldMeta
-	| SliderFieldMeta
-	| ColorFieldMeta
-	| CheckboxFieldMeta
-	| SelectFieldMeta;
-
-/**
- * Extract the input type from a FieldMeta
- */
-export type InputType = FieldMeta["inputType"];
-
-/**
- * Introspected field information extracted from a Zod schema
+ * Introspected field information extracted from a Zod schema + metadata
  */
 export interface IntrospectedField {
 	/** Field name (key in the object) */
 	name: string;
 	/** Human-readable label */
 	label: string;
+	/** Resolved input type */
+	inputType: InputType;
 	/** Zod type name (e.g., "string", "number", "boolean", "enum") */
 	type: string;
 	/** Default value if any */
@@ -116,8 +89,8 @@ export interface IntrospectedField {
 	min?: number;
 	/** For number types: maximum value from schema */
 	max?: number;
-	/** Field metadata from describe */
-	meta: Partial<FieldMeta>;
+	/** Combined metadata */
+	meta: FieldMeta;
 	/** The original Zod schema for this field */
 	schema: z.ZodTypeAny;
 }
@@ -140,6 +113,8 @@ export interface IntrospectedSchema {
 export interface SchemaFormProps<T extends z.ZodRawShape> {
 	/** The Zod schema defining the form structure */
 	schema: z.ZodObject<T>;
+	/** Optional metadata for customizing field rendering */
+	meta?: FormMeta<T>;
 	/** Current form values */
 	values: z.infer<z.ZodObject<T>>;
 	/** Callback when any field value changes */
