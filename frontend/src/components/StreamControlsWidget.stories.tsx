@@ -660,6 +660,148 @@ export const StickyEventsTest: Story = {
 };
 
 // =====================================================
+// Filter Test Story
+// =====================================================
+
+// Generate diverse activities for filter testing
+const generateFilterTestActivities = (): ActivityItem[] => {
+	const now = Date.now();
+	return [
+		// Chat messages with searchable content
+		{
+			id: "chat-1",
+			type: "chat" as const,
+			username: "ChatFan",
+			message: "Great stream! Love the content!",
+			platform: "twitch",
+			timestamp: new Date(now - 300000),
+		},
+		{
+			id: "chat-2",
+			type: "chat" as const,
+			username: "ViewerAlice",
+			message: "Hello everyone!",
+			platform: "youtube",
+			timestamp: new Date(now - 280000),
+		},
+		{
+			id: "chat-3",
+			type: "chat" as const,
+			username: "GamerBob",
+			message: "What game is this?",
+			platform: "kick",
+			timestamp: new Date(now - 260000),
+		},
+		// Donations
+		{
+			id: "donation-1",
+			type: "donation" as const,
+			username: "GenerousDonor",
+			message: "Keep up the amazing work!",
+			amount: 50,
+			currency: "$",
+			platform: "twitch",
+			timestamp: new Date(now - 240000),
+			isImportant: true,
+		},
+		{
+			id: "donation-2",
+			type: "donation" as const,
+			username: "BigTipper",
+			message: "Love your streams!",
+			amount: 100,
+			currency: "$",
+			platform: "youtube",
+			timestamp: new Date(now - 220000),
+			isImportant: true,
+		},
+		// Follows
+		{
+			id: "follow-1",
+			type: "follow" as const,
+			username: "NewFollower123",
+			platform: "twitch",
+			timestamp: new Date(now - 200000),
+		},
+		{
+			id: "follow-2",
+			type: "follow" as const,
+			username: "StreamLover",
+			platform: "kick",
+			timestamp: new Date(now - 180000),
+		},
+		// Subscriptions
+		{
+			id: "sub-1",
+			type: "subscription" as const,
+			username: "LoyalSub",
+			message: "6 months strong!",
+			platform: "twitch",
+			timestamp: new Date(now - 160000),
+			isImportant: true,
+		},
+		// Raids
+		{
+			id: "raid-1",
+			type: "raid" as const,
+			username: "RaidLeader",
+			message: "Incoming with 200 viewers!",
+			platform: "twitch",
+			timestamp: new Date(now - 140000),
+			isImportant: true,
+		},
+		// Cheers
+		{
+			id: "cheer-1",
+			type: "cheer" as const,
+			username: "CheerMaster",
+			message: "Cheer500 Let's go!",
+			amount: 5,
+			currency: "$",
+			platform: "twitch",
+			timestamp: new Date(now - 120000),
+			isImportant: true,
+		},
+		// More recent chats
+		{
+			id: "chat-4",
+			type: "chat" as const,
+			username: "ChatFan",
+			message: "Thanks for answering my question!",
+			platform: "twitch",
+			timestamp: new Date(now - 100000),
+		},
+		{
+			id: "chat-5",
+			type: "chat" as const,
+			username: "RandomViewer",
+			message: "GG!",
+			platform: "facebook",
+			timestamp: new Date(now - 80000),
+		},
+	];
+};
+
+export const FilterTest: Story = {
+	args: {
+		phase: "live",
+		activities: generateFilterTestActivities(),
+		streamDuration: 1800,
+		viewerCount: 500,
+		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
+		onSendMessage: handleSendMessage,
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					"Test story for verifying event filtering. Use the filter button to filter by event type, or the search box to find events by username or message content. Try searching for 'ChatFan' or 'amazing' to test text filtering.",
+			},
+		},
+	},
+};
+
+// =====================================================
 // Individual Component Stories
 // =====================================================
 
