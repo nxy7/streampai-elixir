@@ -47,7 +47,20 @@ import { button, input, text } from "~/styles/design-system";
 // Widget Definition Type
 // =============================================================================
 
+export type WidgetCategory =
+	| "Engagement"
+	| "Chat"
+	| "Stats"
+	| "Goals"
+	| "Interaction"
+	| "Tools"
+	| "Display";
+
+export type WidgetPriority = "high" | "medium" | "low";
+export type WidgetStatus = "available" | "coming-soon";
+
 export interface WidgetDefinition<T extends z.ZodRawShape = z.ZodRawShape> {
+	// Settings page content
 	title: string;
 	description: string;
 	widgetType: WidgetType;
@@ -63,6 +76,16 @@ export interface WidgetDefinition<T extends z.ZodRawShape = z.ZodRawShape> {
 		width?: number;
 		height?: number;
 		customTips?: string[];
+	};
+
+	// Catalog metadata (for widget listing page)
+	catalog: {
+		name: string;
+		shortDescription: string;
+		category: WidgetCategory;
+		icon: string;
+		priority: WidgetPriority;
+		status: WidgetStatus;
 	};
 }
 
@@ -797,30 +820,23 @@ const TOPDONORS_MOCK_DONORS = [
 // =============================================================================
 
 export const widgetRegistry: Record<string, WidgetDefinition> = {
-	timer: {
-		title: "Timer Widget Settings",
-		description: "Configure your countdown timer widget for OBS",
-		widgetType: "timer_widget",
-		schema: timerSchema,
-		meta: timerMeta,
-		component: TimerWidget,
-	},
-	"follower-count": {
-		title: "Follower Count Widget Settings",
-		description: "Configure your follower count widget for OBS",
-		widgetType: "follower_count_widget",
-		schema: followerCountSchema,
-		meta: followerCountMeta,
-		component: FollowerCountWidget,
-		previewProps: { count: 5678 },
-	},
-	placeholder: {
-		title: "Placeholder Widget Settings",
-		description: "Configure your placeholder widget for OBS",
-		widgetType: "placeholder_widget",
-		schema: placeholderSchema,
-		meta: placeholderMeta,
-		component: PlaceholderWidget,
+	alertbox: {
+		title: "Alertbox Widget Settings",
+		description: "Configure alert notifications for donations, follows, subscriptions, and raids",
+		widgetType: "alertbox_widget",
+		schema: alertboxSchema,
+		meta: alertboxMeta,
+		component: AlertboxWidget,
+		previewWrapper: AlertboxPreviewWrapper,
+		obsSettings: { width: 800, height: 600 },
+		catalog: {
+			name: "Alertbox",
+			shortDescription: "Display alerts for donations, follows, subscriptions, and more",
+			category: "Engagement",
+			icon: "🔔",
+			priority: "high",
+			status: "available",
+		},
 	},
 	chat: {
 		title: "Chat Widget Settings",
@@ -831,16 +847,32 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		component: ChatWidget,
 		previewWrapper: ChatPreviewWrapper,
 		obsSettings: { width: 400, height: 600 },
+		catalog: {
+			name: "Chat Widget",
+			shortDescription: "Show chat messages from all connected platforms",
+			category: "Chat",
+			icon: "💬",
+			priority: "high",
+			status: "available",
+		},
 	},
-	alertbox: {
-		title: "Alertbox Widget Settings",
-		description: "Configure alert notifications for donations, follows, subscriptions, and raids",
-		widgetType: "alertbox_widget",
-		schema: alertboxSchema,
-		meta: alertboxMeta,
-		component: AlertboxWidget,
-		previewWrapper: AlertboxPreviewWrapper,
-		obsSettings: { width: 800, height: 600 },
+	"viewer-count": {
+		title: "Viewer Count Widget Settings",
+		description: "Configure your viewer count widget and OBS browser source URL generation",
+		widgetType: "viewer_count_widget",
+		schema: viewerCountSchema,
+		meta: viewerCountMeta,
+		component: ViewerCountWidget,
+		previewWrapper: ViewerCountPreviewWrapper,
+		obsSettings: { width: 800, height: 200 },
+		catalog: {
+			name: "Viewer Count",
+			shortDescription: "Display current viewer count across all platforms",
+			category: "Stats",
+			icon: "👁️",
+			priority: "high",
+			status: "available",
+		},
 	},
 	"donation-goal": {
 		title: "Donation Goal Widget Settings",
@@ -851,6 +883,14 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		component: DonationGoalWidget,
 		previewWrapper: DonationGoalPreviewWrapper,
 		obsSettings: { width: 800, height: 200 },
+		catalog: {
+			name: "Donation Goal",
+			shortDescription: "Track progress towards your donation goals",
+			category: "Goals",
+			icon: "🎯",
+			priority: "medium",
+			status: "available",
+		},
 	},
 	eventlist: {
 		title: "Event List Widget Settings",
@@ -861,16 +901,49 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		component: EventListWidget,
 		previewWrapper: EventListPreviewWrapper,
 		obsSettings: { width: 400, height: 800, customTips: ['Enable "Shutdown source when not visible"'] },
+		catalog: {
+			name: "Event List",
+			shortDescription: "Show recent stream events (follows, subs, donations)",
+			category: "Engagement",
+			icon: "📋",
+			priority: "medium",
+			status: "available",
+		},
 	},
-	giveaway: {
-		title: "Giveaway Widget Settings",
-		description: "Configure your giveaway widget for viewer engagement",
-		widgetType: "giveaway_widget",
-		schema: giveawaySchema,
-		meta: giveawayMeta,
-		component: GiveawayWidget,
-		previewWrapper: GiveawayPreviewWrapper,
-		obsSettings: { width: 600, height: 400 },
+	"follower-count": {
+		title: "Follower Count Widget Settings",
+		description: "Configure your follower count widget for OBS",
+		widgetType: "follower_count_widget",
+		schema: followerCountSchema,
+		meta: followerCountMeta,
+		component: FollowerCountWidget,
+		previewProps: { count: 5678 },
+		catalog: {
+			name: "Follower Count",
+			shortDescription: "Display total follower count across platforms",
+			category: "Stats",
+			icon: "👥",
+			priority: "medium",
+			status: "available",
+		},
+	},
+	topdonors: {
+		title: "Top Donors Widget Settings",
+		description: "Configure your top donors leaderboard widget for OBS",
+		widgetType: "top_donors_widget",
+		schema: topDonorsSchema,
+		meta: topDonorsMeta,
+		component: TopDonorsWidget,
+		previewProps: { donors: TOPDONORS_MOCK_DONORS },
+		obsSettings: { width: 400, height: 800, customTips: ['Enable "Shutdown source when not visible"'] },
+		catalog: {
+			name: "Top Donors",
+			shortDescription: "Leaderboard of your top donors",
+			category: "Engagement",
+			icon: "🏆",
+			priority: "medium",
+			status: "available",
+		},
 	},
 	poll: {
 		title: "Poll Widget Settings",
@@ -881,6 +954,48 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 		component: PollWidget,
 		previewWrapper: PollPreviewWrapper,
 		obsSettings: { width: 600, height: 400 },
+		catalog: {
+			name: "Poll Widget",
+			shortDescription: "Create and display interactive polls for viewers",
+			category: "Interaction",
+			icon: "📊",
+			priority: "medium",
+			status: "available",
+		},
+	},
+	timer: {
+		title: "Timer Widget Settings",
+		description: "Configure your countdown timer widget for OBS",
+		widgetType: "timer_widget",
+		schema: timerSchema,
+		meta: timerMeta,
+		component: TimerWidget,
+		catalog: {
+			name: "Timer Widget",
+			shortDescription: "Countdown timer for events and segments",
+			category: "Tools",
+			icon: "⏱️",
+			priority: "medium",
+			status: "available",
+		},
+	},
+	giveaway: {
+		title: "Giveaway Widget Settings",
+		description: "Configure your giveaway widget for viewer engagement",
+		widgetType: "giveaway_widget",
+		schema: giveawaySchema,
+		meta: giveawayMeta,
+		component: GiveawayWidget,
+		previewWrapper: GiveawayPreviewWrapper,
+		obsSettings: { width: 600, height: 400 },
+		catalog: {
+			name: "Giveaway",
+			shortDescription: "Run giveaways and pick random winners",
+			category: "Interaction",
+			icon: "🎁",
+			priority: "low",
+			status: "available",
+		},
 	},
 	slider: {
 		title: "Slider Widget Settings",
@@ -895,26 +1010,30 @@ export const widgetRegistry: Record<string, WidgetDefinition> = {
 			height: 1080,
 			customTips: ['Enable "Shutdown source when not visible"', 'Enable "Refresh browser when scene becomes active"'],
 		},
+		catalog: {
+			name: "Slider Widget",
+			shortDescription: "Rotating carousel for sponsors, announcements, and more",
+			category: "Display",
+			icon: "🎠",
+			priority: "low",
+			status: "available",
+		},
 	},
-	topdonors: {
-		title: "Top Donors Widget Settings",
-		description: "Configure your top donors leaderboard widget for OBS",
-		widgetType: "top_donors_widget",
-		schema: topDonorsSchema,
-		meta: topDonorsMeta,
-		component: TopDonorsWidget,
-		previewProps: { donors: TOPDONORS_MOCK_DONORS },
-		obsSettings: { width: 400, height: 800, customTips: ['Enable "Shutdown source when not visible"'] },
-	},
-	"viewer-count": {
-		title: "Viewer Count Widget Settings",
-		description: "Configure your viewer count widget and OBS browser source URL generation",
-		widgetType: "viewer_count_widget",
-		schema: viewerCountSchema,
-		meta: viewerCountMeta,
-		component: ViewerCountWidget,
-		previewWrapper: ViewerCountPreviewWrapper,
-		obsSettings: { width: 800, height: 200 },
+	placeholder: {
+		title: "Placeholder Widget Settings",
+		description: "Configure your placeholder widget for OBS",
+		widgetType: "placeholder_widget",
+		schema: placeholderSchema,
+		meta: placeholderMeta,
+		component: PlaceholderWidget,
+		catalog: {
+			name: "Placeholder",
+			shortDescription: "Simple customizable placeholder for testing",
+			category: "Tools",
+			icon: "📦",
+			priority: "low",
+			status: "available",
+		},
 	},
 };
 
@@ -930,4 +1049,59 @@ export function getWidgetDefinition(slug: string): WidgetDefinition | undefined 
  */
 export function getWidgetSlugs(): string[] {
 	return Object.keys(widgetRegistry);
+}
+
+/**
+ * Widget catalog entry for the listing page.
+ */
+export interface WidgetCatalogEntry {
+	slug: string;
+	name: string;
+	description: string;
+	category: WidgetCategory;
+	icon: string;
+	settingsRoute: string;
+	displayRoute: string;
+	priority: WidgetPriority;
+	status: WidgetStatus;
+}
+
+/**
+ * Get all widgets as catalog entries, sorted by priority then name.
+ */
+export function getWidgetCatalog(): WidgetCatalogEntry[] {
+	const priorityOrder: Record<WidgetPriority, number> = {
+		high: 0,
+		medium: 1,
+		low: 2,
+	};
+
+	return Object.entries(widgetRegistry)
+		.map(([slug, def]) => ({
+			slug,
+			name: def.catalog.name,
+			description: def.catalog.shortDescription,
+			category: def.catalog.category,
+			icon: def.catalog.icon,
+			settingsRoute: `/dashboard/widgets/${slug}`,
+			displayRoute: `/w/${slug}`,
+			priority: def.catalog.priority,
+			status: def.catalog.status,
+		}))
+		.sort((a, b) => {
+			const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+			if (priorityDiff !== 0) return priorityDiff;
+			return a.name.localeCompare(b.name);
+		});
+}
+
+/**
+ * Get all unique categories from registered widgets.
+ */
+export function getWidgetCategories(): WidgetCategory[] {
+	const categories = new Set<WidgetCategory>();
+	for (const def of Object.values(widgetRegistry)) {
+		categories.add(def.catalog.category);
+	}
+	return Array.from(categories).sort();
 }

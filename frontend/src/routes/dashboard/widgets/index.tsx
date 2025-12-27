@@ -2,154 +2,18 @@ import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import {
+	getWidgetCatalog,
+	getWidgetCategories,
+	type WidgetCatalogEntry,
+} from "~/lib/widget-registry";
 import { badge, button, card, text } from "~/styles/design-system";
 
-type Widget = {
-	id: string;
-	name: string;
-	description: string;
-	category: string;
-	icon: string;
-	settingsRoute: string;
-	displayRoute: string;
-	priority: "high" | "medium" | "low";
-	status: "available" | "coming-soon";
-};
-
-const widgets: Widget[] = [
-	{
-		id: "alertbox",
-		name: "Alertbox",
-		description:
-			"Display alerts for donations, follows, subscriptions, and more",
-		category: "Engagement",
-		icon: "🔔",
-		settingsRoute: "/dashboard/widgets/alertbox",
-		displayRoute: "/w/alertbox",
-		priority: "high",
-		status: "available",
-	},
-	{
-		id: "chat",
-		name: "Chat Widget",
-		description: "Show chat messages from all connected platforms",
-		category: "Chat",
-		icon: "💬",
-		settingsRoute: "/dashboard/widgets/chat",
-		displayRoute: "/w/chat",
-		priority: "high",
-		status: "available",
-	},
-	{
-		id: "viewer-count",
-		name: "Viewer Count",
-		description: "Display current viewer count across all platforms",
-		category: "Stats",
-		icon: "👁️",
-		settingsRoute: "/dashboard/widgets/viewer-count",
-		displayRoute: "/w/viewer-count",
-		priority: "high",
-		status: "available",
-	},
-	{
-		id: "donation-goal",
-		name: "Donation Goal",
-		description: "Track progress towards your donation goals",
-		category: "Goals",
-		icon: "🎯",
-		settingsRoute: "/dashboard/widgets/donation-goal",
-		displayRoute: "/w/donation-goal",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "event-list",
-		name: "Event List",
-		description: "Show recent stream events (follows, subs, donations)",
-		category: "Engagement",
-		icon: "📋",
-		settingsRoute: "/dashboard/widgets/eventlist",
-		displayRoute: "/w/eventlist",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "follower-count",
-		name: "Follower Count",
-		description: "Display total follower count across platforms",
-		category: "Stats",
-		icon: "👥",
-		settingsRoute: "/dashboard/widgets/follower-count",
-		displayRoute: "/w/follower-count",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "top-donors",
-		name: "Top Donors",
-		description: "Leaderboard of your top donors",
-		category: "Engagement",
-		icon: "🏆",
-		settingsRoute: "/dashboard/widgets/topdonors",
-		displayRoute: "/w/topdonors",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "poll",
-		name: "Poll Widget",
-		description: "Create and display interactive polls for viewers",
-		category: "Interaction",
-		icon: "📊",
-		settingsRoute: "/dashboard/widgets/poll",
-		displayRoute: "/w/poll",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "timer",
-		name: "Timer Widget",
-		description: "Countdown timer for events and segments",
-		category: "Tools",
-		icon: "⏱️",
-		settingsRoute: "/dashboard/widgets/timer",
-		displayRoute: "/w/timer",
-		priority: "medium",
-		status: "available",
-	},
-	{
-		id: "giveaway",
-		name: "Giveaway",
-		description: "Run giveaways and pick random winners",
-		category: "Interaction",
-		icon: "🎁",
-		settingsRoute: "/dashboard/widgets/giveaway",
-		displayRoute: "/w/giveaway",
-		priority: "low",
-		status: "available",
-	},
-	{
-		id: "slider",
-		name: "Slider Widget",
-		description: "Rotating carousel for sponsors, announcements, and more",
-		category: "Display",
-		icon: "🎠",
-		settingsRoute: "/dashboard/widgets/slider",
-		displayRoute: "/w/slider",
-		priority: "low",
-		status: "available",
-	},
-];
-
+// Get widgets and categories from the central registry
+const widgets = getWidgetCatalog();
 const categories = [
 	{ name: "All", value: "all" },
-	{ name: "Engagement", value: "Engagement" },
-	{ name: "Chat", value: "Chat" },
-	{ name: "Stats", value: "Stats" },
-	{ name: "Goals", value: "Goals" },
-	{ name: "Interaction", value: "Interaction" },
-	{ name: "Tools", value: "Tools" },
-	{ name: "Display", value: "Display" },
+	...getWidgetCategories().map((cat) => ({ name: cat, value: cat })),
 ];
 
 export default function Widgets() {
