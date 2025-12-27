@@ -74,6 +74,7 @@ function resolveTemplate(
 export type I18nContextValue = {
 	locale: () => Locale;
 	setLocale: (locale: Locale) => void;
+	setLocaleFromDb: (locale: string | null) => void;
 	t: (key: string, params?: Record<string, string | number>) => string;
 	isLoading: () => boolean;
 };
@@ -110,6 +111,18 @@ export const I18nProvider: ParentComponent = (props) => {
 		}
 	};
 
+	// Set locale from DB preference (only updates if different from current)
+	// This is used to sync locale from user preferences without triggering localStorage updates
+	const setLocaleFromDb = (dbLocale: string | null) => {
+		if (
+			dbLocale &&
+			SUPPORTED_LOCALES.includes(dbLocale as Locale) &&
+			dbLocale !== locale()
+		) {
+			setLocaleSignal(dbLocale as Locale);
+		}
+	};
+
 	// Translation function with fallback
 	const t = (key: string, params?: Record<string, string | number>): string => {
 		const dictionary = dict();
@@ -127,6 +140,7 @@ export const I18nProvider: ParentComponent = (props) => {
 	const contextValue: I18nContextValue = {
 		locale,
 		setLocale,
+		setLocaleFromDb,
 		t,
 		isLoading: () => dict.loading,
 	};

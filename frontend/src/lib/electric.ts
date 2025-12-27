@@ -80,6 +80,7 @@ export type UserPreferences = Row & {
 	donation_currency: string;
 	default_voice: string | null;
 	avatar_url: string | null;
+	language_preference: string | null;
 	inserted_at: string;
 	updated_at: string;
 };
