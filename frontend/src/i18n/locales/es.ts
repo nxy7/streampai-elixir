@@ -16,6 +16,7 @@ export const dict: Dictionary = {
 		next: "Siguiente",
 		search: "Buscar",
 		noResults: "Sin resultados",
+		pleaseWait: "Por favor espera...",
 	},
 
 	// Navigation
@@ -60,6 +61,98 @@ export const dict: Dictionary = {
 		freePlan: "Plan gratis",
 		goToSettings: "Ir a configuración",
 		closeSidebar: "Cerrar barra lateral",
+		welcomeMessage: "Bienvenido a tu panel de Streampai.",
+		// Quick Stats
+		messages: "Mensajes",
+		viewers: "Espectadores",
+		followers: "Seguidores",
+		donations: "Donaciones",
+		// Stream Health
+		streamHealth: "Estado del stream",
+		bitrate: "Bitrate",
+		dropped: "Perdidos",
+		uptime: "Tiempo activo",
+		excellent: "Excelente",
+		good: "Bueno",
+		fair: "Regular",
+		poor: "Malo",
+		// Engagement Score
+		engagementScore: "Puntuación de interacción",
+		building: "En construcción",
+		growing: "En crecimiento",
+		// Stream Goals
+		streamGoals: "Objetivos del stream",
+		dailyFollowers: "Seguidores diarios",
+		donationGoal: "Meta de donaciones",
+		chatActivity: "Actividad del chat",
+		goalReached: "¡Meta alcanzada!",
+		// Recent sections
+		recentChat: "Chat reciente",
+		recentEvents: "Eventos recientes",
+		recentStreams: "Streams recientes",
+		viewAll: "Ver todos",
+		noChatMessages: "Sin mensajes de chat aún",
+		messagesWillAppear: "Los mensajes aparecerán aquí durante los streams",
+		noEventsYet: "Sin eventos aún",
+		eventsWillAppear: "Donaciones, seguidores y suscripciones aparecerán aquí",
+		noStreamsYet: "Sin streams aún",
+		streamsWillAppear: "Tu historial de streams aparecerá aquí",
+		untitledStream: "Stream sin título",
+		notStarted: "No iniciado",
+		// Activity Feed
+		activityFeed: "Actividad",
+		events: "eventos",
+		all: "Todos",
+		donationsFilter: "Donaciones",
+		follows: "Seguidores",
+		subs: "Suscripciones",
+		raids: "Raids",
+		noEvents: "Sin eventos",
+		anonymous: "Anónimo",
+		// Quick Actions
+		testAlert: "Alerta de prueba",
+		widgets: "Widgets",
+		goLive: "Iniciar stream",
+		customizeOverlays: "Personaliza tus overlays",
+		viewStats: "Ver estadísticas",
+		configureAccount: "Configurar cuenta",
+		// Test Alert
+		testAlertTitle: "¡Alerta de prueba!",
+		alertsWorking: "Tus alertas funcionan correctamente.",
+		// Not authenticated
+		notAuthenticated: "No autenticado",
+		signInToAccess: "Inicia sesión para acceder al panel.",
+	},
+
+	// Analytics page
+	analytics: {
+		title: "Estadísticas de streams",
+		subtitle: "Sigue el rendimiento de tus streams y métricas de audiencia",
+		signInToView: "Inicia sesión para ver las estadísticas.",
+		failedToLoad: "Error al cargar los datos",
+		// Timeframe options
+		last24Hours: "Últimas 24 horas",
+		last7Days: "Últimos 7 días",
+		last30Days: "Últimos 30 días",
+		lastYear: "Último año",
+		// Charts
+		viewerTrends: "Tendencias de espectadores",
+		platformDistribution: "Distribución por plataforma",
+		peakViewers: "Pico de espectadores",
+		avgViewers: "Espectadores promedio",
+		daysStreamed: "Días transmitidos",
+		// Empty states
+		noStreamingData: "Sin datos para este período",
+		streamToSee: "Transmite para ver tendencias de espectadores",
+		noStreamsYet: "Sin streams aún",
+		startStreaming:
+			"Comienza a transmitir para ver estadísticas y datos de rendimiento.",
+		// Table
+		recentStreams: "Streams recientes",
+		stream: "Stream",
+		platform: "Plataforma",
+		duration: "Duración",
+		chatMessages: "Mensajes de chat",
 	},
 
 	// Settings page
@@ -69,6 +162,104 @@ export const dict: Dictionary = {
 		languageDescription: "Elige tu idioma preferido para la interfaz",
 		appearance: "Apariencia",
 		profile: "Perfil",
+		// Account Settings
+		accountSettings: "Configuración de cuenta",
+		email: "Correo electrónico",
+		emailCannotChange: "Tu correo electrónico no puede ser cambiado",
+		displayName: "Nombre para mostrar",
+		displayNamePlaceholder: "Ingresa nombre para mostrar",
+		displayNameHelp:
+			"El nombre debe tener 3-30 caracteres y solo contener letras, números y guiones bajos",
+		updateName: "Actualizar nombre",
+		updating: "Actualizando...",
+		nameUpdated: "¡Nombre actualizado!",
+		// Avatar
+		profileAvatar: "Foto de perfil",
+		uploadNewAvatar: "Subir nueva foto",
+		uploading: "Subiendo...",
+		avatarHelp: "JPG, PNG o GIF. Máximo 5MB. Recomendado: 256x256px",
+		avatarUpdated: "¡Foto de perfil actualizada!",
+		// Streaming Platforms
+		streamingPlatforms: "Plataformas de streaming",
+		notConnected: "No conectado",
+		connect: "Conectar",
+		// Plan
+		getStarted: "Comienza con funciones básicas",
+		upgradeToPro: "Actualizar a Pro",
+		// Donation Page
+		donationPage: "Página de donaciones",
+		publicDonationUrl: "URL pública de donaciones",
+		copyUrl: "Copiar URL",
+		donationUrlHelp:
+			"Comparte este enlace con tus espectadores para que puedan apoyarte con donaciones",
+		publicDonationPage: "Página pública de donaciones",
+		preview: "Vista previa",
+		support: "Apoya a",
+		// Donation Settings
+		donationSettings: "Configuración de donaciones",
+		minimumAmount: "Monto mínimo",
+		maximumAmount: "Monto máximo",
+		noMinimum: "Sin mínimo",
+		noMaximum: "Sin máximo",
+		leaveEmptyNoMin: "Dejar vacío para sin mínimo",
+		leaveEmptyNoMax: "Dejar vacío para sin máximo",
+		currency: "Moneda",
+		defaultTtsVoice: "Voz TTS predeterminada",
+		randomVoice: "Aleatorio (voz diferente cada vez)",
+		voiceHelp:
+			"Esta voz se usará cuando los donantes no elijan una voz, y para donaciones desde plataformas de streaming",
+		donationLimitsInfo: "Cómo funcionan los límites de donación:",
+		donationLimitsItem1:
+			"Establece límites para controlar los montos de donación de tus espectadores",
+		donationLimitsItem2:
+			"Ambos campos son opcionales - déjalos vacíos para permitir cualquier monto",
+		donationLimitsItem3:
+			"Los botones predefinidos y la entrada personalizada se filtrarán según tus límites",
+		donationLimitsItem4:
+			"Los cambios se aplican inmediatamente en tu página de donaciones",
+		saveDonationSettings: "Guardar configuración de donaciones",
+		saving: "Guardando...",
+		settingsSaved: "¡Configuración guardada exitosamente!",
+		// Role Invitations
+		roleInvitations: "Invitaciones de roles",
+		noPendingInvitations: "Sin invitaciones pendientes",
+		invitationsHelp:
+			"Verás invitaciones aquí cuando streamers te inviten a moderar sus canales",
+		invitedYouAs: "Te invitó como",
+		accept: "Aceptar",
+		decline: "Rechazar",
+		// My Roles
+		myRolesInChannels: "Mis roles en otros canales",
+		noRolesInChannels: "No tienes roles en otros canales",
+		rolesGrantedHelp: "Los roles otorgados por otros streamers aparecerán aquí",
+		channel: " - canal",
+		since: "Desde",
+		// Channel Management
+		channelManagement: "Gestión del canal",
+		// Role Management
+		roleManagement: "Gestión de roles",
+		inviteUser: "Invitar usuario",
+		enterUsername: "Ingresa nombre de usuario",
+		moderator: "Moderador",
+		manager: "Administrador",
+		sendInvitation: "Enviar invitación",
+		sending: "Enviando...",
+		invitationSent: "¡Invitación enviada exitosamente!",
+		rolePermissions: "Permisos de roles:",
+		moderatorDesc: "Puede moderar el chat y gestionar configuración del stream",
+		managerDesc: "Puede gestionar operaciones del canal y configuraciones",
+		pendingInvitations: "Invitaciones pendientes",
+		pending: "Pendiente",
+		cancel: "Cancelar",
+		yourTeam: "Tu equipo",
+		noRolesGranted: "Sin roles otorgados aún",
+		rolesGrantedToHelp:
+			"Los usuarios con permisos otorgados por ti aparecerán aquí",
+		revoke: "Revocar",
+		// Notifications
+		notificationPreferences: "Preferencias de notificaciones",
+		emailNotifications: "Notificaciones por correo",
+		emailNotificationsDesc: "Recibe notificaciones sobre eventos importantes",
 	},
 
 	// Language names (for language selector)
@@ -86,6 +277,21 @@ export const dict: Dictionary = {
 		orContinueWith: "O continuar con",
 		continueWithGoogle: "Continuar con Google",
 		continueWithTwitch: "Continuar con Twitch",
+		welcomeBack: "Bienvenido de nuevo",
+		signInToContinue: "Inicia sesión para continuar",
+		orContinueWithEmail: "O continuar con email",
+		signInWithEmail: "Iniciar sesión con Email",
+		signUpWithEmail: "Registrarse con Email",
+		noAccount: "¿No tienes cuenta?",
+		createOne: "Crea una",
+		agreeToTerms: "Al iniciar sesión, aceptas nuestros",
+		termsOfService: "Términos de Servicio",
+		and: "y",
+		privacyPolicy: "Política de Privacidad",
+		alreadySignedIn: "¡Ya has iniciado sesión!",
+		alreadyLoggedIn: "Ya estás conectado.",
+		goToDashboard: "Ir al Panel",
+		pageTitle: "Iniciar Sesión - Streampai",
 	},
 
 	// Errors
