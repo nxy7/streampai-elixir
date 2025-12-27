@@ -5,6 +5,7 @@ import {
 	chatMessagesCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
+	createStreamingAccountsCollection,
 	createUserRolesCollection,
 	createUserScopedChatMessagesCollection,
 	createUserScopedLivestreamsCollection,
@@ -13,6 +14,7 @@ import {
 	createWidgetConfigsCollection,
 	emptyNotificationReadsCollection,
 	emptyNotificationsCollection,
+	emptyStreamingAccountsCollection,
 	emptyUserRolesCollection,
 	emptyWidgetConfigsCollection,
 	globalNotificationsCollection,
@@ -22,6 +24,7 @@ import {
 	type NotificationRead,
 	type StreamEvent,
 	streamEventsCollection,
+	type StreamingAccount,
 	type UserPreferences,
 	type UserRole,
 	userPreferencesCollection,
@@ -479,6 +482,37 @@ export function useUserRolesData(userId: () => string | undefined): {
 	};
 }
 
+// Cache for streaming accounts collection by user ID
+const streamingAccountsCollections = new Map<
+	string,
+	ReturnType<typeof createStreamingAccountsCollection>
+>();
+
+function getStreamingAccountsCollection(userId: string) {
+	let collection = streamingAccountsCollections.get(userId);
+	if (!collection) {
+		collection = createStreamingAccountsCollection(userId);
+		streamingAccountsCollections.set(userId, collection);
+	}
+	return collection;
+}
+
+export function useStreamingAccounts(userId: () => string | undefined) {
+	const query = useLiveQuery(() => {
+		const currentId = userId();
+		if (!currentId) return emptyStreamingAccountsCollection;
+		return getStreamingAccountsCollection(currentId);
+	});
+
+	return {
+		...query,
+		data: createMemo(() => {
+			if (!userId()) return [];
+			return (query.data || []) as StreamingAccount[];
+		}),
+	};
+}
+
 export type {
 	StreamEvent,
 	ChatMessage,
@@ -490,4 +524,5 @@ export type {
 	Notification,
 	NotificationRead,
 	UserRole,
+	StreamingAccount,
 };

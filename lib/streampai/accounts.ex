@@ -43,6 +43,8 @@ defmodule Streampai.Accounts do
 
     resource StreamingAccount do
       rpc_action(:list_streaming_accounts, :read)
+      rpc_action(:refresh_streaming_account_stats, :refresh_stats)
+      rpc_action(:disconnect_streaming_account, :destroy)
     end
 
     resource SmartCanvasLayout do
