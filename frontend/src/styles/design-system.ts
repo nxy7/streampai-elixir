@@ -157,7 +157,8 @@ export const button = {
 export const card = {
 	base: "bg-white rounded-2xl border border-gray-200",
 	default: "bg-white rounded-2xl border border-gray-200 p-6",
-	hover: "bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all",
+	hover:
+		"bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all",
 };
 
 export const input = {

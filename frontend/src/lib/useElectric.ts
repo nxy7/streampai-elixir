@@ -437,25 +437,22 @@ export function useNotificationsWithReadStatus(
 				notificationLocs[loc.locale] = loc.content;
 			}
 
-			const withStatus = notifications.map(
-				(n): NotificationWithReadStatus => {
-					const notificationLocs = localizationMap.get(n.id) || {};
-					// Use localized content if available, otherwise fall back to default content
-					const localizedContent =
-						notificationLocs[currentLocale] || n.content;
+			const withStatus = notifications.map((n): NotificationWithReadStatus => {
+				const notificationLocs = localizationMap.get(n.id) || {};
+				// Use localized content if available, otherwise fall back to default content
+				const localizedContent = notificationLocs[currentLocale] || n.content;
 
-					return {
-						id: n.id,
-						user_id: n.user_id,
-						content: n.content,
-						inserted_at: n.inserted_at,
-						wasSeen: readMap.has(n.id),
-						seenAt: readMap.get(n.id) || null,
-						localizedContent,
-						localizations: notificationLocs,
-					};
-				},
-			);
+				return {
+					id: n.id,
+					user_id: n.user_id,
+					content: n.content,
+					inserted_at: n.inserted_at,
+					wasSeen: readMap.has(n.id),
+					seenAt: readMap.get(n.id) || null,
+					localizedContent,
+					localizations: notificationLocs,
+				};
+			});
 			return sortByInsertedAt(withStatus);
 		}),
 		unreadCount: createMemo(() => {

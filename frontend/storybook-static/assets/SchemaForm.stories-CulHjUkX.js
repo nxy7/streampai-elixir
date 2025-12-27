@@ -1,6 +1,1471 @@
-import{t as k,i as p,m as Fe,a as F,g as K,c as h,j as gt,F as pe,S as Be,s as $e,M,w as Gt,b as Y}from"./iframe-BQDcX1su.js";import{t as se}from"./design-system-CwcdUVvG.js";import{I as je,S as Kt,T as Yt}from"./Input--ZGeZUqs.js";import"./preload-helper-PPVm8Dsz.js";function c(e,t,n){function r(s,u){if(s._zod||Object.defineProperty(s,"_zod",{value:{def:u,constr:i,traits:new Set},enumerable:!1}),s._zod.traits.has(e))return;s._zod.traits.add(e),t(s,u);const l=i.prototype,d=Object.keys(l);for(let m=0;m<d.length;m++){const g=d[m];g in s||(s[g]=l[g].bind(s))}}const o=n?.Parent??Object;class a extends o{}Object.defineProperty(a,"name",{value:e});function i(s){var u;const l=n?.Parent?new a:this;r(l,s),(u=l._zod).deferred??(u.deferred=[]);for(const d of l._zod.deferred)d();return l}return Object.defineProperty(i,"init",{value:r}),Object.defineProperty(i,Symbol.hasInstance,{value:s=>n?.Parent&&s instanceof n.Parent?!0:s?._zod?.traits?.has(e)}),Object.defineProperty(i,"name",{value:e}),i}class G extends Error{constructor(){super("Encountered Promise during synchronous parse. Use .parseAsync() instead.")}}class _t extends Error{constructor(t){super(`Encountered unidirectional transform during encode: ${t}`),this.name="ZodEncodeError"}}const vt={};function J(e){return vt}function bt(e){const t=Object.values(e).filter(r=>typeof r=="number");return Object.entries(e).filter(([r,o])=>t.indexOf(+r)===-1).map(([r,o])=>o)}function xe(e,t){return typeof t=="bigint"?t.toString():t}function De(e){return{get value(){{const t=e();return Object.defineProperty(this,"value",{value:t}),t}}}}function Ve(e){return e==null}function Re(e){const t=e.startsWith("^")?1:0,n=e.endsWith("$")?e.length-1:e.length;return e.slice(t,n)}function Xt(e,t){const n=(e.toString().split(".")[1]||"").length,r=t.toString();let o=(r.split(".")[1]||"").length;if(o===0&&/\d?e-\d?/.test(r)){const u=r.match(/\d?e-(\d?)/);u?.[1]&&(o=Number.parseInt(u[1]))}const a=n>o?n:o,i=Number.parseInt(e.toFixed(a).replace(".","")),s=Number.parseInt(t.toFixed(a).replace(".",""));return i%s/10**a}const We=Symbol("evaluating");function b(e,t,n){let r;Object.defineProperty(e,t,{get(){if(r!==We)return r===void 0&&(r=We,r=n()),r},set(o){Object.defineProperty(e,t,{value:o})},configurable:!0})}function q(e,t,n){Object.defineProperty(e,t,{value:n,writable:!0,enumerable:!0,configurable:!0})}function B(...e){const t={};for(const n of e){const r=Object.getOwnPropertyDescriptors(n);Object.assign(t,r)}return Object.defineProperties({},t)}function Ge(e){return JSON.stringify(e)}function Ht(e){return e.toLowerCase().trim().replace(/[^\w\s-]/g,"").replace(/[\s_-]+/g,"-").replace(/^-+|-+$/g,"")}const yt="captureStackTrace"in Error?Error.captureStackTrace:(...e)=>{};function he(e){return typeof e=="object"&&e!==null&&!Array.isArray(e)}const Qt=De(()=>{if(typeof navigator<"u"&&navigator?.userAgent?.includes("Cloudflare"))return!1;try{const e=Function;return new e(""),!0}catch{return!1}});function ue(e){if(he(e)===!1)return!1;const t=e.constructor;if(t===void 0||typeof t!="function")return!0;const n=t.prototype;return!(he(n)===!1||Object.prototype.hasOwnProperty.call(n,"isPrototypeOf")===!1)}function wt(e){return ue(e)?{...e}:Array.isArray(e)?[...e]:e}const en=new Set(["string","number","symbol"]);function be(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function V(e,t,n){const r=new e._zod.constr(t??e._zod.def);return(!t||n?.parent)&&(r._zod.parent=e),r}function f(e){const t=e;if(!t)return{};if(typeof t=="string")return{error:()=>t};if(t?.message!==void 0){if(t?.error!==void 0)throw new Error("Cannot specify both `message` and `error` params");t.error=t.message}return delete t.message,typeof t.error=="string"?{...t,error:()=>t.error}:t}function tn(e){return Object.keys(e).filter(t=>e[t]._zod.optin==="optional"&&e[t]._zod.optout==="optional")}const nn={safeint:[Number.MIN_SAFE_INTEGER,Number.MAX_SAFE_INTEGER],int32:[-2147483648,2147483647],uint32:[0,4294967295],float32:[-34028234663852886e22,34028234663852886e22],float64:[-Number.MAX_VALUE,Number.MAX_VALUE]};function rn(e,t){const n=e._zod.def,r=B(e._zod.def,{get shape(){const o={};for(const a in t){if(!(a in n.shape))throw new Error(`Unrecognized key: "${a}"`);t[a]&&(o[a]=n.shape[a])}return q(this,"shape",o),o},checks:[]});return V(e,r)}function on(e,t){const n=e._zod.def,r=B(e._zod.def,{get shape(){const o={...e._zod.def.shape};for(const a in t){if(!(a in n.shape))throw new Error(`Unrecognized key: "${a}"`);t[a]&&delete o[a]}return q(this,"shape",o),o},checks:[]});return V(e,r)}function an(e,t){if(!ue(t))throw new Error("Invalid input to extend: expected a plain object");const n=e._zod.def.checks;if(n&&n.length>0)throw new Error("Object schemas containing refinements cannot be extended. Use `.safeExtend()` instead.");const o=B(e._zod.def,{get shape(){const a={...e._zod.def.shape,...t};return q(this,"shape",a),a},checks:[]});return V(e,o)}function sn(e,t){if(!ue(t))throw new Error("Invalid input to safeExtend: expected a plain object");const n={...e._zod.def,get shape(){const r={...e._zod.def.shape,...t};return q(this,"shape",r),r},checks:e._zod.def.checks};return V(e,n)}function un(e,t){const n=B(e._zod.def,{get shape(){const r={...e._zod.def.shape,...t._zod.def.shape};return q(this,"shape",r),r},get catchall(){return t._zod.def.catchall},checks:[]});return V(e,n)}function cn(e,t,n){const r=B(t._zod.def,{get shape(){const o=t._zod.def.shape,a={...o};if(n)for(const i in n){if(!(i in o))throw new Error(`Unrecognized key: "${i}"`);n[i]&&(a[i]=e?new e({type:"optional",innerType:o[i]}):o[i])}else for(const i in o)a[i]=e?new e({type:"optional",innerType:o[i]}):o[i];return q(this,"shape",a),a},checks:[]});return V(t,r)}function ln(e,t,n){const r=B(t._zod.def,{get shape(){const o=t._zod.def.shape,a={...o};if(n)for(const i in n){if(!(i in a))throw new Error(`Unrecognized key: "${i}"`);n[i]&&(a[i]=new e({type:"nonoptional",innerType:o[i]}))}else for(const i in o)a[i]=new e({type:"nonoptional",innerType:o[i]});return q(this,"shape",a),a},checks:[]});return V(t,r)}function W(e,t=0){if(e.aborted===!0)return!0;for(let n=t;n<e.issues.length;n++)if(e.issues[n]?.continue!==!0)return!0;return!1}function zt(e,t){return t.map(n=>{var r;return(r=n).path??(r.path=[]),n.path.unshift(e),n})}function de(e){return typeof e=="string"?e:e?.message}function L(e,t,n){const r={...e,path:e.path??[]};if(!e.message){const o=de(e.inst?._zod.def?.error?.(e))??de(t?.error?.(e))??de(n.customError?.(e))??de(n.localeError?.(e))??"Invalid input";r.message=o}return delete r.inst,delete r.continue,t?.reportInput||delete r.input,r}function Me(e){return Array.isArray(e)?"array":typeof e=="string"?"string":"unknown"}function ce(...e){const[t,n,r]=e;return typeof t=="string"?{message:t,code:"custom",input:n,inst:r}:{...t}}const $t=(e,t)=>{e.name="$ZodError",Object.defineProperty(e,"_zod",{value:e._zod,enumerable:!1}),Object.defineProperty(e,"issues",{value:t,enumerable:!1}),e.message=JSON.stringify(t,xe,2),Object.defineProperty(e,"toString",{value:()=>e.message,enumerable:!1})},kt=c("$ZodError",$t),St=c("$ZodError",$t,{Parent:Error});function dn(e,t=n=>n.message){const n={},r=[];for(const o of e.issues)o.path.length>0?(n[o.path[0]]=n[o.path[0]]||[],n[o.path[0]].push(t(o))):r.push(t(o));return{formErrors:r,fieldErrors:n}}function fn(e,t=n=>n.message){const n={_errors:[]},r=o=>{for(const a of o.issues)if(a.code==="invalid_union"&&a.errors.length)a.errors.map(i=>r({issues:i}));else if(a.code==="invalid_key")r({issues:a.issues});else if(a.code==="invalid_element")r({issues:a.issues});else if(a.path.length===0)n._errors.push(t(a));else{let i=n,s=0;for(;s<a.path.length;){const u=a.path[s];s===a.path.length-1?(i[u]=i[u]||{_errors:[]},i[u]._errors.push(t(a))):i[u]=i[u]||{_errors:[]},i=i[u],s++}}};return r(e),n}const Ue=e=>(t,n,r,o)=>{const a=r?Object.assign(r,{async:!1}):{async:!1},i=t._zod.run({value:n,issues:[]},a);if(i instanceof Promise)throw new G;if(i.issues.length){const s=new(o?.Err??e)(i.issues.map(u=>L(u,a,J())));throw yt(s,o?.callee),s}return i.value},Je=e=>async(t,n,r,o)=>{const a=r?Object.assign(r,{async:!0}):{async:!0};let i=t._zod.run({value:n,issues:[]},a);if(i instanceof Promise&&(i=await i),i.issues.length){const s=new(o?.Err??e)(i.issues.map(u=>L(u,a,J())));throw yt(s,o?.callee),s}return i.value},ye=e=>(t,n,r)=>{const o=r?{...r,async:!1}:{async:!1},a=t._zod.run({value:n,issues:[]},o);if(a instanceof Promise)throw new G;return a.issues.length?{success:!1,error:new(e??kt)(a.issues.map(i=>L(i,o,J())))}:{success:!0,data:a.value}},mn=ye(St),we=e=>async(t,n,r)=>{const o=r?Object.assign(r,{async:!0}):{async:!0};let a=t._zod.run({value:n,issues:[]},o);return a instanceof Promise&&(a=await a),a.issues.length?{success:!1,error:new e(a.issues.map(i=>L(i,o,J())))}:{success:!0,data:a.value}},pn=we(St),hn=e=>(t,n,r)=>{const o=r?Object.assign(r,{direction:"backward"}):{direction:"backward"};return Ue(e)(t,n,o)},gn=e=>(t,n,r)=>Ue(e)(t,n,r),_n=e=>async(t,n,r)=>{const o=r?Object.assign(r,{direction:"backward"}):{direction:"backward"};return Je(e)(t,n,o)},vn=e=>async(t,n,r)=>Je(e)(t,n,r),bn=e=>(t,n,r)=>{const o=r?Object.assign(r,{direction:"backward"}):{direction:"backward"};return ye(e)(t,n,o)},yn=e=>(t,n,r)=>ye(e)(t,n,r),wn=e=>async(t,n,r)=>{const o=r?Object.assign(r,{direction:"backward"}):{direction:"backward"};return we(e)(t,n,o)},zn=e=>async(t,n,r)=>we(e)(t,n,r),$n=/^[cC][^\s-]{8,}$/,kn=/^[0-9a-z]+$/,Sn=/^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/,xn=/^[0-9a-vA-V]{20}$/,Zn=/^[A-Za-z0-9]{27}$/,Cn=/^[a-zA-Z0-9_-]{21}$/,Tn=/^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/,On=/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/,Ke=e=>e?new RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${e}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`):/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,In=/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/,Nn="^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$";function En(){return new RegExp(Nn,"u")}const An=/^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/,Pn=/^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/,Fn=/^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/,jn=/^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/,Dn=/^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/,xt=/^[A-Za-z0-9_-]*$/,Vn=/^\+(?:[0-9]){6,14}[0-9]$/,Zt="(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))",Rn=new RegExp(`^${Zt}$`);function Ct(e){const t="(?:[01]\\d|2[0-3]):[0-5]\\d";return typeof e.precision=="number"?e.precision===-1?`${t}`:e.precision===0?`${t}:[0-5]\\d`:`${t}:[0-5]\\d\\.\\d{${e.precision}}`:`${t}(?::[0-5]\\d(?:\\.\\d+)?)?`}function Mn(e){return new RegExp(`^${Ct(e)}$`)}function Un(e){const t=Ct({precision:e.precision}),n=["Z"];e.local&&n.push(""),e.offset&&n.push("([+-](?:[01]\\d|2[0-3]):[0-5]\\d)");const r=`${t}(?:${n.join("|")})`;return new RegExp(`^${Zt}T(?:${r})$`)}const Jn=e=>{const t=e?`[\\s\\S]{${e?.minimum??0},${e?.maximum??""}}`:"[\\s\\S]*";return new RegExp(`^${t}$`)},Ln=/^-?\d+$/,qn=/^-?\d+(?:\.\d+)?/,Bn=/^(?:true|false)$/i,Wn=/^[^A-Z]*$/,Gn=/^[^a-z]*$/,I=c("$ZodCheck",(e,t)=>{var n;e._zod??(e._zod={}),e._zod.def=t,(n=e._zod).onattach??(n.onattach=[])}),Tt={number:"number",bigint:"bigint",object:"date"},Ot=c("$ZodCheckLessThan",(e,t)=>{I.init(e,t);const n=Tt[typeof t.value];e._zod.onattach.push(r=>{const o=r._zod.bag,a=(t.inclusive?o.maximum:o.exclusiveMaximum)??Number.POSITIVE_INFINITY;t.value<a&&(t.inclusive?o.maximum=t.value:o.exclusiveMaximum=t.value)}),e._zod.check=r=>{(t.inclusive?r.value<=t.value:r.value<t.value)||r.issues.push({origin:n,code:"too_big",maximum:t.value,input:r.value,inclusive:t.inclusive,inst:e,continue:!t.abort})}}),It=c("$ZodCheckGreaterThan",(e,t)=>{I.init(e,t);const n=Tt[typeof t.value];e._zod.onattach.push(r=>{const o=r._zod.bag,a=(t.inclusive?o.minimum:o.exclusiveMinimum)??Number.NEGATIVE_INFINITY;t.value>a&&(t.inclusive?o.minimum=t.value:o.exclusiveMinimum=t.value)}),e._zod.check=r=>{(t.inclusive?r.value>=t.value:r.value>t.value)||r.issues.push({origin:n,code:"too_small",minimum:t.value,input:r.value,inclusive:t.inclusive,inst:e,continue:!t.abort})}}),Kn=c("$ZodCheckMultipleOf",(e,t)=>{I.init(e,t),e._zod.onattach.push(n=>{var r;(r=n._zod.bag).multipleOf??(r.multipleOf=t.value)}),e._zod.check=n=>{if(typeof n.value!=typeof t.value)throw new Error("Cannot mix number and bigint in multiple_of check.");(typeof n.value=="bigint"?n.value%t.value===BigInt(0):Xt(n.value,t.value)===0)||n.issues.push({origin:typeof n.value,code:"not_multiple_of",divisor:t.value,input:n.value,inst:e,continue:!t.abort})}}),Yn=c("$ZodCheckNumberFormat",(e,t)=>{I.init(e,t),t.format=t.format||"float64";const n=t.format?.includes("int"),r=n?"int":"number",[o,a]=nn[t.format];e._zod.onattach.push(i=>{const s=i._zod.bag;s.format=t.format,s.minimum=o,s.maximum=a,n&&(s.pattern=Ln)}),e._zod.check=i=>{const s=i.value;if(n){if(!Number.isInteger(s)){i.issues.push({expected:r,format:t.format,code:"invalid_type",continue:!1,input:s,inst:e});return}if(!Number.isSafeInteger(s)){s>0?i.issues.push({input:s,code:"too_big",maximum:Number.MAX_SAFE_INTEGER,note:"Integers must be within the safe integer range.",inst:e,origin:r,continue:!t.abort}):i.issues.push({input:s,code:"too_small",minimum:Number.MIN_SAFE_INTEGER,note:"Integers must be within the safe integer range.",inst:e,origin:r,continue:!t.abort});return}}s<o&&i.issues.push({origin:"number",input:s,code:"too_small",minimum:o,inclusive:!0,inst:e,continue:!t.abort}),s>a&&i.issues.push({origin:"number",input:s,code:"too_big",maximum:a,inst:e})}}),Xn=c("$ZodCheckMaxLength",(e,t)=>{var n;I.init(e,t),(n=e._zod.def).when??(n.when=r=>{const o=r.value;return!Ve(o)&&o.length!==void 0}),e._zod.onattach.push(r=>{const o=r._zod.bag.maximum??Number.POSITIVE_INFINITY;t.maximum<o&&(r._zod.bag.maximum=t.maximum)}),e._zod.check=r=>{const o=r.value;if(o.length<=t.maximum)return;const i=Me(o);r.issues.push({origin:i,code:"too_big",maximum:t.maximum,inclusive:!0,input:o,inst:e,continue:!t.abort})}}),Hn=c("$ZodCheckMinLength",(e,t)=>{var n;I.init(e,t),(n=e._zod.def).when??(n.when=r=>{const o=r.value;return!Ve(o)&&o.length!==void 0}),e._zod.onattach.push(r=>{const o=r._zod.bag.minimum??Number.NEGATIVE_INFINITY;t.minimum>o&&(r._zod.bag.minimum=t.minimum)}),e._zod.check=r=>{const o=r.value;if(o.length>=t.minimum)return;const i=Me(o);r.issues.push({origin:i,code:"too_small",minimum:t.minimum,inclusive:!0,input:o,inst:e,continue:!t.abort})}}),Qn=c("$ZodCheckLengthEquals",(e,t)=>{var n;I.init(e,t),(n=e._zod.def).when??(n.when=r=>{const o=r.value;return!Ve(o)&&o.length!==void 0}),e._zod.onattach.push(r=>{const o=r._zod.bag;o.minimum=t.length,o.maximum=t.length,o.length=t.length}),e._zod.check=r=>{const o=r.value,a=o.length;if(a===t.length)return;const i=Me(o),s=a>t.length;r.issues.push({origin:i,...s?{code:"too_big",maximum:t.length}:{code:"too_small",minimum:t.length},inclusive:!0,exact:!0,input:r.value,inst:e,continue:!t.abort})}}),ze=c("$ZodCheckStringFormat",(e,t)=>{var n,r;I.init(e,t),e._zod.onattach.push(o=>{const a=o._zod.bag;a.format=t.format,t.pattern&&(a.patterns??(a.patterns=new Set),a.patterns.add(t.pattern))}),t.pattern?(n=e._zod).check??(n.check=o=>{t.pattern.lastIndex=0,!t.pattern.test(o.value)&&o.issues.push({origin:"string",code:"invalid_format",format:t.format,input:o.value,...t.pattern?{pattern:t.pattern.toString()}:{},inst:e,continue:!t.abort})}):(r=e._zod).check??(r.check=()=>{})}),er=c("$ZodCheckRegex",(e,t)=>{ze.init(e,t),e._zod.check=n=>{t.pattern.lastIndex=0,!t.pattern.test(n.value)&&n.issues.push({origin:"string",code:"invalid_format",format:"regex",input:n.value,pattern:t.pattern.toString(),inst:e,continue:!t.abort})}}),tr=c("$ZodCheckLowerCase",(e,t)=>{t.pattern??(t.pattern=Wn),ze.init(e,t)}),nr=c("$ZodCheckUpperCase",(e,t)=>{t.pattern??(t.pattern=Gn),ze.init(e,t)}),rr=c("$ZodCheckIncludes",(e,t)=>{I.init(e,t);const n=be(t.includes),r=new RegExp(typeof t.position=="number"?`^.{${t.position}}${n}`:n);t.pattern=r,e._zod.onattach.push(o=>{const a=o._zod.bag;a.patterns??(a.patterns=new Set),a.patterns.add(r)}),e._zod.check=o=>{o.value.includes(t.includes,t.position)||o.issues.push({origin:"string",code:"invalid_format",format:"includes",includes:t.includes,input:o.value,inst:e,continue:!t.abort})}}),or=c("$ZodCheckStartsWith",(e,t)=>{I.init(e,t);const n=new RegExp(`^${be(t.prefix)}.*`);t.pattern??(t.pattern=n),e._zod.onattach.push(r=>{const o=r._zod.bag;o.patterns??(o.patterns=new Set),o.patterns.add(n)}),e._zod.check=r=>{r.value.startsWith(t.prefix)||r.issues.push({origin:"string",code:"invalid_format",format:"starts_with",prefix:t.prefix,input:r.value,inst:e,continue:!t.abort})}}),ar=c("$ZodCheckEndsWith",(e,t)=>{I.init(e,t);const n=new RegExp(`.*${be(t.suffix)}$`);t.pattern??(t.pattern=n),e._zod.onattach.push(r=>{const o=r._zod.bag;o.patterns??(o.patterns=new Set),o.patterns.add(n)}),e._zod.check=r=>{r.value.endsWith(t.suffix)||r.issues.push({origin:"string",code:"invalid_format",format:"ends_with",suffix:t.suffix,input:r.value,inst:e,continue:!t.abort})}}),ir=c("$ZodCheckOverwrite",(e,t)=>{I.init(e,t),e._zod.check=n=>{n.value=t.tx(n.value)}});class sr{constructor(t=[]){this.content=[],this.indent=0,this&&(this.args=t)}indented(t){this.indent+=1,t(this),this.indent-=1}write(t){if(typeof t=="function"){t(this,{execution:"sync"}),t(this,{execution:"async"});return}const r=t.split(`
-`).filter(i=>i),o=Math.min(...r.map(i=>i.length-i.trimStart().length)),a=r.map(i=>i.slice(o)).map(i=>" ".repeat(this.indent*2)+i);for(const i of a)this.content.push(i)}compile(){const t=Function,n=this?.args,o=[...(this?.content??[""]).map(a=>`  ${a}`)];return new t(...n,o.join(`
-`))}}const ur={major:4,minor:2,patch:1},z=c("$ZodType",(e,t)=>{var n;e??(e={}),e._zod.def=t,e._zod.bag=e._zod.bag||{},e._zod.version=ur;const r=[...e._zod.def.checks??[]];e._zod.traits.has("$ZodCheck")&&r.unshift(e);for(const o of r)for(const a of o._zod.onattach)a(e);if(r.length===0)(n=e._zod).deferred??(n.deferred=[]),e._zod.deferred?.push(()=>{e._zod.run=e._zod.parse});else{const o=(i,s,u)=>{let l=W(i),d;for(const m of s){if(m._zod.def.when){if(!m._zod.def.when(i))continue}else if(l)continue;const g=i.issues.length,_=m._zod.check(i);if(_ instanceof Promise&&u?.async===!1)throw new G;if(d||_ instanceof Promise)d=(d??Promise.resolve()).then(async()=>{await _,i.issues.length!==g&&(l||(l=W(i,g)))});else{if(i.issues.length===g)continue;l||(l=W(i,g))}}return d?d.then(()=>i):i},a=(i,s,u)=>{if(W(i))return i.aborted=!0,i;const l=o(s,r,u);if(l instanceof Promise){if(u.async===!1)throw new G;return l.then(d=>e._zod.parse(d,u))}return e._zod.parse(l,u)};e._zod.run=(i,s)=>{if(s.skipChecks)return e._zod.parse(i,s);if(s.direction==="backward"){const l=e._zod.parse({value:i.value,issues:[]},{...s,skipChecks:!0});return l instanceof Promise?l.then(d=>a(d,i,s)):a(l,i,s)}const u=e._zod.parse(i,s);if(u instanceof Promise){if(s.async===!1)throw new G;return u.then(l=>o(l,r,s))}return o(u,r,s)}}e["~standard"]={validate:o=>{try{const a=mn(e,o);return a.success?{value:a.data}:{issues:a.error?.issues}}catch{return pn(e,o).then(i=>i.success?{value:i.data}:{issues:i.error?.issues})}},vendor:"zod",version:1}}),Le=c("$ZodString",(e,t)=>{z.init(e,t),e._zod.pattern=[...e?._zod.bag?.patterns??[]].pop()??Jn(e._zod.bag),e._zod.parse=(n,r)=>{if(t.coerce)try{n.value=String(n.value)}catch{}return typeof n.value=="string"||n.issues.push({expected:"string",code:"invalid_type",input:n.value,inst:e}),n}}),y=c("$ZodStringFormat",(e,t)=>{ze.init(e,t),Le.init(e,t)}),cr=c("$ZodGUID",(e,t)=>{t.pattern??(t.pattern=On),y.init(e,t)}),lr=c("$ZodUUID",(e,t)=>{if(t.version){const r={v1:1,v2:2,v3:3,v4:4,v5:5,v6:6,v7:7,v8:8}[t.version];if(r===void 0)throw new Error(`Invalid UUID version: "${t.version}"`);t.pattern??(t.pattern=Ke(r))}else t.pattern??(t.pattern=Ke());y.init(e,t)}),dr=c("$ZodEmail",(e,t)=>{t.pattern??(t.pattern=In),y.init(e,t)}),fr=c("$ZodURL",(e,t)=>{y.init(e,t),e._zod.check=n=>{try{const r=n.value.trim(),o=new URL(r);t.hostname&&(t.hostname.lastIndex=0,t.hostname.test(o.hostname)||n.issues.push({code:"invalid_format",format:"url",note:"Invalid hostname",pattern:t.hostname.source,input:n.value,inst:e,continue:!t.abort})),t.protocol&&(t.protocol.lastIndex=0,t.protocol.test(o.protocol.endsWith(":")?o.protocol.slice(0,-1):o.protocol)||n.issues.push({code:"invalid_format",format:"url",note:"Invalid protocol",pattern:t.protocol.source,input:n.value,inst:e,continue:!t.abort})),t.normalize?n.value=o.href:n.value=r;return}catch{n.issues.push({code:"invalid_format",format:"url",input:n.value,inst:e,continue:!t.abort})}}}),mr=c("$ZodEmoji",(e,t)=>{t.pattern??(t.pattern=En()),y.init(e,t)}),pr=c("$ZodNanoID",(e,t)=>{t.pattern??(t.pattern=Cn),y.init(e,t)}),hr=c("$ZodCUID",(e,t)=>{t.pattern??(t.pattern=$n),y.init(e,t)}),gr=c("$ZodCUID2",(e,t)=>{t.pattern??(t.pattern=kn),y.init(e,t)}),_r=c("$ZodULID",(e,t)=>{t.pattern??(t.pattern=Sn),y.init(e,t)}),vr=c("$ZodXID",(e,t)=>{t.pattern??(t.pattern=xn),y.init(e,t)}),br=c("$ZodKSUID",(e,t)=>{t.pattern??(t.pattern=Zn),y.init(e,t)}),yr=c("$ZodISODateTime",(e,t)=>{t.pattern??(t.pattern=Un(t)),y.init(e,t)}),wr=c("$ZodISODate",(e,t)=>{t.pattern??(t.pattern=Rn),y.init(e,t)}),zr=c("$ZodISOTime",(e,t)=>{t.pattern??(t.pattern=Mn(t)),y.init(e,t)}),$r=c("$ZodISODuration",(e,t)=>{t.pattern??(t.pattern=Tn),y.init(e,t)}),kr=c("$ZodIPv4",(e,t)=>{t.pattern??(t.pattern=An),y.init(e,t),e._zod.bag.format="ipv4"}),Sr=c("$ZodIPv6",(e,t)=>{t.pattern??(t.pattern=Pn),y.init(e,t),e._zod.bag.format="ipv6",e._zod.check=n=>{try{new URL(`http://[${n.value}]`)}catch{n.issues.push({code:"invalid_format",format:"ipv6",input:n.value,inst:e,continue:!t.abort})}}}),xr=c("$ZodCIDRv4",(e,t)=>{t.pattern??(t.pattern=Fn),y.init(e,t)}),Zr=c("$ZodCIDRv6",(e,t)=>{t.pattern??(t.pattern=jn),y.init(e,t),e._zod.check=n=>{const r=n.value.split("/");try{if(r.length!==2)throw new Error;const[o,a]=r;if(!a)throw new Error;const i=Number(a);if(`${i}`!==a)throw new Error;if(i<0||i>128)throw new Error;new URL(`http://[${o}]`)}catch{n.issues.push({code:"invalid_format",format:"cidrv6",input:n.value,inst:e,continue:!t.abort})}}});function Nt(e){if(e==="")return!0;if(e.length%4!==0)return!1;try{return atob(e),!0}catch{return!1}}const Cr=c("$ZodBase64",(e,t)=>{t.pattern??(t.pattern=Dn),y.init(e,t),e._zod.bag.contentEncoding="base64",e._zod.check=n=>{Nt(n.value)||n.issues.push({code:"invalid_format",format:"base64",input:n.value,inst:e,continue:!t.abort})}});function Tr(e){if(!xt.test(e))return!1;const t=e.replace(/[-_]/g,r=>r==="-"?"+":"/"),n=t.padEnd(Math.ceil(t.length/4)*4,"=");return Nt(n)}const Or=c("$ZodBase64URL",(e,t)=>{t.pattern??(t.pattern=xt),y.init(e,t),e._zod.bag.contentEncoding="base64url",e._zod.check=n=>{Tr(n.value)||n.issues.push({code:"invalid_format",format:"base64url",input:n.value,inst:e,continue:!t.abort})}}),Ir=c("$ZodE164",(e,t)=>{t.pattern??(t.pattern=Vn),y.init(e,t)});function Nr(e,t=null){try{const n=e.split(".");if(n.length!==3)return!1;const[r]=n;if(!r)return!1;const o=JSON.parse(atob(r));return!("typ"in o&&o?.typ!=="JWT"||!o.alg||t&&(!("alg"in o)||o.alg!==t))}catch{return!1}}const Er=c("$ZodJWT",(e,t)=>{y.init(e,t),e._zod.check=n=>{Nr(n.value,t.alg)||n.issues.push({code:"invalid_format",format:"jwt",input:n.value,inst:e,continue:!t.abort})}}),Et=c("$ZodNumber",(e,t)=>{z.init(e,t),e._zod.pattern=e._zod.bag.pattern??qn,e._zod.parse=(n,r)=>{if(t.coerce)try{n.value=Number(n.value)}catch{}const o=n.value;if(typeof o=="number"&&!Number.isNaN(o)&&Number.isFinite(o))return n;const a=typeof o=="number"?Number.isNaN(o)?"NaN":Number.isFinite(o)?void 0:"Infinity":void 0;return n.issues.push({expected:"number",code:"invalid_type",input:o,inst:e,...a?{received:a}:{}}),n}}),Ar=c("$ZodNumberFormat",(e,t)=>{Yn.init(e,t),Et.init(e,t)}),Pr=c("$ZodBoolean",(e,t)=>{z.init(e,t),e._zod.pattern=Bn,e._zod.parse=(n,r)=>{if(t.coerce)try{n.value=!!n.value}catch{}const o=n.value;return typeof o=="boolean"||n.issues.push({expected:"boolean",code:"invalid_type",input:o,inst:e}),n}}),Fr=c("$ZodUnknown",(e,t)=>{z.init(e,t),e._zod.parse=n=>n}),jr=c("$ZodNever",(e,t)=>{z.init(e,t),e._zod.parse=(n,r)=>(n.issues.push({expected:"never",code:"invalid_type",input:n.value,inst:e}),n)});function Ye(e,t,n){e.issues.length&&t.issues.push(...zt(n,e.issues)),t.value[n]=e.value}const Dr=c("$ZodArray",(e,t)=>{z.init(e,t),e._zod.parse=(n,r)=>{const o=n.value;if(!Array.isArray(o))return n.issues.push({expected:"array",code:"invalid_type",input:o,inst:e}),n;n.value=Array(o.length);const a=[];for(let i=0;i<o.length;i++){const s=o[i],u=t.element._zod.run({value:s,issues:[]},r);u instanceof Promise?a.push(u.then(l=>Ye(l,n,i))):Ye(u,n,i)}return a.length?Promise.all(a).then(()=>n):n}});function ge(e,t,n,r){e.issues.length&&t.issues.push(...zt(n,e.issues)),e.value===void 0?n in r&&(t.value[n]=void 0):t.value[n]=e.value}function At(e){const t=Object.keys(e.shape);for(const r of t)if(!e.shape?.[r]?._zod?.traits?.has("$ZodType"))throw new Error(`Invalid element at key "${r}": expected a Zod schema`);const n=tn(e.shape);return{...e,keys:t,keySet:new Set(t),numKeys:t.length,optionalKeys:new Set(n)}}function Pt(e,t,n,r,o,a){const i=[],s=o.keySet,u=o.catchall._zod,l=u.def.type;for(const d in t){if(s.has(d))continue;if(l==="never"){i.push(d);continue}const m=u.run({value:t[d],issues:[]},r);m instanceof Promise?e.push(m.then(g=>ge(g,n,d,t))):ge(m,n,d,t)}return i.length&&n.issues.push({code:"unrecognized_keys",keys:i,input:t,inst:a}),e.length?Promise.all(e).then(()=>n):n}const Vr=c("$ZodObject",(e,t)=>{if(z.init(e,t),!Object.getOwnPropertyDescriptor(t,"shape")?.get){const s=t.shape;Object.defineProperty(t,"shape",{get:()=>{const u={...s};return Object.defineProperty(t,"shape",{value:u}),u}})}const r=De(()=>At(t));b(e._zod,"propValues",()=>{const s=t.shape,u={};for(const l in s){const d=s[l]._zod;if(d.values){u[l]??(u[l]=new Set);for(const m of d.values)u[l].add(m)}}return u});const o=he,a=t.catchall;let i;e._zod.parse=(s,u)=>{i??(i=r.value);const l=s.value;if(!o(l))return s.issues.push({expected:"object",code:"invalid_type",input:l,inst:e}),s;s.value={};const d=[],m=i.shape;for(const g of i.keys){const C=m[g]._zod.run({value:l[g],issues:[]},u);C instanceof Promise?d.push(C.then(v=>ge(v,s,g,l))):ge(C,s,g,l)}return a?Pt(d,l,s,u,r.value,e):d.length?Promise.all(d).then(()=>s):s}}),Rr=c("$ZodObjectJIT",(e,t)=>{Vr.init(e,t);const n=e._zod.parse,r=De(()=>At(t)),o=g=>{const _=new sr(["shape","payload","ctx"]),C=r.value,v=E=>{const N=Ge(E);return`shape[${N}]._zod.run({ value: input[${N}], issues: [] }, ctx)`};_.write("const input = payload.value;");const O=Object.create(null);let R=0;for(const E of C.keys)O[E]=`key_${R++}`;_.write("const newResult = {};");for(const E of C.keys){const N=O[E],H=Ge(E);_.write(`const ${N} = ${v(E)};`),_.write(`
+import {
+	t as k,
+	i as p,
+	m as Fe,
+	a as F,
+	g as K,
+	c as h,
+	j as gt,
+	F as pe,
+	S as Be,
+	s as $e,
+	M,
+	w as Gt,
+	b as Y,
+} from "./iframe-BQDcX1su.js";
+import { t as se } from "./design-system-CwcdUVvG.js";
+import { I as je, S as Kt, T as Yt } from "./Input--ZGeZUqs.js";
+import "./preload-helper-PPVm8Dsz.js";
+function c(e, t, n) {
+	function r(s, u) {
+		if (
+			(s._zod ||
+				Object.defineProperty(s, "_zod", {
+					value: { def: u, constr: i, traits: new Set() },
+					enumerable: !1,
+				}),
+			s._zod.traits.has(e))
+		)
+			return;
+		s._zod.traits.add(e), t(s, u);
+		const l = i.prototype,
+			d = Object.keys(l);
+		for (let m = 0; m < d.length; m++) {
+			const g = d[m];
+			g in s || (s[g] = l[g].bind(s));
+		}
+	}
+	const o = n?.Parent ?? Object;
+	class a extends o {}
+	Object.defineProperty(a, "name", { value: e });
+	function i(s) {
+		var u;
+		const l = n?.Parent ? new a() : this;
+		r(l, s), (u = l._zod).deferred ?? (u.deferred = []);
+		for (const d of l._zod.deferred) d();
+		return l;
+	}
+	return (
+		Object.defineProperty(i, "init", { value: r }),
+		Object.defineProperty(i, Symbol.hasInstance, {
+			value: (s) =>
+				n?.Parent && s instanceof n.Parent ? !0 : s?._zod?.traits?.has(e),
+		}),
+		Object.defineProperty(i, "name", { value: e }),
+		i
+	);
+}
+class G extends Error {
+	constructor() {
+		super(
+			"Encountered Promise during synchronous parse. Use .parseAsync() instead.",
+		);
+	}
+}
+class _t extends Error {
+	constructor(t) {
+		super(`Encountered unidirectional transform during encode: ${t}`),
+			(this.name = "ZodEncodeError");
+	}
+}
+const vt = {};
+function J(e) {
+	return vt;
+}
+function bt(e) {
+	const t = Object.values(e).filter((r) => typeof r == "number");
+	return Object.entries(e)
+		.filter(([r, o]) => t.indexOf(+r) === -1)
+		.map(([r, o]) => o);
+}
+function xe(e, t) {
+	return typeof t == "bigint" ? t.toString() : t;
+}
+function De(e) {
+	return {
+		get value() {
+			{
+				const t = e();
+				return Object.defineProperty(this, "value", { value: t }), t;
+			}
+		},
+	};
+}
+function Ve(e) {
+	return e == null;
+}
+function Re(e) {
+	const t = e.startsWith("^") ? 1 : 0,
+		n = e.endsWith("$") ? e.length - 1 : e.length;
+	return e.slice(t, n);
+}
+function Xt(e, t) {
+	const n = (e.toString().split(".")[1] || "").length,
+		r = t.toString();
+	let o = (r.split(".")[1] || "").length;
+	if (o === 0 && /\d?e-\d?/.test(r)) {
+		const u = r.match(/\d?e-(\d?)/);
+		u?.[1] && (o = Number.parseInt(u[1]));
+	}
+	const a = n > o ? n : o,
+		i = Number.parseInt(e.toFixed(a).replace(".", "")),
+		s = Number.parseInt(t.toFixed(a).replace(".", ""));
+	return (i % s) / 10 ** a;
+}
+const We = Symbol("evaluating");
+function b(e, t, n) {
+	let r;
+	Object.defineProperty(e, t, {
+		get() {
+			if (r !== We) return r === void 0 && ((r = We), (r = n())), r;
+		},
+		set(o) {
+			Object.defineProperty(e, t, { value: o });
+		},
+		configurable: !0,
+	});
+}
+function q(e, t, n) {
+	Object.defineProperty(e, t, {
+		value: n,
+		writable: !0,
+		enumerable: !0,
+		configurable: !0,
+	});
+}
+function B(...e) {
+	const t = {};
+	for (const n of e) {
+		const r = Object.getOwnPropertyDescriptors(n);
+		Object.assign(t, r);
+	}
+	return Object.defineProperties({}, t);
+}
+function Ge(e) {
+	return JSON.stringify(e);
+}
+function Ht(e) {
+	return e
+		.toLowerCase()
+		.trim()
+		.replace(/[^\w\s-]/g, "")
+		.replace(/[\s_-]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+const yt =
+	"captureStackTrace" in Error ? Error.captureStackTrace : (...e) => {};
+function he(e) {
+	return typeof e == "object" && e !== null && !Array.isArray(e);
+}
+const Qt = De(() => {
+	if (typeof navigator < "u" && navigator?.userAgent?.includes("Cloudflare"))
+		return !1;
+	try {
+		const e = Function;
+		return new e(""), !0;
+	} catch {
+		return !1;
+	}
+});
+function ue(e) {
+	if (he(e) === !1) return !1;
+	const t = e.constructor;
+	if (t === void 0 || typeof t != "function") return !0;
+	const n = t.prototype;
+	return !(
+		he(n) === !1 ||
+		Object.prototype.hasOwnProperty.call(n, "isPrototypeOf") === !1
+	);
+}
+function wt(e) {
+	return ue(e) ? { ...e } : Array.isArray(e) ? [...e] : e;
+}
+const en = new Set(["string", "number", "symbol"]);
+function be(e) {
+	return e.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function V(e, t, n) {
+	const r = new e._zod.constr(t ?? e._zod.def);
+	return (!t || n?.parent) && (r._zod.parent = e), r;
+}
+function f(e) {
+	const t = e;
+	if (!t) return {};
+	if (typeof t == "string") return { error: () => t };
+	if (t?.message !== void 0) {
+		if (t?.error !== void 0)
+			throw new Error("Cannot specify both `message` and `error` params");
+		t.error = t.message;
+	}
+	return (
+		delete t.message,
+		typeof t.error == "string" ? { ...t, error: () => t.error } : t
+	);
+}
+function tn(e) {
+	return Object.keys(e).filter(
+		(t) => e[t]._zod.optin === "optional" && e[t]._zod.optout === "optional",
+	);
+}
+const nn = {
+	safeint: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
+	int32: [-2147483648, 2147483647],
+	uint32: [0, 4294967295],
+	float32: [-34028234663852886e22, 34028234663852886e22],
+	float64: [-Number.MAX_VALUE, Number.MAX_VALUE],
+};
+function rn(e, t) {
+	const n = e._zod.def,
+		r = B(e._zod.def, {
+			get shape() {
+				const o = {};
+				for (const a in t) {
+					if (!(a in n.shape)) throw new Error(`Unrecognized key: "${a}"`);
+					t[a] && (o[a] = n.shape[a]);
+				}
+				return q(this, "shape", o), o;
+			},
+			checks: [],
+		});
+	return V(e, r);
+}
+function on(e, t) {
+	const n = e._zod.def,
+		r = B(e._zod.def, {
+			get shape() {
+				const o = { ...e._zod.def.shape };
+				for (const a in t) {
+					if (!(a in n.shape)) throw new Error(`Unrecognized key: "${a}"`);
+					t[a] && delete o[a];
+				}
+				return q(this, "shape", o), o;
+			},
+			checks: [],
+		});
+	return V(e, r);
+}
+function an(e, t) {
+	if (!ue(t))
+		throw new Error("Invalid input to extend: expected a plain object");
+	const n = e._zod.def.checks;
+	if (n && n.length > 0)
+		throw new Error(
+			"Object schemas containing refinements cannot be extended. Use `.safeExtend()` instead.",
+		);
+	const o = B(e._zod.def, {
+		get shape() {
+			const a = { ...e._zod.def.shape, ...t };
+			return q(this, "shape", a), a;
+		},
+		checks: [],
+	});
+	return V(e, o);
+}
+function sn(e, t) {
+	if (!ue(t))
+		throw new Error("Invalid input to safeExtend: expected a plain object");
+	const n = {
+		...e._zod.def,
+		get shape() {
+			const r = { ...e._zod.def.shape, ...t };
+			return q(this, "shape", r), r;
+		},
+		checks: e._zod.def.checks,
+	};
+	return V(e, n);
+}
+function un(e, t) {
+	const n = B(e._zod.def, {
+		get shape() {
+			const r = { ...e._zod.def.shape, ...t._zod.def.shape };
+			return q(this, "shape", r), r;
+		},
+		get catchall() {
+			return t._zod.def.catchall;
+		},
+		checks: [],
+	});
+	return V(e, n);
+}
+function cn(e, t, n) {
+	const r = B(t._zod.def, {
+		get shape() {
+			const o = t._zod.def.shape,
+				a = { ...o };
+			if (n)
+				for (const i in n) {
+					if (!(i in o)) throw new Error(`Unrecognized key: "${i}"`);
+					n[i] &&
+						(a[i] = e ? new e({ type: "optional", innerType: o[i] }) : o[i]);
+				}
+			else
+				for (const i in o)
+					a[i] = e ? new e({ type: "optional", innerType: o[i] }) : o[i];
+			return q(this, "shape", a), a;
+		},
+		checks: [],
+	});
+	return V(t, r);
+}
+function ln(e, t, n) {
+	const r = B(t._zod.def, {
+		get shape() {
+			const o = t._zod.def.shape,
+				a = { ...o };
+			if (n)
+				for (const i in n) {
+					if (!(i in a)) throw new Error(`Unrecognized key: "${i}"`);
+					n[i] && (a[i] = new e({ type: "nonoptional", innerType: o[i] }));
+				}
+			else
+				for (const i in o)
+					a[i] = new e({ type: "nonoptional", innerType: o[i] });
+			return q(this, "shape", a), a;
+		},
+		checks: [],
+	});
+	return V(t, r);
+}
+function W(e, t = 0) {
+	if (e.aborted === !0) return !0;
+	for (let n = t; n < e.issues.length; n++)
+		if (e.issues[n]?.continue !== !0) return !0;
+	return !1;
+}
+function zt(e, t) {
+	return t.map((n) => {
+		var r;
+		return (r = n).path ?? (r.path = []), n.path.unshift(e), n;
+	});
+}
+function de(e) {
+	return typeof e == "string" ? e : e?.message;
+}
+function L(e, t, n) {
+	const r = { ...e, path: e.path ?? [] };
+	if (!e.message) {
+		const o =
+			de(e.inst?._zod.def?.error?.(e)) ??
+			de(t?.error?.(e)) ??
+			de(n.customError?.(e)) ??
+			de(n.localeError?.(e)) ??
+			"Invalid input";
+		r.message = o;
+	}
+	return delete r.inst, delete r.continue, t?.reportInput || delete r.input, r;
+}
+function Me(e) {
+	return Array.isArray(e)
+		? "array"
+		: typeof e == "string"
+			? "string"
+			: "unknown";
+}
+function ce(...e) {
+	const [t, n, r] = e;
+	return typeof t == "string"
+		? { message: t, code: "custom", input: n, inst: r }
+		: { ...t };
+}
+const $t = (e, t) => {
+		(e.name = "$ZodError"),
+			Object.defineProperty(e, "_zod", { value: e._zod, enumerable: !1 }),
+			Object.defineProperty(e, "issues", { value: t, enumerable: !1 }),
+			(e.message = JSON.stringify(t, xe, 2)),
+			Object.defineProperty(e, "toString", {
+				value: () => e.message,
+				enumerable: !1,
+			});
+	},
+	kt = c("$ZodError", $t),
+	St = c("$ZodError", $t, { Parent: Error });
+function dn(e, t = (n) => n.message) {
+	const n = {},
+		r = [];
+	for (const o of e.issues)
+		o.path.length > 0
+			? ((n[o.path[0]] = n[o.path[0]] || []), n[o.path[0]].push(t(o)))
+			: r.push(t(o));
+	return { formErrors: r, fieldErrors: n };
+}
+function fn(e, t = (n) => n.message) {
+	const n = { _errors: [] },
+		r = (o) => {
+			for (const a of o.issues)
+				if (a.code === "invalid_union" && a.errors.length)
+					a.errors.map((i) => r({ issues: i }));
+				else if (a.code === "invalid_key") r({ issues: a.issues });
+				else if (a.code === "invalid_element") r({ issues: a.issues });
+				else if (a.path.length === 0) n._errors.push(t(a));
+				else {
+					let i = n,
+						s = 0;
+					for (; s < a.path.length; ) {
+						const u = a.path[s];
+						s === a.path.length - 1
+							? ((i[u] = i[u] || { _errors: [] }), i[u]._errors.push(t(a)))
+							: (i[u] = i[u] || { _errors: [] }),
+							(i = i[u]),
+							s++;
+					}
+				}
+		};
+	return r(e), n;
+}
+const Ue = (e) => (t, n, r, o) => {
+		const a = r ? Object.assign(r, { async: !1 }) : { async: !1 },
+			i = t._zod.run({ value: n, issues: [] }, a);
+		if (i instanceof Promise) throw new G();
+		if (i.issues.length) {
+			const s = new (o?.Err ?? e)(i.issues.map((u) => L(u, a, J())));
+			throw (yt(s, o?.callee), s);
+		}
+		return i.value;
+	},
+	Je = (e) => async (t, n, r, o) => {
+		const a = r ? Object.assign(r, { async: !0 }) : { async: !0 };
+		let i = t._zod.run({ value: n, issues: [] }, a);
+		if ((i instanceof Promise && (i = await i), i.issues.length)) {
+			const s = new (o?.Err ?? e)(i.issues.map((u) => L(u, a, J())));
+			throw (yt(s, o?.callee), s);
+		}
+		return i.value;
+	},
+	ye = (e) => (t, n, r) => {
+		const o = r ? { ...r, async: !1 } : { async: !1 },
+			a = t._zod.run({ value: n, issues: [] }, o);
+		if (a instanceof Promise) throw new G();
+		return a.issues.length
+			? { success: !1, error: new (e ?? kt)(a.issues.map((i) => L(i, o, J()))) }
+			: { success: !0, data: a.value };
+	},
+	mn = ye(St),
+	we = (e) => async (t, n, r) => {
+		const o = r ? Object.assign(r, { async: !0 }) : { async: !0 };
+		let a = t._zod.run({ value: n, issues: [] }, o);
+		return (
+			a instanceof Promise && (a = await a),
+			a.issues.length
+				? { success: !1, error: new e(a.issues.map((i) => L(i, o, J()))) }
+				: { success: !0, data: a.value }
+		);
+	},
+	pn = we(St),
+	hn = (e) => (t, n, r) => {
+		const o = r
+			? Object.assign(r, { direction: "backward" })
+			: { direction: "backward" };
+		return Ue(e)(t, n, o);
+	},
+	gn = (e) => (t, n, r) => Ue(e)(t, n, r),
+	_n = (e) => async (t, n, r) => {
+		const o = r
+			? Object.assign(r, { direction: "backward" })
+			: { direction: "backward" };
+		return Je(e)(t, n, o);
+	},
+	vn = (e) => async (t, n, r) => Je(e)(t, n, r),
+	bn = (e) => (t, n, r) => {
+		const o = r
+			? Object.assign(r, { direction: "backward" })
+			: { direction: "backward" };
+		return ye(e)(t, n, o);
+	},
+	yn = (e) => (t, n, r) => ye(e)(t, n, r),
+	wn = (e) => async (t, n, r) => {
+		const o = r
+			? Object.assign(r, { direction: "backward" })
+			: { direction: "backward" };
+		return we(e)(t, n, o);
+	},
+	zn = (e) => async (t, n, r) => we(e)(t, n, r),
+	$n = /^[cC][^\s-]{8,}$/,
+	kn = /^[0-9a-z]+$/,
+	Sn = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/,
+	xn = /^[0-9a-vA-V]{20}$/,
+	Zn = /^[A-Za-z0-9]{27}$/,
+	Cn = /^[a-zA-Z0-9_-]{21}$/,
+	Tn =
+		/^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/,
+	On =
+		/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/,
+	Ke = (e) =>
+		e
+			? new RegExp(
+					`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${e}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`,
+				)
+			: /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+	In =
+		/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/,
+	Nn = "^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$";
+function En() {
+	return new RegExp(Nn, "u");
+}
+const An =
+		/^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/,
+	Pn =
+		/^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/,
+	Fn =
+		/^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/,
+	jn =
+		/^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/,
+	Dn =
+		/^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/,
+	xt = /^[A-Za-z0-9_-]*$/,
+	Vn = /^\+(?:[0-9]){6,14}[0-9]$/,
+	Zt =
+		"(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))",
+	Rn = new RegExp(`^${Zt}$`);
+function Ct(e) {
+	const t = "(?:[01]\\d|2[0-3]):[0-5]\\d";
+	return typeof e.precision == "number"
+		? e.precision === -1
+			? `${t}`
+			: e.precision === 0
+				? `${t}:[0-5]\\d`
+				: `${t}:[0-5]\\d\\.\\d{${e.precision}}`
+		: `${t}(?::[0-5]\\d(?:\\.\\d+)?)?`;
+}
+function Mn(e) {
+	return new RegExp(`^${Ct(e)}$`);
+}
+function Un(e) {
+	const t = Ct({ precision: e.precision }),
+		n = ["Z"];
+	e.local && n.push(""),
+		e.offset && n.push("([+-](?:[01]\\d|2[0-3]):[0-5]\\d)");
+	const r = `${t}(?:${n.join("|")})`;
+	return new RegExp(`^${Zt}T(?:${r})$`);
+}
+const Jn = (e) => {
+		const t = e
+			? `[\\s\\S]{${e?.minimum ?? 0},${e?.maximum ?? ""}}`
+			: "[\\s\\S]*";
+		return new RegExp(`^${t}$`);
+	},
+	Ln = /^-?\d+$/,
+	qn = /^-?\d+(?:\.\d+)?/,
+	Bn = /^(?:true|false)$/i,
+	Wn = /^[^A-Z]*$/,
+	Gn = /^[^a-z]*$/,
+	I = c("$ZodCheck", (e, t) => {
+		var n;
+		e._zod ?? (e._zod = {}),
+			(e._zod.def = t),
+			(n = e._zod).onattach ?? (n.onattach = []);
+	}),
+	Tt = { number: "number", bigint: "bigint", object: "date" },
+	Ot = c("$ZodCheckLessThan", (e, t) => {
+		I.init(e, t);
+		const n = Tt[typeof t.value];
+		e._zod.onattach.push((r) => {
+			const o = r._zod.bag,
+				a =
+					(t.inclusive ? o.maximum : o.exclusiveMaximum) ??
+					Number.POSITIVE_INFINITY;
+			t.value < a &&
+				(t.inclusive ? (o.maximum = t.value) : (o.exclusiveMaximum = t.value));
+		}),
+			(e._zod.check = (r) => {
+				(t.inclusive ? r.value <= t.value : r.value < t.value) ||
+					r.issues.push({
+						origin: n,
+						code: "too_big",
+						maximum: t.value,
+						input: r.value,
+						inclusive: t.inclusive,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	It = c("$ZodCheckGreaterThan", (e, t) => {
+		I.init(e, t);
+		const n = Tt[typeof t.value];
+		e._zod.onattach.push((r) => {
+			const o = r._zod.bag,
+				a =
+					(t.inclusive ? o.minimum : o.exclusiveMinimum) ??
+					Number.NEGATIVE_INFINITY;
+			t.value > a &&
+				(t.inclusive ? (o.minimum = t.value) : (o.exclusiveMinimum = t.value));
+		}),
+			(e._zod.check = (r) => {
+				(t.inclusive ? r.value >= t.value : r.value > t.value) ||
+					r.issues.push({
+						origin: n,
+						code: "too_small",
+						minimum: t.value,
+						input: r.value,
+						inclusive: t.inclusive,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	Kn = c("$ZodCheckMultipleOf", (e, t) => {
+		I.init(e, t),
+			e._zod.onattach.push((n) => {
+				var r;
+				(r = n._zod.bag).multipleOf ?? (r.multipleOf = t.value);
+			}),
+			(e._zod.check = (n) => {
+				if (typeof n.value != typeof t.value)
+					throw new Error("Cannot mix number and bigint in multiple_of check.");
+				(typeof n.value == "bigint"
+					? n.value % t.value === BigInt(0)
+					: Xt(n.value, t.value) === 0) ||
+					n.issues.push({
+						origin: typeof n.value,
+						code: "not_multiple_of",
+						divisor: t.value,
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	Yn = c("$ZodCheckNumberFormat", (e, t) => {
+		I.init(e, t), (t.format = t.format || "float64");
+		const n = t.format?.includes("int"),
+			r = n ? "int" : "number",
+			[o, a] = nn[t.format];
+		e._zod.onattach.push((i) => {
+			const s = i._zod.bag;
+			(s.format = t.format),
+				(s.minimum = o),
+				(s.maximum = a),
+				n && (s.pattern = Ln);
+		}),
+			(e._zod.check = (i) => {
+				const s = i.value;
+				if (n) {
+					if (!Number.isInteger(s)) {
+						i.issues.push({
+							expected: r,
+							format: t.format,
+							code: "invalid_type",
+							continue: !1,
+							input: s,
+							inst: e,
+						});
+						return;
+					}
+					if (!Number.isSafeInteger(s)) {
+						s > 0
+							? i.issues.push({
+									input: s,
+									code: "too_big",
+									maximum: Number.MAX_SAFE_INTEGER,
+									note: "Integers must be within the safe integer range.",
+									inst: e,
+									origin: r,
+									continue: !t.abort,
+								})
+							: i.issues.push({
+									input: s,
+									code: "too_small",
+									minimum: Number.MIN_SAFE_INTEGER,
+									note: "Integers must be within the safe integer range.",
+									inst: e,
+									origin: r,
+									continue: !t.abort,
+								});
+						return;
+					}
+				}
+				s < o &&
+					i.issues.push({
+						origin: "number",
+						input: s,
+						code: "too_small",
+						minimum: o,
+						inclusive: !0,
+						inst: e,
+						continue: !t.abort,
+					}),
+					s > a &&
+						i.issues.push({
+							origin: "number",
+							input: s,
+							code: "too_big",
+							maximum: a,
+							inst: e,
+						});
+			});
+	}),
+	Xn = c("$ZodCheckMaxLength", (e, t) => {
+		var n;
+		I.init(e, t),
+			(n = e._zod.def).when ??
+				(n.when = (r) => {
+					const o = r.value;
+					return !Ve(o) && o.length !== void 0;
+				}),
+			e._zod.onattach.push((r) => {
+				const o = r._zod.bag.maximum ?? Number.POSITIVE_INFINITY;
+				t.maximum < o && (r._zod.bag.maximum = t.maximum);
+			}),
+			(e._zod.check = (r) => {
+				const o = r.value;
+				if (o.length <= t.maximum) return;
+				const i = Me(o);
+				r.issues.push({
+					origin: i,
+					code: "too_big",
+					maximum: t.maximum,
+					inclusive: !0,
+					input: o,
+					inst: e,
+					continue: !t.abort,
+				});
+			});
+	}),
+	Hn = c("$ZodCheckMinLength", (e, t) => {
+		var n;
+		I.init(e, t),
+			(n = e._zod.def).when ??
+				(n.when = (r) => {
+					const o = r.value;
+					return !Ve(o) && o.length !== void 0;
+				}),
+			e._zod.onattach.push((r) => {
+				const o = r._zod.bag.minimum ?? Number.NEGATIVE_INFINITY;
+				t.minimum > o && (r._zod.bag.minimum = t.minimum);
+			}),
+			(e._zod.check = (r) => {
+				const o = r.value;
+				if (o.length >= t.minimum) return;
+				const i = Me(o);
+				r.issues.push({
+					origin: i,
+					code: "too_small",
+					minimum: t.minimum,
+					inclusive: !0,
+					input: o,
+					inst: e,
+					continue: !t.abort,
+				});
+			});
+	}),
+	Qn = c("$ZodCheckLengthEquals", (e, t) => {
+		var n;
+		I.init(e, t),
+			(n = e._zod.def).when ??
+				(n.when = (r) => {
+					const o = r.value;
+					return !Ve(o) && o.length !== void 0;
+				}),
+			e._zod.onattach.push((r) => {
+				const o = r._zod.bag;
+				(o.minimum = t.length), (o.maximum = t.length), (o.length = t.length);
+			}),
+			(e._zod.check = (r) => {
+				const o = r.value,
+					a = o.length;
+				if (a === t.length) return;
+				const i = Me(o),
+					s = a > t.length;
+				r.issues.push({
+					origin: i,
+					...(s
+						? { code: "too_big", maximum: t.length }
+						: { code: "too_small", minimum: t.length }),
+					inclusive: !0,
+					exact: !0,
+					input: r.value,
+					inst: e,
+					continue: !t.abort,
+				});
+			});
+	}),
+	ze = c("$ZodCheckStringFormat", (e, t) => {
+		var n, r;
+		I.init(e, t),
+			e._zod.onattach.push((o) => {
+				const a = o._zod.bag;
+				(a.format = t.format),
+					t.pattern &&
+						(a.patterns ?? (a.patterns = new Set()), a.patterns.add(t.pattern));
+			}),
+			t.pattern
+				? ((n = e._zod).check ??
+					(n.check = (o) => {
+						(t.pattern.lastIndex = 0),
+							!t.pattern.test(o.value) &&
+								o.issues.push({
+									origin: "string",
+									code: "invalid_format",
+									format: t.format,
+									input: o.value,
+									...(t.pattern ? { pattern: t.pattern.toString() } : {}),
+									inst: e,
+									continue: !t.abort,
+								});
+					}))
+				: ((r = e._zod).check ?? (r.check = () => {}));
+	}),
+	er = c("$ZodCheckRegex", (e, t) => {
+		ze.init(e, t),
+			(e._zod.check = (n) => {
+				(t.pattern.lastIndex = 0),
+					!t.pattern.test(n.value) &&
+						n.issues.push({
+							origin: "string",
+							code: "invalid_format",
+							format: "regex",
+							input: n.value,
+							pattern: t.pattern.toString(),
+							inst: e,
+							continue: !t.abort,
+						});
+			});
+	}),
+	tr = c("$ZodCheckLowerCase", (e, t) => {
+		t.pattern ?? (t.pattern = Wn), ze.init(e, t);
+	}),
+	nr = c("$ZodCheckUpperCase", (e, t) => {
+		t.pattern ?? (t.pattern = Gn), ze.init(e, t);
+	}),
+	rr = c("$ZodCheckIncludes", (e, t) => {
+		I.init(e, t);
+		const n = be(t.includes),
+			r = new RegExp(
+				typeof t.position == "number" ? `^.{${t.position}}${n}` : n,
+			);
+		(t.pattern = r),
+			e._zod.onattach.push((o) => {
+				const a = o._zod.bag;
+				a.patterns ?? (a.patterns = new Set()), a.patterns.add(r);
+			}),
+			(e._zod.check = (o) => {
+				o.value.includes(t.includes, t.position) ||
+					o.issues.push({
+						origin: "string",
+						code: "invalid_format",
+						format: "includes",
+						includes: t.includes,
+						input: o.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	or = c("$ZodCheckStartsWith", (e, t) => {
+		I.init(e, t);
+		const n = new RegExp(`^${be(t.prefix)}.*`);
+		t.pattern ?? (t.pattern = n),
+			e._zod.onattach.push((r) => {
+				const o = r._zod.bag;
+				o.patterns ?? (o.patterns = new Set()), o.patterns.add(n);
+			}),
+			(e._zod.check = (r) => {
+				r.value.startsWith(t.prefix) ||
+					r.issues.push({
+						origin: "string",
+						code: "invalid_format",
+						format: "starts_with",
+						prefix: t.prefix,
+						input: r.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	ar = c("$ZodCheckEndsWith", (e, t) => {
+		I.init(e, t);
+		const n = new RegExp(`.*${be(t.suffix)}$`);
+		t.pattern ?? (t.pattern = n),
+			e._zod.onattach.push((r) => {
+				const o = r._zod.bag;
+				o.patterns ?? (o.patterns = new Set()), o.patterns.add(n);
+			}),
+			(e._zod.check = (r) => {
+				r.value.endsWith(t.suffix) ||
+					r.issues.push({
+						origin: "string",
+						code: "invalid_format",
+						format: "ends_with",
+						suffix: t.suffix,
+						input: r.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	ir = c("$ZodCheckOverwrite", (e, t) => {
+		I.init(e, t),
+			(e._zod.check = (n) => {
+				n.value = t.tx(n.value);
+			});
+	});
+class sr {
+	constructor(t = []) {
+		(this.content = []), (this.indent = 0), this && (this.args = t);
+	}
+	indented(t) {
+		(this.indent += 1), t(this), (this.indent -= 1);
+	}
+	write(t) {
+		if (typeof t == "function") {
+			t(this, { execution: "sync" }), t(this, { execution: "async" });
+			return;
+		}
+		const r = t
+				.split(`
+`)
+				.filter((i) => i),
+			o = Math.min(...r.map((i) => i.length - i.trimStart().length)),
+			a = r.map((i) => i.slice(o)).map((i) => " ".repeat(this.indent * 2) + i);
+		for (const i of a) this.content.push(i);
+	}
+	compile() {
+		const t = Function,
+			n = this?.args,
+			o = [...(this?.content ?? [""]).map((a) => `  ${a}`)];
+		return new t(
+			...n,
+			o.join(`
+`),
+		);
+	}
+}
+const ur = { major: 4, minor: 2, patch: 1 },
+	z = c("$ZodType", (e, t) => {
+		var n;
+		e ?? (e = {}),
+			(e._zod.def = t),
+			(e._zod.bag = e._zod.bag || {}),
+			(e._zod.version = ur);
+		const r = [...(e._zod.def.checks ?? [])];
+		e._zod.traits.has("$ZodCheck") && r.unshift(e);
+		for (const o of r) for (const a of o._zod.onattach) a(e);
+		if (r.length === 0)
+			(n = e._zod).deferred ?? (n.deferred = []),
+				e._zod.deferred?.push(() => {
+					e._zod.run = e._zod.parse;
+				});
+		else {
+			const o = (i, s, u) => {
+					let l = W(i),
+						d;
+					for (const m of s) {
+						if (m._zod.def.when) {
+							if (!m._zod.def.when(i)) continue;
+						} else if (l) continue;
+						const g = i.issues.length,
+							_ = m._zod.check(i);
+						if (_ instanceof Promise && u?.async === !1) throw new G();
+						if (d || _ instanceof Promise)
+							d = (d ?? Promise.resolve()).then(async () => {
+								await _, i.issues.length !== g && (l || (l = W(i, g)));
+							});
+						else {
+							if (i.issues.length === g) continue;
+							l || (l = W(i, g));
+						}
+					}
+					return d ? d.then(() => i) : i;
+				},
+				a = (i, s, u) => {
+					if (W(i)) return (i.aborted = !0), i;
+					const l = o(s, r, u);
+					if (l instanceof Promise) {
+						if (u.async === !1) throw new G();
+						return l.then((d) => e._zod.parse(d, u));
+					}
+					return e._zod.parse(l, u);
+				};
+			e._zod.run = (i, s) => {
+				if (s.skipChecks) return e._zod.parse(i, s);
+				if (s.direction === "backward") {
+					const l = e._zod.parse(
+						{ value: i.value, issues: [] },
+						{ ...s, skipChecks: !0 },
+					);
+					return l instanceof Promise ? l.then((d) => a(d, i, s)) : a(l, i, s);
+				}
+				const u = e._zod.parse(i, s);
+				if (u instanceof Promise) {
+					if (s.async === !1) throw new G();
+					return u.then((l) => o(l, r, s));
+				}
+				return o(u, r, s);
+			};
+		}
+		e["~standard"] = {
+			validate: (o) => {
+				try {
+					const a = mn(e, o);
+					return a.success ? { value: a.data } : { issues: a.error?.issues };
+				} catch {
+					return pn(e, o).then((i) =>
+						i.success ? { value: i.data } : { issues: i.error?.issues },
+					);
+				}
+			},
+			vendor: "zod",
+			version: 1,
+		};
+	}),
+	Le = c("$ZodString", (e, t) => {
+		z.init(e, t),
+			(e._zod.pattern =
+				[...(e?._zod.bag?.patterns ?? [])].pop() ?? Jn(e._zod.bag)),
+			(e._zod.parse = (n, r) => {
+				if (t.coerce)
+					try {
+						n.value = String(n.value);
+					} catch {}
+				return (
+					typeof n.value == "string" ||
+						n.issues.push({
+							expected: "string",
+							code: "invalid_type",
+							input: n.value,
+							inst: e,
+						}),
+					n
+				);
+			});
+	}),
+	y = c("$ZodStringFormat", (e, t) => {
+		ze.init(e, t), Le.init(e, t);
+	}),
+	cr = c("$ZodGUID", (e, t) => {
+		t.pattern ?? (t.pattern = On), y.init(e, t);
+	}),
+	lr = c("$ZodUUID", (e, t) => {
+		if (t.version) {
+			const r = { v1: 1, v2: 2, v3: 3, v4: 4, v5: 5, v6: 6, v7: 7, v8: 8 }[
+				t.version
+			];
+			if (r === void 0) throw new Error(`Invalid UUID version: "${t.version}"`);
+			t.pattern ?? (t.pattern = Ke(r));
+		} else t.pattern ?? (t.pattern = Ke());
+		y.init(e, t);
+	}),
+	dr = c("$ZodEmail", (e, t) => {
+		t.pattern ?? (t.pattern = In), y.init(e, t);
+	}),
+	fr = c("$ZodURL", (e, t) => {
+		y.init(e, t),
+			(e._zod.check = (n) => {
+				try {
+					const r = n.value.trim(),
+						o = new URL(r);
+					t.hostname &&
+						((t.hostname.lastIndex = 0),
+						t.hostname.test(o.hostname) ||
+							n.issues.push({
+								code: "invalid_format",
+								format: "url",
+								note: "Invalid hostname",
+								pattern: t.hostname.source,
+								input: n.value,
+								inst: e,
+								continue: !t.abort,
+							})),
+						t.protocol &&
+							((t.protocol.lastIndex = 0),
+							t.protocol.test(
+								o.protocol.endsWith(":") ? o.protocol.slice(0, -1) : o.protocol,
+							) ||
+								n.issues.push({
+									code: "invalid_format",
+									format: "url",
+									note: "Invalid protocol",
+									pattern: t.protocol.source,
+									input: n.value,
+									inst: e,
+									continue: !t.abort,
+								})),
+						t.normalize ? (n.value = o.href) : (n.value = r);
+					return;
+				} catch {
+					n.issues.push({
+						code: "invalid_format",
+						format: "url",
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+				}
+			});
+	}),
+	mr = c("$ZodEmoji", (e, t) => {
+		t.pattern ?? (t.pattern = En()), y.init(e, t);
+	}),
+	pr = c("$ZodNanoID", (e, t) => {
+		t.pattern ?? (t.pattern = Cn), y.init(e, t);
+	}),
+	hr = c("$ZodCUID", (e, t) => {
+		t.pattern ?? (t.pattern = $n), y.init(e, t);
+	}),
+	gr = c("$ZodCUID2", (e, t) => {
+		t.pattern ?? (t.pattern = kn), y.init(e, t);
+	}),
+	_r = c("$ZodULID", (e, t) => {
+		t.pattern ?? (t.pattern = Sn), y.init(e, t);
+	}),
+	vr = c("$ZodXID", (e, t) => {
+		t.pattern ?? (t.pattern = xn), y.init(e, t);
+	}),
+	br = c("$ZodKSUID", (e, t) => {
+		t.pattern ?? (t.pattern = Zn), y.init(e, t);
+	}),
+	yr = c("$ZodISODateTime", (e, t) => {
+		t.pattern ?? (t.pattern = Un(t)), y.init(e, t);
+	}),
+	wr = c("$ZodISODate", (e, t) => {
+		t.pattern ?? (t.pattern = Rn), y.init(e, t);
+	}),
+	zr = c("$ZodISOTime", (e, t) => {
+		t.pattern ?? (t.pattern = Mn(t)), y.init(e, t);
+	}),
+	$r = c("$ZodISODuration", (e, t) => {
+		t.pattern ?? (t.pattern = Tn), y.init(e, t);
+	}),
+	kr = c("$ZodIPv4", (e, t) => {
+		t.pattern ?? (t.pattern = An), y.init(e, t), (e._zod.bag.format = "ipv4");
+	}),
+	Sr = c("$ZodIPv6", (e, t) => {
+		t.pattern ?? (t.pattern = Pn),
+			y.init(e, t),
+			(e._zod.bag.format = "ipv6"),
+			(e._zod.check = (n) => {
+				try {
+					new URL(`http://[${n.value}]`);
+				} catch {
+					n.issues.push({
+						code: "invalid_format",
+						format: "ipv6",
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+				}
+			});
+	}),
+	xr = c("$ZodCIDRv4", (e, t) => {
+		t.pattern ?? (t.pattern = Fn), y.init(e, t);
+	}),
+	Zr = c("$ZodCIDRv6", (e, t) => {
+		t.pattern ?? (t.pattern = jn),
+			y.init(e, t),
+			(e._zod.check = (n) => {
+				const r = n.value.split("/");
+				try {
+					if (r.length !== 2) throw new Error();
+					const [o, a] = r;
+					if (!a) throw new Error();
+					const i = Number(a);
+					if (`${i}` !== a) throw new Error();
+					if (i < 0 || i > 128) throw new Error();
+					new URL(`http://[${o}]`);
+				} catch {
+					n.issues.push({
+						code: "invalid_format",
+						format: "cidrv6",
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+				}
+			});
+	});
+function Nt(e) {
+	if (e === "") return !0;
+	if (e.length % 4 !== 0) return !1;
+	try {
+		return atob(e), !0;
+	} catch {
+		return !1;
+	}
+}
+const Cr = c("$ZodBase64", (e, t) => {
+	t.pattern ?? (t.pattern = Dn),
+		y.init(e, t),
+		(e._zod.bag.contentEncoding = "base64"),
+		(e._zod.check = (n) => {
+			Nt(n.value) ||
+				n.issues.push({
+					code: "invalid_format",
+					format: "base64",
+					input: n.value,
+					inst: e,
+					continue: !t.abort,
+				});
+		});
+});
+function Tr(e) {
+	if (!xt.test(e)) return !1;
+	const t = e.replace(/[-_]/g, (r) => (r === "-" ? "+" : "/")),
+		n = t.padEnd(Math.ceil(t.length / 4) * 4, "=");
+	return Nt(n);
+}
+const Or = c("$ZodBase64URL", (e, t) => {
+		t.pattern ?? (t.pattern = xt),
+			y.init(e, t),
+			(e._zod.bag.contentEncoding = "base64url"),
+			(e._zod.check = (n) => {
+				Tr(n.value) ||
+					n.issues.push({
+						code: "invalid_format",
+						format: "base64url",
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	Ir = c("$ZodE164", (e, t) => {
+		t.pattern ?? (t.pattern = Vn), y.init(e, t);
+	});
+function Nr(e, t = null) {
+	try {
+		const n = e.split(".");
+		if (n.length !== 3) return !1;
+		const [r] = n;
+		if (!r) return !1;
+		const o = JSON.parse(atob(r));
+		return !(
+			("typ" in o && o?.typ !== "JWT") ||
+			!o.alg ||
+			(t && (!("alg" in o) || o.alg !== t))
+		);
+	} catch {
+		return !1;
+	}
+}
+const Er = c("$ZodJWT", (e, t) => {
+		y.init(e, t),
+			(e._zod.check = (n) => {
+				Nr(n.value, t.alg) ||
+					n.issues.push({
+						code: "invalid_format",
+						format: "jwt",
+						input: n.value,
+						inst: e,
+						continue: !t.abort,
+					});
+			});
+	}),
+	Et = c("$ZodNumber", (e, t) => {
+		z.init(e, t),
+			(e._zod.pattern = e._zod.bag.pattern ?? qn),
+			(e._zod.parse = (n, r) => {
+				if (t.coerce)
+					try {
+						n.value = Number(n.value);
+					} catch {}
+				const o = n.value;
+				if (typeof o == "number" && !Number.isNaN(o) && Number.isFinite(o))
+					return n;
+				const a =
+					typeof o == "number"
+						? Number.isNaN(o)
+							? "NaN"
+							: Number.isFinite(o)
+								? void 0
+								: "Infinity"
+						: void 0;
+				return (
+					n.issues.push({
+						expected: "number",
+						code: "invalid_type",
+						input: o,
+						inst: e,
+						...(a ? { received: a } : {}),
+					}),
+					n
+				);
+			});
+	}),
+	Ar = c("$ZodNumberFormat", (e, t) => {
+		Yn.init(e, t), Et.init(e, t);
+	}),
+	Pr = c("$ZodBoolean", (e, t) => {
+		z.init(e, t),
+			(e._zod.pattern = Bn),
+			(e._zod.parse = (n, r) => {
+				if (t.coerce)
+					try {
+						n.value = !!n.value;
+					} catch {}
+				const o = n.value;
+				return (
+					typeof o == "boolean" ||
+						n.issues.push({
+							expected: "boolean",
+							code: "invalid_type",
+							input: o,
+							inst: e,
+						}),
+					n
+				);
+			});
+	}),
+	Fr = c("$ZodUnknown", (e, t) => {
+		z.init(e, t), (e._zod.parse = (n) => n);
+	}),
+	jr = c("$ZodNever", (e, t) => {
+		z.init(e, t),
+			(e._zod.parse = (n, r) => (
+				n.issues.push({
+					expected: "never",
+					code: "invalid_type",
+					input: n.value,
+					inst: e,
+				}),
+				n
+			));
+	});
+function Ye(e, t, n) {
+	e.issues.length && t.issues.push(...zt(n, e.issues)), (t.value[n] = e.value);
+}
+const Dr = c("$ZodArray", (e, t) => {
+	z.init(e, t),
+		(e._zod.parse = (n, r) => {
+			const o = n.value;
+			if (!Array.isArray(o))
+				return (
+					n.issues.push({
+						expected: "array",
+						code: "invalid_type",
+						input: o,
+						inst: e,
+					}),
+					n
+				);
+			n.value = Array(o.length);
+			const a = [];
+			for (let i = 0; i < o.length; i++) {
+				const s = o[i],
+					u = t.element._zod.run({ value: s, issues: [] }, r);
+				u instanceof Promise ? a.push(u.then((l) => Ye(l, n, i))) : Ye(u, n, i);
+			}
+			return a.length ? Promise.all(a).then(() => n) : n;
+		});
+});
+function ge(e, t, n, r) {
+	e.issues.length && t.issues.push(...zt(n, e.issues)),
+		e.value === void 0
+			? n in r && (t.value[n] = void 0)
+			: (t.value[n] = e.value);
+}
+function At(e) {
+	const t = Object.keys(e.shape);
+	for (const r of t)
+		if (!e.shape?.[r]?._zod?.traits?.has("$ZodType"))
+			throw new Error(`Invalid element at key "${r}": expected a Zod schema`);
+	const n = tn(e.shape);
+	return {
+		...e,
+		keys: t,
+		keySet: new Set(t),
+		numKeys: t.length,
+		optionalKeys: new Set(n),
+	};
+}
+function Pt(e, t, n, r, o, a) {
+	const i = [],
+		s = o.keySet,
+		u = o.catchall._zod,
+		l = u.def.type;
+	for (const d in t) {
+		if (s.has(d)) continue;
+		if (l === "never") {
+			i.push(d);
+			continue;
+		}
+		const m = u.run({ value: t[d], issues: [] }, r);
+		m instanceof Promise
+			? e.push(m.then((g) => ge(g, n, d, t)))
+			: ge(m, n, d, t);
+	}
+	return (
+		i.length &&
+			n.issues.push({ code: "unrecognized_keys", keys: i, input: t, inst: a }),
+		e.length ? Promise.all(e).then(() => n) : n
+	);
+}
+const Vr = c("$ZodObject", (e, t) => {
+		if ((z.init(e, t), !Object.getOwnPropertyDescriptor(t, "shape")?.get)) {
+			const s = t.shape;
+			Object.defineProperty(t, "shape", {
+				get: () => {
+					const u = { ...s };
+					return Object.defineProperty(t, "shape", { value: u }), u;
+				},
+			});
+		}
+		const r = De(() => At(t));
+		b(e._zod, "propValues", () => {
+			const s = t.shape,
+				u = {};
+			for (const l in s) {
+				const d = s[l]._zod;
+				if (d.values) {
+					u[l] ?? (u[l] = new Set());
+					for (const m of d.values) u[l].add(m);
+				}
+			}
+			return u;
+		});
+		const o = he,
+			a = t.catchall;
+		let i;
+		e._zod.parse = (s, u) => {
+			i ?? (i = r.value);
+			const l = s.value;
+			if (!o(l))
+				return (
+					s.issues.push({
+						expected: "object",
+						code: "invalid_type",
+						input: l,
+						inst: e,
+					}),
+					s
+				);
+			s.value = {};
+			const d = [],
+				m = i.shape;
+			for (const g of i.keys) {
+				const C = m[g]._zod.run({ value: l[g], issues: [] }, u);
+				C instanceof Promise
+					? d.push(C.then((v) => ge(v, s, g, l)))
+					: ge(C, s, g, l);
+			}
+			return a
+				? Pt(d, l, s, u, r.value, e)
+				: d.length
+					? Promise.all(d).then(() => s)
+					: s;
+		};
+	}),
+	Rr = c("$ZodObjectJIT", (e, t) => {
+		Vr.init(e, t);
+		const n = e._zod.parse,
+			r = De(() => At(t)),
+			o = (g) => {
+				const _ = new sr(["shape", "payload", "ctx"]),
+					C = r.value,
+					v = (E) => {
+						const N = Ge(E);
+						return `shape[${N}]._zod.run({ value: input[${N}], issues: [] }, ctx)`;
+					};
+				_.write("const input = payload.value;");
+				const O = Object.create(null);
+				let R = 0;
+				for (const E of C.keys) O[E] = `key_${R++}`;
+				_.write("const newResult = {};");
+				for (const E of C.keys) {
+					const N = O[E],
+						H = Ge(E);
+					_.write(`const ${N} = ${v(E)};`),
+						_.write(`
         if (${N}.issues.length) {
           payload.issues = payload.issues.concat(${N}.issues.map(iss => ({
             ...iss,
@@ -17,15 +1482,3207 @@ import{t as k,i as p,m as Fe,a as F,g as K,c as h,j as gt,F as pe,S as Be,s as $
           newResult[${H}] = ${N}.value;
         }
         
-      `)}_.write("payload.value = newResult;"),_.write("return payload;");const le=_.compile();return(E,N)=>le(g,E,N)};let a;const i=he,s=!vt.jitless,l=s&&Qt.value,d=t.catchall;let m;e._zod.parse=(g,_)=>{m??(m=r.value);const C=g.value;return i(C)?s&&l&&_?.async===!1&&_.jitless!==!0?(a||(a=o(t.shape)),g=a(g,_),d?Pt([],C,g,_,m,e):g):n(g,_):(g.issues.push({expected:"object",code:"invalid_type",input:C,inst:e}),g)}});function Xe(e,t,n,r){for(const a of e)if(a.issues.length===0)return t.value=a.value,t;const o=e.filter(a=>!W(a));return o.length===1?(t.value=o[0].value,o[0]):(t.issues.push({code:"invalid_union",input:t.value,inst:n,errors:e.map(a=>a.issues.map(i=>L(i,r,J())))}),t)}const Mr=c("$ZodUnion",(e,t)=>{z.init(e,t),b(e._zod,"optin",()=>t.options.some(o=>o._zod.optin==="optional")?"optional":void 0),b(e._zod,"optout",()=>t.options.some(o=>o._zod.optout==="optional")?"optional":void 0),b(e._zod,"values",()=>{if(t.options.every(o=>o._zod.values))return new Set(t.options.flatMap(o=>Array.from(o._zod.values)))}),b(e._zod,"pattern",()=>{if(t.options.every(o=>o._zod.pattern)){const o=t.options.map(a=>a._zod.pattern);return new RegExp(`^(${o.map(a=>Re(a.source)).join("|")})$`)}});const n=t.options.length===1,r=t.options[0]._zod.run;e._zod.parse=(o,a)=>{if(n)return r(o,a);let i=!1;const s=[];for(const u of t.options){const l=u._zod.run({value:o.value,issues:[]},a);if(l instanceof Promise)s.push(l),i=!0;else{if(l.issues.length===0)return l;s.push(l)}}return i?Promise.all(s).then(u=>Xe(u,o,e,a)):Xe(s,o,e,a)}}),Ur=c("$ZodIntersection",(e,t)=>{z.init(e,t),e._zod.parse=(n,r)=>{const o=n.value,a=t.left._zod.run({value:o,issues:[]},r),i=t.right._zod.run({value:o,issues:[]},r);return a instanceof Promise||i instanceof Promise?Promise.all([a,i]).then(([u,l])=>He(n,u,l)):He(n,a,i)}});function Ze(e,t){if(e===t)return{valid:!0,data:e};if(e instanceof Date&&t instanceof Date&&+e==+t)return{valid:!0,data:e};if(ue(e)&&ue(t)){const n=Object.keys(t),r=Object.keys(e).filter(a=>n.indexOf(a)!==-1),o={...e,...t};for(const a of r){const i=Ze(e[a],t[a]);if(!i.valid)return{valid:!1,mergeErrorPath:[a,...i.mergeErrorPath]};o[a]=i.data}return{valid:!0,data:o}}if(Array.isArray(e)&&Array.isArray(t)){if(e.length!==t.length)return{valid:!1,mergeErrorPath:[]};const n=[];for(let r=0;r<e.length;r++){const o=e[r],a=t[r],i=Ze(o,a);if(!i.valid)return{valid:!1,mergeErrorPath:[r,...i.mergeErrorPath]};n.push(i.data)}return{valid:!0,data:n}}return{valid:!1,mergeErrorPath:[]}}function He(e,t,n){if(t.issues.length&&e.issues.push(...t.issues),n.issues.length&&e.issues.push(...n.issues),W(e))return e;const r=Ze(t.value,n.value);if(!r.valid)throw new Error(`Unmergable intersection. Error path: ${JSON.stringify(r.mergeErrorPath)}`);return e.value=r.data,e}const Jr=c("$ZodEnum",(e,t)=>{z.init(e,t);const n=bt(t.entries),r=new Set(n);e._zod.values=r,e._zod.pattern=new RegExp(`^(${n.filter(o=>en.has(typeof o)).map(o=>typeof o=="string"?be(o):o.toString()).join("|")})$`),e._zod.parse=(o,a)=>{const i=o.value;return r.has(i)||o.issues.push({code:"invalid_value",values:n,input:i,inst:e}),o}}),Lr=c("$ZodTransform",(e,t)=>{z.init(e,t),e._zod.parse=(n,r)=>{if(r.direction==="backward")throw new _t(e.constructor.name);const o=t.transform(n.value,n);if(r.async)return(o instanceof Promise?o:Promise.resolve(o)).then(i=>(n.value=i,n));if(o instanceof Promise)throw new G;return n.value=o,n}});function Qe(e,t){return e.issues.length&&t===void 0?{issues:[],value:void 0}:e}const qr=c("$ZodOptional",(e,t)=>{z.init(e,t),e._zod.optin="optional",e._zod.optout="optional",b(e._zod,"values",()=>t.innerType._zod.values?new Set([...t.innerType._zod.values,void 0]):void 0),b(e._zod,"pattern",()=>{const n=t.innerType._zod.pattern;return n?new RegExp(`^(${Re(n.source)})?$`):void 0}),e._zod.parse=(n,r)=>{if(t.innerType._zod.optin==="optional"){const o=t.innerType._zod.run(n,r);return o instanceof Promise?o.then(a=>Qe(a,n.value)):Qe(o,n.value)}return n.value===void 0?n:t.innerType._zod.run(n,r)}}),Br=c("$ZodNullable",(e,t)=>{z.init(e,t),b(e._zod,"optin",()=>t.innerType._zod.optin),b(e._zod,"optout",()=>t.innerType._zod.optout),b(e._zod,"pattern",()=>{const n=t.innerType._zod.pattern;return n?new RegExp(`^(${Re(n.source)}|null)$`):void 0}),b(e._zod,"values",()=>t.innerType._zod.values?new Set([...t.innerType._zod.values,null]):void 0),e._zod.parse=(n,r)=>n.value===null?n:t.innerType._zod.run(n,r)}),Wr=c("$ZodDefault",(e,t)=>{z.init(e,t),e._zod.optin="optional",b(e._zod,"values",()=>t.innerType._zod.values),e._zod.parse=(n,r)=>{if(r.direction==="backward")return t.innerType._zod.run(n,r);if(n.value===void 0)return n.value=t.defaultValue,n;const o=t.innerType._zod.run(n,r);return o instanceof Promise?o.then(a=>et(a,t)):et(o,t)}});function et(e,t){return e.value===void 0&&(e.value=t.defaultValue),e}const Gr=c("$ZodPrefault",(e,t)=>{z.init(e,t),e._zod.optin="optional",b(e._zod,"values",()=>t.innerType._zod.values),e._zod.parse=(n,r)=>(r.direction==="backward"||n.value===void 0&&(n.value=t.defaultValue),t.innerType._zod.run(n,r))}),Kr=c("$ZodNonOptional",(e,t)=>{z.init(e,t),b(e._zod,"values",()=>{const n=t.innerType._zod.values;return n?new Set([...n].filter(r=>r!==void 0)):void 0}),e._zod.parse=(n,r)=>{const o=t.innerType._zod.run(n,r);return o instanceof Promise?o.then(a=>tt(a,e)):tt(o,e)}});function tt(e,t){return!e.issues.length&&e.value===void 0&&e.issues.push({code:"invalid_type",expected:"nonoptional",input:e.value,inst:t}),e}const Yr=c("$ZodCatch",(e,t)=>{z.init(e,t),b(e._zod,"optin",()=>t.innerType._zod.optin),b(e._zod,"optout",()=>t.innerType._zod.optout),b(e._zod,"values",()=>t.innerType._zod.values),e._zod.parse=(n,r)=>{if(r.direction==="backward")return t.innerType._zod.run(n,r);const o=t.innerType._zod.run(n,r);return o instanceof Promise?o.then(a=>(n.value=a.value,a.issues.length&&(n.value=t.catchValue({...n,error:{issues:a.issues.map(i=>L(i,r,J()))},input:n.value}),n.issues=[]),n)):(n.value=o.value,o.issues.length&&(n.value=t.catchValue({...n,error:{issues:o.issues.map(a=>L(a,r,J()))},input:n.value}),n.issues=[]),n)}}),Xr=c("$ZodPipe",(e,t)=>{z.init(e,t),b(e._zod,"values",()=>t.in._zod.values),b(e._zod,"optin",()=>t.in._zod.optin),b(e._zod,"optout",()=>t.out._zod.optout),b(e._zod,"propValues",()=>t.in._zod.propValues),e._zod.parse=(n,r)=>{if(r.direction==="backward"){const a=t.out._zod.run(n,r);return a instanceof Promise?a.then(i=>fe(i,t.in,r)):fe(a,t.in,r)}const o=t.in._zod.run(n,r);return o instanceof Promise?o.then(a=>fe(a,t.out,r)):fe(o,t.out,r)}});function fe(e,t,n){return e.issues.length?(e.aborted=!0,e):t._zod.run({value:e.value,issues:e.issues},n)}const Hr=c("$ZodReadonly",(e,t)=>{z.init(e,t),b(e._zod,"propValues",()=>t.innerType._zod.propValues),b(e._zod,"values",()=>t.innerType._zod.values),b(e._zod,"optin",()=>t.innerType?._zod?.optin),b(e._zod,"optout",()=>t.innerType?._zod?.optout),e._zod.parse=(n,r)=>{if(r.direction==="backward")return t.innerType._zod.run(n,r);const o=t.innerType._zod.run(n,r);return o instanceof Promise?o.then(nt):nt(o)}});function nt(e){return e.value=Object.freeze(e.value),e}const Qr=c("$ZodCustom",(e,t)=>{I.init(e,t),z.init(e,t),e._zod.parse=(n,r)=>n,e._zod.check=n=>{const r=n.value,o=t.fn(r);if(o instanceof Promise)return o.then(a=>rt(a,n,r,e));rt(o,n,r,e)}});function rt(e,t,n,r){if(!e){const o={code:"custom",input:n,inst:r,path:[...r._zod.def.path??[]],continue:!r._zod.def.abort};r._zod.def.params&&(o.params=r._zod.def.params),t.issues.push(ce(o))}}var ot;class eo{constructor(){this._map=new WeakMap,this._idmap=new Map}add(t,...n){const r=n[0];if(this._map.set(t,r),r&&typeof r=="object"&&"id"in r){if(this._idmap.has(r.id))throw new Error(`ID ${r.id} already exists in the registry`);this._idmap.set(r.id,t)}return this}clear(){return this._map=new WeakMap,this._idmap=new Map,this}remove(t){const n=this._map.get(t);return n&&typeof n=="object"&&"id"in n&&this._idmap.delete(n.id),this._map.delete(t),this}get(t){const n=t._zod.parent;if(n){const r={...this.get(n)??{}};delete r.id;const o={...r,...this._map.get(t)};return Object.keys(o).length?o:void 0}return this._map.get(t)}has(t){return this._map.has(t)}}function to(){return new eo}(ot=globalThis).__zod_globalRegistry??(ot.__zod_globalRegistry=to());const ie=globalThis.__zod_globalRegistry;function no(e,t){return new e({type:"string",...f(t)})}function ro(e,t){return new e({type:"string",format:"email",check:"string_format",abort:!1,...f(t)})}function at(e,t){return new e({type:"string",format:"guid",check:"string_format",abort:!1,...f(t)})}function oo(e,t){return new e({type:"string",format:"uuid",check:"string_format",abort:!1,...f(t)})}function ao(e,t){return new e({type:"string",format:"uuid",check:"string_format",abort:!1,version:"v4",...f(t)})}function io(e,t){return new e({type:"string",format:"uuid",check:"string_format",abort:!1,version:"v6",...f(t)})}function so(e,t){return new e({type:"string",format:"uuid",check:"string_format",abort:!1,version:"v7",...f(t)})}function uo(e,t){return new e({type:"string",format:"url",check:"string_format",abort:!1,...f(t)})}function co(e,t){return new e({type:"string",format:"emoji",check:"string_format",abort:!1,...f(t)})}function lo(e,t){return new e({type:"string",format:"nanoid",check:"string_format",abort:!1,...f(t)})}function fo(e,t){return new e({type:"string",format:"cuid",check:"string_format",abort:!1,...f(t)})}function mo(e,t){return new e({type:"string",format:"cuid2",check:"string_format",abort:!1,...f(t)})}function po(e,t){return new e({type:"string",format:"ulid",check:"string_format",abort:!1,...f(t)})}function ho(e,t){return new e({type:"string",format:"xid",check:"string_format",abort:!1,...f(t)})}function go(e,t){return new e({type:"string",format:"ksuid",check:"string_format",abort:!1,...f(t)})}function _o(e,t){return new e({type:"string",format:"ipv4",check:"string_format",abort:!1,...f(t)})}function vo(e,t){return new e({type:"string",format:"ipv6",check:"string_format",abort:!1,...f(t)})}function bo(e,t){return new e({type:"string",format:"cidrv4",check:"string_format",abort:!1,...f(t)})}function yo(e,t){return new e({type:"string",format:"cidrv6",check:"string_format",abort:!1,...f(t)})}function wo(e,t){return new e({type:"string",format:"base64",check:"string_format",abort:!1,...f(t)})}function zo(e,t){return new e({type:"string",format:"base64url",check:"string_format",abort:!1,...f(t)})}function $o(e,t){return new e({type:"string",format:"e164",check:"string_format",abort:!1,...f(t)})}function ko(e,t){return new e({type:"string",format:"jwt",check:"string_format",abort:!1,...f(t)})}function So(e,t){return new e({type:"string",format:"datetime",check:"string_format",offset:!1,local:!1,precision:null,...f(t)})}function xo(e,t){return new e({type:"string",format:"date",check:"string_format",...f(t)})}function Zo(e,t){return new e({type:"string",format:"time",check:"string_format",precision:null,...f(t)})}function Co(e,t){return new e({type:"string",format:"duration",check:"string_format",...f(t)})}function To(e,t){return new e({type:"number",checks:[],...f(t)})}function Oo(e,t){return new e({type:"number",check:"number_format",abort:!1,format:"safeint",...f(t)})}function Io(e,t){return new e({type:"boolean",...f(t)})}function No(e){return new e({type:"unknown"})}function Eo(e,t){return new e({type:"never",...f(t)})}function it(e,t){return new Ot({check:"less_than",...f(t),value:e,inclusive:!1})}function ke(e,t){return new Ot({check:"less_than",...f(t),value:e,inclusive:!0})}function st(e,t){return new It({check:"greater_than",...f(t),value:e,inclusive:!1})}function Se(e,t){return new It({check:"greater_than",...f(t),value:e,inclusive:!0})}function ut(e,t){return new Kn({check:"multiple_of",...f(t),value:e})}function Ft(e,t){return new Xn({check:"max_length",...f(t),maximum:e})}function _e(e,t){return new Hn({check:"min_length",...f(t),minimum:e})}function jt(e,t){return new Qn({check:"length_equals",...f(t),length:e})}function Ao(e,t){return new er({check:"string_format",format:"regex",...f(t),pattern:e})}function Po(e){return new tr({check:"string_format",format:"lowercase",...f(e)})}function Fo(e){return new nr({check:"string_format",format:"uppercase",...f(e)})}function jo(e,t){return new rr({check:"string_format",format:"includes",...f(t),includes:e})}function Do(e,t){return new or({check:"string_format",format:"starts_with",...f(t),prefix:e})}function Vo(e,t){return new ar({check:"string_format",format:"ends_with",...f(t),suffix:e})}function X(e){return new ir({check:"overwrite",tx:e})}function Ro(e){return X(t=>t.normalize(e))}function Mo(){return X(e=>e.trim())}function Uo(){return X(e=>e.toLowerCase())}function Jo(){return X(e=>e.toUpperCase())}function Lo(){return X(e=>Ht(e))}function qo(e,t,n){return new e({type:"array",element:t,...f(n)})}function Bo(e,t,n){return new e({type:"custom",check:"custom",fn:t,...f(n)})}function Wo(e){const t=Go(n=>(n.addIssue=r=>{if(typeof r=="string")n.issues.push(ce(r,n.value,t._zod.def));else{const o=r;o.fatal&&(o.continue=!1),o.code??(o.code="custom"),o.input??(o.input=n.value),o.inst??(o.inst=t),o.continue??(o.continue=!t._zod.def.abort),n.issues.push(ce(o))}},e(n.value,n)));return t}function Go(e,t){const n=new I({check:"custom",...f(t)});return n._zod.check=e,n}function Dt(e){let t=e?.target??"draft-2020-12";return t==="draft-4"&&(t="draft-04"),t==="draft-7"&&(t="draft-07"),{processors:e.processors??{},metadataRegistry:e?.metadata??ie,target:t,unrepresentable:e?.unrepresentable??"throw",override:e?.override??(()=>{}),io:e?.io??"output",counter:0,seen:new Map,cycles:e?.cycles??"ref",reused:e?.reused??"inline",external:e?.external??void 0}}function Z(e,t,n={path:[],schemaPath:[]}){var r;const o=e._zod.def,a=t.seen.get(e);if(a)return a.count++,n.schemaPath.includes(e)&&(a.cycle=n.path),a.schema;const i={schema:{},count:1,cycle:void 0,path:n.path};t.seen.set(e,i);const s=e._zod.toJSONSchema?.();if(s)i.schema=s;else{const d={...n,schemaPath:[...n.schemaPath,e],path:n.path},m=e._zod.parent;if(m)i.ref=m,Z(m,t,d),t.seen.get(m).isParent=!0;else if(e._zod.processJSONSchema)e._zod.processJSONSchema(t,i.schema,d);else{const g=i.schema,_=t.processors[o.type];if(!_)throw new Error(`[toJSONSchema]: Non-representable type encountered: ${o.type}`);_(e,t,g,d)}}const u=t.metadataRegistry.get(e);return u&&Object.assign(i.schema,u),t.io==="input"&&T(e)&&(delete i.schema.examples,delete i.schema.default),t.io==="input"&&i.schema._prefault&&((r=i.schema).default??(r.default=i.schema._prefault)),delete i.schema._prefault,t.seen.get(e).schema}function Vt(e,t){const n=e.seen.get(t);if(!n)throw new Error("Unprocessed schema. This is a bug in Zod.");const r=a=>{const i=e.target==="draft-2020-12"?"$defs":"definitions";if(e.external){const d=e.external.registry.get(a[0])?.id,m=e.external.uri??(_=>_);if(d)return{ref:m(d)};const g=a[1].defId??a[1].schema.id??`schema${e.counter++}`;return a[1].defId=g,{defId:g,ref:`${m("__shared")}#/${i}/${g}`}}if(a[1]===n)return{ref:"#"};const u=`#/${i}/`,l=a[1].schema.id??`__schema${e.counter++}`;return{defId:l,ref:u+l}},o=a=>{if(a[1].schema.$ref)return;const i=a[1],{ref:s,defId:u}=r(a);i.def={...i.schema},u&&(i.defId=u);const l=i.schema;for(const d in l)delete l[d];l.$ref=s};if(e.cycles==="throw")for(const a of e.seen.entries()){const i=a[1];if(i.cycle)throw new Error(`Cycle detected: #/${i.cycle?.join("/")}/<root>
+      `);
+				}
+				_.write("payload.value = newResult;"), _.write("return payload;");
+				const le = _.compile();
+				return (E, N) => le(g, E, N);
+			};
+		let a;
+		const i = he,
+			s = !vt.jitless,
+			l = s && Qt.value,
+			d = t.catchall;
+		let m;
+		e._zod.parse = (g, _) => {
+			m ?? (m = r.value);
+			const C = g.value;
+			return i(C)
+				? s && l && _?.async === !1 && _.jitless !== !0
+					? (a || (a = o(t.shape)),
+						(g = a(g, _)),
+						d ? Pt([], C, g, _, m, e) : g)
+					: n(g, _)
+				: (g.issues.push({
+						expected: "object",
+						code: "invalid_type",
+						input: C,
+						inst: e,
+					}),
+					g);
+		};
+	});
+function Xe(e, t, n, r) {
+	for (const a of e) if (a.issues.length === 0) return (t.value = a.value), t;
+	const o = e.filter((a) => !W(a));
+	return o.length === 1
+		? ((t.value = o[0].value), o[0])
+		: (t.issues.push({
+				code: "invalid_union",
+				input: t.value,
+				inst: n,
+				errors: e.map((a) => a.issues.map((i) => L(i, r, J()))),
+			}),
+			t);
+}
+const Mr = c("$ZodUnion", (e, t) => {
+		z.init(e, t),
+			b(e._zod, "optin", () =>
+				t.options.some((o) => o._zod.optin === "optional")
+					? "optional"
+					: void 0,
+			),
+			b(e._zod, "optout", () =>
+				t.options.some((o) => o._zod.optout === "optional")
+					? "optional"
+					: void 0,
+			),
+			b(e._zod, "values", () => {
+				if (t.options.every((o) => o._zod.values))
+					return new Set(t.options.flatMap((o) => Array.from(o._zod.values)));
+			}),
+			b(e._zod, "pattern", () => {
+				if (t.options.every((o) => o._zod.pattern)) {
+					const o = t.options.map((a) => a._zod.pattern);
+					return new RegExp(`^(${o.map((a) => Re(a.source)).join("|")})$`);
+				}
+			});
+		const n = t.options.length === 1,
+			r = t.options[0]._zod.run;
+		e._zod.parse = (o, a) => {
+			if (n) return r(o, a);
+			let i = !1;
+			const s = [];
+			for (const u of t.options) {
+				const l = u._zod.run({ value: o.value, issues: [] }, a);
+				if (l instanceof Promise) s.push(l), (i = !0);
+				else {
+					if (l.issues.length === 0) return l;
+					s.push(l);
+				}
+			}
+			return i ? Promise.all(s).then((u) => Xe(u, o, e, a)) : Xe(s, o, e, a);
+		};
+	}),
+	Ur = c("$ZodIntersection", (e, t) => {
+		z.init(e, t),
+			(e._zod.parse = (n, r) => {
+				const o = n.value,
+					a = t.left._zod.run({ value: o, issues: [] }, r),
+					i = t.right._zod.run({ value: o, issues: [] }, r);
+				return a instanceof Promise || i instanceof Promise
+					? Promise.all([a, i]).then(([u, l]) => He(n, u, l))
+					: He(n, a, i);
+			});
+	});
+function Ze(e, t) {
+	if (e === t) return { valid: !0, data: e };
+	if (e instanceof Date && t instanceof Date && +e == +t)
+		return { valid: !0, data: e };
+	if (ue(e) && ue(t)) {
+		const n = Object.keys(t),
+			r = Object.keys(e).filter((a) => n.indexOf(a) !== -1),
+			o = { ...e, ...t };
+		for (const a of r) {
+			const i = Ze(e[a], t[a]);
+			if (!i.valid)
+				return { valid: !1, mergeErrorPath: [a, ...i.mergeErrorPath] };
+			o[a] = i.data;
+		}
+		return { valid: !0, data: o };
+	}
+	if (Array.isArray(e) && Array.isArray(t)) {
+		if (e.length !== t.length) return { valid: !1, mergeErrorPath: [] };
+		const n = [];
+		for (let r = 0; r < e.length; r++) {
+			const o = e[r],
+				a = t[r],
+				i = Ze(o, a);
+			if (!i.valid)
+				return { valid: !1, mergeErrorPath: [r, ...i.mergeErrorPath] };
+			n.push(i.data);
+		}
+		return { valid: !0, data: n };
+	}
+	return { valid: !1, mergeErrorPath: [] };
+}
+function He(e, t, n) {
+	if (
+		(t.issues.length && e.issues.push(...t.issues),
+		n.issues.length && e.issues.push(...n.issues),
+		W(e))
+	)
+		return e;
+	const r = Ze(t.value, n.value);
+	if (!r.valid)
+		throw new Error(
+			`Unmergable intersection. Error path: ${JSON.stringify(r.mergeErrorPath)}`,
+		);
+	return (e.value = r.data), e;
+}
+const Jr = c("$ZodEnum", (e, t) => {
+		z.init(e, t);
+		const n = bt(t.entries),
+			r = new Set(n);
+		(e._zod.values = r),
+			(e._zod.pattern = new RegExp(
+				`^(${n
+					.filter((o) => en.has(typeof o))
+					.map((o) => (typeof o == "string" ? be(o) : o.toString()))
+					.join("|")})$`,
+			)),
+			(e._zod.parse = (o, a) => {
+				const i = o.value;
+				return (
+					r.has(i) ||
+						o.issues.push({
+							code: "invalid_value",
+							values: n,
+							input: i,
+							inst: e,
+						}),
+					o
+				);
+			});
+	}),
+	Lr = c("$ZodTransform", (e, t) => {
+		z.init(e, t),
+			(e._zod.parse = (n, r) => {
+				if (r.direction === "backward") throw new _t(e.constructor.name);
+				const o = t.transform(n.value, n);
+				if (r.async)
+					return (o instanceof Promise ? o : Promise.resolve(o)).then(
+						(i) => ((n.value = i), n),
+					);
+				if (o instanceof Promise) throw new G();
+				return (n.value = o), n;
+			});
+	});
+function Qe(e, t) {
+	return e.issues.length && t === void 0 ? { issues: [], value: void 0 } : e;
+}
+const qr = c("$ZodOptional", (e, t) => {
+		z.init(e, t),
+			(e._zod.optin = "optional"),
+			(e._zod.optout = "optional"),
+			b(e._zod, "values", () =>
+				t.innerType._zod.values
+					? new Set([...t.innerType._zod.values, void 0])
+					: void 0,
+			),
+			b(e._zod, "pattern", () => {
+				const n = t.innerType._zod.pattern;
+				return n ? new RegExp(`^(${Re(n.source)})?$`) : void 0;
+			}),
+			(e._zod.parse = (n, r) => {
+				if (t.innerType._zod.optin === "optional") {
+					const o = t.innerType._zod.run(n, r);
+					return o instanceof Promise
+						? o.then((a) => Qe(a, n.value))
+						: Qe(o, n.value);
+				}
+				return n.value === void 0 ? n : t.innerType._zod.run(n, r);
+			});
+	}),
+	Br = c("$ZodNullable", (e, t) => {
+		z.init(e, t),
+			b(e._zod, "optin", () => t.innerType._zod.optin),
+			b(e._zod, "optout", () => t.innerType._zod.optout),
+			b(e._zod, "pattern", () => {
+				const n = t.innerType._zod.pattern;
+				return n ? new RegExp(`^(${Re(n.source)}|null)$`) : void 0;
+			}),
+			b(e._zod, "values", () =>
+				t.innerType._zod.values
+					? new Set([...t.innerType._zod.values, null])
+					: void 0,
+			),
+			(e._zod.parse = (n, r) =>
+				n.value === null ? n : t.innerType._zod.run(n, r));
+	}),
+	Wr = c("$ZodDefault", (e, t) => {
+		z.init(e, t),
+			(e._zod.optin = "optional"),
+			b(e._zod, "values", () => t.innerType._zod.values),
+			(e._zod.parse = (n, r) => {
+				if (r.direction === "backward") return t.innerType._zod.run(n, r);
+				if (n.value === void 0) return (n.value = t.defaultValue), n;
+				const o = t.innerType._zod.run(n, r);
+				return o instanceof Promise ? o.then((a) => et(a, t)) : et(o, t);
+			});
+	});
+function et(e, t) {
+	return e.value === void 0 && (e.value = t.defaultValue), e;
+}
+const Gr = c("$ZodPrefault", (e, t) => {
+		z.init(e, t),
+			(e._zod.optin = "optional"),
+			b(e._zod, "values", () => t.innerType._zod.values),
+			(e._zod.parse = (n, r) => (
+				r.direction === "backward" ||
+					(n.value === void 0 && (n.value = t.defaultValue)),
+				t.innerType._zod.run(n, r)
+			));
+	}),
+	Kr = c("$ZodNonOptional", (e, t) => {
+		z.init(e, t),
+			b(e._zod, "values", () => {
+				const n = t.innerType._zod.values;
+				return n ? new Set([...n].filter((r) => r !== void 0)) : void 0;
+			}),
+			(e._zod.parse = (n, r) => {
+				const o = t.innerType._zod.run(n, r);
+				return o instanceof Promise ? o.then((a) => tt(a, e)) : tt(o, e);
+			});
+	});
+function tt(e, t) {
+	return (
+		!e.issues.length &&
+			e.value === void 0 &&
+			e.issues.push({
+				code: "invalid_type",
+				expected: "nonoptional",
+				input: e.value,
+				inst: t,
+			}),
+		e
+	);
+}
+const Yr = c("$ZodCatch", (e, t) => {
+		z.init(e, t),
+			b(e._zod, "optin", () => t.innerType._zod.optin),
+			b(e._zod, "optout", () => t.innerType._zod.optout),
+			b(e._zod, "values", () => t.innerType._zod.values),
+			(e._zod.parse = (n, r) => {
+				if (r.direction === "backward") return t.innerType._zod.run(n, r);
+				const o = t.innerType._zod.run(n, r);
+				return o instanceof Promise
+					? o.then(
+							(a) => (
+								(n.value = a.value),
+								a.issues.length &&
+									((n.value = t.catchValue({
+										...n,
+										error: { issues: a.issues.map((i) => L(i, r, J())) },
+										input: n.value,
+									})),
+									(n.issues = [])),
+								n
+							),
+						)
+					: ((n.value = o.value),
+						o.issues.length &&
+							((n.value = t.catchValue({
+								...n,
+								error: { issues: o.issues.map((a) => L(a, r, J())) },
+								input: n.value,
+							})),
+							(n.issues = [])),
+						n);
+			});
+	}),
+	Xr = c("$ZodPipe", (e, t) => {
+		z.init(e, t),
+			b(e._zod, "values", () => t.in._zod.values),
+			b(e._zod, "optin", () => t.in._zod.optin),
+			b(e._zod, "optout", () => t.out._zod.optout),
+			b(e._zod, "propValues", () => t.in._zod.propValues),
+			(e._zod.parse = (n, r) => {
+				if (r.direction === "backward") {
+					const a = t.out._zod.run(n, r);
+					return a instanceof Promise
+						? a.then((i) => fe(i, t.in, r))
+						: fe(a, t.in, r);
+				}
+				const o = t.in._zod.run(n, r);
+				return o instanceof Promise
+					? o.then((a) => fe(a, t.out, r))
+					: fe(o, t.out, r);
+			});
+	});
+function fe(e, t, n) {
+	return e.issues.length
+		? ((e.aborted = !0), e)
+		: t._zod.run({ value: e.value, issues: e.issues }, n);
+}
+const Hr = c("$ZodReadonly", (e, t) => {
+	z.init(e, t),
+		b(e._zod, "propValues", () => t.innerType._zod.propValues),
+		b(e._zod, "values", () => t.innerType._zod.values),
+		b(e._zod, "optin", () => t.innerType?._zod?.optin),
+		b(e._zod, "optout", () => t.innerType?._zod?.optout),
+		(e._zod.parse = (n, r) => {
+			if (r.direction === "backward") return t.innerType._zod.run(n, r);
+			const o = t.innerType._zod.run(n, r);
+			return o instanceof Promise ? o.then(nt) : nt(o);
+		});
+});
+function nt(e) {
+	return (e.value = Object.freeze(e.value)), e;
+}
+const Qr = c("$ZodCustom", (e, t) => {
+	I.init(e, t),
+		z.init(e, t),
+		(e._zod.parse = (n, r) => n),
+		(e._zod.check = (n) => {
+			const r = n.value,
+				o = t.fn(r);
+			if (o instanceof Promise) return o.then((a) => rt(a, n, r, e));
+			rt(o, n, r, e);
+		});
+});
+function rt(e, t, n, r) {
+	if (!e) {
+		const o = {
+			code: "custom",
+			input: n,
+			inst: r,
+			path: [...(r._zod.def.path ?? [])],
+			continue: !r._zod.def.abort,
+		};
+		r._zod.def.params && (o.params = r._zod.def.params), t.issues.push(ce(o));
+	}
+}
+var ot;
+class eo {
+	constructor() {
+		(this._map = new WeakMap()), (this._idmap = new Map());
+	}
+	add(t, ...n) {
+		const r = n[0];
+		if ((this._map.set(t, r), r && typeof r == "object" && "id" in r)) {
+			if (this._idmap.has(r.id))
+				throw new Error(`ID ${r.id} already exists in the registry`);
+			this._idmap.set(r.id, t);
+		}
+		return this;
+	}
+	clear() {
+		return (this._map = new WeakMap()), (this._idmap = new Map()), this;
+	}
+	remove(t) {
+		const n = this._map.get(t);
+		return (
+			n && typeof n == "object" && "id" in n && this._idmap.delete(n.id),
+			this._map.delete(t),
+			this
+		);
+	}
+	get(t) {
+		const n = t._zod.parent;
+		if (n) {
+			const r = { ...(this.get(n) ?? {}) };
+			delete r.id;
+			const o = { ...r, ...this._map.get(t) };
+			return Object.keys(o).length ? o : void 0;
+		}
+		return this._map.get(t);
+	}
+	has(t) {
+		return this._map.has(t);
+	}
+}
+function to() {
+	return new eo();
+}
+(ot = globalThis).__zod_globalRegistry ?? (ot.__zod_globalRegistry = to());
+const ie = globalThis.__zod_globalRegistry;
+function no(e, t) {
+	return new e({ type: "string", ...f(t) });
+}
+function ro(e, t) {
+	return new e({
+		type: "string",
+		format: "email",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function at(e, t) {
+	return new e({
+		type: "string",
+		format: "guid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function oo(e, t) {
+	return new e({
+		type: "string",
+		format: "uuid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function ao(e, t) {
+	return new e({
+		type: "string",
+		format: "uuid",
+		check: "string_format",
+		abort: !1,
+		version: "v4",
+		...f(t),
+	});
+}
+function io(e, t) {
+	return new e({
+		type: "string",
+		format: "uuid",
+		check: "string_format",
+		abort: !1,
+		version: "v6",
+		...f(t),
+	});
+}
+function so(e, t) {
+	return new e({
+		type: "string",
+		format: "uuid",
+		check: "string_format",
+		abort: !1,
+		version: "v7",
+		...f(t),
+	});
+}
+function uo(e, t) {
+	return new e({
+		type: "string",
+		format: "url",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function co(e, t) {
+	return new e({
+		type: "string",
+		format: "emoji",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function lo(e, t) {
+	return new e({
+		type: "string",
+		format: "nanoid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function fo(e, t) {
+	return new e({
+		type: "string",
+		format: "cuid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function mo(e, t) {
+	return new e({
+		type: "string",
+		format: "cuid2",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function po(e, t) {
+	return new e({
+		type: "string",
+		format: "ulid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function ho(e, t) {
+	return new e({
+		type: "string",
+		format: "xid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function go(e, t) {
+	return new e({
+		type: "string",
+		format: "ksuid",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function _o(e, t) {
+	return new e({
+		type: "string",
+		format: "ipv4",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function vo(e, t) {
+	return new e({
+		type: "string",
+		format: "ipv6",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function bo(e, t) {
+	return new e({
+		type: "string",
+		format: "cidrv4",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function yo(e, t) {
+	return new e({
+		type: "string",
+		format: "cidrv6",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function wo(e, t) {
+	return new e({
+		type: "string",
+		format: "base64",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function zo(e, t) {
+	return new e({
+		type: "string",
+		format: "base64url",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function $o(e, t) {
+	return new e({
+		type: "string",
+		format: "e164",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function ko(e, t) {
+	return new e({
+		type: "string",
+		format: "jwt",
+		check: "string_format",
+		abort: !1,
+		...f(t),
+	});
+}
+function So(e, t) {
+	return new e({
+		type: "string",
+		format: "datetime",
+		check: "string_format",
+		offset: !1,
+		local: !1,
+		precision: null,
+		...f(t),
+	});
+}
+function xo(e, t) {
+	return new e({
+		type: "string",
+		format: "date",
+		check: "string_format",
+		...f(t),
+	});
+}
+function Zo(e, t) {
+	return new e({
+		type: "string",
+		format: "time",
+		check: "string_format",
+		precision: null,
+		...f(t),
+	});
+}
+function Co(e, t) {
+	return new e({
+		type: "string",
+		format: "duration",
+		check: "string_format",
+		...f(t),
+	});
+}
+function To(e, t) {
+	return new e({ type: "number", checks: [], ...f(t) });
+}
+function Oo(e, t) {
+	return new e({
+		type: "number",
+		check: "number_format",
+		abort: !1,
+		format: "safeint",
+		...f(t),
+	});
+}
+function Io(e, t) {
+	return new e({ type: "boolean", ...f(t) });
+}
+function No(e) {
+	return new e({ type: "unknown" });
+}
+function Eo(e, t) {
+	return new e({ type: "never", ...f(t) });
+}
+function it(e, t) {
+	return new Ot({ check: "less_than", ...f(t), value: e, inclusive: !1 });
+}
+function ke(e, t) {
+	return new Ot({ check: "less_than", ...f(t), value: e, inclusive: !0 });
+}
+function st(e, t) {
+	return new It({ check: "greater_than", ...f(t), value: e, inclusive: !1 });
+}
+function Se(e, t) {
+	return new It({ check: "greater_than", ...f(t), value: e, inclusive: !0 });
+}
+function ut(e, t) {
+	return new Kn({ check: "multiple_of", ...f(t), value: e });
+}
+function Ft(e, t) {
+	return new Xn({ check: "max_length", ...f(t), maximum: e });
+}
+function _e(e, t) {
+	return new Hn({ check: "min_length", ...f(t), minimum: e });
+}
+function jt(e, t) {
+	return new Qn({ check: "length_equals", ...f(t), length: e });
+}
+function Ao(e, t) {
+	return new er({
+		check: "string_format",
+		format: "regex",
+		...f(t),
+		pattern: e,
+	});
+}
+function Po(e) {
+	return new tr({ check: "string_format", format: "lowercase", ...f(e) });
+}
+function Fo(e) {
+	return new nr({ check: "string_format", format: "uppercase", ...f(e) });
+}
+function jo(e, t) {
+	return new rr({
+		check: "string_format",
+		format: "includes",
+		...f(t),
+		includes: e,
+	});
+}
+function Do(e, t) {
+	return new or({
+		check: "string_format",
+		format: "starts_with",
+		...f(t),
+		prefix: e,
+	});
+}
+function Vo(e, t) {
+	return new ar({
+		check: "string_format",
+		format: "ends_with",
+		...f(t),
+		suffix: e,
+	});
+}
+function X(e) {
+	return new ir({ check: "overwrite", tx: e });
+}
+function Ro(e) {
+	return X((t) => t.normalize(e));
+}
+function Mo() {
+	return X((e) => e.trim());
+}
+function Uo() {
+	return X((e) => e.toLowerCase());
+}
+function Jo() {
+	return X((e) => e.toUpperCase());
+}
+function Lo() {
+	return X((e) => Ht(e));
+}
+function qo(e, t, n) {
+	return new e({ type: "array", element: t, ...f(n) });
+}
+function Bo(e, t, n) {
+	return new e({ type: "custom", check: "custom", fn: t, ...f(n) });
+}
+function Wo(e) {
+	const t = Go(
+		(n) => (
+			(n.addIssue = (r) => {
+				if (typeof r == "string") n.issues.push(ce(r, n.value, t._zod.def));
+				else {
+					const o = r;
+					o.fatal && (o.continue = !1),
+						o.code ?? (o.code = "custom"),
+						o.input ?? (o.input = n.value),
+						o.inst ?? (o.inst = t),
+						o.continue ?? (o.continue = !t._zod.def.abort),
+						n.issues.push(ce(o));
+				}
+			}),
+			e(n.value, n)
+		),
+	);
+	return t;
+}
+function Go(e, t) {
+	const n = new I({ check: "custom", ...f(t) });
+	return (n._zod.check = e), n;
+}
+function Dt(e) {
+	let t = e?.target ?? "draft-2020-12";
+	return (
+		t === "draft-4" && (t = "draft-04"),
+		t === "draft-7" && (t = "draft-07"),
+		{
+			processors: e.processors ?? {},
+			metadataRegistry: e?.metadata ?? ie,
+			target: t,
+			unrepresentable: e?.unrepresentable ?? "throw",
+			override: e?.override ?? (() => {}),
+			io: e?.io ?? "output",
+			counter: 0,
+			seen: new Map(),
+			cycles: e?.cycles ?? "ref",
+			reused: e?.reused ?? "inline",
+			external: e?.external ?? void 0,
+		}
+	);
+}
+function Z(e, t, n = { path: [], schemaPath: [] }) {
+	var r;
+	const o = e._zod.def,
+		a = t.seen.get(e);
+	if (a)
+		return a.count++, n.schemaPath.includes(e) && (a.cycle = n.path), a.schema;
+	const i = { schema: {}, count: 1, cycle: void 0, path: n.path };
+	t.seen.set(e, i);
+	const s = e._zod.toJSONSchema?.();
+	if (s) i.schema = s;
+	else {
+		const d = { ...n, schemaPath: [...n.schemaPath, e], path: n.path },
+			m = e._zod.parent;
+		if (m) (i.ref = m), Z(m, t, d), (t.seen.get(m).isParent = !0);
+		else if (e._zod.processJSONSchema) e._zod.processJSONSchema(t, i.schema, d);
+		else {
+			const g = i.schema,
+				_ = t.processors[o.type];
+			if (!_)
+				throw new Error(
+					`[toJSONSchema]: Non-representable type encountered: ${o.type}`,
+				);
+			_(e, t, g, d);
+		}
+	}
+	const u = t.metadataRegistry.get(e);
+	return (
+		u && Object.assign(i.schema, u),
+		t.io === "input" &&
+			T(e) &&
+			(delete i.schema.examples, delete i.schema.default),
+		t.io === "input" &&
+			i.schema._prefault &&
+			((r = i.schema).default ?? (r.default = i.schema._prefault)),
+		delete i.schema._prefault,
+		t.seen.get(e).schema
+	);
+}
+function Vt(e, t) {
+	const n = e.seen.get(t);
+	if (!n) throw new Error("Unprocessed schema. This is a bug in Zod.");
+	const r = (a) => {
+			const i = e.target === "draft-2020-12" ? "$defs" : "definitions";
+			if (e.external) {
+				const d = e.external.registry.get(a[0])?.id,
+					m = e.external.uri ?? ((_) => _);
+				if (d) return { ref: m(d) };
+				const g = a[1].defId ?? a[1].schema.id ?? `schema${e.counter++}`;
+				return (
+					(a[1].defId = g), { defId: g, ref: `${m("__shared")}#/${i}/${g}` }
+				);
+			}
+			if (a[1] === n) return { ref: "#" };
+			const u = `#/${i}/`,
+				l = a[1].schema.id ?? `__schema${e.counter++}`;
+			return { defId: l, ref: u + l };
+		},
+		o = (a) => {
+			if (a[1].schema.$ref) return;
+			const i = a[1],
+				{ ref: s, defId: u } = r(a);
+			(i.def = { ...i.schema }), u && (i.defId = u);
+			const l = i.schema;
+			for (const d in l) delete l[d];
+			l.$ref = s;
+		};
+	if (e.cycles === "throw")
+		for (const a of e.seen.entries()) {
+			const i = a[1];
+			if (i.cycle)
+				throw new Error(`Cycle detected: #/${i.cycle?.join("/")}/<root>
 
-Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.`)}for(const a of e.seen.entries()){const i=a[1];if(t===a[0]){o(a);continue}if(e.external){const u=e.external.registry.get(a[0])?.id;if(t!==a[0]&&u){o(a);continue}}if(e.metadataRegistry.get(a[0])?.id){o(a);continue}if(i.cycle){o(a);continue}if(i.count>1&&e.reused==="ref"){o(a);continue}}}function Rt(e,t){const n=e.seen.get(t);if(!n)throw new Error("Unprocessed schema. This is a bug in Zod.");const r=i=>{const s=e.seen.get(i),u=s.def??s.schema,l={...u};if(s.ref===null)return;const d=s.ref;if(s.ref=null,d){r(d);const m=e.seen.get(d).schema;m.$ref&&(e.target==="draft-07"||e.target==="draft-04"||e.target==="openapi-3.0")?(u.allOf=u.allOf??[],u.allOf.push(m)):(Object.assign(u,m),Object.assign(u,l))}s.isParent||e.override({zodSchema:i,jsonSchema:u,path:s.path??[]})};for(const i of[...e.seen.entries()].reverse())r(i[0]);const o={};if(e.target==="draft-2020-12"?o.$schema="https://json-schema.org/draft/2020-12/schema":e.target==="draft-07"?o.$schema="http://json-schema.org/draft-07/schema#":e.target==="draft-04"?o.$schema="http://json-schema.org/draft-04/schema#":e.target,e.external?.uri){const i=e.external.registry.get(t)?.id;if(!i)throw new Error("Schema is missing an `id` property");o.$id=e.external.uri(i)}Object.assign(o,n.def??n.schema);const a=e.external?.defs??{};for(const i of e.seen.entries()){const s=i[1];s.def&&s.defId&&(a[s.defId]=s.def)}e.external||Object.keys(a).length>0&&(e.target==="draft-2020-12"?o.$defs=a:o.definitions=a);try{const i=JSON.parse(JSON.stringify(o));return Object.defineProperty(i,"~standard",{value:{...t["~standard"],jsonSchema:{input:ve(t,"input"),output:ve(t,"output")}},enumerable:!1,writable:!1}),i}catch{throw new Error("Error converting schema to JSON.")}}function T(e,t){const n=t??{seen:new Set};if(n.seen.has(e))return!1;n.seen.add(e);const r=e._zod.def;if(r.type==="transform")return!0;if(r.type==="array")return T(r.element,n);if(r.type==="set")return T(r.valueType,n);if(r.type==="lazy")return T(r.getter(),n);if(r.type==="promise"||r.type==="optional"||r.type==="nonoptional"||r.type==="nullable"||r.type==="readonly"||r.type==="default"||r.type==="prefault")return T(r.innerType,n);if(r.type==="intersection")return T(r.left,n)||T(r.right,n);if(r.type==="record"||r.type==="map")return T(r.keyType,n)||T(r.valueType,n);if(r.type==="pipe")return T(r.in,n)||T(r.out,n);if(r.type==="object"){for(const o in r.shape)if(T(r.shape[o],n))return!0;return!1}if(r.type==="union"){for(const o of r.options)if(T(o,n))return!0;return!1}if(r.type==="tuple"){for(const o of r.items)if(T(o,n))return!0;return!!(r.rest&&T(r.rest,n))}return!1}const Ko=(e,t={})=>n=>{const r=Dt({...n,processors:t});return Z(e,r),Vt(r,e),Rt(r,e)},ve=(e,t)=>n=>{const{libraryOptions:r,target:o}=n??{},a=Dt({...r??{},target:o,io:t,processors:{}});return Z(e,a),Vt(a,e),Rt(a,e)},Yo={guid:"uuid",url:"uri",datetime:"date-time",json_string:"json-string",regex:""},Xo=(e,t,n,r)=>{const o=n;o.type="string";const{minimum:a,maximum:i,format:s,patterns:u,contentEncoding:l}=e._zod.bag;if(typeof a=="number"&&(o.minLength=a),typeof i=="number"&&(o.maxLength=i),s&&(o.format=Yo[s]??s,o.format===""&&delete o.format),l&&(o.contentEncoding=l),u&&u.size>0){const d=[...u];d.length===1?o.pattern=d[0].source:d.length>1&&(o.allOf=[...d.map(m=>({...t.target==="draft-07"||t.target==="draft-04"||t.target==="openapi-3.0"?{type:"string"}:{},pattern:m.source}))])}},Ho=(e,t,n,r)=>{const o=n,{minimum:a,maximum:i,format:s,multipleOf:u,exclusiveMaximum:l,exclusiveMinimum:d}=e._zod.bag;typeof s=="string"&&s.includes("int")?o.type="integer":o.type="number",typeof d=="number"&&(t.target==="draft-04"||t.target==="openapi-3.0"?(o.minimum=d,o.exclusiveMinimum=!0):o.exclusiveMinimum=d),typeof a=="number"&&(o.minimum=a,typeof d=="number"&&t.target!=="draft-04"&&(d>=a?delete o.minimum:delete o.exclusiveMinimum)),typeof l=="number"&&(t.target==="draft-04"||t.target==="openapi-3.0"?(o.maximum=l,o.exclusiveMaximum=!0):o.exclusiveMaximum=l),typeof i=="number"&&(o.maximum=i,typeof l=="number"&&t.target!=="draft-04"&&(l<=i?delete o.maximum:delete o.exclusiveMaximum)),typeof u=="number"&&(o.multipleOf=u)},Qo=(e,t,n,r)=>{n.type="boolean"},ea=(e,t,n,r)=>{n.not={}},ta=(e,t,n,r)=>{},na=(e,t,n,r)=>{const o=e._zod.def,a=bt(o.entries);a.every(i=>typeof i=="number")&&(n.type="number"),a.every(i=>typeof i=="string")&&(n.type="string"),n.enum=a},ra=(e,t,n,r)=>{if(t.unrepresentable==="throw")throw new Error("Custom types cannot be represented in JSON Schema")},oa=(e,t,n,r)=>{if(t.unrepresentable==="throw")throw new Error("Transforms cannot be represented in JSON Schema")},aa=(e,t,n,r)=>{const o=n,a=e._zod.def,{minimum:i,maximum:s}=e._zod.bag;typeof i=="number"&&(o.minItems=i),typeof s=="number"&&(o.maxItems=s),o.type="array",o.items=Z(a.element,t,{...r,path:[...r.path,"items"]})},ia=(e,t,n,r)=>{const o=n,a=e._zod.def;o.type="object",o.properties={};const i=a.shape;for(const l in i)o.properties[l]=Z(i[l],t,{...r,path:[...r.path,"properties",l]});const s=new Set(Object.keys(i)),u=new Set([...s].filter(l=>{const d=a.shape[l]._zod;return t.io==="input"?d.optin===void 0:d.optout===void 0}));u.size>0&&(o.required=Array.from(u)),a.catchall?._zod.def.type==="never"?o.additionalProperties=!1:a.catchall?a.catchall&&(o.additionalProperties=Z(a.catchall,t,{...r,path:[...r.path,"additionalProperties"]})):t.io==="output"&&(o.additionalProperties=!1)},sa=(e,t,n,r)=>{const o=e._zod.def,a=o.inclusive===!1,i=o.options.map((s,u)=>Z(s,t,{...r,path:[...r.path,a?"oneOf":"anyOf",u]}));a?n.oneOf=i:n.anyOf=i},ua=(e,t,n,r)=>{const o=e._zod.def,a=Z(o.left,t,{...r,path:[...r.path,"allOf",0]}),i=Z(o.right,t,{...r,path:[...r.path,"allOf",1]}),s=l=>"allOf"in l&&Object.keys(l).length===1,u=[...s(a)?a.allOf:[a],...s(i)?i.allOf:[i]];n.allOf=u},ca=(e,t,n,r)=>{const o=e._zod.def,a=Z(o.innerType,t,r),i=t.seen.get(e);t.target==="openapi-3.0"?(i.ref=o.innerType,n.nullable=!0):n.anyOf=[a,{type:"null"}]},la=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType},da=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType,n.default=JSON.parse(JSON.stringify(o.defaultValue))},fa=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType,t.io==="input"&&(n._prefault=JSON.parse(JSON.stringify(o.defaultValue)))},ma=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType;let i;try{i=o.catchValue(void 0)}catch{throw new Error("Dynamic catch values are not supported in JSON Schema")}n.default=i},pa=(e,t,n,r)=>{const o=e._zod.def,a=t.io==="input"?o.in._zod.def.type==="transform"?o.out:o.in:o.out;Z(a,t,r);const i=t.seen.get(e);i.ref=a},ha=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType,n.readOnly=!0},ga=(e,t,n,r)=>{const o=e._zod.def;Z(o.innerType,t,r);const a=t.seen.get(e);a.ref=o.innerType},_a=c("ZodISODateTime",(e,t)=>{yr.init(e,t),w.init(e,t)});function va(e){return So(_a,e)}const ba=c("ZodISODate",(e,t)=>{wr.init(e,t),w.init(e,t)});function ya(e){return xo(ba,e)}const wa=c("ZodISOTime",(e,t)=>{zr.init(e,t),w.init(e,t)});function za(e){return Zo(wa,e)}const $a=c("ZodISODuration",(e,t)=>{$r.init(e,t),w.init(e,t)});function ka(e){return Co($a,e)}const Sa=(e,t)=>{kt.init(e,t),e.name="ZodError",Object.defineProperties(e,{format:{value:n=>fn(e,n)},flatten:{value:n=>dn(e,n)},addIssue:{value:n=>{e.issues.push(n),e.message=JSON.stringify(e.issues,xe,2)}},addIssues:{value:n=>{e.issues.push(...n),e.message=JSON.stringify(e.issues,xe,2)}},isEmpty:{get(){return e.issues.length===0}}})},P=c("ZodError",Sa,{Parent:Error}),xa=Ue(P),Za=Je(P),Ca=ye(P),Ta=we(P),Oa=hn(P),Ia=gn(P),Na=_n(P),Ea=vn(P),Aa=bn(P),Pa=yn(P),Fa=wn(P),ja=zn(P),S=c("ZodType",(e,t)=>(z.init(e,t),Object.assign(e["~standard"],{jsonSchema:{input:ve(e,"input"),output:ve(e,"output")}}),e.toJSONSchema=Ko(e,{}),e.def=t,e.type=t.type,Object.defineProperty(e,"_def",{value:t}),e.check=(...n)=>e.clone(B(t,{checks:[...t.checks??[],...n.map(r=>typeof r=="function"?{_zod:{check:r,def:{check:"custom"},onattach:[]}}:r)]})),e.clone=(n,r)=>V(e,n,r),e.brand=()=>e,e.register=((n,r)=>(n.add(e,r),e)),e.parse=(n,r)=>xa(e,n,r,{callee:e.parse}),e.safeParse=(n,r)=>Ca(e,n,r),e.parseAsync=async(n,r)=>Za(e,n,r,{callee:e.parseAsync}),e.safeParseAsync=async(n,r)=>Ta(e,n,r),e.spa=e.safeParseAsync,e.encode=(n,r)=>Oa(e,n,r),e.decode=(n,r)=>Ia(e,n,r),e.encodeAsync=async(n,r)=>Na(e,n,r),e.decodeAsync=async(n,r)=>Ea(e,n,r),e.safeEncode=(n,r)=>Aa(e,n,r),e.safeDecode=(n,r)=>Pa(e,n,r),e.safeEncodeAsync=async(n,r)=>Fa(e,n,r),e.safeDecodeAsync=async(n,r)=>ja(e,n,r),e.refine=(n,r)=>e.check(Ci(n,r)),e.superRefine=n=>e.check(Ti(n)),e.overwrite=n=>e.check(X(n)),e.optional=()=>ft(e),e.nullable=()=>mt(e),e.nullish=()=>ft(mt(e)),e.nonoptional=n=>wi(e,n),e.array=()=>ui(e),e.or=n=>di([e,n]),e.and=n=>mi(e,n),e.transform=n=>pt(e,hi(n)),e.default=n=>vi(e,n),e.prefault=n=>yi(e,n),e.catch=n=>$i(e,n),e.pipe=n=>pt(e,n),e.readonly=()=>xi(e),e.describe=n=>{const r=e.clone();return ie.add(r,{description:n}),r},Object.defineProperty(e,"description",{get(){return ie.get(e)?.description},configurable:!0}),e.meta=(...n)=>{if(n.length===0)return ie.get(e);const r=e.clone();return ie.add(r,n[0]),r},e.isOptional=()=>e.safeParse(void 0).success,e.isNullable=()=>e.safeParse(null).success,e)),Mt=c("_ZodString",(e,t)=>{Le.init(e,t),S.init(e,t),e._zod.processJSONSchema=(r,o,a)=>Xo(e,r,o);const n=e._zod.bag;e.format=n.format??null,e.minLength=n.minimum??null,e.maxLength=n.maximum??null,e.regex=(...r)=>e.check(Ao(...r)),e.includes=(...r)=>e.check(jo(...r)),e.startsWith=(...r)=>e.check(Do(...r)),e.endsWith=(...r)=>e.check(Vo(...r)),e.min=(...r)=>e.check(_e(...r)),e.max=(...r)=>e.check(Ft(...r)),e.length=(...r)=>e.check(jt(...r)),e.nonempty=(...r)=>e.check(_e(1,...r)),e.lowercase=r=>e.check(Po(r)),e.uppercase=r=>e.check(Fo(r)),e.trim=()=>e.check(Mo()),e.normalize=(...r)=>e.check(Ro(...r)),e.toLowerCase=()=>e.check(Uo()),e.toUpperCase=()=>e.check(Jo()),e.slugify=()=>e.check(Lo())}),Da=c("ZodString",(e,t)=>{Le.init(e,t),Mt.init(e,t),e.email=n=>e.check(ro(Va,n)),e.url=n=>e.check(uo(Ra,n)),e.jwt=n=>e.check(ko(ti,n)),e.emoji=n=>e.check(co(Ma,n)),e.guid=n=>e.check(at(ct,n)),e.uuid=n=>e.check(oo(me,n)),e.uuidv4=n=>e.check(ao(me,n)),e.uuidv6=n=>e.check(io(me,n)),e.uuidv7=n=>e.check(so(me,n)),e.nanoid=n=>e.check(lo(Ua,n)),e.guid=n=>e.check(at(ct,n)),e.cuid=n=>e.check(fo(Ja,n)),e.cuid2=n=>e.check(mo(La,n)),e.ulid=n=>e.check(po(qa,n)),e.base64=n=>e.check(wo(Ha,n)),e.base64url=n=>e.check(zo(Qa,n)),e.xid=n=>e.check(ho(Ba,n)),e.ksuid=n=>e.check(go(Wa,n)),e.ipv4=n=>e.check(_o(Ga,n)),e.ipv6=n=>e.check(vo(Ka,n)),e.cidrv4=n=>e.check(bo(Ya,n)),e.cidrv6=n=>e.check(yo(Xa,n)),e.e164=n=>e.check($o(ei,n)),e.datetime=n=>e.check(va(n)),e.date=n=>e.check(ya(n)),e.time=n=>e.check(za(n)),e.duration=n=>e.check(ka(n))});function $(e){return no(Da,e)}const w=c("ZodStringFormat",(e,t)=>{y.init(e,t),Mt.init(e,t)}),Va=c("ZodEmail",(e,t)=>{dr.init(e,t),w.init(e,t)}),ct=c("ZodGUID",(e,t)=>{cr.init(e,t),w.init(e,t)}),me=c("ZodUUID",(e,t)=>{lr.init(e,t),w.init(e,t)}),Ra=c("ZodURL",(e,t)=>{fr.init(e,t),w.init(e,t)}),Ma=c("ZodEmoji",(e,t)=>{mr.init(e,t),w.init(e,t)}),Ua=c("ZodNanoID",(e,t)=>{pr.init(e,t),w.init(e,t)}),Ja=c("ZodCUID",(e,t)=>{hr.init(e,t),w.init(e,t)}),La=c("ZodCUID2",(e,t)=>{gr.init(e,t),w.init(e,t)}),qa=c("ZodULID",(e,t)=>{_r.init(e,t),w.init(e,t)}),Ba=c("ZodXID",(e,t)=>{vr.init(e,t),w.init(e,t)}),Wa=c("ZodKSUID",(e,t)=>{br.init(e,t),w.init(e,t)}),Ga=c("ZodIPv4",(e,t)=>{kr.init(e,t),w.init(e,t)}),Ka=c("ZodIPv6",(e,t)=>{Sr.init(e,t),w.init(e,t)}),Ya=c("ZodCIDRv4",(e,t)=>{xr.init(e,t),w.init(e,t)}),Xa=c("ZodCIDRv6",(e,t)=>{Zr.init(e,t),w.init(e,t)}),Ha=c("ZodBase64",(e,t)=>{Cr.init(e,t),w.init(e,t)}),Qa=c("ZodBase64URL",(e,t)=>{Or.init(e,t),w.init(e,t)}),ei=c("ZodE164",(e,t)=>{Ir.init(e,t),w.init(e,t)}),ti=c("ZodJWT",(e,t)=>{Er.init(e,t),w.init(e,t)}),Ut=c("ZodNumber",(e,t)=>{Et.init(e,t),S.init(e,t),e._zod.processJSONSchema=(r,o,a)=>Ho(e,r,o),e.gt=(r,o)=>e.check(st(r,o)),e.gte=(r,o)=>e.check(Se(r,o)),e.min=(r,o)=>e.check(Se(r,o)),e.lt=(r,o)=>e.check(it(r,o)),e.lte=(r,o)=>e.check(ke(r,o)),e.max=(r,o)=>e.check(ke(r,o)),e.int=r=>e.check(lt(r)),e.safe=r=>e.check(lt(r)),e.positive=r=>e.check(st(0,r)),e.nonnegative=r=>e.check(Se(0,r)),e.negative=r=>e.check(it(0,r)),e.nonpositive=r=>e.check(ke(0,r)),e.multipleOf=(r,o)=>e.check(ut(r,o)),e.step=(r,o)=>e.check(ut(r,o)),e.finite=()=>e;const n=e._zod.bag;e.minValue=Math.max(n.minimum??Number.NEGATIVE_INFINITY,n.exclusiveMinimum??Number.NEGATIVE_INFINITY)??null,e.maxValue=Math.min(n.maximum??Number.POSITIVE_INFINITY,n.exclusiveMaximum??Number.POSITIVE_INFINITY)??null,e.isInt=(n.format??"").includes("int")||Number.isSafeInteger(n.multipleOf??.5),e.isFinite=!0,e.format=n.format??null});function A(e){return To(Ut,e)}const ni=c("ZodNumberFormat",(e,t)=>{Ar.init(e,t),Ut.init(e,t)});function lt(e){return Oo(ni,e)}const ri=c("ZodBoolean",(e,t)=>{Pr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>Qo(e,n,r)});function x(e){return Io(ri,e)}const oi=c("ZodUnknown",(e,t)=>{Fr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ta()});function dt(){return No(oi)}const ai=c("ZodNever",(e,t)=>{jr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ea(e,n,r)});function ii(e){return Eo(ai,e)}const si=c("ZodArray",(e,t)=>{Dr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>aa(e,n,r,o),e.element=t.element,e.min=(n,r)=>e.check(_e(n,r)),e.nonempty=n=>e.check(_e(1,n)),e.max=(n,r)=>e.check(Ft(n,r)),e.length=(n,r)=>e.check(jt(n,r)),e.unwrap=()=>e.element});function ui(e,t){return qo(si,e,t)}const ci=c("ZodObject",(e,t)=>{Rr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ia(e,n,r,o),b(e,"shape",()=>t.shape),e.keyof=()=>U(Object.keys(e._zod.def.shape)),e.catchall=n=>e.clone({...e._zod.def,catchall:n}),e.passthrough=()=>e.clone({...e._zod.def,catchall:dt()}),e.loose=()=>e.clone({...e._zod.def,catchall:dt()}),e.strict=()=>e.clone({...e._zod.def,catchall:ii()}),e.strip=()=>e.clone({...e._zod.def,catchall:void 0}),e.extend=n=>an(e,n),e.safeExtend=n=>sn(e,n),e.merge=n=>un(e,n),e.pick=n=>rn(e,n),e.omit=n=>on(e,n),e.partial=(...n)=>cn(Jt,e,n[0]),e.required=(...n)=>ln(Lt,e,n[0])});function D(e,t){const n={type:"object",shape:e??{},...f(t)};return new ci(n)}const li=c("ZodUnion",(e,t)=>{Mr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>sa(e,n,r,o),e.options=t.options});function di(e,t){return new li({type:"union",options:e,...f(t)})}const fi=c("ZodIntersection",(e,t)=>{Ur.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ua(e,n,r,o)});function mi(e,t){return new fi({type:"intersection",left:e,right:t})}const Ce=c("ZodEnum",(e,t)=>{Jr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(r,o,a)=>na(e,r,o),e.enum=t.entries,e.options=Object.values(t.entries);const n=new Set(Object.keys(t.entries));e.extract=(r,o)=>{const a={};for(const i of r)if(n.has(i))a[i]=t.entries[i];else throw new Error(`Key ${i} not found in enum`);return new Ce({...t,checks:[],...f(o),entries:a})},e.exclude=(r,o)=>{const a={...t.entries};for(const i of r)if(n.has(i))delete a[i];else throw new Error(`Key ${i} not found in enum`);return new Ce({...t,checks:[],...f(o),entries:a})}});function U(e,t){const n=Array.isArray(e)?Object.fromEntries(e.map(r=>[r,r])):e;return new Ce({type:"enum",entries:n,...f(t)})}const pi=c("ZodTransform",(e,t)=>{Lr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>oa(e,n),e._zod.parse=(n,r)=>{if(r.direction==="backward")throw new _t(e.constructor.name);n.addIssue=a=>{if(typeof a=="string")n.issues.push(ce(a,n.value,t));else{const i=a;i.fatal&&(i.continue=!1),i.code??(i.code="custom"),i.input??(i.input=n.value),i.inst??(i.inst=e),n.issues.push(ce(i))}};const o=t.transform(n.value,n);return o instanceof Promise?o.then(a=>(n.value=a,n)):(n.value=o,n)}});function hi(e){return new pi({type:"transform",transform:e})}const Jt=c("ZodOptional",(e,t)=>{qr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ga(e,n,r,o),e.unwrap=()=>e._zod.def.innerType});function ft(e){return new Jt({type:"optional",innerType:e})}const gi=c("ZodNullable",(e,t)=>{Br.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ca(e,n,r,o),e.unwrap=()=>e._zod.def.innerType});function mt(e){return new gi({type:"nullable",innerType:e})}const _i=c("ZodDefault",(e,t)=>{Wr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>da(e,n,r,o),e.unwrap=()=>e._zod.def.innerType,e.removeDefault=e.unwrap});function vi(e,t){return new _i({type:"default",innerType:e,get defaultValue(){return typeof t=="function"?t():wt(t)}})}const bi=c("ZodPrefault",(e,t)=>{Gr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>fa(e,n,r,o),e.unwrap=()=>e._zod.def.innerType});function yi(e,t){return new bi({type:"prefault",innerType:e,get defaultValue(){return typeof t=="function"?t():wt(t)}})}const Lt=c("ZodNonOptional",(e,t)=>{Kr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>la(e,n,r,o),e.unwrap=()=>e._zod.def.innerType});function wi(e,t){return new Lt({type:"nonoptional",innerType:e,...f(t)})}const zi=c("ZodCatch",(e,t)=>{Yr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ma(e,n,r,o),e.unwrap=()=>e._zod.def.innerType,e.removeCatch=e.unwrap});function $i(e,t){return new zi({type:"catch",innerType:e,catchValue:typeof t=="function"?t:()=>t})}const ki=c("ZodPipe",(e,t)=>{Xr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>pa(e,n,r,o),e.in=t.in,e.out=t.out});function pt(e,t){return new ki({type:"pipe",in:e,out:t})}const Si=c("ZodReadonly",(e,t)=>{Hr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ha(e,n,r,o),e.unwrap=()=>e._zod.def.innerType});function xi(e){return new Si({type:"readonly",innerType:e})}const Zi=c("ZodCustom",(e,t)=>{Qr.init(e,t),S.init(e,t),e._zod.processJSONSchema=(n,r,o)=>ra(e,n)});function Ci(e,t={}){return Bo(Zi,e,t)}function Ti(e){return Wo(e)}var Oi=k('<div><label class="flex cursor-pointer items-center gap-2"><input type=checkbox class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-50"><span class="font-medium text-gray-700 text-sm">'),Ii=k("<p>");const Te=e=>(()=>{var t=Oi(),n=t.firstChild,r=n.firstChild,o=r.nextSibling;return r.addEventListener("change",a=>e.onChange(a.currentTarget.checked)),p(o,()=>e.field.label),p(t,(()=>{var a=Fe(()=>!!e.field.meta.description);return()=>a()&&(()=>{var i=Ii();return p(i,()=>e.field.meta.description),F(()=>K(i,`mt-1 ml-6 ${se.helper}`)),i})()})(),null),F(()=>r.disabled=e.disabled),F(()=>r.checked=e.value??!1),t})();try{Te.displayName="CheckboxField",Te.__docgenInfo={description:"",displayName:"CheckboxField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"boolean"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: boolean) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}var Ni=k('<div><label class=block><span></span><div class="mt-1 flex gap-2"><input type=color class="h-10 w-20 cursor-pointer rounded border border-gray-300 disabled:cursor-not-allowed disabled:opacity-50">'),Ei=k("<p>");const Oe=e=>(()=>{var t=Ni(),n=t.firstChild,r=n.firstChild,o=r.nextSibling,a=o.firstChild;return p(r,()=>e.field.label),a.$$input=i=>e.onChange(i.currentTarget.value),p(o,h(je,{type:"text",get value(){return e.value??""},onInput:i=>e.onChange(i.currentTarget.value),placeholder:"#000000",get disabled(){return e.disabled}}),null),p(t,(()=>{var i=Fe(()=>!!e.field.meta.description);return()=>i()&&(()=>{var s=Ei();return p(s,()=>e.field.meta.description),F(()=>K(s,`mt-1 ${se.helper}`)),s})()})(),null),F(i=>{var s=se.label,u=e.disabled;return s!==i.e&&K(r,i.e=s),u!==i.t&&(a.disabled=i.t=u),i},{e:void 0,t:void 0}),F(()=>a.value=e.value??"#000000"),t})();gt(["input"]);try{Oe.displayName="ColorField",Oe.__docgenInfo={description:"",displayName:"ColorField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"string"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: string) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}const Ie=e=>{const t=()=>e.field.meta.unit?`${e.field.label} (${e.field.meta.unit})`:e.field.label;return h(je,{type:"number",get label(){return t()},get value(){return e.value??0},onInput:n=>{const r=Number.parseFloat(n.currentTarget.value);Number.isNaN(r)||e.onChange(r)},get min(){return e.field.min},get max(){return e.field.max},get step(){return e.field.meta.step??1},get disabled(){return e.disabled},get helperText(){return e.field.meta.description}})};try{Ie.displayName="NumberField",Ie.__docgenInfo={description:"",displayName:"NumberField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"number"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: number) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}var Ai=k("<option>");function Pi(e){return e.replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2").split(" ").map(t=>t.charAt(0).toUpperCase()+t.slice(1).toLowerCase()).join(" ")}const Ne=e=>h(Kt,{get label(){return e.field.label},get value(){return e.value??""},onChange:t=>e.onChange(t.currentTarget.value),get disabled(){return e.disabled},get helperText(){return e.field.meta.description},get children(){return h(pe,{get each(){return e.field.enumValues??[]},children:t=>(()=>{var n=Ai();return n.value=t,p(n,()=>Pi(t)),n})()})}});try{Ne.displayName="SelectField",Ne.__docgenInfo={description:"",displayName:"SelectField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"string"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: string) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}var Fi=k('<span class="ml-1 text-gray-400">(<!>)'),ji=k("<span class=text-gray-400>"),Di=k('<div><label class=block><div class="flex items-center justify-between"><span></span><span class="font-medium text-gray-900 text-sm"></span></div><div class="mt-2 flex items-center gap-3"><span class="text-gray-400 text-xs"></span><input type=range class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-purple-600 disabled:cursor-not-allowed disabled:opacity-50"><span class="text-gray-400 text-xs">'),Vi=k("<p>");const Ee=e=>{const t=()=>e.field.min??0,n=()=>e.field.max??100,r=()=>e.field.meta,o=()=>r().step??1,a=()=>r().unit;return(()=>{var i=Di(),s=i.firstChild,u=s.firstChild,l=u.firstChild,d=l.nextSibling,m=u.nextSibling,g=m.firstChild,_=g.nextSibling,C=_.nextSibling;return p(l,()=>e.field.label,null),p(l,h(Be,{get when(){return a()},get children(){var v=Fi(),O=v.firstChild,R=O.nextSibling;return R.nextSibling,p(v,a,R),v}}),null),p(d,()=>e.value??t(),null),p(d,h(Be,{get when(){return a()},get children(){var v=ji();return p(v,a),v}}),null),p(g,t),_.$$input=v=>{const O=parseFloat(v.currentTarget.value);isNaN(O)||e.onChange(O)},p(C,n),p(i,(()=>{var v=Fe(()=>!!e.field.meta.description);return()=>v()&&(()=>{var O=Vi();return p(O,()=>e.field.meta.description),F(()=>K(O,`mt-1 ${se.helper}`)),O})()})(),null),F(v=>{var O=se.label,R=t(),le=n(),E=o(),N=e.disabled;return O!==v.e&&K(l,v.e=O),R!==v.t&&$e(_,"min",v.t=R),le!==v.a&&$e(_,"max",v.a=le),E!==v.o&&$e(_,"step",v.o=E),N!==v.i&&(_.disabled=v.i=N),v},{e:void 0,t:void 0,a:void 0,o:void 0,i:void 0}),F(()=>_.value=e.value??t()),i})()};gt(["input"]);try{Ee.displayName="SliderField",Ee.__docgenInfo={description:"",displayName:"SliderField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"number"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: number) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}const Ae=e=>h(je,{type:"text",get label(){return e.field.label},get value(){return e.value??""},onInput:t=>e.onChange(t.currentTarget.value),get placeholder(){return e.field.meta.placeholder},get disabled(){return e.disabled},get helperText(){return e.field.meta.description}});try{Ae.displayName="TextField",Ae.__docgenInfo={description:"",displayName:"TextField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"string"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: string) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}const Pe=e=>h(Yt,{get label(){return e.field.label},rows:4,get value(){return e.value??""},onInput:t=>e.onChange(t.currentTarget.value),get placeholder(){return e.field.meta.placeholder},get disabled(){return e.disabled},get helperText(){return e.field.meta.description}});try{Pe.displayName="TextareaField",Pe.__docgenInfo={description:"",displayName:"TextareaField",props:{field:{defaultValue:null,description:"",name:"field",required:!0,type:{name:"IntrospectedField"}},value:{defaultValue:null,description:"",name:"value",required:!0,type:{name:"string"}},onChange:{defaultValue:null,description:"",name:"onChange",required:!0,type:{name:"(value: string) => void"}},disabled:{defaultValue:null,description:"",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}function qe(e){const t=e;return t._zod?.def??t._def??{}}function qt(e){const t=qe(e);return t.type??t.typeName??"unknown"}function Ri(e){let t=e,n=!1,r;for(;;){const o=qt(t),a=qe(t);if(o==="default"){const i=a.defaultValue;if(r=typeof i=="function"?i():i,t=a.innerType,!t)break;continue}if(o==="optional"){if(n=!0,t=a.innerType,!t)break;continue}if(o==="nullable"){if(n=!0,t=a.innerType,!t)break;continue}break}return{inner:t,optional:n,defaultValue:r}}function Mi(e){const t=qt(e),n=qe(e);if(t==="string")return{type:"string"};if(t==="number"||t==="int"||t==="float"){let r,o;const a=n.checks;if(a)for(const i of a){const s=i?._zod?.def;if(s)s.check==="greater_than"||s.check==="min"?r=s.value:(s.check==="less_than"||s.check==="max")&&(o=s.value);else{const u=i;u.kind==="min"||u.kind==="minimum"?r=u.value:(u.kind==="max"||u.kind==="maximum")&&(o=u.value)}}return{type:"number",min:r,max:o}}if(t==="boolean")return{type:"boolean"};if(t==="enum"){const r=n.entries,o=n.values;let a=[];return r?a=Object.values(r):o&&(a=o instanceof Set?Array.from(o):o),{type:"enum",enumValues:a}}return{type:t||"unknown"}}function Ui(e){return e.replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2").split(" ").map(r=>r.charAt(0).toUpperCase()+r.slice(1).toLowerCase()).join(" ")}function Ji(e,t){if(t.inputType)return t.inputType;switch(e.type){case"string":return"text";case"number":return e.min!==void 0&&e.max!==void 0?"slider":"number";case"boolean":return"checkbox";case"enum":return"select";default:return"text"}}function Li(e,t,n){const{inner:r,optional:o,defaultValue:a}=Ri(t),i=Mi(r),s=Ji(i,n);return{name:e,label:n.label||Ui(e),inputType:s,type:i.type,defaultValue:a,optional:o,enumValues:i.enumValues,min:i.min,max:i.max,meta:n,schema:r}}function qi(e,t){const n=e.shape,r=[],o={},a=[];for(const[i,s]of Object.entries(n)){const u=t?.[i]??{},l=Li(i,s,u);u.hidden||(r.push(l),u.group?(o[u.group]||(o[u.group]=[]),o[u.group].push(l)):a.push(l))}return{fields:r,groups:o,ungrouped:a}}var Bi=k("<div>Unsupported field type: "),Wi=k("<div>"),Gi=k('<div class=space-y-4><h3 class="border-gray-200 border-b pb-2 font-medium text-gray-900 text-sm"></h3><div class=space-y-4>');const ht=e=>h(Gt,{get fallback(){return(()=>{var t=Bi();return t.firstChild,p(t,()=>e.field.type,null),t})()},get children(){return[h(M,{get when(){return e.field.inputType==="text"},get children(){return h(Ae,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="number"},get children(){return h(Ie,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="color"},get children(){return h(Oe,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="checkbox"},get children(){return h(Te,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="select"},get children(){return h(Ne,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="slider"},get children(){return h(Ee,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}}),h(M,{get when(){return e.field.inputType==="textarea"},get children(){return h(Pe,{get field(){return e.field},get value(){return e.value},get onChange(){return e.onChange},get disabled(){return e.disabled}})}})]}});function j(e){const t=()=>qi(e.schema,e.meta);return(()=>{var n=Wi();return p(n,h(pe,{get each(){return Object.entries(t().groups)},children:([r,o])=>(()=>{var a=Gi(),i=a.firstChild,s=i.nextSibling;return p(i,r),p(s,h(pe,{each:o,children:u=>h(ht,{field:u,get value(){return e.values[u.name]},onChange:l=>e.onChange(u.name,l),get disabled(){return e.disabled}})})),a})()}),null),p(n,h(pe,{get each(){return t().ungrouped},children:r=>h(ht,{field:r,get value(){return e.values[r.name]},onChange:o=>e.onChange(r.name,o),get disabled(){return e.disabled}})}),null),F(()=>K(n,e.class??"space-y-4")),n})()}try{j.displayName="SchemaForm",j.__docgenInfo={description:"SchemaForm component - renders a complete form based on a Zod schema.",displayName:"SchemaForm",props:{schema:{defaultValue:null,description:"The Zod schema defining the form structure",name:"schema",required:!0,type:{name:"ZodObject<T, $strip>"}},meta:{defaultValue:null,description:"Optional metadata for customizing field rendering",name:"meta",required:!1,type:{name:"FormMeta<T> | undefined"}},values:{defaultValue:null,description:"Current form values",name:"values",required:!0,type:{name:'Record<keyof T & string, unknown> | Record<keyof T & string, output<T[keyof T]>> | Record<string, never> | { [K in keyof ({ -readonly [k in keyof T as T[k] extends OptionalOutSchema ? never : k]: T[k]["_zod"]["output"]; } & { -readonly [k in keyof T as T[k] extends OptionalOutSchema ? k : never]?: T[k]["_zod"]["outp...'}},onChange:{defaultValue:null,description:"Callback when any field value changes",name:"onChange",required:!0,type:{name:"<K extends keyof $InferObjectOutput<T, {}>>(field: K, value: $InferObjectOutput<T, {}>[K]) => void"}},class:{defaultValue:null,description:"Optional class name for the form container",name:"class",required:!1,type:{name:"string | undefined"}},disabled:{defaultValue:null,description:"Whether the form is disabled",name:"disabled",required:!1,type:{name:"boolean | undefined"}}}}}catch{}const Ki=D({label:$().default("TIMER"),fontSize:A().min(24).max(120).default(48),textColor:$().default("#ffffff"),backgroundColor:$().default("#3b82f6"),countdownMinutes:A().min(1).max(120).default(5),autoStart:x().default(!1)}),Yi={label:{label:"Timer Label",placeholder:"Enter label text"},fontSize:{label:"Font Size",unit:"px"},textColor:{label:"Text Color",inputType:"color"},backgroundColor:{label:"Background Color",inputType:"color"},countdownMinutes:{label:"Countdown Duration",unit:"minutes"},autoStart:{label:"Auto Start on Load",description:"Automatically start the timer when the widget loads in OBS"}},Xi=D({fontSize:U(["small","medium","large"]).default("medium"),maxMessages:A().min(5).max(100).default(25),showTimestamps:x().default(!1),showBadges:x().default(!0),showPlatform:x().default(!0),showEmotes:x().default(!0)}),Hi={fontSize:{label:"Font Size"},maxMessages:{label:"Max Messages",description:"Maximum number of messages to display at once"},showTimestamps:{label:"Show Timestamps"},showBadges:{label:"Show User Badges",description:"Display subscriber, moderator, and VIP badges"},showPlatform:{label:"Show Platform Icons",description:"Display Twitch/YouTube icons next to messages"},showEmotes:{label:"Show Emotes",description:"Render emotes as images"}},Qi=D({animationType:U(["slide","fade","bounce"]).default("fade"),alertPosition:U(["top","center","bottom"]).default("center"),displayDuration:A().min(1).max(30).default(5),fontSize:U(["small","medium","large"]).default("medium"),showAmount:x().default(!0),showMessage:x().default(!0),soundEnabled:x().default(!0),soundVolume:A().min(0).max(100).default(80)}),es={animationType:{label:"Animation Type",group:"Animation"},alertPosition:{label:"Alert Position",group:"Animation"},displayDuration:{label:"Display Duration",unit:"seconds",group:"Animation"},fontSize:{label:"Font Size",group:"Appearance"},showAmount:{label:"Show Amount",description:"Display donation/raid amounts",group:"Content"},showMessage:{label:"Show Message",description:"Display user messages with alerts",group:"Content"},soundEnabled:{label:"Enable Sound",group:"Audio"},soundVolume:{label:"Sound Volume",unit:"%",group:"Audio"}};D({title:$().default("Donation Goal"),targetAmount:A().min(1).default(100),currentAmount:A().min(0).default(0),barColor:$().default("#10b981"),backgroundColor:$().default("#1f2937"),textColor:$().default("#ffffff"),showPercentage:x().default(!0),showAmount:x().default(!0)});D({label:$().default("Followers"),fontSize:A().min(16).max(96).default(32),textColor:$().default("#ffffff"),backgroundColor:$().default("transparent"),showLabel:x().default(!0),animateChanges:x().default(!0)});D({title:$().default("Vote Now!"),barColor:$().default("#8b5cf6"),backgroundColor:$().default("#1f2937"),textColor:$().default("#ffffff"),showPercentages:x().default(!0),showVoteCount:x().default(!0),allowMultipleVotes:x().default(!1)});const ts=D({name:$().default(""),description:$().default(""),count:A().default(0),opacity:A().min(0).max(100).default(100),color:$().default("#3b82f6"),enabled:x().default(!0),size:U(["small","medium","large"]).default("medium")}),ns={name:{label:"Name",placeholder:"Enter your name"},description:{label:"Description",inputType:"textarea",placeholder:"Enter description..."},count:{label:"Count",unit:"items"},opacity:{label:"Opacity",unit:"%"},color:{label:"Favorite Color",inputType:"color"},enabled:{label:"Enabled",description:"Toggle this feature on/off"},size:{label:"Size"}};var rs=k('<div class="mx-auto max-w-xl rounded-lg bg-white p-6 shadow-sm">'),os=k('<div class=space-y-6><div><h2 class="mb-4 font-semibold text-gray-900 text-lg">Basic Form</h2></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">'),as=k('<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Timer Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Schema and metadata are separate (schema could be auto-generated)</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">'),is=k('<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Chat Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Form with select dropdowns and toggles</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">'),ss=k('<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Alertbox Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Fields organized into groups (Animation, Appearance, Content, Audio)</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">'),us=k('<div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Disabled Form</h2><p class="mb-4 text-gray-500 text-sm">All fields are disabled/read-only'),cs=k('<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">All Field Types</h2><p class="mb-4 text-gray-500 text-sm">Demonstrating every supported input type</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">'),ls=k('<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">No Metadata (Auto-Inference)</h2><p class="mb-4 text-gray-500 text-sm">Labels and input types are auto-inferred from field names and Zod types</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">');const hs={title:"Forms/SchemaForm",component:j,parameters:{layout:"padded",docs:{description:{component:`SchemaForm automatically generates form UI from Zod schemas.
+Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.`);
+		}
+	for (const a of e.seen.entries()) {
+		const i = a[1];
+		if (t === a[0]) {
+			o(a);
+			continue;
+		}
+		if (e.external) {
+			const u = e.external.registry.get(a[0])?.id;
+			if (t !== a[0] && u) {
+				o(a);
+				continue;
+			}
+		}
+		if (e.metadataRegistry.get(a[0])?.id) {
+			o(a);
+			continue;
+		}
+		if (i.cycle) {
+			o(a);
+			continue;
+		}
+		if (i.count > 1 && e.reused === "ref") {
+			o(a);
+			continue;
+		}
+	}
+}
+function Rt(e, t) {
+	const n = e.seen.get(t);
+	if (!n) throw new Error("Unprocessed schema. This is a bug in Zod.");
+	const r = (i) => {
+		const s = e.seen.get(i),
+			u = s.def ?? s.schema,
+			l = { ...u };
+		if (s.ref === null) return;
+		const d = s.ref;
+		if (((s.ref = null), d)) {
+			r(d);
+			const m = e.seen.get(d).schema;
+			m.$ref &&
+			(e.target === "draft-07" ||
+				e.target === "draft-04" ||
+				e.target === "openapi-3.0")
+				? ((u.allOf = u.allOf ?? []), u.allOf.push(m))
+				: (Object.assign(u, m), Object.assign(u, l));
+		}
+		s.isParent ||
+			e.override({ zodSchema: i, jsonSchema: u, path: s.path ?? [] });
+	};
+	for (const i of [...e.seen.entries()].reverse()) r(i[0]);
+	const o = {};
+	if (
+		(e.target === "draft-2020-12"
+			? (o.$schema = "https://json-schema.org/draft/2020-12/schema")
+			: e.target === "draft-07"
+				? (o.$schema = "http://json-schema.org/draft-07/schema#")
+				: e.target === "draft-04"
+					? (o.$schema = "http://json-schema.org/draft-04/schema#")
+					: e.target,
+		e.external?.uri)
+	) {
+		const i = e.external.registry.get(t)?.id;
+		if (!i) throw new Error("Schema is missing an `id` property");
+		o.$id = e.external.uri(i);
+	}
+	Object.assign(o, n.def ?? n.schema);
+	const a = e.external?.defs ?? {};
+	for (const i of e.seen.entries()) {
+		const s = i[1];
+		s.def && s.defId && (a[s.defId] = s.def);
+	}
+	e.external ||
+		(Object.keys(a).length > 0 &&
+			(e.target === "draft-2020-12" ? (o.$defs = a) : (o.definitions = a)));
+	try {
+		const i = JSON.parse(JSON.stringify(o));
+		return (
+			Object.defineProperty(i, "~standard", {
+				value: {
+					...t["~standard"],
+					jsonSchema: { input: ve(t, "input"), output: ve(t, "output") },
+				},
+				enumerable: !1,
+				writable: !1,
+			}),
+			i
+		);
+	} catch {
+		throw new Error("Error converting schema to JSON.");
+	}
+}
+function T(e, t) {
+	const n = t ?? { seen: new Set() };
+	if (n.seen.has(e)) return !1;
+	n.seen.add(e);
+	const r = e._zod.def;
+	if (r.type === "transform") return !0;
+	if (r.type === "array") return T(r.element, n);
+	if (r.type === "set") return T(r.valueType, n);
+	if (r.type === "lazy") return T(r.getter(), n);
+	if (
+		r.type === "promise" ||
+		r.type === "optional" ||
+		r.type === "nonoptional" ||
+		r.type === "nullable" ||
+		r.type === "readonly" ||
+		r.type === "default" ||
+		r.type === "prefault"
+	)
+		return T(r.innerType, n);
+	if (r.type === "intersection") return T(r.left, n) || T(r.right, n);
+	if (r.type === "record" || r.type === "map")
+		return T(r.keyType, n) || T(r.valueType, n);
+	if (r.type === "pipe") return T(r.in, n) || T(r.out, n);
+	if (r.type === "object") {
+		for (const o in r.shape) if (T(r.shape[o], n)) return !0;
+		return !1;
+	}
+	if (r.type === "union") {
+		for (const o of r.options) if (T(o, n)) return !0;
+		return !1;
+	}
+	if (r.type === "tuple") {
+		for (const o of r.items) if (T(o, n)) return !0;
+		return !!(r.rest && T(r.rest, n));
+	}
+	return !1;
+}
+const Ko =
+		(e, t = {}) =>
+		(n) => {
+			const r = Dt({ ...n, processors: t });
+			return Z(e, r), Vt(r, e), Rt(r, e);
+		},
+	ve = (e, t) => (n) => {
+		const { libraryOptions: r, target: o } = n ?? {},
+			a = Dt({ ...(r ?? {}), target: o, io: t, processors: {} });
+		return Z(e, a), Vt(a, e), Rt(a, e);
+	},
+	Yo = {
+		guid: "uuid",
+		url: "uri",
+		datetime: "date-time",
+		json_string: "json-string",
+		regex: "",
+	},
+	Xo = (e, t, n, r) => {
+		const o = n;
+		o.type = "string";
+		const {
+			minimum: a,
+			maximum: i,
+			format: s,
+			patterns: u,
+			contentEncoding: l,
+		} = e._zod.bag;
+		if (
+			(typeof a == "number" && (o.minLength = a),
+			typeof i == "number" && (o.maxLength = i),
+			s && ((o.format = Yo[s] ?? s), o.format === "" && delete o.format),
+			l && (o.contentEncoding = l),
+			u && u.size > 0)
+		) {
+			const d = [...u];
+			d.length === 1
+				? (o.pattern = d[0].source)
+				: d.length > 1 &&
+					(o.allOf = [
+						...d.map((m) => ({
+							...(t.target === "draft-07" ||
+							t.target === "draft-04" ||
+							t.target === "openapi-3.0"
+								? { type: "string" }
+								: {}),
+							pattern: m.source,
+						})),
+					]);
+		}
+	},
+	Ho = (e, t, n, r) => {
+		const o = n,
+			{
+				minimum: a,
+				maximum: i,
+				format: s,
+				multipleOf: u,
+				exclusiveMaximum: l,
+				exclusiveMinimum: d,
+			} = e._zod.bag;
+		typeof s == "string" && s.includes("int")
+			? (o.type = "integer")
+			: (o.type = "number"),
+			typeof d == "number" &&
+				(t.target === "draft-04" || t.target === "openapi-3.0"
+					? ((o.minimum = d), (o.exclusiveMinimum = !0))
+					: (o.exclusiveMinimum = d)),
+			typeof a == "number" &&
+				((o.minimum = a),
+				typeof d == "number" &&
+					t.target !== "draft-04" &&
+					(d >= a ? delete o.minimum : delete o.exclusiveMinimum)),
+			typeof l == "number" &&
+				(t.target === "draft-04" || t.target === "openapi-3.0"
+					? ((o.maximum = l), (o.exclusiveMaximum = !0))
+					: (o.exclusiveMaximum = l)),
+			typeof i == "number" &&
+				((o.maximum = i),
+				typeof l == "number" &&
+					t.target !== "draft-04" &&
+					(l <= i ? delete o.maximum : delete o.exclusiveMaximum)),
+			typeof u == "number" && (o.multipleOf = u);
+	},
+	Qo = (e, t, n, r) => {
+		n.type = "boolean";
+	},
+	ea = (e, t, n, r) => {
+		n.not = {};
+	},
+	ta = (e, t, n, r) => {},
+	na = (e, t, n, r) => {
+		const o = e._zod.def,
+			a = bt(o.entries);
+		a.every((i) => typeof i == "number") && (n.type = "number"),
+			a.every((i) => typeof i == "string") && (n.type = "string"),
+			(n.enum = a);
+	},
+	ra = (e, t, n, r) => {
+		if (t.unrepresentable === "throw")
+			throw new Error("Custom types cannot be represented in JSON Schema");
+	},
+	oa = (e, t, n, r) => {
+		if (t.unrepresentable === "throw")
+			throw new Error("Transforms cannot be represented in JSON Schema");
+	},
+	aa = (e, t, n, r) => {
+		const o = n,
+			a = e._zod.def,
+			{ minimum: i, maximum: s } = e._zod.bag;
+		typeof i == "number" && (o.minItems = i),
+			typeof s == "number" && (o.maxItems = s),
+			(o.type = "array"),
+			(o.items = Z(a.element, t, { ...r, path: [...r.path, "items"] }));
+	},
+	ia = (e, t, n, r) => {
+		const o = n,
+			a = e._zod.def;
+		(o.type = "object"), (o.properties = {});
+		const i = a.shape;
+		for (const l in i)
+			o.properties[l] = Z(i[l], t, {
+				...r,
+				path: [...r.path, "properties", l],
+			});
+		const s = new Set(Object.keys(i)),
+			u = new Set(
+				[...s].filter((l) => {
+					const d = a.shape[l]._zod;
+					return t.io === "input" ? d.optin === void 0 : d.optout === void 0;
+				}),
+			);
+		u.size > 0 && (o.required = Array.from(u)),
+			a.catchall?._zod.def.type === "never"
+				? (o.additionalProperties = !1)
+				: a.catchall
+					? a.catchall &&
+						(o.additionalProperties = Z(a.catchall, t, {
+							...r,
+							path: [...r.path, "additionalProperties"],
+						}))
+					: t.io === "output" && (o.additionalProperties = !1);
+	},
+	sa = (e, t, n, r) => {
+		const o = e._zod.def,
+			a = o.inclusive === !1,
+			i = o.options.map((s, u) =>
+				Z(s, t, { ...r, path: [...r.path, a ? "oneOf" : "anyOf", u] }),
+			);
+		a ? (n.oneOf = i) : (n.anyOf = i);
+	},
+	ua = (e, t, n, r) => {
+		const o = e._zod.def,
+			a = Z(o.left, t, { ...r, path: [...r.path, "allOf", 0] }),
+			i = Z(o.right, t, { ...r, path: [...r.path, "allOf", 1] }),
+			s = (l) => "allOf" in l && Object.keys(l).length === 1,
+			u = [...(s(a) ? a.allOf : [a]), ...(s(i) ? i.allOf : [i])];
+		n.allOf = u;
+	},
+	ca = (e, t, n, r) => {
+		const o = e._zod.def,
+			a = Z(o.innerType, t, r),
+			i = t.seen.get(e);
+		t.target === "openapi-3.0"
+			? ((i.ref = o.innerType), (n.nullable = !0))
+			: (n.anyOf = [a, { type: "null" }]);
+	},
+	la = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		a.ref = o.innerType;
+	},
+	da = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		(a.ref = o.innerType),
+			(n.default = JSON.parse(JSON.stringify(o.defaultValue)));
+	},
+	fa = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		(a.ref = o.innerType),
+			t.io === "input" &&
+				(n._prefault = JSON.parse(JSON.stringify(o.defaultValue)));
+	},
+	ma = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		a.ref = o.innerType;
+		let i;
+		try {
+			i = o.catchValue(void 0);
+		} catch {
+			throw new Error("Dynamic catch values are not supported in JSON Schema");
+		}
+		n.default = i;
+	},
+	pa = (e, t, n, r) => {
+		const o = e._zod.def,
+			a =
+				t.io === "input"
+					? o.in._zod.def.type === "transform"
+						? o.out
+						: o.in
+					: o.out;
+		Z(a, t, r);
+		const i = t.seen.get(e);
+		i.ref = a;
+	},
+	ha = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		(a.ref = o.innerType), (n.readOnly = !0);
+	},
+	ga = (e, t, n, r) => {
+		const o = e._zod.def;
+		Z(o.innerType, t, r);
+		const a = t.seen.get(e);
+		a.ref = o.innerType;
+	},
+	_a = c("ZodISODateTime", (e, t) => {
+		yr.init(e, t), w.init(e, t);
+	});
+function va(e) {
+	return So(_a, e);
+}
+const ba = c("ZodISODate", (e, t) => {
+	wr.init(e, t), w.init(e, t);
+});
+function ya(e) {
+	return xo(ba, e);
+}
+const wa = c("ZodISOTime", (e, t) => {
+	zr.init(e, t), w.init(e, t);
+});
+function za(e) {
+	return Zo(wa, e);
+}
+const $a = c("ZodISODuration", (e, t) => {
+	$r.init(e, t), w.init(e, t);
+});
+function ka(e) {
+	return Co($a, e);
+}
+const Sa = (e, t) => {
+		kt.init(e, t),
+			(e.name = "ZodError"),
+			Object.defineProperties(e, {
+				format: { value: (n) => fn(e, n) },
+				flatten: { value: (n) => dn(e, n) },
+				addIssue: {
+					value: (n) => {
+						e.issues.push(n), (e.message = JSON.stringify(e.issues, xe, 2));
+					},
+				},
+				addIssues: {
+					value: (n) => {
+						e.issues.push(...n), (e.message = JSON.stringify(e.issues, xe, 2));
+					},
+				},
+				isEmpty: {
+					get() {
+						return e.issues.length === 0;
+					},
+				},
+			});
+	},
+	P = c("ZodError", Sa, { Parent: Error }),
+	xa = Ue(P),
+	Za = Je(P),
+	Ca = ye(P),
+	Ta = we(P),
+	Oa = hn(P),
+	Ia = gn(P),
+	Na = _n(P),
+	Ea = vn(P),
+	Aa = bn(P),
+	Pa = yn(P),
+	Fa = wn(P),
+	ja = zn(P),
+	S = c(
+		"ZodType",
+		(e, t) => (
+			z.init(e, t),
+			Object.assign(e["~standard"], {
+				jsonSchema: { input: ve(e, "input"), output: ve(e, "output") },
+			}),
+			(e.toJSONSchema = Ko(e, {})),
+			(e.def = t),
+			(e.type = t.type),
+			Object.defineProperty(e, "_def", { value: t }),
+			(e.check = (...n) =>
+				e.clone(
+					B(t, {
+						checks: [
+							...(t.checks ?? []),
+							...n.map((r) =>
+								typeof r == "function"
+									? {
+											_zod: {
+												check: r,
+												def: { check: "custom" },
+												onattach: [],
+											},
+										}
+									: r,
+							),
+						],
+					}),
+				)),
+			(e.clone = (n, r) => V(e, n, r)),
+			(e.brand = () => e),
+			(e.register = (n, r) => (n.add(e, r), e)),
+			(e.parse = (n, r) => xa(e, n, r, { callee: e.parse })),
+			(e.safeParse = (n, r) => Ca(e, n, r)),
+			(e.parseAsync = async (n, r) => Za(e, n, r, { callee: e.parseAsync })),
+			(e.safeParseAsync = async (n, r) => Ta(e, n, r)),
+			(e.spa = e.safeParseAsync),
+			(e.encode = (n, r) => Oa(e, n, r)),
+			(e.decode = (n, r) => Ia(e, n, r)),
+			(e.encodeAsync = async (n, r) => Na(e, n, r)),
+			(e.decodeAsync = async (n, r) => Ea(e, n, r)),
+			(e.safeEncode = (n, r) => Aa(e, n, r)),
+			(e.safeDecode = (n, r) => Pa(e, n, r)),
+			(e.safeEncodeAsync = async (n, r) => Fa(e, n, r)),
+			(e.safeDecodeAsync = async (n, r) => ja(e, n, r)),
+			(e.refine = (n, r) => e.check(Ci(n, r))),
+			(e.superRefine = (n) => e.check(Ti(n))),
+			(e.overwrite = (n) => e.check(X(n))),
+			(e.optional = () => ft(e)),
+			(e.nullable = () => mt(e)),
+			(e.nullish = () => ft(mt(e))),
+			(e.nonoptional = (n) => wi(e, n)),
+			(e.array = () => ui(e)),
+			(e.or = (n) => di([e, n])),
+			(e.and = (n) => mi(e, n)),
+			(e.transform = (n) => pt(e, hi(n))),
+			(e.default = (n) => vi(e, n)),
+			(e.prefault = (n) => yi(e, n)),
+			(e.catch = (n) => $i(e, n)),
+			(e.pipe = (n) => pt(e, n)),
+			(e.readonly = () => xi(e)),
+			(e.describe = (n) => {
+				const r = e.clone();
+				return ie.add(r, { description: n }), r;
+			}),
+			Object.defineProperty(e, "description", {
+				get() {
+					return ie.get(e)?.description;
+				},
+				configurable: !0,
+			}),
+			(e.meta = (...n) => {
+				if (n.length === 0) return ie.get(e);
+				const r = e.clone();
+				return ie.add(r, n[0]), r;
+			}),
+			(e.isOptional = () => e.safeParse(void 0).success),
+			(e.isNullable = () => e.safeParse(null).success),
+			e
+		),
+	),
+	Mt = c("_ZodString", (e, t) => {
+		Le.init(e, t),
+			S.init(e, t),
+			(e._zod.processJSONSchema = (r, o, a) => Xo(e, r, o));
+		const n = e._zod.bag;
+		(e.format = n.format ?? null),
+			(e.minLength = n.minimum ?? null),
+			(e.maxLength = n.maximum ?? null),
+			(e.regex = (...r) => e.check(Ao(...r))),
+			(e.includes = (...r) => e.check(jo(...r))),
+			(e.startsWith = (...r) => e.check(Do(...r))),
+			(e.endsWith = (...r) => e.check(Vo(...r))),
+			(e.min = (...r) => e.check(_e(...r))),
+			(e.max = (...r) => e.check(Ft(...r))),
+			(e.length = (...r) => e.check(jt(...r))),
+			(e.nonempty = (...r) => e.check(_e(1, ...r))),
+			(e.lowercase = (r) => e.check(Po(r))),
+			(e.uppercase = (r) => e.check(Fo(r))),
+			(e.trim = () => e.check(Mo())),
+			(e.normalize = (...r) => e.check(Ro(...r))),
+			(e.toLowerCase = () => e.check(Uo())),
+			(e.toUpperCase = () => e.check(Jo())),
+			(e.slugify = () => e.check(Lo()));
+	}),
+	Da = c("ZodString", (e, t) => {
+		Le.init(e, t),
+			Mt.init(e, t),
+			(e.email = (n) => e.check(ro(Va, n))),
+			(e.url = (n) => e.check(uo(Ra, n))),
+			(e.jwt = (n) => e.check(ko(ti, n))),
+			(e.emoji = (n) => e.check(co(Ma, n))),
+			(e.guid = (n) => e.check(at(ct, n))),
+			(e.uuid = (n) => e.check(oo(me, n))),
+			(e.uuidv4 = (n) => e.check(ao(me, n))),
+			(e.uuidv6 = (n) => e.check(io(me, n))),
+			(e.uuidv7 = (n) => e.check(so(me, n))),
+			(e.nanoid = (n) => e.check(lo(Ua, n))),
+			(e.guid = (n) => e.check(at(ct, n))),
+			(e.cuid = (n) => e.check(fo(Ja, n))),
+			(e.cuid2 = (n) => e.check(mo(La, n))),
+			(e.ulid = (n) => e.check(po(qa, n))),
+			(e.base64 = (n) => e.check(wo(Ha, n))),
+			(e.base64url = (n) => e.check(zo(Qa, n))),
+			(e.xid = (n) => e.check(ho(Ba, n))),
+			(e.ksuid = (n) => e.check(go(Wa, n))),
+			(e.ipv4 = (n) => e.check(_o(Ga, n))),
+			(e.ipv6 = (n) => e.check(vo(Ka, n))),
+			(e.cidrv4 = (n) => e.check(bo(Ya, n))),
+			(e.cidrv6 = (n) => e.check(yo(Xa, n))),
+			(e.e164 = (n) => e.check($o(ei, n))),
+			(e.datetime = (n) => e.check(va(n))),
+			(e.date = (n) => e.check(ya(n))),
+			(e.time = (n) => e.check(za(n))),
+			(e.duration = (n) => e.check(ka(n)));
+	});
+function $(e) {
+	return no(Da, e);
+}
+const w = c("ZodStringFormat", (e, t) => {
+		y.init(e, t), Mt.init(e, t);
+	}),
+	Va = c("ZodEmail", (e, t) => {
+		dr.init(e, t), w.init(e, t);
+	}),
+	ct = c("ZodGUID", (e, t) => {
+		cr.init(e, t), w.init(e, t);
+	}),
+	me = c("ZodUUID", (e, t) => {
+		lr.init(e, t), w.init(e, t);
+	}),
+	Ra = c("ZodURL", (e, t) => {
+		fr.init(e, t), w.init(e, t);
+	}),
+	Ma = c("ZodEmoji", (e, t) => {
+		mr.init(e, t), w.init(e, t);
+	}),
+	Ua = c("ZodNanoID", (e, t) => {
+		pr.init(e, t), w.init(e, t);
+	}),
+	Ja = c("ZodCUID", (e, t) => {
+		hr.init(e, t), w.init(e, t);
+	}),
+	La = c("ZodCUID2", (e, t) => {
+		gr.init(e, t), w.init(e, t);
+	}),
+	qa = c("ZodULID", (e, t) => {
+		_r.init(e, t), w.init(e, t);
+	}),
+	Ba = c("ZodXID", (e, t) => {
+		vr.init(e, t), w.init(e, t);
+	}),
+	Wa = c("ZodKSUID", (e, t) => {
+		br.init(e, t), w.init(e, t);
+	}),
+	Ga = c("ZodIPv4", (e, t) => {
+		kr.init(e, t), w.init(e, t);
+	}),
+	Ka = c("ZodIPv6", (e, t) => {
+		Sr.init(e, t), w.init(e, t);
+	}),
+	Ya = c("ZodCIDRv4", (e, t) => {
+		xr.init(e, t), w.init(e, t);
+	}),
+	Xa = c("ZodCIDRv6", (e, t) => {
+		Zr.init(e, t), w.init(e, t);
+	}),
+	Ha = c("ZodBase64", (e, t) => {
+		Cr.init(e, t), w.init(e, t);
+	}),
+	Qa = c("ZodBase64URL", (e, t) => {
+		Or.init(e, t), w.init(e, t);
+	}),
+	ei = c("ZodE164", (e, t) => {
+		Ir.init(e, t), w.init(e, t);
+	}),
+	ti = c("ZodJWT", (e, t) => {
+		Er.init(e, t), w.init(e, t);
+	}),
+	Ut = c("ZodNumber", (e, t) => {
+		Et.init(e, t),
+			S.init(e, t),
+			(e._zod.processJSONSchema = (r, o, a) => Ho(e, r, o)),
+			(e.gt = (r, o) => e.check(st(r, o))),
+			(e.gte = (r, o) => e.check(Se(r, o))),
+			(e.min = (r, o) => e.check(Se(r, o))),
+			(e.lt = (r, o) => e.check(it(r, o))),
+			(e.lte = (r, o) => e.check(ke(r, o))),
+			(e.max = (r, o) => e.check(ke(r, o))),
+			(e.int = (r) => e.check(lt(r))),
+			(e.safe = (r) => e.check(lt(r))),
+			(e.positive = (r) => e.check(st(0, r))),
+			(e.nonnegative = (r) => e.check(Se(0, r))),
+			(e.negative = (r) => e.check(it(0, r))),
+			(e.nonpositive = (r) => e.check(ke(0, r))),
+			(e.multipleOf = (r, o) => e.check(ut(r, o))),
+			(e.step = (r, o) => e.check(ut(r, o))),
+			(e.finite = () => e);
+		const n = e._zod.bag;
+		(e.minValue =
+			Math.max(
+				n.minimum ?? Number.NEGATIVE_INFINITY,
+				n.exclusiveMinimum ?? Number.NEGATIVE_INFINITY,
+			) ?? null),
+			(e.maxValue =
+				Math.min(
+					n.maximum ?? Number.POSITIVE_INFINITY,
+					n.exclusiveMaximum ?? Number.POSITIVE_INFINITY,
+				) ?? null),
+			(e.isInt =
+				(n.format ?? "").includes("int") ||
+				Number.isSafeInteger(n.multipleOf ?? 0.5)),
+			(e.isFinite = !0),
+			(e.format = n.format ?? null);
+	});
+function A(e) {
+	return To(Ut, e);
+}
+const ni = c("ZodNumberFormat", (e, t) => {
+	Ar.init(e, t), Ut.init(e, t);
+});
+function lt(e) {
+	return Oo(ni, e);
+}
+const ri = c("ZodBoolean", (e, t) => {
+	Pr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => Qo(e, n, r));
+});
+function x(e) {
+	return Io(ri, e);
+}
+const oi = c("ZodUnknown", (e, t) => {
+	Fr.init(e, t), S.init(e, t), (e._zod.processJSONSchema = (n, r, o) => ta());
+});
+function dt() {
+	return No(oi);
+}
+const ai = c("ZodNever", (e, t) => {
+	jr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ea(e, n, r));
+});
+function ii(e) {
+	return Eo(ai, e);
+}
+const si = c("ZodArray", (e, t) => {
+	Dr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => aa(e, n, r, o)),
+		(e.element = t.element),
+		(e.min = (n, r) => e.check(_e(n, r))),
+		(e.nonempty = (n) => e.check(_e(1, n))),
+		(e.max = (n, r) => e.check(Ft(n, r))),
+		(e.length = (n, r) => e.check(jt(n, r))),
+		(e.unwrap = () => e.element);
+});
+function ui(e, t) {
+	return qo(si, e, t);
+}
+const ci = c("ZodObject", (e, t) => {
+	Rr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ia(e, n, r, o)),
+		b(e, "shape", () => t.shape),
+		(e.keyof = () => U(Object.keys(e._zod.def.shape))),
+		(e.catchall = (n) => e.clone({ ...e._zod.def, catchall: n })),
+		(e.passthrough = () => e.clone({ ...e._zod.def, catchall: dt() })),
+		(e.loose = () => e.clone({ ...e._zod.def, catchall: dt() })),
+		(e.strict = () => e.clone({ ...e._zod.def, catchall: ii() })),
+		(e.strip = () => e.clone({ ...e._zod.def, catchall: void 0 })),
+		(e.extend = (n) => an(e, n)),
+		(e.safeExtend = (n) => sn(e, n)),
+		(e.merge = (n) => un(e, n)),
+		(e.pick = (n) => rn(e, n)),
+		(e.omit = (n) => on(e, n)),
+		(e.partial = (...n) => cn(Jt, e, n[0])),
+		(e.required = (...n) => ln(Lt, e, n[0]));
+});
+function D(e, t) {
+	const n = { type: "object", shape: e ?? {}, ...f(t) };
+	return new ci(n);
+}
+const li = c("ZodUnion", (e, t) => {
+	Mr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => sa(e, n, r, o)),
+		(e.options = t.options);
+});
+function di(e, t) {
+	return new li({ type: "union", options: e, ...f(t) });
+}
+const fi = c("ZodIntersection", (e, t) => {
+	Ur.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ua(e, n, r, o));
+});
+function mi(e, t) {
+	return new fi({ type: "intersection", left: e, right: t });
+}
+const Ce = c("ZodEnum", (e, t) => {
+	Jr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (r, o, a) => na(e, r, o)),
+		(e.enum = t.entries),
+		(e.options = Object.values(t.entries));
+	const n = new Set(Object.keys(t.entries));
+	(e.extract = (r, o) => {
+		const a = {};
+		for (const i of r)
+			if (n.has(i)) a[i] = t.entries[i];
+			else throw new Error(`Key ${i} not found in enum`);
+		return new Ce({ ...t, checks: [], ...f(o), entries: a });
+	}),
+		(e.exclude = (r, o) => {
+			const a = { ...t.entries };
+			for (const i of r)
+				if (n.has(i)) delete a[i];
+				else throw new Error(`Key ${i} not found in enum`);
+			return new Ce({ ...t, checks: [], ...f(o), entries: a });
+		});
+});
+function U(e, t) {
+	const n = Array.isArray(e) ? Object.fromEntries(e.map((r) => [r, r])) : e;
+	return new Ce({ type: "enum", entries: n, ...f(t) });
+}
+const pi = c("ZodTransform", (e, t) => {
+	Lr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => oa(e, n)),
+		(e._zod.parse = (n, r) => {
+			if (r.direction === "backward") throw new _t(e.constructor.name);
+			n.addIssue = (a) => {
+				if (typeof a == "string") n.issues.push(ce(a, n.value, t));
+				else {
+					const i = a;
+					i.fatal && (i.continue = !1),
+						i.code ?? (i.code = "custom"),
+						i.input ?? (i.input = n.value),
+						i.inst ?? (i.inst = e),
+						n.issues.push(ce(i));
+				}
+			};
+			const o = t.transform(n.value, n);
+			return o instanceof Promise
+				? o.then((a) => ((n.value = a), n))
+				: ((n.value = o), n);
+		});
+});
+function hi(e) {
+	return new pi({ type: "transform", transform: e });
+}
+const Jt = c("ZodOptional", (e, t) => {
+	qr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ga(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType);
+});
+function ft(e) {
+	return new Jt({ type: "optional", innerType: e });
+}
+const gi = c("ZodNullable", (e, t) => {
+	Br.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ca(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType);
+});
+function mt(e) {
+	return new gi({ type: "nullable", innerType: e });
+}
+const _i = c("ZodDefault", (e, t) => {
+	Wr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => da(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType),
+		(e.removeDefault = e.unwrap);
+});
+function vi(e, t) {
+	return new _i({
+		type: "default",
+		innerType: e,
+		get defaultValue() {
+			return typeof t == "function" ? t() : wt(t);
+		},
+	});
+}
+const bi = c("ZodPrefault", (e, t) => {
+	Gr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => fa(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType);
+});
+function yi(e, t) {
+	return new bi({
+		type: "prefault",
+		innerType: e,
+		get defaultValue() {
+			return typeof t == "function" ? t() : wt(t);
+		},
+	});
+}
+const Lt = c("ZodNonOptional", (e, t) => {
+	Kr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => la(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType);
+});
+function wi(e, t) {
+	return new Lt({ type: "nonoptional", innerType: e, ...f(t) });
+}
+const zi = c("ZodCatch", (e, t) => {
+	Yr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ma(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType),
+		(e.removeCatch = e.unwrap);
+});
+function $i(e, t) {
+	return new zi({
+		type: "catch",
+		innerType: e,
+		catchValue: typeof t == "function" ? t : () => t,
+	});
+}
+const ki = c("ZodPipe", (e, t) => {
+	Xr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => pa(e, n, r, o)),
+		(e.in = t.in),
+		(e.out = t.out);
+});
+function pt(e, t) {
+	return new ki({ type: "pipe", in: e, out: t });
+}
+const Si = c("ZodReadonly", (e, t) => {
+	Hr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ha(e, n, r, o)),
+		(e.unwrap = () => e._zod.def.innerType);
+});
+function xi(e) {
+	return new Si({ type: "readonly", innerType: e });
+}
+const Zi = c("ZodCustom", (e, t) => {
+	Qr.init(e, t),
+		S.init(e, t),
+		(e._zod.processJSONSchema = (n, r, o) => ra(e, n));
+});
+function Ci(e, t = {}) {
+	return Bo(Zi, e, t);
+}
+function Ti(e) {
+	return Wo(e);
+}
+var Oi = k(
+		'<div><label class="flex cursor-pointer items-center gap-2"><input type=checkbox class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-50"><span class="font-medium text-gray-700 text-sm">',
+	),
+	Ii = k("<p>");
+const Te = (e) =>
+	(() => {
+		var t = Oi(),
+			n = t.firstChild,
+			r = n.firstChild,
+			o = r.nextSibling;
+		return (
+			r.addEventListener("change", (a) => e.onChange(a.currentTarget.checked)),
+			p(o, () => e.field.label),
+			p(
+				t,
+				(() => {
+					var a = Fe(() => !!e.field.meta.description);
+					return () =>
+						a() &&
+						(() => {
+							var i = Ii();
+							return (
+								p(i, () => e.field.meta.description),
+								F(() => K(i, `mt-1 ml-6 ${se.helper}`)),
+								i
+							);
+						})();
+				})(),
+				null,
+			),
+			F(() => (r.disabled = e.disabled)),
+			F(() => (r.checked = e.value ?? !1)),
+			t
+		);
+	})();
+try {
+	(Te.displayName = "CheckboxField"),
+		(Te.__docgenInfo = {
+			description: "",
+			displayName: "CheckboxField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "boolean" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: boolean) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+var Ni = k(
+		'<div><label class=block><span></span><div class="mt-1 flex gap-2"><input type=color class="h-10 w-20 cursor-pointer rounded border border-gray-300 disabled:cursor-not-allowed disabled:opacity-50">',
+	),
+	Ei = k("<p>");
+const Oe = (e) =>
+	(() => {
+		var t = Ni(),
+			n = t.firstChild,
+			r = n.firstChild,
+			o = r.nextSibling,
+			a = o.firstChild;
+		return (
+			p(r, () => e.field.label),
+			(a.$$input = (i) => e.onChange(i.currentTarget.value)),
+			p(
+				o,
+				h(je, {
+					type: "text",
+					get value() {
+						return e.value ?? "";
+					},
+					onInput: (i) => e.onChange(i.currentTarget.value),
+					placeholder: "#000000",
+					get disabled() {
+						return e.disabled;
+					},
+				}),
+				null,
+			),
+			p(
+				t,
+				(() => {
+					var i = Fe(() => !!e.field.meta.description);
+					return () =>
+						i() &&
+						(() => {
+							var s = Ei();
+							return (
+								p(s, () => e.field.meta.description),
+								F(() => K(s, `mt-1 ${se.helper}`)),
+								s
+							);
+						})();
+				})(),
+				null,
+			),
+			F(
+				(i) => {
+					var s = se.label,
+						u = e.disabled;
+					return (
+						s !== i.e && K(r, (i.e = s)), u !== i.t && (a.disabled = i.t = u), i
+					);
+				},
+				{ e: void 0, t: void 0 },
+			),
+			F(() => (a.value = e.value ?? "#000000")),
+			t
+		);
+	})();
+gt(["input"]);
+try {
+	(Oe.displayName = "ColorField"),
+		(Oe.__docgenInfo = {
+			description: "",
+			displayName: "ColorField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "string" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: string) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+const Ie = (e) => {
+	const t = () =>
+		e.field.meta.unit
+			? `${e.field.label} (${e.field.meta.unit})`
+			: e.field.label;
+	return h(je, {
+		type: "number",
+		get label() {
+			return t();
+		},
+		get value() {
+			return e.value ?? 0;
+		},
+		onInput: (n) => {
+			const r = Number.parseFloat(n.currentTarget.value);
+			Number.isNaN(r) || e.onChange(r);
+		},
+		get min() {
+			return e.field.min;
+		},
+		get max() {
+			return e.field.max;
+		},
+		get step() {
+			return e.field.meta.step ?? 1;
+		},
+		get disabled() {
+			return e.disabled;
+		},
+		get helperText() {
+			return e.field.meta.description;
+		},
+	});
+};
+try {
+	(Ie.displayName = "NumberField"),
+		(Ie.__docgenInfo = {
+			description: "",
+			displayName: "NumberField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "number" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: number) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+var Ai = k("<option>");
+function Pi(e) {
+	return e
+		.replace(/_/g, " ")
+		.replace(/([a-z])([A-Z])/g, "$1 $2")
+		.split(" ")
+		.map((t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
+		.join(" ");
+}
+const Ne = (e) =>
+	h(Kt, {
+		get label() {
+			return e.field.label;
+		},
+		get value() {
+			return e.value ?? "";
+		},
+		onChange: (t) => e.onChange(t.currentTarget.value),
+		get disabled() {
+			return e.disabled;
+		},
+		get helperText() {
+			return e.field.meta.description;
+		},
+		get children() {
+			return h(pe, {
+				get each() {
+					return e.field.enumValues ?? [];
+				},
+				children: (t) =>
+					(() => {
+						var n = Ai();
+						return (n.value = t), p(n, () => Pi(t)), n;
+					})(),
+			});
+		},
+	});
+try {
+	(Ne.displayName = "SelectField"),
+		(Ne.__docgenInfo = {
+			description: "",
+			displayName: "SelectField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "string" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: string) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+var Fi = k('<span class="ml-1 text-gray-400">(<!>)'),
+	ji = k("<span class=text-gray-400>"),
+	Di = k(
+		'<div><label class=block><div class="flex items-center justify-between"><span></span><span class="font-medium text-gray-900 text-sm"></span></div><div class="mt-2 flex items-center gap-3"><span class="text-gray-400 text-xs"></span><input type=range class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-purple-600 disabled:cursor-not-allowed disabled:opacity-50"><span class="text-gray-400 text-xs">',
+	),
+	Vi = k("<p>");
+const Ee = (e) => {
+	const t = () => e.field.min ?? 0,
+		n = () => e.field.max ?? 100,
+		r = () => e.field.meta,
+		o = () => r().step ?? 1,
+		a = () => r().unit;
+	return (() => {
+		var i = Di(),
+			s = i.firstChild,
+			u = s.firstChild,
+			l = u.firstChild,
+			d = l.nextSibling,
+			m = u.nextSibling,
+			g = m.firstChild,
+			_ = g.nextSibling,
+			C = _.nextSibling;
+		return (
+			p(l, () => e.field.label, null),
+			p(
+				l,
+				h(Be, {
+					get when() {
+						return a();
+					},
+					get children() {
+						var v = Fi(),
+							O = v.firstChild,
+							R = O.nextSibling;
+						return R.nextSibling, p(v, a, R), v;
+					},
+				}),
+				null,
+			),
+			p(d, () => e.value ?? t(), null),
+			p(
+				d,
+				h(Be, {
+					get when() {
+						return a();
+					},
+					get children() {
+						var v = ji();
+						return p(v, a), v;
+					},
+				}),
+				null,
+			),
+			p(g, t),
+			(_.$$input = (v) => {
+				const O = parseFloat(v.currentTarget.value);
+				isNaN(O) || e.onChange(O);
+			}),
+			p(C, n),
+			p(
+				i,
+				(() => {
+					var v = Fe(() => !!e.field.meta.description);
+					return () =>
+						v() &&
+						(() => {
+							var O = Vi();
+							return (
+								p(O, () => e.field.meta.description),
+								F(() => K(O, `mt-1 ${se.helper}`)),
+								O
+							);
+						})();
+				})(),
+				null,
+			),
+			F(
+				(v) => {
+					var O = se.label,
+						R = t(),
+						le = n(),
+						E = o(),
+						N = e.disabled;
+					return (
+						O !== v.e && K(l, (v.e = O)),
+						R !== v.t && $e(_, "min", (v.t = R)),
+						le !== v.a && $e(_, "max", (v.a = le)),
+						E !== v.o && $e(_, "step", (v.o = E)),
+						N !== v.i && (_.disabled = v.i = N),
+						v
+					);
+				},
+				{ e: void 0, t: void 0, a: void 0, o: void 0, i: void 0 },
+			),
+			F(() => (_.value = e.value ?? t())),
+			i
+		);
+	})();
+};
+gt(["input"]);
+try {
+	(Ee.displayName = "SliderField"),
+		(Ee.__docgenInfo = {
+			description: "",
+			displayName: "SliderField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "number" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: number) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+const Ae = (e) =>
+	h(je, {
+		type: "text",
+		get label() {
+			return e.field.label;
+		},
+		get value() {
+			return e.value ?? "";
+		},
+		onInput: (t) => e.onChange(t.currentTarget.value),
+		get placeholder() {
+			return e.field.meta.placeholder;
+		},
+		get disabled() {
+			return e.disabled;
+		},
+		get helperText() {
+			return e.field.meta.description;
+		},
+	});
+try {
+	(Ae.displayName = "TextField"),
+		(Ae.__docgenInfo = {
+			description: "",
+			displayName: "TextField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "string" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: string) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+const Pe = (e) =>
+	h(Yt, {
+		get label() {
+			return e.field.label;
+		},
+		rows: 4,
+		get value() {
+			return e.value ?? "";
+		},
+		onInput: (t) => e.onChange(t.currentTarget.value),
+		get placeholder() {
+			return e.field.meta.placeholder;
+		},
+		get disabled() {
+			return e.disabled;
+		},
+		get helperText() {
+			return e.field.meta.description;
+		},
+	});
+try {
+	(Pe.displayName = "TextareaField"),
+		(Pe.__docgenInfo = {
+			description: "",
+			displayName: "TextareaField",
+			props: {
+				field: {
+					defaultValue: null,
+					description: "",
+					name: "field",
+					required: !0,
+					type: { name: "IntrospectedField" },
+				},
+				value: {
+					defaultValue: null,
+					description: "",
+					name: "value",
+					required: !0,
+					type: { name: "string" },
+				},
+				onChange: {
+					defaultValue: null,
+					description: "",
+					name: "onChange",
+					required: !0,
+					type: { name: "(value: string) => void" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+function qe(e) {
+	const t = e;
+	return t._zod?.def ?? t._def ?? {};
+}
+function qt(e) {
+	const t = qe(e);
+	return t.type ?? t.typeName ?? "unknown";
+}
+function Ri(e) {
+	let t = e,
+		n = !1,
+		r;
+	for (;;) {
+		const o = qt(t),
+			a = qe(t);
+		if (o === "default") {
+			const i = a.defaultValue;
+			if (((r = typeof i == "function" ? i() : i), (t = a.innerType), !t))
+				break;
+			continue;
+		}
+		if (o === "optional") {
+			if (((n = !0), (t = a.innerType), !t)) break;
+			continue;
+		}
+		if (o === "nullable") {
+			if (((n = !0), (t = a.innerType), !t)) break;
+			continue;
+		}
+		break;
+	}
+	return { inner: t, optional: n, defaultValue: r };
+}
+function Mi(e) {
+	const t = qt(e),
+		n = qe(e);
+	if (t === "string") return { type: "string" };
+	if (t === "number" || t === "int" || t === "float") {
+		let r, o;
+		const a = n.checks;
+		if (a)
+			for (const i of a) {
+				const s = i?._zod?.def;
+				if (s)
+					s.check === "greater_than" || s.check === "min"
+						? (r = s.value)
+						: (s.check === "less_than" || s.check === "max") && (o = s.value);
+				else {
+					const u = i;
+					u.kind === "min" || u.kind === "minimum"
+						? (r = u.value)
+						: (u.kind === "max" || u.kind === "maximum") && (o = u.value);
+				}
+			}
+		return { type: "number", min: r, max: o };
+	}
+	if (t === "boolean") return { type: "boolean" };
+	if (t === "enum") {
+		const r = n.entries,
+			o = n.values;
+		let a = [];
+		return (
+			r
+				? (a = Object.values(r))
+				: o && (a = o instanceof Set ? Array.from(o) : o),
+			{ type: "enum", enumValues: a }
+		);
+	}
+	return { type: t || "unknown" };
+}
+function Ui(e) {
+	return e
+		.replace(/_/g, " ")
+		.replace(/([a-z])([A-Z])/g, "$1 $2")
+		.split(" ")
+		.map((r) => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase())
+		.join(" ");
+}
+function Ji(e, t) {
+	if (t.inputType) return t.inputType;
+	switch (e.type) {
+		case "string":
+			return "text";
+		case "number":
+			return e.min !== void 0 && e.max !== void 0 ? "slider" : "number";
+		case "boolean":
+			return "checkbox";
+		case "enum":
+			return "select";
+		default:
+			return "text";
+	}
+}
+function Li(e, t, n) {
+	const { inner: r, optional: o, defaultValue: a } = Ri(t),
+		i = Mi(r),
+		s = Ji(i, n);
+	return {
+		name: e,
+		label: n.label || Ui(e),
+		inputType: s,
+		type: i.type,
+		defaultValue: a,
+		optional: o,
+		enumValues: i.enumValues,
+		min: i.min,
+		max: i.max,
+		meta: n,
+		schema: r,
+	};
+}
+function qi(e, t) {
+	const n = e.shape,
+		r = [],
+		o = {},
+		a = [];
+	for (const [i, s] of Object.entries(n)) {
+		const u = t?.[i] ?? {},
+			l = Li(i, s, u);
+		u.hidden ||
+			(r.push(l),
+			u.group
+				? (o[u.group] || (o[u.group] = []), o[u.group].push(l))
+				: a.push(l));
+	}
+	return { fields: r, groups: o, ungrouped: a };
+}
+var Bi = k("<div>Unsupported field type: "),
+	Wi = k("<div>"),
+	Gi = k(
+		'<div class=space-y-4><h3 class="border-gray-200 border-b pb-2 font-medium text-gray-900 text-sm"></h3><div class=space-y-4>',
+	);
+const ht = (e) =>
+	h(Gt, {
+		get fallback() {
+			return (() => {
+				var t = Bi();
+				return t.firstChild, p(t, () => e.field.type, null), t;
+			})();
+		},
+		get children() {
+			return [
+				h(M, {
+					get when() {
+						return e.field.inputType === "text";
+					},
+					get children() {
+						return h(Ae, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "number";
+					},
+					get children() {
+						return h(Ie, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "color";
+					},
+					get children() {
+						return h(Oe, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "checkbox";
+					},
+					get children() {
+						return h(Te, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "select";
+					},
+					get children() {
+						return h(Ne, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "slider";
+					},
+					get children() {
+						return h(Ee, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+				h(M, {
+					get when() {
+						return e.field.inputType === "textarea";
+					},
+					get children() {
+						return h(Pe, {
+							get field() {
+								return e.field;
+							},
+							get value() {
+								return e.value;
+							},
+							get onChange() {
+								return e.onChange;
+							},
+							get disabled() {
+								return e.disabled;
+							},
+						});
+					},
+				}),
+			];
+		},
+	});
+function j(e) {
+	const t = () => qi(e.schema, e.meta);
+	return (() => {
+		var n = Wi();
+		return (
+			p(
+				n,
+				h(pe, {
+					get each() {
+						return Object.entries(t().groups);
+					},
+					children: ([r, o]) =>
+						(() => {
+							var a = Gi(),
+								i = a.firstChild,
+								s = i.nextSibling;
+							return (
+								p(i, r),
+								p(
+									s,
+									h(pe, {
+										each: o,
+										children: (u) =>
+											h(ht, {
+												field: u,
+												get value() {
+													return e.values[u.name];
+												},
+												onChange: (l) => e.onChange(u.name, l),
+												get disabled() {
+													return e.disabled;
+												},
+											}),
+									}),
+								),
+								a
+							);
+						})(),
+				}),
+				null,
+			),
+			p(
+				n,
+				h(pe, {
+					get each() {
+						return t().ungrouped;
+					},
+					children: (r) =>
+						h(ht, {
+							field: r,
+							get value() {
+								return e.values[r.name];
+							},
+							onChange: (o) => e.onChange(r.name, o),
+							get disabled() {
+								return e.disabled;
+							},
+						}),
+				}),
+				null,
+			),
+			F(() => K(n, e.class ?? "space-y-4")),
+			n
+		);
+	})();
+}
+try {
+	(j.displayName = "SchemaForm"),
+		(j.__docgenInfo = {
+			description:
+				"SchemaForm component - renders a complete form based on a Zod schema.",
+			displayName: "SchemaForm",
+			props: {
+				schema: {
+					defaultValue: null,
+					description: "The Zod schema defining the form structure",
+					name: "schema",
+					required: !0,
+					type: { name: "ZodObject<T, $strip>" },
+				},
+				meta: {
+					defaultValue: null,
+					description: "Optional metadata for customizing field rendering",
+					name: "meta",
+					required: !1,
+					type: { name: "FormMeta<T> | undefined" },
+				},
+				values: {
+					defaultValue: null,
+					description: "Current form values",
+					name: "values",
+					required: !0,
+					type: {
+						name: 'Record<keyof T & string, unknown> | Record<keyof T & string, output<T[keyof T]>> | Record<string, never> | { [K in keyof ({ -readonly [k in keyof T as T[k] extends OptionalOutSchema ? never : k]: T[k]["_zod"]["output"]; } & { -readonly [k in keyof T as T[k] extends OptionalOutSchema ? k : never]?: T[k]["_zod"]["outp...',
+					},
+				},
+				onChange: {
+					defaultValue: null,
+					description: "Callback when any field value changes",
+					name: "onChange",
+					required: !0,
+					type: {
+						name: "<K extends keyof $InferObjectOutput<T, {}>>(field: K, value: $InferObjectOutput<T, {}>[K]) => void",
+					},
+				},
+				class: {
+					defaultValue: null,
+					description: "Optional class name for the form container",
+					name: "class",
+					required: !1,
+					type: { name: "string | undefined" },
+				},
+				disabled: {
+					defaultValue: null,
+					description: "Whether the form is disabled",
+					name: "disabled",
+					required: !1,
+					type: { name: "boolean | undefined" },
+				},
+			},
+		});
+} catch {}
+const Ki = D({
+		label: $().default("TIMER"),
+		fontSize: A().min(24).max(120).default(48),
+		textColor: $().default("#ffffff"),
+		backgroundColor: $().default("#3b82f6"),
+		countdownMinutes: A().min(1).max(120).default(5),
+		autoStart: x().default(!1),
+	}),
+	Yi = {
+		label: { label: "Timer Label", placeholder: "Enter label text" },
+		fontSize: { label: "Font Size", unit: "px" },
+		textColor: { label: "Text Color", inputType: "color" },
+		backgroundColor: { label: "Background Color", inputType: "color" },
+		countdownMinutes: { label: "Countdown Duration", unit: "minutes" },
+		autoStart: {
+			label: "Auto Start on Load",
+			description: "Automatically start the timer when the widget loads in OBS",
+		},
+	},
+	Xi = D({
+		fontSize: U(["small", "medium", "large"]).default("medium"),
+		maxMessages: A().min(5).max(100).default(25),
+		showTimestamps: x().default(!1),
+		showBadges: x().default(!0),
+		showPlatform: x().default(!0),
+		showEmotes: x().default(!0),
+	}),
+	Hi = {
+		fontSize: { label: "Font Size" },
+		maxMessages: {
+			label: "Max Messages",
+			description: "Maximum number of messages to display at once",
+		},
+		showTimestamps: { label: "Show Timestamps" },
+		showBadges: {
+			label: "Show User Badges",
+			description: "Display subscriber, moderator, and VIP badges",
+		},
+		showPlatform: {
+			label: "Show Platform Icons",
+			description: "Display Twitch/YouTube icons next to messages",
+		},
+		showEmotes: {
+			label: "Show Emotes",
+			description: "Render emotes as images",
+		},
+	},
+	Qi = D({
+		animationType: U(["slide", "fade", "bounce"]).default("fade"),
+		alertPosition: U(["top", "center", "bottom"]).default("center"),
+		displayDuration: A().min(1).max(30).default(5),
+		fontSize: U(["small", "medium", "large"]).default("medium"),
+		showAmount: x().default(!0),
+		showMessage: x().default(!0),
+		soundEnabled: x().default(!0),
+		soundVolume: A().min(0).max(100).default(80),
+	}),
+	es = {
+		animationType: { label: "Animation Type", group: "Animation" },
+		alertPosition: { label: "Alert Position", group: "Animation" },
+		displayDuration: {
+			label: "Display Duration",
+			unit: "seconds",
+			group: "Animation",
+		},
+		fontSize: { label: "Font Size", group: "Appearance" },
+		showAmount: {
+			label: "Show Amount",
+			description: "Display donation/raid amounts",
+			group: "Content",
+		},
+		showMessage: {
+			label: "Show Message",
+			description: "Display user messages with alerts",
+			group: "Content",
+		},
+		soundEnabled: { label: "Enable Sound", group: "Audio" },
+		soundVolume: { label: "Sound Volume", unit: "%", group: "Audio" },
+	};
+D({
+	title: $().default("Donation Goal"),
+	targetAmount: A().min(1).default(100),
+	currentAmount: A().min(0).default(0),
+	barColor: $().default("#10b981"),
+	backgroundColor: $().default("#1f2937"),
+	textColor: $().default("#ffffff"),
+	showPercentage: x().default(!0),
+	showAmount: x().default(!0),
+});
+D({
+	label: $().default("Followers"),
+	fontSize: A().min(16).max(96).default(32),
+	textColor: $().default("#ffffff"),
+	backgroundColor: $().default("transparent"),
+	showLabel: x().default(!0),
+	animateChanges: x().default(!0),
+});
+D({
+	title: $().default("Vote Now!"),
+	barColor: $().default("#8b5cf6"),
+	backgroundColor: $().default("#1f2937"),
+	textColor: $().default("#ffffff"),
+	showPercentages: x().default(!0),
+	showVoteCount: x().default(!0),
+	allowMultipleVotes: x().default(!1),
+});
+const ts = D({
+		name: $().default(""),
+		description: $().default(""),
+		count: A().default(0),
+		opacity: A().min(0).max(100).default(100),
+		color: $().default("#3b82f6"),
+		enabled: x().default(!0),
+		size: U(["small", "medium", "large"]).default("medium"),
+	}),
+	ns = {
+		name: { label: "Name", placeholder: "Enter your name" },
+		description: {
+			label: "Description",
+			inputType: "textarea",
+			placeholder: "Enter description...",
+		},
+		count: { label: "Count", unit: "items" },
+		opacity: { label: "Opacity", unit: "%" },
+		color: { label: "Favorite Color", inputType: "color" },
+		enabled: { label: "Enabled", description: "Toggle this feature on/off" },
+		size: { label: "Size" },
+	};
+var rs = k('<div class="mx-auto max-w-xl rounded-lg bg-white p-6 shadow-sm">'),
+	os = k(
+		'<div class=space-y-6><div><h2 class="mb-4 font-semibold text-gray-900 text-lg">Basic Form</h2></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">',
+	),
+	as = k(
+		'<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Timer Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Schema and metadata are separate (schema could be auto-generated)</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">',
+	),
+	is = k(
+		'<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Chat Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Form with select dropdowns and toggles</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">',
+	),
+	ss = k(
+		'<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Alertbox Widget Settings</h2><p class="mb-4 text-gray-500 text-sm">Fields organized into groups (Animation, Appearance, Content, Audio)</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Config JSON:</h3><pre class="text-gray-600 text-xs">',
+	),
+	us = k(
+		'<div><h2 class="mb-1 font-semibold text-gray-900 text-lg">Disabled Form</h2><p class="mb-4 text-gray-500 text-sm">All fields are disabled/read-only',
+	),
+	cs = k(
+		'<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">All Field Types</h2><p class="mb-4 text-gray-500 text-sm">Demonstrating every supported input type</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">',
+	),
+	ls = k(
+		'<div class=space-y-6><div><h2 class="mb-1 font-semibold text-gray-900 text-lg">No Metadata (Auto-Inference)</h2><p class="mb-4 text-gray-500 text-sm">Labels and input types are auto-inferred from field names and Zod types</p></div><div class="rounded-lg border border-gray-200 bg-gray-50 p-4"><h3 class="mb-2 font-medium text-gray-700 text-sm">Current Values:</h3><pre class="text-gray-600 text-xs">',
+	);
+const hs = {
+		title: "Forms/SchemaForm",
+		component: j,
+		parameters: {
+			layout: "padded",
+			docs: {
+				description: {
+					component: `SchemaForm automatically generates form UI from Zod schemas.
 
 Design: Schema and metadata are SEPARATE.
 - Schema: Plain Zod schema (can be auto-generated from Ash TypeScript)
 - Metadata: Optional UI hints for field rendering
 
-This allows schemas to be auto-generated while metadata is hand-written.`}}},tags:["autodocs"],decorators:[e=>(()=>{var t=rs();return p(t,h(e,{})),t})()]},Bt=D({name:$().default(""),age:A().min(0).max(120).default(25),favoriteColor:$().default("#6366f1"),newsletter:x().default(!1)}),Wt={name:{label:"Your Name",placeholder:"Enter your name"},age:{label:"Age"},favoriteColor:{label:"Favorite Color",inputType:"color"},newsletter:{label:"Subscribe to newsletter",description:"Get weekly updates about new features"}},Q={render:()=>{const[e,t]=Y({name:"",age:25,favoriteColor:"#6366f1",newsletter:!1});return(()=>{var n=os(),r=n.firstChild;r.firstChild;var o=r.nextSibling,a=o.firstChild,i=a.nextSibling;return p(r,h(j,{schema:Bt,meta:Wt,get values(){return e()},onChange:(s,u)=>{t(l=>({...l,[s]:u}))}}),null),p(i,()=>JSON.stringify(e(),null,2)),n})()}},ee={render:()=>{const[e,t]=Y({label:"TIMER",fontSize:48,textColor:"#ffffff",backgroundColor:"#3b82f6",countdownMinutes:5,autoStart:!1});return(()=>{var n=as(),r=n.firstChild,o=r.firstChild;o.nextSibling;var a=r.nextSibling,i=a.firstChild,s=i.nextSibling;return p(r,h(j,{schema:Ki,meta:Yi,get values(){return e()},onChange:(u,l)=>{t(d=>({...d,[u]:l}))}}),null),p(s,()=>JSON.stringify(e(),null,2)),n})()}},te={render:()=>{const[e,t]=Y({fontSize:"medium",maxMessages:25,showTimestamps:!1,showBadges:!0,showPlatform:!0,showEmotes:!0});return(()=>{var n=is(),r=n.firstChild,o=r.firstChild;o.nextSibling;var a=r.nextSibling,i=a.firstChild,s=i.nextSibling;return p(r,h(j,{schema:Xi,meta:Hi,get values(){return e()},onChange:(u,l)=>{t(d=>({...d,[u]:l}))}}),null),p(s,()=>JSON.stringify(e(),null,2)),n})()}},ne={render:()=>{const[e,t]=Y({animationType:"fade",alertPosition:"center",displayDuration:5,fontSize:"medium",showAmount:!0,showMessage:!0,soundEnabled:!0,soundVolume:80});return(()=>{var n=ss(),r=n.firstChild,o=r.firstChild;o.nextSibling;var a=r.nextSibling,i=a.firstChild,s=i.nextSibling;return p(r,h(j,{schema:Qi,meta:es,get values(){return e()},onChange:(u,l)=>{t(d=>({...d,[u]:l}))}}),null),p(s,()=>JSON.stringify(e(),null,2)),n})()}},re={render:()=>{const e={name:"John Doe",age:30,favoriteColor:"#10b981",newsletter:!0};return(()=>{var t=us(),n=t.firstChild;return n.nextSibling,p(t,h(j,{schema:Bt,meta:Wt,values:e,onChange:()=>{},disabled:!0}),null),t})()}},oe={render:()=>{const[e,t]=Y({name:"",description:"",count:0,opacity:100,color:"#3b82f6",enabled:!0,size:"medium"});return(()=>{var n=cs(),r=n.firstChild,o=r.firstChild;o.nextSibling;var a=r.nextSibling,i=a.firstChild,s=i.nextSibling;return p(r,h(j,{schema:ts,meta:ns,get values(){return e()},onChange:(u,l)=>{t(d=>({...d,[u]:l}))}}),null),p(s,()=>JSON.stringify(e(),null,2)),n})()}},ae={render:()=>{const e=D({userName:$().default(""),userAge:A().min(0).max(100).default(25),isActive:x().default(!0),priority:U(["low","medium","high"]).default("medium")}),[t,n]=Y({userName:"",userAge:25,isActive:!0,priority:"medium"});return(()=>{var r=ls(),o=r.firstChild,a=o.firstChild;a.nextSibling;var i=o.nextSibling,s=i.firstChild,u=s.nextSibling;return p(o,h(j,{schema:e,get values(){return t()},onChange:(l,d)=>{n(m=>({...m,[l]:d}))}}),null),p(u,()=>JSON.stringify(t(),null,2)),r})()}};Q.parameters={...Q.parameters,docs:{...Q.parameters?.docs,source:{originalSource:`{
+This allows schemas to be auto-generated while metadata is hand-written.`,
+				},
+			},
+		},
+		tags: ["autodocs"],
+		decorators: [
+			(e) =>
+				(() => {
+					var t = rs();
+					return p(t, h(e, {})), t;
+				})(),
+		],
+	},
+	Bt = D({
+		name: $().default(""),
+		age: A().min(0).max(120).default(25),
+		favoriteColor: $().default("#6366f1"),
+		newsletter: x().default(!1),
+	}),
+	Wt = {
+		name: { label: "Your Name", placeholder: "Enter your name" },
+		age: { label: "Age" },
+		favoriteColor: { label: "Favorite Color", inputType: "color" },
+		newsletter: {
+			label: "Subscribe to newsletter",
+			description: "Get weekly updates about new features",
+		},
+	},
+	Q = {
+		render: () => {
+			const [e, t] = Y({
+				name: "",
+				age: 25,
+				favoriteColor: "#6366f1",
+				newsletter: !1,
+			});
+			return (() => {
+				var n = os(),
+					r = n.firstChild;
+				r.firstChild;
+				var o = r.nextSibling,
+					a = o.firstChild,
+					i = a.nextSibling;
+				return (
+					p(
+						r,
+						h(j, {
+							schema: Bt,
+							meta: Wt,
+							get values() {
+								return e();
+							},
+							onChange: (s, u) => {
+								t((l) => ({ ...l, [s]: u }));
+							},
+						}),
+						null,
+					),
+					p(i, () => JSON.stringify(e(), null, 2)),
+					n
+				);
+			})();
+		},
+	},
+	ee = {
+		render: () => {
+			const [e, t] = Y({
+				label: "TIMER",
+				fontSize: 48,
+				textColor: "#ffffff",
+				backgroundColor: "#3b82f6",
+				countdownMinutes: 5,
+				autoStart: !1,
+			});
+			return (() => {
+				var n = as(),
+					r = n.firstChild,
+					o = r.firstChild;
+				o.nextSibling;
+				var a = r.nextSibling,
+					i = a.firstChild,
+					s = i.nextSibling;
+				return (
+					p(
+						r,
+						h(j, {
+							schema: Ki,
+							meta: Yi,
+							get values() {
+								return e();
+							},
+							onChange: (u, l) => {
+								t((d) => ({ ...d, [u]: l }));
+							},
+						}),
+						null,
+					),
+					p(s, () => JSON.stringify(e(), null, 2)),
+					n
+				);
+			})();
+		},
+	},
+	te = {
+		render: () => {
+			const [e, t] = Y({
+				fontSize: "medium",
+				maxMessages: 25,
+				showTimestamps: !1,
+				showBadges: !0,
+				showPlatform: !0,
+				showEmotes: !0,
+			});
+			return (() => {
+				var n = is(),
+					r = n.firstChild,
+					o = r.firstChild;
+				o.nextSibling;
+				var a = r.nextSibling,
+					i = a.firstChild,
+					s = i.nextSibling;
+				return (
+					p(
+						r,
+						h(j, {
+							schema: Xi,
+							meta: Hi,
+							get values() {
+								return e();
+							},
+							onChange: (u, l) => {
+								t((d) => ({ ...d, [u]: l }));
+							},
+						}),
+						null,
+					),
+					p(s, () => JSON.stringify(e(), null, 2)),
+					n
+				);
+			})();
+		},
+	},
+	ne = {
+		render: () => {
+			const [e, t] = Y({
+				animationType: "fade",
+				alertPosition: "center",
+				displayDuration: 5,
+				fontSize: "medium",
+				showAmount: !0,
+				showMessage: !0,
+				soundEnabled: !0,
+				soundVolume: 80,
+			});
+			return (() => {
+				var n = ss(),
+					r = n.firstChild,
+					o = r.firstChild;
+				o.nextSibling;
+				var a = r.nextSibling,
+					i = a.firstChild,
+					s = i.nextSibling;
+				return (
+					p(
+						r,
+						h(j, {
+							schema: Qi,
+							meta: es,
+							get values() {
+								return e();
+							},
+							onChange: (u, l) => {
+								t((d) => ({ ...d, [u]: l }));
+							},
+						}),
+						null,
+					),
+					p(s, () => JSON.stringify(e(), null, 2)),
+					n
+				);
+			})();
+		},
+	},
+	re = {
+		render: () => {
+			const e = {
+				name: "John Doe",
+				age: 30,
+				favoriteColor: "#10b981",
+				newsletter: !0,
+			};
+			return (() => {
+				var t = us(),
+					n = t.firstChild;
+				return (
+					n.nextSibling,
+					p(
+						t,
+						h(j, {
+							schema: Bt,
+							meta: Wt,
+							values: e,
+							onChange: () => {},
+							disabled: !0,
+						}),
+						null,
+					),
+					t
+				);
+			})();
+		},
+	},
+	oe = {
+		render: () => {
+			const [e, t] = Y({
+				name: "",
+				description: "",
+				count: 0,
+				opacity: 100,
+				color: "#3b82f6",
+				enabled: !0,
+				size: "medium",
+			});
+			return (() => {
+				var n = cs(),
+					r = n.firstChild,
+					o = r.firstChild;
+				o.nextSibling;
+				var a = r.nextSibling,
+					i = a.firstChild,
+					s = i.nextSibling;
+				return (
+					p(
+						r,
+						h(j, {
+							schema: ts,
+							meta: ns,
+							get values() {
+								return e();
+							},
+							onChange: (u, l) => {
+								t((d) => ({ ...d, [u]: l }));
+							},
+						}),
+						null,
+					),
+					p(s, () => JSON.stringify(e(), null, 2)),
+					n
+				);
+			})();
+		},
+	},
+	ae = {
+		render: () => {
+			const e = D({
+					userName: $().default(""),
+					userAge: A().min(0).max(100).default(25),
+					isActive: x().default(!0),
+					priority: U(["low", "medium", "high"]).default("medium"),
+				}),
+				[t, n] = Y({
+					userName: "",
+					userAge: 25,
+					isActive: !0,
+					priority: "medium",
+				});
+			return (() => {
+				var r = ls(),
+					o = r.firstChild,
+					a = o.firstChild;
+				a.nextSibling;
+				var i = o.nextSibling,
+					s = i.firstChild,
+					u = s.nextSibling;
+				return (
+					p(
+						o,
+						h(j, {
+							schema: e,
+							get values() {
+								return t();
+							},
+							onChange: (l, d) => {
+								n((m) => ({ ...m, [l]: d }));
+							},
+						}),
+						null,
+					),
+					p(u, () => JSON.stringify(t(), null, 2)),
+					r
+				);
+			})();
+		},
+	};
+Q.parameters = {
+	...Q.parameters,
+	docs: {
+		...Q.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const [values, setValues] = createSignal({
       name: "",
@@ -53,8 +4710,22 @@ This allows schemas to be auto-generated while metadata is hand-written.`}}},tag
                 </div>
             </div>;
   }
-}`,...Q.parameters?.docs?.source},description:{story:`Basic example showing separate schema and metadata.
-Note how the schema is plain Zod - it could be auto-generated from Ash.`,...Q.parameters?.docs?.description}}};ee.parameters={...ee.parameters,docs:{...ee.parameters?.docs,source:{originalSource:`{
+}`,
+			...Q.parameters?.docs?.source,
+		},
+		description: {
+			story: `Basic example showing separate schema and metadata.
+Note how the schema is plain Zod - it could be auto-generated from Ash.`,
+			...Q.parameters?.docs?.description,
+		},
+	},
+};
+ee.parameters = {
+	...ee.parameters,
+	docs: {
+		...ee.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const [values, setValues] = createSignal({
       label: "TIMER",
@@ -87,8 +4758,22 @@ Note how the schema is plain Zod - it could be auto-generated from Ash.`,...Q.pa
                 </div>
             </div>;
   }
-}`,...ee.parameters?.docs?.source},description:{story:`Timer widget configuration form.
-Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.parameters?.docs?.description}}};te.parameters={...te.parameters,docs:{...te.parameters?.docs,source:{originalSource:`{
+}`,
+			...ee.parameters?.docs?.source,
+		},
+		description: {
+			story: `Timer widget configuration form.
+Schema is plain Zod, metadata provides labels, units, and input types.`,
+			...ee.parameters?.docs?.description,
+		},
+	},
+};
+te.parameters = {
+	...te.parameters,
+	docs: {
+		...te.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const [values, setValues] = createSignal({
       fontSize: "medium" as const,
@@ -121,7 +4806,22 @@ Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.pa
                 </div>
             </div>;
   }
-}`,...te.parameters?.docs?.source},description:{story:"Chat widget configuration - select dropdowns and multiple booleans.",...te.parameters?.docs?.description}}};ne.parameters={...ne.parameters,docs:{...ne.parameters?.docs,source:{originalSource:`{
+}`,
+			...te.parameters?.docs?.source,
+		},
+		description: {
+			story:
+				"Chat widget configuration - select dropdowns and multiple booleans.",
+			...te.parameters?.docs?.description,
+		},
+	},
+};
+ne.parameters = {
+	...ne.parameters,
+	docs: {
+		...ne.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const [values, setValues] = createSignal({
       animationType: "fade" as const,
@@ -156,7 +4856,21 @@ Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.pa
                 </div>
             </div>;
   }
-}`,...ne.parameters?.docs?.source},description:{story:"Alertbox configuration - grouped fields organized into sections.",...ne.parameters?.docs?.description}}};re.parameters={...re.parameters,docs:{...re.parameters?.docs,source:{originalSource:`{
+}`,
+			...ne.parameters?.docs?.source,
+		},
+		description: {
+			story: "Alertbox configuration - grouped fields organized into sections.",
+			...ne.parameters?.docs?.description,
+		},
+	},
+};
+re.parameters = {
+	...re.parameters,
+	docs: {
+		...re.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const values = {
       name: "John Doe",
@@ -172,7 +4886,21 @@ Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.pa
                 <SchemaForm schema={simpleSchema} meta={simpleMeta} values={values} onChange={() => {}} disabled={true} />
             </div>;
   }
-}`,...re.parameters?.docs?.source},description:{story:"Disabled form - all fields are read-only.",...re.parameters?.docs?.description}}};oe.parameters={...oe.parameters,docs:{...oe.parameters?.docs,source:{originalSource:`{
+}`,
+			...re.parameters?.docs?.source,
+		},
+		description: {
+			story: "Disabled form - all fields are read-only.",
+			...re.parameters?.docs?.description,
+		},
+	},
+};
+oe.parameters = {
+	...oe.parameters,
+	docs: {
+		...oe.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     const [values, setValues] = createSignal({
       name: "",
@@ -208,7 +4936,21 @@ Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.pa
                 </div>
             </div>;
   }
-}`,...oe.parameters?.docs?.source},description:{story:"Shows all available field types in one form.",...oe.parameters?.docs?.description}}};ae.parameters={...ae.parameters,docs:{...ae.parameters?.docs,source:{originalSource:`{
+}`,
+			...oe.parameters?.docs?.source,
+		},
+		description: {
+			story: "Shows all available field types in one form.",
+			...oe.parameters?.docs?.description,
+		},
+	},
+};
+ae.parameters = {
+	...ae.parameters,
+	docs: {
+		...ae.parameters?.docs,
+		source: {
+			originalSource: `{
   render: () => {
     // Plain schema without any metadata - fully auto-inferred
     const autoSchema = z.object({
@@ -249,9 +4991,37 @@ Schema is plain Zod, metadata provides labels, units, and input types.`,...ee.pa
                 </div>
             </div>;
   }
-}`,...ae.parameters?.docs?.source},description:{story:`Demonstrates that forms work WITHOUT metadata - using auto-inference.
+}`,
+			...ae.parameters?.docs?.source,
+		},
+		description: {
+			story: `Demonstrates that forms work WITHOUT metadata - using auto-inference.
 Input types are inferred from Zod types:
 - z.string() -> text input
 - z.number() with min/max -> slider
 - z.boolean() -> checkbox
-- z.enum() -> select`,...ae.parameters?.docs?.description}}};const gs=["Basic","TimerConfig","ChatConfig","AlertboxConfig","Disabled","AllFieldTypes","NoMetadata"];export{ne as AlertboxConfig,oe as AllFieldTypes,Q as Basic,te as ChatConfig,re as Disabled,ae as NoMetadata,ee as TimerConfig,gs as __namedExportsOrder,hs as default};
+- z.enum() -> select`,
+			...ae.parameters?.docs?.description,
+		},
+	},
+};
+const gs = [
+	"Basic",
+	"TimerConfig",
+	"ChatConfig",
+	"AlertboxConfig",
+	"Disabled",
+	"AllFieldTypes",
+	"NoMetadata",
+];
+export {
+	ne as AlertboxConfig,
+	oe as AllFieldTypes,
+	Q as Basic,
+	te as ChatConfig,
+	re as Disabled,
+	ae as NoMetadata,
+	ee as TimerConfig,
+	gs as __namedExportsOrder,
+	hs as default,
+};

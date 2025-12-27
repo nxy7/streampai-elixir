@@ -1,1 +1,84 @@
-import{l as n,t as s,n as u,p as i,i as p}from"./iframe-BQDcX1su.js";import{d}from"./design-system-CwcdUVvG.js";var o=s("<span>");const c={success:"bg-green-100 text-green-800",warning:"bg-yellow-100 text-yellow-800",error:"bg-red-100 text-red-800",info:"bg-blue-100 text-blue-800",neutral:"bg-gray-100 text-gray-800",purple:"bg-purple-100 text-purple-800",pink:"bg-pink-100 text-pink-800"},m={sm:"px-2 py-0.5 text-xs",md:"px-2.5 py-1 text-sm"};function t(r){const[e,l]=n(r,["variant","size","children","class"]);return(()=>{var a=o();return u(a,i({get class(){return d("inline-flex items-center rounded-full font-medium",c[e.variant??"neutral"],m[e.size??"sm"],e.class)}},l),!1,!0),p(a,()=>e.children),a})()}try{t.displayName="Badge",t.__docgenInfo={description:"",displayName:"Badge",props:{variant:{defaultValue:null,description:"",name:"variant",required:!1,type:{name:"enum",value:[{value:"undefined"},{value:'"success"'},{value:'"warning"'},{value:'"error"'},{value:'"info"'},{value:'"neutral"'},{value:'"purple"'},{value:'"pink"'}]}},size:{defaultValue:null,description:"",name:"size",required:!1,type:{name:"enum",value:[{value:"undefined"},{value:'"sm"'},{value:'"md"'}]}}}}}catch{}export{t as B};
+import { l as n, t as s, n as u, p as i, i as p } from "./iframe-BQDcX1su.js";
+import { d } from "./design-system-CwcdUVvG.js";
+var o = s("<span>");
+const c = {
+		success: "bg-green-100 text-green-800",
+		warning: "bg-yellow-100 text-yellow-800",
+		error: "bg-red-100 text-red-800",
+		info: "bg-blue-100 text-blue-800",
+		neutral: "bg-gray-100 text-gray-800",
+		purple: "bg-purple-100 text-purple-800",
+		pink: "bg-pink-100 text-pink-800",
+	},
+	m = { sm: "px-2 py-0.5 text-xs", md: "px-2.5 py-1 text-sm" };
+function t(r) {
+	const [e, l] = n(r, ["variant", "size", "children", "class"]);
+	return (() => {
+		var a = o();
+		return (
+			u(
+				a,
+				i(
+					{
+						get class() {
+							return d(
+								"inline-flex items-center rounded-full font-medium",
+								c[e.variant ?? "neutral"],
+								m[e.size ?? "sm"],
+								e.class,
+							);
+						},
+					},
+					l,
+				),
+				!1,
+				!0,
+			),
+			p(a, () => e.children),
+			a
+		);
+	})();
+}
+try {
+	(t.displayName = "Badge"),
+		(t.__docgenInfo = {
+			description: "",
+			displayName: "Badge",
+			props: {
+				variant: {
+					defaultValue: null,
+					description: "",
+					name: "variant",
+					required: !1,
+					type: {
+						name: "enum",
+						value: [
+							{ value: "undefined" },
+							{ value: '"success"' },
+							{ value: '"warning"' },
+							{ value: '"error"' },
+							{ value: '"info"' },
+							{ value: '"neutral"' },
+							{ value: '"purple"' },
+							{ value: '"pink"' },
+						],
+					},
+				},
+				size: {
+					defaultValue: null,
+					description: "",
+					name: "size",
+					required: !1,
+					type: {
+						name: "enum",
+						value: [
+							{ value: "undefined" },
+							{ value: '"sm"' },
+							{ value: '"md"' },
+						],
+					},
+				},
+			},
+		});
+} catch {}
+export { t as B };

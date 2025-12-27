@@ -528,7 +528,9 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 						<button
 							type="button"
 							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
-								action.onClick ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+								action.onClick
+									? "cursor-pointer"
+									: "cursor-not-allowed opacity-60"
 							}`}
 							onClick={action.onClick}
 							disabled={!action.onClick}
@@ -921,7 +923,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							<span>Filter</span>
 							<Show when={hasActiveFilters()}>
 								<span class="ml-0.5 rounded-full bg-purple-600 px-1.5 text-white text-[10px]">
-									{ALL_ACTIVITY_TYPES.length - selectedTypeFilters().size +
+									{ALL_ACTIVITY_TYPES.length -
+										selectedTypeFilters().size +
 										(searchText().trim() ? 1 : 0)}
 								</span>
 							</Show>
@@ -1001,7 +1004,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					<Show when={hasActiveFilters() && !showFilters()}>
 						<div class="mt-1.5 flex items-center gap-1 text-gray-500 text-xs">
 							<span>Showing:</span>
-							<Show when={selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length}>
+							<Show
+								when={selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length}>
 								<span class="font-medium text-gray-700">
 									{[...selectedTypeFilters()]
 										.map((t) => ACTIVITY_TYPE_LABELS[t])
@@ -1095,7 +1099,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							onClick={() => setShowPlatformPicker(!showPlatformPicker())}>
 							<span>Send to:</span>
 							<span class="font-medium text-gray-700">{platformSummary()}</span>
-							<span class="text-[10px]">{showPlatformPicker() ? "^" : "v"}</span>
+							<span class="text-[10px]">
+								{showPlatformPicker() ? "^" : "v"}
+							</span>
 						</button>
 
 						{/* Platform Selection Dropdown */}

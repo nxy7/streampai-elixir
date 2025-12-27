@@ -1,1 +1,93 @@
-const a={donation:{icon:"💰",label:"Donation",color:"text-green-400",bgColor:"bg-green-100 text-green-600",svgPath:"M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"},follow:{icon:"❤️",label:"Follow",color:"text-blue-400",bgColor:"bg-pink-100 text-pink-600",svgPath:"M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"},subscription:{icon:"⭐",label:"Sub",color:"text-purple-400",bgColor:"bg-yellow-100 text-yellow-600",svgPath:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"},raid:{icon:"⚡",label:"Raid",color:"text-yellow-400",bgColor:"bg-purple-100 text-purple-600",svgPath:"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"},cheer:{icon:"🎉",label:"Cheer",color:"text-orange-400",bgColor:"bg-orange-100 text-orange-600",svgPath:"M13 10V3L4 14h7v7l9-11h-7z"},chat_message:{icon:"💬",label:"Chat",color:"text-gray-300",bgColor:"bg-blue-100 text-blue-600",svgPath:"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"}},l={icon:"⚡",label:"Event",color:"text-gray-300",bgColor:"bg-blue-100 text-blue-600",svgPath:"M13 10V3L4 14h7v7l9-11h-7z"};function e(o){return a[o]||l}function g(o){return e(o).icon}function b(o){return e(o).label}function i(o){return e(o).color}const r={twitch:{name:"Twitch",color:"text-purple-500"},youtube:{name:"YouTube",color:"text-red-500"},facebook:{name:"Facebook",color:"text-blue-500"},kick:{name:"Kick",color:"text-green-500"}},n={name:"Unknown",color:"text-gray-500"};function c(o){return r[o.toLowerCase()]||n}function u(o){return c(o).name}const t={donation:"from-green-500 to-emerald-600",follow:"from-blue-500 to-cyan-600",subscription:"from-purple-500 to-violet-600",raid:"from-yellow-500 to-orange-600",cheer:"from-orange-500 to-red-600",chat_message:"from-gray-500 to-gray-600"};function s(o){return t[o]||t.donation}export{b as a,s as b,i as c,g as d,u as g};
+const a = {
+		donation: {
+			icon: "💰",
+			label: "Donation",
+			color: "text-green-400",
+			bgColor: "bg-green-100 text-green-600",
+			svgPath:
+				"M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+		},
+		follow: {
+			icon: "❤️",
+			label: "Follow",
+			color: "text-blue-400",
+			bgColor: "bg-pink-100 text-pink-600",
+			svgPath:
+				"M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+		},
+		subscription: {
+			icon: "⭐",
+			label: "Sub",
+			color: "text-purple-400",
+			bgColor: "bg-yellow-100 text-yellow-600",
+			svgPath:
+				"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
+		},
+		raid: {
+			icon: "⚡",
+			label: "Raid",
+			color: "text-yellow-400",
+			bgColor: "bg-purple-100 text-purple-600",
+			svgPath:
+				"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+		},
+		cheer: {
+			icon: "🎉",
+			label: "Cheer",
+			color: "text-orange-400",
+			bgColor: "bg-orange-100 text-orange-600",
+			svgPath: "M13 10V3L4 14h7v7l9-11h-7z",
+		},
+		chat_message: {
+			icon: "💬",
+			label: "Chat",
+			color: "text-gray-300",
+			bgColor: "bg-blue-100 text-blue-600",
+			svgPath:
+				"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+		},
+	},
+	l = {
+		icon: "⚡",
+		label: "Event",
+		color: "text-gray-300",
+		bgColor: "bg-blue-100 text-blue-600",
+		svgPath: "M13 10V3L4 14h7v7l9-11h-7z",
+	};
+function e(o) {
+	return a[o] || l;
+}
+function g(o) {
+	return e(o).icon;
+}
+function b(o) {
+	return e(o).label;
+}
+function i(o) {
+	return e(o).color;
+}
+const r = {
+		twitch: { name: "Twitch", color: "text-purple-500" },
+		youtube: { name: "YouTube", color: "text-red-500" },
+		facebook: { name: "Facebook", color: "text-blue-500" },
+		kick: { name: "Kick", color: "text-green-500" },
+	},
+	n = { name: "Unknown", color: "text-gray-500" };
+function c(o) {
+	return r[o.toLowerCase()] || n;
+}
+function u(o) {
+	return c(o).name;
+}
+const t = {
+	donation: "from-green-500 to-emerald-600",
+	follow: "from-blue-500 to-cyan-600",
+	subscription: "from-purple-500 to-violet-600",
+	raid: "from-yellow-500 to-orange-600",
+	cheer: "from-orange-500 to-red-600",
+	chat_message: "from-gray-500 to-gray-600",
+};
+function s(o) {
+	return t[o] || t.donation;
+}
+export { b as a, s as b, i as c, g as d, u as g };
