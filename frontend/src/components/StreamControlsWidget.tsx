@@ -470,6 +470,26 @@ interface LiveStreamControlCenterProps {
 	onSendMessage?: (message: string, platforms: Platform[]) => void;
 }
 
+// All available activity types for filtering
+const ALL_ACTIVITY_TYPES: ActivityType[] = [
+	"chat",
+	"donation",
+	"follow",
+	"subscription",
+	"raid",
+	"cheer",
+];
+
+// Labels for activity types in filter UI
+const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
+	chat: "Chat",
+	donation: "Donations",
+	follow: "Follows",
+	subscription: "Subs",
+	raid: "Raids",
+	cheer: "Cheers",
+};
+
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	const [chatMessage, setChatMessage] = createSignal("");
 	const [selectedPlatforms, setSelectedPlatforms] = createSignal<Set<Platform>>(
@@ -480,6 +500,12 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		new Set(),
 	);
 	const [shouldAutoScroll, setShouldAutoScroll] = createSignal(true);
+	// Filter state
+	const [selectedTypeFilters, setSelectedTypeFilters] = createSignal<
+		Set<ActivityType>
+	>(new Set(ALL_ACTIVITY_TYPES));
+	const [searchText, setSearchText] = createSignal("");
+	const [showFilters, setShowFilters] = createSignal(false);
 	let scrollContainerRef: HTMLDivElement | undefined;
 
 	// Get available platforms (either from props or default to all)
@@ -495,11 +521,32 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
+	// Filter activities by type and search text
+	const matchesFilters = (item: ActivityItem): boolean => {
+		// Check type filter
+		if (!selectedTypeFilters().has(item.type)) {
+			return false;
+		}
+
+		// Check text search
+		const query = searchText().toLowerCase().trim();
+		if (query) {
+			const usernameMatch = item.username.toLowerCase().includes(query);
+			const messageMatch = item.message?.toLowerCase().includes(query) ?? false;
+			if (!usernameMatch && !messageMatch) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
 	// Sort activities chronologically (oldest first, newest at bottom)
 	// With flex-direction: column-reverse, the container naturally anchors to bottom
 	// Items are sorted oldest-first so newest appear at visual bottom
 	const sortedActivities = createMemo(() => {
-		const sorted = [...props.activities].sort((a, b) => {
+		const filtered = props.activities.filter(matchesFilters);
+		const sorted = filtered.sort((a, b) => {
 			const timeA =
 				a.timestamp instanceof Date
 					? a.timestamp.getTime()
@@ -513,6 +560,41 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		// Limit to MAX_ACTIVITIES for performance
 		return sorted.slice(-MAX_ACTIVITIES);
 	});
+
+	// Check if filters are active (not showing all)
+	const hasActiveFilters = createMemo(() => {
+		const allTypesSelected =
+			selectedTypeFilters().size === ALL_ACTIVITY_TYPES.length;
+		const hasSearchText = searchText().trim().length > 0;
+		return !allTypesSelected || hasSearchText;
+	});
+
+	// Toggle a type filter
+	const toggleTypeFilter = (type: ActivityType) => {
+		setSelectedTypeFilters((current) => {
+			const newSet = new Set(current);
+			if (newSet.has(type)) {
+				// Don't allow deselecting all types
+				if (newSet.size > 1) {
+					newSet.delete(type);
+				}
+			} else {
+				newSet.add(type);
+			}
+			return newSet;
+		});
+	};
+
+	// Select all types
+	const selectAllTypes = () => {
+		setSelectedTypeFilters(new Set(ALL_ACTIVITY_TYPES));
+	};
+
+	// Clear all filters
+	const clearFilters = () => {
+		setSelectedTypeFilters(new Set(ALL_ACTIVITY_TYPES));
+		setSearchText("");
+	};
 
 	// Track sticky items based on time (max 3 most recent, 2 minute default duration)
 	const MAX_STICKY_ITEMS = 3;
@@ -694,6 +776,136 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				</div>
 			</div>
 
+			{/* Filter Controls */}
+			<div class="shrink-0 border-gray-200 border-b py-2">
+				{/* Filter toggle button and search */}
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						class={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
+							hasActiveFilters()
+								? "bg-purple-100 text-purple-700"
+								: "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+						}`}
+						onClick={() => setShowFilters(!showFilters())}
+						data-testid="filter-toggle">
+						<span>[=]</span>
+						<span>Filter</span>
+						<Show when={hasActiveFilters()}>
+							<span class="ml-0.5 rounded-full bg-purple-600 px-1.5 text-white text-[10px]">
+								{ALL_ACTIVITY_TYPES.length - selectedTypeFilters().size +
+									(searchText().trim() ? 1 : 0)}
+							</span>
+						</Show>
+						<span class="text-[10px]">{showFilters() ? "^" : "v"}</span>
+					</button>
+
+					{/* Quick search input - always visible */}
+					<div class="relative flex-1">
+						<input
+							type="text"
+							class="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 pr-6 text-xs placeholder:text-gray-400 focus:border-purple-300 focus:bg-white focus:outline-none"
+							placeholder="Search by name or message..."
+							value={searchText()}
+							onInput={(e) => setSearchText(e.currentTarget.value)}
+							data-testid="search-input"
+						/>
+						<Show when={searchText()}>
+							<button
+								type="button"
+								class="absolute top-1/2 right-1.5 -translate-y-1/2 text-gray-400 text-xs hover:text-gray-600"
+								onClick={() => setSearchText("")}
+								data-testid="clear-search">
+								x
+							</button>
+						</Show>
+					</div>
+				</div>
+
+				{/* Expandable filter panel */}
+				<Show when={showFilters()}>
+					<div class="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-2">
+						<div class="mb-1.5 flex items-center justify-between">
+							<span class="font-medium text-gray-600 text-xs">
+								Event Types
+							</span>
+							<div class="flex gap-2">
+								<button
+									type="button"
+									class="text-purple-600 text-xs hover:text-purple-700"
+									onClick={selectAllTypes}
+									data-testid="select-all-types">
+									All
+								</button>
+								<Show when={hasActiveFilters()}>
+									<button
+										type="button"
+										class="text-gray-500 text-xs hover:text-gray-700"
+										onClick={clearFilters}
+										data-testid="clear-filters">
+										Clear
+									</button>
+								</Show>
+							</div>
+						</div>
+						<div class="flex flex-wrap gap-1">
+							<For each={ALL_ACTIVITY_TYPES}>
+								{(type) => (
+									<button
+										type="button"
+										class={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all ${
+											selectedTypeFilters().has(type)
+												? `${getEventColor(type)} bg-gray-800`
+												: "bg-gray-200 text-gray-500 hover:bg-gray-300"
+										}`}
+										onClick={() => toggleTypeFilter(type)}
+										data-testid={`filter-type-${type}`}>
+										<span>{getEventIcon(type) || "..."}</span>
+										<span>{ACTIVITY_TYPE_LABELS[type]}</span>
+									</button>
+								)}
+							</For>
+						</div>
+					</div>
+				</Show>
+
+				{/* Active filter indicator */}
+				<Show when={hasActiveFilters() && !showFilters()}>
+					<div class="mt-1.5 flex items-center gap-1 text-gray-500 text-xs">
+						<span>Showing:</span>
+						<Show when={selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length}>
+							<span class="font-medium text-gray-700">
+								{[...selectedTypeFilters()]
+									.map((t) => ACTIVITY_TYPE_LABELS[t])
+									.join(", ")}
+							</span>
+						</Show>
+						<Show
+							when={
+								searchText().trim() &&
+								selectedTypeFilters().size === ALL_ACTIVITY_TYPES.length
+							}>
+							<span class="font-medium text-gray-700">
+								matching "{searchText().trim()}"
+							</span>
+						</Show>
+						<Show
+							when={
+								searchText().trim() &&
+								selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length
+							}>
+							<span class="text-gray-400">•</span>
+							<span class="font-medium text-gray-700">
+								matching "{searchText().trim()}"
+							</span>
+						</Show>
+						<span class="text-gray-400">
+							({sortedActivities().length} events)
+						</span>
+					</div>
+				</Show>
+			</div>
+
 			{/* Activity Feed - Scrollable with inline sticky items */}
 			{/* Uses normal flex-col (not reversed) to allow CSS sticky to work */}
 			<div
@@ -705,8 +917,24 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					fallback={
 						<div class="flex h-full items-center justify-center text-gray-400">
 							<div class="text-center">
-								<div class="mb-2 text-3xl">[chat]</div>
-								<div>Waiting for activity...</div>
+								<Show
+									when={hasActiveFilters()}
+									fallback={
+										<>
+											<div class="mb-2 text-3xl">[chat]</div>
+											<div>Waiting for activity...</div>
+										</>
+									}>
+									<div class="mb-2 text-3xl">[?]</div>
+									<div>No events match your filters</div>
+									<button
+										type="button"
+										class="mt-2 text-purple-600 text-sm hover:text-purple-700"
+										onClick={clearFilters}
+										data-testid="clear-filters-empty">
+										Clear filters
+									</button>
+								</Show>
 							</div>
 						</div>
 					}>
