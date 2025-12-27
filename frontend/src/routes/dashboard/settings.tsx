@@ -1,6 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { Skeleton } from "~/components/ui";
+import LanguageSwitcher from "~/components/LanguageSwitcher";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { useUserPreferencesForUser, useUserRolesData } from "~/lib/useElectric";
 import {
@@ -96,6 +98,7 @@ function SettingsPageSkeleton() {
 }
 
 export default function Settings() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const rolesData = useUserRolesData(() => user()?.id);
@@ -772,6 +775,25 @@ export default function Settings() {
 											)}
 										</For>
 									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+								{t("settings.language")}
+							</h3>
+							<div class="space-y-4">
+								<div>
+									<label class="block font-medium text-gray-700 text-sm">
+										{t("settings.language")}
+										<div class="mt-2">
+											<LanguageSwitcher class="w-full md:w-48" />
+										</div>
+									</label>
+									<p class="mt-1 text-gray-500 text-xs">
+										{t("settings.languageDescription")}
+									</p>
 								</div>
 							</div>
 						</div>
