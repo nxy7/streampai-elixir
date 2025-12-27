@@ -18,6 +18,7 @@ defmodule Streampai.Accounts.User do
   alias Streampai.Accounts.DefaultUsername
   alias Streampai.Accounts.User
   alias Streampai.Accounts.User.Changes.SavePlatformData
+  alias Streampai.Accounts.User.Changes.SendWelcomeEmail
   alias Streampai.Accounts.User.Changes.ValidateOAuthConfirmation
   alias Streampai.Accounts.User.Preparations.ExtendUserData
   alias Streampai.Accounts.User.Preparations.LoadModeratorStatus
@@ -249,6 +250,7 @@ defmodule Streampai.Accounts.User do
       change IdentityChange
       change {SavePlatformData, platform_name: "google"}
       change DefaultUsername
+      change SendWelcomeEmail
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)
@@ -265,6 +267,7 @@ defmodule Streampai.Accounts.User do
       change IdentityChange
       change {SavePlatformData, platform_name: "twitch"}
       change DefaultUsername
+      change SendWelcomeEmail
 
       upsert_fields [:extra_data]
       change set_attribute(:confirmed_at, &DateTime.utc_now/0)

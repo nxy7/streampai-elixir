@@ -73,6 +73,15 @@ defmodule StreampaiWeb.Router do
     oban_dashboard("/oban")
   end
 
+  # Dev mailbox for previewing sent emails (only in dev)
+  if Application.compile_env(:streampai, :dev_routes) do
+    scope "/dev" do
+      pipe_through(:browser)
+
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
   # All API routes are prefixed with /api for clean proxy configuration
   scope "/api", StreampaiWeb do
     pipe_through(:browser)

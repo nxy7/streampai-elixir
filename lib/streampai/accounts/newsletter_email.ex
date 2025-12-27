@@ -1,5 +1,7 @@
 defmodule Streampai.Accounts.NewsletterEmail do
-  @moduledoc false
+  @moduledoc """
+  Stores newsletter subscriber emails and sends confirmation on signup.
+  """
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Accounts,
@@ -19,6 +21,11 @@ defmodule Streampai.Accounts.NewsletterEmail do
 
     create :create do
       accept [:email]
+
+      change after_action(fn _changeset, record, _context ->
+               Streampai.Emails.send_newsletter_confirmation_email(record.email)
+               {:ok, record}
+             end)
     end
   end
 
