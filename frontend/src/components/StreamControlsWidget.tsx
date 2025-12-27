@@ -391,16 +391,28 @@ interface ActivityRowProps {
 	isSticky?: boolean;
 }
 
+// Row height constant for sticky offset calculations
+const ACTIVITY_ROW_HEIGHT = 52; // px - accounts for padding and content
+
 function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
+	// Calculate sticky top offset based on index (for stacking multiple sticky items)
+	const stickyStyle = () => {
+		if (props.isSticky && props.stickyIndex !== undefined) {
+			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
+		}
+		return {};
+	};
+
 	return (
 		<div
 			class={`flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
 				props.isSticky
-					? "border-amber-200 border-b bg-amber-50 shadow-sm"
+					? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
 					: isImportantEvent(props.item.type)
 						? "bg-gray-50/50"
 						: ""
-			}`}>
+			}`}
+			style={stickyStyle()}>
 			{/* Platform badge */}
 			<span
 				class={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[props.item.platform] || "bg-gray-500"}`}>
@@ -542,11 +554,26 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		onCleanup(() => clearTimeout(timeout));
 	});
 
-	// Get the actual sticky items for rendering in the fixed header
-	const stickyActivities = createMemo(() => {
+	// Create a map of sticky item id -> index for stacking offset calculation
+	// Items are ordered by time (oldest first) to maintain visual consistency
+	const stickyIndexMap = createMemo(() => {
 		const ids = stickyItemIds();
-		if (ids.size === 0) return [];
-		return sortedActivities().filter((item) => ids.has(item.id));
+		if (ids.size === 0) return new Map<string, number>();
+
+		// Get sticky items sorted by timestamp (oldest first for consistent stacking)
+		const stickyItems = sortedActivities()
+			.filter((item) => ids.has(item.id))
+			.sort((a, b) => {
+				const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+				const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+				return timeA - timeB;
+			});
+
+		const indexMap = new Map<string, number>();
+		stickyItems.forEach((item, index) => {
+			indexMap.set(item.id, index);
+		});
+		return indexMap;
 	});
 
 	// Toggle platform selection
@@ -627,44 +654,37 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				</div>
 			</div>
 
-			{/* Activity Feed - Contains sticky header and scrollable content */}
-			<div class="flex min-h-0 flex-1 flex-col">
-				{/* Sticky important events - fixed at top */}
-				<Show when={stickyActivities().length > 0}>
-					<div class="shrink-0 border-amber-300 border-b bg-amber-50/80 shadow-sm">
-						<For each={stickyActivities()}>
-							{(item) => <ActivityRow item={item} isSticky />}
+			{/* Activity Feed - Scrollable with inline sticky items */}
+			{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring */}
+			<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
+				<Show
+					when={sortedActivities().length > 0}
+					fallback={
+						<div class="flex h-full items-center justify-center text-gray-400">
+							<div class="text-center">
+								<div class="mb-2 text-3xl">[chat]</div>
+								<div>Waiting for activity...</div>
+							</div>
+						</div>
+					}>
+					{/* Inner div un-reverses the content so it reads top-to-bottom */}
+					{/* mt-auto pushes content to bottom when there are few items */}
+					<div class="mt-auto flex flex-col">
+						<For each={sortedActivities()}>
+							{(item) => {
+								const isSticky = stickyItemIds().has(item.id);
+								const stickyIndex = isSticky ? stickyIndexMap().get(item.id) : undefined;
+								return (
+									<ActivityRow
+										item={item}
+										isSticky={isSticky}
+										stickyIndex={stickyIndex}
+									/>
+								);
+							}}
 						</For>
 					</div>
 				</Show>
-
-				{/* Scrollable activity feed */}
-				{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring */}
-				<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
-					<Show
-						when={sortedActivities().length > 0}
-						fallback={
-							<div class="flex h-full items-center justify-center text-gray-400">
-								<div class="text-center">
-									<div class="mb-2 text-3xl">[chat]</div>
-									<div>Waiting for activity...</div>
-								</div>
-							</div>
-						}>
-						{/* Inner div un-reverses the content so it reads top-to-bottom */}
-						{/* mt-auto pushes content to bottom when there are few items */}
-						<div class="mt-auto flex flex-col">
-							<For each={sortedActivities()}>
-								{(item) => (
-									<ActivityRow
-										item={item}
-										isSticky={stickyItemIds().has(item.id)}
-									/>
-								)}
-							</For>
-						</div>
-					</Show>
-				</div>
 			</div>
 
 			{/* Chat Input - Fixed at bottom */}
