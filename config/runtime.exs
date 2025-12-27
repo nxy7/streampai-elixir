@@ -99,6 +99,17 @@ twitch_redirect_uri =
   System.get_env("TWITCH_AUTH_REDIRECT_URI") ||
     if config_env() == :dev, do: "http://localhost:4000/auth/user/twitch/callback"
 
+# Discord bot configuration (Nostrum)
+# Configure based on whether DISCORD_BOT_TOKEN is provided
+discord_token = System.get_env("DISCORD_BOT_TOKEN")
+
+config :nostrum,
+  token: discord_token || "not_configured",
+  gateway_intents: [:guilds, :guild_messages]
+
+# Store whether Discord is enabled for application startup decisions
+config :streampai, :discord_enabled, discord_token != nil
+
 config :streampai, :strategies,
   google: [
     client_id: System.get_env("GOOGLE_CLIENT_ID"),
@@ -125,22 +136,11 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
 config :ueberauth, Ueberauth.Strategy.Twitch.OAuth,
+  # Set secret_key_base and port for development environment
   client_id: System.get_env("TWITCH_CLIENT_ID"),
   client_secret: System.get_env("TWITCH_CLIENT_SECRET"),
   redirect_uri: System.get_env("TWITCH_STREAMING_REDIRECT_URI")
 
-# Discord bot configuration (Nostrum)
-# Configure based on whether DISCORD_BOT_TOKEN is provided
-discord_token = System.get_env("DISCORD_BOT_TOKEN")
-
-config :nostrum,
-  token: discord_token || "not_configured",
-  gateway_intents: [:guilds, :guild_messages]
-
-# Store whether Discord is enabled for application startup decisions
-config :streampai, :discord_enabled, discord_token != nil
-
-# Set secret_key_base and port for development environment
 if config_env() == :dev do
   secret_key_base =
     System.get_env("SECRET_KEY") ||
