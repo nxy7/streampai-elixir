@@ -108,7 +108,8 @@ just format                 # Format code
 just dev                    # Start full dev environment (Phoenix + Frontend + Caddy)
 just worktree name          # Create isolated dev environment
 just worktree-setup         # Setup current worktree (run after checkout)
-just ports                  # Show port configuration for current worktree
+just ports                  # Show port and domain configuration for current worktree
+just dns-setup              # One-time setup for local *.localhost domain resolution
 ```
 
 ## Code Generation
@@ -172,6 +173,40 @@ This updates `frontend/src/sdk/ash_rpc.ts` with typed RPC functions.
 - Frontend default: port 3000 (auto-increments if taken)
 - Use `PORT=4001` for additional backend instances
 - Use `DISABLE_LIVE_DEBUGGER=true` to avoid port conflicts
+
+## Local Domain Setup (Recommended)
+
+For a better development experience, you can use custom local domains like `https://streampai.my-branch.localhost` instead of `https://localhost:8000`.
+
+### One-Time DNS Setup
+
+Run this once on your machine to enable `*.localhost` domain resolution:
+
+```bash
+just dns-setup
+```
+
+This installs and configures `dnsmasq` to resolve all `*.localhost` domains to `127.0.0.1`.
+
+### How It Works
+
+When you run `just worktree-setup`, it automatically:
+1. Generates a local domain based on your branch name: `streampai.{branch-name}.localhost`
+2. Configures Caddy to listen on both the domain (port 443) and the fallback port
+3. Sets the `LOCAL_DOMAIN` environment variable in `.env`
+
+### Accessing Your App
+
+After running `just dev`:
+- **Recommended**: `https://streampai.my-branch.localhost` (clean URLs, no port)
+- **Fallback**: `https://localhost:8898` (random port, always works)
+
+### Benefits
+
+- **No port conflicts**: Each worktree uses a unique domain, no random ports to remember
+- **Cleaner URLs**: No port numbers in your development URLs
+- **OAuth-friendly**: Easier to configure OAuth redirect URIs with predictable domains
+- **Parallel development**: Run multiple worktrees simultaneously with distinct domains
 
 ## Worktree Setup (Isolated Development)
 
@@ -341,4 +376,4 @@ export const Default: Story = {
 - App name is "Streampai" (not "StreamPai")
 - If a port is taken, use another port instead of killing the running app
 - When using Playwright MCP for testing, let the user log in manually unless explicitly asked to automate it
-- **Playwright testing**: Always use HTTPS and the Caddy port (e.g., `https://localhost:8000`), not the direct frontend port. Caddy proxies both frontend and backend, which is required for auth flows to work correctly.
+- **Playwright testing**: Always use HTTPS and either the local domain (e.g., `https://streampai.my-branch.localhost`) or the Caddy port (e.g., `https://localhost:8000`), not the direct frontend port. Caddy proxies both frontend and backend, which is required for auth flows to work correctly.

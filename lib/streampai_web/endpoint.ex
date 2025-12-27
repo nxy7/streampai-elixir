@@ -43,18 +43,11 @@ defmodule StreampaiWeb.Endpoint do
   plug StreampaiWeb.Router
 
   defp cors(conn, _opts) do
-    # Allow frontend dev server and Caddy proxy origins
-    allowed_origins = [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://localhost:8000",
-      "https://localhost:8001"
-    ]
-
+    # Allow frontend dev server, Caddy proxy, and local domain origins
     origin = conn |> get_req_header("origin") |> List.first()
 
     conn =
-      if origin in allowed_origins do
+      if allowed_origin?(origin) do
         put_resp_header(conn, "access-control-allow-origin", origin)
       else
         conn
@@ -78,4 +71,23 @@ defmodule StreampaiWeb.Endpoint do
   end
 
   defp handle_preflight(conn), do: conn
+
+  # Check if origin is allowed for CORS
+  # Supports:
+  # - localhost with any port (http/https)
+  # - *.localhost domains (for local development with custom domains)
+  defp allowed_origin?(nil), do: false
+
+  defp allowed_origin?(origin) do
+    case URI.parse(origin) do
+      %URI{host: host} when is_binary(host) ->
+        # Allow localhost with any port
+        host == "localhost" or
+          # Allow any subdomain of .localhost (e.g., streampai.my-branch.localhost)
+          String.ends_with?(host, ".localhost")
+
+      _ ->
+        false
+    end
+  end
 end

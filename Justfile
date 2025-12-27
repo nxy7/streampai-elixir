@@ -41,13 +41,22 @@ dev:
 	FRONTEND_PORT=${FRONTEND_PORT:-3000}
 	CADDY_PORT=${CADDY_PORT:-8000}
 	HMR_PORT=${HMR_PORT:-24678}
+	LOCAL_DOMAIN=${LOCAL_DOMAIN:-}
 
 	echo "🚀 Starting Streampai development environment"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
 	echo "   Caddy:    https://localhost:$CADDY_PORT"
+	if [ -n "$LOCAL_DOMAIN" ]; then
+		echo "   Domain:   https://$LOCAL_DOMAIN"
+	fi
 	echo ""
-	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
+	if [ -n "$LOCAL_DOMAIN" ]; then
+		echo "📱 Access the app at: https://$LOCAL_DOMAIN (recommended)"
+		echo "   Fallback: https://localhost:$CADDY_PORT"
+	else
+		echo "📱 Access the app at: https://localhost:$CADDY_PORT"
+	fi
 	echo ""
 
 	# Check if caddy is installed
@@ -97,6 +106,57 @@ caddy-setup:
 	echo "Installing local CA certificates (may require sudo)..."
 	caddy trust
 	echo "✅ Caddy is ready! Run 'just dev' to start development."
+
+# Setup dnsmasq for local domain resolution (*.localhost)
+dns-setup:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	echo "🔧 Setting up local DNS for *.localhost domains..."
+
+	# Install dnsmasq if not installed
+	if ! command -v dnsmasq &> /dev/null; then
+		echo "Installing dnsmasq..."
+		brew install dnsmasq
+	else
+		echo "dnsmasq already installed"
+	fi
+
+	# Configure dnsmasq for *.localhost
+	DNSMASQ_CONF="/opt/homebrew/etc/dnsmasq.conf"
+	if [ ! -f "$DNSMASQ_CONF" ]; then
+		DNSMASQ_CONF="/usr/local/etc/dnsmasq.conf"
+	fi
+
+	# Add localhost resolution if not already configured
+	if ! grep -q "address=/localhost/127.0.0.1" "$DNSMASQ_CONF" 2>/dev/null; then
+		echo "" >> "$DNSMASQ_CONF"
+		echo "# Resolve all *.localhost domains to 127.0.0.1" >> "$DNSMASQ_CONF"
+		echo "address=/localhost/127.0.0.1" >> "$DNSMASQ_CONF"
+		echo "Added *.localhost resolution to dnsmasq config"
+	else
+		echo "*.localhost resolution already configured"
+	fi
+
+	# Create resolver directory if it doesn't exist
+	if [ ! -d /etc/resolver ]; then
+		sudo mkdir -p /etc/resolver
+	fi
+
+	# Create resolver for localhost TLD
+	echo "nameserver 127.0.0.1" | sudo tee /etc/resolver/localhost > /dev/null
+	echo "Created /etc/resolver/localhost"
+
+	# Start/restart dnsmasq (needs sudo for port 53)
+	sudo brew services restart dnsmasq
+	echo ""
+	echo "✅ DNS setup complete!"
+	echo "   All *.localhost domains now resolve to 127.0.0.1"
+	echo "   Example: streampai.my-branch.localhost"
+	echo ""
+	echo "   Flushing DNS cache..."
+	sudo dscacheutil -flushcache
+	sudo killall -HUP mDNSResponder 2>/dev/null || true
+	echo "   DNS cache flushed."
 
 worktree name:
 	#!/usr/bin/env bash
@@ -181,6 +241,13 @@ worktree-setup:
 	grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
 	grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
+	grep -v '^LOCAL_DOMAIN=' .env > .env.tmp && mv .env.tmp .env || true
+
+	# Generate local domain name from worktree name
+	# Format: streampai.{branch-name}.localhost
+	# Replace underscores with hyphens for valid domain name
+	domain_name=$(echo "$name" | tr '_' '-')
+	LOCAL_DOMAIN="streampai.${domain_name}.localhost"
 
 	# Append worktree-specific configuration
 	echo "" >> .env
@@ -194,12 +261,14 @@ worktree-setup:
 	echo "FRONTEND_HMR_SERVER_FUNCTION_PORT=$FRONTEND_HMR_SERVER_FUNCTION_PORT" >> .env
 	echo "FRONTEND_HMR_SSR_PORT=$FRONTEND_HMR_SSR_PORT" >> .env
 	echo "DISABLE_LIVE_DEBUGGER=true" >> .env
+	echo "LOCAL_DOMAIN=$LOCAL_DOMAIN" >> .env
 
 	echo ""
-	echo "📋 Worktree ports for '$name':"
+	echo "📋 Worktree configuration for '$name':"
+	echo "   Domain:   https://$LOCAL_DOMAIN (recommended)"
+	echo "   Caddy:    https://localhost:$CADDY_PORT (fallback)"
 	echo "   Phoenix:  http://localhost:$PHOENIX_PORT"
 	echo "   Frontend: http://localhost:$FRONTEND_PORT"
-	echo "   Caddy:    https://localhost:$CADDY_PORT"
 	echo ""
 
 	# Export environment variables for subsequent commands
@@ -232,11 +301,13 @@ ports:
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$') 2>/dev/null || true
 	set +a
-	echo "Port configuration:"
-	echo "   Phoenix:  ${PORT:-4000}"
-	echo "   Frontend: ${FRONTEND_PORT:-3000}"
-	echo "   Caddy:    ${CADDY_PORT:-8000}"
-	echo "   HMR:      ${HMR_PORT:-24678}"
+	echo "Development environment configuration:"
+	if [ -n "${LOCAL_DOMAIN:-}" ]; then
+		echo "   Domain:   https://$LOCAL_DOMAIN (recommended)"
+	fi
+	echo "   Caddy:    https://localhost:${CADDY_PORT:-8000}"
+	echo "   Phoenix:  http://localhost:${PORT:-4000}"
+	echo "   Frontend: http://localhost:${FRONTEND_PORT:-3000}"
 
 # ============================================================================
 # Production Commands
