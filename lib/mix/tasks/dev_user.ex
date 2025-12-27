@@ -93,7 +93,7 @@ defmodule Mix.Tasks.DevUser do
     Mix.shell().info("=" <> String.duplicate("=", 50))
 
     for user <- users do
-      admin_status = if Streampai.Dashboard.admin?(user), do: " [ADMIN]", else: ""
+      admin_status = if Streampai.Constants.admin?(user.email), do: " [ADMIN]", else: ""
       confirmed_status = if user.confirmed_at, do: "✅", else: "⏳"
 
       Mix.shell().info("#{confirmed_status} #{user.email}#{admin_status}")
