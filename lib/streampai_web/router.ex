@@ -13,6 +13,7 @@ defmodule StreampaiWeb.Router do
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
+    plug(:fetch_flash)
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
@@ -25,6 +26,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["html"])
     plug(:require_admin_access)
     plug(:fetch_session)
+    plug(:fetch_flash)
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
@@ -148,6 +150,7 @@ defmodule StreampaiWeb.Router do
     get "/chat_messages/:user_id", SyncController, :user_chat_messages
     get "/livestreams/:user_id", SyncController, :user_livestreams
     get "/viewers/:user_id", SyncController, :user_viewers
+    get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
   end
 
   scope "/api/shapes", StreampaiWeb do

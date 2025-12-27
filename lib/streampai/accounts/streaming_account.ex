@@ -34,6 +34,8 @@ defmodule Streampai.Accounts.StreamingAccount do
     define :destroy
     define :read
     define :for_user, action: :for_user, args: [:user_id]
+    define :refresh_stats
+    define :needs_stats_refresh, action: :needs_stats_refresh, args: [:hours_threshold]
   end
 
   actions do
@@ -86,6 +88,20 @@ defmodule Streampai.Accounts.StreamingAccount do
       require_atomic? false
 
       validate present([:access_token])
+    end
+
+    update :refresh_stats do
+      description "Refresh platform statistics (sponsors, views, etc.)"
+      require_atomic? false
+
+      change Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats
+    end
+
+    read :needs_stats_refresh do
+      description "Find accounts that haven't been refreshed in the given hours threshold"
+      argument :hours_threshold, :integer, default: 6
+
+      prepare Streampai.Accounts.StreamingAccount.Preparations.NeedsStatsRefresh
     end
   end
 
@@ -168,6 +184,37 @@ defmodule Streampai.Accounts.StreamingAccount do
 
     attribute :extra_data, :map do
       allow_nil? false
+    end
+
+    # Platform statistics (refreshed periodically)
+    attribute :sponsor_count, :integer do
+      description "Number of current sponsors/subscribers on the platform"
+      allow_nil? true
+      default nil
+    end
+
+    attribute :views_last_30d, :integer do
+      description "Total views in the last 30 days"
+      allow_nil? true
+      default nil
+    end
+
+    attribute :follower_count, :integer do
+      description "Total follower count on the platform"
+      allow_nil? true
+      default nil
+    end
+
+    attribute :subscriber_count, :integer do
+      description "Total subscriber count (YouTube) or equivalent"
+      allow_nil? true
+      default nil
+    end
+
+    attribute :stats_last_refreshed_at, :utc_datetime do
+      description "When the stats were last refreshed from the platform"
+      allow_nil? true
+      default nil
     end
 
     timestamps()
