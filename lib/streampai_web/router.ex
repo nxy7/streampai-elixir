@@ -87,7 +87,6 @@ defmodule StreampaiWeb.Router do
     pipe_through(:browser)
 
     get("/slider_images/*path", SliderImageController, :serve)
-    get("/home", PageController, :home)
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
     get("/streaming/connect/:provider/callback", MultiProviderAuth, :callback)
     get("/settings/paypal/callback", PayPalCallbackController, :handle_callback)
