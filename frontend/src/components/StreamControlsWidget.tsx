@@ -554,6 +554,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		overscanCount: OVERSCAN_COUNT,
 	});
 
+	// Track if we should auto-scroll (user hasn't scrolled away from bottom)
+	const [shouldAutoScroll, setShouldAutoScroll] = createSignal(true);
+
 	// Measure container height on mount and resize
 	onMount(() => {
 		if (scrollContainerRef) {
@@ -567,26 +570,36 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			const resizeObserver = new ResizeObserver(updateHeight);
 			resizeObserver.observe(scrollContainerRef);
 
+			// Scroll to bottom on mount
+			requestAnimationFrame(() => {
+				if (scrollContainerRef) {
+					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
+				}
+			});
+
 			onCleanup(() => resizeObserver.disconnect());
 		}
 	});
 
-	// Auto-scroll to bottom when new activities arrive
-	createEffect(() => {
-		const activities = sortedActivities();
-		if (scrollContainerRef && activities.length > 0) {
-			// Only auto-scroll if user is near the bottom
+	// Track scroll position to determine if user scrolled away from bottom
+	const handleScroll = (e: Event) => {
+		onVirtualScroll(e);
+		if (scrollContainerRef) {
 			const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
 			const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+			setShouldAutoScroll(isNearBottom);
+		}
+	};
 
-			if (isNearBottom) {
-				// Use requestAnimationFrame for smoother scrolling
-				requestAnimationFrame(() => {
-					if (scrollContainerRef) {
-						scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
-					}
-				});
-			}
+	// Auto-scroll to bottom when new activities arrive (if user hasn't scrolled away)
+	createEffect(() => {
+		const activities = sortedActivities();
+		if (scrollContainerRef && activities.length > 0 && shouldAutoScroll()) {
+			requestAnimationFrame(() => {
+				if (scrollContainerRef) {
+					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
+				}
+			});
 		}
 	});
 
@@ -669,10 +682,11 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			</div>
 
 			{/* Virtualized Activity Feed - Scrollable middle section */}
+			{/* Auto-scrolls to bottom on mount and when new events arrive */}
 			<div
 				ref={scrollContainerRef}
 				class="min-h-0 flex-1 overflow-y-auto"
-				onScroll={onVirtualScroll}>
+				onScroll={handleScroll}>
 				<Show
 					when={sortedActivities().length > 0}
 					fallback={
@@ -683,6 +697,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							</div>
 						</div>
 					}>
+					{/* This inner div provides the scrollable height for virtualization */}
 					<div
 						style={{
 							height: `${virtualState().containerHeight}px`,

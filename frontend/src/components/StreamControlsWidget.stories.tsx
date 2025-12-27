@@ -468,7 +468,7 @@ function InteractiveLiveWrapper() {
 		setDuration((d) => d + 1);
 	}, 1000);
 
-	// Simulate random activity - new events are added at the END (newest at bottom)
+	// Simulate random activity - 1 event per second, added at the END (newest at bottom)
 	setInterval(() => {
 		const types: ActivityItem["type"][] = [
 			"chat",
@@ -497,7 +497,7 @@ function InteractiveLiveWrapper() {
 		// Append to end (newest events at bottom)
 		setActivities((a) => [...a, newActivity].slice(-100)); // Keep last 100
 		setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 10) - 3));
-	}, 3000);
+	}, 1000); // 1 event per second
 
 	const handleSendMessage = (message: string, platforms: Platform[]) => {
 		// Add the sent message to the activity feed (at the end, since it's newest)
