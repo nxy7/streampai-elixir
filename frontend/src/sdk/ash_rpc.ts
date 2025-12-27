@@ -122,6 +122,18 @@ export type BannedViewerResourceSchema = {
 
 
 
+// StreamActor Schema
+export type StreamActorResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "data" | "status";
+  id: UUID;
+  type: string;
+  data: Record<string, any>;
+  status: "active" | "paused" | "terminated";
+};
+
+
+
 // File Schema
 export type FileResourceSchema = {
   __type: "Resource";
@@ -754,6 +766,38 @@ export type BannedViewerFilterInput = {
     lessThan?: UtcDateTimeUsec;
     lessThanOrEqual?: UtcDateTimeUsec;
     in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamActorFilterInput = {
+  and?: Array<StreamActorFilterInput>;
+  or?: Array<StreamActorFilterInput>;
+  not?: Array<StreamActorFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  type?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  data?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  status?: {
+    eq?: "active" | "paused" | "terminated";
+    notEq?: "active" | "paused" | "terminated";
+    in?: Array<"active" | "paused" | "terminated">;
   };
 
 
@@ -2607,6 +2651,64 @@ export async function listBannedViewersChannel<Fields extends ListBannedViewersF
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamActorInput = {
+  userId: UUID;
+};
+
+export type GetStreamActorFields = UnifiedFieldSelection<StreamActorResourceSchema>[];
+export type InferGetStreamActorResult<
+  Fields extends GetStreamActorFields,
+> = InferResult<StreamActorResourceSchema, Fields>;
+
+export type GetStreamActorResult<Fields extends GetStreamActorFields> = | { success: true; data: InferGetStreamActorResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getStreamActor<Fields extends GetStreamActorFields>(
+  config: {
+  input: GetStreamActorInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamActorResult<Fields>> {
+  const payload = {
+    action: "get_stream_actor",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetStreamActorResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getStreamActorChannel<Fields extends GetStreamActorFields>(config: {
+  channel: Channel;
+  input: GetStreamActorInput;
+  fields: Fields;
+  resultHandler: (result: GetStreamActorResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamActorResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_actor",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config

@@ -17,6 +17,7 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   alias Streampai.LivestreamManager.PlatformSupervisor
   alias Streampai.LivestreamManager.StreamStateServer
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamActor
 
   require Logger
 
@@ -121,6 +122,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
 
     livestream_id = livestream.id
 
+    # Update StreamActor state to streaming
+    update_stream_actor_state(user_id, :streaming, livestream_id, "Starting stream...")
+
     StreamStateServer.start_stream(
       {:via, Registry, {get_registry_name(), {:stream_state, user_id}}},
       livestream_id
@@ -135,6 +139,14 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     start_metrics_collector(user_id, livestream_id)
 
     start_platform_streaming(user_id, livestream_id, metadata)
+
+    # Update StreamActor with platforms info
+    active_platforms = get_active_platforms(user_id)
+
+    platforms_status =
+      Map.new(active_platforms, fn platform -> {to_string(platform), "connecting"} end)
+
+    update_stream_actor_platforms(user_id, platforms_status, "Streaming to #{length(active_platforms)} platform(s)")
 
     Phoenix.PubSub.broadcast(
       Streampai.PubSub,
@@ -152,6 +164,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
   """
   def stop_stream(user_id) when is_binary(user_id) do
     Logger.info("stop_stream called for user #{user_id}")
+
+    # Update StreamActor state to stopping
+    update_stream_actor_status(user_id, :stopping, "Stopping stream...")
 
     # Get current livestream ID before stopping
     stream_state = get_state(user_id)
@@ -195,6 +210,9 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
       end,
       "update stream state"
     )
+
+    # Update StreamActor state to idle
+    update_stream_actor_stopped(user_id, "Stream ended")
 
     # Broadcast stream status change
     Phoenix.PubSub.broadcast(
@@ -515,5 +533,91 @@ defmodule Streampai.LivestreamManager.UserStreamManager do
     else
       Streampai.LivestreamManager.Registry
     end
+  end
+
+  # StreamActor helper functions
+
+  defp update_stream_actor_state(user_id, status, livestream_id, status_message) do
+    Task.start(fn ->
+      case StreamActor.mark_streaming(user_id, livestream_id, status_message) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor to #{status} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  defp update_stream_actor_status(user_id, status, status_message) do
+    Task.start(fn ->
+      case StreamActor.update_for_user(user_id, %{status: status, status_message: status_message}) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor status to #{status} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor status: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  defp update_stream_actor_platforms(user_id, platforms_status, status_message) do
+    Task.start(fn ->
+      case StreamActor.update_for_user(user_id, %{
+             platforms: platforms_status,
+             status_message: status_message
+           }) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor platforms for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor platforms: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  defp update_stream_actor_stopped(user_id, status_message) do
+    Task.start(fn ->
+      case StreamActor.mark_stopped(user_id, status_message) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor to stopped for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor stopped: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  @doc """
+  Updates the StreamActor viewer count for a specific platform.
+  Called by platform managers when they receive viewer count updates.
+  """
+  def update_stream_actor_viewers(user_id, platform, viewer_count)
+      when is_binary(user_id) and is_atom(platform) and is_integer(viewer_count) do
+    Task.start(fn ->
+      case StreamActor.update_viewer_count(user_id, platform, viewer_count) do
+        {:ok, _actor} ->
+          Logger.debug("Updated StreamActor #{platform} viewers to #{viewer_count} for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update StreamActor viewers: #{inspect(reason)}")
+      end
+    end)
+  end
+
+  @doc """
+  Reports an error to the StreamActor.
+  Called when the stream encounters an error condition.
+  """
+  def report_stream_error(user_id, error_message) when is_binary(user_id) and is_binary(error_message) do
+    Task.start(fn ->
+      case StreamActor.mark_error(user_id, error_message) do
+        {:ok, _actor} ->
+          Logger.info("Reported error to StreamActor for user #{user_id}: #{error_message}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to report error to StreamActor: #{inspect(reason)}")
+      end
+    end)
   end
 end
