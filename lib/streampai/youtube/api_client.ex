@@ -15,6 +15,7 @@ defmodule Streampai.YouTube.ApiClient do
   require Logger
 
   @base_url "https://www.googleapis.com/youtube/v3"
+  @analytics_url "https://youtubeanalytics.googleapis.com/v2"
   @token_info_url "https://www.googleapis.com/oauth2/v3/tokeninfo"
 
   # Default request timeout in milliseconds
@@ -717,6 +718,144 @@ defmodule Streampai.YouTube.ApiClient do
         error
     end
   end
+
+  ## Channel Statistics API
+
+  @doc """
+  Gets channel statistics for the authenticated user's channel.
+
+  Returns subscriber count and other channel-level statistics.
+
+  ## Returns
+  - `{:ok, %{subscriber_count: integer}}` - Channel statistics
+  - `{:error, reason}` - Failed to fetch statistics
+
+  ## Example
+      {:ok, %{subscriber_count: 10000}} = ApiClient.get_channel_stats(access_token)
+  """
+  @spec get_channel_stats(access_token) :: {:ok, map()} | {:error, term()}
+  def get_channel_stats(access_token) do
+    params = %{part: "statistics", mine: true}
+    req_opts = base_opts(access_token) ++ [url: "/channels", params: params]
+
+    case req_opts |> Req.get() |> handle_response() do
+      {:ok, %{"items" => [channel | _]}} ->
+        stats = get_in(channel, ["statistics"]) || %{}
+
+        {:ok,
+         %{
+           subscriber_count: parse_int(stats["subscriberCount"]),
+           view_count: parse_int(stats["viewCount"]),
+           video_count: parse_int(stats["videoCount"])
+         }}
+
+      {:ok, %{"items" => []}} ->
+        {:error, :channel_not_found}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Gets views for the last 30 days using YouTube Analytics API.
+
+  Requires the `yt-analytics.readonly` scope.
+
+  ## Returns
+  - `{:ok, %{views_last_30d: integer}}` - View statistics
+  - `{:error, reason}` - Failed to fetch analytics
+
+  ## Example
+      {:ok, %{views_last_30d: 50000}} = ApiClient.get_analytics_views(access_token)
+  """
+  @spec get_analytics_views(access_token) :: {:ok, map()} | {:error, term()}
+  def get_analytics_views(access_token) do
+    end_date = Date.utc_today()
+    start_date = Date.add(end_date, -30)
+
+    params = %{
+      ids: "channel==MINE",
+      startDate: Date.to_string(start_date),
+      endDate: Date.to_string(end_date),
+      metrics: "views,estimatedMinutesWatched"
+    }
+
+    req_opts = [
+      url: "#{@analytics_url}/reports",
+      auth: {:bearer, access_token},
+      params: params,
+      receive_timeout: @default_timeout
+    ]
+
+    case req_opts |> Req.get() |> handle_response() do
+      {:ok, %{"rows" => [[views, _watch_time] | _]}} ->
+        {:ok, %{views_last_30d: views}}
+
+      {:ok, %{"rows" => []}} ->
+        {:ok, %{views_last_30d: 0}}
+
+      {:ok, %{"rows" => nil}} ->
+        {:ok, %{views_last_30d: 0}}
+
+      {:ok, response} ->
+        Logger.warning("Unexpected YouTube Analytics response: #{inspect(response)}")
+        {:ok, %{views_last_30d: 0}}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Gets the total count of channel members (sponsors).
+
+  Requires the `youtube.channel-memberships.creator` scope.
+
+  ## Returns
+  - `{:ok, %{sponsor_count: integer}}` - Member count
+  - `{:error, reason}` - Failed to fetch members
+
+  ## Example
+      {:ok, %{sponsor_count: 150}} = ApiClient.get_member_count(access_token)
+  """
+  @spec get_member_count(access_token) :: {:ok, map()} | {:error, term()}
+  def get_member_count(access_token) do
+    # We need to paginate to get total count since API doesn't return total directly
+    count_members(access_token, nil, 0)
+  end
+
+  defp count_members(access_token, page_token, acc) do
+    params = maybe_add_page_token(%{part: "snippet", maxResults: 50}, page_token)
+
+    req_opts = base_opts(access_token) ++ [url: "/members", params: params]
+
+    case req_opts |> Req.get() |> handle_response() do
+      {:ok, %{"items" => items, "nextPageToken" => next_token}} when is_list(items) ->
+        count_members(access_token, next_token, acc + length(items))
+
+      {:ok, %{"items" => items}} when is_list(items) ->
+        {:ok, %{sponsor_count: acc + length(items)}}
+
+      {:ok, %{"error" => %{"code" => 403}}} ->
+        # Channel doesn't have memberships enabled
+        {:ok, %{sponsor_count: 0}}
+
+      {:error, {:http_error, 403, _}} ->
+        # Channel doesn't have memberships enabled
+        {:ok, %{sponsor_count: 0}}
+
+      error ->
+        error
+    end
+  end
+
+  defp maybe_add_page_token(params, nil), do: params
+  defp maybe_add_page_token(params, token), do: Map.put(params, :pageToken, token)
+
+  defp parse_int(nil), do: nil
+  defp parse_int(value) when is_integer(value), do: value
+  defp parse_int(value) when is_binary(value), do: String.to_integer(value)
 
   ## Private Functions
 

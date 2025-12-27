@@ -94,11 +94,12 @@ const platformConfig = {
 	},
 };
 
-function formatNumber(num: number | null): string {
+function formatNumber(num: number | bigint | null): string {
 	if (num === null) return "-";
-	if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
-	if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-	return num.toLocaleString();
+	const n = typeof num === "bigint" ? Number(num) : num;
+	if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+	if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+	return n.toLocaleString();
 }
 
 function formatRelativeTime(dateString: string | null): string {

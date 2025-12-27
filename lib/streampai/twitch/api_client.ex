@@ -315,6 +315,140 @@ defmodule Streampai.Twitch.ApiClient do
     end
   end
 
+  ## Channel Statistics API
+
+  @doc """
+  Gets the total follower count for a broadcaster.
+
+  Requires the `moderator:read:followers` scope.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token with moderator:read:followers scope
+  - `broadcaster_id`: The ID of the broadcaster
+
+  ## Returns
+  - `{:ok, %{follower_count: integer}}` - Total follower count
+  - `{:error, reason}` - Failed to retrieve follower count
+
+  ## Example
+      {:ok, %{follower_count: 10000}} = ApiClient.get_follower_count(token, broadcaster_id)
+  """
+  @spec get_follower_count(access_token, String.t()) :: api_result()
+  def get_follower_count(access_token, broadcaster_id) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{access_token}"},
+      {"Client-Id", client_id}
+    ]
+
+    params = %{broadcaster_id: broadcaster_id, first: 1}
+
+    [
+      url: "#{@base_url}/channels/followers",
+      headers: headers,
+      params: params,
+      receive_timeout: @default_timeout
+    ]
+    |> Req.get()
+    |> handle_response()
+    |> case do
+      {:ok, %{"total" => total}} -> {:ok, %{follower_count: total}}
+      {:ok, response} -> {:error, {:unexpected_response, response}}
+      error -> error
+    end
+  end
+
+  @doc """
+  Gets the total subscriber count for a broadcaster (paid subscriptions).
+
+  Requires the `channel:read:subscriptions` scope.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token with channel:read:subscriptions scope
+  - `broadcaster_id`: The ID of the broadcaster
+
+  ## Returns
+  - `{:ok, %{subscriber_count: integer, points: integer}}` - Subscriber stats
+  - `{:error, reason}` - Failed to retrieve subscriber count
+
+  ## Example
+      {:ok, %{subscriber_count: 500, points: 1250}} = ApiClient.get_subscriber_count(token, broadcaster_id)
+  """
+  @spec get_subscriber_count(access_token, String.t()) :: api_result()
+  def get_subscriber_count(access_token, broadcaster_id) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{access_token}"},
+      {"Client-Id", client_id}
+    ]
+
+    params = %{broadcaster_id: broadcaster_id, first: 1}
+
+    [
+      url: "#{@base_url}/subscriptions",
+      headers: headers,
+      params: params,
+      receive_timeout: @default_timeout
+    ]
+    |> Req.get()
+    |> handle_response()
+    |> case do
+      {:ok, %{"total" => total, "points" => points}} ->
+        {:ok, %{subscriber_count: total, points: points}}
+
+      {:ok, %{"total" => total}} ->
+        {:ok, %{subscriber_count: total, points: 0}}
+
+      {:ok, response} ->
+        {:error, {:unexpected_response, response}}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Gets all channel statistics for a broadcaster.
+
+  Combines follower count and subscriber count into a single call.
+
+  ## Parameters
+  - `access_token`: OAuth 2.0 access token
+  - `broadcaster_id`: The ID of the broadcaster
+
+  ## Returns
+  - `{:ok, %{follower_count: integer, subscriber_count: integer}}` - Combined stats
+  - `{:error, reason}` - Failed to retrieve statistics
+
+  ## Example
+      {:ok, stats} = ApiClient.get_channel_stats(token, broadcaster_id)
+  """
+  @spec get_channel_stats(access_token, String.t()) :: api_result()
+  def get_channel_stats(access_token, broadcaster_id) do
+    # Fetch both stats in parallel using Task
+    follower_task = Task.async(fn -> get_follower_count(access_token, broadcaster_id) end)
+    subscriber_task = Task.async(fn -> get_subscriber_count(access_token, broadcaster_id) end)
+
+    follower_result = Task.await(follower_task, @default_timeout)
+    subscriber_result = Task.await(subscriber_task, @default_timeout)
+
+    case {follower_result, subscriber_result} do
+      {{:ok, %{follower_count: followers}}, {:ok, %{subscriber_count: subs}}} ->
+        {:ok, %{follower_count: followers, subscriber_count: subs}}
+
+      {{:ok, %{follower_count: followers}}, {:error, _}} ->
+        {:ok, %{follower_count: followers, subscriber_count: nil}}
+
+      {{:error, _}, {:ok, %{subscriber_count: subs}}} ->
+        {:ok, %{follower_count: nil, subscriber_count: subs}}
+
+      {{:error, reason}, _} ->
+        {:error, reason}
+    end
+  end
+
   ## Private Functions
 
   defp handle_response({:ok, %{status: status, body: body}}) when status in 200..299 do
