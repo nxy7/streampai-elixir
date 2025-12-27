@@ -228,9 +228,10 @@ defmodule Streampai.Integrations.DiscordIntegrationTest do
   end
 
   # Helper to skip tests if env var not set
+  # Returns :ok if value is present, flunks with message if not
   defp skip_unless(value, message) do
     if !value do
-      ExUnit.Case.skip(message)
+      flunk(message)
     end
   end
 end
