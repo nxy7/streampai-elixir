@@ -200,13 +200,14 @@ just worktree-setup
 ```
 
 This is the **single command** needed to set up any worktree environment. It:
-1. Generates random available ports for Phoenix, Frontend, and Caddy
-2. Creates an isolated PostgreSQL database
-3. Copies `.env` and build artifacts from `~/streampai-elixir`
-4. Removes any existing worktree variables from `.env` and appends fresh ones
-5. Installs backend dependencies and runs migrations/seeds
-6. Installs frontend dependencies (`bun install`)
-7. Starts Claude Code with permissions skipped
+1. Runs `direnv allow` to enable Nix flake dependencies (if direnv is installed)
+2. Generates random available ports for Phoenix, Frontend, and Caddy
+3. Creates an isolated PostgreSQL database
+4. Copies `.env` and build artifacts from `~/streampai-elixir`
+5. Removes any existing worktree variables from `.env` and appends fresh ones
+6. Installs backend dependencies and runs migrations/seeds
+7. Installs frontend dependencies (`bun install`)
+8. Starts Claude Code with permissions skipped
 
 ### Port Allocation
 
@@ -237,6 +238,7 @@ just si     # Interactive Elixir shell with Phoenix server
 - Main repo must exist at `~/streampai-elixir` with `.env` configured
 - PostgreSQL running locally (user: postgres, password: postgres)
 - Caddy installed (`brew install caddy && caddy trust`)
+- direnv installed (for Nix flake dependencies): `brew install direnv`
 
 ### Critical Worktree Isolation Details
 
