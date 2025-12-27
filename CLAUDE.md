@@ -206,7 +206,7 @@ This is the **single command** needed to set up any worktree environment. It:
 4. Removes any existing worktree variables from `.env` and appends fresh ones
 5. Installs backend dependencies and runs migrations/seeds
 6. Installs frontend dependencies (`bun install`)
-7. Starts Claude Code with permissions skipped
+7. Registers the worktree as trusted in Claude Code (requires `jq`)
 
 ### Port Allocation
 
@@ -237,6 +237,7 @@ just si     # Interactive Elixir shell with Phoenix server
 - Main repo must exist at `~/streampai-elixir` with `.env` configured
 - PostgreSQL running locally (user: postgres, password: postgres)
 - Caddy installed (`brew install caddy && caddy trust`)
+- `jq` installed for auto-trusting worktrees in Claude Code (`brew install jq`)
 
 ### Critical Worktree Isolation Details
 
@@ -255,6 +256,10 @@ The following config changes enable multiple worktrees to run simultaneously:
 **Electric replication slot conflict**: Each worktree needs a unique database. If you see "replication slot already in use", ensure DATABASE_URL points to a worktree-specific database (the setup handles this automatically).
 
 **Frontend not starting**: Run `bun install` in the frontend directory, or re-run `just worktree-setup` which now includes this step.
+
+**Claude Code asks "Do you trust the files?"**: The setup script automatically registers worktrees as trusted in `~/.claude.json`. If you still see this prompt, ensure `jq` is installed (`brew install jq`) and re-run `just worktree-setup`.
+
+**VS Code asks "Do you trust the authors?"**: The setup script automatically adds the worktrees parent folder to VS Code's trusted folders list (stored in `state.vscdb`). This trusts all worktrees at once since trust is inherited by subdirectories. Note: VS Code must be closed for this to work. If you still see the prompt, manually trust the `/path/to/vibe-kanban/worktrees` folder once and all future worktrees will be trusted.
 
 ### Example: Vibe-Kanban Workflow
 

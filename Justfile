@@ -219,12 +219,62 @@ worktree-setup:
 	echo "Installing frontend dependencies..."
 	cd frontend && bun install
 
+	# Pre-register this folder as trusted in Claude Code to avoid "Do you trust the files?" prompt
+	# This adds an entry to ~/.claude.json with hasTrustDialogAccepted: true
+	worktree_path=$(pwd)
+	if [ -f ~/.claude.json ]; then
+		if command -v jq &> /dev/null; then
+			echo "🔐 Registering worktree as trusted in Claude Code..."
+			tmp_file=$(mktemp)
+			jq --arg path "$worktree_path" '.projects[$path] = (.projects[$path] // {}) + {
+				"allowedTools": (.projects[$path].allowedTools // []),
+				"hasTrustDialogAccepted": true
+			}' ~/.claude.json > "$tmp_file" && mv "$tmp_file" ~/.claude.json
+			echo "   ✅ Folder trusted: $worktree_path"
+		else
+			echo "⚠️  jq not installed - Claude Code will prompt for trust on first run"
+			echo "   Install jq: brew install jq"
+		fi
+	fi
+
+	# Pre-register this folder as trusted in VS Code to avoid "Do you trust the authors?" prompt
+	# VS Code stores trusted folders in a SQLite database; we add the worktrees parent folder
+	# so all worktrees are automatically trusted (trust is inherited by subdirectories)
+	vscode_state_db="$HOME/Library/Application Support/Code/User/globalStorage/state.vscdb"
+	if [ -f "$vscode_state_db" ]; then
+		if command -v sqlite3 &> /dev/null; then
+			# Get the worktrees parent directory (e.g., /path/to/vibe-kanban/worktrees)
+			worktrees_parent=$(dirname "$(dirname "$worktree_path")")
+
+			# Check if this parent is already trusted
+			existing=$(sqlite3 "$vscode_state_db" "SELECT value FROM ItemTable WHERE key = 'security.workspace.trust.untrustedFolders'" 2>/dev/null || echo "")
+
+			if [ -n "$existing" ] && echo "$existing" | grep -q "$worktrees_parent"; then
+				echo "🔐 VS Code: Worktrees folder already trusted"
+			else
+				echo "🔐 Registering worktrees folder as trusted in VS Code..."
+				# Get current trusted folders and add the new one
+				current_trusted=$(sqlite3 "$vscode_state_db" "SELECT value FROM ItemTable WHERE key = 'security.workspace.trust.trustedFolders'" 2>/dev/null || echo "[]")
+				if [ -z "$current_trusted" ] || [ "$current_trusted" = "" ]; then
+					current_trusted="[]"
+				fi
+				# Add the worktrees parent folder to trusted list using jq
+				new_trusted=$(echo "$current_trusted" | jq --arg path "$worktrees_parent" '. + [$path] | unique')
+				sqlite3 "$vscode_state_db" "INSERT OR REPLACE INTO ItemTable (key, value) VALUES ('security.workspace.trust.trustedFolders', '$new_trusted')" 2>/dev/null && \
+					echo "   ✅ VS Code: Trusted folder added: $worktrees_parent" || \
+					echo "   ⚠️  VS Code: Could not update trusted folders (VS Code may be running)"
+			fi
+		else
+			echo "⚠️  sqlite3 not installed - VS Code will prompt for trust on first run"
+		fi
+	else
+		echo "ℹ️  VS Code not detected - skipping VS Code trust setup"
+	fi
+
 	echo ""
 	echo "✅ Worktree '$name' is ready!"
 	echo "   Run 'just dev' to start with Caddy (recommended)"
 	echo "   Run 'just si' to start without Caddy"
-
-	claude --dangerously-skip-permissions .
 
 # Show port configuration for current worktree
 ports:
