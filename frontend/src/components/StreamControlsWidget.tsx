@@ -4,6 +4,7 @@ import {
 	createSignal,
 	For,
 	onCleanup,
+	onMount,
 	Show,
 } from "solid-js";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
@@ -478,6 +479,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	const [stickyItemIds, setStickyItemIds] = createSignal<Set<string>>(
 		new Set(),
 	);
+	const [shouldAutoScroll, setShouldAutoScroll] = createSignal(true);
+	let scrollContainerRef: HTMLDivElement | undefined;
 
 	// Get available platforms (either from props or default to all)
 	const availablePlatforms = createMemo(
@@ -513,7 +516,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 	// Track sticky items based on time (max 3 most recent, 2 minute default duration)
 	const MAX_STICKY_ITEMS = 3;
-	createEffect(() => {
+
+	// Compute sticky items as a memo that updates when activities change
+	// This runs immediately on mount and whenever activities change
+	const computeStickyItems = () => {
 		const duration = props.stickyDuration || 120000; // 2 minutes default
 		const now = Date.now();
 
@@ -532,33 +538,31 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		}
 		// Sort by time descending (most recent first) and take top 3
 		stickyItems.sort((a, b) => b.time - a.time);
-		const newStickyIds = new Set(
-			stickyItems.slice(0, MAX_STICKY_ITEMS).map((s) => s.id),
-		);
-		setStickyItemIds(newStickyIds);
+		return new Set(stickyItems.slice(0, MAX_STICKY_ITEMS).map((s) => s.id));
+	};
 
-		// Set up cleanup timer
-		const timeout = setTimeout(() => {
-			setStickyItemIds((current) => {
-				const updated = new Set<string>();
-				const nowInner = Date.now();
-				for (const id of current) {
-					const item = props.activities.find((a) => a.id === id);
-					if (item) {
-						const itemTime =
-							item.timestamp instanceof Date
-								? item.timestamp.getTime()
-								: new Date(item.timestamp).getTime();
-						if (nowInner - itemTime < duration) {
-							updated.add(id);
-						}
-					}
-				}
-				return updated;
-			});
-		}, duration);
+	// Run on mount to set initial sticky items
+	onMount(() => {
+		setStickyItemIds(computeStickyItems());
+	});
 
-		onCleanup(() => clearTimeout(timeout));
+	// Re-compute sticky items when activities change
+	createEffect(() => {
+		// Track the activities array (triggers on new activities)
+		const activities = props.activities;
+		if (activities.length > 0) {
+			setStickyItemIds(computeStickyItems());
+		}
+	});
+
+	// Set up periodic refresh to remove expired sticky items
+	onMount(() => {
+		const duration = props.stickyDuration || 120000;
+		const interval = setInterval(() => {
+			setStickyItemIds(computeStickyItems());
+		}, 10000); // Refresh every 10 seconds
+
+		onCleanup(() => clearInterval(interval));
 	});
 
 	// Create a map of sticky item id -> index for stacking offset calculation
@@ -588,6 +592,29 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		});
 		return indexMap;
 	});
+
+	// Auto-scroll to bottom when new activities arrive (if user hasn't scrolled up)
+	createEffect(() => {
+		// Track activities to trigger effect on changes
+		const activities = sortedActivities();
+		if (shouldAutoScroll() && scrollContainerRef && activities.length > 0) {
+			// Use requestAnimationFrame to ensure DOM is updated
+			requestAnimationFrame(() => {
+				if (scrollContainerRef) {
+					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
+				}
+			});
+		}
+	});
+
+	// Handle scroll to detect if user has scrolled up (disable auto-scroll)
+	const handleScroll = () => {
+		if (!scrollContainerRef) return;
+		const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
+		// If user is near bottom (within 100px), enable auto-scroll
+		const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+		setShouldAutoScroll(isNearBottom);
+	};
 
 	// Toggle platform selection
 	const togglePlatform = (platform: Platform) => {
@@ -668,8 +695,11 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			</div>
 
 			{/* Activity Feed - Scrollable with inline sticky items */}
-			{/* Uses flex-direction: column-reverse for CSS-based bottom anchoring */}
-			<div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
+			{/* Uses normal flex-col (not reversed) to allow CSS sticky to work */}
+			<div
+				ref={scrollContainerRef}
+				class="min-h-0 flex-1 overflow-y-auto"
+				onScroll={handleScroll}>
 				<Show
 					when={sortedActivities().length > 0}
 					fallback={
@@ -680,25 +710,22 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							</div>
 						</div>
 					}>
-					{/* Inner div un-reverses the content so it reads top-to-bottom */}
-					{/* mt-auto pushes content to bottom when there are few items */}
-					<div class="mt-auto flex flex-col">
-						<For each={sortedActivities()}>
-							{(item) => {
-								const isSticky = stickyItemIds().has(item.id);
-								const stickyIndex = isSticky
-									? stickyIndexMap().get(item.id)
-									: undefined;
-								return (
-									<ActivityRow
-										item={item}
-										isSticky={isSticky}
-										stickyIndex={stickyIndex}
-									/>
-								);
-							}}
-						</For>
-					</div>
+					{/* Activity items - sorted oldest first, newest at bottom */}
+					<For each={sortedActivities()}>
+						{(item) => {
+							// Use reactive getters so sticky state updates when stickyItemIds changes
+							const isSticky = () => stickyItemIds().has(item.id);
+							const stickyIndex = () =>
+								isSticky() ? stickyIndexMap().get(item.id) : undefined;
+							return (
+								<ActivityRow
+									item={item}
+									isSticky={isSticky()}
+									stickyIndex={stickyIndex()}
+								/>
+							);
+						}}
+					</For>
 				</Show>
 			</div>
 

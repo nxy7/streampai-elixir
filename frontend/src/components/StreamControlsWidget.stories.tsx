@@ -541,7 +541,7 @@ function InteractiveLiveWrapper() {
 			timestamp: new Date(),
 		};
 		// Append to end (newest events at bottom)
-		setActivities((a) => [...a, newActivity].slice(-100));
+		setActivities((a) => [...a, newActivity].slice(-1000));
 		console.log(`Message sent to ${platforms.join(", ")}: ${message}`);
 	};
 
@@ -562,6 +562,100 @@ export const InteractiveLive: Story = {
 	render: () => <InteractiveLiveWrapper />,
 	args: {
 		phase: "live",
+	},
+};
+
+// Story specifically for testing sticky event behavior
+function StickyTestWrapper() {
+	// Generate activities fresh on each render with current timestamps
+	const generateStickyTestActivities = (): ActivityItem[] => {
+		const now = Date.now();
+		return [
+			// Old chat messages (not sticky)
+			...Array.from({ length: 20 }, (_, i) => ({
+				id: `chat-${i}`,
+				type: "chat" as const,
+				username: `Chatter${i}`,
+				message: `Old chat message ${i}`,
+				platform: "twitch",
+				timestamp: new Date(now - (25 - i) * 60000), // 25-5 minutes ago
+			})),
+			// 3 recent donations (should be sticky - within 2 minute window)
+			{
+				id: "donation-1",
+				type: "donation" as const,
+				username: "StickyDonor1",
+				message: "First sticky donation!",
+				amount: 50,
+				currency: "$",
+				platform: "twitch",
+				timestamp: new Date(now - 90000), // 1.5 min ago - should be sticky
+				isImportant: true,
+			},
+			{
+				id: "donation-2",
+				type: "donation" as const,
+				username: "StickyDonor2",
+				message: "Second sticky donation!",
+				amount: 100,
+				currency: "$",
+				platform: "youtube",
+				timestamp: new Date(now - 60000), // 1 min ago - should be sticky
+				isImportant: true,
+			},
+			{
+				id: "donation-3",
+				type: "donation" as const,
+				username: "StickyDonor3",
+				message: "Third sticky donation!",
+				amount: 25,
+				currency: "$",
+				platform: "kick",
+				timestamp: new Date(now - 30000), // 30 sec ago - should be sticky
+				isImportant: true,
+			},
+			// Recent chat messages (not sticky, below the donations)
+			...Array.from({ length: 10 }, (_, i) => ({
+				id: `recent-chat-${i}`,
+				type: "chat" as const,
+				username: `RecentChatter${i}`,
+				message: `Recent chat message ${i}`,
+				platform: "youtube",
+				timestamp: new Date(now - (10 - i) * 1000), // Last 10 seconds
+			})),
+		];
+	};
+
+	// Use createSignal to store activities - generates fresh on component mount
+	const [activities] = createSignal(generateStickyTestActivities());
+
+	return (
+		<StreamControlsWidget
+			phase="live"
+			activities={activities()}
+			streamDuration={300}
+			viewerCount={500}
+			stickyDuration={120000}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			onSendMessage={(msg, platforms) =>
+				console.log(`Send to ${platforms}: ${msg}`)
+			}
+		/>
+	);
+}
+
+export const StickyEventsTest: Story = {
+	render: () => <StickyTestWrapper />,
+	args: {
+		phase: "live",
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					"Test story for verifying sticky donation events. The 3 donations should have yellow/amber backgrounds and stick to the top when scrolling.",
+			},
+		},
 	},
 };
 
