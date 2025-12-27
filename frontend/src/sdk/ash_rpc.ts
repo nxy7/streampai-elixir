@@ -150,7 +150,7 @@ export type FileResourceSchema = {
 // User Schema
 export type UserResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
+  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
   id: UUID;
   email: string;
   name: string;
@@ -162,6 +162,7 @@ export type UserResourceSchema = {
   donationCurrency: string;
   defaultVoice: string | null;
   avatarUrl: string | null;
+  languagePreference: string | null;
   avatarFileId: UUID | null;
   tier: string | null;
   role: string | null;
@@ -942,6 +943,12 @@ export type UserFilterInput = {
   };
 
   avatarUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  languagePreference?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
@@ -3452,6 +3459,69 @@ export async function saveDonationSettingsChannel<Fields extends SaveDonationSet
     config.channel,
     {
     action: "save_donation_settings",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SaveLanguagePreferenceInput = {
+  language: string;
+};
+
+export type SaveLanguagePreferenceFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferSaveLanguagePreferenceResult<
+  Fields extends SaveLanguagePreferenceFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type SaveLanguagePreferenceResult<Fields extends SaveLanguagePreferenceFields | undefined = undefined> = | { success: true; data: InferSaveLanguagePreferenceResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveLanguagePreference<Fields extends SaveLanguagePreferenceFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: SaveLanguagePreferenceInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveLanguagePreferenceResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_language_preference",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveLanguagePreferenceResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function saveLanguagePreferenceChannel<Fields extends SaveLanguagePreferenceFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: SaveLanguagePreferenceInput;
+  fields?: Fields;
+  resultHandler: (result: SaveLanguagePreferenceResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SaveLanguagePreferenceResult<Fields>>(
+    config.channel,
+    {
+    action: "save_language_preference",
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })

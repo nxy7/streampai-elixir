@@ -24,6 +24,7 @@ defmodule Streampai.Accounts do
       rpc_action(:update_avatar, :update_avatar)
       rpc_action(:toggle_email_notifications, :toggle_email_notifications)
       rpc_action(:save_donation_settings, :update_donation_settings)
+      rpc_action(:save_language_preference, :update_language_preference)
       rpc_action(:grant_pro_access, :grant_pro_access)
       rpc_action(:revoke_pro_access, :revoke_pro_access)
     end
