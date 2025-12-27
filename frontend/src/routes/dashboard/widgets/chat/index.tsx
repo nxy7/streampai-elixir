@@ -1,10 +1,12 @@
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { createSignal, onMount, type JSX } from "solid-js";
+import { z } from "zod";
 import ChatWidget from "~/components/widgets/ChatWidget";
-import { useCurrentUser } from "~/lib/auth";
-import { useWidgetConfig } from "~/lib/useElectric";
-import { saveWidgetConfig } from "~/sdk/ash_rpc";
-import { button, card, input, text } from "~/styles/design-system";
+import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
+import type { FormMeta } from "~/lib/schema-form";
 
+/**
+ * Chat message type for preview
+ */
 interface ChatMessage {
 	id: string;
 	username: string;
@@ -16,52 +18,52 @@ interface ChatMessage {
 	usernameColor?: string;
 }
 
-interface ChatConfig {
-	fontSize: "small" | "medium" | "large";
-	showTimestamps: boolean;
-	showBadges: boolean;
-	showPlatform: boolean;
-	showEmotes: boolean;
-	maxMessages: number;
-}
+/**
+ * Chat widget configuration schema.
+ */
+export const chatSchema = z.object({
+	fontSize: z.enum(["small", "medium", "large"]).default("medium"),
+	maxMessages: z.number().min(5).max(100).default(25),
+	showTimestamps: z.boolean().default(false),
+	showBadges: z.boolean().default(true),
+	showPlatform: z.boolean().default(true),
+	showEmotes: z.boolean().default(true),
+});
 
-interface BackendChatConfig {
-	font_size?: string;
-	show_timestamps?: boolean;
-	show_badges?: boolean;
-	show_platform?: boolean;
-	show_emotes?: boolean;
-	max_messages?: number;
-}
+export type ChatConfig = z.infer<typeof chatSchema>;
 
-const DEFAULT_CONFIG: ChatConfig = {
-	fontSize: "medium",
-	showTimestamps: false,
-	showBadges: true,
-	showPlatform: true,
-	showEmotes: true,
-	maxMessages: 25,
+/**
+ * Chat widget form metadata.
+ */
+export const chatMeta: FormMeta<typeof chatSchema.shape> = {
+	fontSize: { label: "Font Size" },
+	maxMessages: {
+		label: "Max Messages",
+		description: "Maximum number of messages to display",
+	},
+	showTimestamps: { label: "Show Timestamps" },
+	showBadges: {
+		label: "Show User Badges",
+		description: "Display subscriber, moderator, and VIP badges",
+	},
+	showPlatform: {
+		label: "Show Platform Icons",
+		description: "Display Twitch/YouTube icons next to messages",
+	},
+	showEmotes: {
+		label: "Show Emotes",
+		description: "Render emotes as images",
+	},
 };
 
-function parseBackendConfig(backendConfig: BackendChatConfig): ChatConfig {
-	return {
-		fontSize:
-			(backendConfig.font_size as ChatConfig["fontSize"]) ||
-			DEFAULT_CONFIG.fontSize,
-		showTimestamps:
-			backendConfig.show_timestamps ?? DEFAULT_CONFIG.showTimestamps,
-		showBadges: backendConfig.show_badges ?? DEFAULT_CONFIG.showBadges,
-		showPlatform: backendConfig.show_platform ?? DEFAULT_CONFIG.showPlatform,
-		showEmotes: backendConfig.show_emotes ?? DEFAULT_CONFIG.showEmotes,
-		maxMessages: backendConfig.max_messages || DEFAULT_CONFIG.maxMessages,
-	};
-}
-
+/**
+ * Initial mock messages
+ */
 const MOCK_MESSAGES: ChatMessage[] = [
 	{
 		id: "1",
 		username: "StreamFan42",
-		content: "Great stream! Love the new overlay design 🎉",
+		content: "Great stream! Love the new overlay design",
 		timestamp: new Date(),
 		platform: { icon: "twitch", color: "bg-purple-500" },
 		badge: "SUB",
@@ -71,7 +73,7 @@ const MOCK_MESSAGES: ChatMessage[] = [
 	{
 		id: "2",
 		username: "GamerPro",
-		content: "That was an amazing play! 🔥",
+		content: "That was an amazing play!",
 		timestamp: new Date(),
 		platform: { icon: "youtube", color: "bg-red-500" },
 		badge: "MOD",
@@ -88,31 +90,14 @@ const MOCK_MESSAGES: ChatMessage[] = [
 	},
 ];
 
-export default function ChatSettings() {
-	const { user, isLoading } = useCurrentUser();
-	const userId = createMemo(() => user()?.id);
-
-	const widgetConfigQuery = useWidgetConfig<BackendChatConfig>(
-		userId,
-		() => "chat_widget",
-	);
-
+/**
+ * Preview wrapper with animated chat messages
+ */
+function ChatPreviewWrapper(props: {
+	config: ChatConfig;
+	children: JSX.Element;
+}): JSX.Element {
 	const [messages, setMessages] = createSignal<ChatMessage[]>(MOCK_MESSAGES);
-	const [saving, setSaving] = createSignal(false);
-	const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
-	const [localOverrides, setLocalOverrides] = createSignal<Partial<ChatConfig>>(
-		{},
-	);
-
-	const config = createMemo(() => {
-		const syncedConfig = widgetConfigQuery.data();
-		const baseConfig = syncedConfig?.config
-			? parseBackendConfig(syncedConfig.config)
-			: DEFAULT_CONFIG;
-		return { ...baseConfig, ...localOverrides() };
-	});
-
-	const loading = createMemo(() => isLoading());
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -124,9 +109,9 @@ export default function ChatSettings() {
 					] + Math.floor(Math.random() * 100),
 				content: [
 					"This is awesome!",
-					"Love the stream! 💖",
+					"Love the stream!",
 					"Amazing content!",
-					"Keep it up! 🔥",
+					"Keep it up!",
 					"You're the best!",
 				][Math.floor(Math.random() * 5)],
 				timestamp: new Date(),
@@ -150,220 +135,31 @@ export default function ChatSettings() {
 		return () => clearInterval(interval);
 	});
 
-	async function handleSave() {
-		if (!userId()) {
-			setSaveMessage("Error: Not logged in");
-			return;
-		}
-
-		setSaving(true);
-		setSaveMessage(null);
-
-		const currentConfig = config();
-		const backendConfig = {
-			font_size: currentConfig.fontSize,
-			show_timestamps: currentConfig.showTimestamps,
-			show_badges: currentConfig.showBadges,
-			show_platform: currentConfig.showPlatform,
-			show_emotes: currentConfig.showEmotes,
-			max_messages: currentConfig.maxMessages,
-		};
-
-		const result = await saveWidgetConfig({
-			input: {
-				userId: userId() ?? "",
-				type: "chat_widget",
-				config: backendConfig,
-			},
-			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
-		});
-
-		setSaving(false);
-
-		if (!result.success) {
-			setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
-		} else {
-			setSaveMessage("Configuration saved successfully!");
-			setLocalOverrides({});
-			setTimeout(() => setSaveMessage(null), 3000);
-		}
-	}
-
-	function updateConfig<K extends keyof ChatConfig>(
-		field: K,
-		value: ChatConfig[K],
-	) {
-		setLocalOverrides((prev) => ({ ...prev, [field]: value }));
-	}
-
 	return (
-		<div class="space-y-6">
-			<div>
-				<h1 class={text.h1}>Chat Widget Settings</h1>
-				<p class={text.muted}>Configure your chat overlay widget for OBS</p>
-			</div>
-
-			<Show when={!loading()} fallback={<div>Loading...</div>}>
-				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-					<div class={card.default}>
-						<h2 class={text.h2}>Configuration</h2>
-						<div class="mt-4 space-y-4">
-							<div>
-								<label class="block font-medium text-gray-700 text-sm">
-									Font Size
-									<select
-										class={`mt-1 ${input.select}`}
-										value={config().fontSize}
-										onChange={(e) =>
-											updateConfig(
-												"fontSize",
-												e.currentTarget.value as ChatConfig["fontSize"],
-											)
-										}>
-										<option value="small">Small</option>
-										<option value="medium">Medium</option>
-										<option value="large">Large</option>
-									</select>
-								</label>
-							</div>
-
-							<div>
-								<label class="block font-medium text-gray-700 text-sm">
-									Max Messages
-									<input
-										type="number"
-										class={`mt-1 ${input.text}`}
-										value={config().maxMessages}
-										onInput={(e) =>
-											updateConfig(
-												"maxMessages",
-												parseInt(e.currentTarget.value, 10),
-											)
-										}
-										min="5"
-										max="100"
-									/>
-								</label>
-								<p class={text.helper}>Maximum number of messages to display</p>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showTimestamps"
-									checked={config().showTimestamps}
-									onChange={(e) =>
-										updateConfig("showTimestamps", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showTimestamps"
-									class="font-medium text-gray-700 text-sm">
-									Show Timestamps
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showBadges"
-									checked={config().showBadges}
-									onChange={(e) =>
-										updateConfig("showBadges", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showBadges"
-									class="font-medium text-gray-700 text-sm">
-									Show User Badges
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showPlatform"
-									checked={config().showPlatform}
-									onChange={(e) =>
-										updateConfig("showPlatform", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showPlatform"
-									class="font-medium text-gray-700 text-sm">
-									Show Platform Icons
-								</label>
-							</div>
-
-							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id="showEmotes"
-									checked={config().showEmotes}
-									onChange={(e) =>
-										updateConfig("showEmotes", e.currentTarget.checked)
-									}
-									class="rounded"
-								/>
-								<label
-									for="showEmotes"
-									class="font-medium text-gray-700 text-sm">
-									Show Emotes
-								</label>
-							</div>
-
-							<Show when={saveMessage()}>
-								<div
-									class={
-										saveMessage()?.startsWith("Error")
-											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
-											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}>
-									{saveMessage()}
-								</div>
-							</Show>
-
-							<button
-								type="button"
-								class={button.primary}
-								onClick={handleSave}
-								disabled={saving()}>
-								{saving() ? "Saving..." : "Save Configuration"}
-							</button>
-						</div>
-					</div>
-
-					<div class={card.default}>
-						<h2 class={text.h2}>Preview</h2>
-						<div class="mt-4 space-y-4">
-							<div
-								class="overflow-hidden rounded-lg bg-gray-900"
-								style={{ height: "400px" }}>
-								<ChatWidget config={config()} messages={messages()} />
-							</div>
-							<div class="space-y-2">
-								<h3 class={text.h3}>OBS Browser Source URL</h3>
-								<p class={text.helper}>
-									Add this URL to OBS as a Browser Source:
-								</p>
-								<div class="break-all rounded bg-gray-100 p-3 font-mono text-sm">
-									{window.location.origin}/w/chat/{userId()}
-								</div>
-								<p class={text.helper}>Recommended Browser Source settings:</p>
-								<ul class={`${text.helper} ml-4 list-disc`}>
-									<li>Width: 400</li>
-									<li>Height: 600</li>
-									<li>Enable "Shutdown source when not visible"</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
-			</Show>
+		<div
+			class="overflow-hidden rounded-lg bg-gray-900"
+			style={{ height: "400px" }}
+		>
+			<ChatWidget config={props.config} messages={messages()} />
 		</div>
+	);
+}
+
+export default function ChatSettings() {
+	return (
+		<WidgetSettingsPage
+			title="Chat Widget Settings"
+			description="Configure your chat overlay widget for OBS"
+			widgetType="chat_widget"
+			widgetUrlPath="chat"
+			schema={chatSchema}
+			meta={chatMeta}
+			PreviewComponent={ChatWidget}
+			previewWrapper={ChatPreviewWrapper}
+			obsSettings={{
+				width: 400,
+				height: 600,
+			}}
+		/>
 	);
 }
