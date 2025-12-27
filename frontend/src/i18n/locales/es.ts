@@ -12,28 +12,28 @@ export const dict: Dictionary = {
 		edit: "Editar",
 		close: "Cerrar",
 		confirm: "Confirmar",
-		back: "Atras",
+		back: "Atrás",
 		next: "Siguiente",
 		search: "Buscar",
-		noResults: "No se encontraron resultados",
+		noResults: "Sin resultados",
 	},
 
 	// Navigation
 	nav: {
 		home: "Inicio",
-		about: "Acerca de",
-		signIn: "Iniciar sesion",
-		signOut: "Cerrar sesion",
+		about: "Nosotros",
+		signIn: "Iniciar sesión",
+		signOut: "Cerrar sesión",
 		dashboard: "Panel",
 		google: "Google",
 		twitch: "Twitch",
-		welcome: "Bienvenido, {{name}}!",
+		welcome: "¡Hola, {{name}}!",
 	},
 
 	// Dashboard sidebar sections
 	sidebar: {
 		overview: "Resumen",
-		streaming: "Transmision",
+		streaming: "Transmisión",
 		widgets: "Widgets",
 		account: "Cuenta",
 		admin: "Admin",
@@ -42,14 +42,14 @@ export const dict: Dictionary = {
 	// Dashboard navigation items
 	dashboardNav: {
 		dashboard: "Panel",
-		analytics: "Analiticas",
+		analytics: "Estadísticas",
 		stream: "Stream",
 		chatHistory: "Historial de chat",
 		viewers: "Espectadores",
 		streamHistory: "Historial de streams",
 		widgets: "Widgets",
-		smartCanvas: "Lienzo inteligente",
-		settings: "Configuracion",
+		smartCanvas: "Smart Canvas",
+		settings: "Configuración",
 		users: "Usuarios",
 		notifications: "Notificaciones",
 		moderate: "Moderar",
@@ -57,14 +57,14 @@ export const dict: Dictionary = {
 
 	// Dashboard
 	dashboard: {
-		freePlan: "Plan gratuito",
-		goToSettings: "Ir a configuracion",
+		freePlan: "Plan gratis",
+		goToSettings: "Ir a configuración",
 		closeSidebar: "Cerrar barra lateral",
 	},
 
 	// Settings page
 	settings: {
-		title: "Configuracion",
+		title: "Configuración",
 		language: "Idioma",
 		languageDescription: "Elige tu idioma preferido para la interfaz",
 		appearance: "Apariencia",
@@ -76,13 +76,13 @@ export const dict: Dictionary = {
 		en: "English",
 		de: "Deutsch",
 		pl: "Polski",
-		es: "Espanol",
+		es: "Español",
 	},
 
 	// Auth
 	auth: {
-		loginTitle: "Iniciar sesion en Streampai",
-		loginDescription: "Elige tu metodo de inicio de sesion preferido",
+		loginTitle: "Iniciar sesión en Streampai",
+		loginDescription: "Elige tu método de inicio de sesión",
 		orContinueWith: "O continuar con",
 		continueWithGoogle: "Continuar con Google",
 		continueWithTwitch: "Continuar con Twitch",
@@ -90,80 +90,80 @@ export const dict: Dictionary = {
 
 	// Errors
 	errors: {
-		generic: "Algo salio mal",
-		notFound: "Pagina no encontrada",
-		unauthorized: "No estas autorizado para ver esta pagina",
-		networkError: "Error de red. Por favor, verifica tu conexion.",
+		generic: "Algo salió mal",
+		notFound: "Página no encontrada",
+		unauthorized: "No tienes permiso para ver esta página",
+		networkError: "Error de red. Verifica tu conexión.",
 	},
 
 	// Landing page
 	landing: {
 		features: "Funciones",
-		about: "Acerca de",
+		about: "Nosotros",
 		getStarted: "Comenzar",
-		heroTitle1: "Transmite a",
-		heroTitle2: "todos",
+		heroTitle1: "Transmite",
+		heroTitle2: "a todos",
 		heroTitle3: "a la vez",
-		underConstruction: "En construccion",
+		underConstruction: "En construcción",
 		underConstructionText:
-			"Estamos construyendo algo increible! Streampai esta actualmente en desarrollo. Unete a nuestro boletin para ser el primero en saber cuando lancemos.",
-		emailPlaceholder: "Ingresa tu correo electronico",
-		notifyMe: "Notificarme",
+			"¡Estamos creando algo increíble! Streampai está en desarrollo. Únete a nuestro newsletter para enterarte primero del lanzamiento.",
+		emailPlaceholder: "Tu correo electrónico",
+		notifyMe: "Avísame",
 		submitting: "Enviando...",
-		newsletterSuccess: "Tu correo ha sido agregado a nuestro boletin",
+		newsletterSuccess: "Tu correo fue añadido al newsletter",
 		heroDescription:
-			"Conecta todas tus plataformas de streaming, unifica tu audiencia y potencia tu contenido con herramientas impulsadas por IA. Transmite a Twitch, YouTube, Kick, Facebook y mas simultaneamente.",
-		more: "Mas",
+			"Conecta todas tus plataformas de streaming, unifica tu audiencia y potencia tu contenido con herramientas de IA. Transmite a Twitch, YouTube, Kick, Facebook y más a la vez.",
+		more: "Más",
 		featuresTitle1: "Todo lo que necesitas para",
 		featuresTitle2: "dominar",
 		featuresSubtitle:
-			"Herramientas poderosas disenadas para streamers serios que quieren hacer crecer su audiencia en todas las plataformas",
+			"Herramientas potentes para streamers que quieren crecer en todas las plataformas",
 		multiPlatformTitle: "Streaming multiplataforma",
 		multiPlatformDescription:
-			"Transmite a Twitch, YouTube, Kick, Facebook y mas simultaneamente. Un stream, maximo alcance.",
-		unifiedChatTitle: "Gestion de chat unificada",
+			"Transmite a Twitch, YouTube, Kick, Facebook y más simultáneamente. Un stream, máximo alcance.",
+		unifiedChatTitle: "Chat unificado",
 		unifiedChatDescription:
-			"Fusiona todos los chats de las plataformas en un solo stream. Nunca mas te pierdas un mensaje de ninguna plataforma.",
-		analyticsTitle: "Analiticas en tiempo real",
+			"Todos los chats de tus plataformas en un solo lugar. No te pierdas ningún mensaje.",
+		analyticsTitle: "Estadísticas en vivo",
 		analyticsDescription:
-			"Rastrea espectadores, interaccion, ingresos y crecimiento en todas las plataformas en un hermoso panel.",
-		moderationTitle: "Moderacion impulsada por IA",
+			"Seguimiento de espectadores, interacción, ingresos y crecimiento en todas las plataformas.",
+		moderationTitle: "Moderación con IA",
 		moderationDescription:
-			"Moderacion automatica con reglas personalizadas, deteccion de spam y filtrado de toxicidad en todas las plataformas.",
-		widgetsTitle: "Widgets de stream personalizados",
+			"Moderación automática con reglas personalizadas, detección de spam y filtro de toxicidad.",
+		widgetsTitle: "Widgets personalizados",
 		widgetsDescription:
-			"Widgets hermosos y personalizables para donaciones, seguidores, chat y mas. Perfecto para tu marca.",
-		teamTitle: "Herramientas de equipo y moderadores",
+			"Widgets bonitos y configurables para donaciones, seguidores, chat y más. Perfectos para tu marca.",
+		teamTitle: "Herramientas de equipo",
 		teamDescription:
-			"Panel de moderador potente, gestion de equipo y herramientas de gestion de stream colaborativas.",
+			"Panel de moderadores, gestión de equipo y herramientas colaborativas para streams.",
 		aboutTitle1: "Creado por streamers,",
 		aboutTitle2: "para streamers",
 		aboutParagraph1:
-			"Entendemos la lucha de gestionar multiples plataformas de streaming. Por eso creamos Streampai - la solucion definitiva para creadores de contenido que quieren maximizar su alcance sin la complejidad.",
+			"Entendemos lo difícil que es gestionar varias plataformas de streaming. Por eso creamos Streampai: la solución para creadores que quieren maximizar su alcance sin complicaciones.",
 		aboutParagraph2:
-			"Se acabaron los dias de malabarismo con multiples ventanas de chat, alertas de donaciones y paneles de analiticas. Streampai reune todo en una plataforma potente e intuitiva que escala con tu crecimiento.",
+			"Se acabó el saltar entre ventanas de chat, alertas de donaciones y paneles de estadísticas. Streampai lo une todo en una plataforma intuitiva que crece contigo.",
 		aboutParagraph3:
-			"Ya seas un streamer de fin de semana o un creador de contenido a tiempo completo, nuestras herramientas impulsadas por IA te ayudan a concentrarte en lo que mas importa: crear contenido increible y construir tu comunidad.",
-		platformIntegrations: "Integraciones de plataformas",
+			"Ya seas streamer de fin de semana o creador a tiempo completo, nuestras herramientas de IA te ayudan a enfocarte en lo importante: crear contenido increíble y construir tu comunidad.",
+		platformIntegrations: "Integraciones",
 		uptime: "Disponibilidad",
-		realTimeSync: "Sincronizacion en tiempo real",
+		realTimeSync: "Sincronización en tiempo real",
 		realTimeSyncDescription:
-			"Chat y eventos sincronizados en todas las plataformas instantaneamente",
-		advancedAnalytics: "Analiticas avanzadas",
+			"Chat y eventos sincronizados instantáneamente en todas las plataformas",
+		advancedAnalytics: "Estadísticas avanzadas",
 		advancedAnalyticsDescription:
-			"Informacion profunda sobre el comportamiento de los espectadores y patrones de interaccion",
-		aiPoweredGrowth: "Crecimiento impulsado por IA",
+			"Información detallada sobre el comportamiento de espectadores y patrones de interacción",
+		aiPoweredGrowth: "Crecimiento con IA",
 		aiPoweredGrowthDescription:
 			"Recomendaciones inteligentes para optimizar tu estrategia de contenido",
-		ctaTitle: "Listo para llevar tu stream al siguiente nivel?",
+		ctaTitle: "¿Listo para llevar tu stream al siguiente nivel?",
 		ctaSubtitle:
-			"Unete a los streamers que ya estan haciendo crecer su audiencia con Streampai",
+			"Únete a los streamers que ya están creciendo con Streampai",
 	},
 
 	// Footer
 	footer: {
 		privacy: "Privacidad",
-		terms: "Terminos",
+		terms: "Términos",
 		support: "Soporte",
 		contact: "Contacto",
 		copyright: "Streampai. Todos los derechos reservados.",
@@ -173,140 +173,143 @@ export const dict: Dictionary = {
 
 	// Privacy page
 	privacy: {
-		title: "Politica de privacidad",
-		lastUpdated: "Ultima actualizacion: diciembre 2024",
-		section1Title: "1. Informacion que recopilamos",
-		section1Intro:
-			"Recopilamos informacion que nos proporcionas directamente, incluyendo:",
-		section1Item1: "Informacion de cuenta (nombre, correo electronico, contrasena)",
-		section1Item2: "Informacion de perfil de plataformas de streaming conectadas",
-		section1Item3: "Metadatos de stream y datos analiticos",
-		section1Item4: "Mensajes de chat y acciones de moderacion",
-		section1Item5: "Informacion de pago (procesada de forma segura por proveedores externos)",
-		section2Title: "2. Como usamos tu informacion",
-		section2Intro: "Usamos la informacion recopilada para:",
+		title: "Política de privacidad",
+		lastUpdated: "Última actualización: diciembre 2024",
+		section1Title: "1. Información que recopilamos",
+		section1Intro: "Recopilamos información que nos proporcionas, incluyendo:",
+		section1Item1: "Datos de cuenta (nombre, correo, contraseña)",
+		section1Item2: "Datos de perfil de plataformas de streaming conectadas",
+		section1Item3: "Metadatos de stream y datos analíticos",
+		section1Item4: "Mensajes de chat y acciones de moderación",
+		section1Item5:
+			"Datos de pago (procesados de forma segura por proveedores externos)",
+		section2Title: "2. Cómo usamos tu información",
+		section2Intro: "Usamos la información recopilada para:",
 		section2Item1: "Proporcionar, mantener y mejorar nuestros servicios",
-		section2Item2: "Conectar y sincronizar tu contenido en multiples plataformas de streaming",
-		section2Item3: "Generar analiticas e informacion sobre el rendimiento de tus streams",
-		section2Item4: "Enviarte avisos tecnicos y mensajes de soporte",
+		section2Item2:
+			"Conectar y sincronizar tu contenido en varias plataformas de streaming",
+		section2Item3:
+			"Generar análisis e información sobre el rendimiento de tus streams",
+		section2Item4: "Enviarte avisos técnicos y mensajes de soporte",
 		section2Item5: "Responder a tus comentarios y preguntas",
-		section3Title: "3. Compartir informacion",
+		section3Title: "3. Compartir información",
 		section3Intro:
-			"No vendemos tu informacion personal. Podemos compartir tu informacion en las siguientes circunstancias:",
-		section3Item1: "Con plataformas de streaming que conectas (para habilitar streaming multiplataforma)",
-		section3Item2: "Con proveedores de servicios que asisten en la operacion de nuestra plataforma",
+			"No vendemos tus datos personales. Podemos compartir tu información en estos casos:",
+		section3Item1:
+			"Con plataformas de streaming que conectas (para streaming multiplataforma)",
+		section3Item2:
+			"Con proveedores de servicios que ayudan a operar nuestra plataforma",
 		section3Item3: "Cuando lo requiera la ley o para proteger nuestros derechos",
-		section3Item4: "Con tu consentimiento o a tu direccion",
+		section3Item4: "Con tu consentimiento o por tu indicación",
 		section4Title: "4. Seguridad de datos",
 		section4Text:
-			"Implementamos medidas tecnicas y organizativas apropiadas para proteger tu informacion personal contra acceso no autorizado, alteracion, divulgacion o destruccion. Esto incluye encriptacion, protocolos seguros y auditorias de seguridad regulares.",
+			"Implementamos medidas técnicas y organizativas apropiadas para proteger tus datos personales contra acceso no autorizado, alteración, divulgación o destrucción. Esto incluye cifrado, protocolos seguros y auditorías de seguridad regulares.",
 		section5Title: "5. Servicios de terceros",
 		section5Text:
-			"Nuestro servicio se integra con plataformas de streaming de terceros (Twitch, YouTube, Kick, Facebook, etc.). Cuando conectas estos servicios, pueden recopilar informacion segun sus propias politicas de privacidad. Te animamos a revisar sus practicas de privacidad.",
-		section6Title: "6. Retencion de datos",
+			"Nuestro servicio se integra con plataformas de terceros (Twitch, YouTube, Kick, Facebook, etc.). Al conectar estos servicios, pueden recopilar información según sus propias políticas de privacidad. Te recomendamos revisar sus prácticas de privacidad.",
+		section6Title: "6. Retención de datos",
 		section6Text:
-			"Retenemos tu informacion mientras tu cuenta este activa o sea necesario para proporcionarte servicios. Puedes solicitar la eliminacion de tu cuenta y datos asociados en cualquier momento contactandonos.",
+			"Conservamos tu información mientras tu cuenta esté activa o sea necesario para proporcionarte servicios. Puedes solicitar la eliminación de tu cuenta y datos asociados en cualquier momento.",
 		section7Title: "7. Tus derechos",
 		section7Intro: "Tienes derecho a:",
-		section7Item1: "Acceder a la informacion personal que tenemos sobre ti",
-		section7Item2: "Solicitar la correccion de datos inexactos",
-		section7Item3: "Solicitar la eliminacion de tus datos",
-		section7Item4: "Exportar tus datos en un formato portable",
-		section7Item5: "Optar por no recibir comunicaciones de marketing",
+		section7Item1: "Acceder a los datos personales que tenemos sobre ti",
+		section7Item2: "Solicitar la corrección de datos inexactos",
+		section7Item3: "Solicitar la eliminación de tus datos",
+		section7Item4: "Exportar tus datos en formato portable",
+		section7Item5: "Rechazar comunicaciones de marketing",
 		section8Title: "8. Cookies y seguimiento",
 		section8Text:
-			"Usamos cookies y tecnologias similares para mantener tu sesion, recordar tus preferencias y entender como usas nuestro servicio. Puedes controlar la configuracion de cookies a traves de las preferencias de tu navegador.",
+			"Usamos cookies y tecnologías similares para mantener tu sesión, recordar tus preferencias y entender cómo usas nuestro servicio. Puedes controlar las cookies en las preferencias de tu navegador.",
 		section9Title: "9. Privacidad de menores",
 		section9Text:
-			"Nuestro servicio no esta destinado a usuarios menores de 13 anos. No recopilamos conscientemente informacion personal de ninos menores de 13 anos.",
-		section10Title: "10. Cambios a esta politica",
+			"Nuestro servicio no está destinado a menores de 13 años. No recopilamos conscientemente información personal de niños menores de 13 años.",
+		section10Title: "10. Cambios a esta política",
 		section10Text:
-			'Podemos actualizar esta politica de privacidad de vez en cuando. Te notificaremos sobre cualquier cambio publicando la nueva politica en esta pagina y actualizando la fecha de "Ultima actualizacion".',
-		section11Title: "11. Contactanos",
+			"Podemos actualizar esta política de privacidad ocasionalmente. Te notificaremos los cambios publicando la nueva política aquí y actualizando la fecha.",
+		section11Title: "11. Contáctanos",
 		section11Text:
-			"Si tienes alguna pregunta sobre esta Politica de Privacidad, por favor",
-		contactUs: "contactanos",
+			"Si tienes preguntas sobre esta Política de Privacidad, por favor",
+		contactUs: "contáctanos",
 	},
 
 	// Terms page
 	terms: {
-		title: "Terminos de servicio",
-		lastUpdated: "Ultima actualizacion: diciembre 2024",
-		section1Title: "1. Aceptacion de terminos",
+		title: "Términos de servicio",
+		lastUpdated: "Última actualización: diciembre 2024",
+		section1Title: "1. Aceptación de términos",
 		section1Text:
-			"Al acceder o usar los servicios de Streampai, aceptas estar sujeto a estos Terminos de Servicio. Si no estas de acuerdo con estos terminos, por favor no uses nuestros servicios.",
-		section2Title: "2. Descripcion del servicio",
+			"Al acceder o usar los servicios de Streampai, aceptas estos Términos de Servicio. Si no estás de acuerdo, no uses nuestros servicios.",
+		section2Title: "2. Descripción del servicio",
 		section2Text:
-			"Streampai proporciona una solucion de gestion de streaming multiplataforma que permite a los usuarios transmitir contenido a multiples plataformas simultaneamente, gestionar chat unificado y acceder a analiticas entre plataformas.",
+			"Streampai es una solución de gestión de streaming multiplataforma que permite transmitir contenido a varias plataformas simultáneamente, gestionar chat unificado y acceder a estadísticas entre plataformas.",
 		section3Title: "3. Cuentas de usuario",
 		section3Text:
-			"Eres responsable de mantener la confidencialidad de las credenciales de tu cuenta y de todas las actividades que ocurran bajo tu cuenta. Debes notificarnos inmediatamente sobre cualquier uso no autorizado de tu cuenta.",
+			"Eres responsable de mantener la confidencialidad de tus credenciales y de todas las actividades en tu cuenta. Debes notificarnos inmediatamente cualquier uso no autorizado.",
 		section4Title: "4. Uso aceptable",
 		section4Intro: "Aceptas no:",
-		section4Item1: "Usar el servicio para cualquier proposito ilegal o no autorizado",
-		section4Item2: "Violar cualquier ley en tu jurisdiccion, incluyendo leyes de derechos de autor",
-		section4Item3: "Transmitir contenido danino o malware",
-		section4Item4: "Interferir o interrumpir el servicio o servidores conectados al servicio",
+		section4Item1: "Usar el servicio para fines ilegales o no autorizados",
+		section4Item2: "Violar leyes, incluyendo derechos de autor",
+		section4Item3: "Transmitir contenido dañino o malware",
+		section4Item4: "Interferir o interrumpir el servicio o servidores conectados",
 		section4Item5: "Intentar obtener acceso no autorizado a cualquier parte del servicio",
 		section5Title: "5. Responsabilidad del contenido",
 		section5Text:
-			"Eres el unico responsable del contenido que transmites, compartes o distribuyes a traves de nuestra plataforma. Retienes todos los derechos de propiedad sobre tu contenido, pero nos otorgas una licencia para mostrarlo y distribuirlo a traves de nuestro servicio.",
+			"Eres el único responsable del contenido que transmites, compartes o distribuyes a través de nuestra plataforma. Conservas todos los derechos de propiedad, pero nos otorgas licencia para mostrarlo y distribuirlo a través de nuestro servicio.",
 		section6Title: "6. Integraciones de terceros",
 		section6Text:
-			"Nuestro servicio se integra con plataformas de terceros como Twitch, YouTube y otros. Tu uso de estas plataformas esta sujeto a sus respectivos terminos de servicio y politicas de privacidad.",
-		section7Title: "7. Limitacion de responsabilidad",
+			"Nuestro servicio se integra con plataformas como Twitch, YouTube y otras. Tu uso de estas plataformas está sujeto a sus respectivos términos de servicio y políticas de privacidad.",
+		section7Title: "7. Limitación de responsabilidad",
 		section7Text:
-			"Streampai no sera responsable por danos indirectos, incidentales, especiales, consecuentes o punitivos resultantes de tu uso o incapacidad de usar el servicio.",
-		section8Title: "8. Modificaciones a los terminos",
+			"Streampai no será responsable por daños indirectos, incidentales, especiales, consecuentes o punitivos derivados del uso o imposibilidad de uso del servicio.",
+		section8Title: "8. Modificaciones a los términos",
 		section8Text:
-			"Nos reservamos el derecho de modificar estos terminos en cualquier momento. Notificaremos a los usuarios sobre cualquier cambio material por correo electronico o a traves del servicio. El uso continuado del servicio despues de tales cambios constituye la aceptacion de los nuevos terminos.",
-		section9Title: "9. Terminacion",
+			"Nos reservamos el derecho de modificar estos términos en cualquier momento. Te notificaremos cambios importantes por correo o a través del servicio. El uso continuado implica aceptación.",
+		section9Title: "9. Terminación",
 		section9Text:
-			"Podemos terminar o suspender tu cuenta y acceso al servicio inmediatamente, sin previo aviso, por conducta que creamos viola estos Terminos de Servicio o es danina para otros usuarios, nosotros o terceros.",
-		section10Title: "10. Informacion de contacto",
+			"Podemos terminar o suspender tu cuenta e acceso inmediatamente, sin previo aviso, por conducta que consideremos viola estos Términos o es dañina para otros usuarios, nosotros o terceros.",
+		section10Title: "10. Información de contacto",
 		section10Text:
-			"Si tienes alguna pregunta sobre estos Terminos de Servicio, por favor",
-		contactUs: "contactanos",
+			"Si tienes preguntas sobre estos Términos de Servicio, por favor",
+		contactUs: "contáctanos",
 	},
 
 	// Support page
 	support: {
 		title: "Soporte",
-		heading: "Como podemos ayudarte?",
+		heading: "¿Cómo podemos ayudarte?",
 		subheading:
-			"Encuentra respuestas a preguntas comunes o comunicate con nuestro equipo de soporte.",
-		documentation: "Documentacion",
+			"Encuentra respuestas a preguntas comunes o contacta a nuestro equipo de soporte.",
+		documentation: "Documentación",
 		documentationDescription:
-			"Guias completas y tutoriales para ayudarte a sacar el maximo provecho de Streampai.",
+			"Guías completas y tutoriales para sacar el máximo provecho de Streampai.",
 		faq: "FAQ",
-		faqDescription:
-			"Respuestas rapidas a preguntas frecuentes sobre nuestro servicio.",
+		faqDescription: "Respuestas rápidas a preguntas frecuentes sobre nuestro servicio.",
 		discord: "Discord de la comunidad",
 		discordDescription:
-			"Unete a nuestro servidor de Discord para conectarte con otros streamers y obtener soporte de la comunidad.",
+			"Únete a nuestro Discord para conectar con otros streamers y obtener ayuda.",
 		emailSupport: "Soporte por correo",
 		emailSupportDescription:
-			"Comunicate directamente con nuestro equipo de soporte para asistencia personalizada.",
-		contactUs: "Contactanos",
-		comingSoon: "Proximamente",
+			"Contacta directamente a nuestro equipo para asistencia personalizada.",
+		contactUs: "Contáctanos",
+		comingSoon: "Próximamente",
 		faqTitle: "Preguntas frecuentes",
-		faqQ1: "Que plataformas soporta Streampai?",
+		faqQ1: "¿Qué plataformas soporta Streampai?",
 		faqA1:
-			"Streampai soporta streaming multiplataforma a Twitch, YouTube, Kick, Facebook y mas. Estamos constantemente agregando nuevas integraciones de plataformas.",
-		faqQ2: "Como conecto mis cuentas de streaming?",
+			"Streampai soporta streaming a Twitch, YouTube, Kick, Facebook y más. Constantemente añadimos nuevas integraciones.",
+		faqQ2: "¿Cómo conecto mis cuentas de streaming?",
 		faqA2:
-			'Despues de registrarte, ve a la configuracion de tu panel y haz clic en "Conectar cuentas". Sigue las indicaciones de OAuth para vincular de forma segura tus cuentas de plataformas de streaming.',
-		faqQ3: "Estan seguros mis datos?",
+			"Después de registrarte, ve a configuración del panel y haz clic en \"Conectar cuentas\". Sigue las instrucciones de OAuth para vincular tus cuentas de forma segura.",
+		faqQ3: "¿Están seguros mis datos?",
 		faqA3:
-			"Si, tomamos la seguridad en serio. Todos los datos estan encriptados en transito y en reposo. Nunca almacenamos las contrasenas de tus plataformas de streaming - usamos tokens OAuth seguros para autenticacion. Lee nuestra",
-		privacyPolicy: "Politica de privacidad",
-		faqA3End: "para mas detalles.",
-		faqQ4: "Puedo cancelar mi suscripcion en cualquier momento?",
+			"Sí, la seguridad es nuestra prioridad. Todos los datos están cifrados en tránsito y en reposo. Nunca guardamos contraseñas de plataformas, usamos tokens OAuth seguros. Lee nuestra",
+		privacyPolicy: "Política de privacidad",
+		faqA3End: "para más detalles.",
+		faqQ4: "¿Puedo cancelar mi suscripción en cualquier momento?",
 		faqA4:
-			"Si, puedes cancelar tu suscripcion en cualquier momento desde la configuracion de tu cuenta. Continuaras teniendo acceso hasta el final de tu periodo de facturacion.",
-		faqQ5: "Como reporto un error o solicito una funcion?",
+			"Sí, puedes cancelar tu suscripción cuando quieras desde la configuración de tu cuenta. Mantendrás el acceso hasta el final de tu período de facturación.",
+		faqQ5: "¿Cómo reporto un error o sugiero una función?",
 		faqA5:
-			"Nos encanta escuchar a nuestros usuarios! Por favor contactanos con reportes de errores o solicitudes de funciones. Tambien puedes unirte a nuestra comunidad de Discord para discutir ideas con otros usuarios.",
+			"¡Nos encanta recibir feedback! Contáctanos con reportes de errores o sugerencias. También puedes unirte a nuestro Discord para discutir ideas con otros usuarios.",
 	},
 
 	// Contact page
@@ -314,14 +317,14 @@ export const dict: Dictionary = {
 		title: "Contacto",
 		heading: "Ponte en contacto",
 		subheading:
-			"Tienes una pregunta, sugerencia o necesitas ayuda? Nos encantaria saber de ti.",
+			"¿Tienes una pregunta, sugerencia o necesitas ayuda? Nos encantaría saber de ti.",
 		emailTitle: "Correo",
 		discordTitle: "Discord",
-		discordDescription: "Unete a nuestra comunidad",
+		discordDescription: "Únete a nuestra comunidad",
 		githubTitle: "GitHub",
 		githubDescription: "Reportar problemas",
-		comingSoon: "Proximamente",
-		formTitle: "Envianos un mensaje",
+		comingSoon: "Próximamente",
+		formTitle: "Envíanos un mensaje",
 		nameLabel: "Nombre",
 		namePlaceholder: "Tu nombre",
 		emailLabel: "Correo",
@@ -329,16 +332,16 @@ export const dict: Dictionary = {
 		subjectLabel: "Asunto",
 		subjectPlaceholder: "Selecciona un tema",
 		subjectGeneral: "Consulta general",
-		subjectSupport: "Soporte tecnico",
-		subjectBilling: "Pregunta de facturacion",
-		subjectFeature: "Solicitud de funcion",
+		subjectSupport: "Soporte técnico",
+		subjectBilling: "Pregunta de facturación",
+		subjectFeature: "Sugerencia de función",
 		subjectBug: "Reporte de error",
-		subjectPartnership: "Asociacion",
+		subjectPartnership: "Asociación",
 		messageLabel: "Mensaje",
-		messagePlaceholder: "Como podemos ayudarte?",
+		messagePlaceholder: "¿Cómo podemos ayudarte?",
 		sending: "Enviando...",
 		sendButton: "Enviar mensaje",
 		successMessage:
-			"Gracias por tu mensaje! Nos pondremos en contacto pronto.",
+			"¡Gracias por tu mensaje! Te responderemos pronto.",
 	},
 };
