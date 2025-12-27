@@ -21,6 +21,7 @@ defmodule Streampai.Stream.StreamViewerTest do
         StreamViewer.upsert(%{
           viewer_id: "viewer1",
           user_id: user.id,
+          platform: :twitch,
           display_name: "eferyczny"
         })
 
@@ -40,6 +41,7 @@ defmodule Streampai.Stream.StreamViewerTest do
         StreamViewer.upsert(%{
           viewer_id: "viewer1",
           user_id: user.id,
+          platform: :twitch,
           display_name: "completely_different"
         })
 
@@ -58,6 +60,7 @@ defmodule Streampai.Stream.StreamViewerTest do
         StreamViewer.upsert(%{
           viewer_id: "viewer1",
           user_id: user.id,
+          platform: :twitch,
           display_name: "test"
         })
 
@@ -65,6 +68,7 @@ defmodule Streampai.Stream.StreamViewerTest do
         StreamViewer.upsert(%{
           viewer_id: "viewer2",
           user_id: user.id,
+          platform: :twitch,
           display_name: "testing"
         })
 
@@ -72,6 +76,7 @@ defmodule Streampai.Stream.StreamViewerTest do
         StreamViewer.upsert(%{
           viewer_id: "viewer3",
           user_id: user.id,
+          platform: :twitch,
           display_name: "best"
         })
 
