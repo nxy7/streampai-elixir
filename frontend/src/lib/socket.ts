@@ -24,6 +24,12 @@ async function fetchSocketToken(): Promise<string | null> {
 		const response = await fetch(`${API_PATH}/rpc/socket-token`, {
 			credentials: "include",
 		});
+
+		if (!response.ok) {
+			// User is likely not authenticated, return null silently
+			return null;
+		}
+
 		const data = await response.json();
 		return data.token || null;
 	} catch (error) {

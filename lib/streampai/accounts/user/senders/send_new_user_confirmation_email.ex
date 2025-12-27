@@ -7,6 +7,8 @@ defmodule Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail do
 
   alias Streampai.Emails
 
+  require Logger
+
   @impl true
   if Mix.env() == :test do
     def send(_user, _token, _), do: :ok

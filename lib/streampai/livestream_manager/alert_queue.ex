@@ -7,6 +7,7 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   """
   use GenServer
 
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias StreampaiWeb.Utils.PubSubUtils
 
   require Logger
@@ -260,9 +261,9 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   def handle_info({:new_follow, follow_data}, state) do
     event = %{
       type: :follow,
-      username: follow_data.username,
-      platform: follow_data.platform || :twitch,
-      timestamp: follow_data.timestamp || DateTime.utc_now()
+      username: get_field(follow_data, :username, "Anonymous"),
+      platform: get_field(follow_data, :platform, :twitch),
+      timestamp: get_field(follow_data, :timestamp) || DateTime.utc_now()
     }
 
     state = add_event_to_queue(state, event)
@@ -274,12 +275,12 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   def handle_info({:new_subscription, sub_data}, state) do
     event = %{
       type: :subscription,
-      username: sub_data.username,
-      tier: sub_data.tier,
-      months: sub_data.months,
-      message: sub_data.message,
-      platform: sub_data.platform || :twitch,
-      timestamp: sub_data.timestamp || DateTime.utc_now()
+      username: get_field(sub_data, :username, "Anonymous"),
+      tier: get_field(sub_data, :tier, "1"),
+      months: get_field(sub_data, :months, 1),
+      message: get_field(sub_data, :message),
+      platform: get_field(sub_data, :platform, :twitch),
+      timestamp: get_field(sub_data, :timestamp) || DateTime.utc_now()
     }
 
     state = add_event_to_queue(state, event)
@@ -291,10 +292,10 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   def handle_info({:new_raid, raid_data}, state) do
     event = %{
       type: :raid,
-      username: raid_data.username,
-      viewer_count: raid_data.viewer_count,
-      platform: raid_data.platform || :twitch,
-      timestamp: raid_data.timestamp || DateTime.utc_now()
+      username: get_field(raid_data, :username, "Anonymous"),
+      viewer_count: get_field(raid_data, :viewer_count, 0),
+      platform: get_field(raid_data, :platform, :twitch),
+      timestamp: get_field(raid_data, :timestamp) || DateTime.utc_now()
     }
 
     state = add_event_to_queue(state, event)
@@ -306,11 +307,11 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   def handle_info({:new_cheer, cheer_data}, state) do
     event = %{
       type: :cheer,
-      username: cheer_data.username,
-      bits: cheer_data.bits,
-      message: cheer_data.message,
-      platform: cheer_data.platform || :twitch,
-      timestamp: cheer_data.timestamp || DateTime.utc_now()
+      username: get_field(cheer_data, :username, "Anonymous"),
+      bits: get_field(cheer_data, :bits, 0),
+      message: get_field(cheer_data, :message),
+      platform: get_field(cheer_data, :platform, :twitch),
+      timestamp: get_field(cheer_data, :timestamp) || DateTime.utc_now()
     }
 
     state = add_event_to_queue(state, event)
@@ -327,17 +328,15 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   # Helper functions
 
   defp via_tuple(user_id) do
-    registry_name =
-      if Application.get_env(:streampai, :test_mode, false) do
-        case Process.get(:test_registry_name) do
-          nil -> Streampai.LivestreamManager.Registry
-          test_registry -> test_registry
-        end
-      else
-        Streampai.LivestreamManager.Registry
-      end
+    RegistryHelpers.via_tuple(:alert_queue, user_id)
+  end
 
-    {:via, Registry, {registry_name, {:alert_queue, user_id}}}
+  # Safely extract a field from event data, supporting both maps and structs with atom or string keys
+  defp get_field(data, key, default \\ nil)
+  defp get_field(nil, _key, default), do: default
+
+  defp get_field(data, key, default) when is_map(data) and is_atom(key) do
+    Map.get(data, key) || Map.get(data, to_string(key)) || default
   end
 
   defp load_config do

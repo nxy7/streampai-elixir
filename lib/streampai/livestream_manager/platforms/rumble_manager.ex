@@ -7,6 +7,7 @@ defmodule Streampai.LivestreamManager.Platforms.RumbleManager do
 
   use GenServer
 
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
 
   require Logger
@@ -191,18 +192,6 @@ defmodule Streampai.LivestreamManager.Platforms.RumbleManager do
   end
 
   defp via_tuple(user_id) do
-    registry_name = get_registry_name()
-    {:via, Registry, {registry_name, {:platform_manager, user_id, :rumble}}}
-  end
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
+    RegistryHelpers.via_tuple(:platform_manager, user_id, :rumble)
   end
 end

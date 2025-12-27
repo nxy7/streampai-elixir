@@ -4,6 +4,7 @@ defmodule Streampai.LivestreamManager.Monitor do
   Provides helper functions for debugging and observing active user streams in IEx.
   """
 
+  alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.UserStreamManager
 
   @doc """
@@ -16,7 +17,7 @@ defmodule Streampai.LivestreamManager.Monitor do
       [%{user_id: "user123", pid: #PID<0.123.0>, status: %{...}, uptime: 15000}]
   """
   def list_active_users do
-    registry_name = get_registry_name()
+    registry_name = RegistryHelpers.get_registry_name()
 
     registry_name
     |> Registry.select([
@@ -105,8 +106,8 @@ defmodule Streampai.LivestreamManager.Monitor do
       {:error, :not_found}
   """
   def get_user_details(user_id) when is_binary(user_id) do
-    case Registry.lookup(get_registry_name(), {:user_stream_manager, user_id}) do
-      [{pid, _}] ->
+    case RegistryHelpers.lookup(:user_stream_manager, user_id) do
+      {:ok, pid} ->
         stream_state = UserStreamManager.get_state(pid)
         queue_status = UserStreamManager.get_alert_queue_status(pid)
 
@@ -119,7 +120,7 @@ defmodule Streampai.LivestreamManager.Monitor do
           child_processes: get_child_processes(pid)
         }
 
-      [] ->
+      :error ->
         {:error, :not_found}
     end
   end
@@ -214,17 +215,6 @@ defmodule Streampai.LivestreamManager.Monitor do
   end
 
   # Private helper functions
-
-  defp get_registry_name do
-    if Application.get_env(:streampai, :test_mode, false) do
-      case Process.get(:test_registry_name) do
-        nil -> Streampai.LivestreamManager.Registry
-        test_registry -> test_registry
-      end
-    else
-      Streampai.LivestreamManager.Registry
-    end
-  end
 
   defp get_user_status(pid) do
     stream_state = UserStreamManager.get_state(pid)
