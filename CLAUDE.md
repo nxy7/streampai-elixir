@@ -72,6 +72,32 @@ just cleanup-slots          # Clean orphaned Electric replication slots
 
 **Frontend**: Use `~/styles/design-system` utilities. Always `credentials: "include"` for auth calls.
 
+## Localization (i18n)
+
+**Location**: `frontend/src/i18n/locales/` - one file per language (en.ts, de.ts, pl.ts, es.ts)
+
+**Adding translations**:
+1. Add English key to `en.ts` first (source of truth)
+2. Add translations to all other locale files
+3. Use `t("section.key")` in components via `useTranslation()` hook
+
+**Translation quality guidelines**:
+- **Natural language over literal translation** - Aim for how a native speaker would say it, not word-for-word translation
+- **Use proper diacritics** - Polish: ą, ć, ę, ł, ń, ó, ś, ź, ż; German: ä, ö, ü, ß; Spanish: á, é, í, ó, ú, ñ, ü
+- **Consistent tone** - Use informal "you" (Polish: "Ty", German: "du", Spanish: "tú")
+- **Shorter is better** - UI text should be concise; long phrases often indicate overly literal translation
+- **Technical terms** - Some English terms are standard (e.g., "streaming", "widget"); don't force translations
+
+**Common Polish translation pitfalls**:
+- "Analityka" → Use "Statystyki" (more natural for dashboards)
+- "Ciasteczka" → Use "Pliki cookie" (standard term)
+- Missing diacritics makes text look unprofessional
+
+**Technical notes**:
+- `i18n.flatten()` converts nested objects to dot-notation keys
+- Don't use arrays in translations - they become indexed keys and break iteration
+- Interpolation uses `{{variable}}` syntax
+
 ## Key Locations
 
 **Backend**: `lib/streampai/*/` (resources), `lib/streampai_web/router.ex`, `lib/streampai_web/graphql/`

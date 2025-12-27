@@ -59,9 +59,10 @@ localhost:{$CADDY_PORT:8000} {
 	# Enable gzip compression
 	encode gzip
 
-	# Log requests in development
-	log {
-		output stdout
-		format console
-	}
+	# Logs disabled by default to reduce noise (Phoenix/frontend already log)
+	# Uncomment to enable Caddy access logs:
+	# log {
+	# 	output stdout
+	# 	format console
+	# }
 }
