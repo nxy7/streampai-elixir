@@ -1,3 +1,4 @@
+import { expect, waitFor, within } from "@storybook/test";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import AlertboxWidget from "./AlertboxWidget";
 
@@ -50,6 +51,22 @@ export const Donation: Story = {
 			platform: { icon: "twitch", color: "bg-purple-600" },
 		},
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// Wait for animation to complete before checking visibility
+		await waitFor(
+			() => {
+				expect(canvas.getByText("GenerousViewer")).toBeVisible();
+			},
+			{ timeout: 2000 },
+		);
+		await expect(canvas.getByText("Donation")).toBeVisible();
+		// Amount appears twice (once as shadow, once as main text), so use getAllByText
+		const amounts = canvas.getAllByText("$25.00");
+		await expect(amounts.length).toBeGreaterThan(0);
+		await expect(canvas.getByText("Great stream! Keep it up!")).toBeVisible();
+		await expect(canvas.getByText("Twitch")).toBeVisible();
+	},
 };
 
 export const Follow: Story = {
@@ -62,6 +79,18 @@ export const Follow: Story = {
 			timestamp: new Date(),
 			platform: { icon: "youtube", color: "bg-red-600" },
 		},
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// Wait for animation to complete before checking visibility
+		await waitFor(
+			() => {
+				expect(canvas.getByText("NewFollower")).toBeVisible();
+			},
+			{ timeout: 2000 },
+		);
+		await expect(canvas.getByText("New Follower")).toBeVisible();
+		await expect(canvas.getByText("YouTube")).toBeVisible();
 	},
 };
 
@@ -113,5 +142,11 @@ export const NoEvent: Story = {
 	args: {
 		config: defaultConfig,
 		event: null,
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		// When no event, the alert card should not be visible
+		await expect(canvas.queryByText("Donation")).toBeNull();
+		await expect(canvas.queryByText("New Follower")).toBeNull();
 	},
 };

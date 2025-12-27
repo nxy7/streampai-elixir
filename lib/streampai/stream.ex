@@ -6,6 +6,7 @@ defmodule Streampai.Stream do
   alias Streampai.Stream.BannedViewer
   alias Streampai.Stream.ChatMessage
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamActor
   alias Streampai.Stream.StreamEvent
   alias Streampai.Stream.StreamViewer
 
@@ -40,6 +41,10 @@ defmodule Streampai.Stream do
       rpc_action(:list_banned_viewers, :get_active_bans)
     end
 
+    resource StreamActor do
+      rpc_action(:get_stream_actor, :get_by_user)
+    end
+
     resource Streampai.Storage.File do
       rpc_action(:request_file_upload, :request_upload)
       rpc_action(:confirm_file_upload, :mark_uploaded)
@@ -49,9 +54,10 @@ defmodule Streampai.Stream do
   resources do
     resource BannedViewer
     resource ChatMessage
-    resource StreamEvent
-    resource Streampai.Stream.LivestreamMetric
     resource Livestream
+    resource Streampai.Stream.LivestreamMetric
+    resource StreamActor
+    resource StreamEvent
     resource Streampai.Stream.StreamSettings
     resource StreamViewer
     resource Streampai.Storage.File

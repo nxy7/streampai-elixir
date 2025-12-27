@@ -1,3 +1,4 @@
+import { expect, within } from "@storybook/test";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import PollWidget from "./PollWidget";
 
@@ -49,6 +50,10 @@ export const Waiting: Story = {
 		config: defaultConfig,
 		pollStatus: undefined,
 	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("Waiting for poll...")).toBeVisible();
+	},
 };
 
 export const Active: Story = {
@@ -63,6 +68,18 @@ export const Active: Story = {
 			createdAt: new Date(),
 			endsAt: new Date(Date.now() + 5 * 60 * 1000),
 		},
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(
+			canvas.getByText("What game should we play next?"),
+		).toBeVisible();
+		await expect(canvas.getByText("Option A")).toBeVisible();
+		await expect(canvas.getByText("Option B")).toBeVisible();
+		await expect(canvas.getByText("100 total votes")).toBeVisible();
+		// Check percentages are displayed
+		await expect(canvas.getByText("45%")).toBeVisible();
+		await expect(canvas.getByText("32%")).toBeVisible();
 	},
 };
 
@@ -100,6 +117,15 @@ export const Ended: Story = {
 			totalVotes: 300,
 			createdAt: new Date(Date.now() - 10 * 60 * 1000),
 		},
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByText("Poll Results")).toBeVisible();
+		await expect(canvas.getByText("Poll ended")).toBeVisible();
+		// Winner should be #1
+		await expect(canvas.getByText("#1")).toBeVisible();
+		await expect(canvas.getByText("Pizza")).toBeVisible();
+		await expect(canvas.getByText("300 total votes")).toBeVisible();
 	},
 };
 
