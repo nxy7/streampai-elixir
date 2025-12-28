@@ -126,6 +126,16 @@ export const dict = {
 	stream: {
 		streamTitlePlaceholder: "Enter your stream title...",
 		streamDescriptionPlaceholder: "Describe your stream...",
+		addTagPlaceholder: "Add a tag...",
+		searchByNameOrMessage: "Search by name or message...",
+		sendMessageToChat: "Send a message to chat...",
+		timerLabelPlaceholder: "e.g., Social Links, Discord, etc.",
+		timerMessagePlaceholder: "Message to send at each interval...",
+	},
+
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Search messages...",
 	},
 
 	// Analytics page
