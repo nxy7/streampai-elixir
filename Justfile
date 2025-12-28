@@ -102,7 +102,7 @@ dev:
 	trap cleanup EXIT
 
 	# Use overmind to manage processes (provides tmux-based log separation)
-	# -N disables overmind's automatic PORT assignment which conflicts with ours
+	# -N disables overminds automatic PORT assignment which conflicts with ours
 	overmind start -f Procfile.dev -N
 
 caddy:
@@ -288,6 +288,11 @@ worktree-setup:
 	# Install frontend dependencies
 	echo "Installing frontend dependencies..."
 	cd frontend && bun install
+	cd ..
+
+	# Install git hooks for formatting
+	echo "Installing git hooks..."
+	lefthook install
 
 	# Add MCP server for this worktree
 	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true

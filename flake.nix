@@ -31,6 +31,7 @@
               bun
               protobuf
               protoc-gen-elixir
+              lefthook
               overmind # Process manager with tmux-based log separation
               # dbmate
               # telepresence2
