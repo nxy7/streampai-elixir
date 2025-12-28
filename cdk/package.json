@@ -26,7 +26,8 @@
 	"dependencies": {
 		"@cdktf/provider-cloudflare": "^11.0.0",
 		"cdktf": "^0.20.0",
-		"constructs": "^10.3.0"
+		"constructs": "^10.3.0",
+		"dotenv": "^17.2.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.10",

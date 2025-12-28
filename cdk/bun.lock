@@ -7,6 +7,7 @@
         "@cdktf/provider-cloudflare": "^11.0.0",
         "cdktf": "^0.20.0",
         "constructs": "^10.3.0",
+        "dotenv": "^17.2.3",
       },
       "devDependencies": {
         "@biomejs/biome": "2.3.10",
@@ -278,6 +279,8 @@
     "detect-newline": ["detect-newline@2.1.0", "", {}, "sha512-CwffZFvlJffUg9zZA0uqrjQayUTC8ob94pnr5sFwaVv3IOmkfUHcWH+jXaQK3askE51Cqe8/9Ql/0uXNwqZ8Zg=="],
 
     "detect-port": ["detect-port@1.6.1", "", { "dependencies": { "address": "^1.0.1", "debug": "4" }, "bin": { "detect": "bin/detect-port.js", "detect-port": "bin/detect-port.js" } }, "sha512-CmnVc+Hek2egPx1PeTFVta2W78xy2K/9Rkf6cC4T59S50tVnzKj+tnx5mmx5lwvCkujZ4uRrpRSuV+IVs3f90Q=="],
+
+    "dotenv": ["dotenv@17.2.3", "", {}, "sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w=="],
 
     "downlevel-dts": ["downlevel-dts@0.11.0", "", { "dependencies": { "semver": "^7.3.2", "shelljs": "^0.8.3", "typescript": "next" }, "bin": { "downlevel-dts": "index.js" } }, "sha512-vo835pntK7kzYStk7xUHDifiYJvXxVhUapt85uk2AI94gUUAQX9HNRtrcMHNSc3YHJUEHGbYIGsM99uIbgAtxw=="],
 
