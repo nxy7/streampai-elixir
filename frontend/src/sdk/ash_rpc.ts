@@ -150,19 +150,6 @@ export type StreamTimerResourceSchema = {
 
 
 
-// File Schema
-export type FileResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "url" | "uploadUrl" | "uploadHeaders" | "maxSize";
-  id: UUID;
-  url: string | null;
-  uploadUrl: string | null;
-  uploadHeaders: Array<Record<string, any>> | null;
-  maxSize: number | null;
-};
-
-
-
 // User Schema
 export type UserResourceSchema = {
   __type: "Resource";
@@ -307,6 +294,19 @@ export type NotificationReadResourceSchema = {
   seenAt: UtcDateTimeUsec;
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
   notification: { __type: "Relationship"; __resource: NotificationResourceSchema; };
+};
+
+
+
+// File Schema
+export type FileResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "url" | "uploadUrl" | "uploadHeaders" | "maxSize";
+  id: UUID;
+  url: string | null;
+  uploadUrl: string | null;
+  uploadHeaders: Array<Record<string, any>> | null;
+  maxSize: number | null;
 };
 
 
@@ -914,48 +914,6 @@ export type StreamTimerFilterInput = {
 
 
 };
-export type FileFilterInput = {
-  and?: Array<FileFilterInput>;
-  or?: Array<FileFilterInput>;
-  not?: Array<FileFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  url?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  uploadUrl?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  uploadHeaders?: {
-    eq?: Array<Record<string, any>>;
-    notEq?: Array<Record<string, any>>;
-    in?: Array<Array<Record<string, any>>>;
-  };
-
-  maxSize?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-
-
-};
 export type UserFilterInput = {
   and?: Array<UserFilterInput>;
   or?: Array<UserFilterInput>;
@@ -1417,6 +1375,48 @@ export type NotificationReadFilterInput = {
   user?: UserFilterInput;
 
   notification?: NotificationFilterInput;
+
+};
+export type FileFilterInput = {
+  and?: Array<FileFilterInput>;
+  or?: Array<FileFilterInput>;
+  not?: Array<FileFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  url?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  uploadUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  uploadHeaders?: {
+    eq?: Array<Record<string, any>>;
+    notEq?: Array<Record<string, any>>;
+    in?: Array<Array<Record<string, any>>>;
+  };
+
+  maxSize?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+
 
 };
 
@@ -3183,131 +3183,6 @@ export async function deleteStreamTimerChannel(config: {
     {
     action: "delete_stream_timer",
     identity: config.identity
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type RequestFileUploadInput = {
-  filename: string;
-  contentType?: string;
-  fileType: "thumbnail" | "avatar" | "video" | "other";
-  estimatedSize: number;
-};
-
-export type RequestFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
-
-export type InferRequestFileUploadResult<
-  Fields extends RequestFileUploadFields | undefined,
-> = InferResult<FileResourceSchema, Fields>;
-
-export type RequestFileUploadResult<Fields extends RequestFileUploadFields | undefined = undefined> = | { success: true; data: InferRequestFileUploadResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function requestFileUpload<Fields extends RequestFileUploadFields | undefined = undefined>(
-  config: {
-  input: RequestFileUploadInput;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<RequestFileUploadResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "request_file_upload",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<RequestFileUploadResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function requestFileUploadChannel<Fields extends RequestFileUploadFields | undefined = undefined>(config: {
-  channel: Channel;
-  input: RequestFileUploadInput;
-  fields?: Fields;
-  resultHandler: (result: RequestFileUploadResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<RequestFileUploadResult<Fields>>(
-    config.channel,
-    {
-    action: "request_file_upload",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ConfirmFileUploadInput = {
-  contentHash?: string | null;
-};
-
-export type ConfirmFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
-
-export type InferConfirmFileUploadResult<
-  Fields extends ConfirmFileUploadFields | undefined,
-> = InferResult<FileResourceSchema, Fields>;
-
-export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | undefined = undefined> = | { success: true; data: InferConfirmFileUploadResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
-  config: {
-  identity: UUID;
-  input?: ConfirmFileUploadInput;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "confirm_file_upload",
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadFields | undefined = undefined>(config: {
-  channel: Channel;
-  identity: UUID;
-  input?: ConfirmFileUploadInput;
-  fields?: Fields;
-  resultHandler: (result: ConfirmFileUploadResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ConfirmFileUploadResult<Fields>>(
-    config.channel,
-    {
-    action: "confirm_file_upload",
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config
@@ -5165,6 +5040,131 @@ export async function markNotificationUnreadChannel(config: {
     {
     action: "mark_notification_unread",
     input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type RequestFileUploadInput = {
+  filename: string;
+  contentType?: string;
+  fileType: "thumbnail" | "avatar" | "video" | "other";
+  estimatedSize: number;
+};
+
+export type RequestFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+
+export type InferRequestFileUploadResult<
+  Fields extends RequestFileUploadFields | undefined,
+> = InferResult<FileResourceSchema, Fields>;
+
+export type RequestFileUploadResult<Fields extends RequestFileUploadFields | undefined = undefined> = | { success: true; data: InferRequestFileUploadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function requestFileUpload<Fields extends RequestFileUploadFields | undefined = undefined>(
+  config: {
+  input: RequestFileUploadInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RequestFileUploadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "request_file_upload",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<RequestFileUploadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function requestFileUploadChannel<Fields extends RequestFileUploadFields | undefined = undefined>(config: {
+  channel: Channel;
+  input: RequestFileUploadInput;
+  fields?: Fields;
+  resultHandler: (result: RequestFileUploadResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<RequestFileUploadResult<Fields>>(
+    config.channel,
+    {
+    action: "request_file_upload",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ConfirmFileUploadInput = {
+  contentHash?: string | null;
+};
+
+export type ConfirmFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+
+export type InferConfirmFileUploadResult<
+  Fields extends ConfirmFileUploadFields | undefined,
+> = InferResult<FileResourceSchema, Fields>;
+
+export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | undefined = undefined> = | { success: true; data: InferConfirmFileUploadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input?: ConfirmFileUploadInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "confirm_file_upload",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input?: ConfirmFileUploadInput;
+  fields?: Fields;
+  resultHandler: (result: ConfirmFileUploadResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ConfirmFileUploadResult<Fields>>(
+    config.channel,
+    {
+    action: "confirm_file_upload",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config

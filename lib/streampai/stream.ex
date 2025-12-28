@@ -53,11 +53,6 @@ defmodule Streampai.Stream do
       rpc_action(:stop_stream_timer, :stop_timer)
       rpc_action(:delete_stream_timer, :destroy)
     end
-
-    resource Streampai.Storage.File do
-      rpc_action(:request_file_upload, :request_upload)
-      rpc_action(:confirm_file_upload, :mark_uploaded)
-    end
   end
 
   resources do
@@ -70,6 +65,5 @@ defmodule Streampai.Stream do
     resource Streampai.Stream.StreamSettings
     resource StreamTimer
     resource StreamViewer
-    resource Streampai.Storage.File
   end
 end
