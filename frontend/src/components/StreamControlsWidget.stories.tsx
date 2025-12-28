@@ -6,6 +6,7 @@ import StreamControlsWidget, {
 	type StreamSummary,
 	type Platform,
 	type ModerationCallbacks,
+	type StreamTimer,
 	PreStreamSettings,
 	LiveStreamControlCenter,
 	PostStreamSummary,
@@ -1014,6 +1015,199 @@ export const ModerationActionsTest: Story = {
 			description: {
 				story:
 					"Test story for moderation actions on hover. Hover over chat messages to see Ban, Timeout, and Delete options. Hover over important events (donations, subscriptions, raids) to see the Replay option.",
+			},
+		},
+	},
+};
+
+// =====================================================
+// Timer Panel Stories
+// =====================================================
+
+const sampleTimers: StreamTimer[] = [
+	{
+		id: "timer-1",
+		label: "Stream Break",
+		durationSeconds: 300, // 5 minutes
+		remainingSeconds: 180, // 3 minutes left
+		isRunning: true,
+		isPaused: false,
+	},
+	{
+		id: "timer-2",
+		label: "Giveaway",
+		durationSeconds: 600, // 10 minutes
+		remainingSeconds: 600, // not started
+		isRunning: false,
+		isPaused: false,
+	},
+	{
+		id: "timer-3",
+		label: "Sub Train",
+		durationSeconds: 120, // 2 minutes
+		remainingSeconds: 45, // almost done
+		isRunning: true,
+		isPaused: false,
+	},
+];
+
+// Interactive timer story with state management
+function InteractiveTimersWrapper() {
+	const [timers, setTimers] = createSignal<StreamTimer[]>(sampleTimers);
+	const [activities] = createSignal<ActivityItem[]>(generateActivities(10));
+
+	// Timer tick effect - decrement running timers
+	onMount(() => {
+		const interval = setInterval(() => {
+			setTimers((currentTimers) =>
+				currentTimers.map((timer) => {
+					if (timer.isRunning && !timer.isPaused) {
+						return {
+							...timer,
+							remainingSeconds: timer.remainingSeconds - 1,
+						};
+					}
+					return timer;
+				}),
+			);
+		}, 1000);
+
+		onCleanup(() => clearInterval(interval));
+	});
+
+	const handleAddTimer = (label: string, durationMinutes: number) => {
+		const newTimer: StreamTimer = {
+			id: `timer-${Date.now()}`,
+			label,
+			durationSeconds: durationMinutes * 60,
+			remainingSeconds: durationMinutes * 60,
+			isRunning: false,
+			isPaused: false,
+		};
+		setTimers((t) => [...t, newTimer]);
+	};
+
+	const handleStartTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId ? { ...t, isRunning: true, isPaused: false } : t,
+			),
+		);
+	};
+
+	const handlePauseTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId ? { ...t, isRunning: false, isPaused: true } : t,
+			),
+		);
+	};
+
+	const handleResetTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId
+					? {
+							...t,
+							remainingSeconds: t.durationSeconds,
+							isRunning: false,
+							isPaused: false,
+						}
+					: t,
+			),
+		);
+	};
+
+	const handleDeleteTimer = (timerId: string) => {
+		setTimers((currentTimers) => currentTimers.filter((t) => t.id !== timerId));
+	};
+
+	return (
+		<StreamControlsWidget
+			phase="live"
+			activities={activities()}
+			streamDuration={1800}
+			viewerCount={500}
+			connectedPlatforms={["twitch", "youtube"]}
+			onSendMessage={handleSendMessage}
+			onStartPoll={handleStartPoll}
+			onStartGiveaway={handleStartGiveaway}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			timers={timers()}
+			onAddTimer={handleAddTimer}
+			onStartTimer={handleStartTimer}
+			onPauseTimer={handlePauseTimer}
+			onResetTimer={handleResetTimer}
+			onDeleteTimer={handleDeleteTimer}
+		/>
+	);
+}
+
+export const WithTimers: Story = {
+	render: () => <InteractiveTimersWrapper />,
+	args: {
+		phase: "live",
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Test story for the Timers panel. Click the "Actions" tab, then "Modify Timers" to open the timers panel. The timers are fully interactive - you can start, pause, reset, delete timers and add new ones. Click the back button to return to the Events view.',
+			},
+		},
+	},
+};
+
+export const LiveWithTimers: Story = {
+	args: {
+		phase: "live",
+		activities: manyActivities,
+		streamDuration: 3723,
+		viewerCount: 1024,
+		stickyDuration: 30000,
+		connectedPlatforms: ["twitch", "youtube", "kick"],
+		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onChangeStreamSettings: handleChangeStreamSettings,
+		timers: sampleTimers,
+		onAddTimer: (label: string, minutes: number) =>
+			console.log(`Add timer: ${label} for ${minutes} minutes`),
+		onStartTimer: (id: string) => console.log(`Start timer: ${id}`),
+		onPauseTimer: (id: string) => console.log(`Pause timer: ${id}`),
+		onResetTimer: (id: string) => console.log(`Reset timer: ${id}`),
+		onDeleteTimer: (id: string) => console.log(`Delete timer: ${id}`),
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Live stream with pre-configured timers. Click "Actions" tab then "Modify Timers" to see the timers panel.',
+			},
+		},
+	},
+};
+
+export const EmptyTimers: Story = {
+	args: {
+		phase: "live",
+		activities: sampleActivities,
+		streamDuration: 600,
+		viewerCount: 100,
+		connectedPlatforms: ["twitch"],
+		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onChangeStreamSettings: handleChangeStreamSettings,
+		timers: [],
+		onAddTimer: (label: string, minutes: number) =>
+			console.log(`Add timer: ${label} for ${minutes} minutes`),
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Live stream with no timers configured. Click "Actions" tab then "Modify Timers" to see the empty state with the add timer button.',
 			},
 		},
 	},
