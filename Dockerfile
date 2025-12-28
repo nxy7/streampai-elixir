@@ -1,19 +1,18 @@
 # Find eligible builder and runner images on Docker Hub.
 # Using Alpine for smaller image size.
 #
-# https://hub.docker.com/r/hexpm/elixir/tags?name=alpine
+# https://hub.docker.com/_/elixir/tags
 #
 # This file is based on these images:
 #
-#   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
+#   - https://hub.docker.com/_/elixir/tags - for the build image
 #   - https://hub.docker.com/_/alpine/tags - for the release image
-#   - Ex: docker.io/hexpm/elixir:1.19.1-erlang-26.2.5.9-alpine-3.23.2
 #
-ARG ELIXIR_VERSION=1.19.1
-ARG OTP_VERSION=26.2.5.9
-ARG ALPINE_VERSION=3.23.2
+ARG ELIXIR_VERSION=1.19.4
+ARG OTP_VERSION=28
+ARG ALPINE_VERSION=3.21
 
-ARG BUILDER_IMAGE="docker.io/hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-alpine-${ALPINE_VERSION}"
+ARG BUILDER_IMAGE="docker.io/elixir:${ELIXIR_VERSION}-otp-${OTP_VERSION}-alpine"
 ARG RUNNER_IMAGE="docker.io/alpine:${ALPINE_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
