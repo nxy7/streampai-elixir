@@ -1096,7 +1096,9 @@ function TimersPanel(props: TimersPanelProps) {
 								max="180"
 								value={newTimerMinutes()}
 								onInput={(e) =>
-									setNewTimerMinutes(Number.parseInt(e.currentTarget.value) || 5)
+									setNewTimerMinutes(
+										Number.parseInt(e.currentTarget.value) || 5,
+									)
 								}
 								data-testid="new-timer-minutes"
 							/>
