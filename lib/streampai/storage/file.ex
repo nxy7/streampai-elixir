@@ -18,7 +18,7 @@ defmodule Streampai.Storage.File do
 
   use Ash.Resource,
     otp_app: :streampai,
-    domain: Streampai.Stream,
+    domain: Streampai.Storage,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshTypescript.Resource]
