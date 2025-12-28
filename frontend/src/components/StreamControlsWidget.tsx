@@ -9,6 +9,8 @@ import {
 } from "solid-js";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
+import PollWidget from "~/components/widgets/PollWidget";
+import GiveawayWidget from "~/components/widgets/GiveawayWidget";
 
 // Maximum number of activities to keep in memory for performance
 const MAX_ACTIVITIES = 200;
@@ -68,8 +70,8 @@ export interface StreamSummary {
 // Stream phase types
 export type StreamPhase = "pre-stream" | "live" | "post-stream";
 
-// View mode for live stream (events vs actions)
-export type LiveViewMode = "events" | "actions";
+// View mode for live stream (events, actions, or specific action widgets)
+export type LiveViewMode = "events" | "actions" | "poll" | "giveaway";
 
 // Categories for stream
 const STREAM_CATEGORIES = [
@@ -471,9 +473,21 @@ export interface StreamActionCallbacks {
 	onChangeStreamSettings?: () => void;
 }
 
-interface StreamActionsPanelProps extends StreamActionCallbacks {}
+interface StreamActionsPanelProps extends StreamActionCallbacks {
+	onOpenWidget?: (widget: "poll" | "giveaway") => void;
+}
 
 function StreamActionsPanel(props: StreamActionsPanelProps) {
+	const handlePollClick = () => {
+		props.onOpenWidget?.("poll");
+		props.onStartPoll?.();
+	};
+
+	const handleGiveawayClick = () => {
+		props.onOpenWidget?.("giveaway");
+		props.onStartGiveaway?.();
+	};
+
 	const actions = [
 		{
 			id: "poll",
@@ -482,7 +496,8 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			description: "Create an interactive poll for viewers",
 			color: "bg-blue-500",
 			hoverColor: "hover:bg-blue-600",
-			onClick: props.onStartPoll,
+			onClick: handlePollClick,
+			enabled: true,
 		},
 		{
 			id: "giveaway",
@@ -491,7 +506,8 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			description: "Launch a giveaway for your audience",
 			color: "bg-green-500",
 			hoverColor: "hover:bg-green-600",
-			onClick: props.onStartGiveaway,
+			onClick: handleGiveawayClick,
+			enabled: true,
 		},
 		{
 			id: "timers",
@@ -501,6 +517,7 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			color: "bg-orange-500",
 			hoverColor: "hover:bg-orange-600",
 			onClick: props.onModifyTimers,
+			enabled: !!props.onModifyTimers,
 		},
 		{
 			id: "settings",
@@ -510,6 +527,7 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			color: "bg-purple-500",
 			hoverColor: "hover:bg-purple-600",
 			onClick: props.onChangeStreamSettings,
+			enabled: !!props.onChangeStreamSettings,
 		},
 	];
 
@@ -528,15 +546,15 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 						<button
 							type="button"
 							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
-								action.onClick
+								action.enabled
 									? "cursor-pointer"
 									: "cursor-not-allowed opacity-60"
 							}`}
 							onClick={action.onClick}
-							disabled={!action.onClick}
+							disabled={!action.enabled}
 							data-testid={`action-${action.id}`}>
 							<div
-								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.onClick ? action.hoverColor : ""}`}>
+								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.enabled ? action.hoverColor : ""}`}>
 								{action.icon}
 							</div>
 							<div class="min-w-0 flex-1">
@@ -1170,6 +1188,100 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						onStartGiveaway={props.onStartGiveaway}
 						onModifyTimers={props.onModifyTimers}
 						onChangeStreamSettings={props.onChangeStreamSettings}
+						onOpenWidget={(widget) => setViewMode(widget)}
+					/>
+				</div>
+			</Show>
+
+			{/* Poll Widget View */}
+			<Show when={viewMode() === "poll"}>
+				<div class="min-h-0 flex-1 overflow-y-auto py-4">
+					<div class="mb-4 flex items-center gap-2">
+						<button
+							type="button"
+							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							onClick={() => setViewMode("actions")}
+							data-testid="back-to-actions">
+							<span>&lt;</span>
+							<span>Back to Actions</span>
+						</button>
+					</div>
+					<div class="mb-4">
+						<h3 class="font-semibold text-gray-900 text-lg">Poll</h3>
+						<p class="text-gray-500 text-sm">
+							Create and manage interactive polls for your viewers
+						</p>
+					</div>
+					<PollWidget
+						config={{
+							showTitle: true,
+							showPercentages: true,
+							showVoteCounts: true,
+							fontSize: "medium",
+							primaryColor: "#3b82f6",
+							secondaryColor: "#6366f1",
+							backgroundColor: "#f8fafc",
+							textColor: "#1e293b",
+							winnerColor: "#eab308",
+							animationType: "smooth",
+							highlightWinner: true,
+							autoHideAfterEnd: false,
+							hideDelay: 5000,
+						}}
+						pollStatus={{
+							id: "demo",
+							title: "What should we do next?",
+							status: "waiting",
+							options: [],
+							totalVotes: 0,
+							createdAt: new Date(),
+						}}
+					/>
+				</div>
+			</Show>
+
+			{/* Giveaway Widget View */}
+			<Show when={viewMode() === "giveaway"}>
+				<div class="min-h-0 flex-1 overflow-y-auto py-4">
+					<div class="mb-4 flex items-center gap-2">
+						<button
+							type="button"
+							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							onClick={() => setViewMode("actions")}
+							data-testid="back-to-actions-giveaway">
+							<span>&lt;</span>
+							<span>Back to Actions</span>
+						</button>
+					</div>
+					<div class="mb-4">
+						<h3 class="font-semibold text-gray-900 text-lg">Giveaway</h3>
+						<p class="text-gray-500 text-sm">
+							Launch and manage giveaways for your audience
+						</p>
+					</div>
+					<GiveawayWidget
+						config={{
+							showTitle: true,
+							title: "Stream Giveaway",
+							showDescription: true,
+							description: "Join now for a chance to win!",
+							activeLabel: "Giveaway Active",
+							inactiveLabel: "No Active Giveaway",
+							winnerLabel: "Winner!",
+							entryMethodText: "Type !join to enter",
+							showEntryMethod: true,
+							showProgressBar: true,
+							targetParticipants: 100,
+							patreonMultiplier: 2,
+							patreonBadgeText: "Patreon",
+							winnerAnimation: "confetti",
+							titleColor: "#10b981",
+							textColor: "#1e293b",
+							backgroundColor: "#f8fafc",
+							accentColor: "#10b981",
+							fontSize: "medium",
+							showPatreonInfo: true,
+						}}
 					/>
 				</div>
 			</Show>
