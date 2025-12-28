@@ -7,6 +7,7 @@ import {
 	onMount,
 	Show,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 import { z } from "zod";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
@@ -581,6 +582,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 	const handleTimeout = (e: MouseEvent, seconds: number) => {
 		e.stopPropagation();
 		setShowTimeoutMenu(false);
+		setIsHovered(false); // Close hover state so action buttons hide
 		if (props.item.viewerId && props.item.viewerPlatformId) {
 			props.moderationCallbacks?.onTimeoutUser?.(
 				props.item.viewerId,
@@ -610,8 +612,10 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 			style={stickyStyle()}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
-				setIsHovered(false);
-				setShowTimeoutMenu(false);
+				// Don't close hover state if timeout menu is open (user might be selecting duration)
+				if (!showTimeoutMenu()) {
+					setIsHovered(false);
+				}
 			}}>
 			{/* Platform badge */}
 			<span
@@ -658,7 +662,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						}>
 						<button
 							type="button"
-							class="rounded p-1 text-purple-600 transition-colors hover:bg-purple-50"
+							class="flex h-5 w-5 items-center justify-center rounded text-purple-600 transition-colors hover:bg-purple-50"
 							onClick={handleReplay}
 							title="Replay alert"
 							data-testid="replay-button">
@@ -672,7 +676,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button
 								type="button"
-								class="rounded p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+								class="flex h-5 w-5 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
 								onClick={handleDelete}
 								title="Delete message"
 								data-testid="delete-button">
@@ -682,41 +686,71 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 
 						{/* Timeout button with dropdown */}
 						<Show when={props.moderationCallbacks?.onTimeoutUser}>
-							<div class="relative">
-								<button
-									type="button"
-									class="rounded p-1 text-amber-600 transition-colors hover:bg-amber-50"
-									onClick={(e) => {
-										e.stopPropagation();
-										setShowTimeoutMenu(!showTimeoutMenu());
-									}}
-									title="Timeout user"
-									data-testid="timeout-button">
-									<span class="text-xs">&#x23F1;</span>
-								</button>
-								<Show when={showTimeoutMenu()}>
-									<div class="absolute top-full right-0 z-20 mt-1 min-w-[60px] rounded border border-gray-200 bg-white py-0.5 shadow-lg">
-										<For each={TIMEOUT_PRESETS}>
-											{(preset) => (
-												<button
-													type="button"
-													class="block w-full px-2 py-0.5 text-left text-gray-700 text-xs transition-colors hover:bg-amber-50"
-													onClick={(e) => handleTimeout(e, preset.seconds)}
-													data-testid={`timeout-${preset.label}`}>
-													{preset.label}
-												</button>
-											)}
-										</For>
-									</div>
-								</Show>
-							</div>
+							{(() => {
+								const [buttonRef, setButtonRef] = createSignal<HTMLButtonElement | null>(null);
+								const [dropdownPos, setDropdownPos] = createSignal({ top: 0, left: 0 });
+
+								// Update dropdown position when menu opens
+								createEffect(() => {
+									if (showTimeoutMenu() && buttonRef()) {
+										const rect = buttonRef()!.getBoundingClientRect();
+										setDropdownPos({
+											top: rect.bottom + 2,
+											left: rect.right - 60, // Align right edge with button
+										});
+									}
+								});
+
+								return (
+									<>
+										<button
+											ref={setButtonRef}
+											type="button"
+											class="flex h-5 w-5 items-center justify-center rounded text-amber-600 transition-colors hover:bg-amber-50"
+											onClick={(e) => {
+												e.stopPropagation();
+												setShowTimeoutMenu(!showTimeoutMenu());
+											}}
+											title="Timeout user"
+											data-testid="timeout-button">
+											<span class="text-xs">&#x23F1;</span>
+										</button>
+										<Show when={showTimeoutMenu()}>
+											<Portal>
+												<div
+													class="fixed z-[9999] min-w-[60px] rounded border border-gray-200 bg-white py-0.5 shadow-lg"
+													style={{
+														top: `${dropdownPos().top}px`,
+														left: `${dropdownPos().left}px`,
+													}}
+													onMouseLeave={() => {
+														setShowTimeoutMenu(false);
+														setIsHovered(false);
+													}}>
+													<For each={TIMEOUT_PRESETS}>
+														{(preset) => (
+															<button
+																type="button"
+																class="block w-full px-2 py-0.5 text-left text-gray-700 text-xs transition-colors hover:bg-amber-50"
+																onClick={(e) => handleTimeout(e, preset.seconds)}
+																data-testid={`timeout-${preset.label}`}>
+																{preset.label}
+															</button>
+														)}
+													</For>
+												</div>
+											</Portal>
+										</Show>
+									</>
+								);
+							})()}
 						</Show>
 
 						{/* Ban button */}
 						<Show when={props.moderationCallbacks?.onBanUser}>
 							<button
 								type="button"
-								class="rounded p-1 text-red-600 transition-colors hover:bg-red-50"
+								class="flex h-5 w-5 items-center justify-center rounded text-red-600 transition-colors hover:bg-red-50"
 								onClick={handleBan}
 								title="Ban user"
 								data-testid="ban-button">
