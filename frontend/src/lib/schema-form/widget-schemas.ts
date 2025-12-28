@@ -311,3 +311,43 @@ export const allFieldTypesMeta: FormMeta<typeof allFieldTypesSchema.shape> = {
 	enabled: { label: "Enabled", description: "Toggle this feature on/off" },
 	size: { label: "Size" },
 };
+
+// =============================================================================
+// Custom Select Options (for testing custom option labels)
+// =============================================================================
+
+/**
+ * Demo schema showing custom option labels for select fields
+ */
+export const customOptionsSchema = z.object({
+	duration: z.enum(["7", "30", "90", "180", "365"]).default("30"),
+	priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+});
+
+export type CustomOptionsConfig = z.infer<typeof customOptionsSchema>;
+
+/**
+ * Demo metadata with custom option labels
+ */
+export const customOptionsMeta: FormMeta<typeof customOptionsSchema.shape> = {
+	duration: {
+		label: "Duration",
+		description: "Select how long to apply the setting",
+		options: {
+			"7": "7 days",
+			"30": "30 days (1 month)",
+			"90": "90 days (3 months)",
+			"180": "180 days (6 months)",
+			"365": "365 days (1 year)",
+		},
+	},
+	priority: {
+		label: "Priority Level",
+		options: {
+			low: "Low Priority",
+			medium: "Medium Priority",
+			high: "High Priority",
+			critical: "Critical - Urgent!",
+		},
+	},
+};

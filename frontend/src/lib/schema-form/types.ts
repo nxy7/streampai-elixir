@@ -46,6 +46,8 @@ export interface FieldMeta {
 	unit?: string;
 	/** Step increment (for number/slider fields) */
 	step?: number;
+	/** Custom labels for select options (maps enum value to display label) */
+	options?: Record<string, string>;
 }
 
 /**

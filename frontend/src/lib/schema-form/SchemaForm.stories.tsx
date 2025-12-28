@@ -10,6 +10,8 @@ import {
 	allFieldTypesSchema,
 	chatConfigMeta,
 	chatConfigSchema,
+	customOptionsMeta,
+	customOptionsSchema,
 	timerConfigMeta,
 	timerConfigSchema,
 } from "./widget-schemas";
@@ -354,6 +356,50 @@ export const NoMetadata: Story = {
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 					<h3 class="mb-2 font-medium text-gray-700 text-sm">
 						Current Values:
+					</h3>
+					<pre class="text-gray-600 text-xs">
+						{JSON.stringify(values(), null, 2)}
+					</pre>
+				</div>
+			</div>
+		);
+	},
+};
+
+/**
+ * Demonstrates custom option labels for select fields.
+ * This is useful when enum values don't match desired display labels,
+ * such as numeric duration values that should display as "7 days", "30 days", etc.
+ */
+export const CustomSelectOptions: Story = {
+	render: () => {
+		const [values, setValues] = createSignal({
+			duration: "30" as const,
+			priority: "medium" as const,
+		});
+
+		return (
+			<div class="space-y-6">
+				<div>
+					<h2 class="mb-1 font-semibold text-gray-900 text-lg">
+						Custom Select Options
+					</h2>
+					<p class="mb-4 text-gray-500 text-sm">
+						Select fields with custom option labels via the{" "}
+						<code class="rounded bg-gray-100 px-1">options</code> metadata
+					</p>
+					<SchemaForm
+						schema={customOptionsSchema}
+						meta={customOptionsMeta}
+						values={values()}
+						onChange={(field, value) => {
+							setValues((prev) => ({ ...prev, [field]: value }));
+						}}
+					/>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+					<h3 class="mb-2 font-medium text-gray-700 text-sm">
+						Current Values (raw enum values):
 					</h3>
 					<pre class="text-gray-600 text-xs">
 						{JSON.stringify(values(), null, 2)}
