@@ -393,38 +393,44 @@ export default function Viewers() {
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 									{/* Platform Filter */}
 									<div>
-										<label class="block font-medium text-gray-700 text-sm">
+										<label
+											class="block font-medium text-gray-700 text-sm"
+											for="platform-filter">
 											Platform
-											<Select
-												class="mt-2"
-												onChange={(e) => {
-													setPlatform(e.currentTarget.value as Platform);
-													handleFilterChange();
-												}}
-												value={platform()}>
-												<option value="">All Platforms</option>
-												<option value="twitch">Twitch</option>
-												<option value="youtube">YouTube</option>
-												<option value="facebook">Facebook</option>
-												<option value="kick">Kick</option>
-											</Select>
 										</label>
+										<Select
+											class="mt-2"
+											id="platform-filter"
+											onChange={(e) => {
+												setPlatform(e.currentTarget.value as Platform);
+												handleFilterChange();
+											}}
+											value={platform()}>
+											<option value="">All Platforms</option>
+											<option value="twitch">Twitch</option>
+											<option value="youtube">YouTube</option>
+											<option value="facebook">Facebook</option>
+											<option value="kick">Kick</option>
+										</Select>
 									</div>
 
 									{/* Search */}
 									<div>
-										<label class="block font-medium text-gray-700 text-sm">
+										<label
+											class="block font-medium text-gray-700 text-sm"
+											for="search-viewers">
 											Search
-											<form onSubmit={handleSearch}>
-												<Input
-													class="mt-2"
-													onInput={(e) => setSearchInput(e.currentTarget.value)}
-													placeholder="Search by display name..."
-													type="text"
-													value={searchInput()}
-												/>
-											</form>
 										</label>
+										<form onSubmit={handleSearch}>
+											<Input
+												class="mt-2"
+												id="search-viewers"
+												onInput={(e) => setSearchInput(e.currentTarget.value)}
+												placeholder="Search by display name..."
+												type="text"
+												value={searchInput()}
+											/>
+										</form>
 									</div>
 								</div>
 
