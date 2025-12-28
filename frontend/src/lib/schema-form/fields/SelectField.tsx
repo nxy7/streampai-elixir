@@ -46,7 +46,7 @@ export const SelectField: Component<SelectFieldProps> = (props) => {
 			value={props.value ?? ""}>
 			<For each={props.field.enumValues ?? []}>
 				{(option) => (
-					<option value={option}>
+					<option selected={props.value === option} value={option}>
 						{getOptionLabel(option, props.field.meta.options)}
 					</option>
 				)}
