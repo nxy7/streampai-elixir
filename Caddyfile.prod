@@ -1,0 +1,51 @@
+# Caddyfile for testing production-like setup
+# This mimics Cloudflare setup: serving static files + proxying to backend
+#
+# Usage:
+#   cd frontend && bun run build
+#   caddy run --config Caddyfile.prod
+#
+# Or with environment variable override:
+#   CADDY_PORT=8080 PORT=4000 caddy run --config Caddyfile.prod
+
+{
+	# Disable auto HTTPS redirect to avoid binding to port 80
+	auto_https disable_redirects
+}
+
+localhost:{$CADDY_PORT:8000} {
+	# All backend routes are prefixed with /api - proxy to Phoenix
+	handle /api/* {
+		reverse_proxy localhost:{$PORT:4000}
+	}
+
+	# Admin routes (internal only, not prefixed)
+	handle /admin/* {
+		reverse_proxy localhost:{$PORT:4000}
+	}
+
+	# Tidewave MCP for Claude integration
+	handle /tidewave/* {
+		reverse_proxy localhost:{$PORT:4000}
+	}
+
+	# Serve static files from the built frontend
+	handle {
+		root * frontend/.output/public
+
+		# Try to serve static files first
+		# If not found, serve index.html for SPA routing
+		try_files {path} /index.html
+
+		file_server
+	}
+
+	# Enable gzip compression
+	encode gzip
+
+	# Logs for debugging
+	log {
+		output stdout
+		format console
+	}
+}
