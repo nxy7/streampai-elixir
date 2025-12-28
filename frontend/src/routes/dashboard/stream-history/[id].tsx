@@ -9,9 +9,10 @@ import {
 	createResource,
 	createSignal,
 } from "solid-js";
-import { Skeleton, SkeletonListItem } from "~/components/ui";
-import Badge from "~/components/ui/Badge";
+import { Badge, Skeleton, SkeletonListItem } from "~/components/ui";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import {
 	type SuccessDataFunc,
 	getLivestream,
@@ -357,6 +358,8 @@ export default function StreamHistoryDetail() {
 }
 
 function StreamDetailContent(props: { streamId: string }) {
+	const { t } = useTranslation();
+
 	// Fetch livestream data
 	const [livestreamData] = createResource(
 		() => props.streamId,
@@ -411,6 +414,15 @@ function StreamDetailContent(props: { streamId: string }) {
 	const chatMessages = () => chatData() ?? [];
 	const events = () => eventsData() ?? [];
 	const [currentTimelinePosition, setCurrentTimelinePosition] = createSignal(0);
+
+	// Register breadcrumbs via context
+	useBreadcrumbs(() => [
+		{
+			label: t("dashboardNav.streamHistory"),
+			href: "/dashboard/stream-history",
+		},
+		{ label: stream()?.title ?? t("common.loading") },
+	]);
 
 	// Generate insights
 	const insights = createMemo<StreamInsights>(() => {
@@ -527,9 +539,9 @@ function StreamDetailContent(props: { streamId: string }) {
 	});
 
 	return (
-		<div class="mx-auto max-w-7xl">
+		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Stream Header */}
-			<div class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 				<div class="flex items-start space-x-4">
 					<Show when={stream()?.thumbnailUrl}>
 						<img
@@ -615,11 +627,6 @@ function StreamDetailContent(props: { streamId: string }) {
 							</For>
 						</div>
 					</div>
-					<A
-						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50"
-						href="/dashboard/stream-history">
-						← Back to History
-					</A>
 				</div>
 			</div>
 

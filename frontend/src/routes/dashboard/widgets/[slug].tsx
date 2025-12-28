@@ -13,16 +13,25 @@
  */
 import { useNavigate, useParams } from "@solidjs/router";
 import { Show, createMemo } from "solid-js";
-import Button from "~/components/ui/Button";
+import { Button } from "~/components/ui";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
+import { useTranslation } from "~/i18n";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getWidgetDefinition } from "~/lib/widget-registry";
 import { text } from "~/styles/design-system";
 
 export default function WidgetSettingsRoute() {
 	const params = useParams<{ slug: string }>();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	const widget = createMemo(() => getWidgetDefinition(params.slug));
+
+	// Register breadcrumbs via context
+	useBreadcrumbs(() => [
+		{ label: t("dashboardNav.widgets"), href: "/dashboard/widgets" },
+		{ label: widget()?.catalog.name ?? params.slug },
+	]);
 
 	return (
 		<Show
@@ -37,18 +46,20 @@ export default function WidgetSettingsRoute() {
 			}
 			when={widget()}>
 			{(def) => (
-				<WidgetSettingsPage
-					description={def().description}
-					meta={def().meta}
-					obsSettings={def().obsSettings}
-					PreviewComponent={def().component}
-					previewProps={def().previewProps}
-					previewWrapper={def().previewWrapper}
-					schema={def().schema}
-					title={def().title}
-					widgetType={def().widgetType}
-					widgetUrlPath={params.slug}
-				/>
+				<div class="space-y-4">
+					<WidgetSettingsPage
+						description={def().description}
+						meta={def().meta}
+						obsSettings={def().obsSettings}
+						PreviewComponent={def().component}
+						previewProps={def().previewProps}
+						previewWrapper={def().previewWrapper}
+						schema={def().schema}
+						title={def().title}
+						widgetType={def().widgetType}
+						widgetUrlPath={params.slug}
+					/>
+				</div>
 			)}
 		</Show>
 	);
