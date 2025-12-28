@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { type Accessor, For, createMemo } from "solid-js";
 import { Select } from "~/components/ui/Input";
 import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES, useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
@@ -6,11 +6,27 @@ import { saveLanguagePreference } from "~/sdk/ash_rpc";
 
 interface LanguageSwitcherProps {
 	class?: string;
+	/**
+	 * Override value from database. When provided, this value is displayed
+	 * instead of the current active locale. Useful in settings pages where
+	 * you want to show/edit the user's saved preference rather than the
+	 * active UI locale (which may differ during impersonation).
+	 */
+	valueFromDb?: Accessor<string | null | undefined>;
 }
 
 export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 	const { locale, setLocale } = useI18n();
 	const { user } = useCurrentUser();
+
+	// Use database value if provided, otherwise fall back to active locale
+	const displayedValue = createMemo(() => {
+		const dbValue = props.valueFromDb?.();
+		if (dbValue && SUPPORTED_LOCALES.includes(dbValue as Locale)) {
+			return dbValue as Locale;
+		}
+		return locale();
+	});
 
 	const handleLanguageChange = async (newLocale: Locale) => {
 		// Update local state immediately for responsive UI
@@ -38,7 +54,7 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 			class={props.class}
 			data-testid="language-switcher"
 			onChange={(e) => handleLanguageChange(e.currentTarget.value as Locale)}
-			value={locale()}>
+			value={displayedValue()}>
 			<For each={[...SUPPORTED_LOCALES]}>
 				{(localeCode) => (
 					<option value={localeCode}>{LOCALE_NAMES[localeCode]}</option>
