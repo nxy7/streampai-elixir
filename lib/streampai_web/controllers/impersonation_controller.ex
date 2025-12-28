@@ -5,13 +5,16 @@ defmodule StreampaiWeb.ImpersonationController do
   This controller manages the session-based impersonation system:
   - Start impersonation of another user (admin only)
   - Stop impersonation and return to original user
+
+  Supports both browser (HTML) and API (JSON) responses via content negotiation.
   """
   use StreampaiWeb, :controller
 
   alias Streampai.Accounts.UserPolicy
 
   def start_impersonation(conn, %{"user_id" => user_id}) do
-    real_user = conn.assigns.current_user
+    # If impersonation is already active, use the impersonator as the real user
+    real_user = conn.assigns[:impersonator] || conn.assigns.current_user
 
     with true <- can_impersonate?(real_user),
          {:ok, target_user} <- load_user_by_id(user_id, real_user),
@@ -19,18 +22,20 @@ defmodule StreampaiWeb.ImpersonationController do
       conn
       |> put_session(:impersonated_user_id, user_id)
       |> put_session(:impersonator_user_id, real_user.id)
-      |> put_flash(:info, "Impersonation started")
-      |> redirect(to: "/dashboard")
+      |> respond_success("Impersonation started", %{
+        impersonating: true,
+        impersonated_user: %{
+          id: target_user.id,
+          email: target_user.email,
+          name: target_user.name
+        }
+      })
     else
       false ->
-        conn
-        |> put_flash(:error, "You don't have permission to impersonate this user")
-        |> redirect(to: "/dashboard/admin/users")
+        respond_error(conn, "You don't have permission to impersonate this user", 403)
 
       {:error, _error} ->
-        conn
-        |> put_flash(:error, "User not found or access denied")
-        |> redirect(to: "/dashboard/admin/users")
+        respond_error(conn, "User not found or access denied", 404)
     end
   end
 
@@ -38,8 +43,7 @@ defmodule StreampaiWeb.ImpersonationController do
     conn
     |> delete_session(:impersonated_user_id)
     |> delete_session(:impersonator_user_id)
-    |> put_flash(:info, "Impersonation stopped")
-    |> redirect(to: "/dashboard/admin/users")
+    |> respond_success("Impersonation stopped", %{impersonating: false})
   end
 
   defp load_user_by_id(user_id, actor) when is_binary(user_id) do
@@ -51,4 +55,33 @@ defmodule StreampaiWeb.ImpersonationController do
   defp can_impersonate?(user) do
     UserPolicy.can_impersonate?(user)
   end
+
+  defp respond_success(conn, message, data) do
+    case get_format(conn) do
+      "json" ->
+        json(conn, Map.put(data, :message, message))
+
+      _ ->
+        conn
+        |> put_flash(:info, message)
+        |> redirect(to: redirect_path_for_response(data))
+    end
+  end
+
+  defp respond_error(conn, message, status_code) do
+    case get_format(conn) do
+      "json" ->
+        conn
+        |> put_status(status_code)
+        |> json(%{error: message})
+
+      _ ->
+        conn
+        |> put_flash(:error, message)
+        |> redirect(to: "/dashboard/admin/users")
+    end
+  end
+
+  defp redirect_path_for_response(%{impersonating: true}), do: "/dashboard"
+  defp redirect_path_for_response(_), do: "/dashboard/admin/users"
 end

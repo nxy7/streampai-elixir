@@ -1,6 +1,7 @@
-import { createEffect } from "solid-js";
+import { createEffect, createMemo } from "solid-js";
 import { useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useImpersonation } from "~/lib/impersonation";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 
 /**
@@ -9,11 +10,25 @@ import { useUserPreferencesForUser } from "~/lib/useElectric";
  *
  * When a user logs in and their preferences load, this will update the
  * interface language to match their saved preference (if they have one).
+ *
+ * During impersonation, the impersonator's locale preference takes priority
+ * over the impersonated user's preference.
  */
 export function LocaleSync() {
 	const { user } = useCurrentUser();
 	const { setLocaleFromDb } = useI18n();
-	const prefs = useUserPreferencesForUser(() => user()?.id);
+	const { isImpersonating, impersonator } = useImpersonation();
+
+	// When impersonating, use the impersonator's ID for preferences
+	// Otherwise use the current user's ID
+	const prefsUserId = createMemo(() => {
+		if (isImpersonating() && impersonator()) {
+			return impersonator()?.id;
+		}
+		return user()?.id;
+	});
+
+	const prefs = useUserPreferencesForUser(prefsUserId);
 
 	createEffect(() => {
 		const data = prefs.data();

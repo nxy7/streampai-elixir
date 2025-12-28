@@ -7,8 +7,10 @@ import { Alert } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
+import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
+import { startImpersonation } from "~/lib/impersonation";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
 import { usePresence } from "~/lib/socket";
@@ -51,6 +53,7 @@ export default function AdminUsers() {
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { users: onlineUsers } = usePresence();
+	const { t } = useTranslation();
 
 	// Check if user is admin
 	const isAdmin = createMemo(() => currentUser()?.role === "admin");
@@ -89,6 +92,23 @@ export default function AdminUsers() {
 	const [showRevokeConfirm, setShowRevokeConfirm] = createSignal(false);
 	const [userToRevoke, setUserToRevoke] = createSignal<AdminUser | null>(null);
 	const [revokingPro, setRevokingPro] = createSignal(false);
+
+	const [impersonatingUserId, setImpersonatingUserId] = createSignal<
+		string | null
+	>(null);
+
+	const handleImpersonate = async (userId: string) => {
+		setImpersonatingUserId(userId);
+		setError(null);
+		try {
+			await startImpersonation(userId);
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Failed to start impersonation",
+			);
+			setImpersonatingUserId(null);
+		}
+	};
 
 	createEffect(() => {
 		const user = currentUser();
@@ -328,6 +348,21 @@ export default function AdminUsers() {
 																type="button">
 																Grant PRO
 															</button>
+															<Show
+																when={
+																	currentUser()?.id !== user.id &&
+																	user.role !== "admin"
+																}>
+																<button
+																	class="text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+																	disabled={impersonatingUserId() !== null}
+																	onClick={() => handleImpersonate(user.id)}
+																	type="button">
+																	{impersonatingUserId() === user.id
+																		? "..."
+																		: t("admin.impersonate")}
+																</button>
+															</Show>
 														</div>
 													</td>
 												</tr>
