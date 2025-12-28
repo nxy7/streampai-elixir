@@ -52,6 +52,9 @@ type ElectricCollectionOptionsResult<T extends Row<unknown>> = Omit<
 // Default maxAge is 24 hours (in milliseconds)
 const DEFAULT_MAX_AGE = 24 * 60 * 60 * 1000;
 
+// Debounce delay for persisting data to IndexedDB after sync commits
+const PERSIST_DEBOUNCE_MS = 100;
+
 /**
  * Configuration for persisted Electric collections
  */
@@ -103,7 +106,7 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 
 	// Get user ID at config time (will be re-evaluated for storage key)
 	const getUserId = config.userId;
-	const resolveUserId = () => getUserId?.() ?? undefined;
+	const resolveUserId = () => getUserId?.();
 
 	// Generate storage key with user scope
 	const getStorageKey = (): string => {
@@ -149,6 +152,8 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 				try {
 					const cachedData = await state.persister.load();
 
+					// Double-check hasSyncedOnce before and after loading to prevent race condition
+					// where Electric sync completes while we're loading from IndexedDB
 					if (cachedData.length > 0 && !state.hasSyncedOnce) {
 						console.debug(
 							`[persistedElectric] Hydrating ${config.id} with ${cachedData.length} cached items`,
@@ -162,6 +167,15 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 								metadata: { fromCache: true },
 							});
 						}
+
+						// Final check before committing - abort if Electric sync completed during hydration
+						if (state.hasSyncedOnce) {
+							console.debug(
+								`[persistedElectric] Aborting cache hydration for ${config.id} - Electric sync completed`,
+							);
+							return;
+						}
+
 						commit();
 						markReady(); // Instant ready with cached data!
 						state.isHydratedFromCache = true;
@@ -209,7 +223,7 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 				pendingPersist = setTimeout(() => {
 					persistToCache(collection);
 					pendingPersist = null;
-				}, 100);
+				}, PERSIST_DEBOUNCE_MS);
 			};
 
 			// Call original sync with wrapped commit
