@@ -148,7 +148,7 @@ export default function ChatHistory() {
 							setDateRange={setDateRange}
 							setPlatform={setPlatform}
 							setSearchInput={setSearchInput}
-							userId={user()?.id}
+							userId={user()!.id}
 						/>
 					</Suspense>
 				</ErrorBoundary>
