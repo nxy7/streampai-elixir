@@ -130,6 +130,7 @@ defmodule Streampai.Accounts.User do
     define :toggle_email_notifications
     define :update_donation_settings, args: [:min_amount, :max_amount, :currency, :default_voice]
     define :update_language_preference, args: [:language]
+    define :update_theme_preference, args: [:theme]
   end
 
   actions do
@@ -607,6 +608,29 @@ defmodule Streampai.Accounts.User do
 
       change set_attribute(:language_preference, arg(:language))
     end
+
+    update :update_theme_preference do
+      description "Update user's preferred theme for the interface"
+      require_atomic? false
+
+      argument :theme, :string do
+        allow_nil? false
+        description "Theme preference (light, dark, system)"
+      end
+
+      validate fn changeset, _context ->
+        theme = Ash.Changeset.get_argument(changeset, :theme)
+        valid_themes = ["light", "dark", "system"]
+
+        if theme in valid_themes do
+          :ok
+        else
+          {:error, field: :theme, message: "must be one of: #{Enum.join(valid_themes, ", ")}"}
+        end
+      end
+
+      change set_attribute(:theme_preference, arg(:theme))
+    end
   end
 
   policies do
@@ -717,6 +741,12 @@ defmodule Streampai.Accounts.User do
       public? true
       allow_nil? true
       description "User's preferred language code (en, de, pl, es)"
+    end
+
+    attribute :theme_preference, :string do
+      public? true
+      allow_nil? true
+      description "User's preferred theme (light, dark, system)"
     end
 
     timestamps()

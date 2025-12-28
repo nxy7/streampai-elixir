@@ -3939,6 +3939,69 @@ export async function saveLanguagePreferenceChannel<Fields extends SaveLanguageP
 }
 
 
+export type SaveThemePreferenceInput = {
+  theme: string;
+};
+
+export type SaveThemePreferenceFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferSaveThemePreferenceResult<
+  Fields extends SaveThemePreferenceFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type SaveThemePreferenceResult<Fields extends SaveThemePreferenceFields | undefined = undefined> = | { success: true; data: InferSaveThemePreferenceResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveThemePreference<Fields extends SaveThemePreferenceFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: SaveThemePreferenceInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveThemePreferenceResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_theme_preference",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveThemePreferenceResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function saveThemePreferenceChannel<Fields extends SaveThemePreferenceFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: SaveThemePreferenceInput;
+  fields?: Fields;
+  resultHandler: (result: SaveThemePreferenceResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SaveThemePreferenceResult<Fields>>(
+    config.channel,
+    {
+    action: "save_theme_preference",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
 export type GrantProAccessInput = {
   durationDays: number;
   reason: string;

@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
+import ThemeSwitcher from "~/components/ThemeSwitcher";
 import { Skeleton } from "~/components/ui";
 import Button from "~/components/ui/Button";
 import { useTranslation } from "~/i18n";
@@ -899,20 +900,37 @@ export default function Settings() {
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.language")}
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.language")}
 										<div class="mt-2">
 											<LanguageSwitcher class="w-full md:w-48" />
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.languageDescription")}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
+								{t("settings.theme")}
+							</h3>
+							<div class="space-y-4">
+								<div>
+									<p class="mb-3 block font-medium text-theme-secondary text-sm">
+										{t("settings.theme")}
+									</p>
+									<ThemeSwitcher class="max-w-md" />
+									<p class="mt-2 text-theme-tertiary text-xs">
+										{t("settings.themeDescription")}
 									</p>
 								</div>
 							</div>

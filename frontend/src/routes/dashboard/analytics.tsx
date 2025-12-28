@@ -70,8 +70,8 @@ function AnalyticsSkeleton() {
 				</CardHeader>
 				<CardContent>
 					<div class="-mx-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-[var(--theme-border)]">
+							<thead class="bg-theme-tertiary">
 								<tr>
 									<For each={[1, 2, 3, 4, 5, 6]}>
 										{() => (
@@ -82,7 +82,7 @@ function AnalyticsSkeleton() {
 									</For>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-gray-200 bg-white">
+							<tbody class="divide-y divide-[var(--theme-border)] bg-theme-surface">
 								<For each={[1, 2, 3, 4, 5]}>
 									{() => <SkeletonTableRow columns={6} />}
 								</For>
@@ -399,16 +399,16 @@ export default function Analytics() {
 					<div class="space-y-6">
 						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 							<div>
-								<h1 class="font-bold text-2xl text-gray-900">
+								<h1 class="font-bold text-2xl text-theme-primary">
 									{t("analytics.title")}
 								</h1>
-								<p class="mt-1 text-gray-500 text-sm">
+								<p class="mt-1 text-theme-tertiary text-sm">
 									{t("analytics.subtitle")}
 								</p>
 							</div>
 
 							<select
-								class="rounded-md border-gray-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
+								class="rounded-md border-theme bg-theme-surface text-theme-primary px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
 								onChange={(e) =>
 									setTimeframe(e.currentTarget.value as Timeframe)
 								}
@@ -452,8 +452,8 @@ export default function Analytics() {
 										</CardHeader>
 										<CardContent>
 											<div class="-mx-6 overflow-x-auto">
-												<table class="min-w-full divide-y divide-gray-200">
-													<thead class="bg-gray-50">
+												<table class="min-w-full divide-y divide-[var(--theme-border)]">
+													<thead class="bg-theme-tertiary">
 														<tr>
 															<For each={[1, 2, 3, 4, 5, 6]}>
 																{() => (
@@ -464,7 +464,7 @@ export default function Analytics() {
 															</For>
 														</tr>
 													</thead>
-													<tbody class="divide-y divide-gray-200 bg-white">
+													<tbody class="divide-y divide-[var(--theme-border)] bg-theme-surface">
 														<For each={[1, 2, 3, 4, 5]}>
 															{() => <SkeletonTableRow columns={6} />}
 														</For>
@@ -606,9 +606,9 @@ function LineChart(props: LineChartProps) {
 	return (
 		<Card>
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="font-medium text-gray-900 text-lg">{props.title}</h3>
+				<h3 class="font-medium text-theme-primary text-lg">{props.title}</h3>
 				<Show when={hasAnyData()}>
-					<div class="flex items-center gap-4 text-gray-500 text-xs">
+					<div class="flex items-center gap-4 text-theme-tertiary text-xs">
 						<div class="flex items-center gap-1">
 							<div class="h-3 w-3 rounded-full bg-indigo-500" />
 							<span>{t("analytics.peakViewers")}</span>
@@ -623,11 +623,11 @@ function LineChart(props: LineChartProps) {
 
 			<Show
 				fallback={
-					<div class="flex h-64 items-center justify-center rounded-lg bg-gray-50">
+					<div class="flex h-64 items-center justify-center rounded-lg bg-theme-tertiary">
 						<div class="text-center">
 							<svg
 								aria-hidden="true"
-								class="mx-auto h-12 w-12 text-gray-400"
+								class="mx-auto h-12 w-12 text-theme-muted"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -638,10 +638,10 @@ function LineChart(props: LineChartProps) {
 									stroke-width="2"
 								/>
 							</svg>
-							<p class="mt-2 font-medium text-gray-900 text-sm">
+							<p class="mt-2 font-medium text-theme-primary text-sm">
 								{t("analytics.noStreamingData")}
 							</p>
-							<p class="mt-1 text-gray-500 text-xs">
+							<p class="mt-1 text-theme-tertiary text-xs">
 								{t("analytics.streamToSee")}
 							</p>
 						</div>
@@ -733,7 +733,7 @@ function LineChart(props: LineChartProps) {
 					</svg>
 
 					{/* Y-axis labels */}
-					<div class="absolute top-0 left-0 flex h-full flex-col justify-between pr-2 text-gray-500 text-xs">
+					<div class="absolute top-0 left-0 flex h-full flex-col justify-between pr-2 text-theme-tertiary text-xs">
 						<For each={[4, 3, 2, 1, 0]}>
 							{(i) => (
 								<span class="pr-2 text-right">
@@ -744,7 +744,7 @@ function LineChart(props: LineChartProps) {
 					</div>
 
 					{/* X-axis labels */}
-					<div class="absolute right-0 bottom-0 left-12 flex translate-y-5 transform justify-between text-gray-500 text-xs">
+					<div class="absolute right-0 bottom-0 left-12 flex translate-y-5 transform justify-between text-theme-tertiary text-xs">
 						<For each={labelIndices()}>
 							{(idx) => (
 								<span>
@@ -803,7 +803,7 @@ function BarChart(props: BarChartProps) {
 
 	return (
 		<Card>
-			<h3 class="mb-4 font-medium text-gray-900 text-lg">{props.title}</h3>
+			<h3 class="mb-4 font-medium text-theme-primary text-lg">{props.title}</h3>
 			<div class="space-y-3">
 				<For each={props.data}>
 					{(item) => (
@@ -862,7 +862,7 @@ function StreamTable(props: StreamTableProps) {
 						<div class="py-12 text-center">
 							<svg
 								aria-hidden="true"
-								class="mx-auto h-12 w-12 text-gray-400"
+								class="mx-auto h-12 w-12 text-theme-muted"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -873,51 +873,51 @@ function StreamTable(props: StreamTableProps) {
 									stroke-width="2"
 								/>
 							</svg>
-							<h3 class="mt-2 font-medium text-gray-900 text-sm">
+							<h3 class="mt-2 font-medium text-theme-primary text-sm">
 								{t("analytics.noStreamsYet")}
 							</h3>
-							<p class="mt-1 text-gray-500 text-sm">
+							<p class="mt-1 text-theme-tertiary text-sm">
 								{t("analytics.startStreaming")}
 							</p>
 						</div>
 					}
 					when={props.streams.length > 0}>
 					<div class="-mx-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-[var(--theme-border)]">
+							<thead class="bg-theme-tertiary">
 								<tr>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.stream")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.platform")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.duration")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.peakViewers")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.avgViewers")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-theme-secondary text-xs tracking-wider">
 										{t("analytics.chatMessages")}
 									</th>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-gray-200 bg-white">
+							<tbody class="divide-y divide-[var(--theme-border)] bg-theme-surface">
 								<For each={props.streams}>
 									{(stream) => (
-										<tr class="hover:bg-gray-50">
+										<tr class="hover:bg-theme-hover">
 											<td class="whitespace-nowrap px-6 py-4">
 												<A
 													class="block hover:text-purple-600"
 													href={`/dashboard/stream-history/${stream.id}`}>
-													<div class="font-medium text-gray-900 text-sm">
+													<div class="font-medium text-theme-primary text-sm">
 														{stream.title}
 													</div>
-													<div class="text-gray-500 text-xs">
+													<div class="text-theme-tertiary text-xs">
 														{formatDate(stream.startTime)}
 													</div>
 												</A>
@@ -928,16 +928,16 @@ function StreamTable(props: StreamTableProps) {
 													{stream.platform}
 												</Badge>
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-theme-primary text-sm">
 												{stream.duration}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-theme-primary text-sm">
 												{formatNumber(stream.viewers.peak)}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-theme-primary text-sm">
 												{formatNumber(stream.viewers.average)}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-theme-primary text-sm">
 												{formatNumber(stream.engagement.chatMessages)}
 											</td>
 										</tr>

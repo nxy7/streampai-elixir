@@ -14,6 +14,7 @@ defmodule StreampaiWeb.SyncController do
     "default_voice",
     "avatar_url",
     "language_preference",
+    "theme_preference",
     "inserted_at",
     "updated_at"
   ]
