@@ -166,7 +166,7 @@ export type FileResourceSchema = {
 // User Schema
 export type UserResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
+  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "themePreference" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
   id: UUID;
   email: string;
   name: string;
@@ -179,6 +179,7 @@ export type UserResourceSchema = {
   defaultVoice: string | null;
   avatarUrl: string | null;
   languagePreference: string | null;
+  themePreference: string | null;
   avatarFileId: UUID | null;
   tier: string | null;
   role: string | null;
@@ -1039,6 +1040,12 @@ export type UserFilterInput = {
   };
 
   languagePreference?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  themePreference?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
