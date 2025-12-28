@@ -16,6 +16,7 @@ import {
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
+	createUserPreferencesCollection,
 	createUserRolesCollection,
 	createUserScopedChatMessagesCollection,
 	createUserScopedLivestreamsCollection,
@@ -142,8 +143,17 @@ export function useUserPreferences() {
 	return useLiveQuery(() => userPreferencesCollection);
 }
 
+// Cache for user-scoped preferences collection (uses IndexedDB persistence)
+const getUserPreferencesCollection = createCollectionCache(
+	createUserPreferencesCollection,
+);
+
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	const query = useLiveQuery(() => userPreferencesCollection);
+	const query = useLiveQuery(() => {
+		const currentId = userId();
+		if (!currentId) return userPreferencesCollection;
+		return getUserPreferencesCollection(currentId);
+	});
 
 	return {
 		...query,
