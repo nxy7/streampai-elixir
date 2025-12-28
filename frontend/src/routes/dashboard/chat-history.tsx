@@ -230,55 +230,64 @@ function ChatHistoryContent(props: {
 				<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{/* Platform Filter */}
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label
+							class="block font-medium text-gray-700 text-sm"
+							for="chat-platform-filter">
 							Platform
-							<Select
-								class="mt-2"
-								onChange={(e) => {
-									props.setPlatform(e.currentTarget.value as Platform);
-								}}
-								value={props.platform()}>
-								<option value="">All Platforms</option>
-								<option value="twitch">Twitch</option>
-								<option value="youtube">YouTube</option>
-								<option value="facebook">Facebook</option>
-								<option value="kick">Kick</option>
-							</Select>
 						</label>
+						<Select
+							class="mt-2"
+							id="chat-platform-filter"
+							onChange={(e) => {
+								props.setPlatform(e.currentTarget.value as Platform);
+							}}
+							value={props.platform()}>
+							<option value="">All Platforms</option>
+							<option value="twitch">Twitch</option>
+							<option value="youtube">YouTube</option>
+							<option value="facebook">Facebook</option>
+							<option value="kick">Kick</option>
+						</Select>
 					</div>
 
 					{/* Date Range Filter */}
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label
+							class="block font-medium text-gray-700 text-sm"
+							for="chat-date-range">
 							Date Range
-							<Select
-								class="mt-2"
-								onChange={(e) => {
-									props.setDateRange(e.currentTarget.value as DateRange);
-								}}
-								value={props.dateRange()}>
-								<option value="">All Time</option>
-								<option value="7days">Last 7 Days</option>
-								<option value="30days">Last 30 Days</option>
-								<option value="3months">Last 3 Months</option>
-							</Select>
 						</label>
+						<Select
+							class="mt-2"
+							id="chat-date-range"
+							onChange={(e) => {
+								props.setDateRange(e.currentTarget.value as DateRange);
+							}}
+							value={props.dateRange()}>
+							<option value="">All Time</option>
+							<option value="7days">Last 7 Days</option>
+							<option value="30days">Last 30 Days</option>
+							<option value="3months">Last 3 Months</option>
+						</Select>
 					</div>
 
 					{/* Search */}
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label
+							class="block font-medium text-gray-700 text-sm"
+							for="chat-search">
 							Search
-							<form onSubmit={props.handleSearch}>
-								<Input
-									class="mt-2"
-									onInput={(e) => props.setSearchInput(e.currentTarget.value)}
-									placeholder="Search messages..."
-									type="text"
-									value={props.searchInput()}
-								/>
-							</form>
 						</label>
+						<form onSubmit={props.handleSearch}>
+							<Input
+								class="mt-2"
+								id="chat-search"
+								onInput={(e) => props.setSearchInput(e.currentTarget.value)}
+								placeholder="Search messages..."
+								type="text"
+								value={props.searchInput()}
+							/>
+						</form>
 					</div>
 				</div>
 
