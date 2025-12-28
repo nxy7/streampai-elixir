@@ -49,7 +49,7 @@ export function ImpersonationBanner() {
 					})}
 				</span>
 				<button
-					class="ml-2 rounded-md bg-white px-3 py-1 font-medium text-amber-700 text-sm hover:bg-amber-100"
+					class="ml-2 rounded-md bg-white px-3 py-1 font-medium text-amber-700 text-sm hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-200 focus-visible:outline-offset-2"
 					onClick={handleExit}
 					type="button">
 					{t("impersonation.exit")}
