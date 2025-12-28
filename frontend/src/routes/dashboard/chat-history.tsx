@@ -12,6 +12,7 @@ import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Card from "~/components/ui/Card";
 import Input, { Select } from "~/components/ui/Input";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getChatHistory } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
@@ -168,6 +169,7 @@ function ChatHistoryContent(props: {
 	setSearchInput: (s: string) => void;
 	handleSearch: (e: Event) => void;
 }) {
+	const { t } = useTranslation();
 	const [messages, setMessages] = createSignal<ChatMessage[]>([]);
 	const [_isLoading, setIsLoading] = createSignal(true);
 
@@ -283,7 +285,7 @@ function ChatHistoryContent(props: {
 								class="mt-2"
 								id="chat-search"
 								onInput={(e) => props.setSearchInput(e.currentTarget.value)}
-								placeholder="Search messages..."
+								placeholder={t("chatHistory.searchPlaceholder")}
 								type="text"
 								value={props.searchInput()}
 							/>

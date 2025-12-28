@@ -72,17 +72,7 @@ defmodule Streampai.Accounts.WidgetConfig do
   end
 
   changes do
-    change fn changeset, _opts ->
-             # Ensure user_id is set to actor's id for security
-             case changeset.context[:actor] do
-               %{id: actor_id} when not is_nil(actor_id) ->
-                 Ash.Changeset.force_change_attribute(changeset, :user_id, actor_id)
-
-               _ ->
-                 changeset
-             end
-           end,
-           on: [:create]
+    change Streampai.Changes.SetUserIdFromActor, on: [:create]
   end
 
   validations do
