@@ -399,19 +399,13 @@ export function useNotificationsWithReadStatus(
 
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
 
-			// Build a map of notification_id -> Record<locale, content>
-			const localizationMap = new Map<string, Record<string, string>>();
-			for (const loc of localizations) {
-				let notificationLocs = localizationMap.get(loc.notification_id);
-				if (!notificationLocs) {
-					notificationLocs = {};
-					localizationMap.set(loc.notification_id, notificationLocs);
-				}
-				notificationLocs[loc.locale] = loc.content;
-			}
-
 			const withStatus = notifications.map((n): NotificationWithReadStatus => {
-				const notificationLocs = localizationMap.get(n.id) || {};
+				// Build localizations from notification columns
+				const notificationLocs: Record<string, string> = {};
+				if (n.content_de) notificationLocs.de = n.content_de;
+				if (n.content_pl) notificationLocs.pl = n.content_pl;
+				if (n.content_es) notificationLocs.es = n.content_es;
+
 				// Use localized content if available, otherwise fall back to default content
 				const localizedContent = notificationLocs[currentLocale] || n.content;
 
@@ -423,7 +417,6 @@ export function useNotificationsWithReadStatus(
 					wasSeen: readMap.has(n.id),
 					seenAt: readMap.get(n.id) || null,
 					localizedContent,
-					localizations: notificationLocs,
 				};
 			});
 			return sortByInsertedAt(withStatus);
