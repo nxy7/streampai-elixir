@@ -11,7 +11,7 @@ User Request → Cloudflare (CDN/Proxy/WAF)
     │   └── *.css, *.js, images
     │
     ├── Dynamic endpoints (not cached, proxied to origin)
-    │   └── /api/*, /graphql, /rpc/*, /shapes/*
+    │   └── /api/*, /rpc/*, /shapes/*
     │
     └── Protected routes (rate limited, WAF protected)
         └── /auth/*, /admin/*
@@ -136,7 +136,7 @@ The configuration is automatically applied on push to master/main when files in 
 |--------------|----------|-------------|-------|
 | `/_build/*` | 1 year | 1 year | Vite build output (immutable) |
 | `*.css, *.js, images` | 1 year | 1 week | Static assets |
-| `/api/*`, `/graphql` | bypass | bypass | API endpoints |
+| `/api/*` | bypass | bypass | API endpoints |
 | `/admin/*` | bypass | bypass | Admin routes |
 | `/auth/*` | bypass | bypass | Auth routes |
 | `/shapes/*` | bypass | bypass | Electric SQL sync |
@@ -145,7 +145,7 @@ The configuration is automatically applied on push to master/main when files in 
 
 | Endpoint | Limit | Period | Timeout |
 |----------|-------|--------|---------|
-| `/api/*`, `/graphql` | 100 requests | 1 minute | 1 minute |
+| `/api/*` | 100 requests | 1 minute | 1 minute |
 | `/auth/*` | 10 requests | 5 minutes | 10 minutes |
 
 ### SSL/TLS

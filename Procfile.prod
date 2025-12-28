@@ -1,0 +1,3 @@
+postgres: docker compose up
+phoenix: sleep 5 && elixir -S mix phx.server
+caddy: caddy run --config Caddyfile.prod

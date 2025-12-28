@@ -19,7 +19,7 @@ export default function DonationPage() {
 	const params = useParams<{ username: string }>();
 	const [userId, setUserId] = createSignal<string | null>(null);
 	const [error, setError] = createSignal<string | null>(null);
-	const [graphqlDone, setGraphqlDone] = createSignal(false);
+	const [fetchDone, setFetchDone] = createSignal(false);
 
 	const [preferencesCollection, setPreferencesCollection] =
 		createSignal<ReturnType<typeof createUserPreferencesCollection> | null>(
@@ -41,7 +41,7 @@ export default function DonationPage() {
 		const username = params.username;
 		if (!username) {
 			setError("Invalid username");
-			setGraphqlDone(true);
+			setFetchDone(true);
 			return;
 		}
 
@@ -54,18 +54,18 @@ export default function DonationPage() {
 
 			if (!result.success) {
 				setError("User not found");
-				setGraphqlDone(true);
+				setFetchDone(true);
 				return;
 			}
 
 			const user = result.data;
 			setUserId(user.id);
 			setPreferencesCollection(createUserPreferencesCollection(user.id));
-			setGraphqlDone(true);
+			setFetchDone(true);
 		} catch (e) {
 			console.error("Error fetching user:", e);
 			setError("Failed to load user");
-			setGraphqlDone(true);
+			setFetchDone(true);
 		}
 	});
 
@@ -82,10 +82,10 @@ export default function DonationPage() {
 		return data?.[0] ?? null;
 	};
 
-	// Single loading state: wait for GraphQL + Electric (unless error)
+	// Single loading state: wait for RPC fetch + Electric (unless error)
 	const isReady = () => {
-		// Must have completed GraphQL
-		if (!graphqlDone()) return false;
+		// Must have completed RPC fetch
+		if (!fetchDone()) return false;
 		// If there's an error, we're ready to show error page
 		if (error()) return true;
 		// Otherwise wait for Electric data
