@@ -3,6 +3,7 @@ import { useParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { useTranslation } from "~/i18n";
 import { createUserPreferencesCollection } from "~/lib/electric";
 import { createLocalStorageStore } from "~/lib/useLocalStorage";
 import { getPublicProfile } from "~/sdk/ash_rpc";
@@ -14,6 +15,7 @@ type StreamerPrefs = {
 };
 
 export default function DonationPage() {
+	const { t } = useTranslation();
 	const params = useParams<{ username: string }>();
 	const [userId, setUserId] = createSignal<string | null>(null);
 	const [error, setError] = createSignal<string | null>(null);
@@ -325,7 +327,7 @@ export default function DonationPage() {
 													selectedAmount: null,
 												});
 											}}
-											placeholder="Custom amount"
+											placeholder={t("donation.customAmountPlaceholder")}
 											type="text"
 											value={currentStreamerPrefs().customAmount}
 										/>
@@ -376,7 +378,7 @@ export default function DonationPage() {
 											onInput={(e) =>
 												setDonorInfo("name", e.currentTarget.value)
 											}
-											placeholder="Anonymous"
+											placeholder={t("donation.anonymousPlaceholder")}
 											type="text"
 											value={donorInfo.name}
 										/>
@@ -392,7 +394,7 @@ export default function DonationPage() {
 											onInput={(e) =>
 												setDonorInfo("email", e.currentTarget.value)
 											}
-											placeholder="email@example.com"
+											placeholder={t("donation.emailPlaceholder")}
 											type="email"
 											value={donorInfo.email}
 										/>
@@ -408,7 +410,7 @@ export default function DonationPage() {
 											onInput={(e) =>
 												updateStreamerPrefs({ message: e.currentTarget.value })
 											}
-											placeholder="Say something nice..."
+											placeholder={t("donation.messagePlaceholder")}
 											rows={3}
 											value={currentStreamerPrefs().message}
 										/>

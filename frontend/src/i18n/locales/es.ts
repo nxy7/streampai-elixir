@@ -130,6 +130,11 @@ export const dict: Dictionary = {
 		streamDescriptionPlaceholder: "Describe tu stream...",
 	},
 
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Buscar mensajes...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Estadísticas de streams",
@@ -531,6 +536,14 @@ export const dict: Dictionary = {
 	admin: {
 		enterUserUuid: "Ingresa el UUID del usuario",
 		enterNotificationMessage: "Ingresa el mensaje de notificación...",
+	},
+
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Monto personalizado",
+		anonymousPlaceholder: "Anónimo",
+		emailPlaceholder: "correo@ejemplo.com",
+		messagePlaceholder: "Escribe algo lindo...",
 	},
 
 	// Contact page

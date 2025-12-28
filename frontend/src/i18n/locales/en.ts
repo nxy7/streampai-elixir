@@ -128,6 +128,11 @@ export const dict = {
 		streamDescriptionPlaceholder: "Describe your stream...",
 	},
 
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Search messages...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream Analytics",
@@ -539,6 +544,14 @@ export const dict = {
 	admin: {
 		enterUserUuid: "Enter user UUID",
 		enterNotificationMessage: "Enter notification message...",
+	},
+
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Custom amount",
+		anonymousPlaceholder: "Anonymous",
+		emailPlaceholder: "email@example.com",
+		messagePlaceholder: "Say something nice...",
 	},
 
 	// Contact page
