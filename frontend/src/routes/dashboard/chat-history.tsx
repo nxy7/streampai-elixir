@@ -14,6 +14,7 @@ import Card from "~/components/ui/Card";
 import Input, { Select } from "~/components/ui/Input";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import { getChatHistory } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
@@ -185,7 +186,7 @@ function ChatHistoryContent(props: {
 				search: props.search() || undefined,
 			},
 			fields: [...chatMessageFields],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data) {

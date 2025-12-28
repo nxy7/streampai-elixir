@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { createSignal, onCleanup, onMount } from "solid-js";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	type ViewerCountConfig,
 	type ViewerData,
@@ -28,7 +29,7 @@ export default function ViewerCountDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "viewer_count_widget" },
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data.config) {

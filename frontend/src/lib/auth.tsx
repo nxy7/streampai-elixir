@@ -9,6 +9,7 @@ import {
 import { getCurrentUser } from "~/sdk/ash_rpc";
 import { AuthContext, type User } from "./AuthContext";
 import { API_URL } from "./constants";
+import { rpcOptions } from "./csrf";
 import { initPresence, leavePresence } from "./socket";
 
 const currentUserFields = [
@@ -37,7 +38,7 @@ export const AuthProvider: ParentComponent = (props) => {
 		try {
 			const result = await getCurrentUser({
 				fields: [...currentUserFields],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			setCurrentUser(

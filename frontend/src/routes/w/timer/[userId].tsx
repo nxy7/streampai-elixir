@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import TimerWidget from "~/components/widgets/TimerWidget";
+import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface TimerConfig {
@@ -33,7 +34,7 @@ export default function TimerDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "timer_widget" },
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data.config) {

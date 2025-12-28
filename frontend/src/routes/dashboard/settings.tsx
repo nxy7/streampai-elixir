@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	useStreamingAccounts,
 	useUserPreferencesForUser,
@@ -145,7 +146,7 @@ export default function Settings() {
 				identity: currentUser.id,
 				input: { name },
 				fields: ["id", "name"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -174,7 +175,7 @@ export default function Settings() {
 		try {
 			const result = await toggleEmailNotifications({
 				identity: currentUser.id,
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {

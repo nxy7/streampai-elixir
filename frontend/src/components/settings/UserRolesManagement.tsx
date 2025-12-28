@@ -1,5 +1,6 @@
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	acceptRoleInvitation,
 	declineRoleInvitation,
@@ -62,7 +63,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			const result = await getUserInfo({
 				input: { id: userId },
 				fields: ["id", "name", "displayAvatar"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (result.success && result.data) {
@@ -122,7 +123,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			const lookupResult = await getUserByName({
 				input: { name: username },
 				fields: ["id", "name", "displayAvatar"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!lookupResult.success || !lookupResult.data) {
@@ -142,7 +143,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 					roleType: inviteRoleType(),
 				},
 				fields: ["id", "roleType", "roleStatus"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -170,7 +171,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			const result = await acceptRoleInvitation({
 				identity: roleId,
 				fields: ["id", "roleStatus"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -191,7 +192,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			const result = await declineRoleInvitation({
 				identity: roleId,
 				fields: ["id", "roleStatus"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -214,7 +215,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			const result = await revokeUserRole({
 				identity: roleId,
 				fields: ["id", "revokedAt"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {

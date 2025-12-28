@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import DonationGoalWidget from "~/components/widgets/DonationGoalWidget";
+import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface DonationGoalConfig {
@@ -50,7 +51,7 @@ export default function DonationGoalWidgetDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "donation_goal_widget" },
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data.config) {

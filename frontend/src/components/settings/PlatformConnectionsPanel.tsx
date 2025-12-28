@@ -4,6 +4,7 @@ import { Skeleton } from "~/components/ui";
 import Button from "~/components/ui/Button";
 import { useTranslation } from "~/i18n";
 import { apiRoutes } from "~/lib/constants";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	disconnectStreamingAccount,
 	refreshStreamingAccountStats,
@@ -77,7 +78,7 @@ export default function PlatformConnectionsPanel(
 			identity: { userId: props.userId, platform },
 			// biome-ignore lint/suspicious/noExplicitAny: Type coercion for RPC fields array
 			fields: fields as any,
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (!result.success) {
@@ -88,7 +89,7 @@ export default function PlatformConnectionsPanel(
 	const handleDisconnectAccount = async (platform: Platform) => {
 		const result = await disconnectStreamingAccount({
 			identity: { userId: props.userId, platform },
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (!result.success) {

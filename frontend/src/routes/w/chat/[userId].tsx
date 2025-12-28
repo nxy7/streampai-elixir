@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import ChatWidget from "~/components/widgets/ChatWidget";
+import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface ChatMessage {
@@ -44,7 +45,7 @@ export default function ChatDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "chat_widget" },
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data.config) {

@@ -12,6 +12,7 @@ import {
 	useTranslation,
 } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
@@ -137,7 +138,7 @@ export default function AdminNotifications() {
 			const result = await createNotification({
 				input,
 				fields: ["id", "content", "userId", "insertedAt"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -177,7 +178,7 @@ export default function AdminNotifications() {
 		try {
 			const result = await deleteNotification({
 				identity: notification.id,
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {

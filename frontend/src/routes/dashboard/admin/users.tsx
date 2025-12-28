@@ -9,6 +9,7 @@ import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
 import { startImpersonation } from "~/lib/impersonation";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
@@ -153,7 +154,7 @@ export default function AdminUsers() {
 					reason: reason,
 				},
 				fields: ["id", "tier"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {
@@ -197,7 +198,7 @@ export default function AdminUsers() {
 			const result = await revokeProAccess({
 				identity: user.id,
 				fields: ["id", "tier"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!result.success) {

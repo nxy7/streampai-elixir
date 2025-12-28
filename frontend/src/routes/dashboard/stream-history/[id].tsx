@@ -13,6 +13,7 @@ import { Badge, Skeleton, SkeletonListItem } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	type SuccessDataFunc,
 	getLivestream,
@@ -367,7 +368,7 @@ function StreamDetailContent(props: { streamId: string }) {
 			const result = await getLivestream({
 				getBy: { id: streamId },
 				fields: [...livestreamFields],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 			if (!result.success) {
 				throw new Error(result.errors[0]?.message || "Failed to fetch stream");
@@ -383,7 +384,7 @@ function StreamDetailContent(props: { streamId: string }) {
 			const result = await getLivestreamChat({
 				input: { livestreamId },
 				fields: [...chatMessageFields],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 			if (!result.success) {
 				console.error("Failed to fetch chat messages:", result.errors);
@@ -400,7 +401,7 @@ function StreamDetailContent(props: { streamId: string }) {
 			const result = await getLivestreamEvents({
 				input: { livestreamId },
 				fields: [...streamEventFields],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 			if (!result.success) {
 				console.error("Failed to fetch stream events:", result.errors);

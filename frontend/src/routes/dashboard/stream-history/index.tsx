@@ -20,6 +20,7 @@ import {
 	Stat,
 } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
@@ -202,7 +203,7 @@ function StreamHistoryContent(props: {
 			const result = await getStreamHistory({
 				input: { userId },
 				fields: [...streamHistoryFields],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 			if (!result.success) {
 				throw new Error(result.errors[0]?.message || "Failed to fetch streams");

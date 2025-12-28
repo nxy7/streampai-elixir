@@ -1,5 +1,6 @@
 import { Show, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
+import { rpcOptions } from "~/lib/csrf";
 import {
 	confirmFileUpload,
 	requestFileUpload,
@@ -33,7 +34,7 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 					estimatedSize: file.size,
 				},
 				fields: ["id", "uploadUrl", "uploadHeaders", "maxSize"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!requestResult.success) {
@@ -71,7 +72,7 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 
 			const confirmResult = await confirmFileUpload({
 				identity: fileId,
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!confirmResult.success) {
@@ -84,7 +85,7 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 				identity: props.userId,
 				input: { fileId },
 				fields: ["id", "displayAvatar"],
-				fetchOptions: { credentials: "include" },
+				...rpcOptions(),
 			});
 
 			if (!updateResult.success) {

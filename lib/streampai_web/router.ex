@@ -5,6 +5,7 @@ defmodule StreampaiWeb.Router do
   import AshAdmin.Router
   import Oban.Web.Router
 
+  alias StreampaiWeb.Plugs.CsrfProtection
   alias StreampaiWeb.Plugs.ErrorTracker
   alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
@@ -47,6 +48,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["json"])
     plug(:fetch_session)
     plug(SafeLoadFromSession)
+    plug(CsrfProtection)
     plug(RpcLogger)
     plug(ErrorTracker)
   end
@@ -59,10 +61,11 @@ defmodule StreampaiWeb.Router do
     plug(StreampaiWeb.Plugs.EmailDomainFilter)
   end
 
-  # API pipeline for SPA auth (no CSRF protection)
+  # API pipeline for SPA auth
   pipeline :api_auth do
     plug(:accepts, ["json"])
     plug(:fetch_session)
+    plug(CsrfProtection)
     plug(RateLimiter, limit: 7, window: 300_000)
   end
 

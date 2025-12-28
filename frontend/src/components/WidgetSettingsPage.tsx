@@ -61,6 +61,7 @@ import type { z } from "zod";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import { useCurrentUser } from "~/lib/auth";
+import { rpcOptions } from "~/lib/csrf";
 import type { WidgetType } from "~/lib/electric";
 import { type FormMeta, SchemaForm, getDefaultValues } from "~/lib/schema-form";
 import { useWidgetConfig } from "~/lib/useElectric";
@@ -203,7 +204,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 				config: backendConfig,
 			},
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		setSaving(false);

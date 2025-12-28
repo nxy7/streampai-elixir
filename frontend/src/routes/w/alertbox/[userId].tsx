@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
+import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface AlertConfig {
@@ -36,7 +37,7 @@ export default function AlertboxWidgetDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "alertbox_widget" },
 			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
+			...rpcOptions(),
 		});
 
 		if (result.success && result.data.config) {
