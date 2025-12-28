@@ -5,8 +5,6 @@ defmodule Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail do
 
   use AshAuthentication.Sender
 
-  alias Streampai.Emails
-
   require Logger
 
   @impl true
@@ -14,7 +12,7 @@ defmodule Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail do
     def send(_user, _token, _), do: :ok
   else
     def send(user, token, _) do
-      Emails.send_new_user_confirmation_email(user, token)
+      Streampai.Emails.send_new_user_confirmation_email(user, token)
     end
   end
 end
