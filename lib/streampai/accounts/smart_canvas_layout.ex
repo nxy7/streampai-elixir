@@ -63,16 +63,7 @@ defmodule Streampai.Accounts.SmartCanvasLayout do
   end
 
   changes do
-    change fn changeset, _opts ->
-             case changeset.context[:actor] do
-               %{id: actor_id} when not is_nil(actor_id) ->
-                 Ash.Changeset.force_change_attribute(changeset, :user_id, actor_id)
-
-               _ ->
-                 changeset
-             end
-           end,
-           on: [:create]
+    change Streampai.Changes.SetUserIdFromActor, on: [:create]
   end
 
   attributes do
