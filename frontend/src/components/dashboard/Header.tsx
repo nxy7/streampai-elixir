@@ -1,8 +1,10 @@
 import { A } from "@solidjs/router";
 import { type Accessor, Show } from "solid-js";
 import { useTranslation } from "~/i18n";
+import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 import type { UserPreferences } from "~/lib/electric";
 import NotificationBell from "../NotificationBell";
+import { Breadcrumbs } from "../ui";
 import { MenuIcon } from "./navConfig";
 
 interface User {
@@ -22,6 +24,7 @@ interface HeaderProps {
 	user: User | null | undefined;
 	prefs: UserPreferencesResult;
 	onOpenMobileSidebar: () => void;
+	breadcrumbItems?: Accessor<BreadcrumbItem[]>;
 }
 
 export default function Header(props: HeaderProps) {
@@ -35,10 +38,18 @@ export default function Header(props: HeaderProps) {
 				<MenuIcon />
 			</button>
 
-			{/* Page title */}
-			<h1 class="hidden font-semibold text-gray-900 text-xl md:block">
-				{props.pageTitle()}
-			</h1>
+			{/* Page title or breadcrumbs */}
+			<Show
+				fallback={
+					<h1 class="hidden font-semibold text-gray-900 text-xl md:block">
+						{props.pageTitle()}
+					</h1>
+				}
+				when={props.breadcrumbItems && props.breadcrumbItems().length > 0}>
+				<div class="hidden md:block">
+					<Breadcrumbs items={props.breadcrumbItems!()} />
+				</div>
+			</Show>
 
 			<div class="flex items-center space-x-4">
 				<NotificationBell />

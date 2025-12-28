@@ -1,12 +1,6 @@
 import { A } from "@solidjs/router";
 import { For, type JSX, Show } from "solid-js";
-
-export interface BreadcrumbItem {
-	/** Display label for this breadcrumb item */
-	label: string;
-	/** URL to navigate to (if omitted, item is not clickable) */
-	href?: string;
-}
+import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 
 interface BreadcrumbsProps {
 	/** Array of breadcrumb items to display */

@@ -1,9 +1,10 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
-import { For, Show, createMemo, createSignal, onMount } from "solid-js";
-import { Badge, Breadcrumbs, Card, Skeleton } from "~/components/ui";
+import { For, Show, createSignal, onMount } from "solid-js";
+import { Badge, Card, Skeleton } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
@@ -272,7 +273,8 @@ export default function ViewerDetail() {
 
 	const viewerId = () => params.id;
 
-	const breadcrumbItems = createMemo(() => [
+	// Register breadcrumbs via context
+	useBreadcrumbs(() => [
 		{ label: t("dashboardNav.viewers"), href: "/dashboard/viewers" },
 		{ label: viewer()?.displayName ?? t("common.loading") },
 	]);
@@ -372,9 +374,6 @@ export default function ViewerDetail() {
 
 			<Show when={!loading() && !error() && viewer()}>
 				<div class="space-y-6">
-					{/* Breadcrumbs */}
-					<Breadcrumbs items={breadcrumbItems()} />
-
 					{/* Header */}
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">

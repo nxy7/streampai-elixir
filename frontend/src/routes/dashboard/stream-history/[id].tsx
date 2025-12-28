@@ -9,14 +9,10 @@ import {
 	createResource,
 	createSignal,
 } from "solid-js";
-import {
-	Badge,
-	Breadcrumbs,
-	Skeleton,
-	SkeletonListItem,
-} from "~/components/ui";
+import { Badge, Skeleton, SkeletonListItem } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import {
 	type SuccessDataFunc,
 	getLivestream,
@@ -419,7 +415,8 @@ function StreamDetailContent(props: { streamId: string }) {
 	const events = () => eventsData() ?? [];
 	const [currentTimelinePosition, setCurrentTimelinePosition] = createSignal(0);
 
-	const breadcrumbItems = createMemo(() => [
+	// Register breadcrumbs via context
+	useBreadcrumbs(() => [
 		{
 			label: t("dashboardNav.streamHistory"),
 			href: "/dashboard/stream-history",
@@ -543,9 +540,6 @@ function StreamDetailContent(props: { streamId: string }) {
 
 	return (
 		<div class="mx-auto max-w-7xl space-y-6">
-			{/* Breadcrumbs */}
-			<Breadcrumbs items={breadcrumbItems()} />
-
 			{/* Stream Header */}
 			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 				<div class="flex items-start space-x-4">

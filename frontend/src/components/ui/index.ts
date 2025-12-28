@@ -5,10 +5,8 @@ export {
 	type BadgeVariant,
 	default as Badge,
 } from "./Badge";
-export {
-	type BreadcrumbItem,
-	default as Breadcrumbs,
-} from "./Breadcrumbs";
+export { default as Breadcrumbs } from "./Breadcrumbs";
+export type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 export {
 	type ButtonProps,
 	type ButtonSize,

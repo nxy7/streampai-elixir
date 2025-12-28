@@ -13,9 +13,10 @@
  */
 import { useNavigate, useParams } from "@solidjs/router";
 import { Show, createMemo } from "solid-js";
-import { Breadcrumbs, Button } from "~/components/ui";
+import { Button } from "~/components/ui";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
 import { useTranslation } from "~/i18n";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getWidgetDefinition } from "~/lib/widget-registry";
 import { text } from "~/styles/design-system";
 
@@ -26,7 +27,8 @@ export default function WidgetSettingsRoute() {
 
 	const widget = createMemo(() => getWidgetDefinition(params.slug));
 
-	const breadcrumbItems = createMemo(() => [
+	// Register breadcrumbs via context
+	useBreadcrumbs(() => [
 		{ label: t("dashboardNav.widgets"), href: "/dashboard/widgets" },
 		{ label: widget()?.catalog.name ?? params.slug },
 	]);
@@ -45,7 +47,6 @@ export default function WidgetSettingsRoute() {
 			when={widget()}>
 			{(def) => (
 				<div class="space-y-4">
-					<Breadcrumbs items={breadcrumbItems()} />
 					<WidgetSettingsPage
 						description={def().description}
 						meta={def().meta}
