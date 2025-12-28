@@ -7,6 +7,7 @@ import {
 	onCleanup,
 	onMount,
 } from "solid-js";
+import { useTranslation } from "~/i18n";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import { badge, button, input } from "~/styles/design-system";
 import { ActivityRow } from "./ActivityRow";
@@ -53,6 +54,7 @@ interface LiveStreamControlCenterProps
 }
 
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
+	const { t } = useTranslation();
 	const [chatMessage, setChatMessage] = createSignal("");
 	const [selectedPlatforms, setSelectedPlatforms] = createSignal<Set<Platform>>(
 		new Set(props.connectedPlatforms || AVAILABLE_PLATFORMS),
@@ -469,7 +471,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 								class="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 pr-6 text-xs placeholder:text-gray-400 focus:border-purple-300 focus:bg-white focus:outline-none"
 								data-testid="search-input"
 								onInput={(e) => setSearchText(e.currentTarget.value)}
-								placeholder="Search by name or message..."
+								placeholder={t("stream.searchByNameOrMessage")}
 								type="text"
 								value={searchText()}
 							/>
@@ -680,7 +682,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							class={`${input.text} flex-1`}
 							onInput={(e) => setChatMessage(e.currentTarget.value)}
 							onKeyDown={handleKeyDown}
-							placeholder="Send a message to chat..."
+							placeholder={t("stream.sendMessageToChat")}
 							type="text"
 							value={chatMessage()}
 						/>
