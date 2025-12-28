@@ -25,6 +25,18 @@ si:
 	set -a
 	source <(grep -v '^#' .env | grep -v '^$')
 	set +a
+
+	# Check if containers are running, start them if needed
+	if ! docker compose ps | grep -q "Up"; then
+		echo "🐳 Starting Docker containers..."
+		docker compose up -d
+		echo "⏳ Waiting for PostgreSQL..."
+		sleep 3
+	fi
+
+	echo "💡 Tip: Use 'just dev' for full stack with auto-restart"
+	echo "   Containers are running in background - use 'docker compose stop' when done"
+	echo ""
 	iex -S mix phx.server
 
 dev:
@@ -89,6 +101,7 @@ dev:
 	echo ""
 
 	# Cleanup function to drop replication slot after overmind exits
+	# Note: Overmind automatically stops Docker containers when you Ctrl+C
 	cleanup() {
 		echo ""
 		echo "🧹 Cleaning up Electric replication slot..."
@@ -257,8 +270,9 @@ worktree-setup:
 	# Export environment variables for subsequent commands
 	export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
-	# Start Docker containers for this worktree
-	echo "🐳 Starting Docker containers..."
+	# Start Docker containers temporarily for initial setup
+	# (overmind will manage them when you run 'just dev')
+	echo "🐳 Starting Docker containers for setup..."
 	docker compose up -d
 
 	# Wait for PostgreSQL to be ready
@@ -297,13 +311,17 @@ worktree-setup:
 	# Add MCP server for this worktree
 	claude mcp add --transport http tidewave "http://localhost:$PHOENIX_PORT/tidewave/mcp" 2>/dev/null || true
 
+	# Stop containers - overmind will manage them when you run 'just dev'
+	echo ""
+	echo "🛑 Stopping Docker containers (overmind will manage them)..."
+	docker compose stop
+
 	echo ""
 	echo "✅ Worktree '$name' is ready!"
-	echo "   Run 'just dev' to start with Caddy (recommended)"
-	echo "   Run 'just si' to start without Caddy"
+	echo "   Run 'just dev' to start (containers will start automatically)"
+	echo "   Run 'just si' for interactive shell without Caddy"
 	echo ""
-	echo "   Docker containers are running in background."
-	echo "   Use 'docker compose down' to stop them when done."
+	echo "   Note: Containers start/stop with 'just dev' (no manual cleanup needed!)"
 
 	claude --dangerously-skip-permissions .
 
@@ -326,6 +344,50 @@ cleanup-slots:
 			"SELECT pg_drop_replication_slot(slot_name) FROM pg_replication_slots WHERE active = false AND slot_name LIKE 'electric_slot_%';" \
 			>/dev/null 2>&1
 		echo "✅ Orphaned slots cleaned up"
+	fi
+
+# Clean up stopped Docker containers
+cleanup-containers:
+	#!/usr/bin/env bash
+	echo "🐳 Checking for stopped Docker containers..."
+	stopped=$(docker ps -aq -f status=exited | wc -l | tr -d ' ')
+	if [ "$stopped" -eq 0 ]; then
+		echo "✅ No stopped containers found"
+	else
+		echo "Found $stopped stopped containers"
+		echo "Removing stopped containers..."
+		docker container prune -f
+		echo "✅ Stopped containers cleaned up"
+	fi
+
+# Clean up unused Docker volumes
+cleanup-volumes:
+	#!/usr/bin/env bash
+	echo "📦 Checking for unused Docker volumes..."
+	docker volume prune -f
+	echo "✅ Unused volumes cleaned up"
+
+# Clean up all unused Docker resources (containers, volumes, networks, images)
+cleanup-docker:
+	#!/usr/bin/env bash
+	echo "🧹 Cleaning up all unused Docker resources..."
+	echo ""
+	docker system df
+	echo ""
+	read -p "This will remove all stopped containers, unused volumes, networks, and dangling images. Continue? (y/N) " -n 1 -r
+	echo ""
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		just cleanup-containers
+		just cleanup-volumes
+		echo ""
+		echo "Removing unused networks and dangling images..."
+		docker system prune -f
+		echo ""
+		echo "✅ Docker cleanup complete!"
+		echo ""
+		docker system df
+	else
+		echo "Cancelled"
 	fi
 
 # Clean up current worktree's Electric replication slot
