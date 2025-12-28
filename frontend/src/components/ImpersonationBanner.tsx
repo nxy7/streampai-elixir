@@ -3,7 +3,6 @@ import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useImpersonation } from "~/lib/impersonation";
 import { cn } from "~/styles/design-system";
-import Button from "./ui/Button";
 
 /**
  * A floating banner that appears when an admin is impersonating another user.
@@ -49,12 +48,12 @@ export function ImpersonationBanner() {
 						name: user()?.name || user()?.email || "user",
 					})}
 				</span>
-				<Button
-					class="ml-2 bg-white text-amber-600 hover:bg-amber-50"
+				<button
+					class="ml-2 rounded-md bg-white px-3 py-1 font-medium text-amber-700 text-sm hover:bg-amber-100"
 					onClick={handleExit}
-					size="sm">
+					type="button">
 					{t("impersonation.exit")}
-				</Button>
+				</button>
 			</div>
 		</Show>
 	);
