@@ -1,175 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-// Mock IndexedDB for Node.js environment (reuse from idb-persister.test.ts)
-interface MockStore {
-	data: Map<string, unknown>;
-	keyPath: string;
-}
-
-interface MockTransaction {
-	objectStore: (name: string) => MockObjectStore;
-	oncomplete?: () => void;
-	onerror?: (error: Error) => void;
-	error?: Error | null;
-}
-
-interface MockObjectStore {
-	get: (key: string) => MockRequest;
-	put: (value: unknown) => MockRequest;
-	delete: (key: string) => MockRequest;
-	getAll: () => MockRequest;
-}
-
-interface MockRequest {
-	result?: unknown;
-	error?: Error | null;
-	onsuccess?: () => void;
-	onerror?: () => void;
-}
-
-interface MockDB {
-	objectStoreNames: { contains: (name: string) => boolean };
-	createObjectStore: (name: string, options: { keyPath: string }) => void;
-	transaction: (stores: string[], mode: IDBTransactionMode) => MockTransaction;
-	close: () => void;
-	onclose?: () => void;
-	onerror?: (event: Event) => void;
-}
-
-interface MockOpenRequest {
-	result?: MockDB;
-	error?: Error | null;
-	onsuccess?: () => void;
-	onerror?: () => void;
-	onupgradeneeded?: (event: { target: { result: MockDB } }) => void;
-}
-
-let mockStores: Map<string, MockStore>;
-let mockDBs: MockDB[];
-
-// biome-ignore lint/suspicious/noExplicitAny: Test utility for mocking globals
-const getGlobal = () => globalThis as any;
-// biome-ignore lint/suspicious/noExplicitAny: Test utility for mocking globals
-const setGlobalWindow = (value: any) => {
-	getGlobal().window = value;
-};
-// biome-ignore lint/suspicious/noExplicitAny: Test utility for mocking globals
-const setGlobalIndexedDB = (value: any) => {
-	getGlobal().indexedDB = value;
-};
-const _deleteGlobalWindow = () => {
-	delete getGlobal().window;
-};
-const _deleteGlobalIndexedDB = () => {
-	delete getGlobal().indexedDB;
-};
-
-function createMockDB(): MockDB {
-	const db: MockDB = {
-		objectStoreNames: {
-			contains: (name: string) => mockStores.has(name),
-		},
-		createObjectStore: (name: string, options: { keyPath: string }) => {
-			mockStores.set(name, { data: new Map(), keyPath: options.keyPath });
-		},
-		transaction: (_stores: string[], _mode: IDBTransactionMode) => {
-			const tx: MockTransaction = {
-				objectStore: (name: string): MockObjectStore => {
-					const store = mockStores.get(name);
-					if (!store) {
-						throw new Error(`Store ${name} not found`);
-					}
-
-					return {
-						get: (key: string): MockRequest => {
-							const req: MockRequest = {
-								result: store.data.get(key),
-							};
-							queueMicrotask(() => req.onsuccess?.());
-							return req;
-						},
-						put: (value: unknown): MockRequest => {
-							const keyPath = store.keyPath;
-							const key = (value as Record<string, string>)[keyPath];
-							store.data.set(key, value);
-							const req: MockRequest = {};
-							queueMicrotask(() => req.onsuccess?.());
-							return req;
-						},
-						delete: (key: string): MockRequest => {
-							store.data.delete(key);
-							const req: MockRequest = {};
-							queueMicrotask(() => req.onsuccess?.());
-							return req;
-						},
-						getAll: (): MockRequest => {
-							const req: MockRequest = {
-								result: Array.from(store.data.values()),
-							};
-							queueMicrotask(() => req.onsuccess?.());
-							return req;
-						},
-					};
-				},
-				error: null,
-			};
-
-			queueMicrotask(() => {
-				queueMicrotask(() => {
-					tx.oncomplete?.();
-				});
-			});
-
-			return tx;
-		},
-		close: () => {
-			const idx = mockDBs.indexOf(db);
-			if (idx !== -1) {
-				mockDBs.splice(idx, 1);
-			}
-		},
-	};
-
-	mockDBs.push(db);
-	return db;
-}
-
-function createMockIndexedDB() {
-	return {
-		open: (_name: string, _version: number): MockOpenRequest => {
-			const req: MockOpenRequest = {};
-
-			queueMicrotask(() => {
-				const needsUpgrade = mockStores.size === 0;
-
-				if (needsUpgrade && req.onupgradeneeded) {
-					const db = createMockDB();
-					req.onupgradeneeded({ target: { result: db } });
-					req.result = db;
-				} else {
-					req.result = createMockDB();
-				}
-
-				req.onsuccess?.();
-			});
-
-			return req;
-		},
-		deleteDatabase: (_name: string): MockOpenRequest => {
-			mockStores.clear();
-			const req: MockOpenRequest = {};
-			queueMicrotask(() => req.onsuccess?.());
-			return req;
-		},
-	};
-}
-
-// Import after mocking
+import {
+	type MockDB,
+	type MockStore,
+	createMockIndexedDB,
+	getGlobal,
+	setGlobalIndexedDB,
+	setGlobalWindow,
+} from "./__test__/mock-indexeddb";
 import { IDBPersister, clearAllElectricCache } from "./idb-persister";
 import {
 	clearPersistedCache,
 	persistedElectricCollection,
 } from "./persisted-electric";
+
+let mockStores: Map<string, MockStore>;
+let mockDBs: MockDB[];
 
 describe("persistedElectricCollection", () => {
 	const originalWindow = getGlobal().window;
@@ -179,7 +24,7 @@ describe("persistedElectricCollection", () => {
 		mockStores = new Map();
 		mockDBs = [];
 		setGlobalWindow({});
-		setGlobalIndexedDB(createMockIndexedDB());
+		setGlobalIndexedDB(createMockIndexedDB(mockStores, mockDBs));
 	});
 
 	afterEach(async () => {
@@ -426,7 +271,7 @@ describe("user switching scenarios", () => {
 		mockStores = new Map();
 		mockDBs = [];
 		setGlobalWindow({});
-		setGlobalIndexedDB(createMockIndexedDB());
+		setGlobalIndexedDB(createMockIndexedDB(mockStores, mockDBs));
 	});
 
 	afterEach(async () => {
@@ -534,7 +379,7 @@ describe("sync and cache interaction", () => {
 		mockStores = new Map();
 		mockDBs = [];
 		setGlobalWindow({});
-		setGlobalIndexedDB(createMockIndexedDB());
+		setGlobalIndexedDB(createMockIndexedDB(mockStores, mockDBs));
 	});
 
 	afterEach(async () => {
@@ -644,7 +489,7 @@ describe("clearPersistedCache", () => {
 		mockStores = new Map();
 		mockDBs = [];
 		setGlobalWindow({});
-		setGlobalIndexedDB(createMockIndexedDB());
+		setGlobalIndexedDB(createMockIndexedDB(mockStores, mockDBs));
 	});
 
 	afterEach(async () => {
