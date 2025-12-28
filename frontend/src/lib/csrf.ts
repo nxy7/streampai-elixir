@@ -21,9 +21,10 @@ export function getCsrfToken(): string | undefined {
 
 	const cookies = document.cookie.split(";");
 	for (const cookie of cookies) {
-		const [name, value] = cookie.trim().split("=");
+		const [name, ...valueParts] = cookie.trim().split("=");
 		if (name === CSRF_COOKIE_NAME) {
-			return decodeURIComponent(value);
+			// Join value parts in case the value contains '=' characters
+			return decodeURIComponent(valueParts.join("="));
 		}
 	}
 	return undefined;

@@ -1,34 +1,41 @@
 defmodule StreampaiWeb.Plugs.CsrfProtection do
   @moduledoc """
-  CSRF protection for SPA API endpoints using the Double Submit Cookie pattern.
+  CSRF protection for SPA API endpoints using the Synchronizer Token Pattern.
 
   This plug implements CSRF protection for JSON API endpoints that use session-based
   authentication. It works as follows:
 
-  1. **Token Generation**: When a session exists and no CSRF token cookie is present,
+  1. **Token Generation**: When a session exists and no CSRF token is present,
      a cryptographically random token is generated and stored in both the session
-     and a cookie.
+     and a readable cookie (for frontend access).
 
   2. **Token Validation**: For state-changing requests (POST, PUT, PATCH, DELETE),
-     the plug validates that the `x-csrf-token` header matches the cookie value.
+     the plug validates that the `x-csrf-token` header matches the session token.
+     This is stronger than standard Double Submit Cookie as the session is the
+     source of truth (immune to cookie-fixation attacks).
 
   3. **Security Properties**:
      - Cookie is HttpOnly: false (so frontend JS can read and send it as header)
      - Cookie is SameSite=Strict for additional protection
      - Cookie is Secure in production (HTTPS only)
      - Token is cryptographically random (256 bits)
+     - Constant-time comparison prevents timing attacks
 
-  ## Why Double Submit Cookie?
+  ## How it works
 
   Traditional CSRF protection (like Phoenix's `protect_from_forgery`) embeds tokens
   in HTML forms. For SPAs that communicate via JSON APIs, we need a different approach:
 
-  - The frontend reads the CSRF token from a cookie
+  - The server stores the CSRF token in the session (source of truth)
+  - A readable cookie exposes the token to frontend JavaScript
   - The frontend sends the token in a custom header (`x-csrf-token`)
-  - The server validates that the header matches the cookie
+  - The server validates the header against the session token
 
   Cross-site requests cannot read our cookies (due to SameSite policy) or set custom
   headers on fetch requests (CORS blocks this), so attackers cannot forge valid requests.
+
+  Note: Unauthenticated endpoints (login, registration) pass through without validation
+  since there's no session to protect yet.
 
   ## Usage
 
