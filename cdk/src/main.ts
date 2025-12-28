@@ -1,12 +1,13 @@
 /**
  * Cloudflare Infrastructure for Streampai
  *
- * This CDKTF configuration sets up Cloudflare as a reverse proxy and CDN
- * for the Streampai application, providing:
- * - DNS management with proxy (CDN) enabled
- * - SSL/TLS configuration
- * - Caching rules for static assets
- * - Security settings (DDoS protection, WAF, rate limiting)
+ * This CDKTF configuration sets up Cloudflare for the Streampai application:
+ * - Cloudflare Pages for frontend SPA hosting
+ * - Basic zone settings (SSL, HTTPS, compression)
+ *
+ * Note: Advanced features like custom rulesets (WAF, rate limiting, cache rules)
+ * require Cloudflare Pro/Business plans and appropriate API token permissions.
+ * These can be configured manually in the Cloudflare dashboard if needed.
  *
  * Usage:
  *   cd cdk
@@ -17,10 +18,16 @@
  */
 
 import { CloudflareProvider } from "@cdktf/provider-cloudflare/lib/provider";
-import { Record } from "@cdktf/provider-cloudflare/lib/record";
-import { Ruleset } from "@cdktf/provider-cloudflare/lib/ruleset";
+import { PagesDomain } from "@cdktf/provider-cloudflare/lib/pages-domain";
+import { PagesProject } from "@cdktf/provider-cloudflare/lib/pages-project";
 import { ZoneSettingsOverride } from "@cdktf/provider-cloudflare/lib/zone-settings-override";
-import { App, TerraformOutput, TerraformStack } from "cdktf";
+import {
+	App,
+	CloudBackend,
+	NamedCloudWorkspace,
+	TerraformOutput,
+	TerraformStack,
+} from "cdktf";
 import type { Construct } from "constructs";
 import { type CloudflareConfig, getConfig } from "./config";
 
@@ -38,32 +45,35 @@ class StreampaiCloudflareStack extends TerraformStack {
 		// ==========================================================================
 		// DNS Records
 		// ==========================================================================
+		// Note: DNS records are managed manually or already exist.
+		// If you need to manage them via Terraform, import them first:
+		//   terraform import cloudflare_record.root <zone_id>/<record_id>
+		// You can find record IDs in Cloudflare dashboard or via API.
 
-		// Root domain A record - proxied through Cloudflare
-		new Record(this, "root", {
-			zoneId: config.zoneId,
-			name: "@",
-			content: config.originServerIp,
-			type: "A",
-			proxied: true,
-			ttl: 1, // Auto TTL when proxied
-			comment: "Root domain pointing to Oracle Cloud origin",
+		// ==========================================================================
+		// Cloudflare Pages (Frontend SPA)
+		// ==========================================================================
+
+		// Create Pages project for the SolidJS frontend
+		// Deployments are handled via GitHub Actions using wrangler
+		const pagesProject = new PagesProject(this, "frontend", {
+			accountId: config.accountId,
+			name: "streampai",
+			productionBranch: "master",
 		});
 
-		// WWW subdomain CNAME - proxied through Cloudflare
-		new Record(this, "www", {
-			zoneId: config.zoneId,
-			name: "www",
-			content: config.domain,
-			type: "CNAME",
-			proxied: true,
-			ttl: 1,
-			comment: "WWW redirect to root domain",
+		// Custom domain for Pages (serves frontend at root domain)
+		new PagesDomain(this, "pages_domain", {
+			accountId: config.accountId,
+			projectName: pagesProject.name,
+			domain: config.domain,
 		});
 
 		// ==========================================================================
 		// SSL/TLS Settings
 		// ==========================================================================
+		// Note: Only settings available on your Cloudflare plan are included.
+		// http2 is read-only and managed by Cloudflare automatically.
 		new ZoneSettingsOverride(this, "settings", {
 			zoneId: config.zoneId,
 			settings: {
@@ -79,10 +89,6 @@ class StreampaiCloudflareStack extends TerraformStack {
 				// TLS 1.3 - enable latest TLS version
 				minTlsVersion: "1.2",
 				tls13: "on",
-
-				// HTTP/2 and HTTP/3
-				http2: "on",
-				http3: "on",
 
 				// Compression
 				brotli: "on",
@@ -105,22 +111,11 @@ class StreampaiCloudflareStack extends TerraformStack {
 				// Caching level
 				cacheLevel: "aggressive",
 
-				// Minification
-				minify: {
-					css: "on",
-					html: "on",
-					js: "on",
-				},
-
 				// Security settings
 				securityLevel: "medium",
-				waf: "on",
 
 				// WebSockets support (important for Phoenix channels/LiveView)
 				websockets: "on",
-
-				// Early hints
-				earlyHints: "on",
 
 				// Rocket Loader - disabled to avoid breaking JS
 				rocketLoader: "off",
@@ -128,246 +123,24 @@ class StreampaiCloudflareStack extends TerraformStack {
 		});
 
 		// ==========================================================================
-		// Cache Rules (using Rulesets API)
+		// Advanced Features (require Pro/Business plan or specific permissions)
 		// ==========================================================================
-		new Ruleset(this, "cache_rules", {
-			zoneId: config.zoneId,
-			name: "Cache Rules",
-			description: "Caching rules for Streampai",
-			kind: "zone",
-			phase: "http_request_cache_settings",
-			rules: [
-				// Rule 1: Cache static assets (CSS, JS, images) for 1 year
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: true,
-							edgeTtl: [
-								{
-									mode: "override_origin",
-									default: 31536000, // 1 year
-								},
-							],
-							browserTtl: [
-								{
-									mode: "override_origin",
-									default: 604800, // 1 week
-								},
-							],
-						},
-					],
-					expression:
-						'(http.request.uri.path matches ".*\\\\.(css|js|woff2?|ttf|eot|ico|svg|png|jpg|jpeg|gif|webp|avif)$")',
-					description:
-						"Cache static assets for 1 year at edge, 1 week in browser",
-					enabled: true,
-				},
-				// Rule 2: Cache /_build/* assets (Vite build output) for 1 year
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: true,
-							edgeTtl: [
-								{
-									mode: "override_origin",
-									default: 31536000, // 1 year
-								},
-							],
-							browserTtl: [
-								{
-									mode: "override_origin",
-									default: 31536000, // 1 year (immutable with content hash)
-								},
-							],
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/_build/"))',
-					description: "Cache Vite build assets for 1 year (immutable)",
-					enabled: true,
-				},
-				// Rule 3: Bypass cache for API requests
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: false,
-						},
-					],
-					expression:
-						'(starts_with(http.request.uri.path, "/api/")) or (starts_with(http.request.uri.path, "/rpc/"))',
-					description: "Bypass cache for API and RPC endpoints",
-					enabled: true,
-				},
-				// Rule 4: Bypass cache for admin routes
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: false,
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/admin/"))',
-					description: "Bypass cache for admin routes",
-					enabled: true,
-				},
-				// Rule 5: Bypass cache for auth routes
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: false,
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/auth/"))',
-					description: "Bypass cache for authentication routes",
-					enabled: true,
-				},
-				// Rule 6: Bypass cache for Electric SQL shapes (real-time sync)
-				{
-					action: "set_cache_settings",
-					actionParameters: [
-						{
-							cache: false,
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/shapes/"))',
-					description: "Bypass cache for Electric SQL sync endpoints",
-					enabled: true,
-				},
-			],
-		});
-
-		// ==========================================================================
-		// Transform Rules (URL Rewrites)
-		// ==========================================================================
-		new Ruleset(this, "redirect_www", {
-			zoneId: config.zoneId,
-			name: "WWW Redirect",
-			description: "Redirect www to non-www",
-			kind: "zone",
-			phase: "http_request_dynamic_redirect",
-			rules: [
-				{
-					action: "redirect",
-					actionParameters: [
-						{
-							fromValue: [
-								{
-									statusCode: 301,
-									targetUrl: [
-										{
-											expression: `concat("https://", "${config.domain}", http.request.uri.path)`,
-										},
-									],
-									preserveQueryString: true,
-								},
-							],
-						},
-					],
-					expression: `(http.host eq "www.${config.domain}")`,
-					description: `Redirect www.${config.domain} to ${config.domain}`,
-					enabled: true,
-				},
-			],
-		});
-
-		// ==========================================================================
-		// Rate Limiting Rules
-		// ==========================================================================
-		new Ruleset(this, "rate_limiting", {
-			zoneId: config.zoneId,
-			name: "Rate Limiting",
-			description: "Rate limiting rules for API protection",
-			kind: "zone",
-			phase: "http_ratelimit",
-			rules: [
-				// Rate limit API endpoints: 100 requests per minute per IP
-				{
-					action: "block",
-					actionParameters: [
-						{
-							response: [
-								{
-									statusCode: 429,
-									content: '{"error": "Too many requests"}',
-									contentType: "application/json",
-								},
-							],
-						},
-					],
-					ratelimit: [
-						{
-							characteristics: ["ip.src", "cf.colo.id"],
-							period: 60,
-							requestsPerPeriod: 100,
-							mitigationTimeout: 60,
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/api/"))',
-					description:
-						"Rate limit API endpoints: 100 requests per minute per IP",
-					enabled: true,
-				},
-				// Stricter rate limit for auth endpoints: 10 requests per 5 minutes
-				{
-					action: "block",
-					actionParameters: [
-						{
-							response: [
-								{
-									statusCode: 429,
-									content: '{"error": "Too many authentication attempts"}',
-									contentType: "application/json",
-								},
-							],
-						},
-					],
-					ratelimit: [
-						{
-							characteristics: ["ip.src"],
-							period: 300,
-							requestsPerPeriod: 10,
-							mitigationTimeout: 600,
-						},
-					],
-					expression: '(starts_with(http.request.uri.path, "/auth/"))',
-					description:
-						"Rate limit auth endpoints: 10 requests per 5 minutes per IP",
-					enabled: true,
-				},
-			],
-		});
-
-		// ==========================================================================
-		// WAF Custom Rules
-		// ==========================================================================
-		new Ruleset(this, "waf_custom", {
-			zoneId: config.zoneId,
-			name: "WAF Custom Rules",
-			description: "Custom WAF rules for Streampai",
-			kind: "zone",
-			phase: "http_request_firewall_custom",
-			rules: [
-				// Block known bad user agents
-				{
-					action: "block",
-					expression:
-						'(http.user_agent contains "sqlmap") or (http.user_agent contains "nikto") or (http.user_agent contains "nmap")',
-					description: "Block known malicious scanners",
-					enabled: true,
-				},
-				// Challenge suspicious requests to admin
-				{
-					action: "managed_challenge",
-					expression:
-						'(starts_with(http.request.uri.path, "/admin/")) and (not cf.bot_management.verified_bot)',
-					description: "Challenge non-verified bots accessing admin",
-					enabled: true,
-				},
-			],
-		});
+		// The following features can be configured manually in Cloudflare dashboard:
+		//
+		// 1. Cache Rules (Page Rules or Cache Rules in dashboard):
+		//    - Cache static assets (*.css, *.js, images) for 1 year
+		//    - Bypass cache for /api/*, /rpc/*, /admin/*, /auth/*, /shapes/*
+		//
+		// 2. Rate Limiting:
+		//    - API endpoints: 100 req/min per IP
+		//    - Auth endpoints: 10 req/5min per IP
+		//
+		// 3. WAF Custom Rules:
+		//    - Block malicious scanners (sqlmap, nikto, nmap)
+		//    - Challenge bots accessing /admin/*
+		//
+		// 4. Redirect Rules:
+		//    - Redirect www.streampai.com to streampai.com
 
 		// ==========================================================================
 		// Outputs
@@ -382,16 +155,14 @@ class StreampaiCloudflareStack extends TerraformStack {
 			description: "SSL/TLS mode",
 		});
 
-		new TerraformOutput(this, "cache_summary", {
-			value: JSON.stringify({
-				static_assets: "Cached for 1 year at edge, 1 week in browser",
-				build_assets: "Cached for 1 year (immutable)",
-				api_routes: "Not cached (bypass)",
-				admin_routes: "Not cached (bypass)",
-				auth_routes: "Not cached (bypass)",
-				shapes: "Not cached (real-time sync)",
-			}),
-			description: "Cache configuration summary",
+		new TerraformOutput(this, "pages_project", {
+			value: pagesProject.name,
+			description: "Cloudflare Pages project name",
+		});
+
+		new TerraformOutput(this, "pages_url", {
+			value: `https://${pagesProject.name}.pages.dev`,
+			description: "Cloudflare Pages default URL",
 		});
 	}
 }
@@ -402,6 +173,12 @@ class StreampaiCloudflareStack extends TerraformStack {
 const app = new App();
 const config = getConfig();
 
-new StreampaiCloudflareStack(app, "streampai-cloudflare", config);
+const stack = new StreampaiCloudflareStack(app, "streampai-cloudflare", config);
+
+// Terraform Cloud backend for state management and locking
+new CloudBackend(stack, {
+	organization: "Streampai",
+	workspaces: new NamedCloudWorkspace("streampai-prod"),
+});
 
 app.synth();
