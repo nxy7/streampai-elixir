@@ -122,6 +122,12 @@ export const dict = {
 		signInToAccess: "Please sign in to access the dashboard.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Enter your stream title...",
+		streamDescriptionPlaceholder: "Describe your stream...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream Analytics",

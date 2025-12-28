@@ -124,6 +124,12 @@ export const dict: Dictionary = {
 		signInToAccess: "Zaloguj się, aby uzyskać dostęp do panelu.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Wpisz tytuł streama...",
+		streamDescriptionPlaceholder: "Opisz swój stream...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Statystyki streamów",
