@@ -128,6 +128,21 @@ export const dict: Dictionary = {
 	stream: {
 		streamTitlePlaceholder: "Ingresa el título del stream...",
 		streamDescriptionPlaceholder: "Describe tu stream...",
+		addTagPlaceholder: "Agregar etiqueta...",
+		searchByNameOrMessage: "Buscar por nombre o mensaje...",
+		sendMessageToChat: "Enviar mensaje al chat...",
+		timerLabelPlaceholder: "ej. Redes sociales, Discord, etc.",
+		timerMessagePlaceholder: "Mensaje a enviar en cada intervalo...",
+	},
+
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Buscar mensajes...",
+	},
+
+	// Viewers page
+	viewers: {
+		searchPlaceholder: "Buscar por nombre...",
 	},
 
 	// Analytics page
@@ -531,6 +546,14 @@ export const dict: Dictionary = {
 	admin: {
 		enterUserUuid: "Ingresa el UUID del usuario",
 		enterNotificationMessage: "Ingresa el mensaje de notificación...",
+	},
+
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Monto personalizado",
+		anonymousPlaceholder: "Anónimo",
+		emailPlaceholder: "correo@ejemplo.com",
+		messagePlaceholder: "Escribe algo lindo...",
 	},
 
 	// Contact page

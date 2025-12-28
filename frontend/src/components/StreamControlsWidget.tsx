@@ -1,3 +1,4 @@
+import { debounce } from "@solid-primitives/scheduled";
 import {
 	For,
 	Show,
@@ -1414,27 +1415,23 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		return new Set(stickyItems.slice(0, MAX_STICKY_ITEMS).map((s) => s.id));
 	};
 
+	// Update sticky items from current activities
+	const updateStickyItems = () => setStickyItemIds(computeStickyItems());
+
 	// Run on mount to set initial sticky items
-	onMount(() => {
-		setStickyItemIds(computeStickyItems());
-	});
+	onMount(updateStickyItems);
 
-	// Re-compute sticky items when activities change
+	// Re-compute sticky items when activities change (debounced to avoid excessive computation)
+	// Note: debounce() auto-registers cleanup when called within a reactive owner
+	const debouncedUpdate = debounce(updateStickyItems, 100);
 	createEffect(() => {
-		// Track the activities array (triggers on new activities)
-		const activities = props.activities;
-		if (activities.length > 0) {
-			setStickyItemIds(computeStickyItems());
-		}
+		props.activities; // Track activities
+		debouncedUpdate();
 	});
 
-	// Set up periodic refresh to remove expired sticky items
+	// Periodic refresh to remove expired sticky items (based on stickyDuration)
 	onMount(() => {
-		const _duration = props.stickyDuration || 120000;
-		const interval = setInterval(() => {
-			setStickyItemIds(computeStickyItems());
-		}, 10000); // Refresh every 10 seconds
-
+		const interval = setInterval(updateStickyItems, 10000);
 		onCleanup(() => clearInterval(interval));
 	});
 

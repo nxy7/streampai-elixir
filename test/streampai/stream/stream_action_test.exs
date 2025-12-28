@@ -253,21 +253,32 @@ defmodule Streampai.Stream.StreamActionTest do
   defp allow_manager_processes do
     # Find and allow CloudflareManager and other manager processes
     # that might be spawned during tests
-    Process.sleep(10)
 
     # Allow LivestreamManager.Supervisor children
-    catch_call_supervisor(Streampai.LivestreamManager.Supervisor)
+    allow_supervisor_children(Streampai.LivestreamManager.Supervisor)
 
     # Allow CloudflareManager processes (if supervisor is running)
-    catch_call_supervisor(Streampai.CloudflareManager.Supervisor)
+    allow_supervisor_children(Streampai.CloudflareManager.Supervisor)
   end
 
-  defp catch_call_supervisor(supervisor_name) do
-    for {_name, pid, _type, _modules} <- Supervisor.which_children(supervisor_name) do
-      allow_process_and_children(pid)
+  defp allow_supervisor_children(supervisor_name, retries \\ 3) do
+    case Supervisor.which_children(supervisor_name) do
+      children when is_list(children) ->
+        for {_name, pid, _type, _modules} <- children do
+          allow_process_and_children(pid)
+        end
+
+      _ ->
+        :ok
     end
   catch
-    :exit, _ -> :ok
+    :exit, {:noproc, _} when retries > 0 ->
+      # Supervisor not yet started, wait briefly and retry
+      Process.sleep(5)
+      allow_supervisor_children(supervisor_name, retries - 1)
+
+    :exit, _ ->
+      :ok
   end
 
   defp allow_process_and_children(pid) when is_pid(pid) do

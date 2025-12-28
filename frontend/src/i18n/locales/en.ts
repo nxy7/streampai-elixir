@@ -126,6 +126,21 @@ export const dict = {
 	stream: {
 		streamTitlePlaceholder: "Enter your stream title...",
 		streamDescriptionPlaceholder: "Describe your stream...",
+		addTagPlaceholder: "Add a tag...",
+		searchByNameOrMessage: "Search by name or message...",
+		sendMessageToChat: "Send a message to chat...",
+		timerLabelPlaceholder: "e.g., Social Links, Discord, etc.",
+		timerMessagePlaceholder: "Message to send at each interval...",
+	},
+
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Search messages...",
+	},
+
+	// Viewers page
+	viewers: {
+		searchPlaceholder: "Search by display name...",
 	},
 
 	// Analytics page
@@ -539,6 +554,14 @@ export const dict = {
 	admin: {
 		enterUserUuid: "Enter user UUID",
 		enterNotificationMessage: "Enter notification message...",
+	},
+
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Custom amount",
+		anonymousPlaceholder: "Anonymous",
+		emailPlaceholder: "email@example.com",
+		messagePlaceholder: "Say something nice...",
 	},
 
 	// Contact page
