@@ -43,12 +43,16 @@ defmodule StreampaiWeb.Endpoint do
   plug StreampaiWeb.Router
 
   defp cors(conn, _opts) do
-    # Allow frontend dev server and Caddy proxy origins
+    # Allow frontend dev server, Caddy proxy, and production origins
     allowed_origins = [
+      # Development
       "http://localhost:3000",
       "http://localhost:3001",
       "https://localhost:8000",
-      "https://localhost:8001"
+      "https://localhost:8001",
+      # Production (frontend on root domain, API on subdomain)
+      "https://streampai.com",
+      "https://www.streampai.com"
     ]
 
     origin = conn |> get_req_header("origin") |> List.first()

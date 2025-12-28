@@ -20,6 +20,7 @@
 import { PagesDomain } from "@cdktf/provider-cloudflare/lib/pages-domain";
 import { PagesProject } from "@cdktf/provider-cloudflare/lib/pages-project";
 import { CloudflareProvider } from "@cdktf/provider-cloudflare/lib/provider";
+import { Record } from "@cdktf/provider-cloudflare/lib/record";
 import { ZoneSettingsOverride } from "@cdktf/provider-cloudflare/lib/zone-settings-override";
 import {
 	App,
@@ -45,10 +46,18 @@ class StreampaiCloudflareStack extends TerraformStack {
 		// ==========================================================================
 		// DNS Records
 		// ==========================================================================
-		// Note: DNS records are managed manually or already exist.
-		// If you need to manage them via Terraform, import them first:
-		//   terraform import cloudflare_record.root <zone_id>/<record_id>
-		// You can find record IDs in Cloudflare dashboard or via API.
+		// Note: Root domain DNS is managed by Cloudflare Pages (PagesDomain resource)
+		// We only need to set up the www CNAME and api subdomain here
+
+		// www redirect (CNAME to root)
+		new Record(this, "www_cname", {
+			zoneId: config.zoneId,
+			name: "www",
+			type: "CNAME",
+			content: config.domain,
+			proxied: true,
+			ttl: 1,
+		});
 
 		// ==========================================================================
 		// Cloudflare Pages (Frontend SPA)
@@ -62,7 +71,7 @@ class StreampaiCloudflareStack extends TerraformStack {
 			productionBranch: "master",
 		});
 
-		// Custom domain for Pages (serves frontend at root domain)
+		// Custom domain for Pages (root domain serves the SPA)
 		new PagesDomain(this, "pages_domain", {
 			accountId: config.accountId,
 			projectName: pagesProject.name,
@@ -123,24 +132,39 @@ class StreampaiCloudflareStack extends TerraformStack {
 		});
 
 		// ==========================================================================
+		// Architecture (Free Plan Compatible)
+		// ==========================================================================
+		// Since Origin Rules with Host Header override require Pro plan,
+		// we use a simpler subdomain-based approach:
+		//
+		// - streampai.com → Cloudflare Pages (frontend SPA)
+		// - api.streampai.com → Oracle backend (Phoenix API)
+		//
+		// The frontend SPA makes API calls to api.streampai.com
+		// This requires updating the frontend API base URL config.
+
+		// API subdomain pointing to backend
+		new Record(this, "api_a_record", {
+			zoneId: config.zoneId,
+			name: "api",
+			type: "A",
+			content: config.originServerIp,
+			proxied: true,
+			ttl: 1,
+		});
+
+		// ==========================================================================
 		// Advanced Features (require Pro/Business plan or specific permissions)
 		// ==========================================================================
 		// The following features can be configured manually in Cloudflare dashboard:
 		//
-		// 1. Cache Rules (Page Rules or Cache Rules in dashboard):
-		//    - Cache static assets (*.css, *.js, images) for 1 year
-		//    - Bypass cache for /api/*, /rpc/*, /admin/*, /auth/*, /shapes/*
-		//
-		// 2. Rate Limiting:
+		// 1. Rate Limiting:
 		//    - API endpoints: 100 req/min per IP
 		//    - Auth endpoints: 10 req/5min per IP
 		//
-		// 3. WAF Custom Rules:
+		// 2. WAF Custom Rules:
 		//    - Block malicious scanners (sqlmap, nikto, nmap)
 		//    - Challenge bots accessing /admin/*
-		//
-		// 4. Redirect Rules:
-		//    - Redirect www.streampai.com to streampai.com
 
 		// ==========================================================================
 		// Outputs

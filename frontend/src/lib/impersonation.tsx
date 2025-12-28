@@ -4,7 +4,7 @@ import {
 	onMount,
 	useContext,
 } from "solid-js";
-import { API_PATH } from "./constants";
+import { API_PATH, getApiBase } from "./constants";
 import { getCsrfHeaders } from "./csrf";
 import {
 	ImpersonationContext,
@@ -16,13 +16,8 @@ type ImpersonationStatus = {
 	impersonator: Impersonator | null;
 };
 
-// Use current page origin for API requests to work with Caddy proxy
-function getApiUrl() {
-	if (typeof window !== "undefined") {
-		return `${window.location.origin}${API_PATH}`;
-	}
-	return `http://localhost:4000${API_PATH}`;
-}
+// Use the API base URL for requests
+const getApiUrl = () => `${getApiBase()}${API_PATH}`;
 
 async function fetchImpersonationStatus(): Promise<ImpersonationStatus> {
 	const response = await fetch(`${getApiUrl()}/rpc/impersonation-status`, {

@@ -108,17 +108,35 @@ defmodule StreampaiWeb.Plugs.CsrfProtection do
   end
 
   defp set_csrf_cookie(conn, token) do
-    # In production, use Secure flag. In dev, allow non-HTTPS.
-    secure = Application.get_env(:streampai, :env) == :prod
+    # In production, use Secure flag and cross-subdomain settings
+    # Frontend is at streampai.com, API is at api.streampai.com
+    is_prod = Application.get_env(:streampai, :env) == :prod
 
-    put_resp_cookie(conn, @cookie_name, token,
-      http_only: false,
-      same_site: "Strict",
-      secure: secure,
-      path: "/",
-      # 1 year - matches session lifetime
-      max_age: 365 * 24 * 60 * 60
-    )
+    cookie_opts =
+      if is_prod do
+        # Production: cross-subdomain cookies
+        # SameSite=None + Secure allows cross-origin requests
+        # domain=.streampai.com shares cookies across subdomains
+        [
+          http_only: false,
+          same_site: "None",
+          secure: true,
+          domain: ".streampai.com",
+          path: "/",
+          max_age: 365 * 24 * 60 * 60
+        ]
+      else
+        # Development: same-origin cookies
+        [
+          http_only: false,
+          same_site: "Strict",
+          secure: false,
+          path: "/",
+          max_age: 365 * 24 * 60 * 60
+        ]
+      end
+
+    put_resp_cookie(conn, @cookie_name, token, cookie_opts)
   end
 
   defp get_csrf_cookie(conn) do

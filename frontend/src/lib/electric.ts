@@ -1,18 +1,11 @@
 import type { Row } from "@electric-sql/client";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/solid-db";
-import { API_PATH } from "./constants";
+import { API_PATH, getApiBase } from "./constants";
 import { persistedElectricCollection } from "./persisted-electric";
 
-// Use current page origin for Electric sync requests
-// This ensures cookies are sent correctly when accessing via Caddy proxy
-const getShapesBaseUrl = () => {
-	if (typeof window !== "undefined") {
-		return `${window.location.origin}${API_PATH}`;
-	}
-	// Fallback for SSR - this won't be used for actual requests
-	return `http://localhost:4000${API_PATH}`;
-};
+// Use the API base URL for Electric sync requests
+const getShapesBaseUrl = () => `${getApiBase()}${API_PATH}`;
 
 export type StreamEvent = Row & {
 	id: string;

@@ -181,6 +181,8 @@ config :streampai,
   ],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),
+  # Session options are environment-specific (see runtime.exs for prod)
+  # Dev uses Lax for same-origin, prod uses None for cross-subdomain
   session_options: [
     store: :cookie,
     key: "_streampai_key",

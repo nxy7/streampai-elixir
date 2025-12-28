@@ -1,6 +1,6 @@
 import { type Channel, Presence, Socket } from "phoenix";
 import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
-import { API_PATH, BASE_URL } from "./constants";
+import { API_PATH, BASE_URL, getApiBase } from "./constants";
 
 // Socket singleton
 let socketInstance: Socket | null = null;
@@ -21,9 +21,12 @@ let currentPresenceUsers: PresenceUser[] = [];
  */
 async function fetchSocketToken(): Promise<string | null> {
 	try {
-		const response = await fetch(`${API_PATH}/rpc/socket-token`, {
-			credentials: "include",
-		});
+		const response = await fetch(
+			`${getApiBase()}${API_PATH}/rpc/socket-token`,
+			{
+				credentials: "include",
+			},
+		);
 
 		if (!response.ok) {
 			// User is likely not authenticated, return null silently
@@ -61,8 +64,8 @@ async function getSocketToken(): Promise<string | null> {
  */
 export function getSocket(): Socket {
 	if (!socketInstance) {
-		// WebSocket URL uses /api/socket path
-		const wsUrl = `${BASE_URL.replace(/^http/, "ws")}/api/socket`;
+		// WebSocket URL uses the API base with /socket path
+		const wsUrl = `${BASE_URL.replace(/^http/, "ws")}${API_PATH}/socket`;
 
 		socketInstance = new Socket(wsUrl, {
 			params: () => ({ token: socketToken }),

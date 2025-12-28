@@ -237,9 +237,24 @@ if config_env() == :prod do
     secret_key_base: secret_key_base,
     check_origin: [
       "https://streampai.com",
+      "https://api.streampai.com",
       "http://streampai.com",
       "http://localhost:4000",
       "https://#{host}",
       "http://#{host}"
+    ]
+
+  # Production session options for cross-subdomain cookies
+  # Frontend is at streampai.com, API is at api.streampai.com
+  # SameSite=None + Secure allows cross-origin requests with credentials
+  # domain=.streampai.com shares cookies across subdomains
+  config :streampai,
+    session_options: [
+      store: :cookie,
+      key: "_streampai_key",
+      signing_salt: "streampai_session_salt",
+      same_site: "None",
+      secure: true,
+      domain: ".streampai.com"
     ]
 end

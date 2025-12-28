@@ -3,7 +3,7 @@ import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
-import { API_PATH } from "~/lib/constants";
+import { API_PATH, getApiBase } from "~/lib/constants";
 import { getCsrfHeaders } from "~/lib/csrf";
 
 function GoogleIcon() {
@@ -87,9 +87,7 @@ export default function LoginPage() {
 
 		try {
 			const isRegister = mode() === "register";
-			const endpoint = isRegister
-				? `${API_PATH}/auth/register`
-				: `${API_PATH}/auth/sign-in`;
+			const endpoint = `${getApiBase()}${API_PATH}/auth/${isRegister ? "register" : "sign-in"}`;
 
 			const body = {
 				email: email(),
@@ -178,7 +176,7 @@ export default function LoginPage() {
 						<div class="space-y-4">
 							<a
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100"
-								href={`${API_PATH}/auth/user/google`}
+								href={`${getApiBase()}${API_PATH}/auth/user/google`}
 								rel="external">
 								<GoogleIcon />
 								{t("auth.continueWithGoogle")}
@@ -186,7 +184,7 @@ export default function LoginPage() {
 
 							<a
 								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
-								href={`${API_PATH}/auth/user/twitch`}
+								href={`${getApiBase()}${API_PATH}/auth/user/twitch`}
 								rel="external">
 								<TwitchIcon />
 								{t("auth.continueWithTwitch")}
@@ -297,7 +295,7 @@ export default function LoginPage() {
 							{t("auth.noAccount")}{" "}
 							<a
 								class="text-purple-400 hover:text-purple-300"
-								href={`${API_PATH}/auth/register`}
+								href={`${getApiBase()}${API_PATH}/auth/register`}
 								rel="external">
 								{t("auth.createOne")}
 							</a>
