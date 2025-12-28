@@ -1,9 +1,9 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
-import StreamingAccountStats from "~/components/StreamingAccountStats";
-import Button from "~/components/ui/Button";
-import { Skeleton } from "~/components/ui";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
+import StreamingAccountStats from "~/components/StreamingAccountStats";
+import { Skeleton } from "~/components/ui";
+import Button from "~/components/ui/Button";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";

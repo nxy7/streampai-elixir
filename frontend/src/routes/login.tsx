@@ -1,9 +1,9 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
+import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH } from "~/lib/constants";
-import { useTranslation } from "~/i18n";
 
 function GoogleIcon() {
 	return (

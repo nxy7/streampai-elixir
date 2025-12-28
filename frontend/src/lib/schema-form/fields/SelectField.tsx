@@ -1,4 +1,4 @@
-import { For, type Component } from "solid-js";
+import { type Component, For } from "solid-js";
 import { Select } from "~/components/ui/Input";
 import type { IntrospectedField } from "../types";
 

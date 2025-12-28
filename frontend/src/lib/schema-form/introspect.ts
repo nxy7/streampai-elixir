@@ -6,7 +6,7 @@
  * - Metadata: Optional UI configuration passed separately
  */
 
-import { z } from "zod";
+import type { z } from "zod";
 import type {
 	FieldMeta,
 	FormMeta,
@@ -45,7 +45,7 @@ function unwrapSchema(schema: z.ZodTypeAny): {
 } {
 	let current = schema;
 	let optional = false;
-	let defaultValue: unknown = undefined;
+	let defaultValue: unknown;
 
 	// Keep unwrapping until we hit a non-wrapper type
 	// biome-ignore lint/suspicious/noConstantCondition: loop until break

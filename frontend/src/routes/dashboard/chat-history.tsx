@@ -8,10 +8,10 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
+import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Card from "~/components/ui/Card";
 import Input, { Select } from "~/components/ui/Input";
-import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getChatHistory } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";

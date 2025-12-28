@@ -1,4 +1,4 @@
-import { type JSX, For, splitProps } from "solid-js";
+import { For, type JSX, splitProps } from "solid-js";
 import { cn } from "~/styles/design-system";
 
 /**
@@ -159,7 +159,7 @@ export function SkeletonCard(props: SkeletonCardProps) {
 				props.class,
 			)}>
 			{props.showHeader !== false && (
-				<div class="border-b border-gray-200 px-6 py-4">
+				<div class="border-gray-200 border-b px-6 py-4">
 					<Skeleton class="h-5 w-32" />
 				</div>
 			)}

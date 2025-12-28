@@ -5,7 +5,7 @@ import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import Input, { Select, Textarea } from "~/components/ui/Input";
-import { LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from "~/i18n";
+import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
@@ -511,7 +511,7 @@ export default function AdminNotifications() {
 											<div class="mt-3 space-y-3">
 												{/* Existing localizations */}
 												<Index each={localizations()}>
-													{(loc, index) => (
+													{(loc, _index) => (
 														<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
 															<div class="mb-2 flex items-center justify-between">
 																<span class="font-medium text-gray-700 text-sm">

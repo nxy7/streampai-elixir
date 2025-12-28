@@ -5,8 +5,8 @@ import {
 	createResource,
 	createSignal,
 	onMount,
-	useContext,
 	type ParentComponent,
+	useContext,
 } from "solid-js";
 import type { Dictionary } from "./locales/en";
 

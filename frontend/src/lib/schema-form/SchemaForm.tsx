@@ -32,7 +32,7 @@
  * ```
  */
 
-import { For, Match, Switch, type Component } from "solid-js";
+import { type Component, For, Match, Switch } from "solid-js";
 import type { z } from "zod";
 import {
 	CheckboxField,
@@ -40,8 +40,8 @@ import {
 	NumberField,
 	SelectField,
 	SliderField,
-	TextField,
 	TextareaField,
+	TextField,
 } from "./fields";
 import { introspectSchema } from "./introspect";
 import type { FormMeta, IntrospectedField } from "./types";

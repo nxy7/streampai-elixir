@@ -1,4 +1,4 @@
-import { Show, type Component } from "solid-js";
+import { type Component, Show } from "solid-js";
 import { text } from "~/styles/design-system";
 import type { IntrospectedField } from "../types";
 
@@ -42,7 +42,7 @@ export const SliderField: Component<SliderFieldProps> = (props) => {
 						value={props.value ?? min()}
 						onInput={(e) => {
 							const val = parseFloat(e.currentTarget.value);
-							if (!isNaN(val)) props.onChange(val);
+							if (!Number.isNaN(val)) props.onChange(val);
 						}}
 						min={min()}
 						max={max()}

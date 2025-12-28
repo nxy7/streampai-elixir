@@ -1,10 +1,9 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createSignal, For, onMount, Show } from "solid-js";
+import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
-import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
-import { Skeleton, SkeletonListItem } from "~/components/ui";
 import { useCurrentUser } from "~/lib/auth";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
