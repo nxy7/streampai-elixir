@@ -23,6 +23,7 @@ defmodule Streampai.Stream.StreamActor do
   - input_streaming: Whether input is streaming to Cloudflare
   - last_updated_at: Last time the state was updated
   """
+
   use Ash.Resource,
     otp_app: :streampai,
     domain: Streampai.Stream,
@@ -30,6 +31,13 @@ defmodule Streampai.Stream.StreamActor do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshTypescript.Resource],
     primary_read_warning?: false
+
+  alias Streampai.Stream.StreamActor.Changes.InitializeData
+  alias Streampai.Stream.StreamActor.Changes.SetErrorState
+  alias Streampai.Stream.StreamActor.Changes.SetStoppedState
+  alias Streampai.Stream.StreamActor.Changes.SetStreamingState
+  alias Streampai.Stream.StreamActor.Changes.UpdateData
+  alias Streampai.Stream.StreamActor.Changes.UpdateViewers
 
   @type_name "StreamActor"
 
@@ -84,23 +92,7 @@ defmodule Streampai.Stream.StreamActor do
 
       change relate_actor(:user)
       change set_attribute(:type, @type_name)
-
-      change fn changeset, _context ->
-        status = Ash.Changeset.get_argument(changeset, :status) || :idle
-        status_message = Ash.Changeset.get_argument(changeset, :status_message)
-
-        data = %{
-          "status" => to_string(status),
-          "status_message" => status_message,
-          "viewers" => %{},
-          "total_viewers" => 0,
-          "platforms" => %{},
-          "input_streaming" => false,
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        Ash.Changeset.change_attribute(changeset, :data, data)
-      end
+      change InitializeData
     end
 
     create :upsert_for_user do
@@ -113,26 +105,7 @@ defmodule Streampai.Stream.StreamActor do
       upsert_fields [:data, :status, :updated_at]
 
       change set_attribute(:type, @type_name)
-
-      change fn changeset, _context ->
-        user_id = Ash.Changeset.get_argument(changeset, :user_id)
-        status = Ash.Changeset.get_argument(changeset, :status) || :idle
-        status_message = Ash.Changeset.get_argument(changeset, :status_message)
-
-        changeset = Ash.Changeset.change_attribute(changeset, :user_id, user_id)
-
-        data = %{
-          "status" => to_string(status),
-          "status_message" => status_message,
-          "viewers" => %{},
-          "total_viewers" => 0,
-          "platforms" => %{},
-          "input_streaming" => false,
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        Ash.Changeset.change_attribute(changeset, :data, data)
-      end
+      change {InitializeData, set_user_id: true}
     end
 
     update :update_state do
@@ -144,23 +117,7 @@ defmodule Streampai.Stream.StreamActor do
       argument :input_streaming, :boolean, allow_nil?: true
       argument :platforms, :map, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-
-        updates =
-          [:status, :status_message, :livestream_id, :input_streaming, :platforms]
-          |> Enum.reduce(%{}, fn key, acc ->
-            case Ash.Changeset.get_argument(changeset, key) do
-              nil -> acc
-              value when key == :status -> Map.put(acc, to_string(key), to_string(value))
-              value -> Map.put(acc, to_string(key), value)
-            end
-          end)
-          |> Map.put("last_updated_at", DateTime.to_iso8601(DateTime.utc_now()))
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change {UpdateData, fields: [:status, :status_message, :livestream_id, :input_streaming, :platforms]}
     end
 
     update :set_streaming do
@@ -169,30 +126,7 @@ defmodule Streampai.Stream.StreamActor do
       argument :livestream_id, :uuid, allow_nil?: false
       argument :status_message, :string, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-        livestream_id = Ash.Changeset.get_argument(changeset, :livestream_id)
-        status_message = Ash.Changeset.get_argument(changeset, :status_message)
-
-        updates = %{
-          "status" => "streaming",
-          "livestream_id" => livestream_id,
-          "started_at" => DateTime.to_iso8601(DateTime.utc_now()),
-          "error_message" => nil,
-          "error_at" => nil,
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        updates =
-          if status_message do
-            Map.put(updates, "status_message", status_message)
-          else
-            Map.put(updates, "status_message", "Streaming to platforms")
-          end
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change SetStreamingState
     end
 
     update :set_stopped do
@@ -200,28 +134,7 @@ defmodule Streampai.Stream.StreamActor do
 
       argument :status_message, :string, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-
-        updates = %{
-          "status" => "idle",
-          "livestream_id" => nil,
-          "viewers" => %{},
-          "total_viewers" => 0,
-          "input_streaming" => false,
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        updates =
-          if status_message = Ash.Changeset.get_argument(changeset, :status_message) do
-            Map.put(updates, "status_message", status_message)
-          else
-            Map.put(updates, "status_message", "Stream ended")
-          end
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change SetStoppedState
     end
 
     update :set_error do
@@ -229,21 +142,7 @@ defmodule Streampai.Stream.StreamActor do
 
       argument :error_message, :string, allow_nil?: false
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-        error_message = Ash.Changeset.get_argument(changeset, :error_message)
-
-        updates = %{
-          "status" => "error",
-          "error_message" => error_message,
-          "error_at" => DateTime.to_iso8601(DateTime.utc_now()),
-          "status_message" => "Error: #{error_message}",
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change SetErrorState
     end
 
     update :update_viewers do
@@ -252,24 +151,7 @@ defmodule Streampai.Stream.StreamActor do
       argument :platform, :atom, allow_nil?: false
       argument :viewer_count, :integer, allow_nil?: false
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-        platform = Ash.Changeset.get_argument(changeset, :platform)
-        viewer_count = Ash.Changeset.get_argument(changeset, :viewer_count)
-
-        current_viewers = Map.get(current_data, "viewers", %{})
-        updated_viewers = Map.put(current_viewers, to_string(platform), viewer_count)
-        total = updated_viewers |> Map.values() |> Enum.sum()
-
-        updates = %{
-          "viewers" => updated_viewers,
-          "total_viewers" => total,
-          "last_updated_at" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change UpdateViewers
     end
   end
 
