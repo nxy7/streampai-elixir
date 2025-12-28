@@ -22,12 +22,8 @@ FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential git curl \
+  && apt-get install -y --no-install-recommends build-essential git \
   && rm -rf /var/lib/apt/lists/*
-
-# install node.js and npm
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-  && apt-get install -y nodejs
 
 # prepare build dir
 WORKDIR /app
@@ -50,21 +46,11 @@ RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
-COPY assets assets
-
-RUN mix assets.setup
-
 COPY priv priv
-
 COPY lib lib
 
 # Compile the release
 RUN mix compile
-
-COPY assets assets
-
-# compile assets
-RUN mix assets.deploy
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
