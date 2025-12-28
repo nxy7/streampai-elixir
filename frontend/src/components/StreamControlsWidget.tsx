@@ -891,7 +891,11 @@ export interface StreamTimer {
 interface TimersPanelProps {
 	timers: StreamTimer[];
 	onBack: () => void;
-	onAddTimer?: (label: string, content: string, intervalMinutes: number) => void;
+	onAddTimer?: (
+		label: string,
+		content: string,
+		intervalMinutes: number,
+	) => void;
 	onStartTimer?: (timerId: string) => void;
 	onStopTimer?: (timerId: string) => void;
 	onDeleteTimer?: (timerId: string) => void;
@@ -915,7 +919,8 @@ function TimersPanel(props: TimersPanelProps) {
 
 	const getTimeUntilFire = (nextFireAt: Date | string | null): string => {
 		if (!nextFireAt) return "Not scheduled";
-		const fireTime = nextFireAt instanceof Date ? nextFireAt : new Date(nextFireAt);
+		const fireTime =
+			nextFireAt instanceof Date ? nextFireAt : new Date(nextFireAt);
 		const now = new Date();
 		const diffMs = fireTime.getTime() - now.getTime();
 		if (diffMs <= 0) return "Firing...";
@@ -955,7 +960,9 @@ function TimersPanel(props: TimersPanelProps) {
 				</button>
 				<div>
 					<h3 class="font-semibold text-gray-900 text-lg">Stream Timers</h3>
-					<p class="text-gray-500 text-sm">Recurring messages sent at intervals</p>
+					<p class="text-gray-500 text-sm">
+						Recurring messages sent at intervals
+					</p>
 				</div>
 			</div>
 
@@ -981,11 +988,12 @@ function TimersPanel(props: TimersPanelProps) {
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2">
 											<div class="font-medium text-gray-900">{timer.label}</div>
-											<span class={`rounded-full px-2 py-0.5 text-xs ${
-												timer.isActive
-													? "bg-green-100 text-green-700"
-													: "bg-gray-100 text-gray-500"
-											}`}>
+											<span
+												class={`rounded-full px-2 py-0.5 text-xs ${
+													timer.isActive
+														? "bg-green-100 text-green-700"
+														: "bg-gray-100 text-gray-500"
+												}`}>
 												{timer.isActive ? "Active" : "Inactive"}
 											</span>
 										</div>
@@ -1103,7 +1111,8 @@ function TimersPanel(props: TimersPanelProps) {
 								data-testid="new-timer-minutes"
 							/>
 							<p class="mt-1 text-gray-400 text-xs">
-								Message will be sent every {newTimerMinutes()} minute{newTimerMinutes() !== 1 ? "s" : ""}
+								Message will be sent every {newTimerMinutes()} minute
+								{newTimerMinutes() !== 1 ? "s" : ""}
 							</p>
 						</div>
 						<div class="flex gap-2">
@@ -1134,7 +1143,11 @@ function TimersPanel(props: TimersPanelProps) {
 // Timer Action Callbacks
 // =====================================================
 export interface TimerActionCallbacks {
-	onAddTimer?: (label: string, content: string, intervalMinutes: number) => void;
+	onAddTimer?: (
+		label: string,
+		content: string,
+		intervalMinutes: number,
+	) => void;
 	onStartTimer?: (timerId: string) => void;
 	onStopTimer?: (timerId: string) => void;
 	onDeleteTimer?: (timerId: string) => void;

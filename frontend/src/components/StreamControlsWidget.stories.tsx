@@ -1028,7 +1028,8 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-1",
 		label: "Social Links",
-		content: "Follow me on Twitter @streamer! Join the Discord: discord.gg/stream",
+		content:
+			"Follow me on Twitter @streamer! Join the Discord: discord.gg/stream",
 		intervalSeconds: 300, // Every 5 minutes
 		isActive: true,
 		nextFireAt: new Date(Date.now() + 180000), // 3 minutes from now
@@ -1036,7 +1037,8 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-2",
 		label: "Giveaway Reminder",
-		content: "Don't forget to type !enter to join today's giveaway! Winner announced at the end of stream!",
+		content:
+			"Don't forget to type !enter to join today's giveaway! Winner announced at the end of stream!",
 		intervalSeconds: 600, // Every 10 minutes
 		isActive: false,
 		nextFireAt: null,
@@ -1044,7 +1046,8 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-3",
 		label: "Subscribe Reminder",
-		content: "Enjoying the stream? Consider subscribing! Subs get custom emotes and ad-free viewing!",
+		content:
+			"Enjoying the stream? Consider subscribing! Subs get custom emotes and ad-free viewing!",
 		intervalSeconds: 900, // Every 15 minutes
 		isActive: true,
 		nextFireAt: new Date(Date.now() + 45000), // 45 seconds from now
