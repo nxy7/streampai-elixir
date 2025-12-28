@@ -1205,7 +1205,7 @@ const _preStreamMeta = {
 		layout: "centered",
 	},
 	decorators: [
-		(Story: () => any) => (
+		(Story) => (
 			<div
 				style={{
 					width: "500px",
@@ -1226,7 +1226,7 @@ const _liveMeta = {
 		layout: "centered",
 	},
 	decorators: [
-		(Story: () => any) => (
+		(Story) => (
 			<div
 				style={{
 					width: "500px",
@@ -1248,7 +1248,7 @@ const _postStreamMeta = {
 		layout: "centered",
 	},
 	decorators: [
-		(Story: () => any) => (
+		(Story) => (
 			<div
 				style={{
 					width: "500px",
