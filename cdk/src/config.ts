@@ -10,8 +10,8 @@
  *   ENVIRONMENT           - Environment name (default: prod)
  */
 
-import { config } from "dotenv";
 import { resolve } from "node:path";
+import { config } from "dotenv";
 
 // Load .env from project root (parent of cdk directory)
 config({ path: resolve(__dirname, "../../.env") });

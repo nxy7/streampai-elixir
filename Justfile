@@ -7,6 +7,7 @@ init-dev:
 format:
 	mix format;
 	cd frontend; bun format; bun lint -- --write --unsafe
+	cd cdk; bun format; bun lint -- --write --unsafe
 
 test:
 	#!/usr/bin/env bash

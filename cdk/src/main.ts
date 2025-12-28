@@ -17,9 +17,9 @@
  *   npm run deploy  # Apply changes
  */
 
-import { CloudflareProvider } from "@cdktf/provider-cloudflare/lib/provider";
 import { PagesDomain } from "@cdktf/provider-cloudflare/lib/pages-domain";
 import { PagesProject } from "@cdktf/provider-cloudflare/lib/pages-project";
+import { CloudflareProvider } from "@cdktf/provider-cloudflare/lib/provider";
 import { ZoneSettingsOverride } from "@cdktf/provider-cloudflare/lib/zone-settings-override";
 import {
 	App,
