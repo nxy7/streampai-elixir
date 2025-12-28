@@ -1,5 +1,6 @@
 import type { Preview } from "storybook-solidjs-vite";
 import "../src/app.css";
+import { I18nProvider } from "../src/i18n";
 
 const preview: Preview = {
 	parameters: {
@@ -17,6 +18,13 @@ const preview: Preview = {
 			test: "todo",
 		},
 	},
+	decorators: [
+		(Story) => (
+			<I18nProvider>
+				<Story />
+			</I18nProvider>
+		),
+	],
 };
 
 export default preview;

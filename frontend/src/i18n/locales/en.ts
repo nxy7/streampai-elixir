@@ -131,6 +131,40 @@ export const dict = {
 		sendMessageToChat: "Send a message to chat...",
 		timerLabelPlaceholder: "e.g., Social Links, Discord, etc.",
 		timerMessagePlaceholder: "Message to send at each interval...",
+		// Stream settings
+		settings: {
+			title: "Stream Settings",
+			subtitle: "Configure your stream before going live",
+			liveSubtitle: "Update your stream information",
+			streamTitle: "Stream Title",
+			streamTitlePlaceholder: "Enter your stream title...",
+			description: "Description",
+			descriptionPlaceholder: "Describe your stream...",
+			category: "Category",
+			categoryPlaceholder: "Select a category...",
+			tags: "Tags",
+			tagsDescription: "Add tags to help viewers find your stream",
+			addTag: "Add",
+			thumbnail: "Thumbnail",
+			thumbnailDescription:
+				"Upload a thumbnail image for your stream (max 2MB)",
+			save: "Save Settings",
+			saving: "Saving...",
+			saved: "Settings saved!",
+			cancel: "Cancel",
+			backToActions: "Back to Actions",
+			// Categories
+			categories: {
+				gaming: "Gaming",
+				justChatting: "Just Chatting",
+				music: "Music",
+				art: "Art",
+				softwareDevelopment: "Software Development",
+				education: "Education",
+				sports: "Sports",
+				other: "Other",
+			},
+		},
 	},
 
 	// Chat History page

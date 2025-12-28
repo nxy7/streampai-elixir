@@ -23,7 +23,8 @@ export type InputType =
 	| "slider"
 	| "color"
 	| "checkbox"
-	| "select";
+	| "select"
+	| "image";
 
 /**
  * Metadata for a single form field.
