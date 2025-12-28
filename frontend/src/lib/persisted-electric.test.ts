@@ -418,6 +418,224 @@ describe("persistedElectricCollection", () => {
 	});
 });
 
+describe("user switching scenarios", () => {
+	const originalWindow = getGlobal().window;
+	const originalIndexedDB = getGlobal().indexedDB;
+
+	beforeEach(() => {
+		mockStores = new Map();
+		mockDBs = [];
+		setGlobalWindow({});
+		setGlobalIndexedDB(createMockIndexedDB());
+	});
+
+	afterEach(async () => {
+		for (const db of [...mockDBs]) {
+			db.close();
+		}
+		await clearAllElectricCache();
+		setGlobalWindow(originalWindow);
+		setGlobalIndexedDB(originalIndexedDB);
+	});
+
+	it("ensures different users have isolated caches", async () => {
+		type TestItem = { id: string; data: string };
+
+		// User A logs in and saves data
+		const userACache = new IDBPersister<TestItem>({
+			storageKey: "electric:collection:userA",
+			userId: "userA",
+		});
+		await userACache.save([{ id: "1", data: "userA-secret-data" }]);
+		userACache.close();
+
+		// User B logs in - should not see User A's data
+		const userBCache = new IDBPersister<TestItem>({
+			storageKey: "electric:collection:userB",
+			userId: "userB",
+		});
+		const userBData = await userBCache.load();
+		expect(userBData).toEqual([]);
+
+		// User B saves their own data
+		await userBCache.save([{ id: "2", data: "userB-data" }]);
+		userBCache.close();
+
+		// User A logs back in - should still see their data
+		const userACache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:collection:userA",
+			userId: "userA",
+		});
+		const userAData = await userACache2.load();
+		expect(userAData).toEqual([{ id: "1", data: "userA-secret-data" }]);
+		userACache2.close();
+	});
+
+	it("clears old user cache when switching users via clearPersistedCache", async () => {
+		type TestItem = { id: string };
+
+		// User A logs in
+		const userACache = new IDBPersister<TestItem>({
+			storageKey: "electric:my-data:userA",
+			userId: "userA",
+		});
+		await userACache.save([{ id: "1" }, { id: "2" }]);
+		userACache.close();
+
+		// User A logs out - clear their cache
+		await clearPersistedCache("my-data", "userA");
+
+		// Verify cache is cleared
+		const userACache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:my-data:userA",
+			userId: "userA",
+		});
+		const data = await userACache2.load();
+		expect(data).toEqual([]);
+		userACache2.close();
+	});
+
+	it("handles impersonation scenario - admin viewing user data", async () => {
+		type TestItem = { id: string; sensitive: string };
+
+		// Regular user has cached data
+		const userCache = new IDBPersister<TestItem>({
+			storageKey: "electric:preferences:user123",
+			userId: "user123",
+		});
+		await userCache.save([{ id: "1", sensitive: "user-prefs" }]);
+		userCache.close();
+
+		// Admin impersonates user - their cache should be separate
+		const adminAsUser = new IDBPersister<TestItem>({
+			storageKey: "electric:preferences:admin-as-user123",
+			userId: "admin-as-user123",
+		});
+		const impersonatedData = await adminAsUser.load();
+		expect(impersonatedData).toEqual([]); // Admin doesn't see user's cached data
+		adminAsUser.close();
+
+		// Original user's cache should still be intact
+		const userCache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:preferences:user123",
+			userId: "user123",
+		});
+		const userData = await userCache2.load();
+		expect(userData).toEqual([{ id: "1", sensitive: "user-prefs" }]);
+		userCache2.close();
+	});
+});
+
+describe("sync and cache interaction", () => {
+	const originalWindow = getGlobal().window;
+	const originalIndexedDB = getGlobal().indexedDB;
+
+	beforeEach(() => {
+		mockStores = new Map();
+		mockDBs = [];
+		setGlobalWindow({});
+		setGlobalIndexedDB(createMockIndexedDB());
+	});
+
+	afterEach(async () => {
+		for (const db of [...mockDBs]) {
+			db.close();
+		}
+		await clearAllElectricCache();
+		setGlobalWindow(originalWindow);
+		setGlobalIndexedDB(originalIndexedDB);
+	});
+
+	it("newer data saved to cache overwrites older data", async () => {
+		type TestItem = { id: string; value: number };
+
+		// Initial cache state (represents old cached data)
+		const cache1 = new IDBPersister<TestItem>({
+			storageKey: "electric:items",
+		});
+		await cache1.save([
+			{ id: "1", value: 100 },
+			{ id: "2", value: 200 },
+		]);
+		cache1.close();
+
+		// Simulate Electric sync updating with fresh data
+		const cache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:items",
+		});
+		await cache2.save([
+			{ id: "1", value: 150 }, // Updated value
+			{ id: "2", value: 200 },
+			{ id: "3", value: 300 }, // New item
+		]);
+		cache2.close();
+
+		// Verify fresh data is returned
+		const cache3 = new IDBPersister<TestItem>({
+			storageKey: "electric:items",
+		});
+		const loadedData = await cache3.load();
+		expect(loadedData).toHaveLength(3);
+		expect(loadedData.find((i) => i.id === "1")?.value).toBe(150);
+		expect(loadedData.find((i) => i.id === "3")?.value).toBe(300);
+		cache3.close();
+	});
+
+	it("cache timestamp is updated on each save", async () => {
+		type TestItem = { id: string };
+
+		// First save
+		const cache1 = new IDBPersister<TestItem>({
+			storageKey: "electric:timestamp-test",
+		});
+		await cache1.save([{ id: "1" }]);
+		const metadata1 = await cache1.getMetadata();
+		const timestamp1 = metadata1?.timestamp ?? 0;
+		cache1.close();
+
+		// Small delay
+		await new Promise((r) => setTimeout(r, 10));
+
+		// Second save
+		const cache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:timestamp-test",
+		});
+		await cache2.save([{ id: "1" }, { id: "2" }]);
+		const metadata2 = await cache2.getMetadata();
+		const timestamp2 = metadata2?.timestamp ?? 0;
+		cache2.close();
+
+		expect(timestamp2).toBeGreaterThan(timestamp1);
+	});
+
+	it("completely replaces cache on save (not merge)", async () => {
+		type TestItem = { id: string };
+
+		// Save initial data
+		const cache1 = new IDBPersister<TestItem>({
+			storageKey: "electric:replace-test",
+		});
+		await cache1.save([{ id: "a" }, { id: "b" }, { id: "c" }]);
+		cache1.close();
+
+		// Save new data (fewer items)
+		const cache2 = new IDBPersister<TestItem>({
+			storageKey: "electric:replace-test",
+		});
+		await cache2.save([{ id: "x" }, { id: "y" }]);
+		cache2.close();
+
+		// Verify it's a complete replacement
+		const cache3 = new IDBPersister<TestItem>({
+			storageKey: "electric:replace-test",
+		});
+		const loadedData = await cache3.load();
+		expect(loadedData).toHaveLength(2);
+		expect(loadedData.map((i) => i.id).sort()).toEqual(["x", "y"]);
+		cache3.close();
+	});
+});
+
 describe("clearPersistedCache", () => {
 	const originalWindow = getGlobal().window;
 	const originalIndexedDB = getGlobal().indexedDB;
