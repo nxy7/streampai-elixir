@@ -145,16 +145,6 @@ export const dict: Dictionary = {
 		searchPlaceholder: "Buscar por nombre...",
 	},
 
-	// Chat History page
-	chatHistory: {
-		searchPlaceholder: "Buscar mensajes...",
-	},
-
-	// Viewers page
-	viewers: {
-		searchPlaceholder: "Buscar por nombre...",
-	},
-
 	// Analytics page
 	analytics: {
 		title: "Estadísticas de streams",
