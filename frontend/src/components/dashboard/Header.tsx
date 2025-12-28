@@ -48,7 +48,7 @@ export default function Header(props: HeaderProps) {
 				when={props.breadcrumbItems && props.breadcrumbItems().length > 0}>
 				{(_) => (
 					<div class="hidden md:block">
-						<Breadcrumbs items={props.breadcrumbItems!()} />
+						<Breadcrumbs items={props.breadcrumbItems?.() ?? []} />
 					</div>
 				)}
 			</Show>
