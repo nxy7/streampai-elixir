@@ -881,6 +881,7 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 export interface StreamTimer {
 	id: string;
 	label: string;
+	content: string; // Message to send when timer triggers
 	durationSeconds: number;
 	remainingSeconds: number;
 	isRunning: boolean;
@@ -893,7 +894,7 @@ export interface StreamTimer {
 interface TimersPanelProps {
 	timers: StreamTimer[];
 	onBack: () => void;
-	onAddTimer?: (label: string, durationMinutes: number) => void;
+	onAddTimer?: (label: string, content: string, durationMinutes: number) => void;
 	onStartTimer?: (timerId: string) => void;
 	onPauseTimer?: (timerId: string) => void;
 	onResetTimer?: (timerId: string) => void;
@@ -903,6 +904,7 @@ interface TimersPanelProps {
 function TimersPanel(props: TimersPanelProps) {
 	const [showAddForm, setShowAddForm] = createSignal(false);
 	const [newTimerLabel, setNewTimerLabel] = createSignal("");
+	const [newTimerContent, setNewTimerContent] = createSignal("");
 	const [newTimerMinutes, setNewTimerMinutes] = createSignal(5);
 
 	const formatDuration = (seconds: number): string => {
@@ -914,10 +916,12 @@ function TimersPanel(props: TimersPanelProps) {
 
 	const handleAddTimer = () => {
 		const label = newTimerLabel().trim() || "Timer";
+		const content = newTimerContent().trim();
 		if (props.onAddTimer) {
-			props.onAddTimer(label, newTimerMinutes());
+			props.onAddTimer(label, content, newTimerMinutes());
 		}
 		setNewTimerLabel("");
+		setNewTimerContent("");
 		setNewTimerMinutes(5);
 		setShowAddForm(false);
 	};
@@ -979,7 +983,7 @@ function TimersPanel(props: TimersPanelProps) {
 											class={`font-mono text-2xl font-bold tabular-nums ${getTimerStatusColor(timer)}`}>
 											{formatDuration(timer.remainingSeconds)}
 										</div>
-										<div>
+										<div class="min-w-0 flex-1">
 											<div class="font-medium text-gray-900">{timer.label}</div>
 											<div class="text-gray-500 text-xs">
 												{timer.isRunning
@@ -990,6 +994,11 @@ function TimersPanel(props: TimersPanelProps) {
 															? "Finished"
 															: "Ready"}
 											</div>
+											<Show when={timer.content}>
+												<div class="mt-1 truncate text-gray-600 text-xs italic">
+													"{timer.content.length > 50 ? `${timer.content.slice(0, 50)}...` : timer.content}"
+												</div>
+											</Show>
 										</div>
 									</div>
 									<div class="flex gap-1">
@@ -1087,6 +1096,19 @@ function TimersPanel(props: TimersPanelProps) {
 						</div>
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
+								Message Content
+							</label>
+							<textarea
+								class={`${input.textarea} w-full`}
+								rows="2"
+								placeholder="Message to send when timer fires..."
+								value={newTimerContent()}
+								onInput={(e) => setNewTimerContent(e.currentTarget.value)}
+								data-testid="new-timer-content"
+							/>
+						</div>
+						<div>
+							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Duration (minutes)
 							</label>
 							<input
@@ -1131,7 +1153,7 @@ function TimersPanel(props: TimersPanelProps) {
 // Timer Action Callbacks
 // =====================================================
 export interface TimerActionCallbacks {
-	onAddTimer?: (label: string, durationMinutes: number) => void;
+	onAddTimer?: (label: string, content: string, durationMinutes: number) => void;
 	onStartTimer?: (timerId: string) => void;
 	onPauseTimer?: (timerId: string) => void;
 	onResetTimer?: (timerId: string) => void;

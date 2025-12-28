@@ -8,6 +8,7 @@ defmodule Streampai.Stream do
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamActor
   alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.StreamTimer
   alias Streampai.Stream.StreamViewer
 
   admin do
@@ -45,6 +46,15 @@ defmodule Streampai.Stream do
       rpc_action(:get_stream_actor, :get_by_user)
     end
 
+    resource StreamTimer do
+      rpc_action(:get_stream_timers, :get_for_user)
+      rpc_action(:create_stream_timer, :create_timer)
+      rpc_action(:start_stream_timer, :start_timer)
+      rpc_action(:pause_stream_timer, :pause_timer)
+      rpc_action(:reset_stream_timer, :reset_timer)
+      rpc_action(:delete_stream_timer, :destroy)
+    end
+
     resource Streampai.Storage.File do
       rpc_action(:request_file_upload, :request_upload)
       rpc_action(:confirm_file_upload, :mark_uploaded)
@@ -59,6 +69,7 @@ defmodule Streampai.Stream do
     resource StreamActor
     resource StreamEvent
     resource Streampai.Stream.StreamSettings
+    resource StreamTimer
     resource StreamViewer
     resource Streampai.Storage.File
   end

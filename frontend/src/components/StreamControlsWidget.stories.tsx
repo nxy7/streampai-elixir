@@ -1028,6 +1028,7 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-1",
 		label: "Stream Break",
+		content: "Taking a 5 minute break! Be right back!",
 		durationSeconds: 300, // 5 minutes
 		remainingSeconds: 180, // 3 minutes left
 		isRunning: true,
@@ -1036,6 +1037,7 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-2",
 		label: "Giveaway",
+		content: "Giveaway starting soon! Make sure you're following to enter!",
 		durationSeconds: 600, // 10 minutes
 		remainingSeconds: 600, // not started
 		isRunning: false,
@@ -1044,6 +1046,7 @@ const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-3",
 		label: "Sub Train",
+		content: "Sub train is active! Keep it going!",
 		durationSeconds: 120, // 2 minutes
 		remainingSeconds: 45, // almost done
 		isRunning: true,
@@ -1075,10 +1078,11 @@ function InteractiveTimersWrapper() {
 		onCleanup(() => clearInterval(interval));
 	});
 
-	const handleAddTimer = (label: string, durationMinutes: number) => {
+	const handleAddTimer = (label: string, content: string, durationMinutes: number) => {
 		const newTimer: StreamTimer = {
 			id: `timer-${Date.now()}`,
 			label,
+			content,
 			durationSeconds: durationMinutes * 60,
 			remainingSeconds: durationMinutes * 60,
 			isRunning: false,
@@ -1171,8 +1175,8 @@ export const LiveWithTimers: Story = {
 		onStartGiveaway: handleStartGiveaway,
 		onChangeStreamSettings: handleChangeStreamSettings,
 		timers: sampleTimers,
-		onAddTimer: (label: string, minutes: number) =>
-			console.log(`Add timer: ${label} for ${minutes} minutes`),
+		onAddTimer: (label: string, content: string, minutes: number) =>
+			console.log(`Add timer: ${label} with content "${content}" for ${minutes} minutes`),
 		onStartTimer: (id: string) => console.log(`Start timer: ${id}`),
 		onPauseTimer: (id: string) => console.log(`Pause timer: ${id}`),
 		onResetTimer: (id: string) => console.log(`Reset timer: ${id}`),
@@ -1200,8 +1204,8 @@ export const EmptyTimers: Story = {
 		onStartGiveaway: handleStartGiveaway,
 		onChangeStreamSettings: handleChangeStreamSettings,
 		timers: [],
-		onAddTimer: (label: string, minutes: number) =>
-			console.log(`Add timer: ${label} for ${minutes} minutes`),
+		onAddTimer: (label: string, content: string, minutes: number) =>
+			console.log(`Add timer: ${label} with content "${content}" for ${minutes} minutes`),
 	},
 	parameters: {
 		docs: {

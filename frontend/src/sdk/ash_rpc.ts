@@ -134,6 +134,24 @@ export type StreamActorResourceSchema = {
 
 
 
+// StreamTimer Schema
+export type StreamTimerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "label" | "content" | "durationSeconds" | "remainingSeconds" | "isRunning" | "isPaused" | "startedAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  label: string;
+  content: string | null;
+  durationSeconds: number;
+  remainingSeconds: number;
+  isRunning: boolean;
+  isPaused: boolean;
+  startedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
 // File Schema
 export type FileResourceSchema = {
   __type: "Resource";
@@ -822,6 +840,92 @@ export type StreamActorFilterInput = {
     eq?: "active" | "paused" | "terminated";
     notEq?: "active" | "paused" | "terminated";
     in?: Array<"active" | "paused" | "terminated">;
+  };
+
+
+
+};
+export type StreamTimerFilterInput = {
+  and?: Array<StreamTimerFilterInput>;
+  or?: Array<StreamTimerFilterInput>;
+  not?: Array<StreamTimerFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  label?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  content?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  durationSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  remainingSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  isRunning?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isPaused?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  startedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
   };
 
 
@@ -2797,6 +2901,368 @@ export async function getStreamActorChannel<Fields extends GetStreamActorFields>
     action: "get_stream_actor",
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamTimersInput = {
+  userId: UUID;
+};
+
+export type GetStreamTimersFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+export type InferGetStreamTimersResult<
+  Fields extends GetStreamTimersFields,
+> = Array<InferResult<StreamTimerResourceSchema, Fields>>;
+
+export type GetStreamTimersResult<Fields extends GetStreamTimersFields> = | { success: true; data: InferGetStreamTimersResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getStreamTimers<Fields extends GetStreamTimersFields>(
+  config: {
+  input: GetStreamTimersInput;
+  fields: Fields;
+  filter?: StreamTimerFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamTimersResult<Fields>> {
+  const payload = {
+    action: "get_stream_timers",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamTimersResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getStreamTimersChannel<Fields extends GetStreamTimersFields>(config: {
+  channel: Channel;
+  input: GetStreamTimersInput;
+  fields: Fields;
+  filter?: StreamTimerFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamTimersResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamTimersResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_timers",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type CreateStreamTimerInput = {
+  label: string;
+  content?: string;
+  durationSeconds: number;
+};
+
+export type CreateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferCreateStreamTimerResult<
+  Fields extends CreateStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type CreateStreamTimerResult<Fields extends CreateStreamTimerFields | undefined = undefined> = | { success: true; data: InferCreateStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function createStreamTimer<Fields extends CreateStreamTimerFields | undefined = undefined>(
+  config: {
+  input: CreateStreamTimerInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_stream_timer",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function createStreamTimerChannel<Fields extends CreateStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  input: CreateStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: CreateStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<CreateStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "create_stream_timer",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type StartStreamTimerInput = {
+  id: UUID;
+};
+
+export type StartStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferStartStreamTimerResult<
+  Fields extends StartStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type StartStreamTimerResult<Fields extends StartStreamTimerFields | undefined = undefined> = | { success: true; data: InferStartStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function startStreamTimer<Fields extends StartStreamTimerFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: StartStreamTimerInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<StartStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "start_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<StartStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function startStreamTimerChannel<Fields extends StartStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: StartStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: StartStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<StartStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "start_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type PauseStreamTimerInput = {
+  id: UUID;
+};
+
+export type PauseStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferPauseStreamTimerResult<
+  Fields extends PauseStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type PauseStreamTimerResult<Fields extends PauseStreamTimerFields | undefined = undefined> = | { success: true; data: InferPauseStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function pauseStreamTimer<Fields extends PauseStreamTimerFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: PauseStreamTimerInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<PauseStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "pause_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<PauseStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function pauseStreamTimerChannel<Fields extends PauseStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: PauseStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: PauseStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<PauseStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "pause_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ResetStreamTimerInput = {
+  id: UUID;
+};
+
+export type ResetStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferResetStreamTimerResult<
+  Fields extends ResetStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type ResetStreamTimerResult<Fields extends ResetStreamTimerFields | undefined = undefined> = | { success: true; data: InferResetStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function resetStreamTimer<Fields extends ResetStreamTimerFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: ResetStreamTimerInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ResetStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "reset_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ResetStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function resetStreamTimerChannel<Fields extends ResetStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: ResetStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: ResetStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ResetStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "reset_stream_timer",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+
+export type DeleteStreamTimerResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function deleteStreamTimer(
+  config: {
+  identity: UUID;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteStreamTimerResult> {
+  const payload = {
+    action: "delete_stream_timer",
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DeleteStreamTimerResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function deleteStreamTimerChannel(config: {
+  channel: Channel;
+  identity: UUID;
+  resultHandler: (result: DeleteStreamTimerResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DeleteStreamTimerResult>(
+    config.channel,
+    {
+    action: "delete_stream_timer",
+    identity: config.identity
   },
     config.timeout,
     config
