@@ -42,7 +42,9 @@ export default function PublicFooter(props: PublicFooterProps) {
 							{t("footer.contact")}
 						</A>
 					</div>
-					<LanguageSwitcher class="border-theme bg-theme-tertiary text-theme-primary" />
+					<div class="w-auto shrink-0">
+						<LanguageSwitcher class="border-theme bg-theme-tertiary text-theme-primary" />
+					</div>
 				</div>
 				<div class="mt-6 text-center text-theme-tertiary text-sm">
 					<p>

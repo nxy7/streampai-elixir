@@ -3,8 +3,10 @@ import ThemeGenerator, {
 	generatePalette,
 	hexToHsl,
 	hslToHex,
+	type ThemeMode,
+	type ThemePalette,
 } from "./ThemeGenerator";
-import { For } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 const meta = {
 	title: "Design System/Theme Generator",
@@ -286,17 +288,31 @@ export const ColorTheory: Story = {
 	},
 };
 
-// Dashboard simulation with generated theme
+// Preset colors for quick selection
+const PRESET_COLORS = [
+	{ name: "Purple", hex: "#9333ea" },
+	{ name: "Blue", hex: "#3b82f6" },
+	{ name: "Green", hex: "#22c55e" },
+	{ name: "Red", hex: "#ef4444" },
+	{ name: "Orange", hex: "#f97316" },
+	{ name: "Pink", hex: "#ec4899" },
+	{ name: "Teal", hex: "#14b8a6" },
+	{ name: "Indigo", hex: "#6366f1" },
+];
+
+// Dashboard simulation with interactive theme controls
 export const DashboardPreview: Story = {
 	render: () => {
-		const palette = generatePalette("#9333ea", "light");
-		const darkPalette = generatePalette("#9333ea", "dark");
+		const [primaryColor, setPrimaryColor] = createSignal("#9333ea");
+		const [mode, setMode] = createSignal<ThemeMode>("light");
+
+		const palette = () => generatePalette(primaryColor(), mode());
 
 		const Card = (props: {
 			title: string;
 			value: string;
 			change: string;
-			palette: ReturnType<typeof generatePalette>;
+			palette: ThemePalette;
 		}) => (
 			<div
 				class="rounded-xl p-5"
@@ -323,202 +339,180 @@ export const DashboardPreview: Story = {
 		);
 
 		return (
-			<div class="min-h-screen">
-				{/* Light Mode Dashboard */}
-				<div style={{ "background-color": palette.bgSecondary }} class="p-6">
-					<div class="max-w-6xl mx-auto">
-						<h1
-							class="text-2xl font-bold mb-6"
-							style={{ color: palette.textPrimary }}>
-							Dashboard - Light Mode
-						</h1>
-						<div class="grid grid-cols-4 gap-4 mb-6">
-							<Card
-								title="Total Revenue"
-								value="$45,231"
-								change="+20.1% from last month"
-								palette={palette}
-							/>
-							<Card
-								title="Active Users"
-								value="2,350"
-								change="+15.3% from last month"
-								palette={palette}
-							/>
-							<Card
-								title="Conversion Rate"
-								value="3.2%"
-								change="+0.4% from last month"
-								palette={palette}
-							/>
-							<Card
-								title="Avg. Session"
-								value="4m 32s"
-								change="+12% from last month"
-								palette={palette}
-							/>
+			<div
+				class="min-h-screen transition-colors duration-200"
+				style={{ "background-color": palette().bgSecondary }}>
+				{/* Theme Controls Bar */}
+				<div
+					class="sticky top-0 z-10 p-4 border-b"
+					style={{
+						"background-color": palette().surface,
+						"border-color": palette().border,
+					}}>
+					<div class="max-w-6xl mx-auto flex flex-wrap items-center gap-6">
+						{/* Mode Toggle */}
+						<div class="flex items-center gap-2">
+							<span
+								class="text-sm font-medium"
+								style={{ color: palette().textSecondary }}>
+								Mode:
+							</span>
+							<div class="flex gap-1">
+								<button
+									type="button"
+									class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+									style={{
+										"background-color":
+											mode() === "light"
+												? palette().primary
+												: palette().bgTertiary,
+										color:
+											mode() === "light" ? "white" : palette().textPrimary,
+									}}
+									onClick={() => setMode("light")}>
+									Light
+								</button>
+								<button
+									type="button"
+									class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+									style={{
+										"background-color":
+											mode() === "dark"
+												? palette().primary
+												: palette().bgTertiary,
+										color:
+											mode() === "dark" ? "white" : palette().textPrimary,
+									}}
+									onClick={() => setMode("dark")}>
+									Dark
+								</button>
+							</div>
 						</div>
 
-						{/* Table Example */}
-						<div
-							class="rounded-xl overflow-hidden"
-							style={{
-								"background-color": palette.surface,
-								"border-color": palette.border,
-								"border-width": "1px",
-								"border-style": "solid",
-							}}>
-							<div
-								class="px-5 py-4 border-b"
-								style={{ "border-color": palette.border }}>
-								<h2
-									class="font-semibold"
-									style={{ color: palette.textPrimary }}>
-									Recent Transactions
-								</h2>
+						{/* Color Picker */}
+						<div class="flex items-center gap-2">
+							<span
+								class="text-sm font-medium"
+								style={{ color: palette().textSecondary }}>
+								Custom:
+							</span>
+							<input
+								type="color"
+								value={primaryColor()}
+								onInput={(e) => setPrimaryColor(e.currentTarget.value)}
+								class="w-8 h-8 rounded cursor-pointer border-0"
+							/>
+							<span
+								class="text-xs font-mono"
+								style={{ color: palette().textTertiary }}>
+								{primaryColor()}
+							</span>
+						</div>
+
+						{/* Preset Colors */}
+						<div class="flex items-center gap-2">
+							<span
+								class="text-sm font-medium"
+								style={{ color: palette().textSecondary }}>
+								Presets:
+							</span>
+							<div class="flex gap-1">
+								<For each={PRESET_COLORS}>
+									{(preset) => (
+										<button
+											type="button"
+											class={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+												primaryColor() === preset.hex
+													? "ring-2 ring-offset-2"
+													: ""
+											}`}
+											style={{
+												"background-color": preset.hex,
+												"border-color":
+													primaryColor() === preset.hex
+														? palette().textPrimary
+														: "transparent",
+												"--tw-ring-color": palette().primary,
+											}}
+											onClick={() => setPrimaryColor(preset.hex)}
+											title={preset.name}
+										/>
+									)}
+								</For>
 							</div>
-							<table class="w-full">
-								<thead>
-									<tr style={{ "background-color": palette.bgTertiary }}>
-										<th
-											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: palette.textSecondary }}>
-											Customer
-										</th>
-										<th
-											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: palette.textSecondary }}>
-											Amount
-										</th>
-										<th
-											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: palette.textSecondary }}>
-											Status
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr
-										style={{
-											"border-bottom": `1px solid ${palette.border}`,
-										}}>
-										<td
-											class="px-5 py-3"
-											style={{ color: palette.textPrimary }}>
-											John Doe
-										</td>
-										<td
-											class="px-5 py-3"
-											style={{ color: palette.textPrimary }}>
-											$250.00
-										</td>
-										<td class="px-5 py-3">
-											<span
-												class="px-2 py-1 rounded-full text-xs font-medium text-white"
-												style={{ "background-color": palette.success }}>
-												Completed
-											</span>
-										</td>
-									</tr>
-									<tr
-										style={{
-											"border-bottom": `1px solid ${palette.border}`,
-										}}>
-										<td
-											class="px-5 py-3"
-											style={{ color: palette.textPrimary }}>
-											Jane Smith
-										</td>
-										<td
-											class="px-5 py-3"
-											style={{ color: palette.textPrimary }}>
-											$125.00
-										</td>
-										<td class="px-5 py-3">
-											<span
-												class="px-2 py-1 rounded-full text-xs font-medium text-white"
-												style={{ "background-color": palette.warning }}>
-												Pending
-											</span>
-										</td>
-									</tr>
-								</tbody>
-							</table>
 						</div>
 					</div>
 				</div>
 
-				{/* Dark Mode Dashboard */}
-				<div
-					style={{ "background-color": darkPalette.bgSecondary }}
-					class="p-6">
+				{/* Dashboard Content */}
+				<div class="p-6">
 					<div class="max-w-6xl mx-auto">
 						<h1
 							class="text-2xl font-bold mb-6"
-							style={{ color: darkPalette.textPrimary }}>
-							Dashboard - Dark Mode
+							style={{ color: palette().textPrimary }}>
+							Dashboard Preview
 						</h1>
 						<div class="grid grid-cols-4 gap-4 mb-6">
 							<Card
 								title="Total Revenue"
 								value="$45,231"
 								change="+20.1% from last month"
-								palette={darkPalette}
+								palette={palette()}
 							/>
 							<Card
 								title="Active Users"
 								value="2,350"
 								change="+15.3% from last month"
-								palette={darkPalette}
+								palette={palette()}
 							/>
 							<Card
 								title="Conversion Rate"
 								value="3.2%"
 								change="+0.4% from last month"
-								palette={darkPalette}
+								palette={palette()}
 							/>
 							<Card
 								title="Avg. Session"
 								value="4m 32s"
 								change="+12% from last month"
-								palette={darkPalette}
+								palette={palette()}
 							/>
 						</div>
 
 						{/* Table Example */}
 						<div
-							class="rounded-xl overflow-hidden"
+							class="rounded-xl overflow-hidden mb-6"
 							style={{
-								"background-color": darkPalette.surface,
-								"border-color": darkPalette.border,
+								"background-color": palette().surface,
+								"border-color": palette().border,
 								"border-width": "1px",
 								"border-style": "solid",
 							}}>
 							<div
 								class="px-5 py-4 border-b"
-								style={{ "border-color": darkPalette.border }}>
+								style={{ "border-color": palette().border }}>
 								<h2
 									class="font-semibold"
-									style={{ color: darkPalette.textPrimary }}>
+									style={{ color: palette().textPrimary }}>
 									Recent Transactions
 								</h2>
 							</div>
 							<table class="w-full">
 								<thead>
-									<tr style={{ "background-color": darkPalette.bgTertiary }}>
+									<tr style={{ "background-color": palette().bgTertiary }}>
 										<th
 											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: darkPalette.textSecondary }}>
+											style={{ color: palette().textSecondary }}>
 											Customer
 										</th>
 										<th
 											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: darkPalette.textSecondary }}>
+											style={{ color: palette().textSecondary }}>
 											Amount
 										</th>
 										<th
 											class="px-5 py-3 text-left text-sm font-medium"
-											style={{ color: darkPalette.textSecondary }}>
+											style={{ color: palette().textSecondary }}>
 											Status
 										</th>
 									</tr>
@@ -526,50 +520,145 @@ export const DashboardPreview: Story = {
 								<tbody>
 									<tr
 										style={{
-											"border-bottom": `1px solid ${darkPalette.border}`,
+											"border-bottom": `1px solid ${palette().border}`,
 										}}>
 										<td
 											class="px-5 py-3"
-											style={{ color: darkPalette.textPrimary }}>
+											style={{ color: palette().textPrimary }}>
 											John Doe
 										</td>
 										<td
 											class="px-5 py-3"
-											style={{ color: darkPalette.textPrimary }}>
+											style={{ color: palette().textPrimary }}>
 											$250.00
 										</td>
 										<td class="px-5 py-3">
 											<span
 												class="px-2 py-1 rounded-full text-xs font-medium text-white"
-												style={{ "background-color": darkPalette.success }}>
+												style={{ "background-color": palette().success }}>
 												Completed
 											</span>
 										</td>
 									</tr>
 									<tr
 										style={{
-											"border-bottom": `1px solid ${darkPalette.border}`,
+											"border-bottom": `1px solid ${palette().border}`,
 										}}>
 										<td
 											class="px-5 py-3"
-											style={{ color: darkPalette.textPrimary }}>
+											style={{ color: palette().textPrimary }}>
 											Jane Smith
 										</td>
 										<td
 											class="px-5 py-3"
-											style={{ color: darkPalette.textPrimary }}>
+											style={{ color: palette().textPrimary }}>
 											$125.00
 										</td>
 										<td class="px-5 py-3">
 											<span
 												class="px-2 py-1 rounded-full text-xs font-medium text-white"
-												style={{ "background-color": darkPalette.warning }}>
+												style={{ "background-color": palette().warning }}>
 												Pending
+											</span>
+										</td>
+									</tr>
+									<tr>
+										<td
+											class="px-5 py-3"
+											style={{ color: palette().textPrimary }}>
+											Bob Wilson
+										</td>
+										<td
+											class="px-5 py-3"
+											style={{ color: palette().textPrimary }}>
+											$89.00
+										</td>
+										<td class="px-5 py-3">
+											<span
+												class="px-2 py-1 rounded-full text-xs font-medium text-white"
+												style={{ "background-color": palette().error }}>
+												Failed
 											</span>
 										</td>
 									</tr>
 								</tbody>
 							</table>
+						</div>
+
+						{/* Form Elements */}
+						<div
+							class="rounded-xl p-6"
+							style={{
+								"background-color": palette().surface,
+								"border-color": palette().border,
+								"border-width": "1px",
+								"border-style": "solid",
+							}}>
+							<h2
+								class="font-semibold mb-4"
+								style={{ color: palette().textPrimary }}>
+								Form Elements
+							</h2>
+							<div class="grid grid-cols-2 gap-6">
+								<div>
+									<label
+										class="block text-sm font-medium mb-1"
+										style={{ color: palette().textSecondary }}>
+										Email Address
+									</label>
+									<input
+										type="email"
+										placeholder="you@example.com"
+										class="w-full px-3 py-2 rounded-lg border"
+										style={{
+											"background-color": palette().inputBg,
+											"border-color": palette().inputBorder,
+											color: palette().textPrimary,
+										}}
+									/>
+								</div>
+								<div>
+									<label
+										class="block text-sm font-medium mb-1"
+										style={{ color: palette().textSecondary }}>
+										Plan
+									</label>
+									<select
+										class="w-full px-3 py-2 rounded-lg border"
+										style={{
+											"background-color": palette().inputBg,
+											"border-color": palette().inputBorder,
+											color: palette().textPrimary,
+										}}>
+										<option>Free</option>
+										<option>Pro</option>
+										<option>Enterprise</option>
+									</select>
+								</div>
+							</div>
+							<div class="flex gap-3 mt-6">
+								<button
+									type="button"
+									class="px-4 py-2 rounded-lg font-medium text-white"
+									style={{ "background-color": palette().primary }}>
+									Save Changes
+								</button>
+								<button
+									type="button"
+									class="px-4 py-2 rounded-lg font-medium"
+									style={{
+										"background-color": palette().bgTertiary,
+										color: palette().textPrimary,
+									}}>
+									Cancel
+								</button>
+								<button
+									type="button"
+									class="px-4 py-2 rounded-lg font-medium text-white"
+									style={{ "background-color": palette().error }}>
+									Delete
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
