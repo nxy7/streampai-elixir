@@ -458,12 +458,14 @@ export const emptyStreamingAccountsCollection = createCollection(
 
 export function createStreamingAccountsCollection(userId: string) {
 	return createCollection(
-		electricCollectionOptions<StreamingAccount>({
+		persistedElectricCollection<StreamingAccount>({
 			id: `streaming_accounts_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/streaming_accounts/${userId}`,
 			},
 			getKey: (item) => `${item.user_id}_${item.platform}`,
+			persist: true,
+			userId: () => userId,
 		}),
 	);
 }

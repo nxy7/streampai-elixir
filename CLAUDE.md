@@ -146,7 +146,7 @@ Data that rarely changes can be persisted to IndexedDB for instant loading on pa
 | `user_preferences` | **Yes** | Rarely changes, instant profile data |
 | `livestreams` | **Yes** | Low frequency changes, instant stream history |
 | `widget_configs` | **Yes** | Rarely changes, instant widget settings |
-| `streaming_accounts` | No | Could benefit from persistence, not yet implemented |
+| `streaming_accounts` | **Yes** | Rarely changes, instant connected accounts display |
 | `notifications` | No | Medium frequency, freshness important |
 | `stream_events` | No | High frequency, always changing |
 | `chat_messages` | No | Very high frequency |
