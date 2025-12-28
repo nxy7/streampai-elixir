@@ -51,7 +51,7 @@ export const Donation: Story = {
 			platform: { icon: "twitch", color: "bg-purple-600" },
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		// Wait for animation to complete before checking visibility
 		await waitFor(
@@ -80,7 +80,7 @@ export const Follow: Story = {
 			platform: { icon: "youtube", color: "bg-red-600" },
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		// Wait for animation to complete before checking visibility
 		await waitFor(
@@ -143,7 +143,7 @@ export const NoEvent: Story = {
 		config: defaultConfig,
 		event: null,
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		// When no event, the alert card should not be visible
 		await expect(canvas.queryByText("Donation")).toBeNull();

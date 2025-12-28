@@ -701,10 +701,12 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 								createEffect(() => {
 									if (showTimeoutMenu() && buttonRef()) {
 										const rect = buttonRef()?.getBoundingClientRect();
-										setDropdownPos({
-											top: rect.bottom + 2,
-											left: rect.right - 60, // Align right edge with button
-										});
+										if (rect) {
+											setDropdownPos({
+												top: rect.bottom + 2,
+												left: rect.right - 60, // Align right edge with button
+											});
+										}
 									}
 								});
 

@@ -327,9 +327,8 @@ export function createLivestreamEventsCollection(livestreamId: string) {
 }
 
 // Cache for admin users collection - created once when admin logs in
-let adminUsersCollectionCache: ReturnType<
-	typeof createCollection<AdminUser, string>
-> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let adminUsersCollectionCache: any = null;
 
 export function getAdminUsersCollection() {
 	if (!adminUsersCollectionCache) {
@@ -341,7 +340,7 @@ export function getAdminUsersCollection() {
 					fetchClient: (input, init) =>
 						fetch(input, { ...init, credentials: "include" }),
 				},
-				getKey: (item) => item.id,
+				getKey: (item) => item.id as string,
 			}),
 		);
 	}

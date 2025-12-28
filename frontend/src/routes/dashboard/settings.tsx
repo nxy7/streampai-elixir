@@ -591,16 +591,19 @@ export default function Settings() {
 		const currentUser = user();
 		if (!currentUser) return;
 
+		// Work around type inference issue in generated SDK - fields parameter is inferred as never[]
+		const fields: string[] = [
+			"platform",
+			"sponsorCount",
+			"viewsLast30d",
+			"followerCount",
+			"uniqueViewersLast30d",
+			"statsLastRefreshedAt",
+		];
 		const result = await refreshStreamingAccountStats({
 			identity: { userId: currentUser.id, platform },
-			fields: [
-				"platform",
-				"sponsorCount",
-				"viewsLast30d",
-				"followerCount",
-				"uniqueViewersLast30d",
-				"statsLastRefreshedAt",
-			],
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			fields: fields as any,
 			fetchOptions: { credentials: "include" },
 		});
 
@@ -842,6 +845,8 @@ export default function Settings() {
 																sponsorCount: account.sponsor_count,
 																viewsLast30d: account.views_last_30d,
 																followerCount: account.follower_count,
+																uniqueViewersLast30d:
+																	account.unique_viewers_last_30d,
 																statsLastRefreshedAt:
 																	account.stats_last_refreshed_at,
 															}}

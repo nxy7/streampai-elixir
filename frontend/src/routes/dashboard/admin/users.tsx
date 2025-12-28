@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
 import { Alert } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
@@ -17,9 +17,7 @@ import { text } from "~/styles/design-system";
 
 // Schema for Grant PRO form
 const grantProSchema = z.object({
-	duration: z
-		.enum(["7", "30", "90", "180", "365"])
-		.default("30"),
+	duration: z.enum(["7", "30", "90", "180", "365"]).default("30"),
 	reason: z.string().default(""),
 });
 
@@ -59,17 +57,16 @@ export default function AdminUsers() {
 
 	// Only create the admin collection when user is confirmed to be an admin
 	// The collection is lazily created and cached
-	const usersQuery = useLiveQuery(() => {
-		if (!isAdmin()) {
-			// Return undefined when not admin - useLiveQuery handles this gracefully
-			return undefined as unknown as ReturnType<typeof getAdminUsersCollection>;
-		}
-		return getAdminUsersCollection();
-	});
+	const usersCollection = createMemo(() =>
+		isAdmin() ? getAdminUsersCollection() : null,
+	);
+	const usersQuery = useLiveQuery(
+		() => usersCollection() as ReturnType<typeof getAdminUsersCollection>,
+	);
 
-	const users = createMemo(() => {
+	const users = createMemo((): AdminUser[] => {
 		if (!isAdmin()) return [];
-		const allUsers = usersQuery.data ?? [];
+		const allUsers = (usersQuery.data ?? []) as AdminUser[];
 		return allUsers.sort((a, b) => a.email.localeCompare(b.email));
 	});
 
@@ -82,10 +79,11 @@ export default function AdminUsers() {
 
 	const [showGrantModal, setShowGrantModal] = createSignal(false);
 	const [selectedUser, setSelectedUser] = createSignal<AdminUser | null>(null);
-	const [grantFormValues, setGrantFormValues] = createSignal<GrantProFormValues>({
-		duration: "30",
-		reason: "",
-	});
+	const [grantFormValues, setGrantFormValues] =
+		createSignal<GrantProFormValues>({
+			duration: "30",
+			reason: "",
+		});
 	const [grantingPro, setGrantingPro] = createSignal(false);
 
 	const [showRevokeConfirm, setShowRevokeConfirm] = createSignal(false);
@@ -259,7 +257,7 @@ export default function AdminUsers() {
 									</thead>
 									<tbody class="divide-y divide-gray-200 bg-white">
 										<For each={users()}>
-											{(user) => (
+											{(user: AdminUser) => (
 												<tr
 													class={
 														currentUser()?.id === user.id
