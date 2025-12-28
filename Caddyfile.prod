@@ -30,11 +30,6 @@ localhost:{$CADDY_PORT:8000} {
 		reverse_proxy localhost:{$PORT:4000}
 	}
 
-	# GraphQL endpoint
-	handle /graphql {
-		reverse_proxy localhost:{$PORT:4000}
-	}
-
 	# Electric SQL shapes endpoint for real-time sync
 	handle /shapes/* {
 		reverse_proxy localhost:{$PORT:4000}

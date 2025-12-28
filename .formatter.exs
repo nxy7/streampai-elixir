@@ -1,6 +1,5 @@
 [
   import_deps: [
-    # :ash_typescript,  # Removing during GraphQL migration
     :ash_ai,
     :ash_events,
     :ash_state_machine,
