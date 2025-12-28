@@ -107,6 +107,8 @@ export interface SelectProps
 	label?: string;
 	error?: string;
 	helperText?: string;
+	/** Custom class for the wrapper div (defaults to "w-full") */
+	wrapperClass?: string;
 	children: JSX.Element;
 }
 
@@ -116,6 +118,7 @@ export function Select(props: SelectProps) {
 		"error",
 		"helperText",
 		"class",
+		"wrapperClass",
 		"id",
 		"children",
 	]);
@@ -123,7 +126,7 @@ export function Select(props: SelectProps) {
 	const inputId = local.id ?? `select-${Math.random().toString(36).slice(2)}`;
 
 	return (
-		<div class="w-full">
+		<div class={local.wrapperClass ?? "w-full"}>
 			<Show when={local.label}>
 				<label
 					class="mb-1 block font-medium text-gray-700 text-sm"

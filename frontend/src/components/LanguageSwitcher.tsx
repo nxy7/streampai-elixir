@@ -17,6 +17,7 @@ interface LanguageSwitcherProps {
 	 * the active locale before the database value loads.
 	 */
 	valueFromDb?: Accessor<string | null | undefined>;
+	wrapperClass?: string;
 }
 
 export default function LanguageSwitcher(props: LanguageSwitcherProps) {
@@ -58,7 +59,8 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 			class={props.class}
 			data-testid="language-switcher"
 			onChange={(e) => handleLanguageChange(e.currentTarget.value as Locale)}
-			value={displayedValue()}>
+			value={displayedValue()}
+			wrapperClass={props.wrapperClass}>
 			<For each={[...SUPPORTED_LOCALES]}>
 				{(localeCode) => (
 					<option value={localeCode}>{LOCALE_NAMES[localeCode]}</option>
