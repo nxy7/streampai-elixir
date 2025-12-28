@@ -399,29 +399,33 @@ export function useNotificationsWithReadStatus(
 
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
 
-			const withStatus = notifications.map(
-				(n): NotificationWithReadStatus => {
-					// Get localized content based on current locale
-					let localizedContent = n.content; // Default to English
-					if (currentLocale === "de" && n.content_de) {
-						localizedContent = n.content_de;
-					} else if (currentLocale === "pl" && n.content_pl) {
-						localizedContent = n.content_pl;
-					} else if (currentLocale === "es" && n.content_es) {
-						localizedContent = n.content_es;
-					}
+			// Build a map of notification_id -> Record<locale, content>
+			const localizationMap = new Map<string, Record<string, string>>();
+			for (const loc of localizations) {
+				let notificationLocs = localizationMap.get(loc.notification_id);
+				if (!notificationLocs) {
+					notificationLocs = {};
+					localizationMap.set(loc.notification_id, notificationLocs);
+				}
+				notificationLocs[loc.locale] = loc.content;
+			}
 
-					return {
-						id: n.id,
-						user_id: n.user_id,
-						content: n.content,
-						inserted_at: n.inserted_at,
-						wasSeen: readMap.has(n.id),
-						seenAt: readMap.get(n.id) || null,
-						localizedContent,
-					};
-				},
-			);
+			const withStatus = notifications.map((n): NotificationWithReadStatus => {
+				const notificationLocs = localizationMap.get(n.id) || {};
+				// Use localized content if available, otherwise fall back to default content
+				const localizedContent = notificationLocs[currentLocale] || n.content;
+
+				return {
+					id: n.id,
+					user_id: n.user_id,
+					content: n.content,
+					inserted_at: n.inserted_at,
+					wasSeen: readMap.has(n.id),
+					seenAt: readMap.get(n.id) || null,
+					localizedContent,
+					localizations: notificationLocs,
+				};
+			});
 			return sortByInsertedAt(withStatus);
 		}),
 		unreadCount: createMemo(() => {
