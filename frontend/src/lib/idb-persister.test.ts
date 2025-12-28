@@ -220,7 +220,7 @@ describe("IDBPersister", () => {
 	});
 
 	describe("constructor", () => {
-		it("uses default maxAge of 24 hours", async () => {
+		it("uses default maxAge of null (never expires)", async () => {
 			const persister = new IDBPersister<{ id: string }>({
 				storageKey: "test",
 			});
@@ -230,6 +230,11 @@ describe("IDBPersister", () => {
 
 			const metadata = await persister.getMetadata();
 			expect(metadata).not.toBeNull();
+
+			// Data should still load even after a delay (no expiration)
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			const loaded = await persister.load();
+			expect(loaded).toEqual([{ id: "1" }]);
 
 			persister.close();
 		});

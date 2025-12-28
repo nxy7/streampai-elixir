@@ -7,7 +7,13 @@
  *
  * @example
  * ```typescript
+ * // Basic usage (cache never expires by default)
  * const persister = new IDBPersister<Livestream>({
+ *   storageKey: 'livestreams_user123',
+ * });
+ *
+ * // With expiration
+ * const persisterWithExpiry = new IDBPersister<Livestream>({
  *   storageKey: 'livestreams_user123',
  *   maxAge: 24 * 60 * 60 * 1000, // 24h
  * });
@@ -26,8 +32,8 @@ const METADATA_STORE = "metadata";
 export interface IDBPersisterConfig {
 	/** Unique key to identify this persisted collection */
 	storageKey: string;
-	/** Maximum age in ms before cached data is considered stale (default: 24h) */
-	maxAge?: number;
+	/** Maximum age in ms before cached data is considered stale (default: null = never expires) */
+	maxAge?: number | null;
 	/** User ID for user-scoped cache isolation */
 	userId?: string;
 	/** Schema version - change to invalidate existing cache */
@@ -81,7 +87,7 @@ export function isIndexedDBAvailable(): boolean {
  */
 export class IDBPersister<T> {
 	private readonly storageKey: string;
-	private readonly maxAge: number;
+	private readonly maxAge: number | null;
 	private readonly userId: string | null;
 	private readonly version: number;
 
@@ -91,7 +97,7 @@ export class IDBPersister<T> {
 
 	constructor(config: IDBPersisterConfig) {
 		this.storageKey = config.storageKey;
-		this.maxAge = config.maxAge ?? 24 * 60 * 60 * 1000; // 24h default
+		this.maxAge = config.maxAge ?? null; // null = never expires
 		this.userId = config.userId ?? null;
 		this.version = config.version ?? 1;
 	}
@@ -239,14 +245,16 @@ export class IDBPersister<T> {
 						return;
 					}
 
-					// Check staleness
-					const age = Date.now() - metadata.timestamp;
-					if (age > this.maxAge) {
-						console.debug(
-							`[IDBPersister] Cache stale for ${this.storageKey}: age=${age}ms, maxAge=${this.maxAge}ms`,
-						);
-						resolve([]);
-						return;
+					// Check staleness (only if maxAge is set)
+					if (this.maxAge !== null) {
+						const age = Date.now() - metadata.timestamp;
+						if (age > this.maxAge) {
+							console.debug(
+								`[IDBPersister] Cache stale for ${this.storageKey}: age=${age}ms, maxAge=${this.maxAge}ms`,
+							);
+							resolve([]);
+							return;
+						}
 					}
 
 					// Metadata is valid, load data
