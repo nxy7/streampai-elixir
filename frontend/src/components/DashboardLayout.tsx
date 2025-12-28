@@ -8,6 +8,10 @@ import {
 } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import {
+	BreadcrumbProvider,
+	useBreadcrumbContext,
+} from "~/lib/BreadcrumbContext";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 import Header from "./dashboard/Header";
 import { getCurrentPage, pageTitleKeyMap } from "./dashboard/navConfig";
@@ -18,12 +22,21 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout(props: DashboardLayoutProps) {
+	return (
+		<BreadcrumbProvider>
+			<DashboardLayoutInner>{props.children}</DashboardLayoutInner>
+		</BreadcrumbProvider>
+	);
+}
+
+function DashboardLayoutInner(props: DashboardLayoutProps) {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
+	const { items: breadcrumbItems } = useBreadcrumbContext();
 
 	// Redirect to login if user is not authenticated
 	createEffect(() => {
@@ -98,6 +111,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 					}`}>
 					{/* Top Header */}
 					<Header
+						breadcrumbItems={breadcrumbItems}
 						onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
 						pageTitle={pageTitle}
 						prefs={prefs}
