@@ -503,59 +503,6 @@ prod:
 	echo "Starting production server at http://localhost:4000"
 	mix phx.server
 
-# Build production release
-build-prod:
-	MIX_ENV=prod mix do deps.get, assets.deploy, compile, phx.digest
-
-# Test production-like frontend build served via Caddy (mimics Cloudflare setup)
-# This builds the frontend SPA and serves it via Caddy, proxying API calls to Phoenix
-test-prod-frontend:
-	#!/usr/bin/env bash
-	set -euo pipefail
-
-	# Load environment variables
-	set -a
-	source <(grep -v '^#' .env | grep -v '^$')
-	set +a
-
-	# Get ports from environment or use defaults
-	PHOENIX_PORT=${PORT:-4000}
-	CADDY_PORT=${CADDY_PORT:-8000}
-
-	echo "🏗️  Building frontend for production..."
-	cd frontend && bun run build
-	cd ..
-
-	echo ""
-	echo "🚀 Starting production-like environment"
-	echo "   Phoenix:  http://localhost:$PHOENIX_PORT (API only)"
-	echo "   Caddy:    https://localhost:$CADDY_PORT (static + proxy)"
-	echo ""
-	echo "📱 Access the app at: https://localhost:$CADDY_PORT"
-	echo ""
-	echo "This setup mimics Cloudflare production:"
-	echo "   - Static files served from frontend/.output/public"
-	echo "   - SPA routing (fallback to index.html)"
-	echo "   - /api/* proxied to Phoenix backend"
-	echo ""
-
-	# Check required tools
-	if ! command -v caddy &> /dev/null; then
-		echo "❌ Caddy is not installed. Please install it:"
-		echo "   brew install caddy"
-		echo "   caddy trust  # Install local CA certificates"
-		exit 1
-	fi
-
-	if ! command -v overmind &> /dev/null; then
-		echo "❌ Overmind is not installed. Enter nix shell:"
-		echo "   nix develop"
-		exit 1
-	fi
-
-	# Use overmind to manage processes
-	overmind start -f Procfile.prod -N
-
 # ============================================================================
 # Utility Commands
 # ============================================================================
