@@ -25,22 +25,28 @@ on:
           - deploy
           - destroy
 
+# Prevent concurrent terraform operations (no remote state locking)
+concurrency:
+  group: terraform-cloudflare
+  cancel-in-progress: false
+
 permissions:
   contents: read
   pull-requests: write
-
-env:
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-  ORIGIN_SERVER_IP: ${{ secrets.ORACLE_IP }}
-  DOMAIN: "streampai.com"
-  ENVIRONMENT: "prod"
 
 jobs:
   cdktf:
     name: CDKTF
     runs-on: ubuntu-latest
     environment: prod
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      ORIGIN_SERVER_IP: ${{ secrets.ORACLE_IP }}
+      DOMAIN: "streampai.com"
+      ENVIRONMENT: "prod"
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_app_terraform_io }}
 
     defaults:
       run:

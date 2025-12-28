@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
   packages: write
+  deployments: write
 
 jobs:
   test-frontend:
@@ -242,6 +243,8 @@ jobs:
             export S3_PUBLIC_URL="${{ secrets.S3_PUBLIC_URL }}"
             export ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}"
             export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
+            export TOKEN_SIGNING_SECRET="${{ secrets.TOKEN_SIGNING_SECRET }}"
             export PHX_HOST="streampai.com"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -250,3 +253,38 @@ jobs:
             cd /tmp/streampai-elixir
             docker compose -f /tmp/streampai-elixir/docker-compose.yml up -d --remove-orphans
           EOF
+
+  deploy-frontend:
+    name: Deploy Frontend to Cloudflare Pages
+    runs-on: ubuntu-24.04-arm
+    needs: [test-frontend]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    environment:
+      name: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          bun install --frozen-lockfile
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          bun run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy frontend/.output/public --project-name=streampai --commit-dirty=true
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
