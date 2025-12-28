@@ -591,6 +591,13 @@ export const dict = {
 	admin: {
 		enterUserUuid: "Enter user UUID",
 		enterNotificationMessage: "Enter notification message...",
+		impersonate: "Impersonate",
+	},
+
+	// Impersonation
+	impersonation: {
+		banner: "You are viewing as {{name}}",
+		exit: "Exit",
 	},
 
 	// Donation page
