@@ -114,9 +114,6 @@ defmodule StreampaiWeb.Router do
 
     sign_out_route(AuthController, "/auth/sign-out")
 
-    get("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
-    get("/impersonation/stop", ImpersonationController, :stop_impersonation)
-
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 

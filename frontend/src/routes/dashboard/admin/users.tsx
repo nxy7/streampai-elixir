@@ -93,6 +93,23 @@ export default function AdminUsers() {
 	const [userToRevoke, setUserToRevoke] = createSignal<AdminUser | null>(null);
 	const [revokingPro, setRevokingPro] = createSignal(false);
 
+	const [impersonatingUserId, setImpersonatingUserId] = createSignal<
+		string | null
+	>(null);
+
+	const handleImpersonate = async (userId: string) => {
+		setImpersonatingUserId(userId);
+		setError(null);
+		try {
+			await startImpersonation(userId);
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Failed to start impersonation",
+			);
+			setImpersonatingUserId(null);
+		}
+	};
+
 	createEffect(() => {
 		const user = currentUser();
 		if (!authLoading() && (!user || user.role !== "admin")) {
@@ -331,12 +348,19 @@ export default function AdminUsers() {
 																type="button">
 																Grant PRO
 															</button>
-															<Show when={currentUser()?.id !== user.id}>
+															<Show
+																when={
+																	currentUser()?.id !== user.id &&
+																	user.role !== "admin"
+																}>
 																<button
-																	class="text-amber-600 hover:text-amber-900 hover:underline"
-																	onClick={() => startImpersonation(user.id)}
+																	class="text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+																	disabled={impersonatingUserId() !== null}
+																	onClick={() => handleImpersonate(user.id)}
 																	type="button">
-																	{t("admin.impersonate")}
+																	{impersonatingUserId() === user.id
+																		? "..."
+																		: t("admin.impersonate")}
 																</button>
 															</Show>
 														</div>
