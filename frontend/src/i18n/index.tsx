@@ -83,16 +83,16 @@ export const I18nContext = createContext<I18nContextValue>();
 
 // I18n Provider component
 export const I18nProvider: ParentComponent = (props) => {
-	const [locale, setLocaleSignal] = createSignal<Locale>(DEFAULT_LOCALE);
+	// Initialize locale synchronously from storage/browser detection to avoid
+	// flash of wrong language in UI components (especially select dropdowns)
+	const [locale, setLocaleSignal] = createSignal<Locale>(getInitialLocale());
 	const [mounted, setMounted] = createSignal(false);
 
 	// Load dictionary based on current locale
 	const [dict] = createResource(locale, fetchDictionary);
 
-	// Initialize locale from storage on mount
+	// Mark as mounted after initial render
 	onMount(() => {
-		const initial = getInitialLocale();
-		setLocaleSignal(initial);
 		setMounted(true);
 	});
 

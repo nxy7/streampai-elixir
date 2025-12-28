@@ -1,4 +1,4 @@
-import { type JSX, Show, splitProps } from "solid-js";
+import { type JSX, Show, createEffect, splitProps } from "solid-js";
 import { cn } from "~/styles/design-system";
 
 const baseClasses =
@@ -113,7 +113,7 @@ export interface SelectProps
 }
 
 export function Select(props: SelectProps) {
-	const [local, rest] = splitProps(props, [
+	const [local, others] = splitProps(props, [
 		"label",
 		"error",
 		"helperText",
@@ -121,9 +121,21 @@ export function Select(props: SelectProps) {
 		"wrapperClass",
 		"id",
 		"children",
+		"value",
 	]);
 
 	const inputId = local.id ?? `select-${Math.random().toString(36).slice(2)}`;
+
+	let selectRef: HTMLSelectElement | undefined;
+
+	// Use effect to set the value as a DOM property, ensuring proper reactivity
+	// This is necessary because setting value as an attribute (via spread) doesn't
+	// properly sync the select element's selection state in all cases
+	createEffect(() => {
+		if (selectRef && local.value !== undefined) {
+			selectRef.value = local.value as string;
+		}
+	});
 
 	return (
 		<div class={local.wrapperClass ?? "w-full"}>
@@ -145,7 +157,8 @@ export function Select(props: SelectProps) {
 					local.class,
 				)}
 				id={inputId}
-				{...rest}>
+				ref={selectRef}
+				{...others}>
 				{local.children}
 			</select>
 			<Show when={local.error}>
