@@ -227,21 +227,25 @@ defmodule Streampai.LivestreamManager.AlertQueue do
       donation_data: donation_data
     })
 
-    # Transform donation data to AlertQueue event format
+    # Transform donation data to AlertQueue event format, preserving TTS URL
     event = %{
       type: :donation,
-      username: donation_data.donor_name || "Anonymous",
-      message: donation_data.message,
-      amount: donation_data.amount,
-      currency: donation_data.currency,
-      # Donations from web interface
-      platform: :web,
-      timestamp: donation_data.timestamp
+      username: get_field(donation_data, :donor_name, "Anonymous"),
+      message: get_field(donation_data, :message),
+      amount: get_field(donation_data, :amount),
+      currency: get_field(donation_data, :currency),
+      platform: get_field(donation_data, :platform, :web),
+      timestamp: get_field(donation_data, :timestamp) || DateTime.utc_now(),
+      # Preserve TTS fields
+      tts_url: get_field(donation_data, :tts_url),
+      tts_path: get_field(donation_data, :tts_path),
+      voice: get_field(donation_data, :voice)
     }
 
     Logger.info("AlertQueue transformed donation event", %{
       user_id: state.user_id,
-      event: event
+      event_type: event.type,
+      has_tts: event.tts_url != nil
     })
 
     # Add to queue
@@ -252,6 +256,34 @@ defmodule Streampai.LivestreamManager.AlertQueue do
       user_id: state.user_id,
       queue_length: :queue.len(state.event_queue)
     })
+
+    {:noreply, state}
+  end
+
+  # Handle donation_completed events from Donations.Pipeline
+  @impl true
+  def handle_info({:donation_completed, donation_data}, state) do
+    Logger.info("AlertQueue received donation_completed PubSub message", %{
+      user_id: state.user_id
+    })
+
+    # Transform donation data to AlertQueue event format, preserving TTS URL
+    event = %{
+      type: :donation,
+      username: get_field(donation_data, :donor_name, "Anonymous"),
+      message: get_field(donation_data, :message),
+      amount: get_field(donation_data, :amount),
+      currency: get_field(donation_data, :currency),
+      platform: get_field(donation_data, :platform, :web),
+      timestamp: get_field(donation_data, :timestamp) || DateTime.utc_now(),
+      # Preserve TTS fields
+      tts_url: get_field(donation_data, :tts_url),
+      tts_path: get_field(donation_data, :tts_path),
+      voice: get_field(donation_data, :voice)
+    }
+
+    state = add_event_to_queue(state, event)
+    broadcast_queue_update(state)
 
     {:noreply, state}
   end

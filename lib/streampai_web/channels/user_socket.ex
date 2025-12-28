@@ -16,6 +16,7 @@ defmodule StreampaiWeb.UserSocket do
   # Channels
   channel "ash_typescript_rpc:*", StreampaiWeb.AshTypescriptRpcChannel
   channel "presence:*", StreampaiWeb.PresenceChannel
+  channel "alertbox:*", StreampaiWeb.AlertboxChannel
 
   # Token is valid for 1 hour
   @max_age 3600
