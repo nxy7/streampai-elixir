@@ -1,29 +1,25 @@
-# Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian
-# instead of Alpine to avoid DNS resolution issues in production.
+# Find eligible builder and runner images on Docker Hub.
+# Using Alpine for smaller image size.
 #
-# https://hub.docker.com/r/hexpm/elixir/tags?name=ubuntu
-# https://hub.docker.com/_/ubuntu/tags
+# https://hub.docker.com/r/hexpm/elixir/tags?name=alpine
 #
 # This file is based on these images:
 #
 #   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian/tags?name=bookworm-20250811-slim - for the release image
-#   - https://pkgs.org/ - resource for finding needed packages
-#   - Ex: docker.io/hexpm/elixir:1.18.4-erlang-27.3.4.2-debian-bookworm-20250811-slim
+#   - https://hub.docker.com/_/alpine/tags - for the release image
+#   - Ex: docker.io/hexpm/elixir:1.19.1-erlang-26.2.5.9-alpine-3.23.2
 #
 ARG ELIXIR_VERSION=1.19.1
-ARG OTP_VERSION=27.3.4.2
-ARG DEBIAN_VERSION=bookworm-20250811-slim
+ARG OTP_VERSION=26.2.5.9
+ARG ALPINE_VERSION=3.23.2
 
-ARG BUILDER_IMAGE="docker.io/hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
+ARG BUILDER_IMAGE="docker.io/hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-alpine-${ALPINE_VERSION}"
+ARG RUNNER_IMAGE="docker.io/alpine:${ALPINE_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential git \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache build-base git
 
 # prepare build dir
 WORKDIR /app
@@ -62,14 +58,9 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE} AS final
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses5 locales ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache libstdc++ openssl ncurses-libs ca-certificates
 
 # Set the locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
-  && locale-gen
-
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
