@@ -37,6 +37,8 @@ import type { z } from "zod";
 import {
 	CheckboxField,
 	ColorField,
+	ImageUploadField,
+	type ImageUploadHandler,
 	NumberField,
 	SelectField,
 	SliderField,
@@ -113,6 +115,23 @@ function resolveGroupName(
 	return groupName;
 }
 
+/**
+ * Configuration for image upload fields.
+ * Keyed by field name, provides the upload handler and optional preview URL.
+ */
+export interface ImageFieldConfig {
+	/** Handler for 2-step file upload. Called when user selects a file. */
+	onUpload: ImageUploadHandler;
+	/** Current preview URL for the image */
+	previewUrl?: string | null;
+	/** Called when preview URL changes (after upload or clear) */
+	onPreviewChange?: (url: string | null) => void;
+	/** Accepted file types (default: "image/*") */
+	accept?: string;
+	/** Maximum file size in bytes (default: 2MB) */
+	maxSize?: number;
+}
+
 interface SchemaFormProps<T extends z.ZodRawShape> {
 	/** The Zod schema defining the form structure */
 	schema: z.ZodObject<T>;
@@ -131,6 +150,8 @@ interface SchemaFormProps<T extends z.ZodRawShape> {
 	disabled?: boolean;
 	/** Optional translation function for i18n support. When provided, fields can use i18n keys (labelKey, descriptionKey, etc.) */
 	t?: TranslationFunction;
+	/** Configuration for image upload fields, keyed by field name */
+	imageFields?: Record<string, ImageFieldConfig>;
 }
 
 /**
@@ -141,6 +162,7 @@ const SchemaField: Component<{
 	value: unknown;
 	onChange: (value: unknown) => void;
 	disabled?: boolean;
+	imageFieldConfig?: ImageFieldConfig;
 }> = (props) => {
 	return (
 		<Switch fallback={<div>Unsupported field type: {props.field.type}</div>}>
@@ -200,6 +222,19 @@ const SchemaField: Component<{
 					value={props.value as string}
 				/>
 			</Match>
+			<Match when={props.field.inputType === "image"}>
+				<ImageUploadField
+					accept={props.imageFieldConfig?.accept}
+					disabled={props.disabled}
+					field={props.field}
+					maxSize={props.imageFieldConfig?.maxSize}
+					onChange={props.onChange}
+					onPreviewChange={props.imageFieldConfig?.onPreviewChange}
+					onUpload={props.imageFieldConfig?.onUpload}
+					previewUrl={props.imageFieldConfig?.previewUrl}
+					value={props.value as string | null}
+				/>
+			</Match>
 		</Switch>
 	);
 };
@@ -228,6 +263,7 @@ export function SchemaForm<T extends z.ZodRawShape>(
 									<SchemaField
 										disabled={props.disabled}
 										field={resolveFieldTranslations(field, props.t)}
+										imageFieldConfig={props.imageFields?.[field.name]}
 										onChange={(value) =>
 											props.onChange(
 												field.name as keyof z.infer<z.ZodObject<T>>,
@@ -253,6 +289,7 @@ export function SchemaForm<T extends z.ZodRawShape>(
 					<SchemaField
 						disabled={props.disabled}
 						field={resolveFieldTranslations(field, props.t)}
+						imageFieldConfig={props.imageFields?.[field.name]}
 						onChange={(value) =>
 							props.onChange(
 								field.name as keyof z.infer<z.ZodObject<T>>,

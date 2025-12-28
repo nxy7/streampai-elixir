@@ -145,6 +145,9 @@ export const dict = {
 			tags: "Tags",
 			tagsDescription: "Add tags to help viewers find your stream",
 			addTag: "Add",
+			thumbnail: "Thumbnail",
+			thumbnailDescription:
+				"Upload a thumbnail image for your stream (max 2MB)",
 			save: "Save Settings",
 			saving: "Saving...",
 			saved: "Settings saved!",

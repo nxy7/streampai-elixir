@@ -147,6 +147,9 @@ export const dict: Dictionary = {
 			tags: "Tags",
 			tagsDescription: "Füge Tags hinzu, damit Zuschauer deinen Stream finden",
 			addTag: "Hinzufügen",
+			thumbnail: "Vorschaubild",
+			thumbnailDescription:
+				"Lade ein Vorschaubild für deinen Stream hoch (max. 2MB)",
 			save: "Einstellungen speichern",
 			saving: "Wird gespeichert...",
 			saved: "Einstellungen gespeichert!",

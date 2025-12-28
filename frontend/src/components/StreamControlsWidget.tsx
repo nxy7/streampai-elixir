@@ -12,7 +12,11 @@ import { Portal } from "solid-js/web";
 import { z } from "zod";
 import { useTranslation } from "~/i18n";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
-import { SchemaForm } from "~/lib/schema-form/SchemaForm";
+import type { ImageUploadResult } from "~/lib/schema-form/fields";
+import {
+	type ImageFieldConfig,
+	SchemaForm,
+} from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
 import { badge, button, card, input, text } from "~/styles/design-system";
 
@@ -125,6 +129,7 @@ const streamSettingsSchema = z.object({
 			"Other",
 		])
 		.default("Gaming"),
+	thumbnailFileId: z.string().nullable().default(null),
 });
 
 type StreamSettingsValues = z.infer<typeof streamSettingsSchema>;
@@ -157,6 +162,11 @@ const getStreamSettingsMeta = (): FormMeta<
 			Other: "stream.settings.categories.other",
 		},
 	},
+	thumbnailFileId: {
+		labelKey: "stream.settings.thumbnail",
+		descriptionKey: "stream.settings.thumbnailDescription",
+		inputType: "image",
+	},
 });
 
 // Types for stream metadata
@@ -165,7 +175,10 @@ export interface StreamMetadata {
 	description: string;
 	category: string;
 	tags: string[];
+	/** URL of the thumbnail image for display */
 	thumbnail?: string;
+	/** File ID of the uploaded thumbnail (for backend storage) */
+	thumbnailFileId?: string | null;
 }
 
 // Types for stream key data
@@ -844,6 +857,8 @@ export interface StreamActionCallbacks {
 	onModifyTimers?: () => void;
 	onChangeStreamSettings?: () => void;
 	onSaveStreamSettings?: (metadata: StreamMetadata) => void;
+	/** Handler for uploading a thumbnail image. Should implement 2-step upload. */
+	onThumbnailUpload?: (file: File) => Promise<ImageUploadResult>;
 }
 
 interface StreamActionsPanelProps extends StreamActionCallbacks {
@@ -1371,10 +1386,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			category:
 				(props.metadata?.category as StreamSettingsValues["category"]) ||
 				"Gaming",
+			thumbnailFileId: props.metadata?.thumbnailFileId || null,
 		});
 	const [settingsTags, setSettingsTags] = createSignal<string[]>(
 		props.metadata?.tags || [],
 	);
+	const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = createSignal<
+		string | null
+	>(props.metadata?.thumbnail || null);
 	const [isSavingSettings, setIsSavingSettings] = createSignal(false);
 
 	// Sync settings form with props.metadata when it changes
@@ -1386,8 +1405,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				category:
 					(props.metadata.category as StreamSettingsValues["category"]) ||
 					"Gaming",
+				thumbnailFileId: props.metadata.thumbnailFileId || null,
 			});
 			setSettingsTags(props.metadata.tags || []);
+			setThumbnailPreviewUrl(props.metadata.thumbnail || null);
 		}
 	});
 
@@ -1411,6 +1432,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				description: settingsFormValues().description,
 				category: settingsFormValues().category,
 				tags: settingsTags(),
+				thumbnail: thumbnailPreviewUrl() || undefined,
+				thumbnailFileId: settingsFormValues().thumbnailFileId,
 			};
 			props.onSaveStreamSettings(metadata);
 			// Simulate save delay for UX feedback
@@ -1419,6 +1442,26 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				setViewMode("actions");
 			}, 500);
 		}
+	};
+
+	// Image upload configuration for thumbnail field
+	// The upload handler should be provided via props.onThumbnailUpload
+	// For now, we create a mock handler that simulates the upload process
+	const thumbnailImageFieldConfig: ImageFieldConfig = {
+		onUpload: async (file: File) => {
+			// If the parent provides an upload handler, use it
+			if (props.onThumbnailUpload) {
+				return props.onThumbnailUpload(file);
+			}
+			// Otherwise, create a local preview (for demo/storybook purposes)
+			const previewUrl = URL.createObjectURL(file);
+			// Generate a mock file ID for demo purposes
+			const mockFileId = `mock-${Date.now()}-${file.name}`;
+			return { fileId: mockFileId, previewUrl };
+		},
+		previewUrl: thumbnailPreviewUrl(),
+		onPreviewChange: (url) => setThumbnailPreviewUrl(url),
+		maxSize: 2 * 1024 * 1024, // 2MB limit for thumbnails
 	};
 
 	// Get available platforms (either from props or default to all)
@@ -2120,6 +2163,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					<div class="flex-1 space-y-4">
 						{/* SchemaForm for title, description, category */}
 						<SchemaForm
+							imageFields={{
+								thumbnailFileId: thumbnailImageFieldConfig,
+							}}
 							meta={getStreamSettingsMeta()}
 							onChange={(field, value) => {
 								setSettingsFormValues((prev) => ({ ...prev, [field]: value }));
