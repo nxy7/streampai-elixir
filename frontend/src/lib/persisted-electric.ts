@@ -244,7 +244,7 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 	const enhancedSync: CollectionConfig<T, string | number>["sync"] = {
 		...originalSync,
 		sync: (params) => {
-			const { collection, begin, write, commit, markReady } = params;
+			const { collection, begin, write, commit, markReady, truncate } = params;
 			const state = createPersistenceState();
 
 			// Start async hydration from cache
@@ -276,9 +276,11 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 							return;
 						}
 
+						// Set flag BEFORE commit so truncate protection is armed even if
+						// Electric sync write arrives between our writes and commit
+						state.isHydratedFromCache = true;
 						commit();
 						markReady(); // Instant ready with cached data!
-						state.isHydratedFromCache = true;
 					}
 				} catch (error) {
 					console.warn(
@@ -291,6 +293,28 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 
 			// Start cache hydration immediately (non-blocking)
 			hydrateFromCache();
+
+			// Wrap the original write to handle the transition from cache to Electric sync.
+			// When Electric sync starts writing data and we previously hydrated from cache,
+			// we need to truncate the collection first to avoid duplicate key errors.
+			let hasTruncatedForSync = false;
+			const wrappedWrite = (
+				message: Parameters<typeof write>[0],
+			): ReturnType<typeof write> => {
+				// On the first write from Electric sync (not from cache), truncate if we hydrated
+				if (
+					state.isHydratedFromCache &&
+					!hasTruncatedForSync &&
+					!message.metadata?.fromCache
+				) {
+					console.debug(
+						`[persistedElectric] Truncating ${config.id} before Electric sync (was hydrated from cache)`,
+					);
+					truncate();
+					hasTruncatedForSync = true;
+				}
+				return write(message);
+			};
 
 			// Helper to persist current collection state to IndexedDB
 			const persistToCache = async (
@@ -326,9 +350,10 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 				}, PERSIST_DEBOUNCE_MS);
 			};
 
-			// Call original sync with wrapped commit
+			// Call original sync with wrapped write and commit
 			const result = originalSync.sync({
 				...params,
+				write: wrappedWrite,
 				commit: wrappedCommit,
 			});
 
