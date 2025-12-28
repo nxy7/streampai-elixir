@@ -229,7 +229,7 @@ export default function LoginPage() {
 									id="email"
 									name="email"
 									onInput={(e) => setEmail(e.currentTarget.value)}
-									placeholder="you@example.com"
+									placeholder={t("auth.emailPlaceholder")}
 									required
 									type="email"
 									value={email()}
@@ -248,7 +248,7 @@ export default function LoginPage() {
 									minLength={8}
 									name="password"
 									onInput={(e) => setPassword(e.currentTarget.value)}
-									placeholder="Enter your password"
+									placeholder={t("auth.passwordPlaceholder")}
 									required
 									type="password"
 									value={password()}
@@ -270,7 +270,7 @@ export default function LoginPage() {
 										onInput={(e) =>
 											setPasswordConfirmation(e.currentTarget.value)
 										}
-										placeholder="Confirm your password"
+										placeholder={t("auth.confirmPasswordPlaceholder")}
 										required
 										type="password"
 										value={passwordConfirmation()}
