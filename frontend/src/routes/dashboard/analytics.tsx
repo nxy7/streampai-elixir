@@ -368,11 +368,11 @@ export default function Analytics() {
 
 	const _getPlatformBadgeClass = (platformName: string): string => {
 		const lower = platformName.toLowerCase();
-		if (lower.includes("twitch")) return "bg-purple-100 text-purple-800";
-		if (lower.includes("youtube")) return "bg-red-100 text-red-800";
-		if (lower.includes("facebook")) return "bg-blue-100 text-blue-800";
-		if (lower.includes("kick")) return "bg-green-100 text-green-800";
-		return "bg-gray-100 text-gray-800";
+		if (lower.includes("twitch")) return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300";
+		if (lower.includes("youtube")) return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300";
+		if (lower.includes("facebook")) return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300";
+		if (lower.includes("kick")) return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300";
+		return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
 	};
 
 	return (

@@ -509,26 +509,26 @@ function StreamGoalsTracker(props: {
 			case "pink":
 				return {
 					bg: "bg-pink-500",
-					light: "bg-pink-100",
-					text: "text-pink-600",
+					light: "bg-pink-100 dark:bg-pink-900/30",
+					text: "text-pink-600 dark:text-pink-400",
 				};
 			case "green":
 				return {
 					bg: "bg-green-500",
-					light: "bg-green-100",
-					text: "text-green-600",
+					light: "bg-green-100 dark:bg-green-900/30",
+					text: "text-green-600 dark:text-green-400",
 				};
 			case "blue":
 				return {
 					bg: "bg-blue-500",
-					light: "bg-blue-100",
-					text: "text-blue-600",
+					light: "bg-blue-100 dark:bg-blue-900/30",
+					text: "text-blue-600 dark:text-blue-400",
 				};
 			default:
 				return {
 					bg: "bg-gray-500",
-					light: "bg-gray-100",
-					text: "text-gray-600",
+					light: "bg-gray-100 dark:bg-gray-800",
+					text: "text-gray-600 dark:text-gray-400",
 				};
 		}
 	};
@@ -826,10 +826,10 @@ export default function Dashboard() {
 						<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-blue-600"
+											class="h-5 w-5 text-blue-600 dark:text-blue-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -854,10 +854,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-purple-600"
+											class="h-5 w-5 text-purple-600 dark:text-purple-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -888,10 +888,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-pink-600"
+											class="h-5 w-5 text-pink-600 dark:text-pink-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -916,10 +916,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-green-600"
+											class="h-5 w-5 text-green-600 dark:text-green-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">

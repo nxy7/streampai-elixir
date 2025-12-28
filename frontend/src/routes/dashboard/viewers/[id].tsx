@@ -390,7 +390,7 @@ export default function ViewerDetail() {
 							<div class="flex items-center">
 								<Show
 									fallback={
-										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
+										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
 											<span class="font-medium text-gray-600 text-xl">
 												{viewer()?.displayName.charAt(0).toUpperCase()}
 											</span>
@@ -404,7 +404,7 @@ export default function ViewerDetail() {
 									/>
 								</Show>
 								<div class="ml-4">
-									<h1 class="font-bold text-2xl text-gray-900">
+									<h1 class="font-bold text-2xl text-theme-primary">
 										{viewer()?.displayName}
 									</h1>
 									<Show when={viewer()?.channelUrl}>
@@ -439,21 +439,21 @@ export default function ViewerDetail() {
 						<h3 class={`${text.h3} mb-4`}>Activity Info</h3>
 						<dl class="space-y-3">
 							<div>
-								<dt class="font-medium text-gray-500 text-sm">First Seen</dt>
-								<dd class="mt-1 text-gray-900 text-sm">
+								<dt class="font-medium text-theme-tertiary text-sm">First Seen</dt>
+								<dd class="mt-1 text-theme-primary text-sm">
 									{formatFullDate(viewer()?.firstSeenAt || "")}
 								</dd>
 							</div>
 							<div>
-								<dt class="font-medium text-gray-500 text-sm">Last Seen</dt>
-								<dd class="mt-1 text-gray-900 text-sm">
+								<dt class="font-medium text-theme-tertiary text-sm">Last Seen</dt>
+								<dd class="mt-1 text-theme-primary text-sm">
 									{formatFullDate(viewer()?.lastSeenAt || "")}
 								</dd>
 							</div>
 							<Show when={viewer()?.notes}>
 								<div>
-									<dt class="font-medium text-gray-500 text-sm">Notes</dt>
-									<dd class="mt-1 text-gray-900 text-sm">{viewer()?.notes}</dd>
+									<dt class="font-medium text-theme-tertiary text-sm">Notes</dt>
+									<dd class="mt-1 text-theme-primary text-sm">{viewer()?.notes}</dd>
 								</div>
 							</Show>
 						</dl>
@@ -486,7 +486,7 @@ export default function ViewerDetail() {
 										/>
 									</svg>
 									<p class="mt-4 text-gray-500">No messages yet</p>
-									<p class="mt-1 text-gray-400 text-sm">
+									<p class="mt-1 text-theme-muted text-sm">
 										Messages will appear here once this viewer chats
 									</p>
 								</div>
@@ -521,12 +521,12 @@ export default function ViewerDetail() {
 													</button>
 												</Show>
 												<Show when={!message.livestreamId}>
-													<span class="text-gray-500 text-xs">
+													<span class="text-theme-tertiary text-xs">
 														{formatDateTime(message.insertedAt)}
 													</span>
 												</Show>
 											</div>
-											<p class="text-gray-600 text-sm">{message.message}</p>
+											<p class="text-theme-secondary text-sm">{message.message}</p>
 										</div>
 									)}
 								</For>
@@ -561,7 +561,7 @@ export default function ViewerDetail() {
 										/>
 									</svg>
 									<p class="mt-4 text-gray-500">No events yet</p>
-									<p class="mt-1 text-gray-400 text-sm">
+									<p class="mt-1 text-theme-muted text-sm">
 										Events like donations and subscriptions will appear here
 									</p>
 								</div>
@@ -594,12 +594,12 @@ export default function ViewerDetail() {
 													</button>
 												</Show>
 												<Show when={!event.livestreamId}>
-													<span class="text-gray-500 text-xs">
+													<span class="text-theme-tertiary text-xs">
 														{formatDateTime(event.insertedAt)}
 													</span>
 												</Show>
 											</div>
-											<p class="text-gray-600 text-sm">
+											<p class="text-theme-secondary text-sm">
 												{formatEventData(event)}
 											</p>
 										</div>
