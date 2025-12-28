@@ -131,28 +131,30 @@ export default function ChatHistory() {
 					</div>
 				}
 				when={user()}>
-				<ErrorBoundary
-					fallback={(err) => (
-						<div class="mx-auto mt-8 max-w-6xl">
-							<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-								Error loading chat messages: {err.message}
+				{(currentUser) => (
+					<ErrorBoundary
+						fallback={(err) => (
+							<div class="mx-auto mt-8 max-w-6xl">
+								<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
+									Error loading chat messages: {err.message}
+								</div>
 							</div>
-						</div>
-					)}>
-					<Suspense fallback={<ChatHistorySkeleton />}>
-						<ChatHistoryContent
-							dateRange={dateRange}
-							handleSearch={handleSearch}
-							platform={platform}
-							search={search}
-							searchInput={searchInput}
-							setDateRange={setDateRange}
-							setPlatform={setPlatform}
-							setSearchInput={setSearchInput}
-							userId={user()!.id}
-						/>
-					</Suspense>
-				</ErrorBoundary>
+						)}>
+						<Suspense fallback={<ChatHistorySkeleton />}>
+							<ChatHistoryContent
+								dateRange={dateRange}
+								handleSearch={handleSearch}
+								platform={platform}
+								search={search}
+								searchInput={searchInput}
+								setDateRange={setDateRange}
+								setPlatform={setPlatform}
+								setSearchInput={setSearchInput}
+								userId={currentUser().id}
+							/>
+						</Suspense>
+					</ErrorBoundary>
+				)}
 			</Show>
 		</>
 	);

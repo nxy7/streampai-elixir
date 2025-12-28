@@ -159,26 +159,28 @@ export default function StreamHistory() {
 						</div>
 					}
 					when={user()}>
-					<ErrorBoundary
-						fallback={(err) => (
-							<div class="mx-auto mt-8 max-w-7xl">
-								<Alert variant="error">
-									Error loading streams: {err.message}
-								</Alert>
-							</div>
-						)}>
-						<Suspense fallback={<StreamHistorySkeleton />}>
-							<StreamHistoryContent
-								dateRange={dateRange}
-								platform={platform}
-								setDateRange={setDateRange}
-								setPlatform={setPlatform}
-								setSortBy={setSortBy}
-								sortBy={sortBy}
-								userId={user()!.id}
-							/>
-						</Suspense>
-					</ErrorBoundary>
+					{(currentUser) => (
+						<ErrorBoundary
+							fallback={(err) => (
+								<div class="mx-auto mt-8 max-w-7xl">
+									<Alert variant="error">
+										Error loading streams: {err.message}
+									</Alert>
+								</div>
+							)}>
+							<Suspense fallback={<StreamHistorySkeleton />}>
+								<StreamHistoryContent
+									dateRange={dateRange}
+									platform={platform}
+									setDateRange={setDateRange}
+									setPlatform={setPlatform}
+									setSortBy={setSortBy}
+									sortBy={sortBy}
+									userId={currentUser().id}
+								/>
+							</Suspense>
+						</ErrorBoundary>
+					)}
 				</Show>
 			</Show>
 		</>
