@@ -1,0 +1,282 @@
+/**
+ * Persisted Electric Collection Wrapper
+ *
+ * Extends `electricCollectionOptions` with IndexedDB persistence for instant
+ * data loading on page refresh. Implements hydration-first, sync-second pattern.
+ *
+ * @example
+ * ```typescript
+ * // Before (no persistence)
+ * export const livestreamsCollection = createCollection(
+ *   electricCollectionOptions<Livestream>({
+ *     id: "livestreams",
+ *     shapeOptions: { url: `${SHAPES_URL}/livestreams` },
+ *     getKey: (item) => item.id,
+ *   }),
+ * );
+ *
+ * // After (with persistence)
+ * export const livestreamsCollection = createCollection(
+ *   persistedElectricCollection<Livestream>({
+ *     id: "livestreams",
+ *     shapeOptions: { url: `${SHAPES_URL}/livestreams` },
+ *     getKey: (item) => item.id,
+ *     persist: true,
+ *     userId: () => getCurrentUserId(),
+ *   }),
+ * );
+ * ```
+ */
+
+import type { Row } from "@electric-sql/client";
+import type { Collection, CollectionConfig } from "@tanstack/db";
+import {
+	type ElectricCollectionConfig,
+	type ElectricCollectionUtils,
+	electricCollectionOptions,
+} from "@tanstack/electric-db-collection";
+import { IDBPersister } from "./idb-persister";
+
+/**
+ * Return type for persistedElectricCollection (non-schema variant)
+ */
+type ElectricCollectionOptionsResult<T extends Row<unknown>> = Omit<
+	CollectionConfig<T, string | number>,
+	"utils"
+> & {
+	id?: string;
+	utils: ElectricCollectionUtils<T>;
+	schema?: never;
+};
+
+// Default maxAge is 24 hours (in milliseconds)
+const DEFAULT_MAX_AGE = 24 * 60 * 60 * 1000;
+
+/**
+ * Configuration for persisted Electric collections
+ */
+export interface PersistedElectricConfig<T extends Row<unknown>>
+	extends ElectricCollectionConfig<T> {
+	/** Enable persistence to IndexedDB. Defaults to false. */
+	persist?: boolean;
+	/** Storage key override. Defaults to collection id. */
+	storageKey?: string;
+	/** Function to get current user ID for user-scoped persistence. */
+	userId?: () => string | undefined;
+	/** Time in ms before cached data is considered stale. Defaults to 24h. Set to null to never expire. */
+	maxAge?: number | null;
+	/** Schema version - increment to invalidate existing cache after schema changes. Defaults to 1. */
+	version?: number;
+}
+
+/**
+ * Internal state for tracking hydration and sync
+ */
+interface PersistenceState<T> {
+	persister: IDBPersister<T>;
+	isHydratedFromCache: boolean;
+	hasSyncedOnce: boolean;
+}
+
+/**
+ * Creates Electric collection options with IndexedDB persistence.
+ *
+ * When persistence is enabled:
+ * 1. On collection creation, immediately loads cached data from IndexedDB
+ * 2. Hydrates collection with cached data (instant ready state!)
+ * 3. Starts Electric sync in background
+ * 4. On sync complete/update, persists latest data to IndexedDB
+ *
+ * @param config - Configuration including Electric options and persistence settings
+ * @returns Collection config that can be passed to createCollection
+ */
+export function persistedElectricCollection<T extends Row<unknown>>(
+	config: PersistedElectricConfig<T>,
+): ElectricCollectionOptionsResult<T> {
+	// If persistence is not enabled, just return normal electric options
+	if (!config.persist) {
+		return electricCollectionOptions<T>(config);
+	}
+
+	// Get the base electric options
+	const baseOptions = electricCollectionOptions<T>(config);
+
+	// Get user ID at config time (will be re-evaluated for storage key)
+	const getUserId = config.userId;
+	const resolveUserId = () => getUserId?.() ?? undefined;
+
+	// Generate storage key with user scope
+	const getStorageKey = (): string => {
+		const baseKey = config.storageKey || config.id;
+		const userId = resolveUserId();
+		return userId ? `electric:${baseKey}:${userId}` : `electric:${baseKey}`;
+	};
+
+	// Determine maxAge - use default if not specified, null means never expire
+	const maxAge = config.maxAge === undefined ? DEFAULT_MAX_AGE : config.maxAge;
+
+	// Track persistence state per collection instance
+	const createPersistenceState = (): PersistenceState<T> => {
+		return {
+			persister: new IDBPersister<T>({
+				storageKey: getStorageKey(),
+				maxAge: maxAge,
+				userId: resolveUserId(),
+				version: config.version ?? 1,
+			}),
+			isHydratedFromCache: false,
+			hasSyncedOnce: false,
+		};
+	};
+
+	// Get the original sync function
+	const originalSync = baseOptions.sync;
+	if (!originalSync) {
+		throw new Error(
+			"[persistedElectricCollection] Base electric options missing sync config",
+		);
+	}
+
+	// Create enhanced sync config
+	const enhancedSync: CollectionConfig<T, string | number>["sync"] = {
+		...originalSync,
+		sync: (params) => {
+			const { collection, begin, write, commit, markReady } = params;
+			const state = createPersistenceState();
+
+			// Start async hydration from cache
+			const hydrateFromCache = async () => {
+				try {
+					const cachedData = await state.persister.load();
+
+					if (cachedData.length > 0 && !state.hasSyncedOnce) {
+						console.debug(
+							`[persistedElectric] Hydrating ${config.id} with ${cachedData.length} cached items`,
+						);
+
+						begin();
+						for (const item of cachedData) {
+							write({
+								type: "insert",
+								value: item,
+								metadata: { fromCache: true },
+							});
+						}
+						commit();
+						markReady(); // Instant ready with cached data!
+						state.isHydratedFromCache = true;
+					}
+				} catch (error) {
+					console.warn(
+						`[persistedElectric] Failed to hydrate ${config.id} from cache:`,
+						error,
+					);
+					// Continue without cache - Electric will sync fresh data
+				}
+			};
+
+			// Start cache hydration immediately (non-blocking)
+			hydrateFromCache();
+
+			// Helper to persist current collection state to IndexedDB
+			const persistToCache = async (
+				collectionRef: Collection<T, string | number>,
+			) => {
+				try {
+					// Get all current data from collection
+					const data = Array.from(collectionRef.values());
+					await state.persister.save(data);
+				} catch (error) {
+					console.warn(
+						`[persistedElectric] Failed to persist ${config.id} to cache:`,
+						error,
+					);
+				}
+			};
+
+			// Track commits to persist after sync
+			let pendingPersist: ReturnType<typeof setTimeout> | null = null;
+
+			// Wrap commit to persist after sync updates
+			const wrappedCommit = () => {
+				commit();
+				state.hasSyncedOnce = true;
+
+				// Debounce persistence to avoid excessive writes during rapid updates
+				if (pendingPersist) {
+					clearTimeout(pendingPersist);
+				}
+				pendingPersist = setTimeout(() => {
+					persistToCache(collection);
+					pendingPersist = null;
+				}, 100);
+			};
+
+			// Call original sync with wrapped commit
+			const result = originalSync.sync({
+				...params,
+				commit: wrappedCommit,
+			});
+
+			// Return cleanup that also clears pending persist
+			if (typeof result === "function") {
+				return () => {
+					if (pendingPersist) {
+						clearTimeout(pendingPersist);
+					}
+					state.persister.close();
+					result();
+				};
+			}
+
+			if (result && typeof result === "object") {
+				return {
+					...result,
+					cleanup: () => {
+						if (pendingPersist) {
+							clearTimeout(pendingPersist);
+						}
+						state.persister.close();
+						result.cleanup?.();
+					},
+				};
+			}
+
+			// No cleanup returned, just close persister on collection cleanup
+			return {
+				cleanup: () => {
+					if (pendingPersist) {
+						clearTimeout(pendingPersist);
+					}
+					state.persister.close();
+				},
+			};
+		},
+	};
+
+	// Return enhanced options with persisted sync
+	return {
+		...baseOptions,
+		sync: enhancedSync,
+	} as ElectricCollectionOptionsResult<T>;
+}
+
+/**
+ * Clear persisted cache for a specific collection.
+ * Useful when user logs out or data needs to be refreshed.
+ *
+ * @param collectionId - The collection ID or storage key
+ * @param userId - Optional user ID for user-scoped cache
+ */
+export async function clearPersistedCache(
+	collectionId: string,
+	userId?: string,
+): Promise<void> {
+	const storageKey = userId
+		? `electric:${collectionId}:${userId}`
+		: `electric:${collectionId}`;
+
+	const persister = new IDBPersister({ storageKey });
+	await persister.clear();
+	persister.close();
+}
