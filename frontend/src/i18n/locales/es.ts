@@ -313,6 +313,9 @@ export const dict: Dictionary = {
 		alreadyLoggedIn: "Ya estás conectado.",
 		goToDashboard: "Ir al Panel",
 		pageTitle: "Iniciar Sesión - Streampai",
+		emailPlaceholder: "tu@ejemplo.com",
+		passwordPlaceholder: "Ingresa tu contraseña",
+		confirmPasswordPlaceholder: "Confirma tu contraseña",
 	},
 
 	// Errors
