@@ -283,8 +283,23 @@ const handleSendMessage = (message: string, platforms: Platform[]) => {
 };
 
 // Stream action handlers for Storybook
-const handleStartPoll = () => console.log("Start poll clicked");
-const handleStartGiveaway = () => console.log("Start giveaway clicked");
+const handleStartPoll = (data: {
+	question: string;
+	option1: string;
+	option2: string;
+	option3: string;
+	option4: string;
+	duration: number;
+	allowMultipleVotes: boolean;
+}) => console.log("Start poll with data:", data);
+const handleStartGiveaway = (data: {
+	title: string;
+	description: string;
+	keyword: string;
+	duration: number;
+	subscriberMultiplier: number;
+	subscriberOnly: boolean;
+}) => console.log("Start giveaway with data:", data);
 const handleModifyTimers = () => console.log("Modify timers clicked");
 const handleChangeStreamSettings = () =>
 	console.log("Change stream settings clicked");
