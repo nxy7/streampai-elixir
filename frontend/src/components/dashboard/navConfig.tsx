@@ -353,6 +353,8 @@ export const getCurrentPage = (pathname: string): string => {
 	if (pathname.startsWith("/dashboard/smart-canvas")) return "smart-canvas";
 	if (pathname.startsWith("/dashboard/settings")) return "settings";
 	if (pathname.startsWith("/dashboard/admin/users")) return "users";
+	if (pathname.startsWith("/dashboard/admin/notifications"))
+		return "notifications";
 	return "";
 };
 
@@ -368,4 +370,5 @@ export const pageTitleKeyMap: Record<string, string> = {
 	"smart-canvas": "dashboardNav.smartCanvas",
 	settings: "dashboardNav.settings",
 	users: "dashboardNav.users",
+	notifications: "dashboardNav.notifications",
 };

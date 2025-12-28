@@ -167,8 +167,7 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 					{(item) => {
 						const label = () => t(item.labelKey);
 						const isActive = () =>
-							props.currentPage() ===
-							item.url.split("/").pop()?.replace("-", "-");
+							props.currentPage() === item.url.split("/").pop();
 
 						return (
 							<A
@@ -295,8 +294,7 @@ function MobileNavSectionGroup(props: MobileNavSectionGroupProps) {
 					{(item) => {
 						const label = () => t(item.labelKey);
 						const isActive = () =>
-							props.currentPage() ===
-							item.url.split("/").pop()?.replace("-", "-");
+							props.currentPage() === item.url.split("/").pop();
 
 						return (
 							<A
