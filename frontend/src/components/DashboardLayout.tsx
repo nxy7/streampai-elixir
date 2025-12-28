@@ -119,7 +119,7 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 					/>
 
 					{/* Main Content Area */}
-					<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+					<main class="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-6">
 						{props.children}
 					</main>
 				</div>
