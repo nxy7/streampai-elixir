@@ -529,6 +529,12 @@ export const dict = {
 			"We love hearing from our users! Please contact us with bug reports or feature requests. You can also join our Discord community to discuss ideas with other users.",
 	},
 
+	// Admin pages
+	admin: {
+		enterUserUuid: "Enter user UUID",
+		enterNotificationMessage: "Enter notification message...",
+	},
+
 	// Contact page
 	contact: {
 		title: "Contact Us",

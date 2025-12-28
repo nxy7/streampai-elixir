@@ -515,6 +515,12 @@ export const dict: Dictionary = {
 			"Chętnie słuchamy użytkowników! Napisz do nas z informacją o błędzie lub propozycją nowej funkcji. Możesz też dołączyć do naszego Discorda i podzielić się pomysłami z innymi.",
 	},
 
+	// Admin pages
+	admin: {
+		enterUserUuid: "Wpisz UUID użytkownika",
+		enterNotificationMessage: "Wpisz treść powiadomienia...",
+	},
+
 	// Contact page
 	contact: {
 		title: "Kontakt",

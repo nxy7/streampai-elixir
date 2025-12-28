@@ -5,7 +5,12 @@ import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import Input, { Select, Textarea } from "~/components/ui/Input";
-import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from "~/i18n";
+import {
+	LOCALE_NAMES,
+	type Locale,
+	SUPPORTED_LOCALES,
+	useTranslation,
+} from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
@@ -17,6 +22,7 @@ type LocalizationEntry = {
 };
 
 export default function AdminNotifications() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { data: notifications, isLoading: notificationsLoading } =
@@ -461,7 +467,7 @@ export default function AdminNotifications() {
 											<Input
 												id="target-user-id"
 												onInput={(e) => setTargetUserId(e.currentTarget.value)}
-												placeholder="Enter user UUID"
+												placeholder={t("admin.enterUserUuid")}
 												type="text"
 												value={targetUserId()}
 											/>
@@ -480,7 +486,7 @@ export default function AdminNotifications() {
 											onInput={(e) =>
 												setNotificationContent(e.currentTarget.value)
 											}
-											placeholder="Enter notification message..."
+											placeholder={t("admin.enterNotificationMessage")}
 											rows={3}
 											value={notificationContent()}
 										/>
