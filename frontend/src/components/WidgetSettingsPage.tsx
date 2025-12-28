@@ -140,7 +140,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 ): JSX.Element {
 	type Config = z.infer<z.ZodObject<T>>;
 
-	const { user, isLoading } = useCurrentUser();
+	const { user, isLoading: userIsLoading } = useCurrentUser();
 	const userId = createMemo(() => user()?.id);
 
 	// Fetch synced config from Electric SQL
@@ -173,9 +173,10 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 		} as Config;
 	});
 
-	// Ready when user is loaded and widget config sync is ready (not just loading finished)
-	// Using isReady() ensures we wait for the initial Electric sync to complete
-	const ready = createMemo(() => !isLoading() && widgetConfigQuery.isReady());
+	// Ready when user is loaded
+	// We always have valid defaults from the schema, so we can show the form immediately
+	// Electric data (from cache or sync) will fill in saved values reactively
+	const ready = createMemo(() => !userIsLoading() && !!userId());
 
 	// Handle field changes
 	function handleChange<K extends keyof Config>(field: K, value: Config[K]) {

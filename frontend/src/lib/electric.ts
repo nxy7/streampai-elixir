@@ -2,6 +2,7 @@ import type { Row } from "@electric-sql/client";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/solid-db";
 import { API_PATH } from "./constants";
+import { persistedElectricCollection } from "./persisted-electric";
 
 // Use current page origin for Electric sync requests
 // This ensures cookies are sent correctly when accessing via Caddy proxy
@@ -235,7 +236,7 @@ export const userPreferencesCollection = createCollection(
 
 export function createUserPreferencesCollection(userId: string) {
 	return createCollection(
-		electricCollectionOptions<UserPreferences>({
+		persistedElectricCollection<UserPreferences>({
 			id: `user_preferences_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/user_preferences`,
@@ -244,6 +245,8 @@ export function createUserPreferencesCollection(userId: string) {
 				},
 			},
 			getKey: (item) => item.id,
+			persist: true,
+			userId: () => userId,
 		}),
 	);
 }
@@ -274,12 +277,14 @@ export function createUserScopedChatMessagesCollection(userId: string) {
 
 export function createUserScopedLivestreamsCollection(userId: string) {
 	return createCollection(
-		electricCollectionOptions<Livestream>({
+		persistedElectricCollection<Livestream>({
 			id: `livestreams_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/livestreams/${userId}`,
 			},
 			getKey: (item) => item.id,
+			persist: true,
+			userId: () => userId,
 		}),
 	);
 }
@@ -390,12 +395,14 @@ export const emptyUserRolesCollection = createCollection(
 
 export function createWidgetConfigsCollection(userId: string) {
 	return createCollection(
-		electricCollectionOptions<WidgetConfig>({
+		persistedElectricCollection<WidgetConfig>({
 			id: `widget_configs_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/widget_configs/${userId}`,
 			},
 			getKey: (item) => item.id,
+			persist: true,
+			userId: () => userId,
 		}),
 	);
 }
