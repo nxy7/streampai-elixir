@@ -542,6 +542,14 @@ export const dict: Dictionary = {
 		enterNotificationMessage: "Wpisz treść powiadomienia...",
 	},
 
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Własna kwota",
+		anonymousPlaceholder: "Anonimowo",
+		emailPlaceholder: "email@przyklad.pl",
+		messagePlaceholder: "Napisz coś miłego...",
+	},
+
 	// Contact page
 	contact: {
 		title: "Kontakt",

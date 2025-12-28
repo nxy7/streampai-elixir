@@ -556,6 +556,14 @@ export const dict = {
 		enterNotificationMessage: "Enter notification message...",
 	},
 
+	// Donation page
+	donation: {
+		customAmountPlaceholder: "Custom amount",
+		anonymousPlaceholder: "Anonymous",
+		emailPlaceholder: "email@example.com",
+		messagePlaceholder: "Say something nice...",
+	},
+
 	// Contact page
 	contact: {
 		title: "Contact Us",
