@@ -146,7 +146,7 @@ Data that rarely changes can be persisted to IndexedDB for instant loading on pa
 | `user_preferences` | **Yes** | Rarely changes, instant profile data |
 | `livestreams` | **Yes** | Low frequency changes, instant stream history |
 | `widget_configs` | **Yes** | Rarely changes, instant widget settings |
-| `streaming_accounts` | **Yes** | Rarely changes |
+| `streaming_accounts` | No | Could benefit from persistence, not yet implemented |
 | `notifications` | No | Medium frequency, freshness important |
 | `stream_events` | No | High frequency, always changing |
 | `chat_messages` | No | Very high frequency |
@@ -193,9 +193,13 @@ Persistence is user-scoped via the storage key pattern `electric:{collectionId}:
 ```typescript
 import { clearPersistedCache } from "~/lib/electric-cache";
 
-// After impersonation ends or user logs out
+// After impersonation ends or user logs out - clears ALL collections for this user
 await clearPersistedCache(oldUserId);
 ```
+
+**Note**: There are two `clearPersistedCache` functions with different signatures:
+- `~/lib/electric-cache` - `clearPersistedCache(userId?)` - Clears all cached collections for a user
+- `~/lib/persisted-electric` - `clearPersistedCache(collectionId, userId?)` - Clears a specific collection
 
 ### Debugging
 

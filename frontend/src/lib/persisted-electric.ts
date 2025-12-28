@@ -395,11 +395,10 @@ export function persistedElectricCollection<T extends Row<unknown>>(
  *
  * // Clear non-user-scoped cache
  * await clearPersistedCache("global_settings");
- *
- * // Clear all cache for a user on logout
- * import { clearPersistedCache as clearAll } from "~/lib/electric-cache";
- * await clearAll("user-123"); // Different function - clears ALL user's cache
  * ```
+ *
+ * @see To clear ALL cached collections for a user (e.g., on logout), use
+ * `clearPersistedCache(userId)` from `~/lib/electric-cache` instead.
  */
 export async function clearPersistedCache(
 	collectionId: string,
