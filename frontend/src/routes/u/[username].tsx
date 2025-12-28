@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import { createUserPreferencesCollection } from "~/lib/electric";
 import { createLocalStorageStore } from "~/lib/useLocalStorage";
@@ -210,10 +210,9 @@ export default function DonationPage() {
 				{userName() ? `Support ${userName()}` : "Donation Page"} - Streampai
 			</Title>
 
-			<Show when={isReady()} fallback={<LoadingIndicator />}>
+			<Show fallback={<LoadingIndicator />} when={isReady()}>
 				<div class="min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 					<Show
-						when={!error()}
 						fallback={
 							<div class="flex min-h-screen items-center justify-center">
 								<div class="text-center">
@@ -226,28 +225,29 @@ export default function DonationPage() {
 										removed.
 									</p>
 									<a
-										href="/"
-										class="mt-6 inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+										class="mt-6 inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+										href="/">
 										Go Home
 									</a>
 								</div>
 							</div>
-						}>
+						}
+						when={!error()}>
 						<div class="mx-auto max-w-2xl px-4 py-12">
 							{/* User Header */}
 							<div class="mb-8 text-center">
 								<div class="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 									<Show
-										when={userAvatar()}
 										fallback={
 											<span class="font-bold text-3xl text-white">
 												{userName()?.[0]?.toUpperCase() || "?"}
 											</span>
-										}>
+										}
+										when={userAvatar()}>
 										<img
-											src={userAvatar() ?? ""}
 											alt={userName() ?? "User"}
 											class="h-full w-full object-cover"
+											src={userAvatar() ?? ""}
 										/>
 									</Show>
 								</div>
@@ -270,18 +270,18 @@ export default function DonationPage() {
 										<For each={presetAmounts()}>
 											{(amount) => (
 												<button
-													type="button"
+													class={`rounded-lg px-4 py-3 font-semibold transition-all ${
+														currentStreamerPrefs().selectedAmount === amount
+															? "bg-linear-to-r from-purple-500 to-pink-500 text-white"
+															: "bg-white/20 text-white hover:bg-white/30"
+													}`}
 													onClick={() => {
 														updateStreamerPrefs({
 															selectedAmount: amount,
 															customAmount: "",
 														});
 													}}
-													class={`rounded-lg px-4 py-3 font-semibold transition-all ${
-														currentStreamerPrefs().selectedAmount === amount
-															? "bg-linear-to-r from-purple-500 to-pink-500 text-white"
-															: "bg-white/20 text-white hover:bg-white/30"
-													}`}>
+													type="button">
 													{getCurrencySymbol(currency())}
 													{amount}
 												</button>
@@ -295,10 +295,8 @@ export default function DonationPage() {
 											{getCurrencySymbol(currency())}
 										</span>
 										<input
-											type="text"
+											class="w-full rounded-lg border border-white/30 bg-white/20 py-3 pr-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
 											inputMode="decimal"
-											placeholder="Custom amount"
-											value={currentStreamerPrefs().customAmount}
 											onBeforeInput={(e) => {
 												// Block non-numeric input except decimal point
 												const data = e.data;
@@ -327,7 +325,9 @@ export default function DonationPage() {
 													selectedAmount: null,
 												});
 											}}
-											class="w-full rounded-lg border border-white/30 bg-white/20 py-3 pr-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											placeholder="Custom amount"
+											type="text"
+											value={currentStreamerPrefs().customAmount}
 										/>
 									</div>
 
@@ -372,13 +372,13 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Your Name (optional)
 										<input
-											type="text"
-											placeholder="Anonymous"
-											value={donorInfo.name}
+											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
 											onInput={(e) =>
 												setDonorInfo("name", e.currentTarget.value)
 											}
-											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											placeholder="Anonymous"
+											type="text"
+											value={donorInfo.name}
 										/>
 									</label>
 								</div>
@@ -388,13 +388,13 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Your Email (for receipt)
 										<input
-											type="email"
-											placeholder="email@example.com"
-											value={donorInfo.email}
+											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
 											onInput={(e) =>
 												setDonorInfo("email", e.currentTarget.value)
 											}
-											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											placeholder="email@example.com"
+											type="email"
+											value={donorInfo.email}
 										/>
 									</label>
 								</div>
@@ -404,28 +404,28 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Message (optional)
 										<textarea
-											placeholder="Say something nice..."
-											value={currentStreamerPrefs().message}
+											class="mt-2 w-full resize-none rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
 											onInput={(e) =>
 												updateStreamerPrefs({ message: e.currentTarget.value })
 											}
+											placeholder="Say something nice..."
 											rows={3}
-											class="mt-2 w-full resize-none rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											value={currentStreamerPrefs().message}
 										/>
 									</label>
 								</div>
 
 								{/* Donate Button */}
 								<button
-									type="button"
-									onClick={handleDonate}
-									disabled={!isValidAmount()}
 									class={`w-full rounded-lg py-4 font-bold text-lg transition-all ${
 										isValidAmount()
 											? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
 											: "cursor-not-allowed bg-gray-600 text-gray-400"
-									}`}>
-									<Show when={finalAmount()} fallback="Select an amount">
+									}`}
+									disabled={!isValidAmount()}
+									onClick={handleDonate}
+									type="button">
+									<Show fallback="Select an amount" when={finalAmount()}>
 										Donate {getCurrencySymbol(currency())}
 										{finalAmount()}
 									</Show>

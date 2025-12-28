@@ -37,17 +37,17 @@ export const SliderField: Component<SliderFieldProps> = (props) => {
 				<div class="mt-2 flex items-center gap-3">
 					<span class="text-gray-400 text-xs">{min()}</span>
 					<input
-						type="range"
 						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
-						value={props.value ?? min()}
+						disabled={props.disabled}
+						max={max()}
+						min={min()}
 						onInput={(e) => {
 							const val = parseFloat(e.currentTarget.value);
 							if (!Number.isNaN(val)) props.onChange(val);
 						}}
-						min={min()}
-						max={max()}
 						step={step()}
-						disabled={props.disabled}
+						type="range"
+						value={props.value ?? min()}
 					/>
 					<span class="text-gray-400 text-xs">{max()}</span>
 				</div>

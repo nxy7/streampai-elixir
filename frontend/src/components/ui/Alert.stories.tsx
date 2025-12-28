@@ -93,16 +93,16 @@ export const InfoWithTitle: Story = {
 export const AllVariants: Story = {
 	render: () => (
 		<div style={{ display: "flex", "flex-direction": "column", gap: "16px" }}>
-			<Alert variant="success" title="Success">
+			<Alert title="Success" variant="success">
 				Operation completed successfully.
 			</Alert>
-			<Alert variant="warning" title="Warning">
+			<Alert title="Warning" variant="warning">
 				Please review before continuing.
 			</Alert>
-			<Alert variant="error" title="Error">
+			<Alert title="Error" variant="error">
 				Something went wrong.
 			</Alert>
-			<Alert variant="info" title="Information">
+			<Alert title="Information" variant="info">
 				Here's something you should know.
 			</Alert>
 		</div>

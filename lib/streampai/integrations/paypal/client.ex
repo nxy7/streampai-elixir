@@ -5,9 +5,9 @@ defmodule Streampai.Integrations.PayPal.Client do
   Handles authentication, requests, and error handling for PayPal API calls.
   Supports both sandbox and production environments.
   """
-  require Logger
-
   import Streampai.HTTP.ResponseHandler, only: [handle_raw_response: 2]
+
+  require Logger
 
   @sandbox_base_url "https://api.sandbox.paypal.com"
   @production_base_url "https://api.paypal.com"

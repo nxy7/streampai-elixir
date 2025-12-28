@@ -1,6 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import {
 	createUserScopedStreamEventsCollection,
 	streamEventsCollection,
@@ -71,12 +71,12 @@ export default function FollowerCountOBS() {
 	return (
 		<div class="flex h-screen w-full items-center justify-center overflow-hidden bg-transparent">
 			<Show
-				when={userId()}
 				fallback={
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}>
+				}
+				when={userId()}>
 				<div class="min-w-[300px] rounded-2xl bg-linear-to-r from-pink-900/80 to-red-900/80 p-8 shadow-2xl backdrop-blur-sm">
 					<div class="text-center">
 						<div class="mb-2 text-2xl text-white">❤️ Followers</div>

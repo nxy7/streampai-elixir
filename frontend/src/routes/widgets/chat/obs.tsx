@@ -1,6 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createMemo, For, Show } from "solid-js";
+import { For, Show, createMemo } from "solid-js";
 import {
 	chatMessagesCollection,
 	createUserScopedChatMessagesCollection,
@@ -84,12 +84,12 @@ export default function ChatOBS() {
 	return (
 		<div class="flex h-screen w-full flex-col justify-end overflow-hidden bg-transparent p-4">
 			<Show
-				when={userId()}
 				fallback={
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}>
+				}
+				when={userId()}>
 				<div class="space-y-2">
 					<For each={messages()}>
 						{(message) => (

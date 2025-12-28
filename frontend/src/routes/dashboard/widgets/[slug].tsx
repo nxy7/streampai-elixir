@@ -12,7 +12,7 @@
  *   /dashboard/widgets/donation-goal
  */
 import { useNavigate, useParams } from "@solidjs/router";
-import { createMemo, Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import Button from "~/components/ui/Button";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
 import { getWidgetDefinition } from "~/lib/widget-registry";
@@ -26,28 +26,28 @@ export default function WidgetSettingsRoute() {
 
 	return (
 		<Show
-			when={widget()}
 			fallback={
 				<div class="space-y-4 text-center">
 					<h1 class={text.h1}>Widget Not Found</h1>
 					<p class={text.muted}>The widget "{params.slug}" does not exist.</p>
-					<Button type="button" onClick={() => navigate("/dashboard/widgets")}>
+					<Button onClick={() => navigate("/dashboard/widgets")} type="button">
 						Back to Widgets
 					</Button>
 				</div>
-			}>
+			}
+			when={widget()}>
 			{(def) => (
 				<WidgetSettingsPage
-					title={def().title}
 					description={def().description}
-					widgetType={def().widgetType}
-					widgetUrlPath={params.slug}
-					schema={def().schema}
 					meta={def().meta}
+					obsSettings={def().obsSettings}
 					PreviewComponent={def().component}
 					previewProps={def().previewProps}
 					previewWrapper={def().previewWrapper}
-					obsSettings={def().obsSettings}
+					schema={def().schema}
+					title={def().title}
+					widgetType={def().widgetType}
+					widgetUrlPath={params.slug}
 				/>
 			)}
 		</Show>

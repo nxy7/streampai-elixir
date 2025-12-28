@@ -94,8 +94,8 @@ export {
 	NumberField,
 	SelectField,
 	SliderField,
-	TextareaField,
 	TextField,
+	TextareaField,
 } from "./fields";
 export { getDefaultValues, introspectSchema } from "./introspect";
 // Core exports

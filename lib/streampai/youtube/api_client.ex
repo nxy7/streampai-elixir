@@ -12,9 +12,9 @@ defmodule Streampai.YouTube.ApiClient do
   YouTube API has quota limits. Monitor your usage through Google Cloud Console.
   """
 
-  require Logger
-
   import Streampai.HTTP.ResponseHandler, only: [handle_http_response: 2]
+
+  require Logger
 
   @base_url "https://www.googleapis.com/youtube/v3"
   @analytics_url "https://youtubeanalytics.googleapis.com/v2"

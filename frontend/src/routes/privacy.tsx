@@ -106,8 +106,8 @@ export default function Privacy() {
 								<p class="text-gray-300">
 									{t("privacy.section11Text")}{" "}
 									<A
-										href="/contact"
-										class="text-purple-400 hover:text-purple-300">
+										class="text-purple-400 hover:text-purple-300"
+										href="/contact">
 										{t("privacy.contactUs")}
 									</A>
 									.

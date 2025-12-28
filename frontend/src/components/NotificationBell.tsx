@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 import { useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { formatTimeAgo } from "~/lib/formatters";
@@ -71,10 +71,10 @@ export default function NotificationBell() {
 	return (
 		<div class="relative">
 			<button
-				type="button"
-				onClick={() => setIsOpen(!isOpen())}
 				class="relative rounded-lg p-2 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-				title="Notifications">
+				onClick={() => setIsOpen(!isOpen())}
+				title="Notifications"
+				type="button">
 				<svg
 					aria-hidden="true"
 					class="h-6 w-6 text-gray-600"
@@ -82,10 +82,10 @@ export default function NotificationBell() {
 					stroke="currentColor"
 					viewBox="0 0 24 24">
 					<path
+						d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 					/>
 				</svg>
 				<Show when={unreadCount() || undefined}>
@@ -100,10 +100,10 @@ export default function NotificationBell() {
 			<Show when={isOpen()}>
 				{/* Backdrop */}
 				<button
-					type="button"
+					aria-label="Close notifications"
 					class="fixed inset-0 z-40"
 					onClick={() => setIsOpen(false)}
-					aria-label="Close notifications"
+					type="button"
 				/>
 
 				{/* Dropdown */}
@@ -113,19 +113,19 @@ export default function NotificationBell() {
 							<h3 class="font-semibold text-gray-900">Notifications</h3>
 							<Show when={unreadCount() || undefined}>
 								<button
-									type="button"
+									class="font-medium text-purple-600 text-xs hover:text-purple-700"
 									onClick={handleMarkAllAsRead}
-									class="font-medium text-purple-600 text-xs hover:text-purple-700">
+									type="button">
 									Mark all as read
 								</button>
 							</Show>
 						</div>
 						<label class="mt-2 flex cursor-pointer items-center gap-2">
 							<input
-								type="checkbox"
 								checked={showUnreadOnly()}
-								onChange={(e) => setShowUnreadOnly(e.currentTarget.checked)}
 								class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+								onChange={(e) => setShowUnreadOnly(e.currentTarget.checked)}
+								type="checkbox"
 							/>
 							<span class="text-gray-600 text-xs">Hide read</span>
 						</label>
@@ -133,7 +133,6 @@ export default function NotificationBell() {
 
 					<div class="max-h-96 overflow-y-auto">
 						<Show
-							when={!isLoading()}
 							fallback={
 								<div class="px-4 py-3">
 									<For each={[1, 2, 3]}>
@@ -148,9 +147,9 @@ export default function NotificationBell() {
 										)}
 									</For>
 								</div>
-							}>
+							}
+							when={!isLoading()}>
 							<Show
-								when={notifications().length > 0}
 								fallback={
 									<div class="px-4 py-8 text-center text-gray-500">
 										<svg
@@ -160,10 +159,10 @@ export default function NotificationBell() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 											/>
 										</svg>
 										<p class="mt-2 text-sm">
@@ -172,7 +171,8 @@ export default function NotificationBell() {
 												: "No notifications yet"}
 										</p>
 									</div>
-								}>
+								}
+								when={notifications().length > 0}>
 								<For each={notifications()}>
 									{(notification) => (
 										<div
@@ -182,10 +182,10 @@ export default function NotificationBell() {
 											<div class="flex items-start gap-3">
 												<div class="mt-1 shrink-0">
 													<Show
-														when={!notification.wasSeen}
 														fallback={
 															<div class="h-2 w-2 rounded-full bg-gray-300" />
-														}>
+														}
+														when={!notification.wasSeen}>
 														<div class="h-2 w-2 rounded-full bg-purple-500" />
 													</Show>
 												</div>
@@ -199,7 +199,8 @@ export default function NotificationBell() {
 													</p>
 												</div>
 												<button
-													type="button"
+													class="shrink-0 rounded p-1 transition-colors hover:bg-gray-200"
+													disabled={markingRead() === notification.id}
 													onClick={(e) => {
 														e.stopPropagation();
 														if (notification.wasSeen) {
@@ -208,15 +209,13 @@ export default function NotificationBell() {
 															handleMarkAsRead(notification.id);
 														}
 													}}
-													disabled={markingRead() === notification.id}
-													class="shrink-0 rounded p-1 transition-colors hover:bg-gray-200"
 													title={
 														notification.wasSeen
 															? "Mark as unread"
 															: "Mark as read"
-													}>
+													}
+													type="button">
 													<Show
-														when={markingRead() !== notification.id}
 														fallback={
 															<svg
 																aria-hidden="true"
@@ -233,13 +232,13 @@ export default function NotificationBell() {
 																/>
 																<path
 																	class="opacity-75"
-																	fill="currentColor"
 																	d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+																	fill="currentColor"
 																/>
 															</svg>
-														}>
+														}
+														when={markingRead() !== notification.id}>
 														<Show
-															when={!notification.wasSeen}
 															fallback={
 																<svg
 																	aria-hidden="true"
@@ -248,13 +247,14 @@ export default function NotificationBell() {
 																	stroke="currentColor"
 																	viewBox="0 0 24 24">
 																	<path
+																		d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 																		stroke-linecap="round"
 																		stroke-linejoin="round"
 																		stroke-width="2"
-																		d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 																	/>
 																</svg>
-															}>
+															}
+															when={!notification.wasSeen}>
 															<svg
 																aria-hidden="true"
 																class="h-4 w-4 text-gray-400"
@@ -262,10 +262,10 @@ export default function NotificationBell() {
 																stroke="currentColor"
 																viewBox="0 0 24 24">
 																<path
+																	d="M5 13l4 4L19 7"
 																	stroke-linecap="round"
 																	stroke-linejoin="round"
 																	stroke-width="2"
-																	d="M5 13l4 4L19 7"
 																/>
 															</svg>
 														</Show>

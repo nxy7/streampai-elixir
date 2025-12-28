@@ -72,8 +72,8 @@ export default function Button(props: ButtonProps) {
 	if (local.as === "a") {
 		return (
 			<a
-				href={local.href}
 				class={classes}
+				href={local.href}
 				rel="external"
 				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
 				{local.children}
@@ -84,8 +84,8 @@ export default function Button(props: ButtonProps) {
 	if (local.as === "link") {
 		return (
 			<A
-				href={local.href!}
 				class={classes}
+				href={local.href!}
 				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
 				{local.children}
 			</A>

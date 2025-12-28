@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import EventListWidget from "~/components/widgets/EventListWidget";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 

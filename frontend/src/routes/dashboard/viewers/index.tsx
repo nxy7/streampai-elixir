@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createSignal } from "solid-js";
 import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
@@ -46,7 +46,7 @@ function ViewersPageSkeleton() {
 						{() => (
 							<div class="rounded-lg border border-gray-200 p-4">
 								<div class="flex items-start gap-3">
-									<Skeleton class="h-12 w-12 shrink-0" circle />
+									<Skeleton circle class="h-12 w-12 shrink-0" />
 									<div class="min-w-0 flex-1">
 										<div class="mb-2 flex flex-wrap items-center gap-2">
 											<Skeleton class="h-5 w-28" />
@@ -73,7 +73,7 @@ function ViewersListSkeleton() {
 				{() => (
 					<div class="rounded-lg border border-gray-200 p-4">
 						<div class="flex items-start gap-3">
-							<Skeleton class="h-12 w-12 shrink-0" circle />
+							<Skeleton circle class="h-12 w-12 shrink-0" />
 							<div class="min-w-0 flex-1">
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<Skeleton class="h-5 w-28" />
@@ -339,9 +339,8 @@ export default function Viewers() {
 	return (
 		<>
 			<Title>Viewers - Streampai</Title>
-			<Show when={!isLoading()} fallback={<ViewersPageSkeleton />}>
+			<Show fallback={<ViewersPageSkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -352,34 +351,35 @@ export default function Viewers() {
 									Please sign in to view your viewers.
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									Sign In
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						{/* View Mode Tabs */}
 						<div class="flex gap-2 border-gray-200 border-b">
 							<button
-								type="button"
 								class={`px-4 py-2 font-medium transition-colors ${
 									viewMode() === "viewers"
 										? "border-purple-600 border-b-2 text-purple-600"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
-								onClick={() => setViewMode("viewers")}>
+								onClick={() => setViewMode("viewers")}
+								type="button">
 								Viewers
 							</button>
 							<button
-								type="button"
 								class={`px-4 py-2 font-medium transition-colors ${
 									viewMode() === "banned"
 										? "border-purple-600 border-b-2 text-purple-600"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
-								onClick={() => setViewMode("banned")}>
+								onClick={() => setViewMode("banned")}
+								type="button">
 								Banned Viewers
 							</button>
 						</div>
@@ -397,11 +397,11 @@ export default function Viewers() {
 											Platform
 											<Select
 												class="mt-2"
-												value={platform()}
 												onChange={(e) => {
 													setPlatform(e.currentTarget.value as Platform);
 													handleFilterChange();
-												}}>
+												}}
+												value={platform()}>
 												<option value="">All Platforms</option>
 												<option value="twitch">Twitch</option>
 												<option value="youtube">YouTube</option>
@@ -417,11 +417,11 @@ export default function Viewers() {
 											Search
 											<form onSubmit={handleSearch}>
 												<Input
-													type="text"
 													class="mt-2"
-													placeholder="Search by display name..."
-													value={searchInput()}
 													onInput={(e) => setSearchInput(e.currentTarget.value)}
+													placeholder="Search by display name..."
+													type="text"
+													value={searchInput()}
 												/>
 											</form>
 										</label>
@@ -439,14 +439,14 @@ export default function Viewers() {
 											<Badge variant="info">"{search()}"</Badge>
 										</Show>
 										<button
-											type="button"
 											class="ml-2 font-medium text-purple-600 text-sm hover:text-purple-700"
 											onClick={() => {
 												setPlatform("");
 												setSearch("");
 												setSearchInput("");
 												handleFilterChange();
-											}}>
+											}}
+											type="button">
 											Clear all
 										</button>
 									</div>
@@ -465,10 +465,9 @@ export default function Viewers() {
 								<h3 class={`${text.h3} mb-4`}>Viewers</h3>
 
 								<Show
-									when={!isLoadingViewers() || viewers().length > 0}
-									fallback={<ViewersListSkeleton />}>
+									fallback={<ViewersListSkeleton />}
+									when={!isLoadingViewers() || viewers().length > 0}>
 									<Show
-										when={viewers().length > 0}
 										fallback={
 											<div class="py-12 text-center text-gray-500">
 												<svg
@@ -478,10 +477,10 @@ export default function Viewers() {
 													stroke="currentColor"
 													viewBox="0 0 24 24">
 													<path
+														d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 													/>
 												</svg>
 												<p class="font-medium text-gray-700 text-lg">
@@ -493,32 +492,33 @@ export default function Viewers() {
 														: "Your viewers will appear here once you start streaming"}
 												</p>
 											</div>
-										}>
+										}
+										when={viewers().length > 0}>
 										<div class="space-y-3">
 											<For each={viewers()}>
 												{(viewer) => (
 													<button
-														type="button"
 														class="w-full cursor-pointer rounded-lg border border-gray-200 p-4 text-left transition-colors hover:bg-gray-50"
 														onClick={() =>
 															navigate(
 																`/dashboard/viewers/${viewer.viewerId}:${viewer.userId}`,
 															)
-														}>
+														}
+														type="button">
 														<div class="flex items-start gap-3">
 															<Show
-																when={viewer.avatarUrl}
 																fallback={
 																	<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-200">
 																		<span class="font-semibold text-gray-500 text-lg">
 																			{viewer.displayName[0].toUpperCase()}
 																		</span>
 																	</div>
-																}>
+																}
+																when={viewer.avatarUrl}>
 																<img
-																	src={viewer.avatarUrl}
 																	alt={viewer.displayName}
 																	class="h-12 w-12 shrink-0 rounded-full"
+																	src={viewer.avatarUrl}
 																/>
 															</Show>
 
@@ -572,8 +572,8 @@ export default function Viewers() {
 										<Show when={hasMore()}>
 											<div class="mt-6 text-center">
 												<Button
-													onClick={loadMore}
-													disabled={isLoadingViewers()}>
+													disabled={isLoadingViewers()}
+													onClick={loadMore}>
 													{isLoadingViewers() ? "Loading..." : "Load More"}
 												</Button>
 											</div>
@@ -597,10 +597,9 @@ export default function Viewers() {
 								<h3 class={`${text.h3} mb-4`}>Banned Viewers</h3>
 
 								<Show
-									when={!isLoadingViewers() || bannedViewers().length > 0}
-									fallback={<ViewersListSkeleton />}>
+									fallback={<ViewersListSkeleton />}
+									when={!isLoadingViewers() || bannedViewers().length > 0}>
 									<Show
-										when={bannedViewers().length > 0}
 										fallback={
 											<div class="py-12 text-center text-gray-500">
 												<svg
@@ -610,10 +609,10 @@ export default function Viewers() {
 													stroke="currentColor"
 													viewBox="0 0 24 24">
 													<path
+														d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
 													/>
 												</svg>
 												<p class="font-medium text-gray-700 text-lg">
@@ -623,7 +622,8 @@ export default function Viewers() {
 													Banned viewers will appear here
 												</p>
 											</div>
-										}>
+										}
+										when={bannedViewers().length > 0}>
 										<div class="space-y-3">
 											<For each={bannedViewers()}>
 												{(banned) => (
@@ -680,11 +680,11 @@ export default function Viewers() {
 
 															{/* Unban Button */}
 															<Button
-																variant="danger"
-																size="sm"
 																onClick={() => {
 																	console.log("Unban viewer:", banned.id);
-																}}>
+																}}
+																size="sm"
+																variant="danger">
 																Unban
 															</Button>
 														</div>

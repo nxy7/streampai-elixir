@@ -48,8 +48,7 @@ defmodule Streampai.HTTP.ResponseHandler do
       {:error, :timeout}
   """
   @spec handle_http_response(http_response(), api_name()) :: result()
-  def handle_http_response({:ok, %{status: status, body: body}}, _api_name)
-      when status in 200..299 do
+  def handle_http_response({:ok, %{status: status, body: body}}, _api_name) when status in 200..299 do
     {:ok, body}
   end
 
@@ -74,8 +73,7 @@ defmodule Streampai.HTTP.ResponseHandler do
       {:ok, %{"data" => []}}
   """
   @spec handle_raw_response(Req.Response.t(), api_name()) :: result()
-  def handle_raw_response(%{status: status, body: body}, _api_name)
-      when status in 200..299 do
+  def handle_raw_response(%{status: status, body: body}, _api_name) when status in 200..299 do
     {:ok, body}
   end
 

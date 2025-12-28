@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
@@ -298,9 +298,8 @@ export default function Stream() {
 	return (
 		<>
 			<Title>Stream - Streampai</Title>
-			<Show when={!isLoading()} fallback={<StreamPageSkeleton />}>
+			<Show fallback={<StreamPageSkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -311,13 +310,14 @@ export default function Stream() {
 									Please sign in to access the stream page.
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									Sign In
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Stream Status Card */}
 						<Card>
@@ -327,12 +327,12 @@ export default function Stream() {
 									<p class={text.muted}>Manage your multi-platform stream</p>
 								</div>
 								<Show
-									when={streamStatus() === "live"}
 									fallback={
 										<Badge variant="neutral">
 											{streamStatus().toUpperCase()}
 										</Badge>
-									}>
+									}
+									when={streamStatus() === "live"}>
 									<Badge variant="success">
 										<span class="mr-2 animate-pulse">*</span> LIVE
 									</Badge>
@@ -345,16 +345,16 @@ export default function Stream() {
 									<label class="block font-medium text-gray-700 text-sm">
 										Stream Title
 										<input
-											type="text"
 											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-											placeholder="Enter your stream title..."
-											value={streamMetadata().title}
 											onInput={(e) =>
 												setStreamMetadata((prev) => ({
 													...prev,
 													title: e.currentTarget.value,
 												}))
 											}
+											placeholder="Enter your stream title..."
+											type="text"
+											value={streamMetadata().title}
 										/>
 									</label>
 								</div>
@@ -363,15 +363,15 @@ export default function Stream() {
 										Description
 										<textarea
 											class="mt-2 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-											rows="3"
-											placeholder="Describe your stream..."
-											value={streamMetadata().description}
 											onInput={(e) =>
 												setStreamMetadata((prev) => ({
 													...prev,
 													description: e.currentTarget.value,
 												}))
 											}
+											placeholder="Describe your stream..."
+											rows="3"
+											value={streamMetadata().description}
 										/>
 									</label>
 								</div>
@@ -380,27 +380,27 @@ export default function Stream() {
 							{/* Stream Controls */}
 							<div class="flex items-center space-x-3">
 								<Show
-									when={streamStatus() === "offline"}
 									fallback={
 										<Button
-											variant="danger"
+											disabled={streamStatus() === "stopping"}
 											onClick={handleStopStream}
-											disabled={streamStatus() === "stopping"}>
+											variant="danger">
 											{streamStatus() === "stopping"
 												? "Stopping..."
 												: "Stop Stream"}
 										</Button>
-									}>
+									}
+									when={streamStatus() === "offline"}>
 									<Button
-										variant="success"
+										disabled={streamStatus() === "starting"}
 										onClick={handleStartStream}
-										disabled={streamStatus() === "starting"}>
+										variant="success">
 										{streamStatus() === "starting" ? "Starting..." : "Go Live"}
 									</Button>
 								</Show>
 								<Button
-									variant="secondary"
-									onClick={() => setShowStreamKey(!showStreamKey())}>
+									onClick={() => setShowStreamKey(!showStreamKey())}
+									variant="secondary">
 									{showStreamKey() ? "Hide" : "Show"} Stream Key
 								</Button>
 							</div>
@@ -409,48 +409,48 @@ export default function Stream() {
 							<Show when={showStreamKey()}>
 								<div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
 									<Show
-										when={!isLoadingStreamKey()}
 										fallback={
 											<div class="space-y-3">
 												<Skeleton class="h-4 w-24" />
 												<Skeleton class="h-5 w-full" />
 												<Skeleton class="h-5 w-3/4" />
 											</div>
-										}>
+										}
+										when={!isLoadingStreamKey()}>
 										<Show
-											when={!streamKeyError()}
 											fallback={
 												<div class="text-center">
 													<p class="text-red-600 text-sm">{streamKeyError()}</p>
 													<Button
-														variant="ghost"
-														size="sm"
 														class="mt-2"
 														onClick={() => {
 															const currentUser = user();
 															if (currentUser) fetchStreamKey(currentUser.id);
-														}}>
+														}}
+														size="sm"
+														variant="ghost">
 														Retry
 													</Button>
 												</div>
-											}>
+											}
+											when={!streamKeyError()}>
 											<div class="mb-3 flex items-center justify-between">
 												<span class="font-medium text-gray-700 text-sm">
 													Stream Key
 												</span>
 												<div class="flex items-center space-x-2">
 													<Button
-														variant="ghost"
+														onClick={handleCopyStreamKey}
 														size="sm"
-														onClick={handleCopyStreamKey}>
+														variant="ghost">
 														{copied() ? "Copied!" : "Copy Key"}
 													</Button>
 													<Button
-														variant="ghost"
-														size="sm"
 														class="text-red-600 hover:bg-red-50"
+														disabled={isRegenerating()}
 														onClick={handleRegenerateStreamKey}
-														disabled={isRegenerating()}>
+														size="sm"
+														variant="ghost">
 														{isRegenerating()
 															? "Regenerating..."
 															: "Regenerate"}
@@ -512,7 +512,6 @@ export default function Stream() {
 							</div>
 
 							<Show
-								when={!streamingAccounts.isLoading()}
 								fallback={
 									<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 										<For each={[1, 2, 3, 4]}>
@@ -530,7 +529,8 @@ export default function Stream() {
 											)}
 										</For>
 									</div>
-								}>
+								}
+								when={!streamingAccounts.isLoading()}>
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 									{/* Connected accounts first */}
 									<For each={streamingAccounts.data()}>
@@ -561,14 +561,14 @@ export default function Stream() {
 														</div>
 													</div>
 													<Button
-														variant="secondary"
-														size="sm"
 														disabled={
 															disconnectingPlatform() === account.platform
 														}
 														onClick={() =>
 															handleDisconnectAccount(account.platform)
-														}>
+														}
+														size="sm"
+														variant="secondary">
 														{disconnectingPlatform() === account.platform
 															? "..."
 															: "Disconnect"}

@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onMount } from "solid-js";
-import { createStore, reconcile, type SetStoreFunction } from "solid-js/store";
+import { type SetStoreFunction, createStore, reconcile } from "solid-js/store";
 
 export function createLocalStorageSignal<T>(
 	key: string,

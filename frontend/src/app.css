@@ -281,6 +281,6 @@
 }
 
 body {
-  background: var(--app-bg);
   color: var(--app-text);
+  background: var(--app-bg);
 }

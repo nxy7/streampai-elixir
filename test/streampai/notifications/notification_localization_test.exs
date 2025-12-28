@@ -1,6 +1,7 @@
 defmodule Streampai.Notifications.NotificationLocalizationTest do
   use Streampai.DataCase, async: true
 
+  alias Streampai.Accounts.User
   alias Streampai.Notifications.Notification
 
   describe "notification with localizations" do
@@ -9,7 +10,7 @@ defmodule Streampai.Notifications.NotificationLocalizationTest do
       admin_email = Streampai.Constants.admin_email()
 
       {:ok, admin} =
-        Streampai.Accounts.User
+        User
         |> Ash.Changeset.for_create(:register_with_password, %{
           email: admin_email,
           password: "Test1234!",
@@ -38,7 +39,7 @@ defmodule Streampai.Notifications.NotificationLocalizationTest do
     test "regular user cannot create notification" do
       # Create a regular user
       {:ok, user} =
-        Streampai.Accounts.User
+        User
         |> Ash.Changeset.for_create(:register_with_password, %{
           email: "regular@example.com",
           password: "Test1234!",

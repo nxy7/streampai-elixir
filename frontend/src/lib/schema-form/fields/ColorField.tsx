@@ -17,18 +17,18 @@ export const ColorField: Component<ColorFieldProps> = (props) => {
 				<span class={text.label}>{props.field.label}</span>
 				<div class="mt-1 flex gap-2">
 					<input
-						type="color"
 						class="h-10 w-20 cursor-pointer rounded border border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
-						value={props.value ?? "#000000"}
-						onInput={(e) => props.onChange(e.currentTarget.value)}
 						disabled={props.disabled}
+						onInput={(e) => props.onChange(e.currentTarget.value)}
+						type="color"
+						value={props.value ?? "#000000"}
 					/>
 					<Input
-						type="text"
-						value={props.value ?? ""}
+						disabled={props.disabled}
 						onInput={(e) => props.onChange(e.currentTarget.value)}
 						placeholder="#000000"
-						disabled={props.disabled}
+						type="text"
+						value={props.value ?? ""}
 					/>
 				</div>
 			</label>

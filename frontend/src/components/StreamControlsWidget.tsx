@@ -1,18 +1,18 @@
 import {
+	For,
+	Show,
 	createEffect,
 	createMemo,
 	createSignal,
-	For,
 	onCleanup,
 	onMount,
-	Show,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { z } from "zod";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
-import { badge, button, card, input, text } from "~/styles/design-system";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
+import { badge, button, card, input, text } from "~/styles/design-system";
 
 // Maximum number of activities to keep in memory for performance
 const MAX_ACTIVITIES = 200;
@@ -185,7 +185,12 @@ export interface StreamSummary {
 export type StreamPhase = "pre-stream" | "live" | "post-stream";
 
 // View mode for live stream (events, actions, or specific action widgets)
-export type LiveViewMode = "events" | "actions" | "poll" | "giveaway" | "timers";
+export type LiveViewMode =
+	| "events"
+	| "actions"
+	| "poll"
+	| "giveaway"
+	| "timers";
 
 // Categories for stream
 const STREAM_CATEGORIES = [
@@ -308,16 +313,16 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 					<label class={text.label}>
 						Stream Title
 						<input
-							type="text"
 							class={`${input.text} mt-1`}
-							placeholder="Enter your stream title..."
-							value={props.metadata.title}
 							onInput={(e) =>
 								props.onMetadataChange({
 									...props.metadata,
 									title: e.currentTarget.value,
 								})
 							}
+							placeholder="Enter your stream title..."
+							type="text"
+							value={props.metadata.title}
 						/>
 					</label>
 				</div>
@@ -328,15 +333,15 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 						Description
 						<textarea
 							class={`${input.textarea} mt-1`}
-							rows="3"
-							placeholder="Describe your stream..."
-							value={props.metadata.description}
 							onInput={(e) =>
 								props.onMetadataChange({
 									...props.metadata,
 									description: e.currentTarget.value,
 								})
 							}
+							placeholder="Describe your stream..."
+							rows="3"
+							value={props.metadata.description}
 						/>
 					</label>
 				</div>
@@ -347,13 +352,13 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 						Category
 						<select
 							class={`${input.select} mt-1`}
-							value={props.metadata.category}
 							onChange={(e) =>
 								props.onMetadataChange({
 									...props.metadata,
 									category: e.currentTarget.value,
 								})
-							}>
+							}
+							value={props.metadata.category}>
 							<option value="">Select a category...</option>
 							<For each={STREAM_CATEGORIES}>
 								{(cat) => <option value={cat}>{cat}</option>}
@@ -367,10 +372,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 					<label class={text.label}>Tags</label>
 					<div class="mt-1 flex gap-2">
 						<input
-							type="text"
 							class={input.text}
-							placeholder="Add a tag..."
-							value={tagInput()}
 							onInput={(e) => setTagInput(e.currentTarget.value)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
@@ -378,8 +380,11 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 									addTag();
 								}
 							}}
+							placeholder="Add a tag..."
+							type="text"
+							value={tagInput()}
 						/>
-						<button type="button" class={button.secondary} onClick={addTag}>
+						<button class={button.secondary} onClick={addTag} type="button">
 							Add
 						</button>
 					</div>
@@ -390,9 +395,9 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 									<span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-purple-800 text-sm">
 										{tag}
 										<button
-											type="button"
 											class="hover:text-purple-600"
-											onClick={() => removeTag(tag)}>
+											onClick={() => removeTag(tag)}
+											type="button">
 											x
 										</button>
 									</span>
@@ -427,9 +432,9 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 							stream key below, then start streaming to go live.
 						</p>
 						<button
-							type="button"
 							class={`${button.secondary} mt-3`}
-							onClick={props.onShowStreamKey}>
+							onClick={props.onShowStreamKey}
+							type="button">
 							{props.showStreamKey ? "Hide Stream Key" : "Show Stream Key"}
 						</button>
 					</div>
@@ -440,21 +445,21 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 			<Show when={props.showStreamKey}>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 					<Show
-						when={!props.isLoadingStreamKey}
 						fallback={
 							<div class="space-y-3">
 								<div class="h-4 w-24 animate-pulse rounded bg-gray-200" />
 								<div class="h-5 w-full animate-pulse rounded bg-gray-200" />
 								<div class="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
 							</div>
-						}>
+						}
+						when={!props.isLoadingStreamKey}>
 						<Show
-							when={props.streamKeyData}
 							fallback={
 								<div class="text-center text-gray-500">
 									No stream key available
 								</div>
-							}>
+							}
+							when={props.streamKeyData}>
 							{(data) => (
 								<>
 									<div class="mb-3 flex items-center justify-between">
@@ -462,9 +467,9 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 											Stream Key
 										</span>
 										<button
-											type="button"
 											class={`${button.ghost} text-sm`}
-											onClick={props.onCopyStreamKey}>
+											onClick={props.onCopyStreamKey}
+											type="button">
 											{props.copied ? "Copied!" : "Copy Key"}
 										</button>
 									</div>
@@ -607,14 +612,14 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						? "bg-gray-50/50"
 						: ""
 			}`}
-			style={stickyStyle()}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
 				// Don't close hover state if timeout menu is open (user might be selecting duration)
 				if (!showTimeoutMenu()) {
 					setIsHovered(false);
 				}
-			}}>
+			}}
+			style={stickyStyle()}>
 			{/* Platform badge */}
 			<span
 				class={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-white text-xs ${PLATFORM_COLORS[props.item.platform] || "bg-gray-500"}`}>
@@ -651,7 +656,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 
 			{/* Hover Actions - Icon-only buttons with tooltips */}
 			<Show when={isHovered() && showModerationActions()}>
-				<div class="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-gray-200">
+				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-gray-200">
 					{/* Replay button for important events */}
 					<Show
 						when={
@@ -659,11 +664,11 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 							props.moderationCallbacks?.onReplayEvent
 						}>
 						<button
-							type="button"
 							class="flex h-5 w-5 items-center justify-center rounded text-purple-600 transition-colors hover:bg-purple-50"
+							data-testid="replay-button"
 							onClick={handleReplay}
 							title="Replay alert"
-							data-testid="replay-button">
+							type="button">
 							<span class="text-xs">&#x21bb;</span>
 						</button>
 					</Show>
@@ -673,11 +678,11 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						{/* Delete message button */}
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button
-								type="button"
 								class="flex h-5 w-5 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+								data-testid="delete-button"
 								onClick={handleDelete}
 								title="Delete message"
-								data-testid="delete-button">
+								type="button">
 								<span class="text-xs">&#x2715;</span>
 							</button>
 						</Show>
@@ -685,13 +690,17 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						{/* Timeout button with dropdown */}
 						<Show when={props.moderationCallbacks?.onTimeoutUser}>
 							{(() => {
-								const [buttonRef, setButtonRef] = createSignal<HTMLButtonElement | null>(null);
-								const [dropdownPos, setDropdownPos] = createSignal({ top: 0, left: 0 });
+								const [buttonRef, setButtonRef] =
+									createSignal<HTMLButtonElement | null>(null);
+								const [dropdownPos, setDropdownPos] = createSignal({
+									top: 0,
+									left: 0,
+								});
 
 								// Update dropdown position when menu opens
 								createEffect(() => {
 									if (showTimeoutMenu() && buttonRef()) {
-										const rect = buttonRef()!.getBoundingClientRect();
+										const rect = buttonRef()?.getBoundingClientRect();
 										setDropdownPos({
 											top: rect.bottom + 2,
 											left: rect.right - 60, // Align right edge with button
@@ -702,36 +711,38 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 								return (
 									<>
 										<button
-											ref={setButtonRef}
-											type="button"
 											class="flex h-5 w-5 items-center justify-center rounded text-amber-600 transition-colors hover:bg-amber-50"
+											data-testid="timeout-button"
 											onClick={(e) => {
 												e.stopPropagation();
 												setShowTimeoutMenu(!showTimeoutMenu());
 											}}
+											ref={setButtonRef}
 											title="Timeout user"
-											data-testid="timeout-button">
+											type="button">
 											<span class="text-xs">&#x23F1;</span>
 										</button>
 										<Show when={showTimeoutMenu()}>
 											<Portal>
 												<div
 													class="fixed z-[9999] min-w-[60px] rounded border border-gray-200 bg-white py-0.5 shadow-lg"
-													style={{
-														top: `${dropdownPos().top}px`,
-														left: `${dropdownPos().left}px`,
-													}}
 													onMouseLeave={() => {
 														setShowTimeoutMenu(false);
 														setIsHovered(false);
+													}}
+													style={{
+														top: `${dropdownPos().top}px`,
+														left: `${dropdownPos().left}px`,
 													}}>
 													<For each={TIMEOUT_PRESETS}>
 														{(preset) => (
 															<button
-																type="button"
 																class="block w-full px-2 py-0.5 text-left text-gray-700 text-xs transition-colors hover:bg-amber-50"
-																onClick={(e) => handleTimeout(e, preset.seconds)}
-																data-testid={`timeout-${preset.label}`}>
+																data-testid={`timeout-${preset.label}`}
+																onClick={(e) =>
+																	handleTimeout(e, preset.seconds)
+																}
+																type="button">
 																{preset.label}
 															</button>
 														)}
@@ -747,11 +758,11 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 						{/* Ban button */}
 						<Show when={props.moderationCallbacks?.onBanUser}>
 							<button
-								type="button"
 								class="flex h-5 w-5 items-center justify-center rounded text-red-600 transition-colors hover:bg-red-50"
+								data-testid="ban-button"
 								onClick={handleBan}
 								title="Ban user"
-								data-testid="ban-button">
+								type="button">
 								<span class="text-xs">&#x26D4;</span>
 							</button>
 						</Show>
@@ -841,15 +852,15 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 				<For each={actions}>
 					{(action) => (
 						<button
-							type="button"
 							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
 								action.enabled
 									? "cursor-pointer"
 									: "cursor-not-allowed opacity-60"
 							}`}
-							onClick={action.onClick}
+							data-testid={`action-${action.id}`}
 							disabled={!action.enabled}
-							data-testid={`action-${action.id}`}>
+							onClick={action.onClick}
+							type="button">
 							<div
 								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.enabled ? action.hoverColor : ""}`}>
 								{action.icon}
@@ -952,10 +963,10 @@ function TimersPanel(props: TimersPanelProps) {
 			{/* Header with back button */}
 			<div class="mb-4 flex items-center gap-3">
 				<button
-					type="button"
 					class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+					data-testid="timers-back-button"
 					onClick={props.onBack}
-					data-testid="timers-back-button">
+					type="button">
 					{"<"}
 				</button>
 				<div>
@@ -969,7 +980,6 @@ function TimersPanel(props: TimersPanelProps) {
 			{/* Timer List */}
 			<div class="min-h-0 flex-1 space-y-3 overflow-y-auto">
 				<Show
-					when={props.timers.length > 0}
 					fallback={
 						<div class="flex flex-col items-center justify-center py-8 text-center text-gray-400">
 							<div class="mb-2 text-4xl">[~]</div>
@@ -978,7 +988,8 @@ function TimersPanel(props: TimersPanelProps) {
 								Add a timer to send recurring messages
 							</p>
 						</div>
-					}>
+					}
+					when={props.timers.length > 0}>
 					<For each={props.timers}>
 						{(timer) => (
 							<div
@@ -1013,35 +1024,35 @@ function TimersPanel(props: TimersPanelProps) {
 									</div>
 									<div class="flex shrink-0 gap-1">
 										<Show
-											when={!timer.isActive}
 											fallback={
 												<button
-													type="button"
 													class="flex h-8 w-8 items-center justify-center rounded border border-yellow-300 bg-yellow-100 text-yellow-700 transition-colors hover:bg-yellow-200"
-													onClick={() => props.onStopTimer?.(timer.id)}
+													data-testid={`stop-timer-${timer.id}`}
 													disabled={!props.onStopTimer}
+													onClick={() => props.onStopTimer?.(timer.id)}
 													title="Stop"
-													data-testid={`stop-timer-${timer.id}`}>
+													type="button">
 													||
 												</button>
-											}>
+											}
+											when={!timer.isActive}>
 											<button
-												type="button"
 												class="flex h-8 w-8 items-center justify-center rounded border border-green-300 bg-green-100 text-green-700 transition-colors hover:bg-green-200"
-												onClick={() => props.onStartTimer?.(timer.id)}
+												data-testid={`start-timer-${timer.id}`}
 												disabled={!props.onStartTimer}
+												onClick={() => props.onStartTimer?.(timer.id)}
 												title="Start"
-												data-testid={`start-timer-${timer.id}`}>
+												type="button">
 												{">"}
 											</button>
 										</Show>
 										<button
-											type="button"
 											class="flex h-8 w-8 items-center justify-center rounded border border-red-300 bg-red-100 text-red-600 transition-colors hover:bg-red-200"
-											onClick={() => props.onDeleteTimer?.(timer.id)}
+											data-testid={`delete-timer-${timer.id}`}
 											disabled={!props.onDeleteTimer}
+											onClick={() => props.onDeleteTimer?.(timer.id)}
 											title="Delete"
-											data-testid={`delete-timer-${timer.id}`}>
+											type="button">
 											x
 										</button>
 									</div>
@@ -1055,29 +1066,29 @@ function TimersPanel(props: TimersPanelProps) {
 			{/* Add Timer Section */}
 			<div class="mt-4 shrink-0 border-gray-200 border-t pt-4">
 				<Show
-					when={showAddForm()}
 					fallback={
 						<button
-							type="button"
 							class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 border-dashed py-3 text-gray-500 transition-colors hover:border-orange-400 hover:bg-orange-50 hover:text-orange-600"
+							data-testid="add-timer-button"
 							onClick={() => setShowAddForm(true)}
-							data-testid="add-timer-button">
+							type="button">
 							<span class="text-xl">+</span>
 							<span>Add Timer</span>
 						</button>
-					}>
+					}
+					when={showAddForm()}>
 					<div class="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Timer Label
 							</label>
 							<input
-								type="text"
 								class={`${input.text} w-full`}
-								placeholder="e.g., Social Links, Discord, etc."
-								value={newTimerLabel()}
-								onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
 								data-testid="new-timer-label"
+								onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
+								placeholder="e.g., Social Links, Discord, etc."
+								type="text"
+								value={newTimerLabel()}
 							/>
 						</div>
 						<div>
@@ -1086,11 +1097,11 @@ function TimersPanel(props: TimersPanelProps) {
 							</label>
 							<textarea
 								class={`${input.textarea} w-full`}
-								rows="2"
-								placeholder="Message to send at each interval..."
-								value={newTimerContent()}
-								onInput={(e) => setNewTimerContent(e.currentTarget.value)}
 								data-testid="new-timer-content"
+								onInput={(e) => setNewTimerContent(e.currentTarget.value)}
+								placeholder="Message to send at each interval..."
+								rows="2"
+								value={newTimerContent()}
 							/>
 						</div>
 						<div>
@@ -1098,17 +1109,17 @@ function TimersPanel(props: TimersPanelProps) {
 								Interval (minutes)
 							</label>
 							<input
-								type="number"
 								class={`${input.text} w-full`}
-								min="1"
+								data-testid="new-timer-minutes"
 								max="180"
-								value={newTimerMinutes()}
+								min="1"
 								onInput={(e) =>
 									setNewTimerMinutes(
 										Number.parseInt(e.currentTarget.value, 10) || 5,
 									)
 								}
-								data-testid="new-timer-minutes"
+								type="number"
+								value={newTimerMinutes()}
 							/>
 							<p class="mt-1 text-gray-400 text-xs">
 								Message will be sent every {newTimerMinutes()} minute
@@ -1117,18 +1128,18 @@ function TimersPanel(props: TimersPanelProps) {
 						</div>
 						<div class="flex gap-2">
 							<button
-								type="button"
 								class={button.primary}
-								onClick={handleAddTimer}
+								data-testid="confirm-add-timer"
 								disabled={!props.onAddTimer || !newTimerContent().trim()}
-								data-testid="confirm-add-timer">
+								onClick={handleAddTimer}
+								type="button">
 								Add Timer
 							</button>
 							<button
-								type="button"
 								class={button.secondary}
+								data-testid="cancel-add-timer"
 								onClick={() => setShowAddForm(false)}
-								data-testid="cancel-add-timer">
+								type="button">
 								Cancel
 							</button>
 						</div>
@@ -1542,26 +1553,26 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						{/* View Mode Toggle */}
 						<div class="flex rounded-lg border border-gray-200 bg-gray-100 p-0.5">
 							<button
-								type="button"
 								class={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-all ${
 									viewMode() === "events"
 										? "bg-white font-medium text-gray-900 shadow-sm"
 										: "text-gray-500 hover:text-gray-700"
 								}`}
+								data-testid="view-mode-events"
 								onClick={() => setViewMode("events")}
-								data-testid="view-mode-events">
+								type="button">
 								<span>[#]</span>
 								<span>Events</span>
 							</button>
 							<button
-								type="button"
 								class={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-all ${
 									viewMode() === "actions"
 										? "bg-white font-medium text-gray-900 shadow-sm"
 										: "text-gray-500 hover:text-gray-700"
 								}`}
+								data-testid="view-mode-actions"
 								onClick={() => setViewMode("actions")}
-								data-testid="view-mode-actions">
+								type="button">
 								<span>[&gt;]</span>
 								<span>Actions</span>
 							</button>
@@ -1583,14 +1594,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					{/* Filter toggle button and search */}
 					<div class="flex items-center gap-2">
 						<button
-							type="button"
 							class={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
 								hasActiveFilters()
 									? "bg-purple-100 text-purple-700"
 									: "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
 							}`}
+							data-testid="filter-toggle"
 							onClick={() => setShowFilters(!showFilters())}
-							data-testid="filter-toggle">
+							type="button">
 							<span>[=]</span>
 							<span>Filter</span>
 							<Show when={hasActiveFilters()}>
@@ -1606,19 +1617,19 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						{/* Quick search input - always visible */}
 						<div class="relative flex-1">
 							<input
-								type="text"
 								class="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 pr-6 text-xs placeholder:text-gray-400 focus:border-purple-300 focus:bg-white focus:outline-none"
-								placeholder="Search by name or message..."
-								value={searchText()}
-								onInput={(e) => setSearchText(e.currentTarget.value)}
 								data-testid="search-input"
+								onInput={(e) => setSearchText(e.currentTarget.value)}
+								placeholder="Search by name or message..."
+								type="text"
+								value={searchText()}
 							/>
 							<Show when={searchText()}>
 								<button
-									type="button"
 									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-gray-400 text-xs hover:text-gray-600"
+									data-testid="clear-search"
 									onClick={() => setSearchText("")}
-									data-testid="clear-search">
+									type="button">
 									x
 								</button>
 							</Show>
@@ -1634,18 +1645,18 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 								</span>
 								<div class="flex gap-2">
 									<button
-										type="button"
 										class="text-purple-600 text-xs hover:text-purple-700"
+										data-testid="select-all-types"
 										onClick={selectAllTypes}
-										data-testid="select-all-types">
+										type="button">
 										All
 									</button>
 									<Show when={hasActiveFilters()}>
 										<button
-											type="button"
 											class="text-gray-500 text-xs hover:text-gray-700"
+											data-testid="clear-filters"
 											onClick={clearFilters}
-											data-testid="clear-filters">
+											type="button">
 											Clear
 										</button>
 									</Show>
@@ -1655,14 +1666,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 								<For each={ALL_ACTIVITY_TYPES}>
 									{(type) => (
 										<button
-											type="button"
 											class={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all ${
 												selectedTypeFilters().has(type)
 													? `${getEventColor(type)} bg-gray-800`
 													: "bg-gray-200 text-gray-500 hover:bg-gray-300"
 											}`}
+											data-testid={`filter-type-${type}`}
 											onClick={() => toggleTypeFilter(type)}
-											data-testid={`filter-type-${type}`}>
+											type="button">
 											<span>{getEventIcon(type) || "..."}</span>
 											<span>{ACTIVITY_TYPE_LABELS[type]}</span>
 										</button>
@@ -1713,35 +1724,35 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				{/* Activity Feed - Scrollable with inline sticky items */}
 				{/* Uses normal flex-col (not reversed) to allow CSS sticky to work */}
 				<div
-					ref={scrollContainerRef}
 					class="min-h-0 flex-1 overflow-y-auto"
-					onScroll={handleScroll}>
+					onScroll={handleScroll}
+					ref={scrollContainerRef}>
 					<Show
-						when={sortedActivities().length > 0}
 						fallback={
 							<div class="flex h-full items-center justify-center text-gray-400">
 								<div class="text-center">
 									<Show
-										when={hasActiveFilters()}
 										fallback={
 											<>
 												<div class="mb-2 text-3xl">[chat]</div>
 												<div>Waiting for activity...</div>
 											</>
-										}>
+										}
+										when={hasActiveFilters()}>
 										<div class="mb-2 text-3xl">[?]</div>
 										<div>No events match your filters</div>
 										<button
-											type="button"
 											class="mt-2 text-purple-600 text-sm hover:text-purple-700"
+											data-testid="clear-filters-empty"
 											onClick={clearFilters}
-											data-testid="clear-filters-empty">
+											type="button">
 											Clear filters
 										</button>
 									</Show>
 								</div>
 							</div>
-						}>
+						}
+						when={sortedActivities().length > 0}>
 						{/* Activity items - sorted oldest first, newest at bottom */}
 						<For each={sortedActivities()}>
 							{(item) => {
@@ -1751,10 +1762,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 									isSticky() ? stickyIndexMap().get(item.id) : undefined;
 								return (
 									<ActivityRow
-										item={item}
 										isSticky={isSticky()}
-										stickyIndex={stickyIndex()}
+										item={item}
 										moderationCallbacks={props.moderationCallbacks}
+										stickyIndex={stickyIndex()}
 									/>
 								);
 							}}
@@ -1767,9 +1778,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					{/* Platform Picker */}
 					<div class="relative mb-2">
 						<button
-							type="button"
 							class="flex items-center gap-1.5 text-gray-500 text-xs transition-colors hover:text-gray-700"
-							onClick={() => setShowPlatformPicker(!showPlatformPicker())}>
+							onClick={() => setShowPlatformPicker(!showPlatformPicker())}
+							type="button">
 							<span>Send to:</span>
 							<span class="font-medium text-gray-700">{platformSummary()}</span>
 							<span class="text-[10px]">
@@ -1785,9 +1796,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 										Select platforms
 									</span>
 									<button
-										type="button"
 										class="text-purple-600 text-xs hover:text-purple-700"
-										onClick={selectAllPlatforms}>
+										onClick={selectAllPlatforms}
+										type="button">
 										Select all
 									</button>
 								</div>
@@ -1795,13 +1806,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 									<For each={availablePlatforms()}>
 										{(platform) => (
 											<button
-												type="button"
 												class={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition-all ${
 													selectedPlatforms().has(platform)
 														? `${PLATFORM_COLORS[platform]} text-white`
 														: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 												}`}
-												onClick={() => togglePlatform(platform)}>
+												onClick={() => togglePlatform(platform)}
+												type="button">
 												<span class="font-medium">
 													{PLATFORM_ICONS[platform]}
 												</span>
@@ -1817,18 +1828,18 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					{/* Message Input */}
 					<div class="flex gap-2">
 						<input
-							type="text"
 							class={`${input.text} flex-1`}
-							placeholder="Send a message to chat..."
-							value={chatMessage()}
 							onInput={(e) => setChatMessage(e.currentTarget.value)}
 							onKeyDown={handleKeyDown}
+							placeholder="Send a message to chat..."
+							type="text"
+							value={chatMessage()}
 						/>
 						<button
-							type="button"
 							class={button.primary}
+							disabled={!chatMessage().trim()}
 							onClick={handleSendMessage}
-							disabled={!chatMessage().trim()}>
+							type="button">
 							Send
 						</button>
 					</div>
@@ -1839,11 +1850,11 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			<Show when={viewMode() === "actions"}>
 				<div class="min-h-0 flex-1 overflow-y-auto py-4">
 					<StreamActionsPanel
-						onStartPoll={props.onStartPoll}
-						onStartGiveaway={props.onStartGiveaway}
-						onModifyTimers={() => setViewMode("timers")}
 						onChangeStreamSettings={props.onChangeStreamSettings}
+						onModifyTimers={() => setViewMode("timers")}
 						onOpenWidget={(widget) => setViewMode(widget)}
+						onStartGiveaway={props.onStartGiveaway}
+						onStartPoll={props.onStartPoll}
 					/>
 				</div>
 			</Show>
@@ -1853,10 +1864,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
 					<div class="mb-4 flex items-center gap-2">
 						<button
-							type="button"
 							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							data-testid="back-to-actions"
 							onClick={() => setViewMode("actions")}
-							data-testid="back-to-actions">
+							type="button">
 							<span>&lt;</span>
 							<span>Back to Actions</span>
 						</button>
@@ -1869,28 +1880,28 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					</div>
 					<div class="flex-1">
 						<SchemaForm
-							schema={pollCreationSchema}
 							meta={pollCreationMeta}
-							values={pollFormValues()}
 							onChange={(field, value) => {
 								setPollFormValues((prev) => ({ ...prev, [field]: value }));
 							}}
+							schema={pollCreationSchema}
+							values={pollFormValues()}
 						/>
 					</div>
 					<div class="mt-4 flex justify-end gap-2 border-gray-200 border-t pt-4">
 						<button
-							type="button"
 							class={button.secondary}
+							data-testid="cancel-poll"
 							onClick={() => setViewMode("actions")}
-							data-testid="cancel-poll">
+							type="button">
 							Cancel
 						</button>
 						<button
-							type="button"
 							class={button.primary}
+							data-testid="start-poll-button"
 							disabled={!isPollFormValid()}
 							onClick={handleStartPoll}
-							data-testid="start-poll-button">
+							type="button">
 							Start Poll
 						</button>
 					</div>
@@ -1902,10 +1913,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
 					<div class="mb-4 flex items-center gap-2">
 						<button
-							type="button"
 							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							data-testid="back-to-actions-giveaway"
 							onClick={() => setViewMode("actions")}
-							data-testid="back-to-actions-giveaway">
+							type="button">
 							<span>&lt;</span>
 							<span>Back to Actions</span>
 						</button>
@@ -1918,28 +1929,28 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					</div>
 					<div class="flex-1">
 						<SchemaForm
-							schema={giveawayCreationSchema}
 							meta={giveawayCreationMeta}
-							values={giveawayFormValues()}
 							onChange={(field, value) => {
 								setGiveawayFormValues((prev) => ({ ...prev, [field]: value }));
 							}}
+							schema={giveawayCreationSchema}
+							values={giveawayFormValues()}
 						/>
 					</div>
 					<div class="mt-4 flex justify-end gap-2 border-gray-200 border-t pt-4">
 						<button
-							type="button"
 							class={button.secondary}
+							data-testid="cancel-giveaway"
 							onClick={() => setViewMode("actions")}
-							data-testid="cancel-giveaway">
+							type="button">
 							Cancel
 						</button>
 						<button
-							type="button"
 							class={button.primary}
+							data-testid="start-giveaway-button"
 							disabled={!isGiveawayFormValid()}
 							onClick={handleStartGiveaway}
-							data-testid="start-giveaway-button">
+							type="button">
 							Start Giveaway
 						</button>
 					</div>
@@ -1950,12 +1961,12 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			<Show when={viewMode() === "timers"}>
 				<div class="min-h-0 flex-1 overflow-y-auto py-4">
 					<TimersPanel
-						timers={props.timers || []}
-						onBack={() => setViewMode("events")}
 						onAddTimer={props.onAddTimer}
+						onBack={() => setViewMode("events")}
+						onDeleteTimer={props.onDeleteTimer}
 						onStartTimer={props.onStartTimer}
 						onStopTimer={props.onStopTimer}
-						onDeleteTimer={props.onDeleteTimer}
+						timers={props.timers || []}
 					/>
 				</div>
 			</Show>
@@ -2096,9 +2107,9 @@ export function PostStreamSummary(props: PostStreamSummaryProps) {
 			{/* Actions */}
 			<div class="flex justify-center">
 				<button
-					type="button"
 					class={button.gradient}
-					onClick={props.onStartNewStream}>
+					onClick={props.onStartNewStream}
+					type="button">
 					Start New Stream
 				</button>
 			</div>
@@ -2144,6 +2155,8 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 		<div class={`${card.default} h-full`}>
 			<Show when={props.phase === "pre-stream"}>
 				<PreStreamSettings
+					copied={props.copied}
+					isLoadingStreamKey={props.isLoadingStreamKey}
 					metadata={
 						props.metadata || {
 							title: "",
@@ -2152,39 +2165,38 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 							tags: [],
 						}
 					}
+					onCopyStreamKey={props.onCopyStreamKey}
 					onMetadataChange={props.onMetadataChange || (() => {})}
-					streamKeyData={props.streamKeyData}
 					onShowStreamKey={props.onShowStreamKey}
 					showStreamKey={props.showStreamKey}
-					isLoadingStreamKey={props.isLoadingStreamKey}
-					onCopyStreamKey={props.onCopyStreamKey}
-					copied={props.copied}
+					streamKeyData={props.streamKeyData}
 				/>
 			</Show>
 
 			<Show when={props.phase === "live"}>
 				<LiveStreamControlCenter
 					activities={props.activities || []}
-					streamDuration={props.streamDuration || 0}
-					viewerCount={props.viewerCount || 0}
-					stickyDuration={props.stickyDuration}
 					connectedPlatforms={props.connectedPlatforms}
-					onSendMessage={props.onSendMessage}
 					moderationCallbacks={props.moderationCallbacks}
-					onStartPoll={props.onStartPoll}
-					onStartGiveaway={props.onStartGiveaway}
-					onModifyTimers={props.onModifyTimers}
-					onChangeStreamSettings={props.onChangeStreamSettings}
-					timers={props.timers}
 					onAddTimer={props.onAddTimer}
+					onChangeStreamSettings={props.onChangeStreamSettings}
+					onDeleteTimer={props.onDeleteTimer}
+					onModifyTimers={props.onModifyTimers}
+					onSendMessage={props.onSendMessage}
+					onStartGiveaway={props.onStartGiveaway}
+					onStartPoll={props.onStartPoll}
 					onStartTimer={props.onStartTimer}
 					onStopTimer={props.onStopTimer}
-					onDeleteTimer={props.onDeleteTimer}
+					stickyDuration={props.stickyDuration}
+					streamDuration={props.streamDuration || 0}
+					timers={props.timers}
+					viewerCount={props.viewerCount || 0}
 				/>
 			</Show>
 
 			<Show when={props.phase === "post-stream"}>
 				<PostStreamSummary
+					onStartNewStream={props.onStartNewStream}
 					summary={
 						props.summary || {
 							duration: 0,
@@ -2199,7 +2211,6 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 							endedAt: new Date(),
 						}
 					}
-					onStartNewStream={props.onStartNewStream}
 				/>
 			</Show>
 		</div>

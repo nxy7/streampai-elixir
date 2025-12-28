@@ -19,10 +19,10 @@ export default function EventIcon(props: EventIconProps): JSX.Element {
 			stroke="currentColor"
 			viewBox="0 0 24 24">
 			<path
+				d={getEventSvgPath(props.type)}
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				stroke-width="2"
-				d={getEventSvgPath(props.type)}
 			/>
 		</svg>
 	);

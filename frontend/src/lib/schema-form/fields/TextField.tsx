@@ -12,13 +12,13 @@ interface TextFieldProps {
 export const TextField: Component<TextFieldProps> = (props) => {
 	return (
 		<Input
-			type="text"
-			label={props.field.label}
-			value={props.value ?? ""}
-			onInput={(e) => props.onChange(e.currentTarget.value)}
-			placeholder={props.field.meta.placeholder}
 			disabled={props.disabled}
 			helperText={props.field.meta.description}
+			label={props.field.label}
+			onInput={(e) => props.onChange(e.currentTarget.value)}
+			placeholder={props.field.meta.placeholder}
+			type="text"
+			value={props.value ?? ""}
 		/>
 	);
 };

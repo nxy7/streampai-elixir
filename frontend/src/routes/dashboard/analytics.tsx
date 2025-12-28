@@ -1,12 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import {
+	For,
+	Show,
 	createEffect,
 	createMemo,
 	createSignal,
-	For,
 	onCleanup,
-	Show,
 } from "solid-js";
 import {
 	Alert,
@@ -24,7 +24,7 @@ import {
 } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
+import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
 
@@ -378,9 +378,8 @@ export default function Analytics() {
 	return (
 		<>
 			<Title>Analytics - Streampai</Title>
-			<Show when={!isLoading()} fallback={<AnalyticsSkeleton />}>
+			<Show fallback={<AnalyticsSkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -389,13 +388,14 @@ export default function Analytics() {
 								</h2>
 								<p class="mb-6 text-gray-300">{t("analytics.signInToView")}</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									{t("nav.signIn")}
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<div class="space-y-6">
 						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 							<div>
@@ -409,10 +409,10 @@ export default function Analytics() {
 
 							<select
 								class="rounded-md border-gray-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
-								value={timeframe()}
 								onChange={(e) =>
 									setTimeframe(e.currentTarget.value as Timeframe)
-								}>
+								}
+								value={timeframe()}>
 								<option value="day">{t("analytics.last24Hours")}</option>
 								<option value="week">{t("analytics.last7Days")}</option>
 								<option value="month">{t("analytics.last30Days")}</option>
@@ -425,7 +425,6 @@ export default function Analytics() {
 						</Show>
 
 						<Show
-							when={!isLoadingStreams()}
 							fallback={
 								<>
 									<Card>
@@ -475,18 +474,19 @@ export default function Analytics() {
 										</CardContent>
 									</Card>
 								</>
-							}>
+							}
+							when={!isLoadingStreams()}>
 							<div class="grid grid-cols-1 gap-6">
 								<LineChart
-									title={t("analytics.viewerTrends")}
 									data={viewerData()}
+									title={t("analytics.viewerTrends")}
 								/>
 							</div>
 
 							<div class="grid grid-cols-1 gap-6">
 								<BarChart
-									title={t("analytics.platformDistribution")}
 									data={platformBreakdown()}
+									title={t("analytics.platformDistribution")}
 								/>
 							</div>
 
@@ -622,7 +622,6 @@ function LineChart(props: LineChartProps) {
 			</div>
 
 			<Show
-				when={hasAnyData()}
 				fallback={
 					<div class="flex h-64 items-center justify-center rounded-lg bg-gray-50">
 						<div class="text-center">
@@ -633,10 +632,10 @@ function LineChart(props: LineChartProps) {
 								stroke="currentColor"
 								viewBox="0 0 24 24">
 								<path
+									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 								/>
 							</svg>
 							<p class="mt-2 font-medium text-gray-900 text-sm">
@@ -647,25 +646,26 @@ function LineChart(props: LineChartProps) {
 							</p>
 						</div>
 					</div>
-				}>
+				}
+				when={hasAnyData()}>
 				<div class="relative h-64 pl-12">
 					<svg
 						aria-hidden="true"
 						class="h-full w-full"
-						viewBox="0 0 800 300"
-						preserveAspectRatio="none">
+						preserveAspectRatio="none"
+						viewBox="0 0 800 300">
 						{/* Grid lines */}
 						<For each={[0, 1, 2, 3, 4]}>
 							{(i) => {
 								const y = i * 60 + 10;
 								return (
 									<line
-										x1="0"
-										y1={y}
-										x2="800"
-										y2={y}
 										stroke={chartColors.gridLine}
 										stroke-width="1"
+										x1="0"
+										x2="800"
+										y1={y}
+										y2={y}
 									/>
 								);
 							}}
@@ -673,12 +673,12 @@ function LineChart(props: LineChartProps) {
 
 						{/* Baseline */}
 						<line
-							x1="0"
-							y1="290"
-							x2="800"
-							y2="290"
 							stroke={chartColors.baseline}
 							stroke-width="1"
+							x1="0"
+							x2="800"
+							y1="290"
+							y2="290"
 						/>
 
 						{/* Bars for each day */}
@@ -699,29 +699,29 @@ function LineChart(props: LineChartProps) {
 										<g>
 											{/* Peak viewers bar (background) */}
 											<rect
+												fill={chartColors.primary}
+												height={peakHeight}
+												opacity="0.9"
+												rx="2"
+												width={barWidth}
 												x={x}
 												y={290 - peakHeight}
-												width={barWidth}
-												height={peakHeight}
-												fill={chartColors.primary}
-												rx="2"
-												opacity="0.9"
 											/>
 											{/* Average viewers bar (overlay) */}
 											<rect
+												fill={chartColors.primaryLight}
+												height={avgHeight}
+												rx="2"
+												width={barWidth}
 												x={x}
 												y={290 - avgHeight}
-												width={barWidth}
-												height={avgHeight}
-												fill={chartColors.primaryLight}
-												rx="2"
 											/>
 											{/* Peak dot on top */}
 											<circle
 												cx={x + barWidth / 2}
 												cy={290 - peakHeight}
-												r="4"
 												fill={chartColors.primaryDark}
+												r="4"
 												stroke="white"
 												stroke-width="2"
 											/>
@@ -761,19 +761,20 @@ function LineChart(props: LineChartProps) {
 				<div class="mt-8">
 					<StatGroup columns={3}>
 						<Stat
-							value={String(daysWithData().length)}
 							label={t("analytics.daysStreamed")}
+							value={String(daysWithData().length)}
 						/>
 						<Stat
+							highlight
+							label={t("analytics.peakViewers")}
 							value={String(
 								hasAnyData()
 									? Math.max(...daysWithData().map((d) => d.peakViewers))
 									: 0,
 							)}
-							label={t("analytics.peakViewers")}
-							highlight
 						/>
 						<Stat
+							label={t("analytics.avgViewers")}
 							value={String(
 								hasAnyData()
 									? Math.round(
@@ -782,7 +783,6 @@ function LineChart(props: LineChartProps) {
 										)
 									: 0,
 							)}
-							label={t("analytics.avgViewers")}
 						/>
 					</StatGroup>
 				</div>
@@ -808,10 +808,10 @@ function BarChart(props: BarChartProps) {
 				<For each={props.data}>
 					{(item) => (
 						<ProgressBar
-							value={item.value}
-							max={maxValue()}
 							label={item.label}
+							max={maxValue()}
 							showValue
+							value={item.value}
 						/>
 					)}
 				</For>
@@ -858,7 +858,6 @@ function StreamTable(props: StreamTableProps) {
 			</CardHeader>
 			<CardContent>
 				<Show
-					when={props.streams.length > 0}
 					fallback={
 						<div class="py-12 text-center">
 							<svg
@@ -868,10 +867,10 @@ function StreamTable(props: StreamTableProps) {
 								stroke="currentColor"
 								viewBox="0 0 24 24">
 								<path
+									d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 								/>
 							</svg>
 							<h3 class="mt-2 font-medium text-gray-900 text-sm">
@@ -881,7 +880,8 @@ function StreamTable(props: StreamTableProps) {
 								{t("analytics.startStreaming")}
 							</p>
 						</div>
-					}>
+					}
+					when={props.streams.length > 0}>
 					<div class="-mx-6 overflow-x-auto">
 						<table class="min-w-full divide-y divide-gray-200">
 							<thead class="bg-gray-50">
@@ -912,8 +912,8 @@ function StreamTable(props: StreamTableProps) {
 										<tr class="hover:bg-gray-50">
 											<td class="whitespace-nowrap px-6 py-4">
 												<A
-													href={`/dashboard/stream-history/${stream.id}`}
-													class="block hover:text-purple-600">
+													class="block hover:text-purple-600"
+													href={`/dashboard/stream-history/${stream.id}`}>
 													<div class="font-medium text-gray-900 text-sm">
 														{stream.title}
 													</div>

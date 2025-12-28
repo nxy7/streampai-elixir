@@ -127,7 +127,7 @@ export function SkeletonListItem(props: SkeletonListItemProps) {
 	return (
 		<div class={cn("flex items-start gap-3", props.class)}>
 			{props.showAvatar !== false && (
-				<Skeleton class={cn(avatarClass, "shrink-0")} circle />
+				<Skeleton circle class={cn(avatarClass, "shrink-0")} />
 			)}
 			<div class="min-w-0 flex-1 space-y-2">
 				<Skeleton class="h-4 w-2/3" />

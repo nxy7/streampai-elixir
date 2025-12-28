@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
-import { createSignal, For, onMount, Show } from "solid-js";
+import { For, Show, createSignal, onMount } from "solid-js";
 import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Card from "~/components/ui/Card";
@@ -186,7 +186,7 @@ function ViewerDetailSkeleton() {
 				<div class="flex items-center space-x-4">
 					<Skeleton class="h-6 w-6" />
 					<div class="flex items-center">
-						<Skeleton class="h-12 w-12 shrink-0" circle />
+						<Skeleton circle class="h-12 w-12 shrink-0" />
 						<div class="ml-4 space-y-2">
 							<Skeleton class="h-8 w-48" />
 							<Skeleton class="h-4 w-24" />
@@ -358,8 +358,8 @@ export default function ViewerDetail() {
 				<div class="rounded-lg border border-red-200 bg-red-50 p-4">
 					<p class="text-red-800">{error()}</p>
 					<A
-						href="/dashboard/viewers"
-						class="mt-2 inline-block text-red-600 underline hover:text-red-800">
+						class="mt-2 inline-block text-red-600 underline hover:text-red-800"
+						href="/dashboard/viewers">
 						← Back to Viewers
 					</A>
 				</div>
@@ -371,8 +371,8 @@ export default function ViewerDetail() {
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
 							<A
-								href="/dashboard/viewers"
-								class="text-gray-500 hover:text-gray-700">
+								class="text-gray-500 hover:text-gray-700"
+								href="/dashboard/viewers">
 								<svg
 									aria-hidden="true"
 									class="h-6 w-6"
@@ -380,27 +380,27 @@ export default function ViewerDetail() {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M10 19l-7-7m0 0l7-7m-7 7h18"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M10 19l-7-7m0 0l7-7m-7 7h18"
 									/>
 								</svg>
 							</A>
 							<div class="flex items-center">
 								<Show
-									when={viewer()?.avatarUrl}
 									fallback={
 										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
 											<span class="font-medium text-gray-600 text-xl">
 												{viewer()?.displayName.charAt(0).toUpperCase()}
 											</span>
 										</div>
-									}>
+									}
+									when={viewer()?.avatarUrl}>
 									<img
+										alt={viewer()?.displayName}
 										class="h-12 w-12 rounded-full"
 										src={viewer()?.avatarUrl ?? ""}
-										alt={viewer()?.displayName}
 									/>
 								</Show>
 								<div class="ml-4">
@@ -409,9 +409,9 @@ export default function ViewerDetail() {
 									</h1>
 									<Show when={viewer()?.channelUrl}>
 										<a
+											class="text-blue-600 text-sm hover:underline"
 											href={viewer()?.channelUrl ?? ""}
-											target="_blank"
-											class="text-blue-600 text-sm hover:underline">
+											target="_blank">
 											View Channel
 										</a>
 									</Show>
@@ -470,7 +470,6 @@ export default function ViewerDetail() {
 							</h3>
 						</div>
 						<Show
-							when={messages().length > 0}
 							fallback={
 								<div class="p-12 text-center">
 									<svg
@@ -480,10 +479,10 @@ export default function ViewerDetail() {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 										/>
 									</svg>
 									<p class="mt-4 text-gray-500">No messages yet</p>
@@ -491,7 +490,8 @@ export default function ViewerDetail() {
 										Messages will appear here once this viewer chats
 									</p>
 								</div>
-							}>
+							}
+							when={messages().length > 0}>
 							<div class="divide-y divide-gray-200">
 								<For each={messages()}>
 									{(message) => (
@@ -510,13 +510,13 @@ export default function ViewerDetail() {
 												</Show>
 												<Show when={message.livestreamId}>
 													<button
-														type="button"
+														class="text-blue-600 text-xs hover:underline"
 														onClick={() =>
 															navigate(
 																`/dashboard/stream-history/${message.livestreamId}`,
 															)
 														}
-														class="text-blue-600 text-xs hover:underline">
+														type="button">
 														{formatDateTime(message.insertedAt)}
 													</button>
 												</Show>
@@ -545,7 +545,6 @@ export default function ViewerDetail() {
 							</h3>
 						</div>
 						<Show
-							when={events().length > 0}
 							fallback={
 								<div class="p-12 text-center">
 									<svg
@@ -555,10 +554,10 @@ export default function ViewerDetail() {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 										/>
 									</svg>
 									<p class="mt-4 text-gray-500">No events yet</p>
@@ -566,7 +565,8 @@ export default function ViewerDetail() {
 										Events like donations and subscriptions will appear here
 									</p>
 								</div>
-							}>
+							}
+							when={events().length > 0}>
 							<div class="divide-y divide-gray-200">
 								<For each={events()}>
 									{(event) => (
@@ -583,13 +583,13 @@ export default function ViewerDetail() {
 												</Show>
 												<Show when={event.livestreamId}>
 													<button
-														type="button"
+														class="text-blue-600 text-xs hover:underline"
 														onClick={() =>
 															navigate(
 																`/dashboard/stream-history/${event.livestreamId}`,
 															)
 														}
-														class="text-blue-600 text-xs hover:underline">
+														type="button">
 														{formatDateTime(event.insertedAt)}
 													</button>
 												</Show>

@@ -1,12 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import {
-	createEffect,
-	createSignal,
 	ErrorBoundary,
 	For,
 	Show,
 	Suspense,
+	createEffect,
+	createSignal,
 } from "solid-js";
 import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
@@ -112,7 +112,6 @@ export default function ChatHistory() {
 		<>
 			<Title>Chat History - Streampai</Title>
 			<Show
-				when={user()}
 				fallback={
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="py-12 text-center">
@@ -123,13 +122,14 @@ export default function ChatHistory() {
 								Please sign in to view chat history.
 							</p>
 							<a
-								href={getLoginUrl()}
-								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+								href={getLoginUrl()}>
 								Sign In
 							</a>
 						</div>
 					</div>
-				}>
+				}
+				when={user()}>
 				<ErrorBoundary
 					fallback={(err) => (
 						<div class="mx-auto mt-8 max-w-6xl">
@@ -140,15 +140,15 @@ export default function ChatHistory() {
 					)}>
 					<Suspense fallback={<ChatHistorySkeleton />}>
 						<ChatHistoryContent
-							userId={user()?.id}
-							platform={platform}
-							setPlatform={setPlatform}
 							dateRange={dateRange}
-							setDateRange={setDateRange}
+							handleSearch={handleSearch}
+							platform={platform}
 							search={search}
 							searchInput={searchInput}
+							setDateRange={setDateRange}
+							setPlatform={setPlatform}
 							setSearchInput={setSearchInput}
-							handleSearch={handleSearch}
+							userId={user()?.id}
 						/>
 					</Suspense>
 				</ErrorBoundary>
@@ -234,10 +234,10 @@ function ChatHistoryContent(props: {
 							Platform
 							<Select
 								class="mt-2"
-								value={props.platform()}
 								onChange={(e) => {
 									props.setPlatform(e.currentTarget.value as Platform);
-								}}>
+								}}
+								value={props.platform()}>
 								<option value="">All Platforms</option>
 								<option value="twitch">Twitch</option>
 								<option value="youtube">YouTube</option>
@@ -253,10 +253,10 @@ function ChatHistoryContent(props: {
 							Date Range
 							<Select
 								class="mt-2"
-								value={props.dateRange()}
 								onChange={(e) => {
 									props.setDateRange(e.currentTarget.value as DateRange);
-								}}>
+								}}
+								value={props.dateRange()}>
 								<option value="">All Time</option>
 								<option value="7days">Last 7 Days</option>
 								<option value="30days">Last 30 Days</option>
@@ -271,11 +271,11 @@ function ChatHistoryContent(props: {
 							Search
 							<form onSubmit={props.handleSearch}>
 								<Input
-									type="text"
 									class="mt-2"
-									placeholder="Search messages..."
-									value={props.searchInput()}
 									onInput={(e) => props.setSearchInput(e.currentTarget.value)}
+									placeholder="Search messages..."
+									type="text"
+									value={props.searchInput()}
 								/>
 							</form>
 						</label>
@@ -300,13 +300,13 @@ function ChatHistoryContent(props: {
 							<Badge variant="info">"{props.search()}"</Badge>
 						</Show>
 						<button
-							type="button"
 							class="ml-2 font-medium text-purple-600 text-sm hover:text-purple-700"
 							onClick={() => {
 								props.setPlatform("");
 								props.setDateRange("");
 								props.setSearchInput("");
-							}}>
+							}}
+							type="button">
 							Clear all
 						</button>
 					</div>
@@ -318,7 +318,6 @@ function ChatHistoryContent(props: {
 				<h3 class={`${text.h3} mb-4`}>Messages</h3>
 
 				<Show
-					when={messages().length > 0}
 					fallback={
 						<div class="py-12 text-center text-gray-500">
 							<svg
@@ -328,10 +327,10 @@ function ChatHistoryContent(props: {
 								stroke="currentColor"
 								viewBox="0 0 24 24">
 								<path
+									d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 								/>
 							</svg>
 							<p class="font-medium text-gray-700 text-lg">
@@ -343,7 +342,8 @@ function ChatHistoryContent(props: {
 									: "Connect your streaming accounts to see chat messages"}
 							</p>
 						</div>
-					}>
+					}
+					when={messages().length > 0}>
 					<div class="space-y-3">
 						<For each={messages()}>
 							{(msg) => (
@@ -353,15 +353,15 @@ function ChatHistoryContent(props: {
 											{/* Message Header */}
 											<div class="mb-2 flex flex-wrap items-center gap-2">
 												<Show
-													when={msg.viewerId && msg.userId}
 													fallback={
 														<span class="font-semibold text-gray-900">
 															{msg.senderUsername}
 														</span>
-													}>
+													}
+													when={msg.viewerId && msg.userId}>
 													<A
-														href={`/dashboard/viewers/${msg.viewerId}`}
-														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline">
+														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline"
+														href={`/dashboard/viewers/${msg.viewerId}`}>
 														{msg.senderUsername}
 													</A>
 												</Show>

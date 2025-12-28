@@ -8,7 +8,9 @@ defmodule Streampai.Repo.Migrations.UpdateStreamTimersSimplified do
   use Ecto.Migration
 
   def up do
-    drop_if_exists index(:stream_timers, [:user_id, :is_running], name: "idx_stream_timers_user_running")
+    drop_if_exists index(:stream_timers, [:user_id, :is_running],
+                     name: "idx_stream_timers_user_running"
+                   )
 
     alter table(:stream_timers) do
       remove :started_at
@@ -22,15 +24,21 @@ defmodule Streampai.Repo.Migrations.UpdateStreamTimersSimplified do
       add :next_fire_at, :utc_datetime_usec
     end
 
-    create index(:stream_timers, [:is_active, :next_fire_at], name: "idx_stream_timers_active_next_fire")
+    create index(:stream_timers, [:is_active, :next_fire_at],
+             name: "idx_stream_timers_active_next_fire"
+           )
 
     create index(:stream_timers, [:user_id, :is_active], name: "idx_stream_timers_user_active")
   end
 
   def down do
-    drop_if_exists index(:stream_timers, [:user_id, :is_active], name: "idx_stream_timers_user_active")
+    drop_if_exists index(:stream_timers, [:user_id, :is_active],
+                     name: "idx_stream_timers_user_active"
+                   )
 
-    drop_if_exists index(:stream_timers, [:is_active, :next_fire_at], name: "idx_stream_timers_active_next_fire")
+    drop_if_exists index(:stream_timers, [:is_active, :next_fire_at],
+                     name: "idx_stream_timers_active_next_fire"
+                   )
 
     alter table(:stream_timers) do
       remove :next_fire_at

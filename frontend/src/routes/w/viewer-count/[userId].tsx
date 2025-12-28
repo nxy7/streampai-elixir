@@ -3,11 +3,11 @@ import { useParams } from "@solidjs/router";
 import { createSignal, onCleanup, onMount } from "solid-js";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import {
+	type ViewerCountConfig,
+	type ViewerData,
 	defaultConfig,
 	generateViewerData,
 	generateViewerUpdate,
-	type ViewerCountConfig,
-	type ViewerData,
 } from "~/lib/fake/viewer-count";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 

@@ -52,17 +52,17 @@
 
 import {
 	type Component,
-	createMemo,
-	createSignal,
 	type JSX,
 	Show,
+	createMemo,
+	createSignal,
 } from "solid-js";
 import type { z } from "zod";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import { useCurrentUser } from "~/lib/auth";
 import type { WidgetType } from "~/lib/electric";
-import { type FormMeta, getDefaultValues, SchemaForm } from "~/lib/schema-form";
+import { type FormMeta, SchemaForm, getDefaultValues } from "~/lib/schema-form";
 import { useWidgetConfig } from "~/lib/useElectric";
 import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
@@ -227,17 +227,17 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 				<p class={text.muted}>{props.description}</p>
 			</div>
 
-			<Show when={ready()} fallback={<div>Loading...</div>}>
+			<Show fallback={<div>Loading...</div>} when={ready()}>
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{/* Configuration Form */}
 					<Card>
 						<h2 class={text.h2}>Configuration</h2>
 						<div class="mt-4 space-y-4">
 							<SchemaForm
-								schema={props.schema}
 								meta={props.meta}
-								values={config()}
 								onChange={handleChange}
+								schema={props.schema}
+								values={config()}
 							/>
 
 							<Show when={saveMessage()}>
@@ -251,7 +251,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								</div>
 							</Show>
 
-							<Button type="button" onClick={handleSave} disabled={saving()}>
+							<Button disabled={saving()} onClick={handleSave} type="button">
 								{saving() ? "Saving..." : "Save Configuration"}
 							</Button>
 						</div>

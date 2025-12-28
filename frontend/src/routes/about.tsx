@@ -11,16 +11,16 @@ export default function About() {
 			<p class="mt-8">
 				Visit{" "}
 				<a
-					href="https://solidjs.com"
-					target="_blank"
 					class="text-sky-600 hover:underline"
-					rel="noopener">
+					href="https://solidjs.com"
+					rel="noopener"
+					target="_blank">
 					solidjs.com
 				</a>{" "}
 				to learn how to build Solid apps.
 			</p>
 			<p class="my-4">
-				<A href="/" class="text-sky-600 hover:underline">
+				<A class="text-sky-600 hover:underline" href="/">
 					Home
 				</A>
 				{" - "}

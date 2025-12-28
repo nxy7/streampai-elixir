@@ -106,8 +106,8 @@ export default function ChatWidget(props: ChatWidgetProps) {
 										<svg
 											aria-hidden="true"
 											fill="currentColor"
-											viewBox="0 0 24 24"
-											style={{ width: "12px", height: "12px", color: "white" }}>
+											style={{ width: "12px", height: "12px", color: "white" }}
+											viewBox="0 0 24 24">
 											<path d={getPlatformIcon(message.platform)} />
 										</svg>
 									</div>

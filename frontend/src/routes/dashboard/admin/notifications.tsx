@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
-import { createEffect, createSignal, For, Index, Show } from "solid-js";
+import { For, Index, Show, createEffect, createSignal } from "solid-js";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
@@ -193,12 +193,12 @@ export default function AdminNotifications() {
 		<>
 			<Title>Notifications - Admin - Streampai</Title>
 			<Show
-				when={!authLoading()}
 				fallback={
 					<div class="flex min-h-screen items-center justify-center">
 						<div class="text-gray-500">Loading...</div>
 					</div>
-				}>
+				}
+				when={!authLoading()}>
 				<Show when={currentUser()?.role === "admin"}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<Show when={successMessage()}>
@@ -210,10 +210,10 @@ export default function AdminNotifications() {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 									/>
 								</svg>
 								<div class="flex-1">
@@ -222,9 +222,9 @@ export default function AdminNotifications() {
 									</p>
 								</div>
 								<button
-									type="button"
+									class="text-green-500 hover:text-green-700"
 									onClick={() => setSuccessMessage(null)}
-									class="text-green-500 hover:text-green-700">
+									type="button">
 									<svg
 										aria-hidden="true"
 										class="h-5 w-5"
@@ -232,10 +232,10 @@ export default function AdminNotifications() {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M6 18L18 6M6 6l12 12"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M6 18L18 6M6 6l12 12"
 										/>
 									</svg>
 								</button>
@@ -251,19 +251,19 @@ export default function AdminNotifications() {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 									/>
 								</svg>
 								<div class="flex-1">
 									<p class="font-medium text-red-800 text-sm">{error()}</p>
 								</div>
 								<button
-									type="button"
+									class="text-red-500 hover:text-red-700"
 									onClick={() => setError(null)}
-									class="text-red-500 hover:text-red-700">
+									type="button">
 									<svg
 										aria-hidden="true"
 										class="h-5 w-5"
@@ -271,10 +271,10 @@ export default function AdminNotifications() {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M6 18L18 6M6 6l12 12"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M6 18L18 6M6 6l12 12"
 										/>
 									</svg>
 								</button>
@@ -312,7 +312,6 @@ export default function AdminNotifications() {
 									</thead>
 									<tbody class="divide-y divide-gray-200 bg-white">
 										<Show
-											when={!notificationsLoading()}
 											fallback={
 												<For each={[1, 2, 3]}>
 													{() => (
@@ -332,7 +331,8 @@ export default function AdminNotifications() {
 														</tr>
 													)}
 												</For>
-											}>
+											}
+											when={!notificationsLoading()}>
 											<For each={notifications()}>
 												{(notification) => (
 													<tr class="hover:bg-gray-50">
@@ -343,8 +343,8 @@ export default function AdminNotifications() {
 														</td>
 														<td class="whitespace-nowrap px-6 py-4">
 															<Show
-																when={notification.user_id}
-																fallback={<Badge variant="info">Global</Badge>}>
+																fallback={<Badge variant="info">Global</Badge>}
+																when={notification.user_id}>
 																<Badge variant="warning">User-specific</Badge>
 															</Show>
 														</td>
@@ -355,9 +355,9 @@ export default function AdminNotifications() {
 														</td>
 														<td class="whitespace-nowrap px-6 py-4 font-medium text-sm">
 															<button
-																type="button"
+																class="text-red-600 hover:text-red-900 hover:underline"
 																onClick={() => openDeleteConfirm(notification)}
-																class="text-red-600 hover:text-red-900 hover:underline">
+																type="button">
 																Delete
 															</button>
 														</td>
@@ -380,16 +380,16 @@ export default function AdminNotifications() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 											/>
 										</svg>
 										<p class="mt-4 text-gray-500 text-sm">
 											No notifications yet
 										</p>
-										<Button onClick={openCreateModal} class="mt-4">
+										<Button class="mt-4" onClick={openCreateModal}>
 											Create your first notification
 										</Button>
 									</div>
@@ -406,9 +406,9 @@ export default function AdminNotifications() {
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Create Notification</h3>
 										<button
-											type="button"
+											class="text-gray-400 hover:text-gray-500"
 											onClick={closeCreateModal}
-											class="text-gray-400 hover:text-gray-500">
+											type="button">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
@@ -416,10 +416,10 @@ export default function AdminNotifications() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M6 18L18 6M6 6l12 12"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
 												/>
 											</svg>
 										</button>
@@ -431,12 +431,12 @@ export default function AdminNotifications() {
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
 											Notification Type
 											<Select
-												value={notificationType()}
 												onInput={(e) =>
 													setNotificationType(
 														e.currentTarget.value as "global" | "user",
 													)
-												}>
+												}
+												value={notificationType()}>
 												<option value="global">Global (All Users)</option>
 												<option value="user">User-specific</option>
 											</Select>
@@ -453,12 +453,12 @@ export default function AdminNotifications() {
 											<label class="mb-2 block font-medium text-gray-700 text-sm">
 												User ID <span class="text-red-500">*</span>
 												<Input
-													type="text"
-													value={targetUserId()}
 													onInput={(e) =>
 														setTargetUserId(e.currentTarget.value)
 													}
 													placeholder="Enter user UUID"
+													type="text"
+													value={targetUserId()}
 												/>
 											</label>
 										</div>
@@ -469,12 +469,12 @@ export default function AdminNotifications() {
 											Content (English - Default){" "}
 											<span class="text-red-500">*</span>
 											<Textarea
-												value={notificationContent()}
 												onInput={(e) =>
 													setNotificationContent(e.currentTarget.value)
 												}
-												rows={3}
 												placeholder="Enter notification message..."
+												rows={3}
+												value={notificationContent()}
 											/>
 										</label>
 									</div>
@@ -482,9 +482,9 @@ export default function AdminNotifications() {
 									{/* Localizations Section */}
 									<div class="border-gray-200 border-t pt-4">
 										<button
-											type="button"
+											class="flex w-full items-center justify-between text-left"
 											onClick={() => setShowLocalizations(!showLocalizations())}
-											class="flex w-full items-center justify-between text-left">
+											type="button">
 											<span class="font-medium text-gray-700 text-sm">
 												Translations (Optional)
 											</span>
@@ -495,10 +495,10 @@ export default function AdminNotifications() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M19 9l-7 7-7-7"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M19 9l-7 7-7-7"
 												/>
 											</svg>
 										</button>
@@ -518,12 +518,12 @@ export default function AdminNotifications() {
 																	{LOCALE_NAMES[loc().locale]}
 																</span>
 																<button
-																	type="button"
+																	class="text-red-500 hover:text-red-700"
 																	onClick={() =>
 																		removeLocalization(loc().locale)
 																	}
-																	class="text-red-500 hover:text-red-700"
-																	title="Remove translation">
+																	title="Remove translation"
+																	type="button">
 																	<svg
 																		aria-hidden="true"
 																		class="h-4 w-4"
@@ -531,24 +531,24 @@ export default function AdminNotifications() {
 																		stroke="currentColor"
 																		viewBox="0 0 24 24">
 																		<path
+																			d="M6 18L18 6M6 6l12 12"
 																			stroke-linecap="round"
 																			stroke-linejoin="round"
 																			stroke-width="2"
-																			d="M6 18L18 6M6 6l12 12"
 																		/>
 																	</svg>
 																</button>
 															</div>
 															<Textarea
-																value={loc().content}
 																onInput={(e) =>
 																	updateLocalizationContent(
 																		loc().locale,
 																		e.currentTarget.value,
 																	)
 																}
-																rows={2}
 																placeholder={`Enter ${LOCALE_NAMES[loc().locale]} translation...`}
+																rows={2}
+																value={loc().content}
 															/>
 														</div>
 													)}
@@ -588,13 +588,13 @@ export default function AdminNotifications() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<Button variant="secondary" onClick={closeCreateModal}>
+									<Button onClick={closeCreateModal} variant="secondary">
 										Cancel
 									</Button>
 									<Button
-										onClick={handleCreate}
-										disabled={creating() || !notificationContent().trim()}>
-										<Show when={creating()} fallback="Create Notification">
+										disabled={creating() || !notificationContent().trim()}
+										onClick={handleCreate}>
+										<Show fallback="Create Notification" when={creating()}>
 											Creating...
 										</Show>
 									</Button>
@@ -611,9 +611,9 @@ export default function AdminNotifications() {
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Delete Notification</h3>
 										<button
-											type="button"
+											class="text-gray-400 hover:text-gray-500"
 											onClick={closeDeleteConfirm}
-											class="text-gray-400 hover:text-gray-500">
+											type="button">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
@@ -621,10 +621,10 @@ export default function AdminNotifications() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M6 18L18 6M6 6l12 12"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
 												/>
 											</svg>
 										</button>
@@ -644,14 +644,14 @@ export default function AdminNotifications() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<Button variant="secondary" onClick={closeDeleteConfirm}>
+									<Button onClick={closeDeleteConfirm} variant="secondary">
 										Cancel
 									</Button>
 									<Button
-										variant="danger"
+										disabled={deleting()}
 										onClick={handleDelete}
-										disabled={deleting()}>
-										<Show when={deleting()} fallback="Delete">
+										variant="danger">
+										<Show fallback="Delete" when={deleting()}>
 											Deleting...
 										</Show>
 									</Button>

@@ -1,5 +1,5 @@
 import { useSearchParams } from "@solidjs/router";
-import { createSignal, For, Show } from "solid-js";
+import { For, Show, createSignal } from "solid-js";
 
 type PollOption = {
 	id: string;
@@ -24,19 +24,19 @@ export default function PollOBS() {
 	return (
 		<div class="flex h-screen w-full items-center justify-center overflow-hidden bg-transparent p-8">
 			<Show
-				when={userId()}
 				fallback={
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}>
+				}
+				when={userId()}>
 				<Show
-					when={activePoll()}
 					fallback={
 						<div class="rounded-2xl bg-gray-900/80 p-8 shadow-2xl backdrop-blur-sm">
 							<div class="text-center text-2xl text-white">No active poll</div>
 						</div>
-					}>
+					}
+					when={activePoll()}>
 					{(poll) => (
 						<div class="w-full max-w-3xl">
 							<div class="rounded-2xl bg-linear-to-b from-indigo-900/80 to-purple-900/80 p-8 shadow-2xl backdrop-blur-sm">

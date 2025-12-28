@@ -26,12 +26,12 @@ export default function UserAvatar(props: UserAvatarProps) {
 				props.class,
 			)}>
 			<Show
-				when={props.avatarUrl}
-				fallback={<span class="font-bold text-white">{initial()}</span>}>
+				fallback={<span class="font-bold text-white">{initial()}</span>}
+				when={props.avatarUrl}>
 				<img
-					src={props.avatarUrl ?? ""}
 					alt={props.name || "User"}
 					class="h-full w-full object-cover"
+					src={props.avatarUrl ?? ""}
 				/>
 			</Show>
 		</div>

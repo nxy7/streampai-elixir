@@ -4,9 +4,9 @@ export default function Counter() {
 	const [count, setCount] = createSignal(0);
 	return (
 		<button
-			type="button"
 			class="w-[200px] rounded-full border-2 border-gray-300 bg-gray-100 px-[2rem] py-[1rem] focus:border-gray-400 active:border-gray-400"
-			onClick={() => setCount(count() + 1)}>
+			onClick={() => setCount(count() + 1)}
+			type="button">
 			Clicks: {count()}
 		</button>
 	);

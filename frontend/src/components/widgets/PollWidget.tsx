@@ -1,4 +1,4 @@
-import { createMemo, For, Show } from "solid-js";
+import { For, Show, createMemo } from "solid-js";
 
 interface PollOption {
 	id: string;

@@ -25,11 +25,11 @@ function enumValueToLabel(value: string): string {
 export const SelectField: Component<SelectFieldProps> = (props) => {
 	return (
 		<Select
-			label={props.field.label}
-			value={props.value ?? ""}
-			onChange={(e) => props.onChange(e.currentTarget.value)}
 			disabled={props.disabled}
-			helperText={props.field.meta.description}>
+			helperText={props.field.meta.description}
+			label={props.field.label}
+			onChange={(e) => props.onChange(e.currentTarget.value)}
+			value={props.value ?? ""}>
 			<For each={props.field.enumValues ?? []}>
 				{(option) => <option value={option}>{enumValueToLabel(option)}</option>}
 			</For>

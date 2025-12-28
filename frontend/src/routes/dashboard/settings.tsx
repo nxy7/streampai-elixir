@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
 import { Skeleton } from "~/components/ui";
@@ -44,7 +44,7 @@ function SettingsPageSkeleton() {
 				<div class="space-y-6">
 					{/* Profile section */}
 					<div class="flex items-center space-x-4">
-						<Skeleton class="h-16 w-16 shrink-0" circle />
+						<Skeleton circle class="h-16 w-16 shrink-0" />
 						<div class="flex-1 space-y-2">
 							<Skeleton class="h-4 w-32" />
 							<Skeleton class="h-9 w-32 rounded-lg" />
@@ -638,9 +638,8 @@ export default function Settings() {
 	return (
 		<>
 			<Title>Settings - Streampai</Title>
-			<Show when={!isLoading()} fallback={<SettingsPageSkeleton />}>
+			<Show fallback={<SettingsPageSkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -651,13 +650,14 @@ export default function Settings() {
 									{t("dashboard.signInToAccess")}
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									{t("nav.signIn")}
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<div class="rounded-lg bg-linear-to-r from-purple-600 to-pink-600 p-6 text-white shadow-sm">
 							<div class="flex items-center justify-between">
@@ -668,8 +668,8 @@ export default function Settings() {
 									<p class="text-purple-100">{t("settings.getStarted")}</p>
 								</div>
 								<button
-									type="button"
-									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50">
+									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50"
+									type="button">
 									{t("settings.upgradeToPro")}
 								</button>
 							</div>
@@ -684,10 +684,10 @@ export default function Settings() {
 									<label class="block font-medium text-gray-700 text-sm">
 										{t("settings.email")}
 										<input
-											type="email"
-											value={user()?.email || ""}
 											class="mt-2 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
 											readonly
+											type="email"
+											value={user()?.email || ""}
 										/>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
@@ -700,11 +700,11 @@ export default function Settings() {
 										{t("settings.displayName")}
 										<div class="relative mt-2">
 											<input
-												type="text"
-												value={displayName() || prefs.data()?.name || ""}
+												class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10"
 												onInput={(e) => setDisplayName(e.currentTarget.value)}
 												placeholder={t("settings.displayNamePlaceholder")}
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10"
+												type="text"
+												value={displayName() || prefs.data()?.name || ""}
 											/>
 										</div>
 									</label>
@@ -713,14 +713,14 @@ export default function Settings() {
 									</p>
 									<div class="mt-3 flex items-center gap-3">
 										<button
-											type="button"
-											onClick={handleUpdateName}
-											disabled={isUpdatingName()}
 											class={`rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors ${
 												isUpdatingName()
 													? "cursor-not-allowed opacity-50"
 													: "hover:bg-purple-700"
-											}`}>
+											}`}
+											disabled={isUpdatingName()}
+											onClick={handleUpdateName}
+											type="button">
 											{isUpdatingName()
 												? t("settings.updating")
 												: t("settings.updateName")}
@@ -738,24 +738,24 @@ export default function Settings() {
 
 								<div>
 									<label
-										for="avatar-upload"
-										class="mb-2 block font-medium text-gray-700 text-sm">
+										class="mb-2 block font-medium text-gray-700 text-sm"
+										for="avatar-upload">
 										{t("settings.profileAvatar")}
 									</label>
 									<div class="flex items-center space-x-4">
 										<div class="relative h-20 w-20">
 											<div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 												<Show
-													when={prefs.data()?.avatar_url}
 													fallback={
 														<span class="font-bold text-2xl text-white">
 															{prefs.data()?.name?.[0]?.toUpperCase() || "U"}
 														</span>
-													}>
+													}
+													when={prefs.data()?.avatar_url}>
 													<img
-														src={prefs.data()?.avatar_url ?? ""}
 														alt="Avatar"
 														class="h-full w-full object-cover"
+														src={prefs.data()?.avatar_url ?? ""}
 													/>
 												</Show>
 											</div>
@@ -767,22 +767,22 @@ export default function Settings() {
 										</div>
 										<div class="flex-1">
 											<input
-												ref={fileInputRef}
-												type="file"
 												accept="image/*"
 												class="hidden"
 												id="avatar-upload"
 												onChange={handleFileSelect}
+												ref={fileInputRef}
+												type="file"
 											/>
 											<button
-												type="button"
-												onClick={() => fileInputRef?.click()}
-												disabled={isUploading()}
 												class={`rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors ${
 													isUploading()
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
-												}`}>
+												}`}
+												disabled={isUploading()}
+												onClick={() => fileInputRef?.click()}
+												type="button">
 												{isUploading()
 													? t("settings.uploading")
 													: t("settings.uploadNewAvatar")}
@@ -808,7 +808,6 @@ export default function Settings() {
 									</p>
 
 									<Show
-										when={!streamingAccounts.isLoading()}
 										fallback={
 											<div class="space-y-2">
 												<For each={[1, 2]}>
@@ -826,7 +825,8 @@ export default function Settings() {
 													)}
 												</For>
 											</div>
-										}>
+										}
+										when={!streamingAccounts.isLoading()}>
 										<Show when={streamingAccounts.data().length > 0}>
 											<div class="mb-4 space-y-3">
 												<For each={streamingAccounts.data()}>
@@ -845,11 +845,11 @@ export default function Settings() {
 																statsLastRefreshedAt:
 																	account.stats_last_refreshed_at,
 															}}
-															onRefresh={() =>
-																handleRefreshStats(account.platform)
-															}
 															onDisconnect={() =>
 																handleDisconnectAccount(account.platform)
+															}
+															onRefresh={() =>
+																handleRefreshStats(account.platform)
 															}
 														/>
 													)}
@@ -928,15 +928,15 @@ export default function Settings() {
 										{t("settings.publicDonationUrl")}
 										<div class="mt-2 flex items-center space-x-3">
 											<input
+												class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
+												readonly
 												type="text"
 												value={`${window.location.origin}/u/${
 													prefs.data()?.name || ""
 												}`}
-												class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
-												readonly
 											/>
 											<button
-												type="button"
+												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700"
 												onClick={() => {
 													navigator.clipboard.writeText(
 														`${window.location.origin}/u/${
@@ -944,7 +944,7 @@ export default function Settings() {
 														}`,
 													);
 												}}
-												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700">
+												type="button">
 												{t("settings.copyUrl")}
 											</button>
 										</div>
@@ -958,16 +958,16 @@ export default function Settings() {
 									<div class="flex items-center space-x-3">
 										<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 											<Show
-												when={prefs.data()?.avatar_url}
 												fallback={
 													<span class="font-bold text-white">
 														{prefs.data()?.name?.[0]?.toUpperCase() || "U"}
 													</span>
-												}>
+												}
+												when={prefs.data()?.avatar_url}>
 												<img
-													src={prefs.data()?.avatar_url ?? ""}
 													alt="Avatar"
 													class="h-10 w-10 rounded-full object-cover"
+													src={prefs.data()?.avatar_url ?? ""}
 												/>
 											</Show>
 										</div>
@@ -981,10 +981,10 @@ export default function Settings() {
 										</div>
 									</div>
 									<a
+										class="font-medium text-purple-600 text-sm hover:text-purple-700"
 										href={`/u/${prefs.data()?.name || ""}`}
-										target="_blank"
 										rel="noreferrer"
-										class="font-medium text-purple-600 text-sm hover:text-purple-700">
+										target="_blank">
 										{t("settings.preview")} →
 									</a>
 								</div>
@@ -1007,14 +1007,14 @@ export default function Settings() {
 													</span>
 												</div>
 												<input
-													type="number"
-													placeholder={t("settings.noMinimum")}
-													value={minAmount() ?? ""}
+													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 													onInput={(e) => {
 														const val = e.currentTarget.value;
 														setMinAmount(val ? parseInt(val, 10) : null);
 													}}
-													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+													placeholder={t("settings.noMinimum")}
+													type="number"
+													value={minAmount() ?? ""}
 												/>
 											</div>
 										</label>
@@ -1033,14 +1033,14 @@ export default function Settings() {
 													</span>
 												</div>
 												<input
-													type="number"
-													placeholder={t("settings.noMaximum")}
-													value={maxAmount() ?? ""}
+													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 													onInput={(e) => {
 														const val = e.currentTarget.value;
 														setMaxAmount(val ? parseInt(val, 10) : null);
 													}}
-													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+													placeholder={t("settings.noMaximum")}
+													type="number"
+													value={maxAmount() ?? ""}
 												/>
 											</div>
 										</label>
@@ -1053,9 +1053,9 @@ export default function Settings() {
 										<label class="block font-medium text-gray-700 text-sm">
 											{t("settings.currency")}
 											<select
-												value={currency()}
+												class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 												onChange={(e) => setCurrency(e.currentTarget.value)}
-												class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500">
+												value={currency()}>
 												<For each={currencies}>
 													{(curr) => <option value={curr}>{curr}</option>}
 												</For>
@@ -1068,9 +1068,9 @@ export default function Settings() {
 									<label class="block font-medium text-gray-700 text-sm">
 										{t("settings.defaultTtsVoice")}
 										<select
-											value={defaultVoice()}
+											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 											onChange={(e) => setDefaultVoice(e.currentTarget.value)}
-											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500">
+											value={defaultVoice()}>
 											<option value="random">
 												{t("settings.randomVoice")}
 											</option>
@@ -1095,10 +1095,10 @@ export default function Settings() {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 										/>
 									</svg>
 									<div class="text-blue-800 text-sm">
@@ -1116,13 +1116,13 @@ export default function Settings() {
 
 								<div class="flex items-center gap-4 pt-4">
 									<button
-										type="submit"
-										disabled={isSavingSettings()}
 										class={`rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors ${
 											isSavingSettings()
 												? "cursor-not-allowed opacity-50"
 												: "hover:bg-purple-700"
-										}`}>
+										}`}
+										disabled={isSavingSettings()}
+										type="submit">
 										{isSavingSettings()
 											? t("settings.saving")
 											: t("settings.saveDonationSettings")}
@@ -1144,7 +1144,6 @@ export default function Settings() {
 								{t("settings.roleInvitations")}
 							</h3>
 							<Show
-								when={!loadingRoles() && pendingInvitations().length > 0}
 								fallback={
 									<div class="py-8 text-center text-gray-500">
 										<svg
@@ -1154,10 +1153,10 @@ export default function Settings() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 											/>
 										</svg>
 										<p class="text-sm">{t("settings.noPendingInvitations")}</p>
@@ -1165,7 +1164,8 @@ export default function Settings() {
 											{t("settings.invitationsHelp")}
 										</p>
 									</div>
-								}>
+								}
+								when={!loadingRoles() && pendingInvitations().length > 0}>
 								<div class="space-y-3">
 									<For each={pendingInvitations()}>
 										{(invitation) => {
@@ -1176,17 +1176,17 @@ export default function Settings() {
 													<div class="flex items-center gap-3">
 														<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 															<Show
-																when={granterInfo()?.displayAvatar}
 																fallback={
 																	<span class="font-bold text-white">
 																		{granterInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}>
+																}
+																when={granterInfo()?.displayAvatar}>
 																<img
-																	src={granterInfo()?.displayAvatar ?? ""}
 																	alt={granterInfo()?.name || "User"}
 																	class="h-full w-full object-cover"
+																	src={granterInfo()?.displayAvatar ?? ""}
 																/>
 															</Show>
 														</div>
@@ -1207,23 +1207,23 @@ export default function Settings() {
 													</div>
 													<div class="flex gap-2">
 														<button
-															type="button"
+															class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+															disabled={processingRoleId() === invitation.id}
 															onClick={() =>
 																handleAcceptInvitation(invitation.id)
 															}
-															disabled={processingRoleId() === invitation.id}
-															class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50">
+															type="button">
 															{processingRoleId() === invitation.id
 																? "..."
 																: t("settings.accept")}
 														</button>
 														<button
-															type="button"
+															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
+															disabled={processingRoleId() === invitation.id}
 															onClick={() =>
 																handleDeclineInvitation(invitation.id)
 															}
-															disabled={processingRoleId() === invitation.id}
-															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50">
+															type="button">
 															{t("settings.decline")}
 														</button>
 													</div>
@@ -1240,7 +1240,6 @@ export default function Settings() {
 								{t("settings.myRolesInChannels")}
 							</h3>
 							<Show
-								when={!loadingRoles() && myRoles().length > 0}
 								fallback={
 									<div class="py-8 text-center text-gray-500">
 										<svg
@@ -1250,10 +1249,10 @@ export default function Settings() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
 											/>
 										</svg>
 										<p class="text-sm">{t("settings.noRolesInChannels")}</p>
@@ -1261,7 +1260,8 @@ export default function Settings() {
 											{t("settings.rolesGrantedHelp")}
 										</p>
 									</div>
-								}>
+								}
+								when={!loadingRoles() && myRoles().length > 0}>
 								<div class="space-y-3">
 									<For each={myRoles()}>
 										{(role) => {
@@ -1272,17 +1272,17 @@ export default function Settings() {
 													<div class="flex items-center gap-3">
 														<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 															<Show
-																when={granterInfo()?.displayAvatar}
 																fallback={
 																	<span class="font-bold text-white">
 																		{granterInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}>
+																}
+																when={granterInfo()?.displayAvatar}>
 																<img
-																	src={granterInfo()?.displayAvatar ?? ""}
 																	alt={granterInfo()?.name || "User"}
 																	class="h-full w-full object-cover"
+																	src={granterInfo()?.displayAvatar ?? ""}
 																/>
 															</Show>
 														</div>
@@ -1336,24 +1336,24 @@ export default function Settings() {
 									<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 										<div>
 											<input
-												type="text"
-												placeholder={t("settings.enterUsername")}
-												value={inviteUsername()}
+												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
 												onInput={(e) =>
 													setInviteUsername(e.currentTarget.value)
 												}
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+												placeholder={t("settings.enterUsername")}
+												type="text"
+												value={inviteUsername()}
 											/>
 										</div>
 										<div>
 											<select
-												value={inviteRoleType()}
+												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
 												onChange={(e) =>
 													setInviteRoleType(
 														e.currentTarget.value as "moderator" | "manager",
 													)
 												}
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+												value={inviteRoleType()}>
 												<option value="moderator">
 													{t("settings.moderator")}
 												</option>
@@ -1362,13 +1362,13 @@ export default function Settings() {
 										</div>
 										<div>
 											<button
-												type="submit"
-												disabled={isInviting()}
 												class={`w-full rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors ${
 													isInviting()
 														? "cursor-not-allowed opacity-50"
 														: "hover:bg-purple-700"
-												}`}>
+												}`}
+												disabled={isInviting()}
+												type="submit">
 												{isInviting()
 													? t("settings.sending")
 													: t("settings.sendInvitation")}
@@ -1393,10 +1393,10 @@ export default function Settings() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 											/>
 										</svg>
 										<div class="text-blue-800 text-sm">
@@ -1430,17 +1430,17 @@ export default function Settings() {
 													<div class="flex items-center gap-3">
 														<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-yellow-400 to-orange-400">
 															<Show
-																when={userInfo()?.displayAvatar}
 																fallback={
 																	<span class="font-bold text-white">
 																		{userInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}>
+																}
+																when={userInfo()?.displayAvatar}>
 																<img
-																	src={userInfo()?.displayAvatar ?? ""}
 																	alt={userInfo()?.name || "User"}
 																	class="h-full w-full object-cover"
+																	src={userInfo()?.displayAvatar ?? ""}
 																/>
 															</Show>
 														</div>
@@ -1460,10 +1460,10 @@ export default function Settings() {
 														</div>
 													</div>
 													<button
-														type="button"
-														onClick={() => handleRevokeRole(role.id)}
+														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
 														disabled={processingRoleId() === role.id}
-														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
+														onClick={() => handleRevokeRole(role.id)}
+														type="button">
 														{processingRoleId() === role.id
 															? "..."
 															: t("settings.cancel")}
@@ -1476,7 +1476,6 @@ export default function Settings() {
 							</Show>
 
 							<Show
-								when={!loadingRoles() && rolesIGranted().length > 0}
 								fallback={
 									<Show when={pendingInvitationsSent().length === 0}>
 										<div class="py-8 text-center text-gray-500">
@@ -1487,10 +1486,10 @@ export default function Settings() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 												/>
 											</svg>
 											<p class="text-sm">{t("settings.noRolesGranted")}</p>
@@ -1499,7 +1498,8 @@ export default function Settings() {
 											</p>
 										</div>
 									</Show>
-								}>
+								}
+								when={!loadingRoles() && rolesIGranted().length > 0}>
 								<div class="space-y-3">
 									<h4 class="font-medium text-gray-700 text-sm">
 										{t("settings.yourTeam")}
@@ -1512,17 +1512,17 @@ export default function Settings() {
 													<div class="flex items-center gap-3">
 														<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 															<Show
-																when={userInfo()?.displayAvatar}
 																fallback={
 																	<span class="font-bold text-white">
 																		{userInfo()?.name?.[0]?.toUpperCase() ||
 																			"?"}
 																	</span>
-																}>
+																}
+																when={userInfo()?.displayAvatar}>
 																<img
-																	src={userInfo()?.displayAvatar ?? ""}
 																	alt={userInfo()?.name || "User"}
 																	class="h-full w-full object-cover"
+																	src={userInfo()?.displayAvatar ?? ""}
 																/>
 															</Show>
 														</div>
@@ -1544,10 +1544,10 @@ export default function Settings() {
 														</div>
 													</div>
 													<button
-														type="button"
-														onClick={() => handleRevokeRole(role.id)}
+														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
 														disabled={processingRoleId() === role.id}
-														class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50">
+														onClick={() => handleRevokeRole(role.id)}
+														type="button">
 														{processingRoleId() === role.id
 															? "..."
 															: t("settings.revoke")}
@@ -1576,9 +1576,6 @@ export default function Settings() {
 											</p>
 										</div>
 										<button
-											type="button"
-											onClick={handleToggleEmailNotifications}
-											disabled={isTogglingNotifications()}
 											class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 												prefs.data()?.email_notifications
 													? "bg-purple-600"
@@ -1587,7 +1584,10 @@ export default function Settings() {
 												isTogglingNotifications()
 													? "cursor-not-allowed opacity-50"
 													: "cursor-pointer"
-											}`}>
+											}`}
+											disabled={isTogglingNotifications()}
+											onClick={handleToggleEmailNotifications}
+											type="button">
 											<span
 												class={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
 													prefs.data()?.email_notifications

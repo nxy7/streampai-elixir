@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
 import { getSmartCanvasLayout } from "~/sdk/ash_rpc";
 

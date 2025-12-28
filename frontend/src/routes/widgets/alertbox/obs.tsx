@@ -1,6 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import {
 	createUserScopedStreamEventsCollection,
 	streamEventsCollection,

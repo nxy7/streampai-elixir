@@ -1,22 +1,22 @@
 import { Title } from "@solidjs/meta";
 import { A, useParams } from "@solidjs/router";
 import {
-	createMemo,
-	createResource,
-	createSignal,
 	ErrorBoundary,
 	For,
 	Show,
 	Suspense,
+	createMemo,
+	createResource,
+	createSignal,
 } from "solid-js";
 import { Skeleton, SkeletonListItem } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import {
+	type SuccessDataFunc,
 	getLivestream,
 	getLivestreamChat,
 	getLivestreamEvents,
-	type SuccessDataFunc,
 } from "~/sdk/ash_rpc";
 
 // Field selections for RPC calls
@@ -272,7 +272,7 @@ function StreamDetailSkeleton() {
 							<div class="space-y-3">
 								<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
 									{() => (
-										<SkeletonListItem showAvatar avatarSize="sm" lines={2} />
+										<SkeletonListItem avatarSize="sm" lines={2} showAvatar />
 									)}
 								</For>
 							</div>
@@ -312,9 +312,8 @@ export default function StreamHistoryDetail() {
 	return (
 		<>
 			<Title>Stream Details - Streampai</Title>
-			<Show when={!isLoading()} fallback={<StreamDetailSkeleton />}>
+			<Show fallback={<StreamDetailSkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -325,13 +324,14 @@ export default function StreamHistoryDetail() {
 									Please sign in to view stream details.
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									Sign In
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<ErrorBoundary
 						fallback={(err) => (
 							<div class="mx-auto mt-8 max-w-7xl">
@@ -339,8 +339,8 @@ export default function StreamHistoryDetail() {
 									Error loading stream: {err.message}
 									<br />
 									<A
-										href="/dashboard/stream-history"
-										class="mt-2 inline-block text-red-600 underline hover:text-red-800">
+										class="mt-2 inline-block text-red-600 underline hover:text-red-800"
+										href="/dashboard/stream-history">
 										← Back to History
 									</A>
 								</div>
@@ -533,12 +533,12 @@ function StreamDetailContent(props: { streamId: string }) {
 				<div class="flex items-start space-x-4">
 					<Show when={stream()?.thumbnailUrl}>
 						<img
-							src={stream()?.thumbnailUrl ?? ""}
 							alt="Stream thumbnail"
 							class="aspect-video w-48 rounded-lg object-cover"
 							onError={(e) => {
 								(e.target as HTMLImageElement).style.display = "none";
 							}}
+							src={stream()?.thumbnailUrl ?? ""}
 						/>
 					</Show>
 					<div class="flex-1">
@@ -571,10 +571,10 @@ function StreamDetailContent(props: { streamId: string }) {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 										/>
 									</svg>
 									{formatCategoryLabel(stream()?.category)}
@@ -596,10 +596,10 @@ function StreamDetailContent(props: { streamId: string }) {
 										stroke="currentColor"
 										viewBox="0 0 24 24">
 										<path
+											d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
 											stroke-linecap="round"
 											stroke-linejoin="round"
 											stroke-width="2"
-											d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
 										/>
 									</svg>
 									{languageName(stream()?.language)}
@@ -616,8 +616,8 @@ function StreamDetailContent(props: { streamId: string }) {
 						</div>
 					</div>
 					<A
-						href="/dashboard/stream-history"
-						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50">
+						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50"
+						href="/dashboard/stream-history">
 						← Back to History
 					</A>
 				</div>
@@ -632,7 +632,6 @@ function StreamDetailContent(props: { streamId: string }) {
 							Viewer Count Over Time
 						</h3>
 						<Show
-							when={stream()?.peakViewers && (stream()?.peakViewers ?? 0) > 0}
 							fallback={
 								<div class="relative flex h-64 items-center justify-center rounded-lg bg-gray-50">
 									<div class="text-center text-gray-400">
@@ -643,10 +642,10 @@ function StreamDetailContent(props: { streamId: string }) {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 											/>
 										</svg>
 										<p class="font-medium text-lg">
@@ -657,31 +656,32 @@ function StreamDetailContent(props: { streamId: string }) {
 										</p>
 									</div>
 								</div>
-							}>
+							}
+							when={stream()?.peakViewers && (stream()?.peakViewers ?? 0) > 0}>
 							<div class="relative h-64">
 								<svg
 									aria-hidden="true"
 									class="h-full w-full"
-									viewBox="0 0 800 250"
-									preserveAspectRatio="none">
+									preserveAspectRatio="none"
+									viewBox="0 0 800 250">
 									{/* Grid lines */}
 									<g class="grid-lines" stroke="#e5e7eb" stroke-width="1">
 										<For each={[0, 1, 2, 3, 4]}>
-											{(i) => <line x1="40" y1={50 * i} x2="800" y2={50 * i} />}
+											{(i) => <line x1="40" x2="800" y1={50 * i} y2={50 * i} />}
 										</For>
 									</g>
 									{/* Data line */}
 									<polyline
 										fill="none"
+										points={viewerChartPoints()}
 										stroke="#8b5cf6"
 										stroke-width="2"
-										points={viewerChartPoints()}
 									/>
 									{/* Y-axis labels */}
-									<g class="y-axis-labels" font-size="12" fill="#6b7280">
+									<g class="y-axis-labels" fill="#6b7280" font-size="12">
 										<For each={[0, 1, 2, 3, 4]}>
 											{(i) => (
-												<text x="5" y={250 - 50 * i} text-anchor="start">
+												<text text-anchor="start" x="5" y={250 - 50 * i}>
 													{Math.round(((stream()?.peakViewers || 0) * i) / 4)}
 												</text>
 											)}
@@ -716,10 +716,10 @@ function StreamDetailContent(props: { streamId: string }) {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M6 6v6a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M6 6v6a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2z"
 									/>
 								</svg>
 								<p class="font-medium text-lg">Stream Playback</p>
@@ -747,19 +747,19 @@ function StreamDetailContent(props: { streamId: string }) {
 							{/* Timeline controls */}
 							<div class="flex items-center space-x-4">
 								<input
-									type="range"
-									min="0"
+									class="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-gray-200"
 									max="100"
-									value={currentTimelinePosition()}
+									min="0"
 									onInput={(e) =>
 										setCurrentTimelinePosition(
 											parseInt(e.currentTarget.value, 10),
 										)
 									}
-									class="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-gray-200"
+									type="range"
+									value={currentTimelinePosition()}
 								/>
 								<span class="min-w-15 font-medium text-gray-600 text-sm">
-									<Show when={stream()} fallback="0:00">
+									<Show fallback="0:00" when={stream()}>
 										{(s) => formatTimelineTime(s(), currentTimelinePosition())}
 									</Show>
 								</span>
@@ -802,14 +802,14 @@ function StreamDetailContent(props: { streamId: string }) {
 								<p class="text-purple-700 text-sm">
 									{insights().peakMoment.description} at{" "}
 									<button
-										type="button"
+										class="font-medium text-purple-800 underline hover:text-purple-900"
 										onClick={() =>
 											setCurrentTimelinePosition(
 												insights().peakMoment.timelinePosition,
 											)
 										}
-										class="font-medium text-purple-800 underline hover:text-purple-900">
-										<Show when={stream()} fallback="0:00">
+										type="button">
+										<Show fallback="0:00" when={stream()}>
 											{formatTimelineTime(
 												stream() as NonNullable<ReturnType<typeof stream>>,
 												insights().peakMoment.timelinePosition,
@@ -846,7 +846,7 @@ function StreamDetailContent(props: { streamId: string }) {
 							<h3 class="font-medium text-gray-900 text-lg">Chat Replay</h3>
 							<p class="mt-1 text-gray-500 text-xs">
 								Showing messages up to{" "}
-								<Show when={stream()} fallback="0:00">
+								<Show fallback="0:00" when={stream()}>
 									{(s) => formatTimelineTime(s(), currentTimelinePosition())}
 								</Show>
 							</p>

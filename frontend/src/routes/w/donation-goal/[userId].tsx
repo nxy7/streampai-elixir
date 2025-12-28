@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import DonationGoalWidget from "~/components/widgets/DonationGoalWidget";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 

@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import Badge, { type BadgeVariant } from "~/components/ui/Badge";
 import Card from "~/components/ui/Card";
 
@@ -156,16 +156,16 @@ export default function StreamingAccountStats(
 					<div
 						class={`h-12 w-12 bg-linear-to-r ${config().color} flex items-center justify-center rounded-lg`}>
 						<Show
-							when={props.data.accountImage}
 							fallback={
 								<span class="font-bold text-lg text-white">
 									{config().name[0]}
 								</span>
-							}>
+							}
+							when={props.data.accountImage}>
 							<img
-								src={props.data.accountImage!}
 								alt={config().name}
 								class="h-12 w-12 rounded-lg object-cover"
+								src={props.data.accountImage!}
 							/>
 						</Show>
 					</div>
@@ -174,7 +174,7 @@ export default function StreamingAccountStats(
 							<span class="font-semibold text-gray-900">
 								{props.data.accountName}
 							</span>
-							<Badge variant={config().badgeVariant} size="sm">
+							<Badge size="sm" variant={config().badgeVariant}>
 								{config().name}
 							</Badge>
 						</div>
@@ -184,15 +184,15 @@ export default function StreamingAccountStats(
 
 				<div class="flex items-center gap-2">
 					<button
-						type="button"
-						onClick={handleRefresh}
-						disabled={isRefreshing()}
+						aria-label="Refresh stats"
 						class={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
 							isRefreshing()
 								? "cursor-not-allowed bg-gray-100 text-gray-400"
 								: `${config().bgColor} ${config().textColor} hover:bg-opacity-80`
 						}`}
-						aria-label="Refresh stats">
+						disabled={isRefreshing()}
+						onClick={handleRefresh}
+						type="button">
 						<svg
 							aria-hidden="true"
 							class={`h-4 w-4 ${isRefreshing() ? "animate-spin" : ""}`}
@@ -200,10 +200,10 @@ export default function StreamingAccountStats(
 							stroke="currentColor"
 							viewBox="0 0 24 24">
 							<path
+								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
 							/>
 						</svg>
 						<span class="hidden sm:inline">
@@ -211,15 +211,15 @@ export default function StreamingAccountStats(
 						</span>
 					</button>
 					<button
-						type="button"
-						onClick={handleDisconnect}
-						disabled={isDisconnecting()}
+						aria-label="Disconnect account"
 						class={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
 							isDisconnecting()
 								? "cursor-not-allowed bg-gray-100 text-gray-400"
 								: "bg-red-50 text-red-600 hover:bg-red-100"
 						}`}
-						aria-label="Disconnect account">
+						disabled={isDisconnecting()}
+						onClick={handleDisconnect}
+						type="button">
 						<svg
 							aria-hidden="true"
 							class="h-4 w-4"
@@ -227,10 +227,10 @@ export default function StreamingAccountStats(
 							stroke="currentColor"
 							viewBox="0 0 24 24">
 							<path
+								d="M6 18L18 6M6 6l12 12"
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
 							/>
 						</svg>
 						<span class="hidden sm:inline">
@@ -241,19 +241,19 @@ export default function StreamingAccountStats(
 			</div>
 
 			<div class="mt-4 grid grid-cols-3 gap-3">
-				<Card padding="sm" class="rounded-lg">
+				<Card class="rounded-lg" padding="sm">
 					<div class="text-gray-500 text-xs uppercase">Views (30d)</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.viewsLast30d)}
 					</div>
 				</Card>
-				<Card padding="sm" class="rounded-lg">
+				<Card class="rounded-lg" padding="sm">
 					<div class="text-gray-500 text-xs uppercase">Sponsors</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.sponsorCount)}
 					</div>
 				</Card>
-				<Card padding="sm" class="rounded-lg">
+				<Card class="rounded-lg" padding="sm">
 					<div class="text-gray-500 text-xs uppercase">Followers</div>
 					<div class="mt-1 font-bold text-gray-900 text-xl">
 						{formatNumber(props.data.followerCount)}

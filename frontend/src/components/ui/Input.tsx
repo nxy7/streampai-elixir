@@ -25,13 +25,12 @@ export default function Input(props: InputProps) {
 		<div class="w-full">
 			<Show when={local.label}>
 				<label
-					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm">
+					class="mb-1 block font-medium text-gray-700 text-sm"
+					for={inputId}>
 					{local.label}
 				</label>
 			</Show>
 			<input
-				id={inputId}
 				class={cn(
 					baseClasses,
 					local.error
@@ -40,6 +39,7 @@ export default function Input(props: InputProps) {
 					"disabled:cursor-not-allowed disabled:bg-gray-50",
 					local.class,
 				)}
+				id={inputId}
 				{...rest}
 			/>
 			<Show when={local.error}>
@@ -74,13 +74,12 @@ export function Textarea(props: TextareaProps) {
 		<div class="w-full">
 			<Show when={local.label}>
 				<label
-					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm">
+					class="mb-1 block font-medium text-gray-700 text-sm"
+					for={inputId}>
 					{local.label}
 				</label>
 			</Show>
 			<textarea
-				id={inputId}
 				class={cn(
 					baseClasses,
 					"resize-none",
@@ -90,6 +89,7 @@ export function Textarea(props: TextareaProps) {
 					"disabled:cursor-not-allowed disabled:bg-gray-50",
 					local.class,
 				)}
+				id={inputId}
 				{...rest}
 			/>
 			<Show when={local.error}>
@@ -126,13 +126,12 @@ export function Select(props: SelectProps) {
 		<div class="w-full">
 			<Show when={local.label}>
 				<label
-					for={inputId}
-					class="mb-1 block font-medium text-gray-700 text-sm">
+					class="mb-1 block font-medium text-gray-700 text-sm"
+					for={inputId}>
 					{local.label}
 				</label>
 			</Show>
 			<select
-				id={inputId}
 				class={cn(
 					baseClasses,
 					"bg-white",
@@ -142,6 +141,7 @@ export function Select(props: SelectProps) {
 					"disabled:cursor-not-allowed disabled:bg-gray-50",
 					local.class,
 				)}
+				id={inputId}
 				{...rest}>
 				{local.children}
 			</select>

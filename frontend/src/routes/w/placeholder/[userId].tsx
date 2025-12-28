@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import PlaceholderWidget from "~/components/widgets/PlaceholderWidget";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 

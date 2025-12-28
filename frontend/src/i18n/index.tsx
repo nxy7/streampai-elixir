@@ -1,11 +1,11 @@
 import * as i18n from "@solid-primitives/i18n";
 import {
+	type ParentComponent,
 	createContext,
 	createEffect,
 	createResource,
 	createSignal,
 	onMount,
-	type ParentComponent,
 	useContext,
 } from "solid-js";
 import type { Dictionary } from "./locales/en";

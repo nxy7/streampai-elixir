@@ -12,13 +12,13 @@ interface TextareaFieldProps {
 export const TextareaField: Component<TextareaFieldProps> = (props) => {
 	return (
 		<Textarea
-			label={props.field.label}
-			rows={4}
-			value={props.value ?? ""}
-			onInput={(e) => props.onChange(e.currentTarget.value)}
-			placeholder={props.field.meta.placeholder}
 			disabled={props.disabled}
 			helperText={props.field.meta.description}
+			label={props.field.label}
+			onInput={(e) => props.onChange(e.currentTarget.value)}
+			placeholder={props.field.meta.placeholder}
+			rows={4}
+			value={props.value ?? ""}
 		/>
 	);
 };

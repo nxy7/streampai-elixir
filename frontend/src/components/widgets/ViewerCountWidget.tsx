@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import type { ViewerCountConfig, ViewerData } from "~/lib/fake/viewer-count";
 import { getFontClass } from "~/lib/widgetHelpers";
 
@@ -122,10 +122,9 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 
 	return (
 		<div
-			id={widgetId()}
-			class="viewer-count-widget flex h-full items-center justify-center p-4 font-sans">
+			class="viewer-count-widget flex h-full items-center justify-center p-4 font-sans"
+			id={widgetId()}>
 			<Show
-				when={props.data}
 				fallback={
 					<div class="flex items-center space-x-2 text-gray-400">
 						<svg
@@ -137,15 +136,16 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 						</svg>
 						<span>Loading viewers...</span>
 					</div>
-				}>
+				}
+				when={props.data}>
 				<div class="viewer-display">
 					<Show when={props.config.display_style === "minimal"}>
 						<div class="flex items-center space-x-3 rounded-xl border border-gray-700 bg-linear-to-r from-gray-800 to-gray-900 px-6 py-4 text-white shadow-lg">
 							<svg
 								aria-hidden="true"
 								class="h-8 w-8"
-								style={{ color: props.config.icon_color || "#ef4444" }}
 								fill="currentColor"
+								style={{ color: props.config.icon_color || "#ef4444" }}
 								viewBox={viewerIcon.viewBox}>
 								<path d={viewerIcon.path} />
 							</svg>
@@ -169,8 +169,8 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 									<svg
 										aria-hidden="true"
 										class="h-10 w-10"
-										style={{ color: props.config.icon_color || "#ef4444" }}
 										fill="currentColor"
+										style={{ color: props.config.icon_color || "#ef4444" }}
 										viewBox={viewerIcon.viewBox}>
 										<path d={viewerIcon.path} />
 									</svg>
@@ -222,8 +222,8 @@ export default function ViewerCountWidget(props: ViewerCountWidgetProps) {
 										<svg
 											aria-hidden="true"
 											class="h-7 w-7"
-											style={{ color: props.config.icon_color || "#ef4444" }}
 											fill="currentColor"
+											style={{ color: props.config.icon_color || "#ef4444" }}
 											viewBox={viewerIcon.viewBox}>
 											<path d={viewerIcon.path} />
 										</svg>

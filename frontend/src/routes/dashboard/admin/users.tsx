@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { Alert } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
@@ -164,22 +164,22 @@ export default function AdminUsers() {
 		<>
 			<Title>Users - Admin - Streampai</Title>
 			<Show
-				when={!authLoading()}
 				fallback={
 					<div class="flex min-h-screen items-center justify-center">
 						<div class="text-gray-500">Loading...</div>
 					</div>
-				}>
+				}
+				when={!authLoading()}>
 				<Show when={currentUser()?.role === "admin"}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						<Show when={successMessage()}>
-							<Alert variant="success" onClose={() => setSuccessMessage(null)}>
+							<Alert onClose={() => setSuccessMessage(null)} variant="success">
 								{successMessage()}
 							</Alert>
 						</Show>
 
 						<Show when={error()}>
-							<Alert variant="error" onClose={() => setError(null)}>
+							<Alert onClose={() => setError(null)} variant="error">
 								{error()}
 							</Alert>
 						</Show>
@@ -233,16 +233,16 @@ export default function AdminUsers() {
 															<div class="relative">
 																<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-purple-500">
 																	<Show
-																		when={user.avatar_url}
 																		fallback={
 																			<span class="font-medium text-sm text-white">
 																				{user.email[0].toUpperCase()}
 																			</span>
-																		}>
+																		}
+																		when={user.avatar_url}>
 																		<img
-																			src={user.avatar_url ?? ""}
 																			alt={user.name}
 																			class="h-10 w-10 rounded-full object-cover"
+																			src={user.avatar_url ?? ""}
 																		/>
 																	</Show>
 																</div>
@@ -274,10 +274,10 @@ export default function AdminUsers() {
 													</td>
 													<td class="whitespace-nowrap px-6 py-4">
 														<Show
-															when={user.confirmed_at}
 															fallback={
 																<Badge variant="warning">Pending</Badge>
-															}>
+															}
+															when={user.confirmed_at}>
 															<Badge variant="success">Confirmed</Badge>
 														</Show>
 													</td>
@@ -287,9 +287,9 @@ export default function AdminUsers() {
 													<td class="whitespace-nowrap px-6 py-4 font-medium text-sm">
 														<div class="flex items-center space-x-3">
 															<button
-																type="button"
+																class="text-green-600 hover:text-green-900 hover:underline"
 																onClick={() => openGrantModal(user)}
-																class="text-green-600 hover:text-green-900 hover:underline">
+																type="button">
 																Grant PRO
 															</button>
 														</div>
@@ -309,10 +309,10 @@ export default function AdminUsers() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
 											/>
 										</svg>
 										<p class="mt-4 text-gray-500 text-sm">No users found</p>
@@ -329,9 +329,9 @@ export default function AdminUsers() {
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Grant PRO Access</h3>
 										<button
-											type="button"
+											class="text-gray-400 hover:text-gray-500"
 											onClick={closeGrantModal}
-											class="text-gray-400 hover:text-gray-500">
+											type="button">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
@@ -339,10 +339,10 @@ export default function AdminUsers() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M6 18L18 6M6 6l12 12"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
 												/>
 											</svg>
 										</button>
@@ -361,10 +361,8 @@ export default function AdminUsers() {
 										<label class="mb-2 block font-medium text-gray-700 text-sm">
 											Duration
 											<Select
-												value={grantDuration()}
-												onInput={(e) =>
-													setGrantDuration(e.currentTarget.value)
-												}>
+												onInput={(e) => setGrantDuration(e.currentTarget.value)}
+												value={grantDuration()}>
 												<option value="7">7 days</option>
 												<option value="30">30 days</option>
 												<option value="90">90 days (3 months)</option>
@@ -378,11 +376,11 @@ export default function AdminUsers() {
 										<label class="block font-medium text-gray-700 text-sm">
 											Reason <span class="text-red-500">*</span>
 											<Textarea
-												value={grantReason()}
-												onInput={(e) => setGrantReason(e.currentTarget.value)}
-												rows={3}
 												class="mt-2"
+												onInput={(e) => setGrantReason(e.currentTarget.value)}
 												placeholder="e.g., Beta tester, Partner program, Promotional access..."
+												rows={3}
+												value={grantReason()}
 											/>
 										</label>
 										<p class={text.helper}>
@@ -392,13 +390,13 @@ export default function AdminUsers() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<Button variant="secondary" onClick={closeGrantModal}>
+									<Button onClick={closeGrantModal} variant="secondary">
 										Cancel
 									</Button>
 									<Button
-										onClick={handleGrantPro}
-										disabled={grantingPro() || !grantReason().trim()}>
-										<Show when={grantingPro()} fallback="Grant PRO Access">
+										disabled={grantingPro() || !grantReason().trim()}
+										onClick={handleGrantPro}>
+										<Show fallback="Grant PRO Access" when={grantingPro()}>
 											Granting...
 										</Show>
 									</Button>
@@ -414,9 +412,9 @@ export default function AdminUsers() {
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Revoke PRO Access</h3>
 										<button
-											type="button"
+											class="text-gray-400 hover:text-gray-500"
 											onClick={closeRevokeConfirm}
-											class="text-gray-400 hover:text-gray-500">
+											type="button">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6"
@@ -424,10 +422,10 @@ export default function AdminUsers() {
 												stroke="currentColor"
 												viewBox="0 0 24 24">
 												<path
+													d="M6 18L18 6M6 6l12 12"
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
 												/>
 											</svg>
 										</button>
@@ -443,14 +441,14 @@ export default function AdminUsers() {
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
-									<Button variant="secondary" onClick={closeRevokeConfirm}>
+									<Button onClick={closeRevokeConfirm} variant="secondary">
 										Cancel
 									</Button>
 									<Button
-										variant="danger"
+										disabled={revokingPro()}
 										onClick={handleRevokePro}
-										disabled={revokingPro()}>
-										<Show when={revokingPro()} fallback="Revoke PRO">
+										variant="danger">
+										<Show fallback="Revoke PRO" when={revokingPro()}>
 											Revoking...
 										</Show>
 									</Button>

@@ -1,13 +1,13 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import {
-	createMemo,
-	createResource,
-	createSignal,
 	ErrorBoundary,
 	For,
 	Show,
 	Suspense,
+	createMemo,
+	createResource,
+	createSignal,
 } from "solid-js";
 import {
 	Alert,
@@ -20,7 +20,7 @@ import {
 	Stat,
 } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { getStreamHistory, type SuccessDataFunc } from "~/sdk/ash_rpc";
+import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
 type DateRange = "7days" | "30days" | "all";
@@ -139,9 +139,8 @@ export default function StreamHistory() {
 	return (
 		<>
 			<Title>Stream History - Streampai</Title>
-			<Show when={!isLoading()} fallback={<StreamHistorySkeleton />}>
+			<Show fallback={<StreamHistorySkeleton />} when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -152,13 +151,14 @@ export default function StreamHistory() {
 									Please sign in to view stream history.
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									Sign In
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<ErrorBoundary
 						fallback={(err) => (
 							<div class="mx-auto mt-8 max-w-7xl">
@@ -169,13 +169,13 @@ export default function StreamHistory() {
 						)}>
 						<Suspense fallback={<StreamHistorySkeleton />}>
 							<StreamHistoryContent
-								userId={user()?.id}
-								platform={platform}
-								setPlatform={setPlatform}
 								dateRange={dateRange}
+								platform={platform}
 								setDateRange={setDateRange}
-								sortBy={sortBy}
+								setPlatform={setPlatform}
 								setSortBy={setSortBy}
+								sortBy={sortBy}
+								userId={user()?.id}
 							/>
 						</Suspense>
 					</ErrorBoundary>
@@ -321,10 +321,10 @@ function StreamHistoryContent(props: {
 							Platform
 							<select
 								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
-								value={props.platform()}
 								onChange={(e) =>
 									props.setPlatform(e.currentTarget.value as Platform)
-								}>
+								}
+								value={props.platform()}>
 								<option value="all">All Platforms</option>
 								<option value="twitch">Twitch</option>
 								<option value="youtube">YouTube</option>
@@ -338,10 +338,10 @@ function StreamHistoryContent(props: {
 							Date Range
 							<select
 								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
-								value={props.dateRange()}
 								onChange={(e) =>
 									props.setDateRange(e.currentTarget.value as DateRange)
-								}>
+								}
+								value={props.dateRange()}>
 								<option value="7days">Last 7 days</option>
 								<option value="30days">Last 30 days</option>
 								<option value="all">All time</option>
@@ -353,10 +353,10 @@ function StreamHistoryContent(props: {
 							Sort By
 							<select
 								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
-								value={props.sortBy()}
 								onChange={(e) =>
 									props.setSortBy(e.currentTarget.value as SortBy)
-								}>
+								}
+								value={props.sortBy()}>
 								<option value="recent">Most Recent</option>
 								<option value="duration">Longest Duration</option>
 								<option value="viewers">Most Viewers</option>
@@ -371,8 +371,6 @@ function StreamHistoryContent(props: {
 				<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 					<Card>
 						<Stat
-							value={String(stats().totalStreams)}
-							label={`Streams (${stats().dateRangeLabel})`}
 							icon={
 								<svg
 									aria-hidden="true"
@@ -381,20 +379,20 @@ function StreamHistoryContent(props: {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 									/>
 								</svg>
 							}
+							label={`Streams (${stats().dateRangeLabel})`}
+							value={String(stats().totalStreams)}
 						/>
 					</Card>
 
 					<Card>
 						<Stat
-							value={stats().totalTime}
-							label="Total Stream Time"
 							icon={
 								<svg
 									aria-hidden="true"
@@ -403,20 +401,20 @@ function StreamHistoryContent(props: {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 									/>
 								</svg>
 							}
+							label="Total Stream Time"
+							value={stats().totalTime}
 						/>
 					</Card>
 
 					<Card>
 						<Stat
-							value={String(stats().avgViewers)}
-							label="Avg Viewers"
 							icon={
 								<svg
 									aria-hidden="true"
@@ -425,19 +423,21 @@ function StreamHistoryContent(props: {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 									/>
 									<path
+										d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
 									/>
 								</svg>
 							}
+							label="Avg Viewers"
+							value={String(stats().avgViewers)}
 						/>
 					</Card>
 				</div>
@@ -450,7 +450,6 @@ function StreamHistoryContent(props: {
 				</CardHeader>
 				<CardContent>
 					<Show
-						when={filteredAndSortedStreams().length > 0}
 						fallback={
 							<div class="py-12 text-center">
 								<svg
@@ -460,10 +459,10 @@ function StreamHistoryContent(props: {
 									stroke="currentColor"
 									viewBox="0 0 24 24">
 									<path
+										d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
 									/>
 								</svg>
 								<h3 class="mt-2 font-medium text-gray-900 text-sm">
@@ -473,23 +472,24 @@ function StreamHistoryContent(props: {
 									No streams match your current filters.
 								</p>
 							</div>
-						}>
+						}
+						when={filteredAndSortedStreams().length > 0}>
 						<div class="-mx-6 divide-y divide-gray-200">
 							<For each={filteredAndSortedStreams()}>
 								{(stream) => (
 									<A
-										href={`/dashboard/stream-history/${stream.id}`}
-										class="block p-6 transition-colors hover:bg-gray-50">
+										class="block p-6 transition-colors hover:bg-gray-50"
+										href={`/dashboard/stream-history/${stream.id}`}>
 										<div class="flex items-center space-x-4">
 											<Show when={stream.thumbnailUrl}>
 												<div class="shrink-0">
 													<img
-														src={stream.thumbnailUrl ?? ""}
 														alt="Stream thumbnail"
 														class="aspect-video w-32 rounded-lg object-cover"
 														onError={(e) => {
 															e.currentTarget.style.display = "none";
 														}}
+														src={stream.thumbnailUrl ?? ""}
 													/>
 												</div>
 											</Show>
@@ -536,10 +536,10 @@ function StreamHistoryContent(props: {
 													stroke="currentColor"
 													viewBox="0 0 24 24">
 													<path
+														d="M9 5l7 7-7 7"
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M9 5l7 7-7 7"
 													/>
 												</svg>
 											</div>

@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 
 interface SliderImage {
 	id: string;
@@ -83,7 +83,6 @@ export default function SliderWidget(props: SliderWidgetProps) {
 				overflow: "hidden",
 			}}>
 			<Show
-				when={slides().length > 0}
 				fallback={
 					<div
 						style={{ color: "white", "text-align": "center", padding: "20px" }}>
@@ -92,7 +91,8 @@ export default function SliderWidget(props: SliderWidgetProps) {
 							Upload images or wait for demo images to load
 						</p>
 					</div>
-				}>
+				}
+				when={slides().length > 0}>
 				<div
 					style={{
 						width: "100%",
@@ -115,8 +115,8 @@ export default function SliderWidget(props: SliderWidgetProps) {
 									"--transition-duration": `${transitionDuration()}ms`,
 								}}>
 								<img
-									src={slide().url}
 									alt={slide().alt || `Slide ${slide().index + 1}`}
+									src={slide().url}
 									style={{
 										...getImageStyle(),
 										"border-radius": "4px",

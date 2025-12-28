@@ -19,18 +19,18 @@ export const NumberField: Component<NumberFieldProps> = (props) => {
 
 	return (
 		<Input
-			type="number"
+			disabled={props.disabled}
+			helperText={props.field.meta.description}
 			label={labelWithUnit()}
-			value={props.value ?? 0}
+			max={props.field.max}
+			min={props.field.min}
 			onInput={(e) => {
 				const val = Number.parseFloat(e.currentTarget.value);
 				if (!Number.isNaN(val)) props.onChange(val);
 			}}
-			min={props.field.min}
-			max={props.field.max}
 			step={props.field.meta.step ?? 1}
-			disabled={props.disabled}
-			helperText={props.field.meta.description}
+			type="number"
+			value={props.value ?? 0}
 		/>
 	);
 };

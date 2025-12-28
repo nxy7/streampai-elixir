@@ -1,4 +1,4 @@
-import { createMemo, Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import {
 	getEventColor,
 	getEventGradient,

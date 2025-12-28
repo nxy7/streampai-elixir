@@ -61,10 +61,10 @@ export default function Contact() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 											/>
 										</svg>
 									</div>
@@ -83,10 +83,10 @@ export default function Contact() {
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
+												d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
 											/>
 										</svg>
 									</div>
@@ -125,73 +125,73 @@ export default function Contact() {
 										{t("contact.formTitle")}
 									</h3>
 
-									<form onSubmit={handleSubmit} class="space-y-6">
+									<form class="space-y-6" onSubmit={handleSubmit}>
 										<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 											<div>
 												<label
-													for="name"
-													class="mb-2 block font-medium text-sm text-white">
+													class="mb-2 block font-medium text-sm text-white"
+													for="name">
 													{t("contact.nameLabel")}
 												</label>
 												<input
-													type="text"
-													id="name"
-													value={name()}
-													onInput={(e) => setName(e.currentTarget.value)}
-													required
 													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+													id="name"
+													onInput={(e) => setName(e.currentTarget.value)}
 													placeholder={t("contact.namePlaceholder")}
+													required
+													type="text"
+													value={name()}
 												/>
 											</div>
 											<div>
 												<label
-													for="email"
-													class="mb-2 block font-medium text-sm text-white">
+													class="mb-2 block font-medium text-sm text-white"
+													for="email">
 													{t("contact.emailLabel")}
 												</label>
 												<input
-													type="email"
-													id="email"
-													value={email()}
-													onInput={(e) => setEmail(e.currentTarget.value)}
-													required
 													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+													id="email"
+													onInput={(e) => setEmail(e.currentTarget.value)}
 													placeholder={t("contact.emailPlaceholder")}
+													required
+													type="email"
+													value={email()}
 												/>
 											</div>
 										</div>
 
 										<div>
 											<label
-												for="subject"
-												class="mb-2 block font-medium text-sm text-white">
+												class="mb-2 block font-medium text-sm text-white"
+												for="subject">
 												{t("contact.subjectLabel")}
 											</label>
 											<select
+												class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
 												id="subject"
-												value={subject()}
 												onChange={(e) => setSubject(e.currentTarget.value)}
 												required
-												class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500">
-												<option value="" class="bg-gray-800">
+												value={subject()}>
+												<option class="bg-gray-800" value="">
 													{t("contact.subjectPlaceholder")}
 												</option>
-												<option value="general" class="bg-gray-800">
+												<option class="bg-gray-800" value="general">
 													{t("contact.subjectGeneral")}
 												</option>
-												<option value="support" class="bg-gray-800">
+												<option class="bg-gray-800" value="support">
 													{t("contact.subjectSupport")}
 												</option>
-												<option value="billing" class="bg-gray-800">
+												<option class="bg-gray-800" value="billing">
 													{t("contact.subjectBilling")}
 												</option>
-												<option value="feature" class="bg-gray-800">
+												<option class="bg-gray-800" value="feature">
 													{t("contact.subjectFeature")}
 												</option>
-												<option value="bug" class="bg-gray-800">
+												<option class="bg-gray-800" value="bug">
 													{t("contact.subjectBug")}
 												</option>
-												<option value="partnership" class="bg-gray-800">
+												<option class="bg-gray-800" value="partnership">
 													{t("contact.subjectPartnership")}
 												</option>
 											</select>
@@ -199,25 +199,25 @@ export default function Contact() {
 
 										<div>
 											<label
-												for="message"
-												class="mb-2 block font-medium text-sm text-white">
+												class="mb-2 block font-medium text-sm text-white"
+												for="message">
 												{t("contact.messageLabel")}
 											</label>
 											<textarea
+												class="w-full resize-none rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
 												id="message"
-												value={message()}
 												onInput={(e) => setMessage(e.currentTarget.value)}
+												placeholder={t("contact.messagePlaceholder")}
 												required
 												rows={6}
-												class="w-full resize-none rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
-												placeholder={t("contact.messagePlaceholder")}
+												value={message()}
 											/>
 										</div>
 
 										<button
-											type="submit"
+											class="w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
 											disabled={status() === "loading"}
-											class="w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:opacity-50">
+											type="submit">
 											{status() === "loading"
 												? t("contact.sending")
 												: t("contact.sendButton")}

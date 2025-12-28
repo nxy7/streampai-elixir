@@ -18,8 +18,10 @@ defmodule Streampai.Repo.Migrations.ConsolidateNotificationLocalizations do
   def down do
     create table(:notification_localizations, primary_key: false) do
       add :id, :uuid, null: false, primary_key: true
+
       add :notification_id, references(:notifications, type: :uuid, on_delete: :delete_all),
         null: false
+
       add :locale, :text, null: false
       add :content, :text, null: false
       add :inserted_at, :utc_datetime_usec, null: false, default: fragment("now()")

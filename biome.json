@@ -20,14 +20,24 @@
 			"enabled": true,
 			"trailingCommas": "all",
 			"quoteStyle": "double",
-			"bracketSameLine": true
+			"bracketSameLine": true,
+			"semicolons": "always"
 		}
 	},
 	"assist": {
 		"enabled": true,
 		"actions": {
+			"recommended": true,
 			"source": {
-				"organizeImports": "on"
+				"recommended": true,
+				"organizeImports": {
+					"level": "on",
+					"options": {
+						"identifierOrder": "lexicographic"
+					}
+				},
+				"useSortedAttributes": "on",
+				"useSortedProperties": "on"
 			}
 		}
 	}

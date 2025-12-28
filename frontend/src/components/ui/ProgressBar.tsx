@@ -61,15 +61,15 @@ export default function ProgressBar(props: ProgressBarProps) {
 					sizeClasses[local.size ?? "md"],
 				)}>
 				<div
+					aria-valuemax={max}
+					aria-valuemin={0}
+					aria-valuenow={local.value}
 					class={cn(
 						"h-full rounded-full transition-all duration-500",
 						variantClasses[local.variant ?? "primary"],
 					)}
-					style={{ width: `${percentage}%` }}
 					role="progressbar"
-					aria-valuenow={local.value}
-					aria-valuemin={0}
-					aria-valuemax={max}
+					style={{ width: `${percentage}%` }}
 				/>
 			</div>
 		</div>

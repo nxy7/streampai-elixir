@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
-import { createSignal, Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH } from "~/lib/constants";
@@ -10,8 +10,8 @@ function GoogleIcon() {
 		<svg
 			aria-hidden="true"
 			class="h-5 w-5"
-			viewBox="0 0 24 24"
-			fill="currentColor">
+			fill="currentColor"
+			viewBox="0 0 24 24">
 			<path
 				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 				fill="#4285F4"
@@ -37,8 +37,8 @@ function TwitchIcon() {
 		<svg
 			aria-hidden="true"
 			class="h-5 w-5"
-			viewBox="0 0 24 24"
-			fill="currentColor">
+			fill="currentColor"
+			viewBox="0 0 24 24">
 			<path
 				d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"
 				fill="#9146FF"
@@ -56,10 +56,10 @@ function EmailIcon() {
 			stroke="currentColor"
 			viewBox="0 0 24 24">
 			<path
+				d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				stroke-width="2"
-				d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 			/>
 		</svg>
 	);
@@ -142,7 +142,6 @@ export default function LoginPage() {
 			<Title>{t("auth.pageTitle")}</Title>
 			<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
 				<Show
-					when={!user()}
 					fallback={
 						<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 text-center backdrop-blur-lg">
 							<h2 class="mb-4 font-bold text-2xl text-white">
@@ -150,19 +149,20 @@ export default function LoginPage() {
 							</h2>
 							<p class="mb-6 text-gray-300">{t("auth.alreadyLoggedIn")}</p>
 							<A
-								href={getDashboardUrl()}
-								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+								href={getDashboardUrl()}>
 								{t("auth.goToDashboard")}
 							</A>
 						</div>
-					}>
+					}
+					when={!user()}>
 					<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg">
 						<div class="mb-8 text-center">
-							<A href="/" class="mb-6 inline-flex items-center space-x-2">
+							<A class="mb-6 inline-flex items-center space-x-2" href="/">
 								<img
-									src="/images/logo-white.png"
 									alt="Streampai Logo"
 									class="h-10 w-10"
+									src="/images/logo-white.png"
 								/>
 								<span class="font-bold text-2xl text-white">Streampai</span>
 							</A>
@@ -175,17 +175,17 @@ export default function LoginPage() {
 						{/* OAuth Buttons */}
 						<div class="space-y-4">
 							<a
+								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100"
 								href={`${API_PATH}/auth/user/google`}
-								rel="external"
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100">
+								rel="external">
 								<GoogleIcon />
 								{t("auth.continueWithGoogle")}
 							</a>
 
 							<a
+								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
 								href={`${API_PATH}/auth/user/twitch`}
-								rel="external"
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]">
+								rel="external">
 								<TwitchIcon />
 								{t("auth.continueWithTwitch")}
 							</a>
@@ -217,71 +217,71 @@ export default function LoginPage() {
 						</Show>
 
 						{/* Email/Password Form */}
-						<form onSubmit={handleSubmit} class="space-y-4">
+						<form class="space-y-4" onSubmit={handleSubmit}>
 							<div>
 								<label
-									for="email"
-									class="mb-1 block font-medium text-gray-300 text-sm">
+									class="mb-1 block font-medium text-gray-300 text-sm"
+									for="email">
 									Email
 								</label>
 								<input
-									type="email"
+									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
 									id="email"
 									name="email"
-									value={email()}
 									onInput={(e) => setEmail(e.currentTarget.value)}
-									required
-									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
 									placeholder="you@example.com"
+									required
+									type="email"
+									value={email()}
 								/>
 							</div>
 
 							<div>
 								<label
-									for="password"
-									class="mb-1 block font-medium text-gray-300 text-sm">
+									class="mb-1 block font-medium text-gray-300 text-sm"
+									for="password">
 									Password
 								</label>
 								<input
-									type="password"
-									id="password"
-									name="password"
-									value={password()}
-									onInput={(e) => setPassword(e.currentTarget.value)}
-									required
-									minLength={8}
 									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+									id="password"
+									minLength={8}
+									name="password"
+									onInput={(e) => setPassword(e.currentTarget.value)}
 									placeholder="Enter your password"
+									required
+									type="password"
+									value={password()}
 								/>
 							</div>
 
 							<Show when={mode() === "register"}>
 								<div>
 									<label
-										for="password_confirmation"
-										class="mb-1 block font-medium text-gray-300 text-sm">
+										class="mb-1 block font-medium text-gray-300 text-sm"
+										for="password_confirmation">
 										Confirm Password
 									</label>
 									<input
-										type="password"
+										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
 										id="password_confirmation"
+										minLength={8}
 										name="password_confirmation"
-										value={passwordConfirmation()}
 										onInput={(e) =>
 											setPasswordConfirmation(e.currentTarget.value)
 										}
-										required
-										minLength={8}
-										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
 										placeholder="Confirm your password"
+										required
+										type="password"
+										value={passwordConfirmation()}
 									/>
 								</div>
 							</Show>
 
 							<button
-								type="submit"
+								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
 								disabled={isSubmitting()}
-								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50">
+								type="submit">
 								<EmailIcon />
 								{isSubmitting()
 									? t("common.pleaseWait")
@@ -294,20 +294,20 @@ export default function LoginPage() {
 						<p class="mt-8 text-center text-gray-400 text-sm">
 							{t("auth.noAccount")}{" "}
 							<a
+								class="text-purple-400 hover:text-purple-300"
 								href={`${API_PATH}/auth/register`}
-								rel="external"
-								class="text-purple-400 hover:text-purple-300">
+								rel="external">
 								{t("auth.createOne")}
 							</a>
 						</p>
 
 						<p class="mt-4 text-center text-gray-500 text-xs">
 							{t("auth.agreeToTerms")}{" "}
-							<A href="/terms" class="text-gray-400 hover:text-white">
+							<A class="text-gray-400 hover:text-white" href="/terms">
 								{t("auth.termsOfService")}
 							</A>{" "}
 							{t("auth.and")}{" "}
-							<A href="/privacy" class="text-gray-400 hover:text-white">
+							<A class="text-gray-400 hover:text-white" href="/privacy">
 								{t("auth.privacyPolicy")}
 							</A>
 						</p>

@@ -60,7 +60,6 @@ export default function EventListWidget(props: EventListWidgetProps) {
 			<div
 				class={`h-full w-full overflow-y-auto ${props.config.compactMode ? "space-y-2 p-2" : "space-y-3 p-4"}`}>
 				<Show
-					when={displayedEvents().length > 0}
 					fallback={
 						<div class="flex h-full items-center justify-center">
 							<div class="text-center text-gray-400">
@@ -71,7 +70,8 @@ export default function EventListWidget(props: EventListWidgetProps) {
 								</div>
 							</div>
 						</div>
-					}>
+					}
+					when={displayedEvents().length > 0}>
 					<div class={props.config.compactMode ? "space-y-1" : "space-y-2"}>
 						<For each={displayedEvents()}>
 							{(event, index) => (
@@ -88,7 +88,6 @@ export default function EventListWidget(props: EventListWidgetProps) {
 
 									<div class="relative z-10">
 										<Show
-											when={props.config.compactMode}
 											fallback={
 												<>
 													<div class="mb-2 flex items-center justify-between">
@@ -145,7 +144,8 @@ export default function EventListWidget(props: EventListWidgetProps) {
 														</div>
 													</Show>
 												</>
-											}>
+											}
+											when={props.config.compactMode}>
 											<div class="flex items-center justify-between">
 												<div class="flex min-w-0 flex-1 items-center space-x-2">
 													<span class="text-sm">

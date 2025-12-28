@@ -94,10 +94,10 @@ export const TextareaDefault: StoryObj<typeof Textarea> = {
 export const TextareaWithLabel: StoryObj<typeof Textarea> = {
 	render: () => (
 		<Textarea
+			helperText="Maximum 500 characters"
 			label="Description"
 			placeholder="Tell us about yourself..."
 			rows={4}
-			helperText="Maximum 500 characters"
 		/>
 	),
 	name: "Textarea - With Label",
@@ -106,10 +106,10 @@ export const TextareaWithLabel: StoryObj<typeof Textarea> = {
 export const TextareaWithError: StoryObj<typeof Textarea> = {
 	render: () => (
 		<Textarea
-			label="Bio"
-			value="x"
-			rows={4}
 			error="Bio must be at least 10 characters"
+			label="Bio"
+			rows={4}
+			value="x"
 		/>
 	),
 	name: "Textarea - With Error",
@@ -132,8 +132,8 @@ export const SelectDefault: StoryObj<typeof Select> = {
 export const SelectWithHelper: StoryObj<typeof Select> = {
 	render: () => (
 		<Select
-			label="Timezone"
-			helperText="This affects when notifications are sent">
+			helperText="This affects when notifications are sent"
+			label="Timezone">
 			<option value="">Select your timezone</option>
 			<option value="pst">Pacific Time (PST)</option>
 			<option value="mst">Mountain Time (MST)</option>
@@ -146,7 +146,7 @@ export const SelectWithHelper: StoryObj<typeof Select> = {
 
 export const SelectWithError: StoryObj<typeof Select> = {
 	render: () => (
-		<Select label="Plan" error="Please select a plan to continue">
+		<Select error="Please select a plan to continue" label="Plan">
 			<option value="">Select a plan</option>
 			<option value="free">Free</option>
 			<option value="pro">Pro</option>

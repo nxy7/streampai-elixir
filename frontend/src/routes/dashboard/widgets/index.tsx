@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, For, Show } from "solid-js";
+import { For, Show, createSignal } from "solid-js";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
@@ -27,14 +27,13 @@ export default function Widgets() {
 		<>
 			<Title>Widgets - Streampai</Title>
 			<Show
-				when={!isLoading()}
 				fallback={
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="text-white text-xl">Loading...</div>
 					</div>
-				}>
+				}
+				when={!isLoading()}>
 				<Show
-					when={user()}
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 							<div class="py-12 text-center">
@@ -45,13 +44,14 @@ export default function Widgets() {
 									Please sign in to access widgets.
 								</p>
 								<a
-									href={getLoginUrl()}
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600">
+									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									href={getLoginUrl()}>
 									Sign In
 								</a>
 							</div>
 						</div>
-					}>
+					}
+					when={user()}>
 					<div class="mx-auto max-w-7xl space-y-6">
 						{/* Header */}
 						<Card>
@@ -68,13 +68,13 @@ export default function Widgets() {
 								<For each={categories}>
 									{(category) => (
 										<Button
+											onClick={() => setSelectedCategory(category.value)}
 											type="button"
 											variant={
 												selectedCategory() === category.value
 													? "primary"
 													: "secondary"
-											}
-											onClick={() => setSelectedCategory(category.value)}>
+											}>
 											{category.name}
 										</Button>
 									)}
@@ -87,8 +87,8 @@ export default function Widgets() {
 							<For each={filteredWidgets()}>
 								{(widget) => (
 									<Card
-										padding="none"
-										class="overflow-hidden transition-shadow hover:shadow-lg">
+										class="overflow-hidden transition-shadow hover:shadow-lg"
+										padding="none">
 										{/* Widget Icon Header */}
 										<div class="bg-linear-to-r from-purple-500 to-pink-500 p-6 text-center">
 											<div class="mb-2 text-6xl">{widget.icon}</div>
@@ -115,16 +115,16 @@ export default function Widgets() {
 
 											<div class="flex gap-2">
 												<Show
-													when={widget.status === "available"}
 													fallback={
-														<Button type="button" variant="secondary" disabled>
+														<Button disabled type="button" variant="secondary">
 															Configure
 														</Button>
-													}>
+													}
+													when={widget.status === "available"}>
 													<Button
 														as="link"
-														href={widget.settingsRoute}
-														class="flex-1 text-center">
+														class="flex-1 text-center"
+														href={widget.settingsRoute}>
 														Configure
 													</Button>
 												</Show>
@@ -132,9 +132,9 @@ export default function Widgets() {
 													<Button
 														as="a"
 														href={`${widget.displayRoute}/${user()?.id}`}
-														variant="ghost"
+														rel="noopener noreferrer"
 														target="_blank"
-														rel="noopener noreferrer">
+														variant="ghost">
 														<span class="sr-only">
 															Open widget display in new tab
 														</span>
@@ -145,10 +145,10 @@ export default function Widgets() {
 															stroke="currentColor"
 															viewBox="0 0 24 24">
 															<path
+																d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
 																stroke-linecap="round"
 																stroke-linejoin="round"
 																stroke-width="2"
-																d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
 															/>
 														</svg>
 													</Button>

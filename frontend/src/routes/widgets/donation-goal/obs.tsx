@@ -1,6 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createMemo, Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import {
 	createUserScopedStreamEventsCollection,
 	streamEventsCollection,
@@ -60,12 +60,12 @@ export default function DonationGoalOBS() {
 	return (
 		<div class="flex h-screen w-full items-center justify-center overflow-hidden bg-transparent p-8">
 			<Show
-				when={userId()}
 				fallback={
 					<div class="rounded-lg bg-red-500 p-4 text-2xl text-white">
 						Error: No userId provided in URL parameters
 					</div>
-				}>
+				}
+				when={userId()}>
 				<div class="w-full max-w-2xl">
 					<div class="rounded-2xl bg-linear-to-r from-purple-900/80 to-pink-900/80 p-8 shadow-2xl backdrop-blur-sm">
 						<div class="mb-6 text-center font-bold text-3xl text-white">

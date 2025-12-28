@@ -81,8 +81,8 @@ export default function Terms() {
 								<p class="text-gray-300">
 									{t("terms.section10Text")}{" "}
 									<A
-										href="/contact"
-										class="text-purple-400 hover:text-purple-300">
+										class="text-purple-400 hover:text-purple-300"
+										href="/contact">
 										{t("terms.contactUs")}
 									</A>
 									.

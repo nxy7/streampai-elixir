@@ -40,8 +40,8 @@ import {
 	NumberField,
 	SelectField,
 	SliderField,
-	TextareaField,
 	TextField,
+	TextareaField,
 } from "./fields";
 import { introspectSchema } from "./introspect";
 import type { FormMeta, IntrospectedField } from "./types";
@@ -77,58 +77,58 @@ const SchemaField: Component<{
 		<Switch fallback={<div>Unsupported field type: {props.field.type}</div>}>
 			<Match when={props.field.inputType === "text"}>
 				<TextField
-					field={props.field}
-					value={props.value as string}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as string}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "number"}>
 				<NumberField
-					field={props.field}
-					value={props.value as number}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as number}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "color"}>
 				<ColorField
-					field={props.field}
-					value={props.value as string}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as string}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "checkbox"}>
 				<CheckboxField
-					field={props.field}
-					value={props.value as boolean}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as boolean}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "select"}>
 				<SelectField
-					field={props.field}
-					value={props.value as string}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as string}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "slider"}>
 				<SliderField
-					field={props.field}
-					value={props.value as number}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as number}
 				/>
 			</Match>
 			<Match when={props.field.inputType === "textarea"}>
 				<TextareaField
-					field={props.field}
-					value={props.value as string}
-					onChange={props.onChange}
 					disabled={props.disabled}
+					field={props.field}
+					onChange={props.onChange}
+					value={props.value as string}
 				/>
 			</Match>
 		</Switch>
@@ -157,10 +157,8 @@ export function SchemaForm<T extends z.ZodRawShape>(
 							<For each={fields}>
 								{(field) => (
 									<SchemaField
+										disabled={props.disabled}
 										field={field}
-										value={
-											props.values[field.name as keyof typeof props.values]
-										}
 										onChange={(value) =>
 											props.onChange(
 												field.name as keyof z.infer<z.ZodObject<T>>,
@@ -169,7 +167,9 @@ export function SchemaForm<T extends z.ZodRawShape>(
 												>],
 											)
 										}
-										disabled={props.disabled}
+										value={
+											props.values[field.name as keyof typeof props.values]
+										}
 									/>
 								)}
 							</For>
@@ -182,15 +182,15 @@ export function SchemaForm<T extends z.ZodRawShape>(
 			<For each={introspected().ungrouped}>
 				{(field) => (
 					<SchemaField
+						disabled={props.disabled}
 						field={field}
-						value={props.values[field.name as keyof typeof props.values]}
 						onChange={(value) =>
 							props.onChange(
 								field.name as keyof z.infer<z.ZodObject<T>>,
 								value as z.infer<z.ZodObject<T>>[keyof z.infer<z.ZodObject<T>>],
 							)
 						}
-						disabled={props.disabled}
+						value={props.values[field.name as keyof typeof props.values]}
 					/>
 				)}
 			</For>

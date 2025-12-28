@@ -1,9 +1,9 @@
 import {
+	type ParentComponent,
 	createEffect,
 	createSignal,
 	onCleanup,
 	onMount,
-	type ParentComponent,
 	useContext,
 } from "solid-js";
 import { getCurrentUser } from "~/sdk/ash_rpc";

@@ -46,7 +46,9 @@ defmodule Streampai.Repo.Migrations.AddStreamTimers do
 
     drop_if_exists index(:stream_timers, [:user_id], name: "idx_stream_timers_user_id")
 
-    drop_if_exists index(:stream_timers, [:user_id, :is_running], name: "idx_stream_timers_user_running")
+    drop_if_exists index(:stream_timers, [:user_id, :is_running],
+                     name: "idx_stream_timers_user_running"
+                   )
 
     drop table(:stream_timers)
   end

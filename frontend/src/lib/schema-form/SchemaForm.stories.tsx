@@ -79,12 +79,12 @@ export const Basic: Story = {
 				<div>
 					<h2 class="mb-4 font-semibold text-gray-900 text-lg">Basic Form</h2>
 					<SchemaForm
-						schema={simpleSchema}
 						meta={simpleMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={simpleSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -125,12 +125,12 @@ export const TimerConfig: Story = {
 						Schema and metadata are separate (schema could be auto-generated)
 					</p>
 					<SchemaForm
-						schema={timerConfigSchema}
 						meta={timerConfigMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={timerConfigSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -168,12 +168,12 @@ export const ChatConfig: Story = {
 						Form with select dropdowns and toggles
 					</p>
 					<SchemaForm
-						schema={chatConfigSchema}
 						meta={chatConfigMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={chatConfigSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -213,12 +213,12 @@ export const AlertboxConfig: Story = {
 						Fields organized into groups (Animation, Appearance, Content, Audio)
 					</p>
 					<SchemaForm
-						schema={alertboxConfigSchema}
 						meta={alertboxConfigMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={alertboxConfigSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -251,11 +251,11 @@ export const Disabled: Story = {
 					All fields are disabled/read-only
 				</p>
 				<SchemaForm
-					schema={simpleSchema}
-					meta={simpleMeta}
-					values={values}
-					onChange={() => {}}
 					disabled={true}
+					meta={simpleMeta}
+					onChange={() => {}}
+					schema={simpleSchema}
+					values={values}
 				/>
 			</div>
 		);
@@ -287,12 +287,12 @@ export const AllFieldTypes: Story = {
 						Demonstrating every supported input type
 					</p>
 					<SchemaForm
-						schema={allFieldTypesSchema}
 						meta={allFieldTypesMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={allFieldTypesSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -344,11 +344,11 @@ export const NoMetadata: Story = {
 						types
 					</p>
 					<SchemaForm
-						schema={autoSchema}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={autoSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">

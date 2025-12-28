@@ -9,9 +9,9 @@ defmodule Streampai.Twitch.ApiClient do
   Requires OAuth 2.0 access token with appropriate Twitch scopes.
   """
 
-  require Logger
-
   import Streampai.HTTP.ResponseHandler, only: [handle_http_response: 2]
+
+  require Logger
 
   @base_url "https://api.twitch.tv/helix"
   @default_timeout 30_000

@@ -311,13 +311,13 @@ const defaultModerationCallbacks: ModerationCallbacks = {
 	onReplayEvent: (eventId) => {
 		console.log(`Replay event: ${eventId}`);
 	},
-	onBanUser: (userId, platform, viewerPlatformId, username) => {
+	onBanUser: (userId, platform, _viewerPlatformId, username) => {
 		console.log(`Ban user: ${username} (${userId}) on ${platform}`);
 	},
 	onTimeoutUser: (
-		userId,
-		platform,
-		viewerPlatformId,
+		_userId,
+		_platform,
+		_viewerPlatformId,
 		username,
 		durationSeconds,
 	) => {
@@ -538,14 +538,14 @@ function InteractivePreStreamWrapper() {
 
 	return (
 		<StreamControlsWidget
-			phase="pre-stream"
-			metadata={metadata()}
-			onMetadataChange={setMetadata}
-			streamKeyData={sampleStreamKeyData}
-			showStreamKey={showKey()}
-			onShowStreamKey={() => setShowKey(!showKey())}
 			copied={copied()}
+			metadata={metadata()}
 			onCopyStreamKey={handleCopy}
+			onMetadataChange={setMetadata}
+			onShowStreamKey={() => setShowKey(!showKey())}
+			phase="pre-stream"
+			showStreamKey={showKey()}
+			streamKeyData={sampleStreamKeyData}
 		/>
 	);
 }
@@ -627,14 +627,14 @@ function InteractiveLiveWrapper() {
 
 	return (
 		<StreamControlsWidget
-			phase="live"
 			activities={activities()}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			moderationCallbacks={defaultModerationCallbacks}
+			onSendMessage={handleSendMessage}
+			phase="live"
+			stickyDuration={15000}
 			streamDuration={duration()}
 			viewerCount={viewers()}
-			stickyDuration={15000}
-			connectedPlatforms={["twitch", "youtube", "kick"]}
-			onSendMessage={handleSendMessage}
-			moderationCallbacks={defaultModerationCallbacks}
 		/>
 	);
 }
@@ -712,16 +712,16 @@ function StickyTestWrapper() {
 
 	return (
 		<StreamControlsWidget
-			phase="live"
 			activities={activities()}
-			streamDuration={300}
-			viewerCount={500}
-			stickyDuration={120000}
 			connectedPlatforms={["twitch", "youtube", "kick"]}
+			moderationCallbacks={defaultModerationCallbacks}
 			onSendMessage={(msg, platforms) =>
 				console.log(`Send to ${platforms}: ${msg}`)
 			}
-			moderationCallbacks={defaultModerationCallbacks}
+			phase="live"
+			stickyDuration={120000}
+			streamDuration={300}
+			viewerCount={500}
 		/>
 	);
 }
@@ -980,9 +980,9 @@ const alertModerationCallbacks: ModerationCallbacks = {
 		);
 	},
 	onTimeoutUser: (
-		userId,
+		_userId,
 		platform,
-		viewerPlatformId,
+		_viewerPlatformId,
 		username,
 		durationSeconds,
 	) => {
@@ -1103,20 +1103,20 @@ function InteractiveTimersWrapper() {
 
 	return (
 		<StreamControlsWidget
-			phase="live"
 			activities={activities()}
-			streamDuration={1800}
-			viewerCount={500}
 			connectedPlatforms={["twitch", "youtube"]}
-			onSendMessage={handleSendMessage}
-			onStartPoll={handleStartPoll}
-			onStartGiveaway={handleStartGiveaway}
-			onChangeStreamSettings={handleChangeStreamSettings}
-			timers={timers()}
 			onAddTimer={handleAddTimer}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onDeleteTimer={handleDeleteTimer}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
 			onStartTimer={handleStartTimer}
 			onStopTimer={handleStopTimer}
-			onDeleteTimer={handleDeleteTimer}
+			phase="live"
+			streamDuration={1800}
+			timers={timers()}
+			viewerCount={500}
 		/>
 	);
 }

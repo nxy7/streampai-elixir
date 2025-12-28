@@ -13,6 +13,7 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
 
   alias Streampai.Twitch.ApiClient, as: TwitchClient
   alias Streampai.YouTube.ApiClient, as: YouTubeClient
+  alias Ueberauth.Strategy.Google.OAuth
 
   require Logger
 
@@ -65,6 +66,7 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
 
         {:error, reason} ->
           Logger.warning("Failed to refresh OAuth token: #{inspect(reason)}, using existing token")
+
           {access_token, changeset}
       end
     else
@@ -83,8 +85,10 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
   defp refresh_oauth_token(_platform, _refresh_token), do: {:error, :unsupported_platform}
 
   defp refresh_google_token(refresh_token) do
-    client_id = Application.get_env(:ueberauth, Ueberauth.Strategy.Google.OAuth)[:client_id]
-    client_secret = Application.get_env(:ueberauth, Ueberauth.Strategy.Google.OAuth)[:client_secret]
+    client_id = Application.get_env(:ueberauth, OAuth)[:client_id]
+
+    client_secret =
+      Application.get_env(:ueberauth, OAuth)[:client_secret]
 
     case Req.post("https://oauth2.googleapis.com/token",
            form: [
@@ -112,7 +116,9 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
 
   defp refresh_twitch_token(refresh_token) do
     client_id = Application.get_env(:ueberauth, Ueberauth.Strategy.Twitch.OAuth)[:client_id]
-    client_secret = Application.get_env(:ueberauth, Ueberauth.Strategy.Twitch.OAuth)[:client_secret]
+
+    client_secret =
+      Application.get_env(:ueberauth, Ueberauth.Strategy.Twitch.OAuth)[:client_secret]
 
     case Req.post("https://id.twitch.tv/oauth2/token",
            form: [

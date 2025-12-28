@@ -3,5 +3,9 @@
   // "typescript.enablePromptUseWorkspaceTsdk": true,
   "CodeGPT.apiKey": "Perplexity",
   "oxc.enable": false,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit"
+  }
 }

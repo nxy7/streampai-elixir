@@ -116,10 +116,10 @@ export const CustomMax: Story = {
 export const AllVariants: Story = {
 	render: () => (
 		<div style={{ display: "flex", "flex-direction": "column", gap: "16px" }}>
-			<ProgressBar value={60} variant="primary" label="Primary" showValue />
-			<ProgressBar value={80} variant="success" label="Success" showValue />
-			<ProgressBar value={50} variant="warning" label="Warning" showValue />
-			<ProgressBar value={90} variant="danger" label="Danger" showValue />
+			<ProgressBar label="Primary" showValue value={60} variant="primary" />
+			<ProgressBar label="Success" showValue value={80} variant="success" />
+			<ProgressBar label="Warning" showValue value={50} variant="warning" />
+			<ProgressBar label="Danger" showValue value={90} variant="danger" />
 		</div>
 	),
 };
@@ -127,9 +127,9 @@ export const AllVariants: Story = {
 export const AllSizes: Story = {
 	render: () => (
 		<div style={{ display: "flex", "flex-direction": "column", gap: "16px" }}>
-			<ProgressBar value={60} size="sm" label="Small" />
-			<ProgressBar value={60} size="md" label="Medium" />
-			<ProgressBar value={60} size="lg" label="Large" />
+			<ProgressBar label="Small" size="sm" value={60} />
+			<ProgressBar label="Medium" size="md" value={60} />
+			<ProgressBar label="Large" size="lg" value={60} />
 		</div>
 	),
 };
@@ -138,11 +138,11 @@ export const StorageUsage: Story = {
 	render: () => (
 		<div style={{ display: "flex", "flex-direction": "column", gap: "16px" }}>
 			<ProgressBar
-				value={2.5}
-				max={10}
-				variant="primary"
 				label="Storage"
+				max={10}
 				showValue
+				value={2.5}
+				variant="primary"
 			/>
 			<p style={{ "font-size": "12px", color: "#6b7280", margin: 0 }}>
 				2.5 GB of 10 GB used
@@ -155,7 +155,7 @@ export const StorageUsage: Story = {
 export const DonationGoal: Story = {
 	render: () => (
 		<div style={{ display: "flex", "flex-direction": "column", gap: "8px" }}>
-			<ProgressBar value={340} max={500} variant="success" size="lg" />
+			<ProgressBar max={500} size="lg" value={340} variant="success" />
 			<div
 				style={{
 					display: "flex",

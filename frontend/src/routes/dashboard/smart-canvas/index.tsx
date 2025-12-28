@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import { useCurrentUser } from "~/lib/auth";
@@ -127,9 +127,9 @@ function PaletteWidgetItem(props: {
 
 	return (
 		<button
-			type="button"
 			class="flex cursor-pointer items-center gap-3 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 p-3 text-white transition-shadow hover:shadow-lg"
-			onClick={handleAddWidget}>
+			onClick={handleAddWidget}
+			type="button">
 			<span class="text-2xl">{props.widgetDef.icon}</span>
 			<span class="font-semibold">{props.widgetDef.name}</span>
 		</button>
@@ -204,8 +204,8 @@ function CanvasWidgetComponent(props: {
 
 	return (
 		<button
-			type="button"
 			class="group absolute text-left"
+			onClick={handleSelect}
 			style={{
 				left: `${props.widget.x}px`,
 				top: `${props.widget.y}px`,
@@ -213,14 +213,14 @@ function CanvasWidgetComponent(props: {
 				height: `${props.widget.height}px`,
 				"z-index": props.selectedWidgetId === props.widget.id ? 20 : 10,
 			}}
-			onClick={handleSelect}>
+			type="button">
 			<div
-				role="application"
 				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-purple-500 to-pink-500 p-4 shadow-lg"
 				classList={{
 					"ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
 				}}
-				onMouseDown={handleMouseDown}>
+				onMouseDown={handleMouseDown}
+				role="application">
 				<div class="mb-2 flex items-center gap-2 text-white">
 					<span class="text-xl">{widgetDef()?.icon}</span>
 					<span class="font-semibold text-sm">{widgetDef()?.name}</span>
@@ -237,17 +237,16 @@ function CanvasWidgetComponent(props: {
 			</div>
 
 			<button
-				type="button"
 				class="delete-button absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
 				onClick={(e) => {
 					e.stopPropagation();
 					props.onDelete(props.widget.id);
-				}}>
+				}}
+				type="button">
 				×
 			</button>
 
 			<button
-				type="button"
 				class="resize-handle absolute -right-2 -bottom-2 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-full border-2 border-white bg-blue-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
 				onMouseDown={(e) => {
 					e.stopPropagation();
@@ -276,7 +275,8 @@ function CanvasWidgetComponent(props: {
 
 					document.addEventListener("mousemove", handleMouseMove);
 					document.addEventListener("mouseup", handleMouseUp);
-				}}>
+				}}
+				type="button">
 				⇲
 			</button>
 		</button>
@@ -543,10 +543,10 @@ export default function SmartCanvas() {
 								</p>
 								<div class="flex gap-2">
 									<input
-										type="text"
-										readonly
-										value={obsUrl()}
 										class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-sm"
+										readonly
+										type="text"
+										value={obsUrl()}
 									/>
 									<Button
 										onClick={() => {
@@ -563,16 +563,16 @@ export default function SmartCanvas() {
 						<div class="flex items-center justify-between">
 							<div class="flex gap-2">
 								<Button
-									variant={layoutSaved() ? "success" : "primary"}
-									onClick={saveLayout}>
+									onClick={saveLayout}
+									variant={layoutSaved() ? "success" : "primary"}>
 									{layoutSaved() ? "Layout Saved" : "Save Layout"}
 								</Button>
-								<Button variant="secondary" onClick={clearWidgets}>
+								<Button onClick={clearWidgets} variant="secondary">
 									Clear All
 								</Button>
 								<Button
-									variant="ghost"
-									onClick={() => setCanvasMaximized(!canvasMaximized())}>
+									onClick={() => setCanvasMaximized(!canvasMaximized())}
+									variant="ghost">
 									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
 								</Button>
 							</div>
@@ -605,9 +605,9 @@ export default function SmartCanvas() {
 								}}>
 								<Show when={canvasMaximized()}>
 									<button
-										type="button"
 										class="absolute top-4 right-4 z-50 rounded-lg bg-gray-800 p-2 text-white hover:bg-gray-700"
-										onClick={() => setCanvasMaximized(false)}>
+										onClick={() => setCanvasMaximized(false)}
+										type="button">
 										✕
 									</button>
 								</Show>
@@ -626,9 +626,15 @@ export default function SmartCanvas() {
 									}}>
 									<div class="relative h-full w-full">
 										<div
-											role="application"
-											ref={setCanvasRef}
 											class="absolute overflow-hidden rounded-lg border-2 border-gray-700 bg-gray-950"
+											onClick={() => setSelectedWidgetId(null)}
+											onKeyDown={(e) => {
+												if (e.key === "Escape") {
+													setSelectedWidgetId(null);
+												}
+											}}
+											ref={setCanvasRef}
+											role="application"
 											style={{
 												width: "1920px",
 												height: "1080px",
@@ -637,24 +643,18 @@ export default function SmartCanvas() {
 												background:
 													"linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
 												"background-size": "50px 50px",
-											}}
-											onClick={() => setSelectedWidgetId(null)}
-											onKeyDown={(e) => {
-												if (e.key === "Escape") {
-													setSelectedWidgetId(null);
-												}
 											}}>
 											<For each={widgets()}>
 												{(widget) => (
 													<CanvasWidgetComponent
-														widget={widget}
-														selectedWidgetId={selectedWidgetId()}
-														onSelect={setSelectedWidgetId}
 														onDelete={deleteWidget}
+														onSelect={setSelectedWidgetId}
 														onUpdatePosition={updateWidgetPosition}
 														onUpdateSize={updateWidgetSize}
 														scale={scale()}
+														selectedWidgetId={selectedWidgetId()}
 														setIsResizing={setIsResizing}
+														widget={widget}
 													/>
 												)}
 											</For>

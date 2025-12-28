@@ -34,11 +34,11 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 
 	return (
 		<Select
-			value={locale()}
-			onChange={(e) => handleLanguageChange(e.currentTarget.value as Locale)}
-			class={props.class}
 			aria-label="Select language"
-			data-testid="language-switcher">
+			class={props.class}
+			data-testid="language-switcher"
+			onChange={(e) => handleLanguageChange(e.currentTarget.value as Locale)}
+			value={locale()}>
 			<For each={[...SUPPORTED_LOCALES]}>
 				{(localeCode) => (
 					<option value={localeCode}>{LOCALE_NAMES[localeCode]}</option>

@@ -16,8 +16,8 @@
  */
 import {
 	type Component,
-	createSignal,
 	type JSX,
+	createSignal,
 	onCleanup,
 	onMount,
 } from "solid-js";
@@ -38,9 +38,9 @@ import TopDonorsWidget from "~/components/widgets/TopDonorsWidget";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
 import type { WidgetType } from "~/lib/electric";
 import {
+	type ViewerData,
 	generateViewerData,
 	generateViewerUpdate,
-	type ViewerData,
 } from "~/lib/fake/viewer-count";
 import type { FormMeta } from "~/lib/schema-form";
 import { text } from "~/styles/design-system";
@@ -514,10 +514,10 @@ function AlertboxPreviewWrapper(props: {
 	return (
 		<div>
 			<Button
-				type="button"
-				variant="secondary"
 				class="mb-4"
-				onClick={cycleDemoEvent}>
+				onClick={cycleDemoEvent}
+				type="button"
+				variant="secondary">
 				Show Next Alert Type
 			</Button>
 			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "400px" }}>
@@ -640,12 +640,12 @@ function DonationGoalPreviewWrapper(props: {
 						Test Progress: {demoAmount()}/{props.config.goalAmount}
 					</span>
 					<input
-						type="range"
 						class="w-full"
-						min="0"
 						max={props.config.goalAmount}
-						value={demoAmount()}
+						min="0"
 						onInput={(e) => setDemoAmount(Number.parseInt(e.target.value, 10))}
+						type="range"
+						value={demoAmount()}
 					/>
 				</label>
 			</div>
@@ -782,10 +782,10 @@ function GiveawayPreviewWrapper(props: {
 		<div>
 			<div class="mb-4">
 				<Select
-					value={demoMode()}
 					onChange={(e) =>
 						setDemoMode(e.currentTarget.value as "active" | "winner")
-					}>
+					}
+					value={demoMode()}>
 					<option value="active">Active Giveaway</option>
 					<option value="winner">Winner Announcement</option>
 				</Select>
@@ -845,10 +845,10 @@ function PollPreviewWrapper(props: {
 			<div class="mb-4">
 				<Select
 					label="Preview Mode"
-					value={demoMode()}
 					onChange={(e) =>
 						setDemoMode(e.currentTarget.value as "active" | "ended")
-					}>
+					}
+					value={demoMode()}>
 					<option value="active">Active Poll</option>
 					<option value="ended">Ended Poll (Results)</option>
 				</Select>
