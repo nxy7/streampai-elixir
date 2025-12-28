@@ -227,7 +227,7 @@ export default function AdminUsers() {
 				}
 				when={!authLoading()}>
 				<Show when={currentUser()?.role === "admin"}>
-					<div class="mx-auto max-w-6xl space-y-6">
+					<div class="mx-auto max-w-6xl space-y-6 overflow-x-hidden">
 						<Show when={successMessage()}>
 							<Alert onClose={() => setSuccessMessage(null)} variant="success">
 								{successMessage()}
@@ -340,13 +340,13 @@ export default function AdminUsers() {
 													<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
 														{new Date(user.inserted_at).toLocaleDateString()}
 													</td>
-													<td class="whitespace-nowrap px-6 py-4 font-medium text-sm">
-														<div class="flex items-center space-x-3">
+													<td class="px-6 py-4 font-medium text-sm">
+														<div class="flex items-center gap-2">
 															<button
-																class="text-green-600 hover:text-green-900 hover:underline"
+																class="shrink-0 text-green-600 hover:text-green-900 hover:underline"
 																onClick={() => openGrantModal(user)}
 																type="button">
-																Grant PRO
+																PRO
 															</button>
 															<Show
 																when={
@@ -354,13 +354,28 @@ export default function AdminUsers() {
 																	user.role !== "admin"
 																}>
 																<button
-																	class="text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+																	class="shrink-0 text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
 																	disabled={impersonatingUserId() !== null}
 																	onClick={() => handleImpersonate(user.id)}
+																	title={t("admin.impersonate")}
 																	type="button">
-																	{impersonatingUserId() === user.id
-																		? "..."
-																		: t("admin.impersonate")}
+																	{impersonatingUserId() === user.id ? (
+																		"..."
+																	) : (
+																		<svg
+																			aria-hidden="true"
+																			class="h-4 w-4"
+																			fill="none"
+																			stroke="currentColor"
+																			viewBox="0 0 24 24">
+																			<path
+																				d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+																				stroke-linecap="round"
+																				stroke-linejoin="round"
+																				stroke-width="2"
+																			/>
+																		</svg>
+																	)}
 																</button>
 															</Show>
 														</div>
