@@ -72,8 +72,8 @@ export interface WidgetDefinition<T extends z.ZodRawShape = z.ZodRawShape> {
 	component: Component<any>;
 	// biome-ignore lint/suspicious/noExplicitAny: Preview props vary by widget
 	previewProps?: Record<string, any>;
-	// biome-ignore lint/suspicious/noExplicitAny: Wrapper receives config of widget's type
 	previewWrapper?: (props: {
+		// biome-ignore lint/suspicious/noExplicitAny: Wrapper receives config of widget's type
 		config: any;
 		children: JSX.Element;
 	}) => JSX.Element;

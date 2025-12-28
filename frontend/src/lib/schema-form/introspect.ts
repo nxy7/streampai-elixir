@@ -48,7 +48,6 @@ function unwrapSchema(schema: z.ZodTypeAny): {
 	let defaultValue: unknown;
 
 	// Keep unwrapping until we hit a non-wrapper type
-	// biome-ignore lint/suspicious/noConstantCondition: loop until break
 	while (true) {
 		const typeName = getTypeName(current);
 		const def = getDef(current);
