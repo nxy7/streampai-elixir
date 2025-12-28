@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, Index, Show } from "solid-js";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
@@ -8,10 +8,7 @@ import Input, { Select, Textarea } from "~/components/ui/Input";
 import { LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
-import {
-	createNotificationWithLocalizations,
-	deleteNotification,
-} from "~/sdk/ash_rpc";
+import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
 type LocalizationEntry = {
@@ -107,26 +104,30 @@ export default function AdminNotifications() {
 		setError(null);
 
 		try {
-			// Filter out empty localizations and format for API
-			const validLocalizations = localizations()
-				.filter((l) => l.content.trim())
-				.map((l) => ({ locale: l.locale, content: l.content.trim() }));
-
+			// Build input with localization columns
 			const input: {
 				content: string;
 				userId?: string | null;
-				localizations?: Array<{ locale: string; content: string }>;
+				contentDe?: string | null;
+				contentPl?: string | null;
+				contentEs?: string | null;
 			} = { content };
 
 			if (notificationType() === "user") {
 				input.userId = targetUserId().trim();
 			}
 
-			if (validLocalizations.length > 0) {
-				input.localizations = validLocalizations;
+			// Map localizations to columns
+			for (const loc of localizations()) {
+				const trimmedContent = loc.content.trim();
+				if (trimmedContent) {
+					if (loc.locale === "de") input.contentDe = trimmedContent;
+					if (loc.locale === "pl") input.contentPl = trimmedContent;
+					if (loc.locale === "es") input.contentEs = trimmedContent;
+				}
 			}
 
-			const result = await createNotificationWithLocalizations({
+			const result = await createNotification({
 				input,
 				fields: ["id", "content", "userId", "insertedAt"],
 				fetchOptions: { credentials: "include" },
@@ -482,16 +483,16 @@ export default function AdminNotifications() {
 										<Show when={showLocalizations()}>
 											<div class="mt-3 space-y-3">
 												{/* Existing localizations */}
-												<For each={localizations()}>
-													{(loc) => (
+												<Index each={localizations()}>
+													{(loc, index) => (
 														<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
 															<div class="mb-2 flex items-center justify-between">
 																<span class="font-medium text-gray-700 text-sm">
-																	{LOCALE_NAMES[loc.locale]}
+																	{LOCALE_NAMES[loc().locale]}
 																</span>
 																<button
 																	type="button"
-																	onClick={() => removeLocalization(loc.locale)}
+																	onClick={() => removeLocalization(loc().locale)}
 																	class="text-red-500 hover:text-red-700"
 																	title="Remove translation">
 																	<svg
@@ -510,19 +511,19 @@ export default function AdminNotifications() {
 																</button>
 															</div>
 															<Textarea
-																value={loc.content}
+																value={loc().content}
 																onInput={(e) =>
 																	updateLocalizationContent(
-																		loc.locale,
+																		loc().locale,
 																		e.currentTarget.value,
 																	)
 																}
 																rows={2}
-																placeholder={`Enter ${LOCALE_NAMES[loc.locale]} translation...`}
+																placeholder={`Enter ${LOCALE_NAMES[loc().locale]} translation...`}
 															/>
 														</div>
 													)}
-												</For>
+												</Index>
 
 												{/* Add new localization */}
 												<Show when={availableLocales().length > 0}>

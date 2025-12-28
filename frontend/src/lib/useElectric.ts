@@ -3,7 +3,6 @@ import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
 	chatMessagesCollection,
-	createNotificationLocalizationsCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
@@ -13,7 +12,6 @@ import {
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
 	createWidgetConfigsCollection,
-	emptyNotificationLocalizationsCollection,
 	emptyNotificationReadsCollection,
 	emptyNotificationsCollection,
 	emptyStreamingAccountsCollection,
@@ -23,7 +21,6 @@ import {
 	type Livestream,
 	livestreamsCollection,
 	type Notification,
-	type NotificationLocalization,
 	type NotificationRead,
 	type StreamEvent,
 	streamEventsCollection,
@@ -330,9 +327,6 @@ const getNotificationsCollection = createCollectionCache(
 const getNotificationReadsCollection = createCollectionCache(
 	createNotificationReadsCollection,
 );
-const getNotificationLocalizationsCollection = createCollectionCache(
-	createNotificationLocalizationsCollection,
-);
 
 export function useNotifications(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
@@ -366,22 +360,6 @@ export function useNotificationReads(userId: () => string | undefined) {
 	};
 }
 
-export function useNotificationLocalizations(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
-		const currentId = userId();
-		if (!currentId) return emptyNotificationLocalizationsCollection;
-		return getNotificationLocalizationsCollection(currentId);
-	});
-
-	return {
-		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as NotificationLocalization[];
-		}),
-	};
-}
-
 export type NotificationWithReadStatus = {
 	id: string;
 	user_id: string | null;
@@ -390,11 +368,11 @@ export type NotificationWithReadStatus = {
 	wasSeen: boolean;
 	seenAt: string | null;
 	localizedContent: string;
-	localizations: Record<string, string>;
 };
 
 /**
  * Returns notifications with read status and localized content.
+ * Localized content is stored directly in notification columns (content_de, content_pl, content_es).
  * If a localization for the given locale exists, it will be used.
  * Otherwise, falls back to the default (English) content.
  */
@@ -408,41 +386,30 @@ export function useNotificationsWithReadStatus(
 } {
 	const notificationsQuery = useNotifications(userId);
 	const readsQuery = useNotificationReads(userId);
-	const localizationsQuery = useNotificationLocalizations(userId);
 
 	const isLoading = createMemo(
-		() =>
-			notificationsQuery.isLoading() ||
-			readsQuery.isLoading() ||
-			localizationsQuery.isLoading(),
+		() => notificationsQuery.isLoading() || readsQuery.isLoading(),
 	);
 
 	return {
 		data: createMemo((): NotificationWithReadStatus[] => {
 			const notifications = notificationsQuery.data();
 			const reads = readsQuery.data();
-			const localizations = localizationsQuery.data();
 			const currentLocale = locale?.() || "en";
 
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
 
-			// Build a map of notification_id -> Record<locale, content>
-			const localizationMap = new Map<string, Record<string, string>>();
-			for (const loc of localizations) {
-				let notificationLocs = localizationMap.get(loc.notification_id);
-				if (!notificationLocs) {
-					notificationLocs = {};
-					localizationMap.set(loc.notification_id, notificationLocs);
-				}
-				notificationLocs[loc.locale] = loc.content;
-			}
-
 			const withStatus = notifications.map(
 				(n): NotificationWithReadStatus => {
-					const notificationLocs = localizationMap.get(n.id) || {};
-					// Use localized content if available, otherwise fall back to default content
-					const localizedContent =
-						notificationLocs[currentLocale] || n.content;
+					// Get localized content based on current locale
+					let localizedContent = n.content; // Default to English
+					if (currentLocale === "de" && n.content_de) {
+						localizedContent = n.content_de;
+					} else if (currentLocale === "pl" && n.content_pl) {
+						localizedContent = n.content_pl;
+					} else if (currentLocale === "es" && n.content_es) {
+						localizedContent = n.content_es;
+					}
 
 					return {
 						id: n.id,
@@ -452,7 +419,6 @@ export function useNotificationsWithReadStatus(
 						wasSeen: readMap.has(n.id),
 						seenAt: readMap.get(n.id) || null,
 						localizedContent,
-						localizations: notificationLocs,
 					};
 				},
 			);
@@ -587,7 +553,6 @@ export type {
 	WidgetType,
 	Notification,
 	NotificationRead,
-	NotificationLocalization,
 	UserRole,
 	StreamingAccount,
 };

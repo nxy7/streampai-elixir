@@ -144,7 +144,6 @@ defmodule StreampaiWeb.Router do
     get "/widget_configs/:user_id", SyncController, :widget_configs
     get "/notifications/:user_id", SyncController, :notifications
     get "/notification_reads/:user_id", SyncController, :notification_reads
-    get "/notification_localizations/:user_id", SyncController, :notification_localizations
     get "/global_notifications", SyncController, :global_notifications
     get "/user_roles/:user_id", SyncController, :user_roles
 

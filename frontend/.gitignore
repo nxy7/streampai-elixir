@@ -23,6 +23,9 @@ app.config.timestamp_*.js
 # Temp
 gitignore
 
+# Storybook
+storybook-static
+
 # System Files
 .DS_Store
 Thumbs.db
