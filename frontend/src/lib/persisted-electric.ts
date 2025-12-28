@@ -292,9 +292,17 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 				try {
 					const cachedData = await state.persister.load();
 
+					// Log cache status for debugging
+					if (cachedData.length === 0) {
+						console.debug(
+							`[persistedElectric] No cached data for ${config.id} - waiting for Electric sync`,
+						);
+						return;
+					}
+
 					// Double-check hasSyncedOnce before and after loading to prevent race condition
 					// where Electric sync completes while we're loading from IndexedDB
-					if (cachedData.length > 0 && !state.hasSyncedOnce) {
+					if (!state.hasSyncedOnce) {
 						console.debug(
 							`[persistedElectric] Hydrating ${config.id} with ${cachedData.length} cached items`,
 						);
@@ -341,6 +349,9 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 					// Get all current data from collection
 					const data = Array.from(collectionRef.values());
 					await state.persister.save(data);
+					console.debug(
+						`[persistedElectric] Persisted ${data.length} items to cache for ${config.id}`,
+					);
 				} catch (error) {
 					console.warn(
 						`[persistedElectric] Failed to persist ${config.id} to cache:`,
