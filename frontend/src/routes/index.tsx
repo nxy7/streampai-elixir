@@ -2,7 +2,6 @@ import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
 import PublicFooter from "~/components/PublicFooter";
-import { ThemeToggleIcon } from "~/components/ThemeSwitcher";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, getLoginUrl, useCurrentUser } from "~/lib/auth";
 
@@ -31,7 +30,7 @@ function LandingNavigation() {
 						</div>
 					</div>
 
-					<div class="hidden items-center space-x-6 md:flex">
+					<div class="hidden items-center space-x-8 md:flex">
 						{navItems.map((item) => (
 							<a
 								class="text-gray-300 transition-colors hover:text-white"
@@ -39,7 +38,6 @@ function LandingNavigation() {
 								{t(item.labelKey)}
 							</a>
 						))}
-						<ThemeToggleIcon />
 						<Show when={!isUserLoading()}>
 							<Show
 								fallback={
@@ -91,10 +89,6 @@ function LandingNavigation() {
 									{t(item.labelKey)}
 								</a>
 							))}
-							<div class="flex items-center gap-2 py-2">
-								<span class="text-gray-300 text-sm">{t("settings.theme") || "Theme"}:</span>
-								<ThemeToggleIcon />
-							</div>
 							<Show when={!isUserLoading()}>
 								<div class="pt-2">
 									<Show
