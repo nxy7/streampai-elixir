@@ -1,7 +1,7 @@
 defmodule Streampai.Accounts.WidgetConfig.Changes.AtomizeConfigKeys do
   @moduledoc """
   Converts config map string keys to atom keys for validation.
-  This is needed because GraphQL parses JSON into maps with string keys,
+  This is needed because JSON parsing produces maps with string keys,
   but our validations expect atom keys.
   """
 

@@ -196,8 +196,8 @@ class StreampaiCloudflareStack extends TerraformStack {
 						},
 					],
 					expression:
-						'(starts_with(http.request.uri.path, "/api/")) or (starts_with(http.request.uri.path, "/graphql")) or (starts_with(http.request.uri.path, "/rpc/"))',
-					description: "Bypass cache for API, GraphQL, and RPC endpoints",
+						'(starts_with(http.request.uri.path, "/api/")) or (starts_with(http.request.uri.path, "/rpc/"))',
+					description: "Bypass cache for API and RPC endpoints",
 					enabled: true,
 				},
 				// Rule 4: Bypass cache for admin routes
@@ -305,8 +305,7 @@ class StreampaiCloudflareStack extends TerraformStack {
 							mitigationTimeout: 60,
 						},
 					],
-					expression:
-						'(starts_with(http.request.uri.path, "/api/")) or (starts_with(http.request.uri.path, "/graphql"))',
+					expression: '(starts_with(http.request.uri.path, "/api/"))',
 					description:
 						"Rate limit API endpoints: 100 requests per minute per IP",
 					enabled: true,
