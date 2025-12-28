@@ -1,4 +1,4 @@
-name: Elixir CI/CD
+name: CI/CD
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -41,8 +41,8 @@ jobs:
           cd frontend
           bun biome check .
 
-  test:
-    name: Test
+  test-backend:
+    name: Test Backend
     runs-on: ubuntu-24.04-arm
 
     services:
@@ -172,7 +172,7 @@ jobs:
   build:
     name: Build Docker image
     runs-on: ubuntu-24.04-arm
-    needs: [test, test-frontend]
+    needs: [test-backend, test-frontend]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
