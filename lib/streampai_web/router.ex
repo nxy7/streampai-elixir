@@ -114,9 +114,6 @@ defmodule StreampaiWeb.Router do
 
     sign_out_route(AuthController, "/auth/sign-out")
 
-    get("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
-    get("/impersonation/stop", ImpersonationController, :stop_impersonation)
-
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
@@ -167,6 +164,11 @@ defmodule StreampaiWeb.Router do
     post("/run", AshTypescriptRpcController, :run)
     post("/validate", AshTypescriptRpcController, :validate)
     get("/socket-token", AshTypescriptRpcController, :socket_token)
+    get("/impersonation-status", AshTypescriptRpcController, :impersonation_status)
+
+    # Impersonation API endpoints (JSON responses for SPA)
+    post("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
+    post("/impersonation/stop", ImpersonationController, :stop_impersonation)
   end
 
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]

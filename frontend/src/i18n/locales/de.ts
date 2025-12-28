@@ -580,6 +580,13 @@ export const dict: Dictionary = {
 	admin: {
 		enterUserUuid: "Benutzer-UUID eingeben",
 		enterNotificationMessage: "Benachrichtigungstext eingeben...",
+		impersonate: "Identität annehmen",
+	},
+
+	// Impersonation
+	impersonation: {
+		banner: "Du siehst die Ansicht von {{name}}",
+		exit: "Beenden",
 	},
 
 	// Donation page
