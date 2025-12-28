@@ -7,11 +7,102 @@ import {
 	onMount,
 	Show,
 } from "solid-js";
+import { z } from "zod";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { badge, button, card, input, text } from "~/styles/design-system";
+import { SchemaForm } from "~/lib/schema-form/SchemaForm";
+import type { FormMeta } from "~/lib/schema-form/types";
 
 // Maximum number of activities to keep in memory for performance
 const MAX_ACTIVITIES = 200;
+
+// =============================================================================
+// Poll Creation Schema
+// =============================================================================
+const pollCreationSchema = z.object({
+	question: z.string().default(""),
+	option1: z.string().default(""),
+	option2: z.string().default(""),
+	option3: z.string().default(""),
+	option4: z.string().default(""),
+	duration: z.number().min(1).max(60).default(5),
+	allowMultipleVotes: z.boolean().default(false),
+});
+
+type PollCreationValues = z.infer<typeof pollCreationSchema>;
+
+const pollCreationMeta: FormMeta<typeof pollCreationSchema.shape> = {
+	question: {
+		label: "Poll Question",
+		placeholder: "What should we play next?",
+	},
+	option1: {
+		label: "Option 1",
+		placeholder: "First choice",
+	},
+	option2: {
+		label: "Option 2",
+		placeholder: "Second choice",
+	},
+	option3: {
+		label: "Option 3 (optional)",
+		placeholder: "Third choice",
+	},
+	option4: {
+		label: "Option 4 (optional)",
+		placeholder: "Fourth choice",
+	},
+	duration: {
+		label: "Duration",
+		unit: "minutes",
+	},
+	allowMultipleVotes: {
+		label: "Allow Multiple Votes",
+		description: "Let viewers vote for more than one option",
+	},
+};
+
+// =============================================================================
+// Giveaway Creation Schema
+// =============================================================================
+const giveawayCreationSchema = z.object({
+	title: z.string().default("Stream Giveaway"),
+	description: z.string().default(""),
+	keyword: z.string().default("!join"),
+	duration: z.number().min(1).max(60).default(10),
+	subscriberMultiplier: z.number().min(1).max(10).default(2),
+	subscriberOnly: z.boolean().default(false),
+});
+
+type GiveawayCreationValues = z.infer<typeof giveawayCreationSchema>;
+
+const giveawayCreationMeta: FormMeta<typeof giveawayCreationSchema.shape> = {
+	title: {
+		label: "Giveaway Title",
+		placeholder: "Enter giveaway title",
+	},
+	description: {
+		label: "Description",
+		placeholder: "What are you giving away?",
+	},
+	keyword: {
+		label: "Entry Keyword",
+		placeholder: "!join",
+		description: "Viewers type this in chat to enter",
+	},
+	duration: {
+		label: "Duration",
+		unit: "minutes",
+	},
+	subscriberMultiplier: {
+		label: "Subscriber Multiplier",
+		description: "Extra entries for subscribers (e.g., 2x = double chance)",
+	},
+	subscriberOnly: {
+		label: "Subscribers Only",
+		description: "Only subscribers can enter the giveaway",
+	},
+};
 
 // Types for stream metadata
 export interface StreamMetadata {
@@ -68,8 +159,8 @@ export interface StreamSummary {
 // Stream phase types
 export type StreamPhase = "pre-stream" | "live" | "post-stream";
 
-// View mode for live stream (events vs actions)
-export type LiveViewMode = "events" | "actions";
+// View mode for live stream (events, actions, or specific action widgets)
+export type LiveViewMode = "events" | "actions" | "poll" | "giveaway";
 
 // Categories for stream
 const STREAM_CATEGORIES = [
@@ -465,15 +556,25 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 // Stream Actions Panel Component
 // =====================================================
 export interface StreamActionCallbacks {
-	onStartPoll?: () => void;
-	onStartGiveaway?: () => void;
+	onStartPoll?: (data: PollCreationValues) => void;
+	onStartGiveaway?: (data: GiveawayCreationValues) => void;
 	onModifyTimers?: () => void;
 	onChangeStreamSettings?: () => void;
 }
 
-interface StreamActionsPanelProps extends StreamActionCallbacks {}
+interface StreamActionsPanelProps extends StreamActionCallbacks {
+	onOpenWidget?: (widget: "poll" | "giveaway") => void;
+}
 
 function StreamActionsPanel(props: StreamActionsPanelProps) {
+	const handlePollClick = () => {
+		props.onOpenWidget?.("poll");
+	};
+
+	const handleGiveawayClick = () => {
+		props.onOpenWidget?.("giveaway");
+	};
+
 	const actions = [
 		{
 			id: "poll",
@@ -482,7 +583,8 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			description: "Create an interactive poll for viewers",
 			color: "bg-blue-500",
 			hoverColor: "hover:bg-blue-600",
-			onClick: props.onStartPoll,
+			onClick: handlePollClick,
+			enabled: true,
 		},
 		{
 			id: "giveaway",
@@ -491,7 +593,8 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			description: "Launch a giveaway for your audience",
 			color: "bg-green-500",
 			hoverColor: "hover:bg-green-600",
-			onClick: props.onStartGiveaway,
+			onClick: handleGiveawayClick,
+			enabled: true,
 		},
 		{
 			id: "timers",
@@ -501,6 +604,7 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			color: "bg-orange-500",
 			hoverColor: "hover:bg-orange-600",
 			onClick: props.onModifyTimers,
+			enabled: !!props.onModifyTimers,
 		},
 		{
 			id: "settings",
@@ -510,6 +614,7 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			color: "bg-purple-500",
 			hoverColor: "hover:bg-purple-600",
 			onClick: props.onChangeStreamSettings,
+			enabled: !!props.onChangeStreamSettings,
 		},
 	];
 
@@ -528,15 +633,15 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 						<button
 							type="button"
 							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
-								action.onClick
+								action.enabled
 									? "cursor-pointer"
 									: "cursor-not-allowed opacity-60"
 							}`}
 							onClick={action.onClick}
-							disabled={!action.onClick}
+							disabled={!action.enabled}
 							data-testid={`action-${action.id}`}>
 							<div
-								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.onClick ? action.hoverColor : ""}`}>
+								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.enabled ? action.hoverColor : ""}`}>
 								{action.icon}
 							</div>
 							<div class="min-w-0 flex-1">
@@ -608,6 +713,79 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	const [showFilters, setShowFilters] = createSignal(false);
 	const [viewMode, setViewMode] = createSignal<LiveViewMode>("events");
 	let scrollContainerRef: HTMLDivElement | undefined;
+
+	// Poll creation form state
+	const [pollFormValues, setPollFormValues] = createSignal<PollCreationValues>({
+		question: "",
+		option1: "",
+		option2: "",
+		option3: "",
+		option4: "",
+		duration: 5,
+		allowMultipleVotes: false,
+	});
+
+	// Giveaway creation form state
+	const [giveawayFormValues, setGiveawayFormValues] =
+		createSignal<GiveawayCreationValues>({
+			title: "Stream Giveaway",
+			description: "",
+			keyword: "!join",
+			duration: 10,
+			subscriberMultiplier: 2,
+			subscriberOnly: false,
+		});
+
+	// Check if poll form is valid (has question and at least 2 options)
+	const isPollFormValid = createMemo(() => {
+		const values = pollFormValues();
+		return (
+			values.question.trim().length > 0 &&
+			values.option1.trim().length > 0 &&
+			values.option2.trim().length > 0
+		);
+	});
+
+	// Check if giveaway form is valid (has title)
+	const isGiveawayFormValid = createMemo(() => {
+		const values = giveawayFormValues();
+		return values.title.trim().length > 0;
+	});
+
+	// Handle starting a poll
+	const handleStartPoll = () => {
+		if (isPollFormValid() && props.onStartPoll) {
+			props.onStartPoll(pollFormValues());
+			// Reset form and go back to actions
+			setPollFormValues({
+				question: "",
+				option1: "",
+				option2: "",
+				option3: "",
+				option4: "",
+				duration: 5,
+				allowMultipleVotes: false,
+			});
+			setViewMode("actions");
+		}
+	};
+
+	// Handle starting a giveaway
+	const handleStartGiveaway = () => {
+		if (isGiveawayFormValid() && props.onStartGiveaway) {
+			props.onStartGiveaway(giveawayFormValues());
+			// Reset form and go back to actions
+			setGiveawayFormValues({
+				title: "Stream Giveaway",
+				description: "",
+				keyword: "!join",
+				duration: 10,
+				subscriberMultiplier: 2,
+				subscriberOnly: false,
+			});
+			setViewMode("actions");
+		}
+	};
 
 	// Get available platforms (either from props or default to all)
 	const availablePlatforms = createMemo(
@@ -1170,7 +1348,106 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						onStartGiveaway={props.onStartGiveaway}
 						onModifyTimers={props.onModifyTimers}
 						onChangeStreamSettings={props.onChangeStreamSettings}
+						onOpenWidget={(widget) => setViewMode(widget)}
 					/>
+				</div>
+			</Show>
+
+			{/* Poll Creation View */}
+			<Show when={viewMode() === "poll"}>
+				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+					<div class="mb-4 flex items-center gap-2">
+						<button
+							type="button"
+							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							onClick={() => setViewMode("actions")}
+							data-testid="back-to-actions">
+							<span>&lt;</span>
+							<span>Back to Actions</span>
+						</button>
+					</div>
+					<div class="mb-4">
+						<h3 class="font-semibold text-gray-900 text-lg">Create Poll</h3>
+						<p class="text-gray-500 text-sm">
+							Set up an interactive poll for your viewers
+						</p>
+					</div>
+					<div class="flex-1">
+						<SchemaForm
+							schema={pollCreationSchema}
+							meta={pollCreationMeta}
+							values={pollFormValues()}
+							onChange={(field, value) => {
+								setPollFormValues((prev) => ({ ...prev, [field]: value }));
+							}}
+						/>
+					</div>
+					<div class="mt-4 flex justify-end gap-2 border-gray-200 border-t pt-4">
+						<button
+							type="button"
+							class={button.secondary}
+							onClick={() => setViewMode("actions")}
+							data-testid="cancel-poll">
+							Cancel
+						</button>
+						<button
+							type="button"
+							class={button.primary}
+							disabled={!isPollFormValid()}
+							onClick={handleStartPoll}
+							data-testid="start-poll-button">
+							Start Poll
+						</button>
+					</div>
+				</div>
+			</Show>
+
+			{/* Giveaway Creation View */}
+			<Show when={viewMode() === "giveaway"}>
+				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+					<div class="mb-4 flex items-center gap-2">
+						<button
+							type="button"
+							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							onClick={() => setViewMode("actions")}
+							data-testid="back-to-actions-giveaway">
+							<span>&lt;</span>
+							<span>Back to Actions</span>
+						</button>
+					</div>
+					<div class="mb-4">
+						<h3 class="font-semibold text-gray-900 text-lg">Create Giveaway</h3>
+						<p class="text-gray-500 text-sm">
+							Set up a giveaway for your audience
+						</p>
+					</div>
+					<div class="flex-1">
+						<SchemaForm
+							schema={giveawayCreationSchema}
+							meta={giveawayCreationMeta}
+							values={giveawayFormValues()}
+							onChange={(field, value) => {
+								setGiveawayFormValues((prev) => ({ ...prev, [field]: value }));
+							}}
+						/>
+					</div>
+					<div class="mt-4 flex justify-end gap-2 border-gray-200 border-t pt-4">
+						<button
+							type="button"
+							class={button.secondary}
+							onClick={() => setViewMode("actions")}
+							data-testid="cancel-giveaway">
+							Cancel
+						</button>
+						<button
+							type="button"
+							class={button.primary}
+							disabled={!isGiveawayFormValid()}
+							onClick={handleStartGiveaway}
+							data-testid="start-giveaway-button">
+							Start Giveaway
+						</button>
+					</div>
 				</div>
 			</Show>
 		</div>
