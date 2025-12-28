@@ -167,7 +167,8 @@ config :streampai,
     Streampai.Cloudflare,
     Streampai.System,
     Streampai.Integrations,
-    Streampai.Notifications
+    Streampai.Notifications,
+    Streampai.Storage
   ],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),
