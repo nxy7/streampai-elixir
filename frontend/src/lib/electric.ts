@@ -328,10 +328,10 @@ export function createLivestreamEventsCollection(livestreamId: string) {
 // biome-ignore lint/suspicious/noExplicitAny: Complex generic type from createCollection
 let adminUsersCollectionCache: any = null;
 
-export function getAdminUsersCollection() {
+export function getAdminUsersCollection(adminUserId?: string) {
 	if (!adminUsersCollectionCache) {
 		adminUsersCollectionCache = createCollection(
-			electricCollectionOptions<AdminUser>({
+			persistedElectricCollection<AdminUser>({
 				id: "admin_users",
 				shapeOptions: {
 					url: `${SHAPES_URL}/admin_users`,
@@ -339,6 +339,8 @@ export function getAdminUsersCollection() {
 						fetch(input, { ...init, credentials: "include" }),
 				},
 				getKey: (item) => item.id as string,
+				persist: true,
+				userId: () => adminUserId,
 			}),
 		);
 	}

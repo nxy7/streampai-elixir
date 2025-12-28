@@ -59,9 +59,9 @@ export default function AdminUsers() {
 	const isAdmin = createMemo(() => currentUser()?.role === "admin");
 
 	// Only create the admin collection when user is confirmed to be an admin
-	// The collection is lazily created and cached
+	// The collection is lazily created and cached, with persistence scoped to the admin user
 	const usersCollection = createMemo(() =>
-		isAdmin() ? getAdminUsersCollection() : null,
+		isAdmin() ? getAdminUsersCollection(currentUser()?.id) : null,
 	);
 	const usersQuery = useLiveQuery(
 		() => usersCollection() as ReturnType<typeof getAdminUsersCollection>,
