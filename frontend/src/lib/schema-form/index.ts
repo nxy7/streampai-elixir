@@ -87,9 +87,19 @@
  * No explicit ordering is needed.
  */
 
+// Field components (for custom form layouts)
+export {
+	CheckboxField,
+	ColorField,
+	NumberField,
+	SelectField,
+	SliderField,
+	TextareaField,
+	TextField,
+} from "./fields";
+export { getDefaultValues, introspectSchema } from "./introspect";
 // Core exports
 export { SchemaForm } from "./SchemaForm";
-export { introspectSchema, getDefaultValues } from "./introspect";
 export type {
 	FieldMeta,
 	FormMeta,
@@ -98,14 +108,3 @@ export type {
 	IntrospectedSchema,
 	SchemaFormProps,
 } from "./types";
-
-// Field components (for custom form layouts)
-export {
-	CheckboxField,
-	ColorField,
-	NumberField,
-	SelectField,
-	SliderField,
-	TextField,
-	TextareaField,
-} from "./fields";

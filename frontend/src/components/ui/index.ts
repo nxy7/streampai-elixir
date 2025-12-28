@@ -34,13 +34,6 @@ export {
 	type ProgressBarVariant,
 } from "./ProgressBar";
 export {
-	default as Stat,
-	StatGroup,
-	type StatGroupProps,
-	type StatProps,
-	type StatSize,
-} from "./Stat";
-export {
 	default as Skeleton,
 	SkeletonCard,
 	type SkeletonCardProps,
@@ -62,3 +55,10 @@ export {
 	SkeletonText,
 	type SkeletonTextProps,
 } from "./Skeleton";
+export {
+	default as Stat,
+	StatGroup,
+	type StatGroupProps,
+	type StatProps,
+	type StatSize,
+} from "./Stat";

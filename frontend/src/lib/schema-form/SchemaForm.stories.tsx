@@ -6,12 +6,12 @@ import type { FormMeta } from "./types";
 import {
 	alertboxConfigMeta,
 	alertboxConfigSchema,
+	allFieldTypesMeta,
+	allFieldTypesSchema,
 	chatConfigMeta,
 	chatConfigSchema,
 	timerConfigMeta,
 	timerConfigSchema,
-	allFieldTypesMeta,
-	allFieldTypesSchema,
 } from "./widget-schemas";
 
 /**

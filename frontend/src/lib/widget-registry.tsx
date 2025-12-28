@@ -15,11 +15,11 @@
  * - widgetType: Backend identifier
  */
 import {
+	type Component,
 	createSignal,
+	type JSX,
 	onCleanup,
 	onMount,
-	type Component,
-	type JSX,
 } from "solid-js";
 import { z } from "zod";
 import Button from "~/components/ui/Button";

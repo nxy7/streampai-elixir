@@ -1,8 +1,8 @@
 import { For } from "solid-js";
-import { LOCALE_NAMES, SUPPORTED_LOCALES, useI18n, type Locale } from "~/i18n";
+import { Select } from "~/components/ui/Input";
+import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES, useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { saveLanguagePreference } from "~/sdk/ash_rpc";
-import { Select } from "~/components/ui/Input";
 
 interface LanguageSwitcherProps {
 	class?: string;

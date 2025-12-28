@@ -11,12 +11,12 @@
  *   /dashboard/widgets/alertbox
  *   /dashboard/widgets/donation-goal
  */
-import { useParams, useNavigate } from "@solidjs/router";
-import { Show, createMemo } from "solid-js";
+import { useNavigate, useParams } from "@solidjs/router";
+import { createMemo, Show } from "solid-js";
+import Button from "~/components/ui/Button";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
 import { getWidgetDefinition } from "~/lib/widget-registry";
 import { text } from "~/styles/design-system";
-import Button from "~/components/ui/Button";
 
 export default function WidgetSettingsRoute() {
 	const params = useParams<{ slug: string }>();

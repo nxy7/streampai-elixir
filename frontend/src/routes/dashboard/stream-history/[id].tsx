@@ -9,13 +9,8 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
+import { Skeleton, SkeletonListItem } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
-import {
-	Card,
-	Skeleton,
-	SkeletonListItem,
-	SkeletonText,
-} from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import {
 	getLivestream,

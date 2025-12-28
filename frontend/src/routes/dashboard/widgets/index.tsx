@@ -1,16 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import {
-	getWidgetCatalog,
-	getWidgetCategories,
-	type WidgetCatalogEntry,
-} from "~/lib/widget-registry";
-import { text } from "~/styles/design-system";
+import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
-import Badge from "~/components/ui/Badge";
+import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { getWidgetCatalog, getWidgetCategories } from "~/lib/widget-registry";
+import { text } from "~/styles/design-system";
 
 // Get widgets and categories from the central registry
 const widgets = getWidgetCatalog();

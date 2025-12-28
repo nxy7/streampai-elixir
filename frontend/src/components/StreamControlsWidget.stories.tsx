@@ -2,13 +2,14 @@ import { createSignal, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import StreamControlsWidget, {
 	type ActivityItem,
+	LiveStreamControlCenter,
+	type ModerationCallbacks,
+	type Platform,
+	PostStreamSummary,
+	PreStreamSettings,
 	type StreamMetadata,
 	type StreamSummary,
-	type Platform,
-	type ModerationCallbacks,
-	PreStreamSettings,
-	LiveStreamControlCenter,
-	PostStreamSummary,
+	type StreamTimer,
 } from "./StreamControlsWidget";
 
 const meta = {
@@ -1020,10 +1021,184 @@ export const ModerationActionsTest: Story = {
 };
 
 // =====================================================
+// Timer Panel Stories
+// =====================================================
+
+const sampleTimers: StreamTimer[] = [
+	{
+		id: "timer-1",
+		label: "Social Links",
+		content:
+			"Follow me on Twitter @streamer! Join the Discord: discord.gg/stream",
+		intervalSeconds: 300, // Every 5 minutes
+		isActive: true,
+		nextFireAt: new Date(Date.now() + 180000), // 3 minutes from now
+	},
+	{
+		id: "timer-2",
+		label: "Giveaway Reminder",
+		content:
+			"Don't forget to type !enter to join today's giveaway! Winner announced at the end of stream!",
+		intervalSeconds: 600, // Every 10 minutes
+		isActive: false,
+		nextFireAt: null,
+	},
+	{
+		id: "timer-3",
+		label: "Subscribe Reminder",
+		content:
+			"Enjoying the stream? Consider subscribing! Subs get custom emotes and ad-free viewing!",
+		intervalSeconds: 900, // Every 15 minutes
+		isActive: true,
+		nextFireAt: new Date(Date.now() + 45000), // 45 seconds from now
+	},
+];
+
+// Interactive timer story with state management
+function InteractiveTimersWrapper() {
+	const [timers, setTimers] = createSignal<StreamTimer[]>(sampleTimers);
+	const [activities] = createSignal<ActivityItem[]>(generateActivities(10));
+
+	const handleAddTimer = (
+		label: string,
+		content: string,
+		intervalMinutes: number,
+	) => {
+		const newTimer: StreamTimer = {
+			id: `timer-${Date.now()}`,
+			label,
+			content,
+			intervalSeconds: intervalMinutes * 60,
+			isActive: false,
+			nextFireAt: null,
+		};
+		setTimers((t) => [...t, newTimer]);
+	};
+
+	const handleStartTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId
+					? {
+							...t,
+							isActive: true,
+							nextFireAt: new Date(Date.now() + t.intervalSeconds * 1000),
+						}
+					: t,
+			),
+		);
+	};
+
+	const handleStopTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId ? { ...t, isActive: false, nextFireAt: null } : t,
+			),
+		);
+	};
+
+	const handleDeleteTimer = (timerId: string) => {
+		setTimers((currentTimers) => currentTimers.filter((t) => t.id !== timerId));
+	};
+
+	return (
+		<StreamControlsWidget
+			phase="live"
+			activities={activities()}
+			streamDuration={1800}
+			viewerCount={500}
+			connectedPlatforms={["twitch", "youtube"]}
+			onSendMessage={handleSendMessage}
+			onStartPoll={handleStartPoll}
+			onStartGiveaway={handleStartGiveaway}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			timers={timers()}
+			onAddTimer={handleAddTimer}
+			onStartTimer={handleStartTimer}
+			onStopTimer={handleStopTimer}
+			onDeleteTimer={handleDeleteTimer}
+		/>
+	);
+}
+
+export const WithTimers: Story = {
+	render: () => <InteractiveTimersWrapper />,
+	args: {
+		phase: "live",
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Test story for the Timers panel. Click the "Actions" tab, then "Modify Timers" to open the timers panel. The timers are fully interactive - you can start, pause, reset, delete timers and add new ones. Click the back button to return to the Events view.',
+			},
+		},
+	},
+};
+
+export const LiveWithTimers: Story = {
+	args: {
+		phase: "live",
+		activities: manyActivities,
+		streamDuration: 3723,
+		viewerCount: 1024,
+		stickyDuration: 30000,
+		connectedPlatforms: ["twitch", "youtube", "kick"],
+		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onChangeStreamSettings: handleChangeStreamSettings,
+		timers: sampleTimers,
+		onAddTimer: (label: string, content: string, minutes: number) =>
+			console.log(
+				`Add timer: ${label} with content "${content}" every ${minutes} minutes`,
+			),
+		onStartTimer: (id: string) => console.log(`Start timer: ${id}`),
+		onStopTimer: (id: string) => console.log(`Stop timer: ${id}`),
+		onDeleteTimer: (id: string) => console.log(`Delete timer: ${id}`),
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Live stream with pre-configured timers. Click "Actions" tab then "Modify Timers" to see the timers panel.',
+			},
+		},
+	},
+};
+
+export const EmptyTimers: Story = {
+	args: {
+		phase: "live",
+		activities: sampleActivities,
+		streamDuration: 600,
+		viewerCount: 100,
+		connectedPlatforms: ["twitch"],
+		onSendMessage: handleSendMessage,
+		onStartPoll: handleStartPoll,
+		onStartGiveaway: handleStartGiveaway,
+		onChangeStreamSettings: handleChangeStreamSettings,
+		timers: [],
+		onAddTimer: (label: string, content: string, minutes: number) =>
+			console.log(
+				`Add timer: ${label} with content "${content}" for ${minutes} minutes`,
+			),
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Live stream with no timers configured. Click "Actions" tab then "Modify Timers" to see the empty state with the add timer button.',
+			},
+		},
+	},
+};
+
+// =====================================================
 // Individual Component Stories
 // =====================================================
 
-const preStreamMeta = {
+const _preStreamMeta = {
 	title: "Components/StreamControlsWidget/PreStreamSettings",
 	component: PreStreamSettings,
 	parameters: {
@@ -1044,7 +1219,7 @@ const preStreamMeta = {
 	],
 } satisfies Meta<typeof PreStreamSettings>;
 
-const liveMeta = {
+const _liveMeta = {
 	title: "Components/StreamControlsWidget/LiveStreamControlCenter",
 	component: LiveStreamControlCenter,
 	parameters: {
@@ -1066,7 +1241,7 @@ const liveMeta = {
 	],
 } satisfies Meta<typeof LiveStreamControlCenter>;
 
-const postStreamMeta = {
+const _postStreamMeta = {
 	title: "Components/StreamControlsWidget/PostStreamSummary",
 	component: PostStreamSummary,
 	parameters: {

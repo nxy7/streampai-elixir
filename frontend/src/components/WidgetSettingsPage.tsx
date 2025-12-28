@@ -51,20 +51,20 @@
  */
 
 import {
+	type Component,
 	createMemo,
 	createSignal,
-	Show,
-	type Component,
 	type JSX,
+	Show,
 } from "solid-js";
 import type { z } from "zod";
-import { useCurrentUser } from "~/lib/auth";
-import type { WidgetType } from "~/lib/electric";
-import { SchemaForm, getDefaultValues, type FormMeta } from "~/lib/schema-form";
-import { useWidgetConfig } from "~/lib/useElectric";
-import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
+import { useCurrentUser } from "~/lib/auth";
+import type { WidgetType } from "~/lib/electric";
+import { type FormMeta, getDefaultValues, SchemaForm } from "~/lib/schema-form";
+import { useWidgetConfig } from "~/lib/useElectric";
+import { saveWidgetConfig } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
 /**
