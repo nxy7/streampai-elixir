@@ -1,6 +1,5 @@
-import { A, useLocation, useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
 import {
-	For,
 	type JSX,
 	Show,
 	createEffect,
@@ -8,9 +7,11 @@ import {
 	createSignal,
 } from "solid-js";
 import { useTranslation } from "~/i18n";
-import { getLogoutUrl, useCurrentUser } from "~/lib/auth";
+import { useCurrentUser } from "~/lib/auth";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
-import NotificationBell from "./NotificationBell";
+import Header from "./dashboard/Header";
+import { getCurrentPage, pageTitleKeyMap } from "./dashboard/navConfig";
+import Sidebar, { MobileSidebar } from "./dashboard/Sidebar";
 
 interface DashboardLayoutProps {
 	children: JSX.Element;
@@ -35,298 +36,14 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 
 	// Auto-detect current page from URL
-	const currentPage = createMemo(() => {
-		const path = location.pathname;
-		if (path === "/dashboard") return "dashboard";
-		if (path.startsWith("/dashboard/analytics")) return "analytics";
-		if (path.startsWith("/dashboard/stream-history")) return "stream-history";
-		if (path.startsWith("/dashboard/stream")) return "stream";
-		if (path.startsWith("/dashboard/chat-history")) return "chat-history";
-		if (path.startsWith("/dashboard/viewers")) return "viewers";
-		if (path.startsWith("/dashboard/widgets")) return "widgets";
-		if (path.startsWith("/dashboard/smart-canvas")) return "smart-canvas";
-		if (path.startsWith("/dashboard/settings")) return "settings";
-		if (path.startsWith("/dashboard/admin/users")) return "users";
-		return "";
-	});
+	const currentPage = createMemo(() => getCurrentPage(location.pathname));
 
 	// Extract page title from current page (translated)
 	const pageTitle = createMemo(() => {
 		const page = currentPage();
-		const pageTitleMap: Record<string, string> = {
-			dashboard: "dashboardNav.dashboard",
-			analytics: "dashboardNav.analytics",
-			stream: "dashboardNav.stream",
-			"chat-history": "dashboardNav.chatHistory",
-			viewers: "dashboardNav.viewers",
-			"stream-history": "dashboardNav.streamHistory",
-			widgets: "dashboardNav.widgets",
-			"smart-canvas": "dashboardNav.smartCanvas",
-			settings: "dashboardNav.settings",
-			users: "dashboardNav.users",
-		};
-		const key = pageTitleMap[page] || "dashboardNav.dashboard";
+		const key = pageTitleKeyMap[page] || "dashboardNav.dashboard";
 		return t(key);
 	});
-
-	// Navigation sections with translation keys
-	const navSections = createMemo(() => [
-		{
-			titleKey: "sidebar.overview",
-			items: [
-				{
-					url: "/dashboard",
-					labelKey: "dashboardNav.dashboard",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-							<path
-								d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/analytics",
-					labelKey: "dashboardNav.analytics",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-			],
-		},
-		{
-			titleKey: "sidebar.streaming",
-			items: [
-				{
-					url: "/dashboard/stream",
-					labelKey: "dashboardNav.stream",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/chat-history",
-					labelKey: "dashboardNav.chatHistory",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/viewers",
-					labelKey: "dashboardNav.viewers",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-							<path
-								d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/stream-history",
-					labelKey: "dashboardNav.streamHistory",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-			],
-		},
-		{
-			titleKey: "sidebar.widgets",
-			items: [
-				{
-					url: "/dashboard/widgets",
-					labelKey: "dashboardNav.widgets",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/smart-canvas",
-					labelKey: "dashboardNav.smartCanvas",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-			],
-		},
-		{
-			titleKey: "sidebar.account",
-			items: [
-				{
-					url: "/dashboard/settings",
-					labelKey: "dashboardNav.settings",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-							<path
-								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-			],
-		},
-	]);
-
-	const adminSections = createMemo(() => [
-		{
-			titleKey: "sidebar.admin",
-			items: [
-				{
-					url: "/dashboard/admin/users",
-					labelKey: "dashboardNav.users",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-				{
-					url: "/dashboard/admin/notifications",
-					labelKey: "dashboardNav.notifications",
-					icon: (
-						<svg
-							aria-hidden="true"
-							class="sidebar-icon h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							/>
-						</svg>
-					),
-				},
-			],
-		},
-	]);
 
 	// Wait for auth to complete before rendering
 	// Electric sync (prefs) can load in the background - header shows skeleton fallback
@@ -354,217 +71,25 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 					/>
 				</Show>
 
-				{/* Sidebar */}
-				<div
-					class={`sidebar fixed inset-y-0 left-0 z-50 flex flex-col overflow-y-auto bg-gray-900 text-white transition-all duration-300 ease-in-out ${
-						sidebarCollapsed() ? "w-20" : "w-64"
-					} ${
-						mobileSidebarOpen() ? "translate-x-0" : "-translate-x-full"
-					} md:translate-x-0`}
-					style={{
-						"scrollbar-width": "none",
-						"-ms-overflow-style": "none",
-					}}>
-					{/* Sidebar Header */}
-					<div class="relative flex items-center justify-center border-gray-700 border-b p-4">
-						<A
-							class="flex items-center space-x-2 transition-opacity hover:opacity-80"
-							href="/">
-							<img
-								alt="Streampai Logo"
-								class="h-8 w-8"
-								src="/images/logo-white.png"
-							/>
-							<span
-								class={`font-bold text-white text-xl transition-opacity ${
-									sidebarCollapsed()
-										? "w-0 overflow-hidden opacity-0"
-										: "opacity-100"
-								}`}>
-								Streampai
-							</span>
-						</A>
-						<button
-							class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-gray-700 md:block"
-							onClick={() => setSidebarCollapsed(!sidebarCollapsed())}
-							type="button">
-							<svg
-								aria-hidden="true"
-								class="h-4 w-4"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									class={sidebarCollapsed() ? "block" : "hidden"}
-									d="M13 5l7 7-7 7M5 5l7 7-7 7"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								/>
-								<path
-									class={sidebarCollapsed() ? "hidden" : "block"}
-									d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								/>
-							</svg>
-						</button>
-					</div>
+				{/* Desktop Sidebar */}
+				<Sidebar
+					collapsed={sidebarCollapsed}
+					currentPage={currentPage}
+					isAdmin={user()?.role === "admin"}
+					isModerator={user()?.isModerator ?? false}
+					onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed())}
+				/>
 
-					{/* Main Navigation */}
-					<nav class="mt-6 flex-1">
-						<For each={navSections()}>
-							{(section) => (
-								<div class="mb-8 px-4">
-									<h3
-										class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
-											sidebarCollapsed()
-												? "h-0 overflow-hidden opacity-0"
-												: "opacity-100"
-										}`}>
-										{t(section.titleKey)}
-									</h3>
-									<div class="space-y-2">
-										<For each={section.items}>
-											{(item) => {
-												const label = () => t(item.labelKey);
-												return (
-													<A
-														class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-															currentPage() ===
-															item.url.split("/").pop()?.replace("-", "-")
-																? "bg-purple-600 text-white"
-																: "text-gray-300 hover:bg-gray-700 hover:text-white"
-														} ${sidebarCollapsed() ? "justify-center" : ""}`}
-														href={item.url}
-														title={label()}>
-														{item.icon}
-														<span
-															class={`ml-3 transition-opacity ${
-																sidebarCollapsed()
-																	? "w-0 overflow-hidden opacity-0"
-																	: "opacity-100"
-															}`}>
-															{label()}
-														</span>
-													</A>
-												);
-											}}
-										</For>
-									</div>
-								</div>
-							)}
-						</For>
-
-						<Show when={user()?.role === "admin"}>
-							<For each={adminSections()}>
-								{(section) => (
-									<div class="mb-8 px-4">
-										<h3
-											class={`mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider transition-opacity ${
-												sidebarCollapsed()
-													? "h-0 overflow-hidden opacity-0"
-													: "opacity-100"
-											}`}>
-											{t(section.titleKey)}
-										</h3>
-										<div class="space-y-2">
-											<For each={section.items}>
-												{(item) => {
-													const label = () => t(item.labelKey);
-													return (
-														<A
-															class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-																currentPage() ===
-																item.url.split("/").pop()?.replace("-", "-")
-																	? "bg-purple-600 text-white"
-																	: "text-gray-300 hover:bg-gray-700 hover:text-white"
-															} ${sidebarCollapsed() ? "justify-center" : ""}`}
-															href={item.url}
-															title={label()}>
-															{item.icon}
-															<span
-																class={`ml-3 transition-opacity ${
-																	sidebarCollapsed()
-																		? "w-0 overflow-hidden opacity-0"
-																		: "opacity-100"
-																}`}>
-																{label()}
-															</span>
-														</A>
-													);
-												}}
-											</For>
-										</div>
-									</div>
-								)}
-							</For>
-						</Show>
-					</nav>
-
-					{/* Bottom Logout Section */}
-					<div class="space-y-2 border-gray-700 border-t p-4">
-						<Show when={user()?.isModerator}>
-							<A
-								class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-blue-600 hover:text-white ${
-									sidebarCollapsed() ? "justify-center" : ""
-								}`}
-								href="/dashboard/moderate">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								<span
-									class={`ml-3 transition-opacity ${
-										sidebarCollapsed()
-											? "w-0 overflow-hidden opacity-0"
-											: "opacity-100"
-									}`}>
-									{t("dashboardNav.moderate")}
-								</span>
-							</A>
-						</Show>
-
-						<a
-							class={`nav-item flex w-full items-center rounded-lg p-3 text-gray-300 transition-colors hover:bg-red-600 hover:text-white ${
-								sidebarCollapsed() ? "justify-center" : ""
-							}`}
-							href={getLogoutUrl()}
-							rel="external">
-							<svg
-								aria-hidden="true"
-								class="h-5 w-5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								/>
-							</svg>
-							<span
-								class={`ml-3 transition-opacity ${
-									sidebarCollapsed()
-										? "w-0 overflow-hidden opacity-0"
-										: "opacity-100"
-								}`}>
-								{t("nav.signOut")}
-							</span>
-						</a>
-					</div>
-				</div>
+				{/* Mobile Sidebar */}
+				<MobileSidebar
+					collapsed={sidebarCollapsed}
+					currentPage={currentPage}
+					isAdmin={user()?.role === "admin"}
+					isModerator={user()?.isModerator ?? false}
+					onClose={() => setMobileSidebarOpen(false)}
+					onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed())}
+					open={mobileSidebarOpen}
+				/>
 
 				{/* Main Content Wrapper */}
 				<div
@@ -572,80 +97,12 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						sidebarCollapsed() ? "md:ml-20" : "md:ml-64"
 					}`}>
 					{/* Top Header */}
-					<header class="sticky top-0 z-30 flex h-16 items-center justify-between border-gray-200 border-b bg-white px-4 shadow-sm md:px-6">
-						{/* Mobile menu button */}
-						<button
-							class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
-							onClick={() => setMobileSidebarOpen(true)}
-							type="button">
-							<svg
-								aria-hidden="true"
-								class="h-6 w-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									d="M4 6h16M4 12h16M4 18h16"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								/>
-							</svg>
-						</button>
-
-						{/* Page title */}
-						<h1 class="hidden font-semibold text-gray-900 text-xl md:block">
-							{pageTitle()}
-						</h1>
-
-						<div class="flex items-center space-x-4">
-							<NotificationBell />
-							<Show when={user()}>
-								<Show
-									fallback={
-										<div class="flex items-center space-x-3">
-											<div class="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
-											<div class="hidden md:block">
-												<div class="h-4 w-20 animate-pulse rounded bg-gray-200" />
-												<div class="mt-1 h-3 w-14 animate-pulse rounded bg-gray-200" />
-											</div>
-										</div>
-									}
-									when={!prefs.isLoading() || prefs.data()}>
-									<div class="flex items-center space-x-3">
-										<A
-											class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
-											href="/dashboard/settings"
-											title={t("dashboard.goToSettings")}>
-											<Show
-												fallback={
-													<span class="font-medium text-sm text-white">
-														{prefs.data()?.name?.[0]?.toUpperCase() ||
-															user()?.email?.[0]?.toUpperCase() ||
-															""}
-													</span>
-												}
-												when={prefs.data()?.avatar_url}>
-												<img
-													alt="User Avatar"
-													class="h-full w-full object-cover"
-													src={prefs.data()?.avatar_url ?? ""}
-												/>
-											</Show>
-										</A>
-										<div class="hidden md:block">
-											<p class="font-medium text-gray-900 text-sm">
-												{prefs.data()?.name || user()?.email || ""}
-											</p>
-											<p class="text-gray-500 text-xs">
-												{t("dashboard.freePlan")}
-											</p>
-										</div>
-									</div>
-								</Show>
-							</Show>
-						</div>
-					</header>
+					<Header
+						onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+						pageTitle={pageTitle}
+						prefs={prefs}
+						user={user()}
+					/>
 
 					{/* Main Content Area */}
 					<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
