@@ -73,13 +73,35 @@
  * ## Metadata Options
  *
  * - `label`: Human-readable field label (default: derived from field name)
+ * - `labelKey`: i18n key for label (used when `t` prop is provided)
  * - `inputType`: Override auto-detected input type
  * - `description`: Help text shown below the field
+ * - `descriptionKey`: i18n key for description
  * - `placeholder`: Placeholder text (for text/textarea)
+ * - `placeholderKey`: i18n key for placeholder
  * - `unit`: Unit label (for number/slider, e.g., "px", "%")
  * - `step`: Step increment (for number/slider)
  * - `group`: Group fields into sections
+ * - `groupKey`: i18n key for group header
  * - `hidden`: Hide field from form
+ * - `options`: Custom labels for select options (maps enum value to display label)
+ * - `optionKeys`: i18n keys for select options
+ *
+ * ## i18n Support
+ *
+ * Pass the `t` translation function to enable localization:
+ * ```tsx
+ * import { useTranslation } from "~/i18n";
+ *
+ * const { t } = useTranslation();
+ *
+ * const meta = {
+ *   label: { labelKey: "settings.timerLabel" },
+ *   fontSize: { labelKey: "settings.fontSize", descriptionKey: "settings.fontSizeHelp" },
+ * };
+ *
+ * <SchemaForm schema={schema} meta={meta} values={values()} onChange={...} t={t} />
+ * ```
  *
  * ## Field Order
  *
@@ -107,4 +129,5 @@ export type {
 	IntrospectedField,
 	IntrospectedSchema,
 	SchemaFormProps,
+	TranslationFunction,
 } from "./types";
