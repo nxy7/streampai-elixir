@@ -1,4 +1,5 @@
 import { For, Show, createSignal } from "solid-js";
+import { useTranslation } from "~/i18n";
 import { button, input } from "~/styles/design-system";
 import type { StreamTimer, TimerActionCallbacks } from "./types";
 
@@ -8,6 +9,7 @@ interface TimersPanelProps extends TimerActionCallbacks {
 }
 
 export function TimersPanel(props: TimersPanelProps) {
+	const { t } = useTranslation();
 	const [showAddForm, setShowAddForm] = createSignal(false);
 	const [newTimerLabel, setNewTimerLabel] = createSignal("");
 	const [newTimerContent, setNewTimerContent] = createSignal("");
@@ -180,7 +182,7 @@ export function TimersPanel(props: TimersPanelProps) {
 									class={`${input.text} mt-1 w-full`}
 									data-testid="new-timer-label"
 									onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
-									placeholder="e.g., Social Links, Discord, etc."
+									placeholder={t("stream.timerLabelPlaceholder")}
 									type="text"
 									value={newTimerLabel()}
 								/>
@@ -193,7 +195,7 @@ export function TimersPanel(props: TimersPanelProps) {
 									class={`${input.textarea} mt-1 w-full`}
 									data-testid="new-timer-content"
 									onInput={(e) => setNewTimerContent(e.currentTarget.value)}
-									placeholder="Message to send at each interval..."
+									placeholder={t("stream.timerMessagePlaceholder")}
 									rows="2"
 									value={newTimerContent()}
 								/>

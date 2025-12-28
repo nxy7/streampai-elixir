@@ -1,4 +1,5 @@
 import { For, Show, createSignal } from "solid-js";
+import { useTranslation } from "~/i18n";
 import { badge, button, input, text } from "~/styles/design-system";
 import {
 	STREAM_CATEGORIES,
@@ -18,6 +19,7 @@ interface PreStreamSettingsProps {
 }
 
 export function PreStreamSettings(props: PreStreamSettingsProps) {
+	const { t } = useTranslation();
 	const [tagInput, setTagInput] = createSignal("");
 
 	const addTag = () => {
@@ -63,7 +65,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 									title: e.currentTarget.value,
 								})
 							}
-							placeholder="Enter your stream title..."
+							placeholder={t("stream.streamTitlePlaceholder")}
 							type="text"
 							value={props.metadata.title}
 						/>
@@ -82,7 +84,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 									description: e.currentTarget.value,
 								})
 							}
-							placeholder="Describe your stream..."
+							placeholder={t("stream.streamDescriptionPlaceholder")}
 							rows="3"
 							value={props.metadata.description}
 						/>
@@ -124,7 +126,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 										addTag();
 									}
 								}}
-								placeholder="Add a tag..."
+								placeholder={t("stream.addTagPlaceholder")}
 								type="text"
 								value={tagInput()}
 							/>
