@@ -32,8 +32,8 @@ function StreamHistorySkeleton() {
 			{/* Filters skeleton */}
 			<Card>
 				<Skeleton class="mb-4 h-6 w-32" />
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<For each={[1, 2, 3]}>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2]}>
 						{() => (
 							<div>
 								<Skeleton class="mb-2 h-4 w-20" />
@@ -45,8 +45,8 @@ function StreamHistorySkeleton() {
 			</Card>
 
 			{/* Stats skeleton */}
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-				<For each={[1, 2, 3]}>
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+				<For each={[1, 2]}>
 					{() => (
 						<Card>
 							<div class="flex flex-col items-center gap-2">
