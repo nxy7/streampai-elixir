@@ -128,6 +128,16 @@ export const dict = {
 		streamDescriptionPlaceholder: "Describe your stream...",
 	},
 
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Search messages...",
+	},
+
+	// Viewers page
+	viewers: {
+		searchPlaceholder: "Search by display name...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream Analytics",

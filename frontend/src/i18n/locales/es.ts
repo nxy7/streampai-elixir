@@ -130,6 +130,16 @@ export const dict: Dictionary = {
 		streamDescriptionPlaceholder: "Describe tu stream...",
 	},
 
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Buscar mensajes...",
+	},
+
+	// Viewers page
+	viewers: {
+		searchPlaceholder: "Buscar por nombre...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Estadísticas de streams",
