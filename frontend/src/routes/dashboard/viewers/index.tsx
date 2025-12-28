@@ -6,6 +6,7 @@ import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import Input, { Select } from "~/components/ui/Input";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
@@ -123,6 +124,7 @@ interface BannedViewer {
 export default function Viewers() {
 	const { user, isLoading } = useCurrentUser();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	const [viewMode, setViewMode] = createSignal<ViewMode>("viewers");
 	const [viewers, setViewers] = createSignal<Viewer[]>([]);
@@ -426,7 +428,7 @@ export default function Viewers() {
 												class="mt-2"
 												id="search-viewers"
 												onInput={(e) => setSearchInput(e.currentTarget.value)}
-												placeholder="Search by display name..."
+												placeholder={t("viewers.searchPlaceholder")}
 												type="text"
 												value={searchInput()}
 											/>

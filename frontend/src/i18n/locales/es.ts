@@ -135,6 +135,11 @@ export const dict: Dictionary = {
 		searchPlaceholder: "Buscar mensajes...",
 	},
 
+	// Viewers page
+	viewers: {
+		searchPlaceholder: "Buscar por nombre...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Estadísticas de streams",
