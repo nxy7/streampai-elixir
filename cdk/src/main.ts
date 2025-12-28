@@ -46,8 +46,17 @@ class StreampaiCloudflareStack extends TerraformStack {
 		// ==========================================================================
 		// DNS Records
 		// ==========================================================================
-		// Note: Root domain DNS is managed by Cloudflare Pages (PagesDomain resource)
-		// We only need to set up the www CNAME and api subdomain here
+
+		// Root domain CNAME to Pages (using CNAME flattening)
+		// Cloudflare automatically flattens root CNAME to A records
+		new Record(this, "root_cname", {
+			zoneId: config.zoneId,
+			name: "@",
+			type: "CNAME",
+			content: "streampai.pages.dev",
+			proxied: true,
+			ttl: 1,
+		});
 
 		// www redirect (CNAME to root)
 		new Record(this, "www_cname", {
