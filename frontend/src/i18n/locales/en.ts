@@ -310,6 +310,9 @@ export const dict = {
 		alreadyLoggedIn: "You're already logged in.",
 		goToDashboard: "Go to Dashboard",
 		pageTitle: "Sign In - Streampai",
+		emailPlaceholder: "you@example.com",
+		passwordPlaceholder: "Enter your password",
+		confirmPasswordPlaceholder: "Confirm your password",
 	},
 
 	// Errors
