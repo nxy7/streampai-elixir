@@ -36,6 +36,7 @@ defmodule Streampai.Integrations.DiscordActor do
     primary_read_warning?: false
 
   alias Streampai.Integrations.Discord.BotManager
+  alias Streampai.Integrations.DiscordActor.Changes
 
   @type_name "DiscordActor"
 
@@ -82,24 +83,7 @@ defmodule Streampai.Integrations.DiscordActor do
 
       change relate_actor(:user)
       change set_attribute(:type, @type_name)
-
-      change fn changeset, _context ->
-        bot_token = Ash.Changeset.get_argument(changeset, :bot_token)
-        bot_name = Ash.Changeset.get_argument(changeset, :bot_name)
-        event_types = Ash.Changeset.get_argument(changeset, :event_types) || @default_event_types
-
-        data = %{
-          "bot_token" => bot_token,
-          "bot_name" => bot_name,
-          "status" => "disconnected",
-          "event_types" => Enum.map(event_types, &to_string/1),
-          "guilds" => [],
-          "channels" => %{},
-          "messages_sent" => 0
-        }
-
-        Ash.Changeset.change_attribute(changeset, :data, data)
-      end
+      change Changes.InitializeData
     end
 
     update :update do
@@ -112,40 +96,7 @@ defmodule Streampai.Integrations.DiscordActor do
       argument :announcement_guild_id, :string, allow_nil?: true
       argument :announcement_channel_id, :string, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-
-        updates =
-          Enum.reduce(
-            [
-              :bot_token,
-              :bot_name,
-              :event_types,
-              :announcement_guild_id,
-              :announcement_channel_id
-            ],
-            %{},
-            fn key, acc ->
-              case Ash.Changeset.get_argument(changeset, key) do
-                nil ->
-                  acc
-
-                value when key == :event_types ->
-                  Map.put(acc, to_string(key), Enum.map(value, &to_string/1))
-
-                value ->
-                  Map.put(acc, to_string(key), value)
-              end
-            end
-          )
-
-        if map_size(updates) > 0 do
-          new_data = Map.merge(current_data, updates)
-          Ash.Changeset.change_attribute(changeset, :data, new_data)
-        else
-          changeset
-        end
-      end
+      change Changes.MergeDataFromArguments
     end
 
     read :get_by_id do
@@ -245,23 +196,7 @@ defmodule Streampai.Integrations.DiscordActor do
       argument :last_error, :string, allow_nil?: true
       argument :last_error_at, :utc_datetime_usec, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-        status = Ash.Changeset.get_argument(changeset, :status)
-        last_error = Ash.Changeset.get_argument(changeset, :last_error)
-        last_error_at = Ash.Changeset.get_argument(changeset, :last_error_at)
-
-        updates = %{"status" => to_string(status)}
-        updates = if last_error, do: Map.put(updates, "last_error", last_error), else: updates
-
-        updates =
-          if last_error_at,
-            do: Map.put(updates, "last_error_at", DateTime.to_iso8601(last_error_at)),
-            else: updates
-
-        new_data = Map.merge(current_data, updates)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change Changes.UpdateConnectionStatus
     end
 
     update :update_actor_state do
@@ -270,41 +205,13 @@ defmodule Streampai.Integrations.DiscordActor do
       argument :channels, :map, allow_nil?: true
       argument :last_synced_at, :utc_datetime_usec, allow_nil?: true
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-
-        updates =
-          Enum.reduce([:guilds, :channels, :last_synced_at], %{}, fn key, acc ->
-            case Ash.Changeset.get_argument(changeset, key) do
-              nil ->
-                acc
-
-              value when key == :last_synced_at ->
-                Map.put(acc, to_string(key), DateTime.to_iso8601(value))
-
-              value ->
-                Map.put(acc, to_string(key), value)
-            end
-          end)
-
-        if map_size(updates) > 0 do
-          new_data = Map.merge(current_data, updates)
-          Ash.Changeset.change_attribute(changeset, :data, new_data)
-        else
-          changeset
-        end
-      end
+      change Changes.UpdateGuildsAndChannels
     end
 
     update :record_message_sent do
       require_atomic? false
 
-      change fn changeset, _context ->
-        current_data = Ash.Changeset.get_data(changeset, :data) || %{}
-        current_count = Map.get(current_data, "messages_sent", 0)
-        new_data = Map.put(current_data, "messages_sent", current_count + 1)
-        Ash.Changeset.change_attribute(changeset, :data, new_data)
-      end
+      change Changes.IncrementMessagesSent
     end
   end
 
