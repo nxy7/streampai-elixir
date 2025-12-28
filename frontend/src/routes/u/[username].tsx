@@ -4,7 +4,6 @@ import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import { useTranslation } from "~/i18n";
-import { rpcOptions } from "~/lib/csrf";
 import { createUserPreferencesCollection } from "~/lib/electric";
 import { createLocalStorageStore } from "~/lib/useLocalStorage";
 import { getPublicProfile } from "~/sdk/ash_rpc";
@@ -50,7 +49,7 @@ export default function DonationPage() {
 			const result = await getPublicProfile({
 				input: { username },
 				fields: ["id", "name", "displayAvatar"],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!result.success) {

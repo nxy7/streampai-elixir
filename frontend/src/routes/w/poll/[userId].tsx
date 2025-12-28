@@ -1,7 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import PollWidget from "~/components/widgets/PollWidget";
-import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface PollConfig {
@@ -47,7 +46,7 @@ export default function PollWidgetDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "poll_widget" },
 			fields: ["id", "config"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data.config) {

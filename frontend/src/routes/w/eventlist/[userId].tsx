@@ -1,7 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import EventListWidget from "~/components/widgets/EventListWidget";
-import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface StreamEvent {
@@ -49,7 +48,7 @@ export default function EventListDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "eventlist_widget" },
 			fields: ["id", "config"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data.config) {

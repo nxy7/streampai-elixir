@@ -1,7 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import TopDonorsWidget from "~/components/widgets/TopDonorsWidget";
-import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface Donor {
@@ -45,7 +44,7 @@ export default function TopDonorsDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "top_donors_widget" },
 			fields: ["id", "config"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data.config) {

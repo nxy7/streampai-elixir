@@ -5,7 +5,6 @@ import { Badge, Card, Skeleton } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
-import { rpcOptions } from "~/lib/csrf";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
@@ -300,7 +299,7 @@ export default function ViewerDetail() {
 			const viewerResult = await listViewers({
 				input: { userId: user.id },
 				fields: [...viewerFields],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!viewerResult.success) {
@@ -326,12 +325,12 @@ export default function ViewerDetail() {
 				getViewerChat({
 					input: { viewerId: vId, userId: user.id },
 					fields: [...chatFields],
-					...rpcOptions(),
+					fetchOptions: { credentials: "include" },
 				}),
 				getViewerEvents({
 					input: { viewerId: vId, userId: user.id },
 					fields: [...eventFields],
-					...rpcOptions(),
+					fetchOptions: { credentials: "include" },
 				}),
 			]);
 

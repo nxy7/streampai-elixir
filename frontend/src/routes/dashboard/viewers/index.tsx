@@ -8,7 +8,6 @@ import Card from "~/components/ui/Card";
 import Input, { Select } from "~/components/ui/Input";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { rpcOptions } from "~/lib/csrf";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
@@ -216,7 +215,7 @@ export default function Viewers() {
 				const result = await searchViewers({
 					input: { userId: currentUser.id, displayName: searchTerm },
 					fields: [...viewerFields],
-					...rpcOptions(),
+					fetchOptions: { credentials: "include" },
 				});
 
 				if (!result.success) {
@@ -232,7 +231,7 @@ export default function Viewers() {
 				const result = await listViewers({
 					input: { userId: currentUser.id },
 					fields: [...viewerFields],
-					...rpcOptions(),
+					fetchOptions: { credentials: "include" },
 				});
 
 				if (!result.success) {
@@ -264,7 +263,7 @@ export default function Viewers() {
 			const result = await listBannedViewers({
 				input: { userId: currentUser.id },
 				fields: [...bannedViewerFields],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!result.success) {

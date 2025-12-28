@@ -2,7 +2,6 @@ import { Title } from "@solidjs/meta";
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import PlaceholderWidget from "~/components/widgets/PlaceholderWidget";
-import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface PlaceholderConfig {
@@ -38,7 +37,7 @@ export default function PlaceholderDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "placeholder_widget" },
 			fields: ["id", "config"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data.config) {

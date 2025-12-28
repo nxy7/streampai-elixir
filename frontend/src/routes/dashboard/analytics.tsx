@@ -27,7 +27,6 @@ import {
 } from "~/components/ui";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { rpcOptions } from "~/lib/csrf";
 import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
@@ -78,7 +77,7 @@ export default function Analytics() {
 			const result = await getStreamHistory({
 				input: { userId: currentUser.id },
 				fields: [...analyticsFields],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!result.success) {

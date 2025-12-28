@@ -1,7 +1,6 @@
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
-import { rpcOptions } from "~/lib/csrf";
 import { formatTimeAgo } from "~/lib/formatters";
 import { useNotificationsWithReadStatus } from "~/lib/useElectric";
 import { createLocalStorageSignal } from "~/lib/useLocalStorage";
@@ -39,7 +38,7 @@ export default function NotificationBell() {
 			await markNotificationRead({
 				input: { notificationId },
 				fields: ["notificationId", "userId", "seenAt"],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 		} catch (err) {
 			console.error("Error marking notification as read:", err);
@@ -53,7 +52,7 @@ export default function NotificationBell() {
 		try {
 			await markNotificationUnread({
 				input: { notificationId },
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 		} catch (err) {
 			console.error("Error marking notification as unread:", err);

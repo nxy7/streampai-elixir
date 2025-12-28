@@ -1,7 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 import SmartCanvasWidgetRenderer from "~/components/SmartCanvasWidgetRenderer";
-import { rpcOptions } from "~/lib/csrf";
 import { getSmartCanvasLayout } from "~/sdk/ash_rpc";
 
 interface CanvasWidget {
@@ -25,7 +24,7 @@ export default function SmartCanvasDisplay() {
 		const result = await getSmartCanvasLayout({
 			input: { userId },
 			fields: ["id", "userId", "widgets"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (

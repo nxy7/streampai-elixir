@@ -2,7 +2,6 @@ import { type Accessor, For, createMemo } from "solid-js";
 import { Select } from "~/components/ui/Input";
 import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES, useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
-import { rpcOptions } from "~/lib/csrf";
 import { saveLanguagePreference } from "~/sdk/ash_rpc";
 
 interface LanguageSwitcherProps {
@@ -45,7 +44,7 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 				await saveLanguagePreference({
 					identity: currentUser.id,
 					input: { language: newLocale },
-					...rpcOptions(),
+					fetchOptions: { credentials: "include" },
 				});
 			} catch (error) {
 				console.error("Failed to save language preference:", error);

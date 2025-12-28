@@ -1,6 +1,5 @@
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
-import { rpcOptions } from "~/lib/csrf";
 import { saveDonationSettings } from "~/sdk/ash_rpc";
 
 interface DonationSettingsFormProps {
@@ -50,7 +49,7 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 					currency: currency(),
 					defaultVoice: defaultVoice(),
 				},
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!result.success) {

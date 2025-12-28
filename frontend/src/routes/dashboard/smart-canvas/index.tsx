@@ -3,7 +3,6 @@ import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import { useCurrentUser } from "~/lib/auth";
-import { rpcOptions } from "~/lib/csrf";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
 
@@ -304,7 +303,7 @@ export default function SmartCanvas() {
 		const result = await getSmartCanvasLayout({
 			input: { userId },
 			fields: [...layoutFields],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data) {
@@ -351,7 +350,7 @@ export default function SmartCanvas() {
 		const result = await saveSmartCanvasLayout({
 			input: { userId, widgets: widgetsData },
 			fields: [...layoutFields],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data) {

@@ -7,7 +7,6 @@ import Card from "~/components/ui/Card";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";
-import { rpcOptions } from "~/lib/csrf";
 import { useStreamingAccounts } from "~/lib/useElectric";
 import {
 	disconnectStreamingAccount,
@@ -171,7 +170,7 @@ export default function Stream() {
 			const result = await getStreamKey({
 				input: { userId, orientation: "horizontal" },
 				fields: ["data"],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (result.success && result.data) {
@@ -220,7 +219,7 @@ export default function Stream() {
 			const result = await regenerateStreamKey({
 				identity: { userId: currentUser.id, orientation: "horizontal" },
 				fields: ["data"],
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (result.success && result.data) {
@@ -287,7 +286,7 @@ export default function Stream() {
 		try {
 			const result = await disconnectStreamingAccount({
 				identity: { userId: currentUser.id, platform },
-				...rpcOptions(),
+				fetchOptions: { credentials: "include" },
 			});
 
 			if (!result.success) {

@@ -3,7 +3,6 @@ import {
 	getWidgetConfig,
 	saveWidgetConfig as saveWidgetConfigRpc,
 } from "~/sdk/ash_rpc";
-import { rpcOptions } from "./csrf";
 
 interface SaveWidgetConfigParams<T> {
 	userId: string;
@@ -28,7 +27,7 @@ export async function saveWidgetConfig<T extends Record<string, unknown>>({
 			config,
 		},
 		fields: ["id", "config"],
-		...rpcOptions(),
+		fetchOptions: { credentials: "include" },
 	});
 
 	return result;
@@ -41,7 +40,7 @@ export async function loadWidgetConfig<T>({
 	const result = await getWidgetConfig({
 		input: { userId, type },
 		fields: ["id", "config"],
-		...rpcOptions(),
+		fetchOptions: { credentials: "include" },
 	});
 
 	if (result.success && result.data?.config) {
@@ -60,7 +59,7 @@ export async function loadWidgetConfig<T>({
 export async function getCurrentUserId(): Promise<string | null> {
 	const result = await getCurrentUser({
 		fields: ["id"],
-		...rpcOptions(),
+		fetchOptions: { credentials: "include" },
 	});
 
 	return result.success ? result.data?.id || null : null;

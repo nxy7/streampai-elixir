@@ -1,7 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import SliderWidget from "~/components/widgets/SliderWidget";
-import { rpcOptions } from "~/lib/csrf";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 interface SliderImage {
@@ -40,7 +39,7 @@ export default function SliderDisplay() {
 		const result = await getWidgetConfig({
 			input: { userId, type: "slider_widget" },
 			fields: ["id", "config"],
-			...rpcOptions(),
+			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data.config) {
