@@ -369,25 +369,27 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 				{/* Tags */}
 				<div>
-					<label class={text.label}>Tags</label>
-					<div class="mt-1 flex gap-2">
-						<input
-							class={input.text}
-							onInput={(e) => setTagInput(e.currentTarget.value)}
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									e.preventDefault();
-									addTag();
-								}
-							}}
-							placeholder="Add a tag..."
-							type="text"
-							value={tagInput()}
-						/>
-						<button class={button.secondary} onClick={addTag} type="button">
-							Add
-						</button>
-					</div>
+					<label class={text.label}>
+						Tags
+						<div class="mt-1 flex gap-2">
+							<input
+								class={input.text}
+								onInput={(e) => setTagInput(e.currentTarget.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										addTag();
+									}
+								}}
+								placeholder="Add a tag..."
+								type="text"
+								value={tagInput()}
+							/>
+							<button class={button.secondary} onClick={addTag} type="button">
+								Add
+							</button>
+						</div>
+					</label>
 					<Show when={props.metadata.tags.length > 0}>
 						<div class="mt-2 flex flex-wrap gap-2">
 							<For each={props.metadata.tags}>
@@ -409,7 +411,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 				{/* Thumbnail placeholder */}
 				<div>
-					<label class={text.label}>Thumbnail</label>
+					<span class={text.label}>Thumbnail</span>
 					<div class="mt-1 flex h-32 items-center justify-center rounded-lg border-2 border-gray-300 border-dashed bg-gray-50">
 						<div class="text-center text-gray-500">
 							<div class="mb-1 text-2xl">[img]</div>
@@ -474,26 +476,26 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 										</button>
 									</div>
 									<div class="mb-2">
-										<label class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-gray-500 text-xs">
 											RTMP URL
-										</label>
+										</span>
 										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-900 text-sm">
 											{data().rtmpsUrl}
 										</code>
 									</div>
 									<div class="mb-3">
-										<label class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-gray-500 text-xs">
 											Stream Key
-										</label>
+										</span>
 										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-sm">
 											{data().rtmpsStreamKey}
 										</code>
 									</div>
 									<Show when={data().srtUrl}>
 										<div class="mb-2 border-gray-200 border-t pt-2">
-											<label class="mb-1 block text-gray-500 text-xs">
+											<span class="mb-1 block text-gray-500 text-xs">
 												SRT URL (Alternative)
-											</label>
+											</span>
 											<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-xs">
 												{data().srtUrl}
 											</code>
@@ -604,6 +606,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 	};
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
 			class={`group relative flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
 				props.isSticky
@@ -732,6 +735,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 														setShowTimeoutMenu(false);
 														setIsHovered(false);
 													}}
+													role="menu"
 													style={{
 														top: `${dropdownPos().top}px`,
 														left: `${dropdownPos().left}px`,
@@ -744,6 +748,7 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 																onClick={(e) =>
 																	handleTimeout(e, preset.seconds)
 																}
+																role="menuitem"
 																type="button">
 																{preset.label}
 															</button>
@@ -1083,46 +1088,46 @@ function TimersPanel(props: TimersPanelProps) {
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Timer Label
+								<input
+									class={`${input.text} mt-1 w-full`}
+									data-testid="new-timer-label"
+									onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
+									placeholder="e.g., Social Links, Discord, etc."
+									type="text"
+									value={newTimerLabel()}
+								/>
 							</label>
-							<input
-								class={`${input.text} w-full`}
-								data-testid="new-timer-label"
-								onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
-								placeholder="e.g., Social Links, Discord, etc."
-								type="text"
-								value={newTimerLabel()}
-							/>
 						</div>
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Message Content *
+								<textarea
+									class={`${input.textarea} mt-1 w-full`}
+									data-testid="new-timer-content"
+									onInput={(e) => setNewTimerContent(e.currentTarget.value)}
+									placeholder="Message to send at each interval..."
+									rows="2"
+									value={newTimerContent()}
+								/>
 							</label>
-							<textarea
-								class={`${input.textarea} w-full`}
-								data-testid="new-timer-content"
-								onInput={(e) => setNewTimerContent(e.currentTarget.value)}
-								placeholder="Message to send at each interval..."
-								rows="2"
-								value={newTimerContent()}
-							/>
 						</div>
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Interval (minutes)
+								<input
+									class={`${input.text} mt-1 w-full`}
+									data-testid="new-timer-minutes"
+									max="180"
+									min="1"
+									onInput={(e) =>
+										setNewTimerMinutes(
+											Number.parseInt(e.currentTarget.value, 10) || 5,
+										)
+									}
+									type="number"
+									value={newTimerMinutes()}
+								/>
 							</label>
-							<input
-								class={`${input.text} w-full`}
-								data-testid="new-timer-minutes"
-								max="180"
-								min="1"
-								onInput={(e) =>
-									setNewTimerMinutes(
-										Number.parseInt(e.currentTarget.value, 10) || 5,
-									)
-								}
-								type="number"
-								value={newTimerMinutes()}
-							/>
 							<p class="mt-1 text-gray-400 text-xs">
 								Message will be sent every {newTimerMinutes()} minute
 								{newTimerMinutes() !== 1 ? "s" : ""}

@@ -175,7 +175,7 @@ export default function StreamHistory() {
 								setPlatform={setPlatform}
 								setSortBy={setSortBy}
 								sortBy={sortBy}
-								userId={user()?.id}
+								userId={user()!.id}
 							/>
 						</Suspense>
 					</ErrorBoundary>
