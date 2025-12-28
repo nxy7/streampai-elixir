@@ -244,10 +244,50 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 	const enhancedSync: CollectionConfig<T, string | number>["sync"] = {
 		...originalSync,
 		sync: (params) => {
-			const { collection, begin, write, commit, markReady, truncate } = params;
+			const { collection, begin, write, commit, markReady } = params;
 			const state = createPersistenceState();
 
-			// Start async hydration from cache
+			// Track which keys were hydrated from cache so we can handle Electric sync gracefully.
+			// When Electric sends an "insert" for a key we already have from cache, we convert
+			// it to an "update" to avoid duplicate key errors and allow incremental replacement.
+			const hydratedKeys = new Set<string | number>();
+
+			// Wrap the original write to handle cache-to-sync transition gracefully.
+			// Instead of truncating all cached data, we convert conflicting inserts to updates.
+			// This preserves the cache benefit: instant display, then seamless replacement.
+			const wrappedWrite = (
+				message: Parameters<typeof write>[0],
+			): ReturnType<typeof write> => {
+				// Track keys from cache hydration
+				if (message.metadata?.fromCache && "value" in message) {
+					const key = config.getKey(message.value as T);
+					hydratedKeys.add(key);
+				}
+
+				// If Electric is trying to insert a key we already hydrated from cache,
+				// convert it to an update to avoid duplicate key errors.
+				// This allows Electric's authoritative data to replace stale cache data.
+				if (
+					!message.metadata?.fromCache &&
+					message.type === "insert" &&
+					"value" in message
+				) {
+					const key = config.getKey(message.value as T);
+					if (hydratedKeys.has(key)) {
+						console.debug(
+							`[persistedElectric] Converting insert to update for ${config.id} key ${key} (was in cache)`,
+						);
+						return write({
+							...message,
+							type: "update",
+						});
+					}
+				}
+
+				return write(message);
+			};
+
+			// Async hydration from cache - uses wrappedWrite to track keys
 			const hydrateFromCache = async () => {
 				try {
 					const cachedData = await state.persister.load();
@@ -261,7 +301,8 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 
 						begin();
 						for (const item of cachedData) {
-							write({
+							// Use wrappedWrite so keys get tracked in hydratedKeys set
+							wrappedWrite({
 								type: "insert",
 								value: item,
 								metadata: { fromCache: true },
@@ -276,8 +317,6 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 							return;
 						}
 
-						// Set flag BEFORE commit so truncate protection is armed even if
-						// Electric sync write arrives between our writes and commit
 						state.isHydratedFromCache = true;
 						commit();
 						markReady(); // Instant ready with cached data!
@@ -293,28 +332,6 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 
 			// Start cache hydration immediately (non-blocking)
 			hydrateFromCache();
-
-			// Wrap the original write to handle the transition from cache to Electric sync.
-			// When Electric sync starts writing data and we previously hydrated from cache,
-			// we need to truncate the collection first to avoid duplicate key errors.
-			let hasTruncatedForSync = false;
-			const wrappedWrite = (
-				message: Parameters<typeof write>[0],
-			): ReturnType<typeof write> => {
-				// On the first write from Electric sync (not from cache), truncate if we hydrated
-				if (
-					state.isHydratedFromCache &&
-					!hasTruncatedForSync &&
-					!message.metadata?.fromCache
-				) {
-					console.debug(
-						`[persistedElectric] Truncating ${config.id} before Electric sync (was hydrated from cache)`,
-					);
-					truncate();
-					hasTruncatedForSync = true;
-				}
-				return write(message);
-			};
 
 			// Helper to persist current collection state to IndexedDB
 			const persistToCache = async (
