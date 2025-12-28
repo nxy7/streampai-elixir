@@ -19,7 +19,8 @@ type LocalizationEntry = {
 export default function AdminNotifications() {
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
-	const { data: notifications } = useGlobalNotifications();
+	const { data: notifications, isLoading: notificationsLoading } =
+		useGlobalNotifications();
 
 	const [error, setError] = createSignal<string | null>(null);
 	const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
@@ -310,41 +311,64 @@ export default function AdminNotifications() {
 										</tr>
 									</thead>
 									<tbody class="divide-y divide-gray-200 bg-white">
-										<For each={notifications()}>
-											{(notification) => (
-												<tr class="hover:bg-gray-50">
-													<td class="px-6 py-4">
-														<p class="max-w-md truncate text-gray-900 text-sm">
-															{notification.content}
-														</p>
-													</td>
-													<td class="whitespace-nowrap px-6 py-4">
-														<Show
-															when={notification.user_id}
-															fallback={<Badge variant="info">Global</Badge>}>
-															<Badge variant="warning">User-specific</Badge>
-														</Show>
-													</td>
-													<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
-														{new Date(
-															notification.inserted_at,
-														).toLocaleString()}
-													</td>
-													<td class="whitespace-nowrap px-6 py-4 font-medium text-sm">
-														<button
-															type="button"
-															onClick={() => openDeleteConfirm(notification)}
-															class="text-red-600 hover:text-red-900 hover:underline">
-															Delete
-														</button>
-													</td>
-												</tr>
-											)}
-										</For>
+										<Show
+											when={!notificationsLoading()}
+											fallback={
+												<For each={[1, 2, 3]}>
+													{() => (
+														<tr class="animate-pulse">
+															<td class="px-6 py-4">
+																<div class="h-4 w-3/4 rounded bg-gray-200" />
+															</td>
+															<td class="px-6 py-4">
+																<div class="h-5 w-16 rounded bg-gray-200" />
+															</td>
+															<td class="px-6 py-4">
+																<div class="h-4 w-32 rounded bg-gray-200" />
+															</td>
+															<td class="px-6 py-4">
+																<div class="h-4 w-12 rounded bg-gray-200" />
+															</td>
+														</tr>
+													)}
+												</For>
+											}>
+											<For each={notifications()}>
+												{(notification) => (
+													<tr class="hover:bg-gray-50">
+														<td class="px-6 py-4">
+															<p class="max-w-md truncate text-gray-900 text-sm">
+																{notification.content}
+															</p>
+														</td>
+														<td class="whitespace-nowrap px-6 py-4">
+															<Show
+																when={notification.user_id}
+																fallback={<Badge variant="info">Global</Badge>}>
+																<Badge variant="warning">User-specific</Badge>
+															</Show>
+														</td>
+														<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
+															{new Date(
+																notification.inserted_at,
+															).toLocaleString()}
+														</td>
+														<td class="whitespace-nowrap px-6 py-4 font-medium text-sm">
+															<button
+																type="button"
+																onClick={() => openDeleteConfirm(notification)}
+																class="text-red-600 hover:text-red-900 hover:underline">
+																Delete
+															</button>
+														</td>
+													</tr>
+												)}
+											</For>
+										</Show>
 									</tbody>
 								</table>
 
-								<Show when={notifications().length === 0}>
+								<Show when={!notificationsLoading() && notifications().length === 0}>
 									<div class="py-12 text-center">
 										<svg
 											aria-hidden="true"
