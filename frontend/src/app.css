@@ -403,6 +403,7 @@ body {
 /* Border utilities */
 .border-theme { border-color: var(--theme-border); }
 .border-theme-hover { border-color: var(--theme-border-hover); }
+.border-theme-subtle { border-color: color-mix(in srgb, var(--theme-border) 50%, transparent); }
 
 /* Input styling */
 .input-theme {

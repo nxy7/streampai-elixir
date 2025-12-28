@@ -190,9 +190,9 @@ export function ThemeSwitcherCompact(props: ThemeSwitcherProps) {
 	);
 }
 
-// Subtle icon toggle for landing/public pages (works on dark gradient backgrounds)
+// Subtle icon toggle for landing/public pages (theme-aware colors)
 export function ThemeToggleIcon(props: ThemeSwitcherProps) {
-	const { theme, resolvedTheme, setTheme } = useTheme();
+	const { resolvedTheme, setTheme } = useTheme();
 	const { user } = useCurrentUser();
 
 	const handleThemeToggle = async () => {
@@ -219,13 +219,13 @@ export function ThemeToggleIcon(props: ThemeSwitcherProps) {
 		<button
 			type="button"
 			onClick={handleThemeToggle}
-			class={`rounded-full p-2 transition-all hover:bg-white/10 ${props.class || ""}`}
+			class={`rounded-full p-2 transition-all hover:bg-black/10 dark:hover:bg-white/10 ${props.class || ""}`}
 			aria-label={`Switch to ${resolvedTheme() === "dark" ? "light" : "dark"} mode`}
 			data-testid="theme-toggle-icon">
 			{resolvedTheme() === "dark" ? (
 				// Moon icon when in dark mode - click to switch to light
 				<svg
-					class="h-5 w-5 text-gray-300 transition-colors hover:text-white"
+					class="h-5 w-5 text-gray-400 transition-colors hover:text-white dark:text-gray-300"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24">
@@ -239,7 +239,7 @@ export function ThemeToggleIcon(props: ThemeSwitcherProps) {
 			) : (
 				// Sun icon when in light mode - click to switch to dark
 				<svg
-					class="h-5 w-5 text-gray-300 transition-colors hover:text-white"
+					class="h-5 w-5 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24">

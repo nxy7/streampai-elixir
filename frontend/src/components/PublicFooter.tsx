@@ -58,7 +58,7 @@ export default function PublicFooter(props: PublicFooterProps) {
 						)}
 					</p>
 					<div class="flex items-center gap-2">
-						<ThemeToggleIcon class="text-theme-secondary hover:bg-theme-hover" />
+						<ThemeToggleIcon />
 						<LanguageSwitcher class="border-theme bg-theme-tertiary text-theme-primary" />
 					</div>
 				</div>

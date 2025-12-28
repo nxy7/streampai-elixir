@@ -52,6 +52,13 @@ function applyTheme(resolvedTheme: ResolvedTheme) {
 	const root = document.documentElement;
 	root.setAttribute("data-theme", resolvedTheme);
 
+	// Add/remove dark class for Tailwind dark: variant support
+	if (resolvedTheme === "dark") {
+		root.classList.add("dark");
+	} else {
+		root.classList.remove("dark");
+	}
+
 	// Also update color-scheme for native browser elements
 	root.style.colorScheme = resolvedTheme;
 }
