@@ -1,9 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
-import { For, Show, createSignal, onMount } from "solid-js";
-import { Skeleton } from "~/components/ui";
-import Badge from "~/components/ui/Badge";
-import Card from "~/components/ui/Card";
+import { For, Show, createMemo, createSignal, onMount } from "solid-js";
+import { Badge, Breadcrumbs, Card, Skeleton } from "~/components/ui";
+import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
@@ -263,6 +262,7 @@ export default function ViewerDetail() {
 	const params = useParams();
 	const navigate = useNavigate();
 	const { user: currentUser } = useCurrentUser();
+	const { t } = useTranslation();
 
 	const [viewer, setViewer] = createSignal<StreamViewer | null>(null);
 	const [messages, setMessages] = createSignal<ChatMessage[]>([]);
@@ -271,6 +271,11 @@ export default function ViewerDetail() {
 	const [error, setError] = createSignal<string | null>(null);
 
 	const viewerId = () => params.id;
+
+	const breadcrumbItems = createMemo(() => [
+		{ label: t("dashboardNav.viewers"), href: "/dashboard/viewers" },
+		{ label: viewer()?.displayName ?? t("common.loading") },
+	]);
 
 	onMount(async () => {
 		const user = currentUser();
@@ -367,26 +372,12 @@ export default function ViewerDetail() {
 
 			<Show when={!loading() && !error() && viewer()}>
 				<div class="space-y-6">
+					{/* Breadcrumbs */}
+					<Breadcrumbs items={breadcrumbItems()} />
+
 					{/* Header */}
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
-							<A
-								class="text-gray-500 hover:text-gray-700"
-								href="/dashboard/viewers">
-								<svg
-									aria-hidden="true"
-									class="h-6 w-6"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M10 19l-7-7m0 0l7-7m-7 7h18"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-							</A>
 							<div class="flex items-center">
 								<Show
 									fallback={
