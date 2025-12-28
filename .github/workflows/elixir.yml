@@ -36,6 +36,11 @@ jobs:
           cd frontend
           bun run test
 
+      - name: Check frontend formatting
+        run: |
+          cd frontend
+          bunx biome check .
+
   test:
     name: Test
     runs-on: ubuntu-24.04-arm

@@ -1,0 +1,41 @@
+# Lefthook configuration for AI-driven development
+# Install: brew install lefthook && lefthook install
+#
+# This ensures code is always formatted before commit, preventing merge conflicts
+# between AI agents and human developers.
+
+pre-commit:
+  parallel: true
+  commands:
+    elixir-format:
+      glob: "*.{ex,exs}"
+      run: mix format --check-formatted {staged_files}
+      stage_fixed: true
+
+    frontend-format:
+      root: "frontend/"
+      glob: "*.{ts,tsx,js,jsx,json,css}"
+      run: bunx biome check --write {staged_files}
+      stage_fixed: true
+
+    frontend-typecheck:
+      root: "frontend/"
+      run: bun run typecheck
+      # Only run if TypeScript files changed
+      glob: "*.{ts,tsx}"
+
+# Commit message validation (optional, helps with consistency)
+commit-msg:
+  commands:
+    check-message:
+      run: |
+        # Ensure commit message is not empty and has reasonable length
+        msg=$(cat {1})
+        if [ -z "$msg" ]; then
+          echo "Empty commit message"
+          exit 1
+        fi
+        if [ ${#msg} -lt 10 ]; then
+          echo "Commit message too short (min 10 chars)"
+          exit 1
+        fi
