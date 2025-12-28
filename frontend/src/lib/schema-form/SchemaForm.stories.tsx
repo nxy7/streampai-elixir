@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { z } from "zod";
 import { SchemaForm } from "./SchemaForm";
-import type { FormMeta } from "./types";
+import type { FormMeta, TranslationFunction } from "./types";
 import {
 	alertboxConfigMeta,
 	alertboxConfigSchema,
@@ -17,7 +17,6 @@ import {
 	timerConfigMeta,
 	timerConfigSchema,
 } from "./widget-schemas";
-import type { TranslationFunction } from "./types";
 
 /**
  * SchemaForm automatically generates form UI from Zod schemas.
@@ -392,12 +391,12 @@ export const CustomSelectOptions: Story = {
 						<code class="rounded bg-gray-100 px-1">options</code> metadata
 					</p>
 					<SchemaForm
-						schema={customOptionsSchema}
 						meta={customOptionsMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={customOptionsSchema}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -459,8 +458,7 @@ const mockTranslations: Record<string, Record<string, string>> = {
 	es: {
 		"demo.displayName": "Nombre para mostrar",
 		"demo.displayNamePlaceholder": "Ingresa tu nombre para mostrar",
-		"demo.displayNameDescription":
-			"Este nombre se mostrará a otros usuarios",
+		"demo.displayNameDescription": "Este nombre se mostrará a otros usuarios",
 		"demo.theme": "Tema",
 		"demo.themeDescription": "Elige tu tema de colores preferido",
 		"demo.themeLight": "Claro",
@@ -506,39 +504,39 @@ export const I18nLocalization: Story = {
 					{/* Language Switcher */}
 					<div class="mb-4 flex gap-2">
 						<button
-							type="button"
+							class={`rounded px-3 py-1 text-sm ${locale() === "en" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
 							onClick={() => setLocale("en")}
-							class={`rounded px-3 py-1 text-sm ${locale() === "en" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+							type="button">
 							English
 						</button>
 						<button
-							type="button"
+							class={`rounded px-3 py-1 text-sm ${locale() === "de" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
 							onClick={() => setLocale("de")}
-							class={`rounded px-3 py-1 text-sm ${locale() === "de" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+							type="button">
 							Deutsch
 						</button>
 						<button
-							type="button"
+							class={`rounded px-3 py-1 text-sm ${locale() === "pl" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
 							onClick={() => setLocale("pl")}
-							class={`rounded px-3 py-1 text-sm ${locale() === "pl" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+							type="button">
 							Polski
 						</button>
 						<button
-							type="button"
+							class={`rounded px-3 py-1 text-sm ${locale() === "es" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
 							onClick={() => setLocale("es")}
-							class={`rounded px-3 py-1 text-sm ${locale() === "es" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+							type="button">
 							Español
 						</button>
 					</div>
 
 					<SchemaForm
-						schema={i18nDemoSchema}
 						meta={i18nDemoMeta}
-						values={values()}
 						onChange={(field, value) => {
 							setValues((prev) => ({ ...prev, [field]: value }));
 						}}
+						schema={i18nDemoSchema}
 						t={t}
+						values={values()}
 					/>
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">

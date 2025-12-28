@@ -26,7 +26,10 @@ function enumValueToLabel(value: string): string {
  * Get the display label for an option value.
  * Uses custom options from metadata if provided, otherwise auto-generates from value.
  */
-function getOptionLabel(value: string, customOptions?: Record<string, string>): string {
+function getOptionLabel(
+	value: string,
+	customOptions?: Record<string, string>,
+): string {
 	if (customOptions && value in customOptions) {
 		return customOptions[value];
 	}

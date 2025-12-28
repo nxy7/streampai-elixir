@@ -133,12 +133,13 @@ export async function initPresence(): Promise<() => void> {
 	// Create presence instance BEFORE joining so it can receive initial state
 	presenceInstance = new Presence(presenceChannel);
 	presenceInstance.onSync(() => {
-		currentPresenceUsers = presenceInstance?.list((id, { metas }) => ({
-			id,
-			name: metas[0]?.name || "Unknown",
-			avatar: metas[0]?.avatar || null,
-			onlineAt: metas[0]?.online_at || 0,
-		}));
+		currentPresenceUsers =
+			presenceInstance?.list((id, { metas }) => ({
+				id,
+				name: metas[0]?.name || "Unknown",
+				avatar: metas[0]?.avatar || null,
+				onlineAt: metas[0]?.online_at || 0,
+			})) || [];
 		console.log("[Presence] Synced users:", currentPresenceUsers);
 		notifyPresenceListeners();
 	});
@@ -258,6 +259,7 @@ export function useStreamPresence(streamId: Accessor<string | undefined>) {
 			});
 
 		channel.on("presence_state", () => {
+			if (!channel) return;
 			presence = new Presence(channel);
 			presence.onSync(syncPresence);
 			syncPresence();

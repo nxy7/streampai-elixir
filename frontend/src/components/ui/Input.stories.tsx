@@ -1,3 +1,4 @@
+import type { JSX } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import Input, { Select, Textarea } from "./Input";
 

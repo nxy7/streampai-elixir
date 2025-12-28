@@ -50,7 +50,7 @@ export const Waiting: Story = {
 		config: defaultConfig,
 		pollStatus: undefined,
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByText("Waiting for poll...")).toBeVisible();
 	},
@@ -69,7 +69,7 @@ export const Active: Story = {
 			endsAt: new Date(Date.now() + 5 * 60 * 1000),
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		await expect(
 			canvas.getByText("What game should we play next?"),
@@ -118,7 +118,7 @@ export const Ended: Story = {
 			createdAt: new Date(Date.now() - 10 * 60 * 1000),
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByText("Poll Results")).toBeVisible();
 		await expect(canvas.getByText("Poll ended")).toBeVisible();

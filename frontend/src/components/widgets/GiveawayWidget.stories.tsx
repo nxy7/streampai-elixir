@@ -50,7 +50,7 @@ export const Inactive: Story = {
 		config: defaultConfig,
 		event: undefined,
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByText("Stream Giveaway")).toBeVisible();
 		await expect(canvas.getByText("No Active Giveaway")).toBeVisible();
@@ -67,7 +67,7 @@ export const Active: Story = {
 			isActive: true,
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByText("Stream Giveaway")).toBeVisible();
 		await expect(canvas.getByText("Giveaway Active")).toBeVisible();
@@ -117,7 +117,7 @@ export const WinnerAnnounced: Story = {
 			patreonParticipants: 20,
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		// Wait for animation to complete before checking visibility
 		await waitFor(
@@ -145,7 +145,7 @@ export const PatreonWinner: Story = {
 			patreonParticipants: 12,
 		},
 	},
-	play: async ({ canvasElement }) => {
+	play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
 		const canvas = within(canvasElement);
 		// Wait for animation to complete before checking visibility
 		await waitFor(

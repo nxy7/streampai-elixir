@@ -103,7 +103,7 @@ export default function DonationGoalWidgetDisplay() {
 				<div style={{ "max-width": "600px", width: "100%" }}>
 					<DonationGoalWidget
 						config={config() as NonNullable<ReturnType<typeof config>>}
-						currentAmount={config()?.startingAmount}
+						currentAmount={config()?.startingAmount ?? 0}
 					/>
 				</div>
 			</Show>
