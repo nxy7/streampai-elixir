@@ -4,6 +4,32 @@
  * Extends `electricCollectionOptions` with IndexedDB persistence for instant
  * data loading on page refresh. Implements hydration-first, sync-second pattern.
  *
+ * ## How It Works
+ *
+ * 1. On collection creation, immediately loads cached data from IndexedDB
+ * 2. Hydrates collection with cached data (instant ready state!)
+ * 3. Starts Electric sync in background
+ * 4. On sync complete/update, persists latest data to IndexedDB
+ *
+ * ## When to Use
+ *
+ * Use persistence for data that:
+ * - Changes infrequently (user preferences, widget configs)
+ * - Benefits from instant load on page refresh
+ * - Is user-scoped (pass userId for cache isolation)
+ *
+ * Don't use for:
+ * - High-frequency data (chat messages, stream events)
+ * - Data where freshness is critical
+ *
+ * ## Impersonation Support
+ *
+ * Storage key includes userId: `electric:{collectionId}:{userId}`
+ * Each user's cache is isolated, preventing data leaks during admin impersonation.
+ *
+ * @see {@link clearPersistedCache} to clear cache for a specific collection
+ * @see {@link getCacheStats} from electric-cache.ts for debugging
+ *
  * @example
  * ```typescript
  * // Before (no persistence)
@@ -56,19 +82,58 @@ const DEFAULT_MAX_AGE = 24 * 60 * 60 * 1000;
 const PERSIST_DEBOUNCE_MS = 100;
 
 /**
- * Configuration for persisted Electric collections
+ * Configuration for persisted Electric collections.
+ *
+ * Extends standard ElectricCollectionConfig with persistence options.
+ *
+ * @example
+ * ```typescript
+ * const config: PersistedElectricConfig<Livestream> = {
+ *   id: "livestreams_user123",
+ *   shapeOptions: { url: `${SHAPES_URL}/livestreams/user123` },
+ *   getKey: (item) => item.id,
+ *   persist: true,                    // Enable persistence
+ *   userId: () => "user123",          // User-scoped storage
+ *   maxAge: 24 * 60 * 60 * 1000,      // 24h expiration (default)
+ *   version: 1,                       // Increment to invalidate cache
+ * };
+ * ```
  */
 export interface PersistedElectricConfig<T extends Row<unknown>>
 	extends ElectricCollectionConfig<T> {
-	/** Enable persistence to IndexedDB. Defaults to false. */
+	/**
+	 * Enable persistence to IndexedDB.
+	 * When false (default), behaves exactly like electricCollectionOptions.
+	 */
 	persist?: boolean;
-	/** Storage key override. Defaults to collection id. */
+
+	/**
+	 * Storage key override.
+	 * Defaults to collection id. Combined with userId to form final key:
+	 * `electric:{storageKey}:{userId}` or `electric:{storageKey}` if no userId.
+	 */
 	storageKey?: string;
-	/** Function to get current user ID for user-scoped persistence. */
+
+	/**
+	 * Function to get current user ID for user-scoped persistence.
+	 * IMPORTANT: Always provide this for user-scoped data to prevent
+	 * cache leakage between users (e.g., during admin impersonation).
+	 */
 	userId?: () => string | undefined;
-	/** Time in ms before cached data is considered stale. Defaults to 24h. Set to null to never expire. */
+
+	/**
+	 * Time in ms before cached data is considered stale.
+	 * - Default: 24 hours (24 * 60 * 60 * 1000)
+	 * - Set to `null` to never expire (useful for very stable data)
+	 * - Shorter values (e.g., 1 hour) for data that may change more frequently
+	 */
 	maxAge?: number | null;
-	/** Schema version - increment to invalidate existing cache after schema changes. Defaults to 1. */
+
+	/**
+	 * Schema version for cache invalidation.
+	 * Increment this when the data structure changes to force fresh data.
+	 * Defaults to 1.
+	 */
 	version?: number;
 }
 
@@ -90,8 +155,43 @@ interface PersistenceState<T> {
  * 3. Starts Electric sync in background
  * 4. On sync complete/update, persists latest data to IndexedDB
  *
+ * Race Condition Handling:
+ * - If Electric sync completes before cache load, cache hydration is aborted
+ * - Electric sync data always takes precedence over cached data
+ * - Commits are debounced (100ms) to avoid excessive IndexedDB writes
+ *
+ * Fallback Behavior:
+ * - If IndexedDB is unavailable (e.g., private browsing), silently falls back
+ *   to non-persisted behavior
+ * - Cache load failures are logged but don't prevent Electric sync
+ *
  * @param config - Configuration including Electric options and persistence settings
  * @returns Collection config that can be passed to createCollection
+ *
+ * @example
+ * ```typescript
+ * // User-scoped collection with persistence
+ * export function createUserScopedLivestreamsCollection(userId: string) {
+ *   return createCollection(
+ *     persistedElectricCollection<Livestream>({
+ *       id: `livestreams_${userId}`,
+ *       shapeOptions: { url: `${SHAPES_URL}/livestreams/${userId}` },
+ *       getKey: (item) => item.id,
+ *       persist: true,
+ *       userId: () => userId,
+ *       maxAge: 24 * 60 * 60 * 1000, // 24h (default)
+ *     }),
+ *   );
+ * }
+ *
+ * // Non-persisted fallback (persist: false or omitted)
+ * const collection = persistedElectricCollection<ChatMessage>({
+ *   id: "chat_messages",
+ *   shapeOptions: { url: `${SHAPES_URL}/chat_messages` },
+ *   getKey: (item) => item.id,
+ *   // persist: false is implicit
+ * });
+ * ```
  */
 export function persistedElectricCollection<T extends Row<unknown>>(
 	config: PersistedElectricConfig<T>,
@@ -277,10 +377,29 @@ export function persistedElectricCollection<T extends Row<unknown>>(
 
 /**
  * Clear persisted cache for a specific collection.
- * Useful when user logs out or data needs to be refreshed.
  *
- * @param collectionId - The collection ID or storage key
- * @param userId - Optional user ID for user-scoped cache
+ * Use this to manually invalidate cached data when:
+ * - User logs out (clear their user-scoped cache)
+ * - Data is known to be stale
+ * - Troubleshooting cache-related issues
+ *
+ * @param collectionId - The collection ID or storage key (e.g., "livestreams")
+ * @param userId - Optional user ID for user-scoped cache. If provided, clears
+ *                 `electric:{collectionId}:{userId}`. If omitted, clears
+ *                 `electric:{collectionId}`.
+ *
+ * @example
+ * ```typescript
+ * // Clear specific user's livestreams cache
+ * await clearPersistedCache("livestreams", "user-123");
+ *
+ * // Clear non-user-scoped cache
+ * await clearPersistedCache("global_settings");
+ *
+ * // Clear all cache for a user on logout
+ * import { clearPersistedCache as clearAll } from "~/lib/electric-cache";
+ * await clearAll("user-123"); // Different function - clears ALL user's cache
+ * ```
  */
 export async function clearPersistedCache(
 	collectionId: string,

@@ -135,6 +135,89 @@ const { data } = useElectric("notifications", { userId: user()?.id });
 # New Ash resource: create in domain → add to resources block → mix ash.codegen → mix ecto.migrate
 ```
 
+## Electric SQL Persistence
+
+Data that rarely changes can be persisted to IndexedDB for instant loading on page refresh. This eliminates loading states when users return to the app.
+
+### When to Use Persistence
+
+| Data Type | Persistence | Reason |
+|-----------|-------------|--------|
+| `user_preferences` | **Yes** | Rarely changes, instant profile data |
+| `livestreams` | **Yes** | Low frequency changes, instant stream history |
+| `widget_configs` | **Yes** | Rarely changes, instant widget settings |
+| `streaming_accounts` | **Yes** | Rarely changes |
+| `notifications` | No | Medium frequency, freshness important |
+| `stream_events` | No | High frequency, always changing |
+| `chat_messages` | No | Very high frequency |
+
+### Usage
+
+```typescript
+// Before (no persistence - data lost on refresh)
+export function createUserScopedLivestreamsCollection(userId: string) {
+  return createCollection(
+    electricCollectionOptions<Livestream>({
+      id: `livestreams_${userId}`,
+      shapeOptions: { url: `${SHAPES_URL}/livestreams/${userId}` },
+      getKey: (item) => item.id,
+    }),
+  );
+}
+
+// After (with persistence - instant load from IndexedDB)
+export function createUserScopedLivestreamsCollection(userId: string) {
+  return createCollection(
+    persistedElectricCollection<Livestream>({
+      id: `livestreams_${userId}`,
+      shapeOptions: { url: `${SHAPES_URL}/livestreams/${userId}` },
+      getKey: (item) => item.id,
+      persist: true,           // Enable persistence
+      userId: () => userId,    // User-scoped storage key
+    }),
+  );
+}
+```
+
+### Configuration Options
+
+- `persist: true` - Enable IndexedDB persistence
+- `userId: () => string` - Function returning user ID for user-scoped cache isolation
+- `maxAge: number | null` - Cache expiration in ms (default: 24h, `null` = never expire)
+- `version: number` - Schema version; increment to invalidate cache after schema changes
+
+### Impersonation Support
+
+Persistence is user-scoped via the storage key pattern `electric:{collectionId}:{userId}`. When admins impersonate users, each user's cache is isolated. Clear cache on user switch:
+
+```typescript
+import { clearPersistedCache } from "~/lib/electric-cache";
+
+// After impersonation ends or user logs out
+await clearPersistedCache(oldUserId);
+```
+
+### Debugging
+
+```typescript
+import { getCacheStats, clearAllElectricCaches } from "~/lib/electric-cache";
+
+// View cache statistics in browser console
+const stats = await getCacheStats();
+console.table(stats.collectionDetails);
+// Shows: name, itemCount, userId, version, lastUpdated, size
+
+// Nuclear option - clear everything
+await clearAllElectricCaches();
+```
+
+### Key Files
+
+- `frontend/src/lib/persisted-electric.ts` - Main wrapper function
+- `frontend/src/lib/idb-persister.ts` - IndexedDB persistence layer
+- `frontend/src/lib/electric-cache.ts` - Cache management utilities
+- `frontend/src/lib/electric.ts` - Collection definitions
+
 ## Notes
 
 - App name is "Streampai" (not "StreamPai")
