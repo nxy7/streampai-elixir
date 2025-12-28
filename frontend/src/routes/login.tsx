@@ -4,6 +4,7 @@ import { Show, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH } from "~/lib/constants";
+import { getCsrfHeaders } from "~/lib/csrf";
 
 function GoogleIcon() {
 	return (
@@ -100,6 +101,7 @@ export default function LoginPage() {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					...getCsrfHeaders(),
 				},
 				body: JSON.stringify(body),
 				credentials: "include",

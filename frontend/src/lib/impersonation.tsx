@@ -5,6 +5,7 @@ import {
 	useContext,
 } from "solid-js";
 import { API_PATH } from "./constants";
+import { getCsrfHeaders } from "./csrf";
 import {
 	ImpersonationContext,
 	type Impersonator,
@@ -41,6 +42,7 @@ async function callExitImpersonation(): Promise<void> {
 		credentials: "include",
 		headers: {
 			"Content-Type": "application/json",
+			...getCsrfHeaders(),
 		},
 	});
 
@@ -122,6 +124,7 @@ export async function startImpersonation(userId: string): Promise<void> {
 			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
+				...getCsrfHeaders(),
 			},
 		},
 	);

@@ -37,7 +37,16 @@ config :ash_typescript,
   input_field_formatter: :camel_case,
   output_field_formatter: :camel_case,
   generate_phx_channel_rpc_actions: true,
-  phoenix_import_path: "phoenix"
+  phoenix_import_path: "phoenix",
+  # CSRF protection: automatically add token and credentials to all RPC requests
+  rpc_action_before_request_hook: "RpcHooks.beforeRequest",
+  rpc_validation_before_request_hook: "RpcHooks.beforeRequest",
+  import_into_generated: [
+    %{
+      import_name: "RpcHooks",
+      file: "../lib/rpcHooks"
+    }
+  ]
 
 config :ex_cldr, default_backend: Streampai.Cldr
 
