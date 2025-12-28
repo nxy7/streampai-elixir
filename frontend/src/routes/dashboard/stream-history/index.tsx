@@ -6,7 +6,6 @@ import {
 	Show,
 	Suspense,
 	createMemo,
-	createResource,
 	createSignal,
 } from "solid-js";
 import {
@@ -20,11 +19,11 @@ import {
 	Stat,
 } from "~/components/ui";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
+import type { Livestream } from "~/lib/electric";
+import { useUserLivestreams } from "~/lib/useElectric";
 
-type Platform = "twitch" | "youtube" | "facebook" | "kick" | "all";
 type DateRange = "7days" | "30days" | "all";
-type SortBy = "recent" | "duration" | "viewers";
+type SortBy = "recent" | "duration";
 
 // Skeleton for stream history page
 function StreamHistorySkeleton() {
@@ -33,8 +32,8 @@ function StreamHistorySkeleton() {
 			{/* Filters skeleton */}
 			<Card>
 				<Skeleton class="mb-4 h-6 w-32" />
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<For each={[1, 2, 3]}>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<For each={[1, 2]}>
 						{() => (
 							<div>
 								<Skeleton class="mb-2 h-4 w-20" />
@@ -46,8 +45,8 @@ function StreamHistorySkeleton() {
 			</Card>
 
 			{/* Stats skeleton */}
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-				<For each={[1, 2, 3]}>
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+				<For each={[1, 2]}>
 					{() => (
 						<Card>
 							<div class="flex flex-col items-center gap-2">
@@ -97,42 +96,23 @@ function StreamHistorySkeleton() {
 interface StreamStats {
 	totalStreams: number;
 	totalTime: string;
-	avgViewers: number;
 	dateRangeLabel: string;
 }
 
-const streamHistoryFields: (
-	| "id"
-	| "title"
-	| "thumbnailUrl"
-	| "startedAt"
-	| "endedAt"
-	| "durationSeconds"
-	| "platforms"
-	| "averageViewers"
-	| "peakViewers"
-	| "messagesAmount"
-)[] = [
-	"id",
-	"title",
-	"thumbnailUrl",
-	"startedAt",
-	"endedAt",
-	"durationSeconds",
-	"platforms",
-	"averageViewers",
-	"peakViewers",
-	"messagesAmount",
-];
-
-type _Livestream = SuccessDataFunc<
-	typeof getStreamHistory<typeof streamHistoryFields>
->[number];
+// Helper to compute duration from start/end times
+function computeDurationSeconds(
+	startedAt: string | null,
+	endedAt: string | null,
+): number {
+	if (!startedAt || !endedAt) return 0;
+	const start = new Date(startedAt).getTime();
+	const end = new Date(endedAt).getTime();
+	return Math.floor((end - start) / 1000);
+}
 
 export default function StreamHistory() {
 	const { user, isLoading } = useCurrentUser();
 
-	const [platform, setPlatform] = createSignal<Platform>("all");
 	const [dateRange, setDateRange] = createSignal<DateRange>("30days");
 	const [sortBy, setSortBy] = createSignal<SortBy>("recent");
 
@@ -171,9 +151,7 @@ export default function StreamHistory() {
 							<Suspense fallback={<StreamHistorySkeleton />}>
 								<StreamHistoryContent
 									dateRange={dateRange}
-									platform={platform}
 									setDateRange={setDateRange}
-									setPlatform={setPlatform}
 									setSortBy={setSortBy}
 									sortBy={sortBy}
 									userId={currentUser().id}
@@ -189,61 +167,54 @@ export default function StreamHistory() {
 
 function StreamHistoryContent(props: {
 	userId: string;
-	platform: () => Platform;
-	setPlatform: (p: Platform) => void;
 	dateRange: () => DateRange;
 	setDateRange: (d: DateRange) => void;
 	sortBy: () => SortBy;
 	setSortBy: (s: SortBy) => void;
 }) {
-	const [streamsData] = createResource(
-		() => props.userId,
-		async (userId) => {
-			const result = await getStreamHistory({
-				input: { userId },
-				fields: [...streamHistoryFields],
-				fetchOptions: { credentials: "include" },
-			});
-			if (!result.success) {
-				throw new Error(result.errors[0]?.message || "Failed to fetch streams");
-			}
-			return result.data;
-		},
-	);
+	// Use persisted Electric collection for instant loading
+	const livestreamsQuery = useUserLivestreams(() => props.userId);
 
-	const streams = () => streamsData() ?? [];
-	const isFetching = () => streamsData.loading;
+	// Filter to only completed streams (has ended_at)
+	const streams = createMemo((): Livestream[] => {
+		const allStreams = livestreamsQuery.data() ?? [];
+		return allStreams.filter((s) => s.ended_at !== null);
+	});
 
 	const filteredAndSortedStreams = createMemo(() => {
 		let result = [...streams()];
 
-		if (props.platform() !== "all") {
-			result = result.filter((s) =>
-				s.platforms?.some((p) => p.toLowerCase() === props.platform()),
-			);
-		}
+		// Note: Platform filtering is not available with basic Electric sync
+		// The platform information requires a database join/aggregation
+		// For now, we skip platform filtering when using Electric
 
 		const now = new Date();
 		if (props.dateRange() === "7days") {
 			const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-			result = result.filter((s) => new Date(s.startedAt) > cutoff);
+			result = result.filter(
+				(s) => s.started_at && new Date(s.started_at) > cutoff,
+			);
 		} else if (props.dateRange() === "30days") {
 			const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-			result = result.filter((s) => new Date(s.startedAt) > cutoff);
+			result = result.filter(
+				(s) => s.started_at && new Date(s.started_at) > cutoff,
+			);
 		}
 
 		if (props.sortBy() === "recent") {
 			result.sort(
 				(a, b) =>
-					new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+					new Date(b.started_at ?? 0).getTime() -
+					new Date(a.started_at ?? 0).getTime(),
 			);
 		} else if (props.sortBy() === "duration") {
 			result.sort(
-				(a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0),
+				(a, b) =>
+					computeDurationSeconds(b.started_at, b.ended_at) -
+					computeDurationSeconds(a.started_at, a.ended_at),
 			);
-		} else if (props.sortBy() === "viewers") {
-			result.sort((a, b) => (b.peakViewers || 0) - (a.peakViewers || 0));
 		}
+		// Note: Viewers sorting not available without database aggregation
 
 		return result;
 	});
@@ -251,19 +222,11 @@ function StreamHistoryContent(props: {
 	const stats = createMemo<StreamStats>(() => {
 		const streamList = filteredAndSortedStreams();
 		const totalSeconds = streamList.reduce(
-			(sum, s) => sum + (s.durationSeconds || 0),
+			(sum, s) => sum + computeDurationSeconds(s.started_at, s.ended_at),
 			0,
 		);
 		const totalHours = Math.floor(totalSeconds / 3600);
 		const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
-
-		const avgViewers =
-			streamList.length > 0
-				? Math.round(
-						streamList.reduce((sum, s) => sum + (s.averageViewers || 0), 0) /
-							streamList.length,
-					)
-				: 0;
 
 		const dateRangeLabel =
 			props.dateRange() === "7days"
@@ -275,7 +238,6 @@ function StreamHistoryContent(props: {
 		return {
 			totalStreams: streamList.length,
 			totalTime: `${totalHours}h ${totalMinutes}m`,
-			avgViewers,
 			dateRangeLabel,
 		};
 	});
@@ -297,44 +259,12 @@ function StreamHistoryContent(props: {
 		return `${minutes}m`;
 	};
 
-	const getPlatformBadgeVariant = (
-		platformName: string,
-	): "purple" | "error" | "info" | "success" | "neutral" => {
-		const variants: Record<
-			string,
-			"purple" | "error" | "info" | "success" | "neutral"
-		> = {
-			twitch: "purple",
-			youtube: "error",
-			facebook: "info",
-			kick: "success",
-		};
-		return variants[platformName.toLowerCase()] || "neutral";
-	};
-
 	return (
 		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Filters */}
 			<Card>
 				<h3 class="mb-4 font-semibold text-gray-900 text-lg">Filter Streams</h3>
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<div>
-						<label class="block font-medium text-gray-700 text-sm">
-							Platform
-							<select
-								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
-								onChange={(e) =>
-									props.setPlatform(e.currentTarget.value as Platform)
-								}
-								value={props.platform()}>
-								<option value="all">All Platforms</option>
-								<option value="twitch">Twitch</option>
-								<option value="youtube">YouTube</option>
-								<option value="facebook">Facebook</option>
-								<option value="kick">Kick</option>
-							</select>
-						</label>
-					</div>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
 						<label class="block font-medium text-gray-700 text-sm">
 							Date Range
@@ -361,89 +291,58 @@ function StreamHistoryContent(props: {
 								value={props.sortBy()}>
 								<option value="recent">Most Recent</option>
 								<option value="duration">Longest Duration</option>
-								<option value="viewers">Most Viewers</option>
 							</select>
 						</label>
 					</div>
 				</div>
 			</Card>
 
-			{/* Stats Overview - only show when data is loaded */}
-			<Show when={!isFetching() && streams().length >= 0}>
-				<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-					<Card>
-						<Stat
-							icon={
-								<svg
-									aria-hidden="true"
-									class="h-8 w-8 text-purple-500"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-							}
-							label={`Streams (${stats().dateRangeLabel})`}
-							value={String(stats().totalStreams)}
-						/>
-					</Card>
+			{/* Stats Overview */}
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+				<Card>
+					<Stat
+						icon={
+							<svg
+								aria-hidden="true"
+								class="h-8 w-8 text-purple-500"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24">
+								<path
+									d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+								/>
+							</svg>
+						}
+						label={`Streams (${stats().dateRangeLabel})`}
+						value={String(stats().totalStreams)}
+					/>
+				</Card>
 
-					<Card>
-						<Stat
-							icon={
-								<svg
-									aria-hidden="true"
-									class="h-8 w-8 text-blue-500"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-							}
-							label="Total Stream Time"
-							value={stats().totalTime}
-						/>
-					</Card>
-
-					<Card>
-						<Stat
-							icon={
-								<svg
-									aria-hidden="true"
-									class="h-8 w-8 text-green-500"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-									<path
-										d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-							}
-							label="Avg Viewers"
-							value={String(stats().avgViewers)}
-						/>
-					</Card>
-				</div>
-			</Show>
+				<Card>
+					<Stat
+						icon={
+							<svg
+								aria-hidden="true"
+								class="h-8 w-8 text-blue-500"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24">
+								<path
+									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+								/>
+							</svg>
+						}
+						label="Total Stream Time"
+						value={stats().totalTime}
+					/>
+				</Card>
+			</div>
 
 			{/* Stream History List */}
 			<Card>
@@ -483,18 +382,21 @@ function StreamHistoryContent(props: {
 										class="block p-6 transition-colors hover:bg-gray-50"
 										href={`/dashboard/stream-history/${stream.id}`}>
 										<div class="flex items-center space-x-4">
-											<Show when={stream.thumbnailUrl}>
-												<div class="shrink-0">
-													<img
-														alt="Stream thumbnail"
-														class="aspect-video w-32 rounded-lg object-cover"
-														onError={(e) => {
-															e.currentTarget.style.display = "none";
-														}}
-														src={stream.thumbnailUrl ?? ""}
+											<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+												<svg
+													aria-hidden="true"
+													class="h-6 w-6 text-purple-600"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24">
+													<path
+														d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
 													/>
-												</div>
-											</Show>
+												</svg>
+											</div>
 											<div class="min-w-0 flex-1">
 												<div class="flex items-start justify-between">
 													<div>
@@ -502,30 +404,22 @@ function StreamHistoryContent(props: {
 															{stream.title || "Untitled Stream"}
 														</h4>
 														<div class="mt-1 flex flex-wrap items-center gap-1 space-x-2">
-															<For each={stream.platforms || []}>
-																{(platform) => (
-																	<Badge
-																		variant={getPlatformBadgeVariant(platform)}>
-																		{platform.charAt(0).toUpperCase() +
-																			platform.slice(1)}
-																	</Badge>
+															<Badge variant="neutral">{stream.status}</Badge>
+															<Show when={stream.started_at}>
+																{(startedAt) => (
+																	<span class="text-gray-500 text-xs">
+																		{formatDate(startedAt())}
+																	</span>
 																)}
-															</For>
+															</Show>
 															<span class="text-gray-500 text-xs">
-																{formatDate(stream.startedAt)}
+																{formatDuration(
+																	computeDurationSeconds(
+																		stream.started_at,
+																		stream.ended_at,
+																	),
+																)}
 															</span>
-															<span class="text-gray-500 text-xs">
-																{formatDuration(stream.durationSeconds ?? 0)}
-															</span>
-														</div>
-													</div>
-													<div class="ml-4 text-right">
-														<div class="font-medium text-gray-900 text-sm">
-															{stream.peakViewers || 0} peak viewers
-														</div>
-														<div class="text-gray-500 text-xs">
-															{stream.averageViewers || 0} avg •{" "}
-															{stream.messagesAmount || 0} messages
 														</div>
 													</div>
 												</div>
