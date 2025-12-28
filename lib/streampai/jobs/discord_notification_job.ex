@@ -17,6 +17,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
   alias Ash.Error.Query.NotFound
   alias Streampai.Integrations.Discord.Client
   alias Streampai.Integrations.DiscordWebhook
+  alias Streampai.SystemActor
 
   require Logger
 
@@ -38,7 +39,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
       attempt: attempt
     )
 
-    case Ash.get(DiscordWebhook, webhook_id, authorize?: false) do
+    case Ash.get(DiscordWebhook, webhook_id, actor: SystemActor.oban()) do
       {:ok, webhook} ->
         if webhook.is_enabled do
           send_and_track(webhook, event_type_atom, atomize_keys(data), attempt)
@@ -112,7 +113,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
         last_error: nil,
         last_error_at: nil
       },
-      authorize?: false
+      actor: SystemActor.oban()
     )
   rescue
     error ->
@@ -130,7 +131,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
         last_error: String.slice(error_message, 0, 1000),
         last_error_at: DateTime.utc_now()
       },
-      authorize?: false
+      actor: SystemActor.oban()
     )
   rescue
     error ->
@@ -188,7 +189,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
       })
   """
   def broadcast_to_user(user_id, event_type, data) do
-    case DiscordWebhook.get_enabled_by_user(user_id, authorize?: false) do
+    case DiscordWebhook.get_enabled_by_user(user_id, actor: SystemActor.oban()) do
       {:ok, webhooks} ->
         event_id = generate_event_id()
 

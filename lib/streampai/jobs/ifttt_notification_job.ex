@@ -17,6 +17,7 @@ defmodule Streampai.Jobs.IFTTTNotificationJob do
   alias Ash.Error.Query.NotFound
   alias Streampai.Integrations.IFTTT.Client
   alias Streampai.Integrations.IFTTTWebhook
+  alias Streampai.SystemActor
 
   require Logger
 
@@ -38,7 +39,7 @@ defmodule Streampai.Jobs.IFTTTNotificationJob do
       attempt: attempt
     )
 
-    case Ash.get(IFTTTWebhook, webhook_id, authorize?: false) do
+    case Ash.get(IFTTTWebhook, webhook_id, actor: SystemActor.oban()) do
       {:ok, webhook} ->
         if webhook.is_enabled do
           send_and_track(webhook, event_type_atom, atomize_keys(data), attempt)
@@ -122,7 +123,7 @@ defmodule Streampai.Jobs.IFTTTNotificationJob do
         last_error: nil,
         last_error_at: nil
       },
-      authorize?: false
+      actor: SystemActor.oban()
     )
   rescue
     error ->
@@ -140,7 +141,7 @@ defmodule Streampai.Jobs.IFTTTNotificationJob do
         last_error: String.slice(error_message, 0, 1000),
         last_error_at: DateTime.utc_now()
       },
-      authorize?: false
+      actor: SystemActor.oban()
     )
   rescue
     error ->
@@ -198,7 +199,7 @@ defmodule Streampai.Jobs.IFTTTNotificationJob do
       })
   """
   def broadcast_to_user(user_id, event_type, data) do
-    case IFTTTWebhook.get_enabled_by_user(user_id, authorize?: false) do
+    case IFTTTWebhook.get_enabled_by_user(user_id, actor: SystemActor.oban()) do
       {:ok, webhooks} ->
         event_id = generate_event_id()
 

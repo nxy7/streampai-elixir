@@ -298,6 +298,57 @@ defmodule Streampai.TestHelpers do
   end
 
   @doc """
+  Polls a function until it returns a truthy value or times out.
+  Useful for replacing `Process.sleep()` in tests that need to wait for
+  async operations to complete.
+
+  ## Options
+    * `:timeout` - Maximum time to wait in milliseconds (default: 1000)
+    * `:interval` - Time between polls in milliseconds (default: 10)
+
+  ## Examples
+
+      # Simple boolean check
+      assert_eventually(fn ->
+        {:ok, user} = Ash.get(User, user.id, load: [:tier])
+        user.tier == :pro
+      end)
+
+      # With custom timeout
+      assert_eventually(fn ->
+        AlertQueue.get_queue_status(pid).queue_state == :paused
+      end, timeout: 2000)
+
+      # Returns the truthy value on success
+      status = assert_eventually(fn ->
+        status = AlertQueue.get_queue_status(pid)
+        if status.queue_state == :paused, do: status
+      end)
+  """
+  def assert_eventually(fun, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 1000)
+    interval = Keyword.get(opts, :interval, 10)
+    deadline = System.monotonic_time(:millisecond) + timeout
+
+    do_assert_eventually(fun, interval, deadline)
+  end
+
+  defp do_assert_eventually(fun, interval, deadline) do
+    case fun.() do
+      result when result not in [nil, false] ->
+        result
+
+      _ ->
+        if System.monotonic_time(:millisecond) >= deadline do
+          flunk("assert_eventually timed out waiting for condition to become truthy")
+        else
+          Process.sleep(interval)
+          do_assert_eventually(fun, interval, deadline)
+        end
+    end
+  end
+
+  @doc """
   Creates user with streaming accounts for integration testing.
   Useful for testing multi-platform features and streaming workflows.
   """

@@ -87,6 +87,10 @@ defmodule Streampai.Cloudflare.LiveInput do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     policy action_type(:read) do
       authorize_if expr(user_id == ^actor(:id))
     end

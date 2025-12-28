@@ -8,6 +8,7 @@ defmodule StreampaiWeb.PayPalWebhookController do
 
   alias Streampai.Donations.Pipeline
   alias Streampai.Integrations.PayPalDonation
+  alias Streampai.SystemActor
 
   require Logger
 
@@ -142,7 +143,7 @@ defmodule StreampaiWeb.PayPalWebhookController do
 
     case PayPalDonation
          |> Ash.Query.filter(capture_id == ^capture_id)
-         |> Ash.read(authorize?: false) do
+         |> Ash.read(actor: SystemActor.paypal()) do
       {:ok, [donation | _]} -> {:ok, donation}
       _ -> {:error, :donation_not_found}
     end
@@ -165,11 +166,11 @@ defmodule StreampaiWeb.PayPalWebhookController do
       net_amount: extract_net_amount(resource)
     }
 
-    PayPalDonation.update(donation, params, authorize?: false)
+    PayPalDonation.update(donation, params, actor: SystemActor.paypal())
   end
 
   defp update_donation_failed(donation) do
-    PayPalDonation.update(donation, %{status: :failed}, authorize?: false)
+    PayPalDonation.update(donation, %{status: :failed}, actor: SystemActor.paypal())
   end
 
   defp update_donation_refunded(donation, resource, event_id) do
@@ -180,7 +181,7 @@ defmodule StreampaiWeb.PayPalWebhookController do
       webhook_event_id: event_id
     }
 
-    PayPalDonation.update(donation, params, authorize?: false)
+    PayPalDonation.update(donation, params, actor: SystemActor.paypal())
   end
 
   defp extract_fee(resource) do

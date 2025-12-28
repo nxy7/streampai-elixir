@@ -8,6 +8,7 @@ defmodule StreampaiWeb.CloudflareWebhookController do
 
   alias Streampai.Cloudflare.LiveInput
   alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.SystemActor
 
   require Logger
 
@@ -29,7 +30,7 @@ defmodule StreampaiWeb.CloudflareWebhookController do
     )
 
     # Check if this live input exists in our database
-    case LiveInput.get_by_cloudflare_uid(live_input_uid, authorize?: false) do
+    case LiveInput.get_by_cloudflare_uid(live_input_uid, actor: SystemActor.cloudflare()) do
       {:ok, live_input} ->
         Logger.info("Live input found in database: live_input_uid=#{live_input_uid}, user_id=#{live_input.user_id}")
 

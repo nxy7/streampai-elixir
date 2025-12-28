@@ -6,6 +6,7 @@ defmodule StreampaiWeb.PayPalCallbackController do
 
   alias Streampai.Accounts.User
   alias Streampai.Integrations.PayPal.PartnerReferrals
+  alias Streampai.SystemActor
 
   require Logger
 
@@ -45,7 +46,7 @@ defmodule StreampaiWeb.PayPalCallbackController do
   end
 
   defp get_user(user_id) do
-    case Ash.get(User, user_id, authorize?: false) do
+    case Ash.get(User, user_id, actor: SystemActor.paypal()) do
       {:ok, user} -> {:ok, user}
       _ -> {:error, :user_not_found}
     end
