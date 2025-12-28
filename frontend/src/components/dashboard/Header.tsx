@@ -46,9 +46,11 @@ export default function Header(props: HeaderProps) {
 					</h1>
 				}
 				when={props.breadcrumbItems && props.breadcrumbItems().length > 0}>
-				<div class="hidden md:block">
-					<Breadcrumbs items={props.breadcrumbItems!()} />
-				</div>
+				{(_) => (
+					<div class="hidden md:block">
+						<Breadcrumbs items={props.breadcrumbItems!()} />
+					</div>
+				)}
 			</Show>
 
 			<div class="flex items-center space-x-4">

@@ -1,3 +1,4 @@
+export type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 export { type AlertProps, type AlertVariant, default as Alert } from "./Alert";
 export {
 	type BadgeProps,
@@ -6,7 +7,6 @@ export {
 	default as Badge,
 } from "./Badge";
 export { default as Breadcrumbs } from "./Breadcrumbs";
-export type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 export {
 	type ButtonProps,
 	type ButtonSize,

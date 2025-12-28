@@ -83,10 +83,16 @@ export function useBreadcrumbContext(): BreadcrumbContextValue {
  *
  * @example
  * ```tsx
- * // In a nested page component with async data:
+ * // Static breadcrumbs
+ * useBreadcrumbs(() => [
+ *   { label: "Widgets", href: "/dashboard/widgets" },
+ *   { label: "Timer Widget" }
+ * ]);
+ *
+ * // Dynamic breadcrumbs (reactive)
  * useBreadcrumbs(() => [
  *   { label: t("dashboardNav.widgets"), href: "/dashboard/widgets" },
- *   { label: widget()?.name ?? "Loading..." }
+ *   { label: widget()?.name ?? t("common.loading") }
  * ]);
  * ```
  */
