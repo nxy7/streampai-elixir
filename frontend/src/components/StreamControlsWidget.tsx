@@ -10,6 +10,7 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { z } from "zod";
+import { useTranslation } from "~/i18n";
 import { formatAmount, formatTimeAgo, formatTimestamp } from "~/lib/formatters";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
@@ -106,6 +107,58 @@ const giveawayCreationMeta: FormMeta<typeof giveawayCreationSchema.shape> = {
 	},
 };
 
+// =============================================================================
+// Stream Settings Schema (with i18n support)
+// =============================================================================
+const streamSettingsSchema = z.object({
+	title: z.string().default(""),
+	description: z.string().default(""),
+	category: z
+		.enum([
+			"Gaming",
+			"Just Chatting",
+			"Music",
+			"Art",
+			"Software Development",
+			"Education",
+			"Sports",
+			"Other",
+		])
+		.default("Gaming"),
+});
+
+type StreamSettingsValues = z.infer<typeof streamSettingsSchema>;
+
+// Localized metadata for stream settings form
+const getStreamSettingsMeta = (): FormMeta<
+	typeof streamSettingsSchema.shape
+> => ({
+	title: {
+		labelKey: "stream.settings.streamTitle",
+		placeholderKey: "stream.settings.streamTitlePlaceholder",
+		inputType: "text",
+	},
+	description: {
+		labelKey: "stream.settings.description",
+		placeholderKey: "stream.settings.descriptionPlaceholder",
+		inputType: "textarea",
+	},
+	category: {
+		labelKey: "stream.settings.category",
+		inputType: "select",
+		optionKeys: {
+			Gaming: "stream.settings.categories.gaming",
+			"Just Chatting": "stream.settings.categories.justChatting",
+			Music: "stream.settings.categories.music",
+			Art: "stream.settings.categories.art",
+			"Software Development": "stream.settings.categories.softwareDevelopment",
+			Education: "stream.settings.categories.education",
+			Sports: "stream.settings.categories.sports",
+			Other: "stream.settings.categories.other",
+		},
+	},
+});
+
 // Types for stream metadata
 export interface StreamMetadata {
 	title: string;
@@ -191,7 +244,8 @@ export type LiveViewMode =
 	| "actions"
 	| "poll"
 	| "giveaway"
-	| "timers";
+	| "timers"
+	| "settings";
 
 // Categories for stream
 const STREAM_CATEGORIES = [
@@ -789,10 +843,11 @@ export interface StreamActionCallbacks {
 	onStartGiveaway?: (data: GiveawayCreationValues) => void;
 	onModifyTimers?: () => void;
 	onChangeStreamSettings?: () => void;
+	onSaveStreamSettings?: (metadata: StreamMetadata) => void;
 }
 
 interface StreamActionsPanelProps extends StreamActionCallbacks {
-	onOpenWidget?: (widget: "poll" | "giveaway") => void;
+	onOpenWidget?: (widget: "poll" | "giveaway" | "settings") => void;
 }
 
 function StreamActionsPanel(props: StreamActionsPanelProps) {
@@ -802,6 +857,10 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 
 	const handleGiveawayClick = () => {
 		props.onOpenWidget?.("giveaway");
+	};
+
+	const handleSettingsClick = () => {
+		props.onOpenWidget?.("settings");
 	};
 
 	const actions = [
@@ -842,8 +901,8 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 			description: "Change title, category, and tags",
 			color: "bg-purple-500",
 			hoverColor: "hover:bg-purple-600",
-			onClick: props.onChangeStreamSettings,
-			enabled: !!props.onChangeStreamSettings,
+			onClick: handleSettingsClick,
+			enabled: true,
 		},
 	];
 
@@ -1186,6 +1245,8 @@ interface LiveStreamControlCenterProps
 	onSendMessage?: (message: string, platforms: Platform[]) => void;
 	moderationCallbacks?: ModerationCallbacks;
 	timers?: StreamTimer[];
+	// Stream settings
+	metadata?: StreamMetadata;
 }
 
 // All available activity types for filtering
@@ -1297,6 +1358,66 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				subscriberOnly: false,
 			});
 			setViewMode("actions");
+		}
+	};
+
+	// Stream settings form state and handlers
+	const { t } = useTranslation();
+	const [tagInput, setTagInput] = createSignal("");
+	const [settingsFormValues, setSettingsFormValues] =
+		createSignal<StreamSettingsValues>({
+			title: props.metadata?.title || "",
+			description: props.metadata?.description || "",
+			category:
+				(props.metadata?.category as StreamSettingsValues["category"]) ||
+				"Gaming",
+		});
+	const [settingsTags, setSettingsTags] = createSignal<string[]>(
+		props.metadata?.tags || [],
+	);
+	const [isSavingSettings, setIsSavingSettings] = createSignal(false);
+
+	// Sync settings form with props.metadata when it changes
+	createEffect(() => {
+		if (props.metadata) {
+			setSettingsFormValues({
+				title: props.metadata.title || "",
+				description: props.metadata.description || "",
+				category:
+					(props.metadata.category as StreamSettingsValues["category"]) ||
+					"Gaming",
+			});
+			setSettingsTags(props.metadata.tags || []);
+		}
+	});
+
+	const addTag = () => {
+		const tag = tagInput().trim();
+		if (tag && !settingsTags().includes(tag)) {
+			setSettingsTags([...settingsTags(), tag]);
+			setTagInput("");
+		}
+	};
+
+	const removeTag = (tagToRemove: string) => {
+		setSettingsTags(settingsTags().filter((t) => t !== tagToRemove));
+	};
+
+	const handleSaveSettings = () => {
+		if (props.onSaveStreamSettings) {
+			setIsSavingSettings(true);
+			const metadata: StreamMetadata = {
+				title: settingsFormValues().title,
+				description: settingsFormValues().description,
+				category: settingsFormValues().category,
+				tags: settingsTags(),
+			};
+			props.onSaveStreamSettings(metadata);
+			// Simulate save delay for UX feedback
+			setTimeout(() => {
+				setIsSavingSettings(false);
+				setViewMode("actions");
+			}, 500);
 		}
 	};
 
@@ -1974,6 +2095,112 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					/>
 				</div>
 			</Show>
+
+			{/* Stream Settings View */}
+			<Show when={viewMode() === "settings"}>
+				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+					<div class="mb-4 flex items-center gap-2">
+						<button
+							class="flex items-center gap-1 rounded-lg px-2 py-1 text-gray-500 text-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
+							data-testid="back-to-actions-settings"
+							onClick={() => setViewMode("actions")}
+							type="button">
+							<span>&lt;</span>
+							<span>{t("stream.settings.backToActions")}</span>
+						</button>
+					</div>
+					<div class="mb-4">
+						<h3 class="font-semibold text-gray-900 text-lg">
+							{t("stream.settings.title")}
+						</h3>
+						<p class="text-gray-500 text-sm">
+							{t("stream.settings.liveSubtitle")}
+						</p>
+					</div>
+					<div class="flex-1 space-y-4">
+						{/* SchemaForm for title, description, category */}
+						<SchemaForm
+							meta={getStreamSettingsMeta()}
+							onChange={(field, value) => {
+								setSettingsFormValues((prev) => ({ ...prev, [field]: value }));
+							}}
+							schema={streamSettingsSchema}
+							t={t}
+							values={settingsFormValues()}
+						/>
+
+						{/* Tags section (custom, not part of SchemaForm) */}
+						<div>
+							<label class={text.label}>
+								{t("stream.settings.tags")}
+								<div class="mt-1 flex gap-2">
+									<input
+										class={input.text}
+										data-testid="settings-tag-input"
+										onInput={(e) => setTagInput(e.currentTarget.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												addTag();
+											}
+										}}
+										placeholder={t("stream.addTagPlaceholder")}
+										type="text"
+										value={tagInput()}
+									/>
+									<button
+										class={button.secondary}
+										data-testid="settings-add-tag"
+										onClick={addTag}
+										type="button">
+										{t("stream.settings.addTag")}
+									</button>
+								</div>
+							</label>
+							<p class="mt-1 text-gray-500 text-xs">
+								{t("stream.settings.tagsDescription")}
+							</p>
+							<Show when={settingsTags().length > 0}>
+								<div class="mt-2 flex flex-wrap gap-2">
+									<For each={settingsTags()}>
+										{(tag) => (
+											<span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-purple-800 text-sm">
+												{tag}
+												<button
+													class="hover:text-purple-600"
+													data-testid={`remove-tag-${tag}`}
+													onClick={() => removeTag(tag)}
+													type="button">
+													x
+												</button>
+											</span>
+										)}
+									</For>
+								</div>
+							</Show>
+						</div>
+					</div>
+					<div class="mt-4 flex justify-end gap-2 border-gray-200 border-t pt-4">
+						<button
+							class={button.secondary}
+							data-testid="cancel-settings"
+							onClick={() => setViewMode("actions")}
+							type="button">
+							{t("stream.settings.cancel")}
+						</button>
+						<button
+							class={button.primary}
+							data-testid="save-settings-button"
+							disabled={isSavingSettings()}
+							onClick={handleSaveSettings}
+							type="button">
+							{isSavingSettings()
+								? t("stream.settings.saving")
+								: t("stream.settings.save")}
+						</button>
+					</div>
+				</div>
+			</Show>
 		</div>
 	);
 }
@@ -2181,11 +2408,13 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 				<LiveStreamControlCenter
 					activities={props.activities || []}
 					connectedPlatforms={props.connectedPlatforms}
+					metadata={props.metadata}
 					moderationCallbacks={props.moderationCallbacks}
 					onAddTimer={props.onAddTimer}
 					onChangeStreamSettings={props.onChangeStreamSettings}
 					onDeleteTimer={props.onDeleteTimer}
 					onModifyTimers={props.onModifyTimers}
+					onSaveStreamSettings={props.onSaveStreamSettings}
 					onSendMessage={props.onSendMessage}
 					onStartGiveaway={props.onStartGiveaway}
 					onStartPoll={props.onStartPoll}

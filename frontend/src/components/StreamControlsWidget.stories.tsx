@@ -1261,3 +1261,56 @@ const _postStreamMeta = {
 		),
 	],
 } satisfies Meta<typeof PostStreamSummary>;
+
+// =====================================================
+// Stream Settings Story
+// =====================================================
+
+// Interactive stream settings story with state management
+function InteractiveStreamSettingsWrapper() {
+	const [activities] = createSignal<ActivityItem[]>(generateActivities(10));
+	const [metadata, setMetadata] = createSignal<StreamMetadata>({
+		title: "My Awesome Stream",
+		description: "Playing games and having fun!",
+		category: "Gaming",
+		tags: ["gaming", "fun"],
+	});
+
+	const handleSaveStreamSettings = (newMetadata: StreamMetadata) => {
+		console.log("Save stream settings:", newMetadata);
+		setMetadata(newMetadata);
+		alert(
+			`Settings saved!\nTitle: ${newMetadata.title}\nCategory: ${newMetadata.category}\nTags: ${newMetadata.tags.join(", ")}`,
+		);
+	};
+
+	return (
+		<StreamControlsWidget
+			activities={activities()}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			metadata={metadata()}
+			onSaveStreamSettings={handleSaveStreamSettings}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			streamDuration={1800}
+			viewerCount={500}
+		/>
+	);
+}
+
+export const StreamSettings: Story = {
+	render: () => <InteractiveStreamSettingsWrapper />,
+	args: {
+		phase: "live",
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					'Test story for Stream Settings. Click the "Actions" tab, then "Stream Settings" to open the settings panel. You can edit the stream title, description, category, and tags. Changes will be saved when you click "Save Settings".',
+			},
+		},
+	},
+};

@@ -133,6 +133,37 @@ export const dict: Dictionary = {
 		sendMessageToChat: "Wyślij wiadomość na czat...",
 		timerLabelPlaceholder: "np. Social media, Discord itp.",
 		timerMessagePlaceholder: "Wiadomość do wysłania w każdym interwale...",
+		// Stream settings
+		settings: {
+			title: "Ustawienia streama",
+			subtitle: "Skonfiguruj stream przed rozpoczęciem",
+			liveSubtitle: "Zaktualizuj informacje o streamie",
+			streamTitle: "Tytuł streama",
+			streamTitlePlaceholder: "Wpisz tytuł streama...",
+			description: "Opis",
+			descriptionPlaceholder: "Opisz swój stream...",
+			category: "Kategoria",
+			categoryPlaceholder: "Wybierz kategorię...",
+			tags: "Tagi",
+			tagsDescription: "Dodaj tagi, aby widzowie mogli znaleźć Twój stream",
+			addTag: "Dodaj",
+			save: "Zapisz ustawienia",
+			saving: "Zapisywanie...",
+			saved: "Ustawienia zapisane!",
+			cancel: "Anuluj",
+			backToActions: "Powrót do akcji",
+			// Categories
+			categories: {
+				gaming: "Gry",
+				justChatting: "Rozmowy",
+				music: "Muzyka",
+				art: "Sztuka",
+				softwareDevelopment: "Programowanie",
+				education: "Edukacja",
+				sports: "Sport",
+				other: "Inne",
+			},
+		},
 	},
 
 	// Chat History page
