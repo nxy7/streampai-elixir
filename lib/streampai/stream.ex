@@ -50,8 +50,7 @@ defmodule Streampai.Stream do
       rpc_action(:get_stream_timers, :get_for_user)
       rpc_action(:create_stream_timer, :create_timer)
       rpc_action(:start_stream_timer, :start_timer)
-      rpc_action(:pause_stream_timer, :pause_timer)
-      rpc_action(:reset_stream_timer, :reset_timer)
+      rpc_action(:stop_stream_timer, :stop_timer)
       rpc_action(:delete_stream_timer, :destroy)
     end
 

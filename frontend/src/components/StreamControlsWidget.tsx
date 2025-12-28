@@ -232,7 +232,6 @@ const getEventIcon = (type: ActivityType): string => {
 			return ">";
 		case "cheer":
 			return "~";
-		case "chat":
 		default:
 			return "";
 	}
@@ -251,7 +250,6 @@ const getEventColor = (type: ActivityType): string => {
 			return "text-orange-400";
 		case "cheer":
 			return "text-pink-400";
-		case "chat":
 		default:
 			return "text-gray-300";
 	}
@@ -881,11 +879,10 @@ function StreamActionsPanel(props: StreamActionsPanelProps) {
 export interface StreamTimer {
 	id: string;
 	label: string;
-	content: string; // Message to send when timer triggers
-	durationSeconds: number;
-	remainingSeconds: number;
-	isRunning: boolean;
-	isPaused: boolean;
+	content: string; // Message to send when timer fires
+	intervalSeconds: number; // How often to send the message
+	isActive: boolean; // Whether the timer is currently running
+	nextFireAt: Date | string | null; // When the next message will be sent
 }
 
 // =====================================================
@@ -894,10 +891,9 @@ export interface StreamTimer {
 interface TimersPanelProps {
 	timers: StreamTimer[];
 	onBack: () => void;
-	onAddTimer?: (label: string, content: string, durationMinutes: number) => void;
+	onAddTimer?: (label: string, content: string, intervalMinutes: number) => void;
 	onStartTimer?: (timerId: string) => void;
-	onPauseTimer?: (timerId: string) => void;
-	onResetTimer?: (timerId: string) => void;
+	onStopTimer?: (timerId: string) => void;
 	onDeleteTimer?: (timerId: string) => void;
 }
 
@@ -907,17 +903,32 @@ function TimersPanel(props: TimersPanelProps) {
 	const [newTimerContent, setNewTimerContent] = createSignal("");
 	const [newTimerMinutes, setNewTimerMinutes] = createSignal(5);
 
-	const formatDuration = (seconds: number): string => {
-		const mins = Math.floor(Math.abs(seconds) / 60);
-		const secs = Math.abs(seconds) % 60;
-		const sign = seconds < 0 ? "-" : "";
-		return `${sign}${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+	const formatInterval = (seconds: number): string => {
+		const mins = Math.floor(seconds / 60);
+		if (mins >= 60) {
+			const hrs = Math.floor(mins / 60);
+			const remainingMins = mins % 60;
+			return remainingMins > 0 ? `${hrs}h ${remainingMins}m` : `${hrs}h`;
+		}
+		return `${mins}m`;
+	};
+
+	const getTimeUntilFire = (nextFireAt: Date | string | null): string => {
+		if (!nextFireAt) return "Not scheduled";
+		const fireTime = nextFireAt instanceof Date ? nextFireAt : new Date(nextFireAt);
+		const now = new Date();
+		const diffMs = fireTime.getTime() - now.getTime();
+		if (diffMs <= 0) return "Firing...";
+		const diffSecs = Math.floor(diffMs / 1000);
+		const mins = Math.floor(diffSecs / 60);
+		const secs = diffSecs % 60;
+		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
 	const handleAddTimer = () => {
 		const label = newTimerLabel().trim() || "Timer";
 		const content = newTimerContent().trim();
-		if (props.onAddTimer) {
+		if (content && props.onAddTimer) {
 			props.onAddTimer(label, content, newTimerMinutes());
 		}
 		setNewTimerLabel("");
@@ -926,19 +937,8 @@ function TimersPanel(props: TimersPanelProps) {
 		setShowAddForm(false);
 	};
 
-	const getTimerStatusColor = (timer: StreamTimer): string => {
-		if (timer.remainingSeconds <= 0) return "text-red-500";
-		if (timer.remainingSeconds <= 60) return "text-orange-500";
-		if (timer.isRunning) return "text-green-500";
-		if (timer.isPaused) return "text-yellow-500";
-		return "text-gray-700";
-	};
-
 	const getTimerStatusBg = (timer: StreamTimer): string => {
-		if (timer.remainingSeconds <= 0) return "bg-red-50 border-red-200";
-		if (timer.remainingSeconds <= 60) return "bg-orange-50 border-orange-200";
-		if (timer.isRunning) return "bg-green-50 border-green-200";
-		if (timer.isPaused) return "bg-yellow-50 border-yellow-200";
+		if (timer.isActive) return "bg-green-50 border-green-200";
 		return "bg-gray-50 border-gray-200";
 	};
 
@@ -955,7 +955,7 @@ function TimersPanel(props: TimersPanelProps) {
 				</button>
 				<div>
 					<h3 class="font-semibold text-gray-900 text-lg">Stream Timers</h3>
-					<p class="text-gray-500 text-sm">Manage countdowns and timers</p>
+					<p class="text-gray-500 text-sm">Recurring messages sent at intervals</p>
 				</div>
 			</div>
 
@@ -968,7 +968,7 @@ function TimersPanel(props: TimersPanelProps) {
 							<div class="mb-2 text-4xl">[~]</div>
 							<div class="text-gray-600">No timers yet</div>
 							<p class="mt-1 text-gray-400 text-sm">
-								Add a timer to get started
+								Add a timer to send recurring messages
 							</p>
 						</div>
 					}>
@@ -977,41 +977,43 @@ function TimersPanel(props: TimersPanelProps) {
 							<div
 								class={`rounded-lg border p-4 transition-all ${getTimerStatusBg(timer)}`}
 								data-testid={`timer-${timer.id}`}>
-								<div class="flex items-center justify-between">
-									<div class="flex items-center gap-3">
-										<div
-											class={`font-mono text-2xl font-bold tabular-nums ${getTimerStatusColor(timer)}`}>
-											{formatDuration(timer.remainingSeconds)}
-										</div>
-										<div class="min-w-0 flex-1">
+								<div class="flex items-start justify-between gap-3">
+									<div class="min-w-0 flex-1">
+										<div class="flex items-center gap-2">
 											<div class="font-medium text-gray-900">{timer.label}</div>
-											<div class="text-gray-500 text-xs">
-												{timer.isRunning
-													? "Running"
-													: timer.isPaused
-														? "Paused"
-														: timer.remainingSeconds <= 0
-															? "Finished"
-															: "Ready"}
+											<span class={`rounded-full px-2 py-0.5 text-xs ${
+												timer.isActive
+													? "bg-green-100 text-green-700"
+													: "bg-gray-100 text-gray-500"
+											}`}>
+												{timer.isActive ? "Active" : "Inactive"}
+											</span>
+										</div>
+										<div class="mt-1 text-gray-500 text-sm">
+											Every {formatInterval(timer.intervalSeconds)}
+										</div>
+										<Show when={timer.isActive && timer.nextFireAt}>
+											<div class="mt-1 font-mono text-green-600 text-sm">
+												Next: {getTimeUntilFire(timer.nextFireAt)}
 											</div>
-											<Show when={timer.content}>
-												<div class="mt-1 truncate text-gray-600 text-xs italic">
-													"{timer.content.length > 50 ? `${timer.content.slice(0, 50)}...` : timer.content}"
-												</div>
-											</Show>
+										</Show>
+										<div class="mt-2 rounded bg-gray-100 p-2 text-gray-700 text-sm">
+											{timer.content.length > 100
+												? `${timer.content.slice(0, 100)}...`
+												: timer.content}
 										</div>
 									</div>
-									<div class="flex gap-1">
+									<div class="flex shrink-0 gap-1">
 										<Show
-											when={!timer.isRunning}
+											when={!timer.isActive}
 											fallback={
 												<button
 													type="button"
 													class="flex h-8 w-8 items-center justify-center rounded border border-yellow-300 bg-yellow-100 text-yellow-700 transition-colors hover:bg-yellow-200"
-													onClick={() => props.onPauseTimer?.(timer.id)}
-													disabled={!props.onPauseTimer}
-													title="Pause"
-													data-testid={`pause-timer-${timer.id}`}>
+													onClick={() => props.onStopTimer?.(timer.id)}
+													disabled={!props.onStopTimer}
+													title="Stop"
+													data-testid={`stop-timer-${timer.id}`}>
 													||
 												</button>
 											}>
@@ -1027,15 +1029,6 @@ function TimersPanel(props: TimersPanelProps) {
 										</Show>
 										<button
 											type="button"
-											class="flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
-											onClick={() => props.onResetTimer?.(timer.id)}
-											disabled={!props.onResetTimer}
-											title="Reset"
-											data-testid={`reset-timer-${timer.id}`}>
-											[R]
-										</button>
-										<button
-											type="button"
 											class="flex h-8 w-8 items-center justify-center rounded border border-red-300 bg-red-100 text-red-600 transition-colors hover:bg-red-200"
 											onClick={() => props.onDeleteTimer?.(timer.id)}
 											disabled={!props.onDeleteTimer}
@@ -1044,21 +1037,6 @@ function TimersPanel(props: TimersPanelProps) {
 											x
 										</button>
 									</div>
-								</div>
-								{/* Progress bar */}
-								<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-200">
-									<div
-										class={`h-full transition-all duration-1000 ${
-											timer.remainingSeconds <= 0
-												? "bg-red-500"
-												: timer.remainingSeconds <= 60
-													? "bg-orange-500"
-													: "bg-green-500"
-										}`}
-										style={{
-											width: `${Math.max(0, Math.min(100, (timer.remainingSeconds / timer.durationSeconds) * 100))}%`,
-										}}
-									/>
 								</div>
 							</div>
 						)}
@@ -1088,7 +1066,7 @@ function TimersPanel(props: TimersPanelProps) {
 							<input
 								type="text"
 								class={`${input.text} w-full`}
-								placeholder="e.g., Break, Giveaway, etc."
+								placeholder="e.g., Social Links, Discord, etc."
 								value={newTimerLabel()}
 								onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
 								data-testid="new-timer-label"
@@ -1096,12 +1074,12 @@ function TimersPanel(props: TimersPanelProps) {
 						</div>
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
-								Message Content
+								Message Content *
 							</label>
 							<textarea
 								class={`${input.textarea} w-full`}
 								rows="2"
-								placeholder="Message to send when timer fires..."
+								placeholder="Message to send at each interval..."
 								value={newTimerContent()}
 								onInput={(e) => setNewTimerContent(e.currentTarget.value)}
 								data-testid="new-timer-content"
@@ -1109,7 +1087,7 @@ function TimersPanel(props: TimersPanelProps) {
 						</div>
 						<div>
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
-								Duration (minutes)
+								Interval (minutes)
 							</label>
 							<input
 								type="number"
@@ -1119,18 +1097,21 @@ function TimersPanel(props: TimersPanelProps) {
 								value={newTimerMinutes()}
 								onInput={(e) =>
 									setNewTimerMinutes(
-										Number.parseInt(e.currentTarget.value) || 5,
+										Number.parseInt(e.currentTarget.value, 10) || 5,
 									)
 								}
 								data-testid="new-timer-minutes"
 							/>
+							<p class="mt-1 text-gray-400 text-xs">
+								Message will be sent every {newTimerMinutes()} minute{newTimerMinutes() !== 1 ? "s" : ""}
+							</p>
 						</div>
 						<div class="flex gap-2">
 							<button
 								type="button"
 								class={button.primary}
 								onClick={handleAddTimer}
-								disabled={!props.onAddTimer}
+								disabled={!props.onAddTimer || !newTimerContent().trim()}
 								data-testid="confirm-add-timer">
 								Add Timer
 							</button>
@@ -1153,10 +1134,9 @@ function TimersPanel(props: TimersPanelProps) {
 // Timer Action Callbacks
 // =====================================================
 export interface TimerActionCallbacks {
-	onAddTimer?: (label: string, content: string, durationMinutes: number) => void;
+	onAddTimer?: (label: string, content: string, intervalMinutes: number) => void;
 	onStartTimer?: (timerId: string) => void;
-	onPauseTimer?: (timerId: string) => void;
-	onResetTimer?: (timerId: string) => void;
+	onStopTimer?: (timerId: string) => void;
 	onDeleteTimer?: (timerId: string) => void;
 }
 
@@ -1419,7 +1399,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 	// Set up periodic refresh to remove expired sticky items
 	onMount(() => {
-		const duration = props.stickyDuration || 120000;
+		const _duration = props.stickyDuration || 120000;
 		const interval = setInterval(() => {
 			setStickyItemIds(computeStickyItems());
 		}, 10000); // Refresh every 10 seconds
@@ -1601,7 +1581,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							<span>[=]</span>
 							<span>Filter</span>
 							<Show when={hasActiveFilters()}>
-								<span class="ml-0.5 rounded-full bg-purple-600 px-1.5 text-white text-[10px]">
+								<span class="ml-0.5 rounded-full bg-purple-600 px-1.5 text-[10px] text-white">
 									{ALL_ACTIVITY_TYPES.length -
 										selectedTypeFilters().size +
 										(searchText().trim() ? 1 : 0)}
@@ -1634,7 +1614,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 					{/* Expandable filter panel - absolute positioned to prevent layout shift */}
 					<Show when={showFilters()}>
-						<div class="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+						<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
 							<div class="mb-1.5 flex items-center justify-between">
 								<span class="font-medium text-gray-600 text-xs">
 									Event Types
@@ -1961,8 +1941,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 						onBack={() => setViewMode("events")}
 						onAddTimer={props.onAddTimer}
 						onStartTimer={props.onStartTimer}
-						onPauseTimer={props.onPauseTimer}
-						onResetTimer={props.onResetTimer}
+						onStopTimer={props.onStopTimer}
 						onDeleteTimer={props.onDeleteTimer}
 					/>
 				</div>
@@ -2186,8 +2165,7 @@ export default function StreamControlsWidget(props: StreamControlsWidgetProps) {
 					timers={props.timers}
 					onAddTimer={props.onAddTimer}
 					onStartTimer={props.onStartTimer}
-					onPauseTimer={props.onPauseTimer}
-					onResetTimer={props.onResetTimer}
+					onStopTimer={props.onStopTimer}
 					onDeleteTimer={props.onDeleteTimer}
 				/>
 			</Show>

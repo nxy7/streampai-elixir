@@ -2,14 +2,14 @@ import { createSignal, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import StreamControlsWidget, {
 	type ActivityItem,
+	LiveStreamControlCenter,
+	type ModerationCallbacks,
+	type Platform,
+	PostStreamSummary,
+	PreStreamSettings,
 	type StreamMetadata,
 	type StreamSummary,
-	type Platform,
-	type ModerationCallbacks,
 	type StreamTimer,
-	PreStreamSettings,
-	LiveStreamControlCenter,
-	PostStreamSummary,
 } from "./StreamControlsWidget";
 
 const meta = {
@@ -1027,30 +1027,27 @@ export const ModerationActionsTest: Story = {
 const sampleTimers: StreamTimer[] = [
 	{
 		id: "timer-1",
-		label: "Stream Break",
-		content: "Taking a 5 minute break! Be right back!",
-		durationSeconds: 300, // 5 minutes
-		remainingSeconds: 180, // 3 minutes left
-		isRunning: true,
-		isPaused: false,
+		label: "Social Links",
+		content: "Follow me on Twitter @streamer! Join the Discord: discord.gg/stream",
+		intervalSeconds: 300, // Every 5 minutes
+		isActive: true,
+		nextFireAt: new Date(Date.now() + 180000), // 3 minutes from now
 	},
 	{
 		id: "timer-2",
-		label: "Giveaway",
-		content: "Giveaway starting soon! Make sure you're following to enter!",
-		durationSeconds: 600, // 10 minutes
-		remainingSeconds: 600, // not started
-		isRunning: false,
-		isPaused: false,
+		label: "Giveaway Reminder",
+		content: "Don't forget to type !enter to join today's giveaway! Winner announced at the end of stream!",
+		intervalSeconds: 600, // Every 10 minutes
+		isActive: false,
+		nextFireAt: null,
 	},
 	{
 		id: "timer-3",
-		label: "Sub Train",
-		content: "Sub train is active! Keep it going!",
-		durationSeconds: 120, // 2 minutes
-		remainingSeconds: 45, // almost done
-		isRunning: true,
-		isPaused: false,
+		label: "Subscribe Reminder",
+		content: "Enjoying the stream? Consider subscribing! Subs get custom emotes and ad-free viewing!",
+		intervalSeconds: 900, // Every 15 minutes
+		isActive: true,
+		nextFireAt: new Date(Date.now() + 45000), // 45 seconds from now
 	},
 ];
 
@@ -1059,34 +1056,18 @@ function InteractiveTimersWrapper() {
 	const [timers, setTimers] = createSignal<StreamTimer[]>(sampleTimers);
 	const [activities] = createSignal<ActivityItem[]>(generateActivities(10));
 
-	// Timer tick effect - decrement running timers
-	onMount(() => {
-		const interval = setInterval(() => {
-			setTimers((currentTimers) =>
-				currentTimers.map((timer) => {
-					if (timer.isRunning && !timer.isPaused) {
-						return {
-							...timer,
-							remainingSeconds: timer.remainingSeconds - 1,
-						};
-					}
-					return timer;
-				}),
-			);
-		}, 1000);
-
-		onCleanup(() => clearInterval(interval));
-	});
-
-	const handleAddTimer = (label: string, content: string, durationMinutes: number) => {
+	const handleAddTimer = (
+		label: string,
+		content: string,
+		intervalMinutes: number,
+	) => {
 		const newTimer: StreamTimer = {
 			id: `timer-${Date.now()}`,
 			label,
 			content,
-			durationSeconds: durationMinutes * 60,
-			remainingSeconds: durationMinutes * 60,
-			isRunning: false,
-			isPaused: false,
+			intervalSeconds: intervalMinutes * 60,
+			isActive: false,
+			nextFireAt: null,
 		};
 		setTimers((t) => [...t, newTimer]);
 	};
@@ -1094,30 +1075,21 @@ function InteractiveTimersWrapper() {
 	const handleStartTimer = (timerId: string) => {
 		setTimers((currentTimers) =>
 			currentTimers.map((t) =>
-				t.id === timerId ? { ...t, isRunning: true, isPaused: false } : t,
-			),
-		);
-	};
-
-	const handlePauseTimer = (timerId: string) => {
-		setTimers((currentTimers) =>
-			currentTimers.map((t) =>
-				t.id === timerId ? { ...t, isRunning: false, isPaused: true } : t,
-			),
-		);
-	};
-
-	const handleResetTimer = (timerId: string) => {
-		setTimers((currentTimers) =>
-			currentTimers.map((t) =>
 				t.id === timerId
 					? {
 							...t,
-							remainingSeconds: t.durationSeconds,
-							isRunning: false,
-							isPaused: false,
+							isActive: true,
+							nextFireAt: new Date(Date.now() + t.intervalSeconds * 1000),
 						}
 					: t,
+			),
+		);
+	};
+
+	const handleStopTimer = (timerId: string) => {
+		setTimers((currentTimers) =>
+			currentTimers.map((t) =>
+				t.id === timerId ? { ...t, isActive: false, nextFireAt: null } : t,
 			),
 		);
 	};
@@ -1140,8 +1112,7 @@ function InteractiveTimersWrapper() {
 			timers={timers()}
 			onAddTimer={handleAddTimer}
 			onStartTimer={handleStartTimer}
-			onPauseTimer={handlePauseTimer}
-			onResetTimer={handleResetTimer}
+			onStopTimer={handleStopTimer}
 			onDeleteTimer={handleDeleteTimer}
 		/>
 	);
@@ -1176,10 +1147,11 @@ export const LiveWithTimers: Story = {
 		onChangeStreamSettings: handleChangeStreamSettings,
 		timers: sampleTimers,
 		onAddTimer: (label: string, content: string, minutes: number) =>
-			console.log(`Add timer: ${label} with content "${content}" for ${minutes} minutes`),
+			console.log(
+				`Add timer: ${label} with content "${content}" every ${minutes} minutes`,
+			),
 		onStartTimer: (id: string) => console.log(`Start timer: ${id}`),
-		onPauseTimer: (id: string) => console.log(`Pause timer: ${id}`),
-		onResetTimer: (id: string) => console.log(`Reset timer: ${id}`),
+		onStopTimer: (id: string) => console.log(`Stop timer: ${id}`),
 		onDeleteTimer: (id: string) => console.log(`Delete timer: ${id}`),
 	},
 	parameters: {
@@ -1205,7 +1177,9 @@ export const EmptyTimers: Story = {
 		onChangeStreamSettings: handleChangeStreamSettings,
 		timers: [],
 		onAddTimer: (label: string, content: string, minutes: number) =>
-			console.log(`Add timer: ${label} with content "${content}" for ${minutes} minutes`),
+			console.log(
+				`Add timer: ${label} with content "${content}" for ${minutes} minutes`,
+			),
 	},
 	parameters: {
 		docs: {
@@ -1221,7 +1195,7 @@ export const EmptyTimers: Story = {
 // Individual Component Stories
 // =====================================================
 
-const preStreamMeta = {
+const _preStreamMeta = {
 	title: "Components/StreamControlsWidget/PreStreamSettings",
 	component: PreStreamSettings,
 	parameters: {
@@ -1242,7 +1216,7 @@ const preStreamMeta = {
 	],
 } satisfies Meta<typeof PreStreamSettings>;
 
-const liveMeta = {
+const _liveMeta = {
 	title: "Components/StreamControlsWidget/LiveStreamControlCenter",
 	component: LiveStreamControlCenter,
 	parameters: {
@@ -1264,7 +1238,7 @@ const liveMeta = {
 	],
 } satisfies Meta<typeof LiveStreamControlCenter>;
 
-const postStreamMeta = {
+const _postStreamMeta = {
 	title: "Components/StreamControlsWidget/PostStreamSummary",
 	component: PostStreamSummary,
 	parameters: {
