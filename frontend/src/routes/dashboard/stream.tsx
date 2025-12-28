@@ -4,6 +4,7 @@ import { Skeleton } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { apiRoutes } from "~/lib/constants";
 import { useStreamingAccounts } from "~/lib/useElectric";
@@ -118,6 +119,7 @@ type StreamKeyData = {
 };
 
 export default function Stream() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 	const [streamStatus, setStreamStatus] = createSignal<StreamStatus>("offline");
@@ -352,7 +354,7 @@ export default function Stream() {
 													title: e.currentTarget.value,
 												}))
 											}
-											placeholder="Enter your stream title..."
+											placeholder={t("stream.streamTitlePlaceholder")}
 											type="text"
 											value={streamMetadata().title}
 										/>
@@ -369,7 +371,7 @@ export default function Stream() {
 													description: e.currentTarget.value,
 												}))
 											}
-											placeholder="Describe your stream..."
+											placeholder={t("stream.streamDescriptionPlaceholder")}
 											rows="3"
 											value={streamMetadata().description}
 										/>
