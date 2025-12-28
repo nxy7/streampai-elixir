@@ -171,6 +171,10 @@ defmodule Streampai.Integrations.IFTTTWebhook do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     bypass actor_attribute_equals(:is_admin, true) do
       authorize_if always()
     end
@@ -185,11 +189,6 @@ defmodule Streampai.Integrations.IFTTTWebhook do
 
     policy action([:test_webhook, :send_notification]) do
       authorize_if actor_present()
-    end
-
-    # Internal actions used by Oban workers - no actor required
-    policy action([:record_delivery_success, :record_delivery_failure, :record_test]) do
-      authorize_if always()
     end
   end
 

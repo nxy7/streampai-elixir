@@ -71,6 +71,10 @@ defmodule Streampai.Integrations.Donation do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     bypass actor_attribute_equals(:is_admin, true) do
       authorize_if always()
     end

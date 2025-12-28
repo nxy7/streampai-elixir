@@ -610,6 +610,10 @@ defmodule Streampai.Accounts.User do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     bypass AshOban.Checks.AshObanInteraction do
       authorize_if always()
     end
