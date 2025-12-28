@@ -44,7 +44,74 @@ import {
 	TextareaField,
 } from "./fields";
 import { introspectSchema } from "./introspect";
-import type { FormMeta, IntrospectedField } from "./types";
+import type { FormMeta, IntrospectedField, TranslationFunction } from "./types";
+
+/**
+ * Resolve a field's display values using translations if available.
+ * Falls back to static values when no translation function is provided.
+ */
+function resolveFieldTranslations(
+	field: IntrospectedField,
+	t?: TranslationFunction,
+): IntrospectedField {
+	if (!t) return field;
+
+	const meta = field.meta;
+	const resolvedMeta = { ...meta };
+
+	// Resolve label
+	const resolvedLabel = meta.labelKey ? t(meta.labelKey) : field.label;
+
+	// Resolve description
+	if (meta.descriptionKey) {
+		resolvedMeta.description = t(meta.descriptionKey);
+	}
+
+	// Resolve placeholder
+	if (meta.placeholderKey) {
+		resolvedMeta.placeholder = t(meta.placeholderKey);
+	}
+
+	// Resolve option labels for select fields
+	if (meta.optionKeys && field.enumValues) {
+		const resolvedOptions: Record<string, string> = {};
+		for (const value of field.enumValues) {
+			if (meta.optionKeys[value]) {
+				resolvedOptions[value] = t(meta.optionKeys[value]);
+			} else if (meta.options?.[value]) {
+				resolvedOptions[value] = meta.options[value];
+			}
+		}
+		if (Object.keys(resolvedOptions).length > 0) {
+			resolvedMeta.options = resolvedOptions;
+		}
+	}
+
+	return {
+		...field,
+		label: resolvedLabel,
+		meta: resolvedMeta,
+	};
+}
+
+/**
+ * Resolve group name using translation if available.
+ */
+function resolveGroupName(
+	groupName: string,
+	fields: IntrospectedField[],
+	t?: TranslationFunction,
+): string {
+	if (!t) return groupName;
+
+	// Check if any field in the group has a groupKey
+	const fieldWithGroupKey = fields.find((f) => f.meta.groupKey);
+	if (fieldWithGroupKey?.meta.groupKey) {
+		return t(fieldWithGroupKey.meta.groupKey);
+	}
+
+	return groupName;
+}
 
 interface SchemaFormProps<T extends z.ZodRawShape> {
 	/** The Zod schema defining the form structure */
@@ -62,6 +129,8 @@ interface SchemaFormProps<T extends z.ZodRawShape> {
 	class?: string;
 	/** Whether the form is disabled */
 	disabled?: boolean;
+	/** Optional translation function for i18n support. When provided, fields can use i18n keys (labelKey, descriptionKey, etc.) */
+	t?: TranslationFunction;
 }
 
 /**
@@ -151,14 +220,14 @@ export function SchemaForm<T extends z.ZodRawShape>(
 				{([groupName, fields]) => (
 					<div class="space-y-4">
 						<h3 class="border-gray-200 border-b pb-2 font-medium text-gray-900 text-sm">
-							{groupName}
+							{resolveGroupName(groupName, fields, props.t)}
 						</h3>
 						<div class="space-y-4">
 							<For each={fields}>
 								{(field) => (
 									<SchemaField
 										disabled={props.disabled}
-										field={field}
+										field={resolveFieldTranslations(field, props.t)}
 										onChange={(value) =>
 											props.onChange(
 												field.name as keyof z.infer<z.ZodObject<T>>,
@@ -183,7 +252,7 @@ export function SchemaForm<T extends z.ZodRawShape>(
 				{(field) => (
 					<SchemaField
 						disabled={props.disabled}
-						field={field}
+						field={resolveFieldTranslations(field, props.t)}
 						onChange={(value) =>
 							props.onChange(
 								field.name as keyof z.infer<z.ZodObject<T>>,

@@ -1,17 +1,53 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { z } from "zod";
 import { Alert } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
-import { Select, Textarea } from "~/components/ui/Input";
 import { useCurrentUser } from "~/lib/auth";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
+import { SchemaForm } from "~/lib/schema-form/SchemaForm";
+import type { FormMeta } from "~/lib/schema-form/types";
 import { usePresence } from "~/lib/socket";
 import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
 import { text } from "~/styles/design-system";
+
+// Schema for Grant PRO form
+const grantProSchema = z.object({
+	duration: z
+		.enum(["7", "30", "90", "180", "365"])
+		.default("30"),
+	reason: z.string().default(""),
+});
+
+// Duration labels for display
+const durationLabels: Record<string, string> = {
+	"7": "7 days",
+	"30": "30 days",
+	"90": "90 days (3 months)",
+	"180": "180 days (6 months)",
+	"365": "365 days (1 year)",
+};
+
+// Metadata for Grant PRO form UI
+const grantProMeta: FormMeta<typeof grantProSchema.shape> = {
+	duration: {
+		label: "Duration",
+		description: "How long the PRO access will last",
+		options: durationLabels,
+	},
+	reason: {
+		label: "Reason",
+		inputType: "textarea",
+		placeholder: "e.g., Beta tester, Partner program, Promotional access...",
+		description: "This will be logged for auditing purposes",
+	},
+};
+
+type GrantProFormValues = z.infer<typeof grantProSchema>;
 
 export default function AdminUsers() {
 	const navigate = useNavigate();
@@ -46,8 +82,10 @@ export default function AdminUsers() {
 
 	const [showGrantModal, setShowGrantModal] = createSignal(false);
 	const [selectedUser, setSelectedUser] = createSignal<AdminUser | null>(null);
-	const [grantDuration, setGrantDuration] = createSignal("30");
-	const [grantReason, setGrantReason] = createSignal("");
+	const [grantFormValues, setGrantFormValues] = createSignal<GrantProFormValues>({
+		duration: "30",
+		reason: "",
+	});
 	const [grantingPro, setGrantingPro] = createSignal(false);
 
 	const [showRevokeConfirm, setShowRevokeConfirm] = createSignal(false);
@@ -63,8 +101,7 @@ export default function AdminUsers() {
 
 	const openGrantModal = (user: AdminUser) => {
 		setSelectedUser(user);
-		setGrantDuration("30");
-		setGrantReason("");
+		setGrantFormValues({ duration: "30", reason: "" });
 		setShowGrantModal(true);
 		setError(null);
 		setSuccessMessage(null);
@@ -73,14 +110,15 @@ export default function AdminUsers() {
 	const closeGrantModal = () => {
 		setShowGrantModal(false);
 		setSelectedUser(null);
-		setGrantReason("");
+		setGrantFormValues({ duration: "30", reason: "" });
 	};
 
 	const handleGrantPro = async () => {
 		const user = selectedUser();
 		if (!user) return;
 
-		const reason = grantReason().trim();
+		const formValues = grantFormValues();
+		const reason = formValues.reason.trim();
 		if (!reason) {
 			setError("Please provide a reason for granting PRO access");
 			return;
@@ -93,7 +131,7 @@ export default function AdminUsers() {
 			const result = await grantProAccess({
 				identity: user.id,
 				input: {
-					durationDays: parseInt(grantDuration(), 10),
+					durationDays: parseInt(formValues.duration, 10),
 					reason: reason,
 				},
 				fields: ["id", "tier"],
@@ -104,7 +142,7 @@ export default function AdminUsers() {
 				setError(result.errors[0]?.message || "Failed to grant PRO access");
 			} else {
 				setSuccessMessage(
-					`PRO access granted to ${user.email} for ${grantDuration()} days`,
+					`PRO access granted to ${user.email} for ${durationLabels[formValues.duration]}`,
 				);
 				closeGrantModal();
 
@@ -357,36 +395,17 @@ export default function AdminUsers() {
 										</p>
 									</div>
 
-									<div>
-										<label class="mb-2 block font-medium text-gray-700 text-sm">
-											Duration
-											<Select
-												onInput={(e) => setGrantDuration(e.currentTarget.value)}
-												value={grantDuration()}>
-												<option value="7">7 days</option>
-												<option value="30">30 days</option>
-												<option value="90">90 days (3 months)</option>
-												<option value="180">180 days (6 months)</option>
-												<option value="365">365 days (1 year)</option>
-											</Select>
-										</label>
-									</div>
-
-									<div>
-										<label class="block font-medium text-gray-700 text-sm">
-											Reason <span class="text-red-500">*</span>
-											<Textarea
-												class="mt-2"
-												onInput={(e) => setGrantReason(e.currentTarget.value)}
-												placeholder="e.g., Beta tester, Partner program, Promotional access..."
-												rows={3}
-												value={grantReason()}
-											/>
-										</label>
-										<p class={text.helper}>
-											This will be logged for auditing purposes
-										</p>
-									</div>
+									<SchemaForm
+										meta={grantProMeta}
+										onChange={(field, value) => {
+											setGrantFormValues((prev) => ({
+												...prev,
+												[field]: value,
+											}));
+										}}
+										schema={grantProSchema}
+										values={grantFormValues()}
+									/>
 								</div>
 
 								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
@@ -394,7 +413,7 @@ export default function AdminUsers() {
 										Cancel
 									</Button>
 									<Button
-										disabled={grantingPro() || !grantReason().trim()}
+										disabled={grantingPro() || !grantFormValues().reason.trim()}
 										onClick={handleGrantPro}>
 										<Show fallback="Grant PRO Access" when={grantingPro()}>
 											Granting...

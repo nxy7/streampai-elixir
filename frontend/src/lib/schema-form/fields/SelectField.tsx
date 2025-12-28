@@ -22,6 +22,17 @@ function enumValueToLabel(value: string): string {
 		.join(" ");
 }
 
+/**
+ * Get the display label for an option value.
+ * Uses custom options from metadata if provided, otherwise auto-generates from value.
+ */
+function getOptionLabel(value: string, customOptions?: Record<string, string>): string {
+	if (customOptions && value in customOptions) {
+		return customOptions[value];
+	}
+	return enumValueToLabel(value);
+}
+
 export const SelectField: Component<SelectFieldProps> = (props) => {
 	return (
 		<Select
@@ -31,7 +42,11 @@ export const SelectField: Component<SelectFieldProps> = (props) => {
 			onChange={(e) => props.onChange(e.currentTarget.value)}
 			value={props.value ?? ""}>
 			<For each={props.field.enumValues ?? []}>
-				{(option) => <option value={option}>{enumValueToLabel(option)}</option>}
+				{(option) => (
+					<option value={option}>
+						{getOptionLabel(option, props.field.meta.options)}
+					</option>
+				)}
 			</For>
 		</Select>
 	);
