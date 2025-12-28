@@ -122,6 +122,12 @@ export const dict = {
 		signInToAccess: "Please sign in to access the dashboard.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Enter your stream title...",
+		streamDescriptionPlaceholder: "Describe your stream...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream Analytics",
@@ -527,6 +533,12 @@ export const dict = {
 		faqQ5: "How do I report a bug or request a feature?",
 		faqA5:
 			"We love hearing from our users! Please contact us with bug reports or feature requests. You can also join our Discord community to discuss ideas with other users.",
+	},
+
+	// Admin pages
+	admin: {
+		enterUserUuid: "Enter user UUID",
+		enterNotificationMessage: "Enter notification message...",
 	},
 
 	// Contact page

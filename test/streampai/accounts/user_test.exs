@@ -2,6 +2,8 @@ defmodule Streampai.Accounts.UserTest do
   use Streampai.DataCase, async: true
   use Mneme
 
+  import Streampai.TestHelpers, only: [assert_eventually: 1]
+
   alias Streampai.Accounts.User
 
   describe "User resource" do
@@ -104,9 +106,11 @@ defmodule Streampai.Accounts.UserTest do
           actor: :system
         )
 
-      Process.sleep(50)
-
-      {:ok, reloaded_user} = Ash.get(User, user.id, actor: user, load: [:tier])
+      reloaded_user =
+        assert_eventually(fn ->
+          {:ok, reloaded} = Ash.get(User, user.id, actor: user, load: [:tier])
+          if reloaded.tier == :pro, do: reloaded
+        end)
 
       tier_logic = %{
         upgraded_to_pro: reloaded_user.tier == :pro,
@@ -140,9 +144,11 @@ defmodule Streampai.Accounts.UserTest do
 
       {:ok, _account} = Streampai.Accounts.StreamingAccount.create(account_params, actor: user)
 
-      Process.sleep(50)
-
-      {:ok, reloaded_user} = Ash.get(User, user.id, actor: user, load: [:connected_platforms])
+      reloaded_user =
+        assert_eventually(fn ->
+          {:ok, reloaded} = Ash.get(User, user.id, actor: user, load: [:connected_platforms])
+          if reloaded.connected_platforms == 1, do: reloaded
+        end)
 
       platform_logic = %{
         count_increased: reloaded_user.connected_platforms > initial_count,

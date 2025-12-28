@@ -327,7 +327,7 @@ export function createLivestreamEventsCollection(livestreamId: string) {
 }
 
 // Cache for admin users collection - created once when admin logs in
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: Complex generic type from createCollection
 let adminUsersCollectionCache: any = null;
 
 export function getAdminUsersCollection() {

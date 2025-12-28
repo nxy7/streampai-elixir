@@ -124,6 +124,12 @@ export const dict: Dictionary = {
 		signInToAccess: "Inicia sesión para acceder al panel.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Ingresa el título del stream...",
+		streamDescriptionPlaceholder: "Describe tu stream...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Estadísticas de streams",
@@ -519,6 +525,12 @@ export const dict: Dictionary = {
 		faqQ5: "¿Cómo reporto un error o sugiero una función?",
 		faqA5:
 			"¡Nos encanta recibir feedback! Contáctanos con reportes de errores o sugerencias. También puedes unirte a nuestro Discord para discutir ideas con otros usuarios.",
+	},
+
+	// Admin pages
+	admin: {
+		enterUserUuid: "Ingresa el UUID del usuario",
+		enterNotificationMessage: "Ingresa el mensaje de notificación...",
 	},
 
 	// Contact page

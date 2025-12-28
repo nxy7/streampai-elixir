@@ -5,20 +5,20 @@
 	"main": "main.js",
 	"types": "main.d.ts",
 	"scripts": {
-		"get": "bunx cdktf get",
+		"get": "bun cdktf get",
 		"build": "tsc",
-		"synth": "bunx cdktf synth",
+		"synth": "bun cdktf synth",
 		"compile": "tsc --pretty",
 		"watch": "tsc -w",
 		"test": "echo \"No tests yet\"",
 		"upgrade": "bun add cdktf@latest cdktf-cli@latest",
 		"upgrade:next": "bun add cdktf@next cdktf-cli@next",
-		"deploy": "bunx cdktf deploy",
-		"destroy": "bunx cdktf destroy",
-		"diff": "bunx cdktf diff",
-		"plan": "bunx cdktf diff",
-		"format": "bunx biome format --write .",
-		"lint": "bunx biome check ."
+		"deploy": "bun cdktf deploy",
+		"destroy": "bun cdktf destroy",
+		"diff": "bun cdktf diff",
+		"plan": "bun cdktf diff",
+		"format": "bun biome format --write .",
+		"lint": "bun biome check ."
 	},
 	"engines": {
 		"node": ">=18.0"

@@ -176,9 +176,7 @@ export default function AlertboxOBS() {
 					{data.username} subscribed!
 				</div>
 				<Show when={data.months && data.months > 1}>
-					<div class="text-2xl text-white">
-						{data.months} month{data.months! > 1 ? "s" : ""} strong!
-					</div>
+					<div class="text-2xl text-white">{data.months} months strong!</div>
 				</Show>
 				<Show when={data.message}>
 					<div class="mt-4 text-white text-xl italic">"{data.message}"</div>

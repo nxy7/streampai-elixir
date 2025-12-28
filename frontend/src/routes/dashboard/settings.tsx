@@ -602,7 +602,7 @@ export default function Settings() {
 		];
 		const result = await refreshStreamingAccountStats({
 			identity: { userId: currentUser.id, platform },
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: Type coercion for RPC fields array
 			fields: fields as any,
 			fetchOptions: { credentials: "include" },
 		});
@@ -910,12 +910,12 @@ export default function Settings() {
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<span class="block font-medium text-gray-700 text-sm">
 										{t("settings.language")}
-										<div class="mt-2">
-											<LanguageSwitcher class="w-full md:w-48" />
-										</div>
-									</label>
+									</span>
+									<div class="mt-2">
+										<LanguageSwitcher class="w-full md:w-48" />
+									</div>
 									<p class="mt-1 text-gray-500 text-xs">
 										{t("settings.languageDescription")}
 									</p>

@@ -162,11 +162,13 @@ export default function StreamingAccountStats(
 								</span>
 							}
 							when={props.data.accountImage}>
-							<img
-								alt={config().name}
-								class="h-12 w-12 rounded-lg object-cover"
-								src={props.data.accountImage!}
-							/>
+							{(image) => (
+								<img
+									alt={config().name}
+									class="h-12 w-12 rounded-lg object-cover"
+									src={image()}
+								/>
+							)}
 						</Show>
 					</div>
 					<div>
@@ -266,9 +268,11 @@ export default function StreamingAccountStats(
 					Last updated: {formatRelativeTime(props.data.statsLastRefreshedAt)}
 				</span>
 				<Show when={props.data.statsLastRefreshedAt}>
-					<span class="text-gray-400">
-						{new Date(props.data.statsLastRefreshedAt!).toLocaleString()}
-					</span>
+					{(timestamp) => (
+						<span class="text-gray-400">
+							{new Date(timestamp()).toLocaleString()}
+						</span>
+					)}
 				</Show>
 			</div>
 		</div>

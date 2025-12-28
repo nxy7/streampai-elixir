@@ -2,6 +2,8 @@ defmodule Streampai.LivestreamManager.AlertQueueTest do
   use ExUnit.Case, async: true
   use Mneme
 
+  import Streampai.TestHelpers, only: [assert_eventually: 1]
+
   alias Streampai.LivestreamManager.AlertQueue
 
   setup do
@@ -77,20 +79,18 @@ defmodule Streampai.LivestreamManager.AlertQueueTest do
       # Pause the queue
       AlertQueue.pause_queue(pid)
 
-      # Wait a moment for control command to process
-      Process.sleep(50)
-
-      status = AlertQueue.get_queue_status(pid)
-      assert status.queue_state == :paused
+      # Wait for control command to process
+      assert_eventually(fn ->
+        AlertQueue.get_queue_status(pid).queue_state == :paused
+      end)
 
       # Resume the queue
       AlertQueue.resume_queue(pid)
 
-      # Wait a moment for control command to process
-      Process.sleep(50)
-
-      status = AlertQueue.get_queue_status(pid)
-      assert status.queue_state == :playing
+      # Wait for control command to process
+      assert_eventually(fn ->
+        AlertQueue.get_queue_status(pid).queue_state == :playing
+      end)
     end
 
     test "skip command removes next event", %{queue_pid: pid} do
@@ -108,10 +108,9 @@ defmodule Streampai.LivestreamManager.AlertQueueTest do
       AlertQueue.skip_event(pid)
 
       # Wait for command to process
-      Process.sleep(50)
-
-      status_after = AlertQueue.get_queue_status(pid)
-      assert status_after.queue_length == 1
+      assert_eventually(fn ->
+        AlertQueue.get_queue_status(pid).queue_length == 1
+      end)
     end
 
     test "clear command removes all non-control events", %{queue_pid: pid} do
@@ -131,10 +130,9 @@ defmodule Streampai.LivestreamManager.AlertQueueTest do
       AlertQueue.clear_queue(pid)
 
       # Wait for command to process
-      Process.sleep(50)
-
-      status_after = AlertQueue.get_queue_status(pid)
-      assert status_after.queue_length == 0
+      assert_eventually(fn ->
+        AlertQueue.get_queue_status(pid).queue_length == 0
+      end)
     end
   end
 
