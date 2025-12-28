@@ -321,10 +321,16 @@ export default function Settings() {
 										{t("settings.language")}
 									</span>
 									<div class="mt-2">
-										<LanguageSwitcher
-											class="w-full md:w-48"
-											valueFromDb={() => prefs.data()?.language_preference}
-										/>
+										<Show
+											fallback={
+												<Skeleton class="h-10 w-full rounded-lg md:w-48" />
+											}
+											when={prefs.data()}>
+											<LanguageSwitcher
+												class="w-full md:w-48"
+												valueFromDb={() => prefs.data()?.language_preference}
+											/>
+										</Show>
 									</div>
 									<p class="mt-1 text-gray-500 text-xs">
 										{t("settings.languageDescription")}

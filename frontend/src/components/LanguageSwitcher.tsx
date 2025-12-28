@@ -11,6 +11,10 @@ interface LanguageSwitcherProps {
 	 * instead of the current active locale. Useful in settings pages where
 	 * you want to show/edit the user's saved preference rather than the
 	 * active UI locale (which may differ during impersonation).
+	 *
+	 * Note: Ensure the parent component waits for data to load before rendering
+	 * this component when using valueFromDb, otherwise it will briefly show
+	 * the active locale before the database value loads.
 	 */
 	valueFromDb?: Accessor<string | null | undefined>;
 }
@@ -19,7 +23,7 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 	const { locale, setLocale } = useI18n();
 	const { user } = useCurrentUser();
 
-	// Use database value if provided, otherwise fall back to active locale
+	// Use database value if provided and valid, otherwise fall back to active locale
 	const displayedValue = createMemo(() => {
 		const dbValue = props.valueFromDb?.();
 		if (dbValue && SUPPORTED_LOCALES.includes(dbValue as Locale)) {
