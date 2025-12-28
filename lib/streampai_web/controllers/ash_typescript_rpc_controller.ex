@@ -25,4 +25,26 @@ defmodule StreampaiWeb.AshTypescriptRpcController do
 
     json(conn, %{token: token})
   end
+
+  @doc """
+  Returns impersonation status.
+  If an admin is impersonating a user, returns the impersonator info.
+  Otherwise returns null.
+  """
+  def impersonation_status(conn, _params) do
+    case conn.assigns[:impersonator] do
+      nil ->
+        json(conn, %{impersonating: false, impersonator: nil})
+
+      impersonator ->
+        json(conn, %{
+          impersonating: true,
+          impersonator: %{
+            id: impersonator.id,
+            email: impersonator.email,
+            name: impersonator.name
+          }
+        })
+    end
+  end
 end

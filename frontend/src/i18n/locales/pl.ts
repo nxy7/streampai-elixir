@@ -543,6 +543,13 @@ export const dict: Dictionary = {
 	admin: {
 		enterUserUuid: "Wpisz UUID użytkownika",
 		enterNotificationMessage: "Wpisz treść powiadomienia...",
+		impersonate: "Podszywaj się",
+	},
+
+	// Impersonation
+	impersonation: {
+		banner: "Przeglądasz jako {{name}}",
+		exit: "Zakończ",
 	},
 
 	// Donation page

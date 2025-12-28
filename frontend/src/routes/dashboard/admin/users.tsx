@@ -7,8 +7,10 @@ import { Alert } from "~/components/ui";
 import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
+import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
+import { startImpersonation } from "~/lib/impersonation";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
 import { usePresence } from "~/lib/socket";
@@ -51,6 +53,7 @@ export default function AdminUsers() {
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { users: onlineUsers } = usePresence();
+	const { t } = useTranslation();
 
 	// Check if user is admin
 	const isAdmin = createMemo(() => currentUser()?.role === "admin");
@@ -328,6 +331,14 @@ export default function AdminUsers() {
 																type="button">
 																Grant PRO
 															</button>
+															<Show when={currentUser()?.id !== user.id}>
+																<button
+																	class="text-amber-600 hover:text-amber-900 hover:underline"
+																	onClick={() => startImpersonation(user.id)}
+																	type="button">
+																	{t("admin.impersonate")}
+																</button>
+															</Show>
 														</div>
 													</td>
 												</tr>
