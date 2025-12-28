@@ -160,6 +160,12 @@ export const dict = {
 		languageDescription: "Choose your preferred language for the interface",
 		appearance: "Appearance",
 		profile: "Profile",
+		// Theme
+		theme: "Theme",
+		themeDescription: "Select how the dashboard looks to you",
+		themeLight: "Light",
+		themeDark: "Dark",
+		themeSystem: "System",
 		// Account Settings
 		accountSettings: "Account Settings",
 		email: "Email",

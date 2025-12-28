@@ -582,13 +582,13 @@ function StreamDetailContent(props: { streamId: string }) {
 							</Show>
 
 							<Show when={stream()?.subcategory}>
-								<span class="inline-flex items-center rounded-md bg-purple-100 px-2.5 py-1 font-medium text-purple-800 text-xs">
+								<span class="inline-flex items-center rounded-md bg-purple-100 dark:bg-purple-900/30 px-2.5 py-1 font-medium text-purple-800 dark:text-purple-300 text-xs">
 									{formatCategoryLabel(stream()?.subcategory)}
 								</span>
 							</Show>
 
 							<Show when={stream()?.language}>
-								<span class="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1 font-medium text-blue-800 text-xs">
+								<span class="inline-flex items-center rounded-md bg-blue-100 dark:bg-blue-900/30 px-2.5 py-1 font-medium text-blue-800 dark:text-blue-300 text-xs">
 									<svg
 										aria-hidden="true"
 										class="mr-1 h-3 w-3"
@@ -608,7 +608,7 @@ function StreamDetailContent(props: { streamId: string }) {
 
 							<For each={stream()?.tags || []}>
 								{(tag) => (
-									<span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-800 text-xs">
+									<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2.5 py-1 font-medium text-gray-800 dark:text-gray-300 text-xs">
 										#{tag}
 									</span>
 								)}
@@ -616,7 +616,7 @@ function StreamDetailContent(props: { streamId: string }) {
 						</div>
 					</div>
 					<A
-						class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 text-sm leading-4 shadow-sm hover:bg-gray-50"
+						class="inline-flex items-center rounded-md border border-theme bg-theme-surface px-3 py-2 font-medium text-theme-secondary text-sm leading-4 shadow-sm hover:bg-theme-hover"
 						href="/dashboard/stream-history">
 						← Back to History
 					</A>
@@ -862,14 +862,14 @@ function StreamDetailContent(props: { streamId: string }) {
 													<div
 														class={`flex h-6 w-6 items-center justify-center rounded-full ${
 															message.senderIsPatreon
-																? "bg-purple-100"
-																: "bg-gray-100"
+																? "bg-purple-100 dark:bg-purple-900/30"
+																: "bg-gray-100 dark:bg-gray-800"
 														}`}>
 														<span
 															class={`font-medium text-xs ${
 																message.senderIsPatreon
-																	? "text-purple-600"
-																	: "text-gray-600"
+																	? "text-purple-600 dark:text-purple-400"
+																	: "text-gray-600 dark:text-gray-400"
 															}`}>
 															{message.senderUsername?.charAt(0) || "?"}
 														</span>
@@ -880,8 +880,8 @@ function StreamDetailContent(props: { streamId: string }) {
 														<span
 															class={`font-medium text-xs ${
 																message.senderIsModerator
-																	? "text-green-600"
-																	: "text-gray-900"
+																	? "text-green-600 dark:text-green-400"
+																	: "text-theme-primary"
 															}`}>
 															{message.senderUsername}
 														</span>

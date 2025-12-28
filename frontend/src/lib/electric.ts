@@ -81,6 +81,7 @@ export type UserPreferences = Row & {
 	default_voice: string | null;
 	avatar_url: string | null;
 	language_preference: string | null;
+	theme_preference: string | null;
 	inserted_at: string;
 	updated_at: string;
 };

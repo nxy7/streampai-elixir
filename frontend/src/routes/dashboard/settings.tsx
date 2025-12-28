@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
+import ThemeSwitcher from "~/components/ThemeSwitcher";
 import { Skeleton } from "~/components/ui";
 import Button from "~/components/ui/Button";
 import { useTranslation } from "~/i18n";
@@ -675,32 +676,32 @@ export default function Settings() {
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.accountSettings")}
 							</h3>
 							<div class="space-y-6">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.email")}
 										<input
-											class="mt-2 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
+											class="mt-2 w-full rounded-lg border border-theme bg-theme-tertiary px-3 py-2"
 											readonly
 											type="email"
 											value={user()?.email || ""}
 										/>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.emailCannotChange")}
 									</p>
 								</div>
 
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.displayName")}
 										<div class="relative mt-2">
 											<input
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10"
+												class="w-full rounded-lg border border-theme px-3 py-2 pr-10"
 												onInput={(e) => setDisplayName(e.currentTarget.value)}
 												placeholder={t("settings.displayNamePlaceholder")}
 												type="text"
@@ -708,7 +709,7 @@ export default function Settings() {
 											/>
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.displayNameHelp")}
 									</p>
 									<div class="mt-3 flex items-center gap-3">
@@ -726,7 +727,7 @@ export default function Settings() {
 												: t("settings.updateName")}
 										</button>
 										<Show when={nameSuccess()}>
-											<span class="text-green-600 text-sm">
+											<span class="text-green-600 dark:text-green-400 text-sm">
 												{t("settings.nameUpdated")}
 											</span>
 										</Show>
@@ -738,7 +739,7 @@ export default function Settings() {
 
 								<div>
 									<label
-										class="mb-2 block font-medium text-gray-700 text-sm"
+										class="mb-2 block font-medium text-theme-secondary text-sm"
 										for="avatar-upload">
 										{t("settings.profileAvatar")}
 									</label>
@@ -787,14 +788,14 @@ export default function Settings() {
 													? t("settings.uploading")
 													: t("settings.uploadNewAvatar")}
 											</button>
-											<p class="mt-1 text-gray-500 text-xs">
+											<p class="mt-1 text-theme-tertiary text-xs">
 												{t("settings.avatarHelp")}
 											</p>
 											<Show when={uploadError()}>
 												<p class="mt-1 text-red-600 text-xs">{uploadError()}</p>
 											</Show>
 											<Show when={uploadSuccess()}>
-												<p class="mt-1 text-green-600 text-xs">
+												<p class="mt-1 text-green-600 dark:text-green-400 text-xs">
 													{t("settings.avatarUpdated")}
 												</p>
 											</Show>
@@ -803,7 +804,7 @@ export default function Settings() {
 								</div>
 
 								<div>
-									<p class="mb-2 block font-medium text-gray-700 text-sm">
+									<p class="mb-2 block font-medium text-theme-secondary text-sm">
 										{t("settings.streamingPlatforms")}
 									</p>
 
@@ -873,10 +874,10 @@ export default function Settings() {
 																	</span>
 																</div>
 																<div>
-																	<p class="font-medium text-gray-900">
+																	<p class="font-medium text-theme-primary">
 																		{platform.name}
 																	</p>
-																	<p class="text-gray-500 text-sm">
+																	<p class="text-theme-tertiary text-sm">
 																		{t("settings.notConnected")}
 																	</p>
 																</div>
@@ -899,36 +900,53 @@ export default function Settings() {
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.language")}
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.language")}
 										<div class="mt-2">
 											<LanguageSwitcher class="w-full md:w-48" />
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.languageDescription")}
 									</p>
 								</div>
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
+								{t("settings.theme")}
+							</h3>
+							<div class="space-y-4">
+								<div>
+									<p class="mb-3 block font-medium text-theme-secondary text-sm">
+										{t("settings.theme")}
+									</p>
+									<ThemeSwitcher class="max-w-md" />
+									<p class="mt-2 text-theme-tertiary text-xs">
+										{t("settings.themeDescription")}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.donationPage")}
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.publicDonationUrl")}
 										<div class="mt-2 flex items-center space-x-3">
 											<input
-												class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
+												class="flex-1 rounded-lg border border-theme bg-theme-tertiary px-3 py-2"
 												readonly
 												type="text"
 												value={`${window.location.origin}/u/${
@@ -949,12 +967,12 @@ export default function Settings() {
 											</button>
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.donationUrlHelp")}
 									</p>
 								</div>
 
-								<div class="flex items-center justify-between rounded-lg border bg-gray-50 p-3">
+								<div class="flex items-center justify-between rounded-lg border bg-theme-tertiary p-3">
 									<div class="flex items-center space-x-3">
 										<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
 											<Show
@@ -972,10 +990,10 @@ export default function Settings() {
 											</Show>
 										</div>
 										<div>
-											<h4 class="font-medium text-gray-900">
+											<h4 class="font-medium text-theme-primary">
 												{t("settings.support")} {prefs.data()?.name}
 											</h4>
-											<p class="text-gray-600 text-sm">
+											<p class="text-theme-secondary text-sm">
 												{t("settings.publicDonationPage")}
 											</p>
 										</div>
@@ -991,23 +1009,23 @@ export default function Settings() {
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.donationSettings")}
 							</h3>
 							<form class="space-y-4" onSubmit={handleSaveDonationSettings}>
 								<div class="grid gap-4 md:grid-cols-3">
 									<div>
-										<label class="block font-medium text-gray-700 text-sm">
+										<label class="block font-medium text-theme-secondary text-sm">
 											{t("settings.minimumAmount")}
 											<div class="relative mt-2">
 												<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-													<span class="text-gray-500 text-sm">
+													<span class="text-theme-tertiary text-sm">
 														{currency()}
 													</span>
 												</div>
 												<input
-													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+													class="w-full rounded-lg border border-theme py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 													onInput={(e) => {
 														const val = e.currentTarget.value;
 														setMinAmount(val ? parseInt(val, 10) : null);
@@ -1018,22 +1036,22 @@ export default function Settings() {
 												/>
 											</div>
 										</label>
-										<p class="mt-1 text-gray-500 text-xs">
+										<p class="mt-1 text-theme-tertiary text-xs">
 											{t("settings.leaveEmptyNoMin")}
 										</p>
 									</div>
 
 									<div>
-										<label class="block font-medium text-gray-700 text-sm">
+										<label class="block font-medium text-theme-secondary text-sm">
 											{t("settings.maximumAmount")}
 											<div class="relative mt-2">
 												<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-													<span class="text-gray-500 text-sm">
+													<span class="text-theme-tertiary text-sm">
 														{currency()}
 													</span>
 												</div>
 												<input
-													class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+													class="w-full rounded-lg border border-theme py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 													onInput={(e) => {
 														const val = e.currentTarget.value;
 														setMaxAmount(val ? parseInt(val, 10) : null);
@@ -1044,16 +1062,16 @@ export default function Settings() {
 												/>
 											</div>
 										</label>
-										<p class="mt-1 text-gray-500 text-xs">
+										<p class="mt-1 text-theme-tertiary text-xs">
 											{t("settings.leaveEmptyNoMax")}
 										</p>
 									</div>
 
 									<div>
-										<label class="block font-medium text-gray-700 text-sm">
+										<label class="block font-medium text-theme-secondary text-sm">
 											{t("settings.currency")}
 											<select
-												class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+												class="mt-2 w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 												onChange={(e) => setCurrency(e.currentTarget.value)}
 												value={currency()}>
 												<For each={currencies}>
@@ -1065,10 +1083,10 @@ export default function Settings() {
 								</div>
 
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										{t("settings.defaultTtsVoice")}
 										<select
-											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 											onChange={(e) => setDefaultVoice(e.currentTarget.value)}
 											value={defaultVoice()}>
 											<option value="random">
@@ -1082,7 +1100,7 @@ export default function Settings() {
 											</option>
 										</select>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-theme-tertiary text-xs">
 										{t("settings.voiceHelp")}
 									</p>
 								</div>
@@ -1128,7 +1146,7 @@ export default function Settings() {
 											: t("settings.saveDonationSettings")}
 									</button>
 									<Show when={saveSuccess()}>
-										<span class="text-green-600 text-sm">
+										<span class="text-green-600 dark:text-green-400 text-sm">
 											{t("settings.settingsSaved")}
 										</span>
 									</Show>
@@ -1139,8 +1157,8 @@ export default function Settings() {
 							</form>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.roleInvitations")}
 							</h3>
 							<Show
@@ -1160,7 +1178,7 @@ export default function Settings() {
 											/>
 										</svg>
 										<p class="text-sm">{t("settings.noPendingInvitations")}</p>
-										<p class="mt-1 text-gray-400 text-xs">
+										<p class="mt-1 text-theme-muted text-xs">
 											{t("settings.invitationsHelp")}
 										</p>
 									</div>
@@ -1191,16 +1209,16 @@ export default function Settings() {
 															</Show>
 														</div>
 														<div>
-															<p class="font-medium text-gray-900">
+															<p class="font-medium text-theme-primary">
 																{granterInfo()?.name || "Loading..."}
 															</p>
-															<p class="text-gray-500 text-sm">
+															<p class="text-theme-tertiary text-sm">
 																{t("settings.invitedYouAs")}{" "}
 																<span class="font-medium text-purple-600">
 																	{formatRoleType(invitation.role_type)}
 																</span>
 															</p>
-															<p class="text-gray-400 text-xs">
+															<p class="text-theme-muted text-xs">
 																{formatDate(invitation.granted_at)}
 															</p>
 														</div>
@@ -1218,7 +1236,7 @@ export default function Settings() {
 																: t("settings.accept")}
 														</button>
 														<button
-															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
+															class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-theme-secondary text-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
 															disabled={processingRoleId() === invitation.id}
 															onClick={() =>
 																handleDeclineInvitation(invitation.id)
@@ -1235,8 +1253,8 @@ export default function Settings() {
 							</Show>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.myRolesInChannels")}
 							</h3>
 							<Show
@@ -1256,7 +1274,7 @@ export default function Settings() {
 											/>
 										</svg>
 										<p class="text-sm">{t("settings.noRolesInChannels")}</p>
-										<p class="mt-1 text-gray-400 text-xs">
+										<p class="mt-1 text-theme-muted text-xs">
 											{t("settings.rolesGrantedHelp")}
 										</p>
 									</div>
@@ -1287,16 +1305,16 @@ export default function Settings() {
 															</Show>
 														</div>
 														<div>
-															<p class="font-medium text-gray-900">
+															<p class="font-medium text-theme-primary">
 																{granterInfo()?.name || "Loading..."}
 																{t("settings.channel")}
 															</p>
-															<p class="text-gray-500 text-sm">
-																<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
+															<p class="text-theme-tertiary text-sm">
+																<span class="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 font-medium text-purple-800 dark:text-purple-300 text-xs">
 																	{formatRoleType(role.role_type)}
 																</span>
 															</p>
-															<p class="mt-1 text-gray-400 text-xs">
+															<p class="mt-1 text-theme-muted text-xs">
 																{t("settings.since")}{" "}
 																{formatDate(
 																	role.accepted_at || role.granted_at,
@@ -1314,29 +1332,29 @@ export default function Settings() {
 
 						<div class="relative">
 							<div class="absolute inset-0 flex items-center">
-								<div class="w-full border-gray-300 border-t"></div>
+								<div class="w-full border-theme border-t"></div>
 							</div>
 							<div class="relative flex justify-center text-sm">
-								<span class="bg-gray-50 px-2 text-gray-500">
+								<span class="bg-theme-tertiary px-2 text-gray-500">
 									{t("settings.channelManagement")}
 								</span>
 							</div>
 						</div>
 
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+						<div class="rounded-lg border border-theme bg-theme-surface p-6 shadow-sm">
+							<h3 class="mb-6 font-medium text-theme-primary text-lg">
 								{t("settings.roleManagement")}
 							</h3>
 
-							<div class="mb-6 rounded-lg bg-gray-50 p-4">
-								<h4 class="mb-3 font-medium text-gray-900">
+							<div class="mb-6 rounded-lg bg-theme-tertiary p-4">
+								<h4 class="mb-3 font-medium text-theme-primary">
 									{t("settings.inviteUser")}
 								</h4>
 								<form class="space-y-3" onSubmit={handleInviteUser}>
 									<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 										<div>
 											<input
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+												class="w-full rounded-lg border border-theme px-3 py-2 text-sm"
 												onInput={(e) =>
 													setInviteUsername(e.currentTarget.value)
 												}
@@ -1347,7 +1365,7 @@ export default function Settings() {
 										</div>
 										<div>
 											<select
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+												class="w-full rounded-lg border border-theme px-3 py-2 text-sm"
 												onChange={(e) =>
 													setInviteRoleType(
 														e.currentTarget.value as "moderator" | "manager",
@@ -1379,7 +1397,7 @@ export default function Settings() {
 										<p class="text-red-600 text-sm">{inviteError()}</p>
 									</Show>
 									<Show when={inviteSuccess()}>
-										<p class="text-green-600 text-sm">
+										<p class="text-green-600 dark:text-green-400 text-sm">
 											{t("settings.invitationSent")}
 										</p>
 									</Show>
@@ -1419,7 +1437,7 @@ export default function Settings() {
 							<Show
 								when={!loadingRoles() && pendingInvitationsSent().length > 0}>
 								<div class="mb-6 space-y-3">
-									<h4 class="font-medium text-gray-700 text-sm">
+									<h4 class="font-medium text-theme-secondary text-sm">
 										{t("settings.pendingInvitations")}
 									</h4>
 									<For each={pendingInvitationsSent()}>
@@ -1445,16 +1463,16 @@ export default function Settings() {
 															</Show>
 														</div>
 														<div>
-															<p class="font-medium text-gray-900">
+															<p class="font-medium text-theme-primary">
 																{userInfo()?.name || "Loading..."}
 															</p>
-															<p class="text-gray-500 text-sm">
+															<p class="text-theme-tertiary text-sm">
 																<span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 font-medium text-xs text-yellow-800">
 																	{formatRoleType(role.role_type)} (
 																	{t("settings.pending")})
 																</span>
 															</p>
-															<p class="mt-1 text-gray-400 text-xs">
+															<p class="mt-1 text-theme-muted text-xs">
 																Invited {formatDate(role.granted_at)}
 															</p>
 														</div>
@@ -1493,7 +1511,7 @@ export default function Settings() {
 												/>
 											</svg>
 											<p class="text-sm">{t("settings.noRolesGranted")}</p>
-											<p class="mt-1 text-gray-400 text-xs">
+											<p class="mt-1 text-theme-muted text-xs">
 												{t("settings.rolesGrantedToHelp")}
 											</p>
 										</div>
@@ -1501,7 +1519,7 @@ export default function Settings() {
 								}
 								when={!loadingRoles() && rolesIGranted().length > 0}>
 								<div class="space-y-3">
-									<h4 class="font-medium text-gray-700 text-sm">
+									<h4 class="font-medium text-theme-secondary text-sm">
 										{t("settings.yourTeam")}
 									</h4>
 									<For each={rolesIGranted()}>
@@ -1527,15 +1545,15 @@ export default function Settings() {
 															</Show>
 														</div>
 														<div>
-															<p class="font-medium text-gray-900">
+															<p class="font-medium text-theme-primary">
 																{userInfo()?.name || "Loading..."}
 															</p>
-															<p class="text-gray-500 text-sm">
-																<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
+															<p class="text-theme-tertiary text-sm">
+																<span class="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 font-medium text-purple-800 dark:text-purple-300 text-xs">
 																	{formatRoleType(role.role_type)}
 																</span>
 															</p>
-															<p class="mt-1 text-gray-400 text-xs">
+															<p class="mt-1 text-theme-muted text-xs">
 																{t("settings.since")}{" "}
 																{formatDate(
 																	role.accepted_at || role.granted_at,
@@ -1562,16 +1580,16 @@ export default function Settings() {
 
 						<Show when={user()}>
 							<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-								<h3 class="mb-6 font-medium text-gray-900 text-lg">
+								<h3 class="mb-6 font-medium text-theme-primary text-lg">
 									{t("settings.notificationPreferences")}
 								</h3>
 								<div class="space-y-4">
 									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
 										<div>
-											<p class="font-medium text-gray-900">
+											<p class="font-medium text-theme-primary">
 												{t("settings.emailNotifications")}
 											</p>
-											<p class="text-gray-600 text-sm">
+											<p class="text-theme-secondary text-sm">
 												{t("settings.emailNotificationsDesc")}
 											</p>
 										</div>

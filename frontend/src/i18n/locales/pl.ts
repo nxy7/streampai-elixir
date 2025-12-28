@@ -162,6 +162,12 @@ export const dict: Dictionary = {
 		languageDescription: "Wybierz język interfejsu",
 		appearance: "Wygląd",
 		profile: "Profil",
+		// Theme
+		theme: "Motyw",
+		themeDescription: "Wybierz wygląd panelu",
+		themeLight: "Jasny",
+		themeDark: "Ciemny",
+		themeSystem: "Systemowy",
 		// Account Settings
 		accountSettings: "Ustawienia konta",
 		email: "E-mail",

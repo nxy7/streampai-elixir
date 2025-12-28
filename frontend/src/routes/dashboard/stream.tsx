@@ -20,29 +20,29 @@ const availablePlatforms = [
 		name: "YouTube",
 		platform: "google" as const,
 		targetPlatform: "youtube" as const,
-		bgColor: "bg-red-100",
-		textColor: "text-red-600",
+		bgColor: "bg-red-100 dark:bg-red-900/30",
+		textColor: "text-red-600 dark:text-red-400",
 	},
 	{
 		name: "Twitch",
 		platform: "twitch" as const,
 		targetPlatform: "twitch" as const,
-		bgColor: "bg-purple-100",
-		textColor: "text-purple-600",
+		bgColor: "bg-purple-100 dark:bg-purple-900/30",
+		textColor: "text-purple-600 dark:text-purple-400",
 	},
 	{
 		name: "Facebook",
 		platform: "facebook" as const,
 		targetPlatform: "facebook" as const,
-		bgColor: "bg-blue-100",
-		textColor: "text-blue-600",
+		bgColor: "bg-blue-100 dark:bg-blue-900/30",
+		textColor: "text-blue-600 dark:text-blue-400",
 	},
 	{
 		name: "Kick",
 		platform: "kick" as const,
 		targetPlatform: "kick" as const,
-		bgColor: "bg-green-100",
-		textColor: "text-green-600",
+		bgColor: "bg-green-100 dark:bg-green-900/30",
+		textColor: "text-green-600 dark:text-green-400",
 	},
 ];
 
@@ -342,10 +342,10 @@ export default function Stream() {
 							{/* Stream Metadata */}
 							<div class="mb-6 space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										Stream Title
 										<input
-											class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full rounded-lg border border-theme bg-theme-surface text-theme-primary px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 											onInput={(e) =>
 												setStreamMetadata((prev) => ({
 													...prev,
@@ -359,10 +359,10 @@ export default function Stream() {
 									</label>
 								</div>
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-theme-secondary text-sm">
 										Description
 										<textarea
-											class="mt-2 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full resize-none rounded-lg border border-theme bg-theme-surface text-theme-primary px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
 											onInput={(e) =>
 												setStreamMetadata((prev) => ({
 													...prev,
@@ -435,7 +435,7 @@ export default function Stream() {
 											}
 											when={!streamKeyError()}>
 											<div class="mb-3 flex items-center justify-between">
-												<span class="font-medium text-gray-700 text-sm">
+												<span class="font-medium text-theme-secondary text-sm">
 													Stream Key
 												</span>
 												<div class="flex items-center space-x-2">
@@ -446,7 +446,7 @@ export default function Stream() {
 														{copied() ? "Copied!" : "Copy Key"}
 													</Button>
 													<Button
-														class="text-red-600 hover:bg-red-50"
+														class="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
 														disabled={isRegenerating()}
 														onClick={handleRegenerateStreamKey}
 														size="sm"
@@ -462,34 +462,34 @@ export default function Stream() {
 												{(data) => (
 													<>
 														<div class="mb-2">
-															<label class="mb-1 block text-gray-500 text-xs">
+															<label class="mb-1 block text-theme-tertiary text-xs">
 																RTMP URL
 															</label>
-															<code class="block rounded bg-white px-2 py-1 font-mono text-gray-900 text-sm">
+															<code class="block rounded bg-theme-tertiary px-2 py-1 font-mono text-theme-primary text-sm">
 																{data().rtmpsUrl}
 															</code>
 														</div>
 														<div class="mb-3">
-															<label class="mb-1 block text-gray-500 text-xs">
+															<label class="mb-1 block text-theme-tertiary text-xs">
 																Stream Key
 															</label>
-															<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-sm">
+															<code class="block rounded bg-theme-tertiary px-2 py-1 font-mono text-theme-secondary text-sm">
 																{data().rtmpsStreamKey}
 															</code>
 														</div>
 
 														<Show when={data().srtUrl}>
-															<div class="mb-2 border-gray-200 border-t pt-2">
-																<label class="mb-1 block text-gray-500 text-xs">
+															<div class="mb-2 border-theme border-t pt-2">
+																<label class="mb-1 block text-theme-tertiary text-xs">
 																	SRT URL (Alternative)
 																</label>
-																<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-xs">
+																<code class="block rounded bg-theme-tertiary px-2 py-1 font-mono text-theme-secondary text-xs">
 																	{data().srtUrl}
 																</code>
 															</div>
 														</Show>
 
-														<p class="mt-3 text-gray-500 text-xs">
+														<p class="mt-3 text-theme-tertiary text-xs">
 															Use this RTMP URL and stream key in your streaming
 															software (OBS, Streamlabs, etc.)
 														</p>
@@ -539,21 +539,21 @@ export default function Stream() {
 												(p) => p.targetPlatform === account.platform,
 											);
 											return (
-												<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+												<div class="flex items-center justify-between rounded-lg border border-theme p-4">
 													<div class="flex items-center space-x-3">
 														<div
-															class={`flex h-10 w-10 items-center justify-center rounded-lg ${platformConfig?.bgColor ?? "bg-gray-100"}`}>
+															class={`flex h-10 w-10 items-center justify-center rounded-lg ${platformConfig?.bgColor ?? "bg-gray-100 dark:bg-gray-800"}`}>
 															<span
-																class={`font-bold text-sm ${platformConfig?.textColor ?? "text-gray-600"}`}>
+																class={`font-bold text-sm ${platformConfig?.textColor ?? "text-gray-600 dark:text-gray-400"}`}>
 																{platformConfig?.name[0] ??
 																	account.platform[0].toUpperCase()}
 															</span>
 														</div>
 														<div>
-															<div class="font-medium text-gray-900">
+															<div class="font-medium text-theme-primary">
 																{platformConfig?.name ?? account.platform}
 															</div>
-															<span class="text-green-600 text-xs">
+															<span class="text-green-600 dark:text-green-400 text-xs">
 																{account.extra_data?.name ||
 																	account.extra_data?.nickname ||
 																	"Connected"}
@@ -595,10 +595,10 @@ export default function Stream() {
 															</span>
 														</div>
 														<div>
-															<div class="font-medium text-gray-900">
+															<div class="font-medium text-theme-primary">
 																{platform.name}
 															</div>
-															<span class="text-gray-500 text-xs">
+															<span class="text-theme-tertiary text-xs">
 																Not connected
 															</span>
 														</div>
@@ -624,17 +624,17 @@ export default function Stream() {
 							<Card>
 								<h3 class={`${text.h3} mb-4`}>Live Statistics</h3>
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-									<div class="rounded-lg bg-purple-50 p-4 text-center">
-										<div class="font-bold text-2xl text-purple-600">0</div>
-										<div class="text-gray-600 text-sm">Viewers</div>
+									<div class="rounded-lg bg-purple-50 dark:bg-purple-900/20 p-4 text-center">
+										<div class="font-bold text-2xl text-purple-600 dark:text-purple-400">0</div>
+										<div class="text-theme-secondary text-sm">Viewers</div>
 									</div>
-									<div class="rounded-lg bg-blue-50 p-4 text-center">
-										<div class="font-bold text-2xl text-blue-600">0</div>
-										<div class="text-gray-600 text-sm">Chat Messages</div>
+									<div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 text-center">
+										<div class="font-bold text-2xl text-blue-600 dark:text-blue-400">0</div>
+										<div class="text-theme-secondary text-sm">Chat Messages</div>
 									</div>
-									<div class="rounded-lg bg-green-50 p-4 text-center">
-										<div class="font-bold text-2xl text-green-600">00:00</div>
-										<div class="text-gray-600 text-sm">Stream Duration</div>
+									<div class="rounded-lg bg-green-50 dark:bg-green-900/20 p-4 text-center">
+										<div class="font-bold text-2xl text-green-600 dark:text-green-400">00:00</div>
+										<div class="text-theme-secondary text-sm">Stream Duration</div>
 									</div>
 								</div>
 							</Card>

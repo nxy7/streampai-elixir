@@ -335,10 +335,10 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 	return (
 		<Show
 			fallback={
-				<div class="flex h-screen items-center justify-center bg-gray-50">
+				<div class="flex h-screen items-center justify-center bg-theme-secondary">
 					<div class="text-center">
 						<div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-						<p class="text-gray-600">{t("common.loading")}</p>
+						<p class="text-theme-secondary">{t("common.loading")}</p>
 					</div>
 				</div>
 			}
@@ -572,10 +572,10 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						sidebarCollapsed() ? "md:ml-20" : "md:ml-64"
 					}`}>
 					{/* Top Header */}
-					<header class="sticky top-0 z-30 flex h-16 items-center justify-between border-gray-200 border-b bg-white px-4 shadow-sm md:px-6">
+					<header class="sticky top-0 z-30 flex h-16 items-center justify-between border-theme border-b bg-theme-surface px-4 shadow-sm md:px-6">
 						{/* Mobile menu button */}
 						<button
-							class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+							class="rounded-lg p-2 text-theme-secondary hover:bg-theme-hover md:hidden"
 							onClick={() => setMobileSidebarOpen(true)}
 							type="button">
 							<svg
@@ -594,7 +594,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 						</button>
 
 						{/* Page title */}
-						<h1 class="hidden font-semibold text-gray-900 text-xl md:block">
+						<h1 class="hidden font-semibold text-theme-primary text-xl md:block">
 							{pageTitle()}
 						</h1>
 
@@ -604,10 +604,10 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 								<Show
 									fallback={
 										<div class="flex items-center space-x-3">
-											<div class="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+											<div class="skeleton-theme h-8 w-8 rounded-full" />
 											<div class="hidden md:block">
-												<div class="h-4 w-20 animate-pulse rounded bg-gray-200" />
-												<div class="mt-1 h-3 w-14 animate-pulse rounded bg-gray-200" />
+												<div class="skeleton-theme h-4 w-20 rounded" />
+												<div class="skeleton-theme mt-1 h-3 w-14 rounded" />
 											</div>
 										</div>
 									}
@@ -634,10 +634,10 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 											</Show>
 										</A>
 										<div class="hidden md:block">
-											<p class="font-medium text-gray-900 text-sm">
+											<p class="font-medium text-theme-primary text-sm">
 												{prefs.data()?.name || user()?.email || ""}
 											</p>
-											<p class="text-gray-500 text-xs">
+											<p class="text-theme-tertiary text-xs">
 												{t("dashboard.freePlan")}
 											</p>
 										</div>
@@ -648,7 +648,7 @@ export default function DashboardLayout(props: DashboardLayoutProps) {
 					</header>
 
 					{/* Main Content Area */}
-					<main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+					<main class="flex-1 overflow-y-auto bg-theme-secondary p-6">
 						{props.children}
 					</main>
 				</div>

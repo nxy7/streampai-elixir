@@ -18,7 +18,7 @@
   --color-error: #ef4444;    /* red-500 */
   --color-info: #3b82f6;     /* blue-500 */
 
-  /* Neutral Colors - Light theme */
+  /* Neutral Colors - Light theme defaults (will be overridden by data-theme) */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f9fafb;    /* gray-50 */
   --color-bg-tertiary: #f3f4f6;     /* gray-100 */
@@ -47,6 +47,105 @@
   --radius-lg: 0.75rem;    /* 12px */
   --radius-xl: 1rem;       /* 16px */
   --radius-2xl: 1.5rem;    /* 24px */
+}
+
+/* ======================== */
+/* Theme System - CSS Variables */
+/* ======================== */
+
+/* Light theme (default) */
+:root,
+[data-theme="light"] {
+  /* Background colors */
+  --theme-bg-primary: #ffffff;
+  --theme-bg-secondary: #f9fafb;    /* gray-50 */
+  --theme-bg-tertiary: #f3f4f6;     /* gray-100 */
+  --theme-bg-elevated: #ffffff;
+  --theme-bg-hover: #f3f4f6;        /* gray-100 */
+  --theme-bg-active: #e5e7eb;       /* gray-200 */
+
+  /* Surface colors (for cards, modals, etc.) */
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f9fafb;
+  --theme-surface-elevated: #ffffff;
+
+  /* Text colors */
+  --theme-text-primary: #111827;    /* gray-900 */
+  --theme-text-secondary: #6b7280;  /* gray-500 */
+  --theme-text-tertiary: #9ca3af;   /* gray-400 */
+  --theme-text-muted: #d1d5db;      /* gray-300 */
+  --theme-text-inverted: #ffffff;
+
+  /* Border colors */
+  --theme-border: #e5e7eb;          /* gray-200 */
+  --theme-border-hover: #d1d5db;    /* gray-300 */
+  --theme-border-focus: #9333ea;    /* primary */
+
+  /* Input colors */
+  --theme-input-bg: #ffffff;
+  --theme-input-border: #d1d5db;    /* gray-300 */
+  --theme-input-disabled-bg: #f3f4f6;
+  --theme-input-placeholder: #9ca3af;
+
+  /* Shadow colors */
+  --theme-shadow-color: 0 0 0;
+  --theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --theme-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --theme-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* Skeleton/loading states */
+  --theme-skeleton-base: #e5e7eb;
+  --theme-skeleton-shine: #f3f4f6;
+
+  /* Overlay */
+  --theme-overlay: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  /* Background colors */
+  --theme-bg-primary: #0f0f10;
+  --theme-bg-secondary: #18181b;    /* zinc-900 */
+  --theme-bg-tertiary: #27272a;     /* zinc-800 */
+  --theme-bg-elevated: #1f1f23;
+  --theme-bg-hover: #27272a;        /* zinc-800 */
+  --theme-bg-active: #3f3f46;       /* zinc-700 */
+
+  /* Surface colors (for cards, modals, etc.) */
+  --theme-surface: #18181b;
+  --theme-surface-hover: #27272a;
+  --theme-surface-elevated: #1f1f23;
+
+  /* Text colors */
+  --theme-text-primary: #fafafa;    /* zinc-50 */
+  --theme-text-secondary: #a1a1aa;  /* zinc-400 */
+  --theme-text-tertiary: #71717a;   /* zinc-500 */
+  --theme-text-muted: #52525b;      /* zinc-600 */
+  --theme-text-inverted: #18181b;
+
+  /* Border colors */
+  --theme-border: #27272a;          /* zinc-800 */
+  --theme-border-hover: #3f3f46;    /* zinc-700 */
+  --theme-border-focus: #a855f7;    /* primary-light */
+
+  /* Input colors */
+  --theme-input-bg: #27272a;
+  --theme-input-border: #3f3f46;    /* zinc-700 */
+  --theme-input-disabled-bg: #18181b;
+  --theme-input-placeholder: #71717a;
+
+  /* Shadow colors (more prominent in dark mode) */
+  --theme-shadow-color: 0 0 0;
+  --theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --theme-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --theme-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  /* Skeleton/loading states */
+  --theme-skeleton-base: #27272a;
+  --theme-skeleton-shine: #3f3f46;
+
+  /* Overlay */
+  --theme-overlay: rgba(0, 0, 0, 0.7);
 }
 
 /* Widget Animations for OBS */
@@ -273,14 +372,95 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* CSS Custom Properties for runtime theming (optional) */
-:root {
-  /* You can override these for dark mode or theme switching */
-  --app-bg: var(--color-bg-secondary);
-  --app-text: var(--color-text-primary);
-}
+/* ======================== */
+/* Base Styles with Theme Support */
+/* ======================== */
 
 body {
-  color: var(--app-text);
-  background: var(--app-bg);
+  background: var(--theme-bg-secondary);
+  color: var(--theme-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ======================== */
+/* Theme Utility Classes */
+/* ======================== */
+
+/* Background utilities */
+.bg-theme-primary { background-color: var(--theme-bg-primary); }
+.bg-theme-secondary { background-color: var(--theme-bg-secondary); }
+.bg-theme-tertiary { background-color: var(--theme-bg-tertiary); }
+.bg-theme-elevated { background-color: var(--theme-bg-elevated); }
+.bg-theme-hover { background-color: var(--theme-bg-hover); }
+.bg-theme-surface { background-color: var(--theme-surface); }
+
+/* Text utilities */
+.text-theme-primary { color: var(--theme-text-primary); }
+.text-theme-secondary { color: var(--theme-text-secondary); }
+.text-theme-tertiary { color: var(--theme-text-tertiary); }
+.text-theme-muted { color: var(--theme-text-muted); }
+
+/* Border utilities */
+.border-theme { border-color: var(--theme-border); }
+.border-theme-hover { border-color: var(--theme-border-hover); }
+.border-theme-subtle { border-color: color-mix(in srgb, var(--theme-border) 50%, transparent); }
+
+/* Input styling */
+.input-theme {
+  background-color: var(--theme-input-bg);
+  border-color: var(--theme-input-border);
+  color: var(--theme-text-primary);
+}
+
+.input-theme::placeholder {
+  color: var(--theme-input-placeholder);
+}
+
+.input-theme:focus {
+  border-color: var(--theme-border-focus);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+}
+
+.input-theme:disabled {
+  background-color: var(--theme-input-disabled-bg);
+  cursor: not-allowed;
+}
+
+/* Card styling */
+.card-theme {
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+  box-shadow: var(--theme-shadow-sm);
+}
+
+/* Skeleton styling with theme support */
+.skeleton-theme {
+  background: linear-gradient(
+    90deg,
+    var(--theme-skeleton-base) 0%,
+    var(--theme-skeleton-shine) 50%,
+    var(--theme-skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Hover states for interactive elements */
+.hover-theme:hover {
+  background-color: var(--theme-bg-hover);
+}
+
+.hover-theme:active {
+  background-color: var(--theme-bg-active);
+}
+
+/* Modal/overlay backdrop */
+.overlay-theme {
+  background-color: var(--theme-overlay);
 }

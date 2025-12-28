@@ -137,15 +137,13 @@ export type StreamActorResourceSchema = {
 // StreamTimer Schema
 export type StreamTimerResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "label" | "content" | "durationSeconds" | "remainingSeconds" | "isRunning" | "isPaused" | "startedAt" | "insertedAt" | "updatedAt";
+  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "isActive" | "nextFireAt" | "insertedAt" | "updatedAt";
   id: UUID;
   label: string;
-  content: string | null;
-  durationSeconds: number;
-  remainingSeconds: number;
-  isRunning: boolean;
-  isPaused: boolean;
-  startedAt: UtcDateTimeUsec | null;
+  content: string;
+  intervalSeconds: number;
+  isActive: boolean;
+  nextFireAt: UtcDateTimeUsec | null;
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
 };
@@ -168,7 +166,7 @@ export type FileResourceSchema = {
 // User Schema
 export type UserResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
+  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "themePreference" | "avatarFileId" | "tier" | "role" | "displayAvatar" | "isModerator" | "hoursStreamedLast30Days" | "storageQuota" | "storageUsedPercent";
   id: UUID;
   email: string;
   name: string;
@@ -181,6 +179,7 @@ export type UserResourceSchema = {
   defaultVoice: string | null;
   avatarUrl: string | null;
   languagePreference: string | null;
+  themePreference: string | null;
   avatarFileId: UUID | null;
   tier: string | null;
   role: string | null;
@@ -868,7 +867,7 @@ export type StreamTimerFilterInput = {
     in?: Array<string>;
   };
 
-  durationSeconds?: {
+  intervalSeconds?: {
     eq?: number;
     notEq?: number;
     greaterThan?: number;
@@ -878,27 +877,12 @@ export type StreamTimerFilterInput = {
     in?: Array<number>;
   };
 
-  remainingSeconds?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  isRunning?: {
+  isActive?: {
     eq?: boolean;
     notEq?: boolean;
   };
 
-  isPaused?: {
-    eq?: boolean;
-    notEq?: boolean;
-  };
-
-  startedAt?: {
+  nextFireAt?: {
     eq?: UtcDateTimeUsec;
     notEq?: UtcDateTimeUsec;
     greaterThan?: UtcDateTimeUsec;
@@ -1056,6 +1040,12 @@ export type UserFilterInput = {
   };
 
   languagePreference?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  themePreference?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
@@ -2976,8 +2966,8 @@ export async function getStreamTimersChannel<Fields extends GetStreamTimersField
 
 export type CreateStreamTimerInput = {
   label: string;
-  content?: string;
-  durationSeconds: number;
+  content: string;
+  intervalSeconds: number;
 };
 
 export type CreateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
@@ -3098,122 +3088,59 @@ export async function startStreamTimerChannel<Fields extends StartStreamTimerFie
 }
 
 
-export type PauseStreamTimerInput = {
+export type StopStreamTimerInput = {
   id: UUID;
 };
 
-export type PauseStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+export type StopStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
 
-export type InferPauseStreamTimerResult<
-  Fields extends PauseStreamTimerFields | undefined,
+export type InferStopStreamTimerResult<
+  Fields extends StopStreamTimerFields | undefined,
 > = InferResult<StreamTimerResourceSchema, Fields>;
 
-export type PauseStreamTimerResult<Fields extends PauseStreamTimerFields | undefined = undefined> = | { success: true; data: InferPauseStreamTimerResult<Fields>; }
+export type StopStreamTimerResult<Fields extends StopStreamTimerFields | undefined = undefined> = | { success: true; data: InferStopStreamTimerResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
-export async function pauseStreamTimer<Fields extends PauseStreamTimerFields | undefined = undefined>(
+export async function stopStreamTimer<Fields extends StopStreamTimerFields | undefined = undefined>(
   config: {
   identity: UUID;
-  input: PauseStreamTimerInput;
+  input: StopStreamTimerInput;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<PauseStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+): Promise<StopStreamTimerResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "pause_stream_timer",
+    action: "stop_stream_timer",
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<PauseStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<StopStreamTimerResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
 }
 
 
-export async function pauseStreamTimerChannel<Fields extends PauseStreamTimerFields | undefined = undefined>(config: {
+export async function stopStreamTimerChannel<Fields extends StopStreamTimerFields | undefined = undefined>(config: {
   channel: Channel;
   identity: UUID;
-  input: PauseStreamTimerInput;
+  input: StopStreamTimerInput;
   fields?: Fields;
-  resultHandler: (result: PauseStreamTimerResult<Fields>) => void;
+  resultHandler: (result: StopStreamTimerResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<PauseStreamTimerResult<Fields>>(
+  executeActionChannelPush<StopStreamTimerResult<Fields>>(
     config.channel,
     {
-    action: "pause_stream_timer",
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ResetStreamTimerInput = {
-  id: UUID;
-};
-
-export type ResetStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-
-export type InferResetStreamTimerResult<
-  Fields extends ResetStreamTimerFields | undefined,
-> = InferResult<StreamTimerResourceSchema, Fields>;
-
-export type ResetStreamTimerResult<Fields extends ResetStreamTimerFields | undefined = undefined> = | { success: true; data: InferResetStreamTimerResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function resetStreamTimer<Fields extends ResetStreamTimerFields | undefined = undefined>(
-  config: {
-  identity: UUID;
-  input: ResetStreamTimerInput;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ResetStreamTimerResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "reset_stream_timer",
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<ResetStreamTimerResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function resetStreamTimerChannel<Fields extends ResetStreamTimerFields | undefined = undefined>(config: {
-  channel: Channel;
-  identity: UUID;
-  input: ResetStreamTimerInput;
-  fields?: Fields;
-  resultHandler: (result: ResetStreamTimerResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ResetStreamTimerResult<Fields>>(
-    config.channel,
-    {
-    action: "reset_stream_timer",
+    action: "stop_stream_timer",
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4009,6 +3936,69 @@ export async function saveLanguagePreferenceChannel<Fields extends SaveLanguageP
     config.channel,
     {
     action: "save_language_preference",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SaveThemePreferenceInput = {
+  theme: string;
+};
+
+export type SaveThemePreferenceFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferSaveThemePreferenceResult<
+  Fields extends SaveThemePreferenceFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type SaveThemePreferenceResult<Fields extends SaveThemePreferenceFields | undefined = undefined> = | { success: true; data: InferSaveThemePreferenceResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function saveThemePreference<Fields extends SaveThemePreferenceFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  input: SaveThemePreferenceInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SaveThemePreferenceResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "save_theme_preference",
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SaveThemePreferenceResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function saveThemePreferenceChannel<Fields extends SaveThemePreferenceFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  input: SaveThemePreferenceInput;
+  fields?: Fields;
+  resultHandler: (result: SaveThemePreferenceResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SaveThemePreferenceResult<Fields>>(
+    config.channel,
+    {
+    action: "save_theme_preference",
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })

@@ -57,11 +57,11 @@ function QuickStatsSkeleton() {
 function RecentChatSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 				<Skeleton class="h-5 w-28" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-[var(--theme-border)]">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="px-6 py-3">
@@ -78,11 +78,11 @@ function RecentChatSkeleton() {
 function RecentEventsSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-[var(--theme-border)]">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="px-6 py-3">
@@ -99,7 +99,7 @@ function RecentEventsSkeleton() {
 function ActivityFeedSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="border-gray-100 border-b px-4 py-3">
+			<div class="border-theme border-b px-4 py-3">
 				<div class="mb-3 flex items-center justify-between">
 					<Skeleton class="h-5 w-28" />
 					<Skeleton class="h-4 w-16" />
@@ -110,7 +110,7 @@ function ActivityFeedSkeleton() {
 					</For>
 				</div>
 			</div>
-			<div class="divide-y divide-gray-50">
+			<div class="divide-y divide-[var(--theme-border)]">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="flex items-center gap-3 px-4 py-2.5">
@@ -134,11 +134,11 @@ function ActivityFeedSkeleton() {
 function RecentStreamsSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-[var(--theme-border)]">
 				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
 			</div>
 		</Card>
@@ -211,7 +211,7 @@ function StreamHealthMonitor() {
 	return (
 		<Card data-testid="stream-health-monitor" padding="sm">
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+				<h3 class="flex items-center gap-2 font-semibold text-theme-primary">
 					<svg
 						aria-hidden="true"
 						class="h-5 w-5 text-purple-600"
@@ -236,17 +236,17 @@ function StreamHealthMonitor() {
 				</div>
 			</div>
 			<div class="grid grid-cols-3 gap-3">
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{bitrate()} kbps</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.bitrate")}</p>
+				<div class="rounded-lg bg-theme-tertiary p-2 text-center">
+					<p class="font-bold text-theme-primary text-lg">{bitrate()} kbps</p>
+					<p class="text-theme-tertiary text-xs">{t("dashboard.bitrate")}</p>
 				</div>
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{droppedFrames()}</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.dropped")}</p>
+				<div class="rounded-lg bg-theme-tertiary p-2 text-center">
+					<p class="font-bold text-theme-primary text-lg">{droppedFrames()}</p>
+					<p class="text-theme-tertiary text-xs">{t("dashboard.dropped")}</p>
 				</div>
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{uptime()}</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.uptime")}</p>
+				<div class="rounded-lg bg-theme-tertiary p-2 text-center">
+					<p class="font-bold text-theme-primary text-lg">{uptime()}</p>
+					<p class="text-theme-tertiary text-xs">{t("dashboard.uptime")}</p>
 				</div>
 			</div>
 		</Card>
@@ -260,10 +260,10 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 	return (
 		<div class="fixed right-6 bottom-6 z-50" data-testid="quick-actions-panel">
 			<Show when={isExpanded()}>
-				<div class="absolute right-0 bottom-16 min-w-[200px] animate-fade-in rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+				<div class="absolute right-0 bottom-16 min-w-[200px] animate-fade-in rounded-xl border border-theme bg-theme-surface p-3 shadow-xl">
 					<div class="space-y-2">
 						<button
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-theme-secondary transition-colors hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-purple-900/20"
 							onClick={props.onTestAlert}
 							type="button">
 							<svg
@@ -284,7 +284,7 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 							</span>
 						</button>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-theme-secondary transition-colors hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-purple-900/20"
 							href="/dashboard/widgets">
 							<svg
 								aria-hidden="true"
@@ -302,7 +302,7 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 							<span class="font-medium text-sm">{t("dashboard.widgets")}</span>
 						</A>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-green-50 hover:text-green-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-theme-secondary transition-colors hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20"
 							href="/dashboard/stream">
 							<svg
 								aria-hidden="true"
@@ -320,7 +320,7 @@ function QuickActionsPanel(props: { onTestAlert: () => void }) {
 							<span class="font-medium text-sm">{t("dashboard.goLive")}</span>
 						</A>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-theme-secondary transition-colors hover:bg-theme-hover"
 							href="/dashboard/settings">
 							<svg
 								aria-hidden="true"
@@ -396,10 +396,10 @@ function ViewerEngagementScore(props: {
 
 	const scoreColor = () => {
 		const score = engagementScore();
-		if (score >= 80) return "text-green-600";
-		if (score >= 60) return "text-blue-600";
-		if (score >= 40) return "text-yellow-600";
-		return "text-gray-600";
+		if (score >= 80) return "text-green-600 dark:text-green-400";
+		if (score >= 60) return "text-blue-600 dark:text-blue-400";
+		if (score >= 40) return "text-yellow-600 dark:text-yellow-400";
+		return "text-theme-tertiary";
 	};
 
 	const scoreGradient = () => {
@@ -421,7 +421,7 @@ function ViewerEngagementScore(props: {
 	return (
 		<Card data-testid="engagement-score" padding="sm">
 			<div class="mb-3 flex items-center justify-between">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+				<h3 class="flex items-center gap-2 font-semibold text-theme-primary">
 					<svg
 						aria-hidden="true"
 						class="h-5 w-5 text-purple-600"
@@ -438,27 +438,27 @@ function ViewerEngagementScore(props: {
 					{t("dashboard.engagementScore")}
 				</h3>
 				<span
-					class={`rounded-full bg-gray-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}>
+					class={`rounded-full bg-theme-tertiary px-2 py-1 font-medium text-xs ${scoreColor()}`}>
 					{scoreLabel()}
 				</span>
 			</div>
 			<div class="flex items-center gap-4">
 				<div
 					class={`relative h-16 w-16 rounded-full bg-linear-to-r ${scoreGradient()} p-1`}>
-					<div class="flex h-full w-full items-center justify-center rounded-full bg-white">
+					<div class="flex h-full w-full items-center justify-center rounded-full bg-theme-surface">
 						<span class={`font-bold text-xl ${scoreColor()}`}>
 							{engagementScore()}
 						</span>
 					</div>
 				</div>
 				<div class="flex-1">
-					<div class="h-2 overflow-hidden rounded-full bg-gray-200">
+					<div class="h-2 overflow-hidden rounded-full bg-theme-tertiary">
 						<div
 							class={`h-full bg-linear-to-r ${scoreGradient()} transition-all duration-500`}
 							style={{ width: `${engagementScore()}%` }}
 						/>
 					</div>
-					<div class="mt-2 flex justify-between text-gray-500 text-xs">
+					<div class="mt-2 flex justify-between text-theme-tertiary text-xs">
 						<span>0</span>
 						<span>50</span>
 						<span>100</span>
@@ -509,34 +509,34 @@ function StreamGoalsTracker(props: {
 			case "pink":
 				return {
 					bg: "bg-pink-500",
-					light: "bg-pink-100",
-					text: "text-pink-600",
+					light: "bg-pink-100 dark:bg-pink-900/30",
+					text: "text-pink-600 dark:text-pink-400",
 				};
 			case "green":
 				return {
 					bg: "bg-green-500",
-					light: "bg-green-100",
-					text: "text-green-600",
+					light: "bg-green-100 dark:bg-green-900/30",
+					text: "text-green-600 dark:text-green-400",
 				};
 			case "blue":
 				return {
 					bg: "bg-blue-500",
-					light: "bg-blue-100",
-					text: "text-blue-600",
+					light: "bg-blue-100 dark:bg-blue-900/30",
+					text: "text-blue-600 dark:text-blue-400",
 				};
 			default:
 				return {
 					bg: "bg-gray-500",
-					light: "bg-gray-100",
-					text: "text-gray-600",
+					light: "bg-gray-100 dark:bg-gray-800",
+					text: "text-gray-600 dark:text-gray-400",
 				};
 		}
 	};
 
 	return (
 		<Card data-testid="stream-goals" padding="none">
-			<div class="border-gray-100 border-b px-4 py-3">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+			<div class="border-theme border-b px-4 py-3">
+				<h3 class="flex items-center gap-2 font-semibold text-theme-primary">
 					<svg
 						aria-hidden="true"
 						class="h-5 w-5 text-purple-600"
@@ -561,7 +561,7 @@ function StreamGoalsTracker(props: {
 						return (
 							<div class="space-y-2">
 								<div class="flex items-center justify-between">
-									<span class="font-medium text-gray-700 text-sm">
+									<span class="font-medium text-theme-secondary text-sm">
 										{goal.label}
 									</span>
 									<span class={`font-bold text-sm ${colors.text}`}>
@@ -634,9 +634,9 @@ function ActivityFeed(props: {
 
 	return (
 		<Card data-testid="activity-feed" padding="none">
-			<div class="border-gray-100 border-b px-4 py-3">
+			<div class="border-theme border-b px-4 py-3">
 				<div class="mb-3 flex items-center justify-between">
-					<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+					<h3 class="flex items-center gap-2 font-semibold text-theme-primary">
 						<svg
 							aria-hidden="true"
 							class="h-5 w-5 text-purple-600"
@@ -652,7 +652,7 @@ function ActivityFeed(props: {
 						</svg>
 						{t("dashboard.activityFeed")}
 					</h3>
-					<span class="text-gray-500 text-xs">
+					<span class="text-theme-tertiary text-xs">
 						{filteredEvents().length} {t("dashboard.events")}
 					</span>
 				</div>
@@ -663,7 +663,7 @@ function ActivityFeed(props: {
 								class={`rounded-full px-2.5 py-1 font-medium text-xs transition-colors ${
 									filter() === btn.value
 										? "bg-purple-600 text-white"
-										: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+										: "bg-theme-tertiary text-theme-secondary hover:bg-theme-hover"
 								}`}
 								data-testid={`filter-${btn.value}`}
 								onClick={() => setFilter(btn.value)}
@@ -680,7 +680,7 @@ function ActivityFeed(props: {
 						<div class="px-4 py-8 text-center">
 							<svg
 								aria-hidden="true"
-								class="mx-auto mb-2 h-10 w-10 text-gray-300"
+								class="mx-auto mb-2 h-10 w-10 text-theme-muted"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -691,30 +691,30 @@ function ActivityFeed(props: {
 									stroke-width="2"
 								/>
 							</svg>
-							<p class="text-gray-500 text-sm">
+							<p class="text-theme-tertiary text-sm">
 								{t("dashboard.noEvents")} {filter() === "all" ? "" : filter()}
 							</p>
 						</div>
 					}
 					when={filteredEvents().length > 0}>
-					<div class="divide-y divide-gray-50">
+					<div class="divide-y divide-[var(--theme-border)]">
 						<For each={filteredEvents()}>
 							{(event) => (
-								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
+								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-theme-hover">
 									<div
 										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 										<EventIcon type={event.type} />
 									</div>
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2">
-											<span class="font-medium text-gray-900 text-sm capitalize">
+											<span class="font-medium text-theme-primary text-sm capitalize">
 												{event.type}
 											</span>
-											<span class="text-gray-400 text-xs">
+											<span class="text-theme-muted text-xs">
 												{formatTimeAgo(event.inserted_at)}
 											</span>
 										</div>
-										<p class="truncate text-gray-500 text-xs">
+										<p class="truncate text-theme-tertiary text-xs">
 											{(event.data?.username as string) ||
 												t("dashboard.anonymous")}
 											<Show
@@ -762,7 +762,7 @@ export default function Dashboard() {
 				fallback={
 					<div class="space-y-6">
 						{/* Header skeleton */}
-						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+						<div class="rounded-2xl border border-theme bg-theme-surface p-8 shadow-sm">
 							<Skeleton class="mb-2 h-9 w-64" />
 							<Skeleton class="h-5 w-48" />
 						</div>
@@ -812,13 +812,13 @@ export default function Dashboard() {
 					when={user()}>
 					<div class="space-y-6">
 						{/* Header with greeting */}
-						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+						<div class="rounded-2xl border border-theme bg-theme-surface p-8 shadow-sm">
 							<div>
-								<h1 class="mb-2 font-bold text-3xl text-gray-900">
+								<h1 class="mb-2 font-bold text-3xl text-theme-primary">
 									{greeting}, {prefs.data()?.name || user()?.name || "Streamer"}
 									!
 								</h1>
-								<p class="text-gray-600">{t("dashboard.welcomeMessage")}</p>
+								<p class="text-theme-secondary">{t("dashboard.welcomeMessage")}</p>
 							</div>
 						</div>
 
@@ -826,10 +826,10 @@ export default function Dashboard() {
 						<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-blue-600"
+											class="h-5 w-5 text-blue-600 dark:text-blue-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -842,10 +842,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<p class="font-bold text-2xl text-gray-900">
+										<p class="font-bold text-2xl text-theme-primary">
 											{stats.totalMessages()}
 										</p>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.messages")}
 										</p>
 									</div>
@@ -854,10 +854,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-purple-600"
+											class="h-5 w-5 text-purple-600 dark:text-purple-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -876,10 +876,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<p class="font-bold text-2xl text-gray-900">
+										<p class="font-bold text-2xl text-theme-primary">
 											{stats.uniqueViewers()}
 										</p>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.viewers")}
 										</p>
 									</div>
@@ -888,10 +888,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-pink-600"
+											class="h-5 w-5 text-pink-600 dark:text-pink-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -904,10 +904,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<p class="font-bold text-2xl text-gray-900">
+										<p class="font-bold text-2xl text-theme-primary">
 											{stats.followCount()}
 										</p>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.followers")}
 										</p>
 									</div>
@@ -916,10 +916,10 @@ export default function Dashboard() {
 
 							<Card class="p-4" padding="sm">
 								<div class="flex items-center gap-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
 										<svg
 											aria-hidden="true"
-											class="h-5 w-5 text-green-600"
+											class="h-5 w-5 text-green-600 dark:text-green-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -932,10 +932,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<p class="font-bold text-2xl text-gray-900">
+										<p class="font-bold text-2xl text-theme-primary">
 											${stats.totalDonations().toFixed(2)}
 										</p>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.donations")}
 										</p>
 									</div>
@@ -963,7 +963,7 @@ export default function Dashboard() {
 						<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 							{/* Recent Chat Messages */}
 							<Card padding="none">
-								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+								<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 									<h3 class={text.h3}>{t("dashboard.recentChat")}</h3>
 									<A
 										class="text-purple-600 text-sm hover:text-purple-700"
@@ -971,13 +971,13 @@ export default function Dashboard() {
 										{t("dashboard.viewAll")}
 									</A>
 								</div>
-								<div class="divide-y divide-gray-100">
+								<div class="divide-y divide-[var(--theme-border)]">
 									<Show
 										fallback={
 											<div class="px-6 py-8 text-center">
 												<svg
 													aria-hidden="true"
-													class="mx-auto mb-3 h-12 w-12 text-gray-300"
+													class="mx-auto mb-3 h-12 w-12 text-theme-muted"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24">
@@ -988,10 +988,10 @@ export default function Dashboard() {
 														stroke-width="2"
 													/>
 												</svg>
-												<p class="text-gray-500 text-sm">
+												<p class="text-theme-tertiary text-sm">
 													{t("dashboard.noChatMessages")}
 												</p>
-												<p class="mt-1 text-gray-400 text-xs">
+												<p class="mt-1 text-theme-muted text-xs">
 													{t("dashboard.messagesWillAppear")}
 												</p>
 											</div>
@@ -999,26 +999,26 @@ export default function Dashboard() {
 										when={recentMessages().length > 0}>
 										<For each={recentMessages()}>
 											{(msg) => (
-												<div class="px-6 py-3 hover:bg-gray-50">
+												<div class="px-6 py-3 hover:bg-theme-hover">
 													<div class="flex items-start gap-3">
-														<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-100">
-															<span class="font-medium text-purple-600 text-sm">
+														<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
+															<span class="font-medium text-purple-600 dark:text-purple-400 text-sm">
 																{msg.sender_username[0].toUpperCase()}
 															</span>
 														</div>
 														<div class="min-w-0 flex-1">
 															<div class="flex items-center gap-2">
-																<span class="font-medium text-gray-900 text-sm">
+																<span class="font-medium text-theme-primary text-sm">
 																	{msg.sender_username}
 																</span>
 																<Show when={msg.sender_is_moderator}>
 																	<Badge variant="info">Mod</Badge>
 																</Show>
-																<span class="text-gray-400 text-xs">
+																<span class="text-theme-muted text-xs">
 																	{formatTimeAgo(msg.inserted_at)}
 																</span>
 															</div>
-															<p class="truncate text-gray-600 text-sm">
+															<p class="truncate text-theme-secondary text-sm">
 																{msg.message}
 															</p>
 														</div>
@@ -1032,7 +1032,7 @@ export default function Dashboard() {
 
 							{/* Recent Events */}
 							<Card padding="none">
-								<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+								<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 									<h3 class={text.h3}>{t("dashboard.recentEvents")}</h3>
 									<A
 										class="text-purple-600 text-sm hover:text-purple-700"
@@ -1040,13 +1040,13 @@ export default function Dashboard() {
 										{t("dashboard.viewAll")}
 									</A>
 								</div>
-								<div class="divide-y divide-gray-100">
+								<div class="divide-y divide-[var(--theme-border)]">
 									<Show
 										fallback={
 											<div class="px-6 py-8 text-center">
 												<svg
 													aria-hidden="true"
-													class="mx-auto mb-3 h-12 w-12 text-gray-300"
+													class="mx-auto mb-3 h-12 w-12 text-theme-muted"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24">
@@ -1057,10 +1057,10 @@ export default function Dashboard() {
 														stroke-width="2"
 													/>
 												</svg>
-												<p class="text-gray-500 text-sm">
+												<p class="text-theme-tertiary text-sm">
 													{t("dashboard.noEventsYet")}
 												</p>
-												<p class="mt-1 text-gray-400 text-xs">
+												<p class="mt-1 text-theme-muted text-xs">
 													{t("dashboard.eventsWillAppear")}
 												</p>
 											</div>
@@ -1068,7 +1068,7 @@ export default function Dashboard() {
 										when={recentEvents().length > 0}>
 										<For each={recentEvents()}>
 											{(event) => (
-												<div class="px-6 py-3 hover:bg-gray-50">
+												<div class="px-6 py-3 hover:bg-theme-hover">
 													<div class="flex items-center gap-3">
 														<div
 															class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
@@ -1076,14 +1076,14 @@ export default function Dashboard() {
 														</div>
 														<div class="min-w-0 flex-1">
 															<div class="flex items-center gap-2">
-																<span class="font-medium text-gray-900 text-sm capitalize">
+																<span class="font-medium text-theme-primary text-sm capitalize">
 																	{event.type}
 																</span>
-																<span class="text-gray-400 text-xs">
+																<span class="text-theme-muted text-xs">
 																	{formatTimeAgo(event.inserted_at)}
 																</span>
 															</div>
-															<p class="truncate text-gray-600 text-sm">
+															<p class="truncate text-theme-secondary text-sm">
 																<Show
 																	fallback={t("dashboard.anonymous")}
 																	when={event.data?.username}>
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
 
 						{/* Recent Streams */}
 						<Card padding="none">
-							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+							<div class="flex items-center justify-between border-theme border-b px-6 py-4">
 								<h3 class={text.h3}>{t("dashboard.recentStreams")}</h3>
 								<A
 									class="text-purple-600 text-sm hover:text-purple-700"
@@ -1126,7 +1126,7 @@ export default function Dashboard() {
 									<div class="px-6 py-8 text-center">
 										<svg
 											aria-hidden="true"
-											class="mx-auto mb-3 h-12 w-12 text-gray-300"
+											class="mx-auto mb-3 h-12 w-12 text-theme-muted"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -1137,27 +1137,27 @@ export default function Dashboard() {
 												stroke-width="2"
 											/>
 										</svg>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.noStreamsYet")}
 										</p>
-										<p class="mt-1 text-gray-400 text-xs">
+										<p class="mt-1 text-theme-muted text-xs">
 											{t("dashboard.streamsWillAppear")}
 										</p>
 									</div>
 								}
 								when={recentStreams().length > 0}>
-								<div class="divide-y divide-gray-100">
+								<div class="divide-y divide-[var(--theme-border)]">
 									<For each={recentStreams()}>
 										{(stream) => (
 											<A
-												class="block px-6 py-4 hover:bg-gray-50"
+												class="block px-6 py-4 hover:bg-theme-hover"
 												href={`/dashboard/stream-history/${stream.id}`}>
 												<div class="flex items-center justify-between">
 													<div class="flex items-center gap-4">
-														<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+														<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
 															<svg
 																aria-hidden="true"
-																class="h-6 w-6 text-purple-600"
+																class="h-6 w-6 text-purple-600 dark:text-purple-400"
 																fill="none"
 																stroke="currentColor"
 																viewBox="0 0 24 24">
@@ -1170,10 +1170,10 @@ export default function Dashboard() {
 															</svg>
 														</div>
 														<div>
-															<h4 class="font-medium text-gray-900">
+															<h4 class="font-medium text-theme-primary">
 																{stream.title || t("dashboard.untitledStream")}
 															</h4>
-															<p class="text-gray-500 text-sm">
+															<p class="text-theme-tertiary text-sm">
 																{stream.started_at
 																	? new Date(
 																			stream.started_at,
@@ -1199,7 +1199,7 @@ export default function Dashboard() {
 						{/* Quick Actions */}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 							<A
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+								class="group rounded-2xl border border-theme bg-theme-surface p-6 shadow-sm transition-all hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md"
 								href="/dashboard/widgets">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 transition-transform group-hover:scale-105">
@@ -1218,10 +1218,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">
+										<h3 class="font-semibold text-theme-primary">
 											{t("dashboard.widgets")}
 										</h3>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.customizeOverlays")}
 										</p>
 									</div>
@@ -1229,7 +1229,7 @@ export default function Dashboard() {
 							</A>
 
 							<A
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+								class="group rounded-2xl border border-theme bg-theme-surface p-6 shadow-sm transition-all hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md"
 								href="/dashboard/analytics">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105">
@@ -1248,10 +1248,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">
+										<h3 class="font-semibold text-theme-primary">
 											{t("dashboardNav.analytics")}
 										</h3>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.viewStats")}
 										</p>
 									</div>
@@ -1259,7 +1259,7 @@ export default function Dashboard() {
 							</A>
 
 							<A
-								class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+								class="group rounded-2xl border border-theme bg-theme-surface p-6 shadow-sm transition-all hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md"
 								href="/dashboard/settings">
 								<div class="flex items-center gap-4">
 									<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-pink-500 to-rose-500 transition-transform group-hover:scale-105">
@@ -1284,10 +1284,10 @@ export default function Dashboard() {
 										</svg>
 									</div>
 									<div>
-										<h3 class="font-semibold text-gray-900">
+										<h3 class="font-semibold text-theme-primary">
 											{t("dashboardNav.settings")}
 										</h3>
-										<p class="text-gray-500 text-sm">
+										<p class="text-theme-tertiary text-sm">
 											{t("dashboard.configureAccount")}
 										</p>
 									</div>
