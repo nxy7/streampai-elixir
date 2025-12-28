@@ -32,22 +32,32 @@ export type InputType =
 export interface FieldMeta {
 	/** Human-readable label (default: derived from field name) */
 	label?: string;
+	/** i18n key for label - when provided with a translation function, used instead of label */
+	labelKey?: string;
 	/** Override the auto-detected input type */
 	inputType?: InputType;
 	/** Description/helper text shown below the field */
 	description?: string;
+	/** i18n key for description - when provided with a translation function, used instead of description */
+	descriptionKey?: string;
 	/** Group fields together under a section header */
 	group?: string;
+	/** i18n key for group header - when provided with a translation function, used instead of group */
+	groupKey?: string;
 	/** Hide this field in the form */
 	hidden?: boolean;
 	/** Placeholder text (for text/textarea fields) */
 	placeholder?: string;
+	/** i18n key for placeholder - when provided with a translation function, used instead of placeholder */
+	placeholderKey?: string;
 	/** Unit label (for number/slider fields, e.g., "px", "s", "%") */
 	unit?: string;
 	/** Step increment (for number/slider fields) */
 	step?: number;
 	/** Custom labels for select options (maps enum value to display label) */
 	options?: Record<string, string>;
+	/** i18n keys for select options (maps enum value to i18n key) */
+	optionKeys?: Record<string, string>;
 }
 
 /**
@@ -110,6 +120,14 @@ export interface IntrospectedSchema {
 }
 
 /**
+ * Translation function type - compatible with useTranslation().t
+ */
+export type TranslationFunction = (
+	key: string,
+	params?: Record<string, string | number>,
+) => string;
+
+/**
  * Props for the auto-generated form component
  */
 export interface SchemaFormProps<T extends z.ZodRawShape> {
@@ -128,4 +146,6 @@ export interface SchemaFormProps<T extends z.ZodRawShape> {
 	class?: string;
 	/** Whether the form is disabled */
 	disabled?: boolean;
+	/** Optional translation function for i18n support. When provided, fields can use i18n keys (labelKey, descriptionKey, etc.) */
+	t?: TranslationFunction;
 }

@@ -351,3 +351,42 @@ export const customOptionsMeta: FormMeta<typeof customOptionsSchema.shape> = {
 		},
 	},
 };
+
+// =============================================================================
+// i18n Demo (for testing localization support)
+// =============================================================================
+
+/**
+ * Demo schema for i18n support
+ */
+export const i18nDemoSchema = z.object({
+	displayName: z.string().default(""),
+	theme: z.enum(["light", "dark", "system"]).default("system"),
+	emailNotifications: z.boolean().default(true),
+});
+
+export type I18nDemoConfig = z.infer<typeof i18nDemoSchema>;
+
+/**
+ * Demo metadata with i18n keys - labels/descriptions are resolved via translation function
+ */
+export const i18nDemoMeta: FormMeta<typeof i18nDemoSchema.shape> = {
+	displayName: {
+		labelKey: "demo.displayName",
+		placeholderKey: "demo.displayNamePlaceholder",
+		descriptionKey: "demo.displayNameDescription",
+	},
+	theme: {
+		labelKey: "demo.theme",
+		descriptionKey: "demo.themeDescription",
+		optionKeys: {
+			light: "demo.themeLight",
+			dark: "demo.themeDark",
+			system: "demo.themeSystem",
+		},
+	},
+	emailNotifications: {
+		labelKey: "demo.emailNotifications",
+		descriptionKey: "demo.emailNotificationsDescription",
+	},
+};
