@@ -305,6 +305,32 @@ const handleModifyTimers = () => console.log("Modify timers clicked");
 const handleChangeStreamSettings = () =>
 	console.log("Change stream settings clicked");
 
+// Default moderation callbacks for all live stories
+const defaultModerationCallbacks: ModerationCallbacks = {
+	onReplayEvent: (eventId) => {
+		console.log(`Replay event: ${eventId}`);
+	},
+	onBanUser: (userId, platform, viewerPlatformId, username) => {
+		console.log(`Ban user: ${username} (${userId}) on ${platform}`);
+	},
+	onTimeoutUser: (
+		userId,
+		platform,
+		viewerPlatformId,
+		username,
+		durationSeconds,
+	) => {
+		const durationLabel =
+			durationSeconds >= 3600
+				? `${Math.floor(durationSeconds / 3600)}h`
+				: `${Math.floor(durationSeconds / 60)}m`;
+		console.log(`Timeout user: ${username} for ${durationLabel}`);
+	},
+	onDeleteMessage: (eventId) => {
+		console.log(`Delete message: ${eventId}`);
+	},
+};
+
 export const Live: Story = {
 	args: {
 		phase: "live",
@@ -314,6 +340,7 @@ export const Live: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -329,6 +356,7 @@ export const LiveEmpty: Story = {
 		viewerCount: 5,
 		connectedPlatforms: ["twitch"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -345,6 +373,7 @@ export const LiveBusy: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -362,6 +391,7 @@ export const LiveVirtualized: Story = {
 		stickyDuration: 30000,
 		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -377,6 +407,7 @@ export const LiveChatOnly: Story = {
 		viewerCount: 150,
 		connectedPlatforms: ["twitch", "youtube"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -427,6 +458,7 @@ export const LiveManyDonations: Story = {
 		viewerCount: 2500,
 		connectedPlatforms: ["twitch", "youtube", "kick"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 		onStartPoll: handleStartPoll,
 		onStartGiveaway: handleStartGiveaway,
 		onModifyTimers: handleModifyTimers,
@@ -601,6 +633,7 @@ function InteractiveLiveWrapper() {
 			stickyDuration={15000}
 			connectedPlatforms={["twitch", "youtube", "kick"]}
 			onSendMessage={handleSendMessage}
+			moderationCallbacks={defaultModerationCallbacks}
 		/>
 	);
 }
@@ -687,6 +720,7 @@ function StickyTestWrapper() {
 			onSendMessage={(msg, platforms) =>
 				console.log(`Send to ${platforms}: ${msg}`)
 			}
+			moderationCallbacks={defaultModerationCallbacks}
 		/>
 	);
 }
@@ -837,6 +871,7 @@ export const FilterTest: Story = {
 		viewerCount: 500,
 		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
 		onSendMessage: handleSendMessage,
+		moderationCallbacks: defaultModerationCallbacks,
 	},
 	parameters: {
 		docs: {
@@ -931,8 +966,8 @@ const generateModerationTestActivities = (): ActivityItem[] => {
 	];
 };
 
-// Moderation callbacks for testing
-const moderationCallbacks: ModerationCallbacks = {
+// Moderation callbacks with alerts for testing (more visible feedback)
+const alertModerationCallbacks: ModerationCallbacks = {
 	onReplayEvent: (eventId) => {
 		console.log(`Replay event: ${eventId}`);
 		alert(`Replaying alert for event: ${eventId}`);
@@ -972,7 +1007,7 @@ export const ModerationActionsTest: Story = {
 		stickyDuration: 120000,
 		connectedPlatforms: ["twitch", "youtube", "kick"],
 		onSendMessage: handleSendMessage,
-		moderationCallbacks,
+		moderationCallbacks: alertModerationCallbacks,
 	},
 	parameters: {
 		docs: {
