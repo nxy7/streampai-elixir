@@ -518,6 +518,12 @@ export const dict: Dictionary = {
 			"Wir freuen uns über Feedback! Kontaktiere uns mit Fehlerberichten oder Funktionsvorschlägen. Du kannst auch unserer Discord-Community beitreten und Ideen diskutieren.",
 	},
 
+	// Admin pages
+	admin: {
+		enterUserUuid: "Benutzer-UUID eingeben",
+		enterNotificationMessage: "Benachrichtigungstext eingeben...",
+	},
+
 	// Contact page
 	contact: {
 		title: "Kontakt",

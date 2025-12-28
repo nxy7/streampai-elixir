@@ -5,7 +5,12 @@ import Badge from "~/components/ui/Badge";
 import Button from "~/components/ui/Button";
 import Card from "~/components/ui/Card";
 import Input, { Select, Textarea } from "~/components/ui/Input";
-import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from "~/i18n";
+import {
+	LOCALE_NAMES,
+	type Locale,
+	SUPPORTED_LOCALES,
+	useTranslation,
+} from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
@@ -17,6 +22,7 @@ type LocalizationEntry = {
 };
 
 export default function AdminNotifications() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { data: notifications, isLoading: notificationsLoading } =
@@ -428,19 +434,22 @@ export default function AdminNotifications() {
 
 								<div class="space-y-4 px-6 py-4">
 									<div>
-										<label class="mb-2 block font-medium text-gray-700 text-sm">
+										<label
+											class="mb-2 block font-medium text-gray-700 text-sm"
+											for="notification-type">
 											Notification Type
-											<Select
-												onInput={(e) =>
-													setNotificationType(
-														e.currentTarget.value as "global" | "user",
-													)
-												}
-												value={notificationType()}>
-												<option value="global">Global (All Users)</option>
-												<option value="user">User-specific</option>
-											</Select>
 										</label>
+										<Select
+											id="notification-type"
+											onInput={(e) =>
+												setNotificationType(
+													e.currentTarget.value as "global" | "user",
+												)
+											}
+											value={notificationType()}>
+											<option value="global">Global (All Users)</option>
+											<option value="user">User-specific</option>
+										</Select>
 										<p class={text.helper}>
 											{notificationType() === "global"
 												? "This notification will be shown to all users"
@@ -450,33 +459,37 @@ export default function AdminNotifications() {
 
 									<Show when={notificationType() === "user"}>
 										<div>
-											<label class="mb-2 block font-medium text-gray-700 text-sm">
+											<label
+												class="mb-2 block font-medium text-gray-700 text-sm"
+												for="target-user-id">
 												User ID <span class="text-red-500">*</span>
-												<Input
-													onInput={(e) =>
-														setTargetUserId(e.currentTarget.value)
-													}
-													placeholder="Enter user UUID"
-													type="text"
-													value={targetUserId()}
-												/>
 											</label>
+											<Input
+												id="target-user-id"
+												onInput={(e) => setTargetUserId(e.currentTarget.value)}
+												placeholder={t("admin.enterUserUuid")}
+												type="text"
+												value={targetUserId()}
+											/>
 										</div>
 									</Show>
 
 									<div>
-										<label class="mb-2 block font-medium text-gray-700 text-sm">
+										<label
+											class="mb-2 block font-medium text-gray-700 text-sm"
+											for="notification-content">
 											Content (English - Default){" "}
 											<span class="text-red-500">*</span>
-											<Textarea
-												onInput={(e) =>
-													setNotificationContent(e.currentTarget.value)
-												}
-												placeholder="Enter notification message..."
-												rows={3}
-												value={notificationContent()}
-											/>
 										</label>
+										<Textarea
+											id="notification-content"
+											onInput={(e) =>
+												setNotificationContent(e.currentTarget.value)
+											}
+											placeholder={t("admin.enterNotificationMessage")}
+											rows={3}
+											value={notificationContent()}
+										/>
 									</div>
 
 									{/* Localizations Section */}
