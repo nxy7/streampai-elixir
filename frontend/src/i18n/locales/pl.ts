@@ -124,6 +124,12 @@ export const dict: Dictionary = {
 		signInToAccess: "Zaloguj się, aby uzyskać dostęp do panelu.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Wpisz tytuł streama...",
+		streamDescriptionPlaceholder: "Opisz swój stream...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Statystyki streamów",
@@ -513,6 +519,12 @@ export const dict: Dictionary = {
 		faqQ5: "Jak zgłosić błąd lub zaproponować funkcję?",
 		faqA5:
 			"Chętnie słuchamy użytkowników! Napisz do nas z informacją o błędzie lub propozycją nowej funkcji. Możesz też dołączyć do naszego Discorda i podzielić się pomysłami z innymi.",
+	},
+
+	// Admin pages
+	admin: {
+		enterUserUuid: "Wpisz UUID użytkownika",
+		enterNotificationMessage: "Wpisz treść powiadomienia...",
 	},
 
 	// Contact page

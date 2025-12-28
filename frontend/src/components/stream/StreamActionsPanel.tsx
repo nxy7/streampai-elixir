@@ -1,0 +1,103 @@
+import { For } from "solid-js";
+import type { StreamActionCallbacks } from "./types";
+
+interface StreamActionsPanelProps extends StreamActionCallbacks {
+	onOpenWidget?: (widget: "poll" | "giveaway") => void;
+}
+
+export function StreamActionsPanel(props: StreamActionsPanelProps) {
+	const handlePollClick = () => {
+		props.onOpenWidget?.("poll");
+	};
+
+	const handleGiveawayClick = () => {
+		props.onOpenWidget?.("giveaway");
+	};
+
+	const actions = [
+		{
+			id: "poll",
+			icon: "[?]",
+			title: "Start Poll",
+			description: "Create an interactive poll for viewers",
+			color: "bg-blue-500",
+			hoverColor: "hover:bg-blue-600",
+			onClick: handlePollClick,
+			enabled: true,
+		},
+		{
+			id: "giveaway",
+			icon: "[*]",
+			title: "Start Giveaway",
+			description: "Launch a giveaway for your audience",
+			color: "bg-green-500",
+			hoverColor: "hover:bg-green-600",
+			onClick: handleGiveawayClick,
+			enabled: true,
+		},
+		{
+			id: "timers",
+			icon: "[~]",
+			title: "Modify Timers",
+			description: "Adjust stream timers and countdowns",
+			color: "bg-orange-500",
+			hoverColor: "hover:bg-orange-600",
+			onClick: props.onModifyTimers,
+			enabled: !!props.onModifyTimers,
+		},
+		{
+			id: "settings",
+			icon: "[=]",
+			title: "Stream Settings",
+			description: "Change title, category, and tags",
+			color: "bg-purple-500",
+			hoverColor: "hover:bg-purple-600",
+			onClick: props.onChangeStreamSettings,
+			enabled: !!props.onChangeStreamSettings,
+		},
+	];
+
+	return (
+		<div class="flex h-full flex-col">
+			<div class="mb-4">
+				<h3 class="font-semibold text-gray-900 text-lg">Stream Actions</h3>
+				<p class="text-gray-500 text-sm">
+					Control your stream with quick actions
+				</p>
+			</div>
+
+			<div class="grid gap-3">
+				<For each={actions}>
+					{(action) => (
+						<button
+							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
+								action.enabled
+									? "cursor-pointer"
+									: "cursor-not-allowed opacity-60"
+							}`}
+							data-testid={`action-${action.id}`}
+							disabled={!action.enabled}
+							onClick={action.onClick}
+							type="button">
+							<div
+								class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white text-xl ${action.color} ${action.enabled ? action.hoverColor : ""}`}>
+								{action.icon}
+							</div>
+							<div class="min-w-0 flex-1">
+								<div class="font-medium text-gray-900">{action.title}</div>
+								<div class="text-gray-500 text-sm">{action.description}</div>
+							</div>
+							<div class="shrink-0 text-gray-400">&gt;</div>
+						</button>
+					)}
+				</For>
+			</div>
+
+			<div class="mt-auto pt-4">
+				<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-500 text-sm">
+					More actions coming soon
+				</div>
+			</div>
+		</div>
+	);
+}
