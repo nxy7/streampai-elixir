@@ -124,6 +124,17 @@ export const dict: Dictionary = {
 		signInToAccess: "Bitte melde dich an, um aufs Dashboard zuzugreifen.",
 	},
 
+	// Stream page
+	stream: {
+		streamTitlePlaceholder: "Titel deines Streams...",
+		streamDescriptionPlaceholder: "Beschreibe deinen Stream...",
+	},
+
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Nachrichten suchen...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream-Statistiken",
@@ -516,6 +527,12 @@ export const dict: Dictionary = {
 		faqQ5: "Wie melde ich einen Fehler oder schlage eine Funktion vor?",
 		faqA5:
 			"Wir freuen uns über Feedback! Kontaktiere uns mit Fehlerberichten oder Funktionsvorschlägen. Du kannst auch unserer Discord-Community beitreten und Ideen diskutieren.",
+	},
+
+	// Admin pages
+	admin: {
+		enterUserUuid: "Benutzer-UUID eingeben",
+		enterNotificationMessage: "Benachrichtigungstext eingeben...",
 	},
 
 	// Contact page

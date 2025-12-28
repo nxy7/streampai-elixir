@@ -85,7 +85,7 @@ export default function Button(props: ButtonProps) {
 		return (
 			<A
 				class={classes}
-				href={local.href!}
+				href={local.href ?? ""}
 				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
 				{local.children}
 			</A>
