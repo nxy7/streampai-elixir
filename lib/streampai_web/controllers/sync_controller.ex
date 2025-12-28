@@ -112,22 +112,6 @@ defmodule StreampaiWeb.SyncController do
     )
   end
 
-  def notification_localizations(conn, %{"user_id" => "_empty"} = params) do
-    # Return empty result for placeholder requests (no logged in user)
-    sync_render(conn, params,
-      table: "notification_localizations",
-      where: "false"
-    )
-  end
-
-  def notification_localizations(conn, %{"user_id" => user_id} = params) do
-    # Syncs localizations for notifications visible to a user (global + user-specific)
-    sync_render(conn, params,
-      table: "notification_localizations",
-      where: "notification_id IN (SELECT id FROM notifications WHERE user_id IS NULL OR user_id = '#{user_id}')"
-    )
-  end
-
   def user_roles(conn, %{"user_id" => "_empty"} = params) do
     # Return empty result for placeholder requests (no logged in user)
     sync_render(conn, params,
@@ -193,7 +177,7 @@ defmodule StreampaiWeb.SyncController do
     "sponsor_count",
     "views_last_30d",
     "follower_count",
-    "subscriber_count",
+    "unique_viewers_last_30d",
     "stats_last_refreshed_at",
     "inserted_at",
     "updated_at"
@@ -214,14 +198,6 @@ defmodule StreampaiWeb.SyncController do
       table: "streaming_account",
       columns: @streaming_account_sync_columns,
       where: "user_id = '#{user_id}'"
-    )
-  end
-
-  def livestream_metrics(conn, %{"user_id" => user_id} = params) do
-    # User-scoped livestream metrics - syncs metrics for all streams of a specific user
-    sync_render(conn, params,
-      table: "livestream_metrics",
-      where: "livestream_id IN (SELECT id FROM livestreams WHERE user_id = '#{user_id}')"
     )
   end
 end

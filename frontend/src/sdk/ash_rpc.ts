@@ -268,14 +268,16 @@ export type IFTTTWebhookResourceSchema = {
 // Notification Schema
 export type NotificationResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "userId" | "content" | "insertedAt";
+  __primitiveFields: "id" | "userId" | "content" | "contentDe" | "contentPl" | "contentEs" | "insertedAt";
   id: UUID;
   userId: UUID | null;
   content: string;
+  contentDe: string | null;
+  contentPl: string | null;
+  contentEs: string | null;
   insertedAt: UtcDateTimeUsec;
   user: { __type: "Relationship"; __resource: UserResourceSchema | null; };
   reads: { __type: "Relationship"; __array: true; __resource: NotificationReadResourceSchema; };
-  localizations: { __type: "Relationship"; __array: true; __resource: NotificationLocalizationResourceSchema; };
 };
 
 
@@ -288,20 +290,6 @@ export type NotificationReadResourceSchema = {
   notificationId: UUID;
   seenAt: UtcDateTimeUsec;
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
-  notification: { __type: "Relationship"; __resource: NotificationResourceSchema; };
-};
-
-
-
-// NotificationLocalization Schema
-export type NotificationLocalizationResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "notificationId" | "locale" | "content" | "insertedAt";
-  id: UUID;
-  notificationId: UUID;
-  locale: string;
-  content: string;
-  insertedAt: UtcDateTimeUsec;
   notification: { __type: "Relationship"; __resource: NotificationResourceSchema; };
 };
 
@@ -1277,6 +1265,24 @@ export type NotificationFilterInput = {
     in?: Array<string>;
   };
 
+  contentDe?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  contentPl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  contentEs?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
   insertedAt?: {
     eq?: UtcDateTimeUsec;
     notEq?: UtcDateTimeUsec;
@@ -1291,8 +1297,6 @@ export type NotificationFilterInput = {
   user?: UserFilterInput;
 
   reads?: NotificationReadFilterInput;
-
-  localizations?: NotificationLocalizationFilterInput;
 
 };
 export type NotificationReadFilterInput = {
@@ -1324,49 +1328,6 @@ export type NotificationReadFilterInput = {
 
 
   user?: UserFilterInput;
-
-  notification?: NotificationFilterInput;
-
-};
-export type NotificationLocalizationFilterInput = {
-  and?: Array<NotificationLocalizationFilterInput>;
-  or?: Array<NotificationLocalizationFilterInput>;
-  not?: Array<NotificationLocalizationFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  notificationId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  locale?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  content?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
 
   notification?: NotificationFilterInput;
 
@@ -4609,6 +4570,9 @@ export async function regenerateStreamKeyChannel<Fields extends RegenerateStream
 export type CreateNotificationInput = {
   userId?: UUID | null;
   content: string;
+  contentDe?: string | null;
+  contentPl?: string | null;
+  contentEs?: string | null;
 };
 
 export type CreateNotificationFields = UnifiedFieldSelection<NotificationResourceSchema>[];
@@ -4657,67 +4621,6 @@ export async function createNotificationChannel<Fields extends CreateNotificatio
     config.channel,
     {
     action: "create_notification",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type CreateNotificationWithLocalizationsInput = {
-  userId?: UUID | null;
-  content: string;
-  localizations?: Array<Record<string, any>>;
-};
-
-export type CreateNotificationWithLocalizationsFields = UnifiedFieldSelection<NotificationResourceSchema>[];
-
-export type InferCreateNotificationWithLocalizationsResult<
-  Fields extends CreateNotificationWithLocalizationsFields | undefined,
-> = InferResult<NotificationResourceSchema, Fields>;
-
-export type CreateNotificationWithLocalizationsResult<Fields extends CreateNotificationWithLocalizationsFields | undefined = undefined> = | { success: true; data: InferCreateNotificationWithLocalizationsResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function createNotificationWithLocalizations<Fields extends CreateNotificationWithLocalizationsFields | undefined = undefined>(
-  config: {
-  input: CreateNotificationWithLocalizationsInput;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<CreateNotificationWithLocalizationsResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "create_notification_with_localizations",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<CreateNotificationWithLocalizationsResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function createNotificationWithLocalizationsChannel<Fields extends CreateNotificationWithLocalizationsFields | undefined = undefined>(config: {
-  channel: Channel;
-  input: CreateNotificationWithLocalizationsInput;
-  fields?: Fields;
-  resultHandler: (result: CreateNotificationWithLocalizationsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<CreateNotificationWithLocalizationsResult<Fields>>(
-    config.channel,
-    {
-    action: "create_notification_with_localizations",
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },

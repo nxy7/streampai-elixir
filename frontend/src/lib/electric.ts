@@ -108,6 +108,9 @@ export type Notification = Row & {
 	id: string;
 	user_id: string | null;
 	content: string;
+	content_de: string | null;
+	content_pl: string | null;
+	content_es: string | null;
 	inserted_at: string;
 };
 
@@ -115,14 +118,6 @@ export type NotificationRead = Row & {
 	user_id: string;
 	notification_id: string;
 	seen_at: string;
-};
-
-export type NotificationLocalization = Row & {
-	id: string;
-	notification_id: string;
-	locale: string;
-	content: string;
-	inserted_at: string;
 };
 
 export type UserRole = Row & {
@@ -159,7 +154,7 @@ export type StreamingAccount = Row & {
 	sponsor_count: number | null;
 	views_last_30d: number | null;
 	follower_count: number | null;
-	subscriber_count: number | null;
+	unique_viewers_last_30d: number | null;
 	stats_last_refreshed_at: string | null;
 	inserted_at: string;
 	updated_at: string;
@@ -384,16 +379,6 @@ export const emptyNotificationReadsCollection = createCollection(
 	}),
 );
 
-export const emptyNotificationLocalizationsCollection = createCollection(
-	electricCollectionOptions<NotificationLocalization>({
-		id: "empty_notification_localizations",
-		shapeOptions: {
-			url: `${SHAPES_URL}/notification_localizations/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export const emptyUserRolesCollection = createCollection(
 	electricCollectionOptions<UserRole>({
 		id: "empty_user_roles",
@@ -436,18 +421,6 @@ export function createNotificationReadsCollection(userId: string) {
 				url: `${SHAPES_URL}/notification_reads/${userId}`,
 			},
 			getKey: (item) => `${item.user_id}_${item.notification_id}`,
-		}),
-	);
-}
-
-export function createNotificationLocalizationsCollection(userId: string) {
-	return createCollection(
-		electricCollectionOptions<NotificationLocalization>({
-			id: `notification_localizations_${userId}`,
-			shapeOptions: {
-				url: `${SHAPES_URL}/notification_localizations/${userId}`,
-			},
-			getKey: (item) => item.id,
 		}),
 	);
 }

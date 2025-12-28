@@ -842,8 +842,6 @@ export default function Settings() {
 																sponsorCount: account.sponsor_count,
 																viewsLast30d: account.views_last_30d,
 																followerCount: account.follower_count,
-																uniqueViewersLast30d:
-																	account.unique_viewers_last_30d,
 																statsLastRefreshedAt:
 																	account.stats_last_refreshed_at,
 															}}

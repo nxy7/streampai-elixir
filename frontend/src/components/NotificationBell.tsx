@@ -11,7 +11,7 @@ export default function NotificationBell() {
 	const { locale } = useI18n();
 	const userId = createMemo(() => user()?.id);
 	// Pass the current locale to get localized notification content
-	const { data: allNotifications, unreadCount } =
+	const { data: allNotifications, unreadCount, isLoading } =
 		useNotificationsWithReadStatus(userId, locale);
 
 	const [isOpen, setIsOpen] = createSignal(false);
@@ -130,8 +130,25 @@ export default function NotificationBell() {
 
 					<div class="max-h-96 overflow-y-auto">
 						<Show
-							when={notifications().length > 0}
+							when={!isLoading()}
 							fallback={
+								<div class="px-4 py-3">
+									<For each={[1, 2, 3]}>
+										{() => (
+											<div class="flex animate-pulse items-start gap-3 py-3">
+												<div class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gray-200" />
+												<div class="min-w-0 flex-1">
+													<div class="h-4 w-3/4 rounded bg-gray-200" />
+													<div class="mt-2 h-3 w-1/4 rounded bg-gray-200" />
+												</div>
+											</div>
+										)}
+									</For>
+								</div>
+							}>
+							<Show
+								when={notifications().length > 0}
+								fallback={
 								<div class="px-4 py-8 text-center text-gray-500">
 									<svg
 										aria-hidden="true"
@@ -255,6 +272,7 @@ export default function NotificationBell() {
 									</div>
 								)}
 							</For>
+							</Show>
 						</Show>
 					</div>
 				</div>
