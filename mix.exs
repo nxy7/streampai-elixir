@@ -112,7 +112,29 @@ defmodule Streampai.MixProject do
       streampai: [
         include_executables_for: [:unix],
         applications: [runtime_tools: :permanent],
-        steps: [:assemble, :tar]
+        steps: [:assemble, :tar],
+        # Allow overlapping modules from protobuf and protox libraries
+        # (electric uses protox, grpc uses protobuf - both define Google.Protobuf.* modules)
+        skip_mode_validation_for: [
+          Google.Protobuf.Any,
+          Google.Protobuf.BoolValue,
+          Google.Protobuf.BytesValue,
+          Google.Protobuf.DoubleValue,
+          Google.Protobuf.Duration,
+          Google.Protobuf.Empty,
+          Google.Protobuf.FieldMask,
+          Google.Protobuf.FloatValue,
+          Google.Protobuf.Int32Value,
+          Google.Protobuf.Int64Value,
+          Google.Protobuf.ListValue,
+          Google.Protobuf.NullValue,
+          Google.Protobuf.StringValue,
+          Google.Protobuf.Struct,
+          Google.Protobuf.Timestamp,
+          Google.Protobuf.UInt32Value,
+          Google.Protobuf.UInt64Value,
+          Google.Protobuf.Value
+        ]
       ]
     ]
   end

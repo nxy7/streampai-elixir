@@ -347,6 +347,27 @@ cleanup-slots:
 		echo "✅ Orphaned slots cleaned up"
 	fi
 
+# Stop all running streampai-related Docker containers
+stop-containers:
+	#!/usr/bin/env bash
+	echo "🐳 Stopping streampai-related Docker containers..."
+
+	# Find all running containers with streampai in the name or project
+	containers=$(docker ps --filter "name=streampai" --format "{{.ID}} {{.Names}}" 2>/dev/null)
+
+	if [ -z "$containers" ]; then
+		echo "✅ No running streampai containers found"
+	else
+		echo "Found running containers:"
+		echo "$containers" | while read id name; do
+			echo "  - $name ($id)"
+		done
+		echo ""
+		echo "Stopping containers..."
+		docker ps --filter "name=streampai" -q | xargs -r docker stop
+		echo "✅ All streampai containers stopped"
+	fi
+
 # Clean up stopped Docker containers
 cleanup-containers:
 	#!/usr/bin/env bash

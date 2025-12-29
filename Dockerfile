@@ -1,24 +1,25 @@
 # Find eligible builder and runner images on Docker Hub.
-# Using Alpine for smaller image size.
+# Using Debian slim for compatibility with native dependencies (picosat_elixir).
 #
 # https://hub.docker.com/_/elixir/tags
 #
 # This file is based on these images:
 #
 #   - https://hub.docker.com/_/elixir/tags - for the build image
-#   - https://hub.docker.com/_/alpine/tags - for the release image
+#   - https://hub.docker.com/_/debian/tags - for the release image
 #
 ARG ELIXIR_VERSION=1.19.4
 ARG OTP_VERSION=28
-ARG ALPINE_VERSION=3.21
+ARG DEBIAN_VERSION=bookworm-slim
 
-ARG BUILDER_IMAGE="docker.io/elixir:${ELIXIR_VERSION}-otp-${OTP_VERSION}-alpine"
-ARG RUNNER_IMAGE="docker.io/alpine:${ALPINE_VERSION}"
+ARG BUILDER_IMAGE="docker.io/elixir:${ELIXIR_VERSION}-otp-${OTP_VERSION}-slim"
+ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
-RUN apk add --no-cache build-base git
+RUN apt-get update -y && apt-get install -y build-essential git \
+    && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
 WORKDIR /app
@@ -57,7 +58,8 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE} AS final
 
-RUN apk add --no-cache libstdc++ openssl ncurses-libs ca-certificates
+RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 ca-certificates \
+    && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
 ENV LANG=en_US.UTF-8
