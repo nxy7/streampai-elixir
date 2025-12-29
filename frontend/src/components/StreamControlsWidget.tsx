@@ -233,6 +233,9 @@ export interface ModerationCallbacks {
 		reason?: string,
 	) => void;
 	onDeleteMessage?: (eventId: string) => void;
+	onHighlightMessage?: (item: ActivityItem) => void;
+	onClearHighlight?: () => void;
+	highlightedMessageId?: string;
 }
 
 // Types for stream summary
@@ -618,6 +621,10 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		return {};
 	};
 
+	// Check if this message is currently highlighted
+	const isHighlighted = () =>
+		props.moderationCallbacks?.highlightedMessageId === props.item.id;
+
 	// Determine if this row should show moderation actions
 	const showModerationActions = () => {
 		if (!props.moderationCallbacks) return false;
@@ -625,7 +632,8 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 			return !!(
 				props.moderationCallbacks.onBanUser ||
 				props.moderationCallbacks.onTimeoutUser ||
-				props.moderationCallbacks.onDeleteMessage
+				props.moderationCallbacks.onDeleteMessage ||
+				props.moderationCallbacks.onHighlightMessage
 			);
 		}
 		if (isImportantEvent(props.item.type)) {
@@ -675,6 +683,16 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		props.moderationCallbacks?.onDeleteMessage?.(props.item.id);
 	};
 
+	// Handle highlight action
+	const handleHighlight = (e: MouseEvent) => {
+		e.stopPropagation();
+		if (isHighlighted()) {
+			props.moderationCallbacks?.onClearHighlight?.();
+		} else {
+			props.moderationCallbacks?.onHighlightMessage?.(props.item);
+		}
+	};
+
 	// Handle username click to toggle user filter
 	const handleUsernameClick = (e: MouseEvent) => {
 		e.stopPropagation();
@@ -685,11 +703,13 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
 			class={`group relative flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
-				props.isSticky
-					? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
-					: isImportantEvent(props.item.type)
-						? "bg-gray-50/50"
-						: ""
+				isHighlighted()
+					? "sticky z-20 border-purple-400 border-l-4 bg-purple-50 shadow-md ring-1 ring-purple-200"
+					: props.isSticky
+						? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+						: isImportantEvent(props.item.type)
+							? "bg-gray-50/50"
+							: ""
 			}`}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
@@ -757,6 +777,24 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 
 					{/* Chat moderation actions */}
 					<Show when={props.item.type === "chat"}>
+						{/* Highlight message button */}
+						<Show when={props.moderationCallbacks?.onHighlightMessage}>
+							<button
+								class={`flex h-5 w-5 items-center justify-center rounded transition-colors ${
+									isHighlighted()
+										? "bg-purple-600 text-white hover:bg-purple-700"
+										: "text-purple-500 hover:bg-purple-50 hover:text-purple-600"
+								}`}
+								data-testid="highlight-button"
+								onClick={handleHighlight}
+								title={
+									isHighlighted() ? "Remove highlight" : "Highlight message"
+								}
+								type="button">
+								<span class="text-xs">{isHighlighted() ? "★" : "☆"}</span>
+							</button>
+						</Show>
+
 						{/* Delete message button */}
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button
@@ -1654,36 +1692,6 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		} else {
 			// Add a new chip
 			setFilterChips((chips) => [...chips, { type: "user", value: username }]);
-		}
-	};
-
-	// Toggle a user filter - add "user:username" if not present, remove if present
-	const toggleUserFilter = (username: string) => {
-		const currentText = searchText();
-		const userFilter = `user:${username}`;
-		const userFilterLower = userFilter.toLowerCase();
-
-		// Check if this user filter already exists (case-insensitive)
-		const filterPattern = /\buser:(\S+)/gi;
-		const existingFilters: string[] = [];
-		for (const match of currentText.matchAll(filterPattern)) {
-			existingFilters.push(match[0].toLowerCase());
-		}
-
-		if (existingFilters.includes(userFilterLower)) {
-			// Remove the filter (case-insensitive)
-			const removePattern = new RegExp(
-				`\\buser:${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`,
-				"gi",
-			);
-			const newText = currentText.replace(removePattern, "").trim();
-			setSearchText(newText);
-		} else {
-			// Add the filter
-			const newText = currentText.trim()
-				? `${currentText.trim()} ${userFilter}`
-				: userFilter;
-			setSearchText(newText);
 		}
 	};
 

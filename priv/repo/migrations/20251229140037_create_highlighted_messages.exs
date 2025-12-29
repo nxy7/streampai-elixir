@@ -44,15 +44,21 @@ defmodule Streampai.Repo.Migrations.CreateHighlightedMessages do
              unique: true
            )
 
-    create unique_index(:highlighted_messages, [:user_id], name: "highlighted_messages_unique_user_index")
+    create unique_index(:highlighted_messages, [:user_id],
+             name: "highlighted_messages_unique_user_index"
+           )
   end
 
   def down do
-    drop_if_exists unique_index(:highlighted_messages, [:user_id], name: "highlighted_messages_unique_user_index")
+    drop_if_exists unique_index(:highlighted_messages, [:user_id],
+                     name: "highlighted_messages_unique_user_index"
+                   )
 
     drop constraint(:highlighted_messages, "highlighted_messages_user_id_fkey")
 
-    drop_if_exists index(:highlighted_messages, [:user_id], name: "idx_highlighted_messages_user_id_unique")
+    drop_if_exists index(:highlighted_messages, [:user_id],
+                     name: "idx_highlighted_messages_user_id_unique"
+                   )
 
     drop table(:highlighted_messages)
   end

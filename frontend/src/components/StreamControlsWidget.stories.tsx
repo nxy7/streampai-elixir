@@ -330,6 +330,12 @@ const defaultModerationCallbacks: ModerationCallbacks = {
 	onDeleteMessage: (eventId) => {
 		console.log(`Delete message: ${eventId}`);
 	},
+	onHighlightMessage: (item) => {
+		console.log(`Highlight message: ${item.id} - "${item.message}"`);
+	},
+	onClearHighlight: () => {
+		console.log("Clear highlight");
+	},
 };
 
 export const Live: Story = {
