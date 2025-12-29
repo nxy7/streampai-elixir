@@ -376,7 +376,7 @@ defmodule Streampai.Accounts.User do
         allow_nil? false
       end
 
-      filter expr(fragment("lower(?)", name) == fragment("lower(?)", ^arg(:name)))
+      filter expr(name == ^arg(:name))
     end
 
     read :get_public_profile do
@@ -454,7 +454,8 @@ defmodule Streampai.Accounts.User do
         name = Ash.Query.get_argument(query, :name)
         actor = context.actor
 
-        is_current = actor && actor.name == name
+        is_current =
+          actor && actor.name && Ash.CiString.compare(actor.name, name) == :eq
 
         Ash.Query.after_action(query, fn _query, results ->
           available = Enum.empty?(results) || is_current
@@ -661,9 +662,10 @@ defmodule Streampai.Accounts.User do
       allow_nil? false
     end
 
-    attribute :name, :string do
+    attribute :name, :ci_string do
       public? true
       allow_nil? false
+      description "Username - case-insensitive for uniqueness"
     end
 
     attribute :hashed_password, :string do
