@@ -2,7 +2,6 @@ import type { Row } from "@electric-sql/client";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/solid-db";
 import { API_PATH, getApiBase } from "./constants";
-import { persistedElectricCollection } from "./persisted-electric";
 
 // Use the API base URL for Electric sync requests
 const getShapesBaseUrl = () => `${getApiBase()}${API_PATH}`;
@@ -229,7 +228,7 @@ export const userPreferencesCollection = createCollection(
 
 export function createUserPreferencesCollection(userId: string) {
 	return createCollection(
-		persistedElectricCollection<UserPreferences>({
+		electricCollectionOptions<UserPreferences>({
 			id: `user_preferences_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/user_preferences`,
@@ -238,8 +237,6 @@ export function createUserPreferencesCollection(userId: string) {
 				},
 			},
 			getKey: (item) => item.id,
-			persist: true,
-			userId: () => userId,
 		}),
 	);
 }
@@ -270,14 +267,12 @@ export function createUserScopedChatMessagesCollection(userId: string) {
 
 export function createUserScopedLivestreamsCollection(userId: string) {
 	return createCollection(
-		persistedElectricCollection<Livestream>({
+		electricCollectionOptions<Livestream>({
 			id: `livestreams_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/livestreams/${userId}`,
 			},
 			getKey: (item) => item.id,
-			persist: true,
-			userId: () => userId,
 		}),
 	);
 }
@@ -388,14 +383,12 @@ export const emptyUserRolesCollection = createCollection(
 
 export function createWidgetConfigsCollection(userId: string) {
 	return createCollection(
-		persistedElectricCollection<WidgetConfig>({
+		electricCollectionOptions<WidgetConfig>({
 			id: `widget_configs_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/widget_configs/${userId}`,
 			},
 			getKey: (item) => item.id,
-			persist: true,
-			userId: () => userId,
 		}),
 	);
 }
