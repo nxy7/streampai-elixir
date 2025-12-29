@@ -1637,36 +1637,23 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	// Clear all filters
 	const clearFilters = () => {
 		setSelectedTypeFilters(new Set(ALL_ACTIVITY_TYPES));
-		setSearchText("");
+		setFilterChips([]);
+		setInputText("");
+		setEditingPrefix(null);
 	};
 
-	// Toggle a user filter - add "user:username" if not present, remove if present
+	// Toggle a user filter - add chip if not present, remove if present
 	const toggleUserFilter = (username: string) => {
-		const currentText = searchText();
-		const userFilter = `user:${username}`;
-		const userFilterLower = userFilter.toLowerCase();
-
-		// Check if this user filter already exists (case-insensitive)
-		const filterPattern = /\buser:(\S+)/gi;
-		const existingFilters: string[] = [];
-		for (const match of currentText.matchAll(filterPattern)) {
-			existingFilters.push(match[0].toLowerCase());
-		}
-
-		if (existingFilters.includes(userFilterLower)) {
-			// Remove the filter (case-insensitive)
-			const removePattern = new RegExp(
-				`\\buser:${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`,
-				"gi",
-			);
-			const newText = currentText.replace(removePattern, "").trim();
-			setSearchText(newText);
+		const existingIndex = filterChips().findIndex(
+			(c) =>
+				c.type === "user" && c.value.toLowerCase() === username.toLowerCase(),
+		);
+		if (existingIndex >= 0) {
+			// Remove the existing chip
+			removeChip(existingIndex);
 		} else {
-			// Add the filter
-			const newText = currentText.trim()
-				? `${currentText.trim()} ${userFilter}`
-				: userFilter;
-			setSearchText(newText);
+			// Add a new chip
+			setFilterChips((chips) => [...chips, { type: "user", value: username }]);
 		}
 	};
 
@@ -2009,6 +1996,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 										<span class="font-medium">{chip.type}:</span>
 										<span>{chip.value}</span>
 										<button
+											aria-label={`Remove ${chip.type} filter`}
 											class="ml-0.5 rounded-full hover:bg-black/10"
 											data-testid={`remove-chip-${index()}`}
 											onClick={(e) => {
@@ -2040,7 +2028,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 								}
 								ref={searchInputRef}
 								type="text"
-								value={editingPrefix() ? inputText() : inputText()}
+								value={inputText()}
 							/>
 							<Show when={searchText()}>
 								<button
