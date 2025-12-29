@@ -1,4 +1,7 @@
+import type { ReactiveMap } from "@solid-primitives/map";
+import type { Collection, CollectionStatus } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
+import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
@@ -42,6 +45,38 @@ function createCollectionCache<T>(factory: CollectionFactory<T>) {
 		}
 		return collection;
 	};
+}
+
+/**
+ * Return type for useOptionalLiveQuery - matches useLiveQuery's collection accessor return type
+ * but with status that can also be 'disabled' when collection is undefined.
+ */
+type OptionalLiveQueryResult<
+	TResult extends object,
+	TKey extends string | number = string | number,
+> = {
+	state: ReactiveMap<TKey, TResult>;
+	data: Array<TResult>;
+	collection: Accessor<Collection<TResult, TKey, object> | null>;
+	status: Accessor<CollectionStatus | "disabled">;
+	isLoading: Accessor<boolean>;
+	isReady: Accessor<boolean>;
+	isIdle: Accessor<boolean>;
+	isError: Accessor<boolean>;
+	isCleanedUp: Accessor<boolean>;
+};
+
+/**
+ * Wrapper for useLiveQuery that supports returning undefined from the accessor.
+ * The useLiveQuery runtime handles undefined (sets status to 'disabled', returns empty data,
+ * makes no network requests), but TypeScript types don't expose this for collection accessors.
+ * This wrapper localizes the type cast to a single place.
+ */
+function useOptionalLiveQuery<TResult extends object>(
+	accessor: () => Collection<TResult, string | number, object> | undefined,
+): OptionalLiveQueryResult<TResult> {
+	// biome-ignore lint/suspicious/noExplicitAny: Runtime supports undefined but types don't expose it for collection accessors
+	return useLiveQuery(accessor as any);
 }
 
 export function useStreamEvents() {
@@ -139,11 +174,10 @@ const getUserPreferencesCollection = createCollectionCache(
 );
 
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getUserPreferencesCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getUserPreferencesCollection>);
+	});
 
 	return {
 		...query,
@@ -170,11 +204,10 @@ const getUserScopedViewersCollection = createCollectionCache(
 );
 
 export function useUserChatMessages(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getUserScopedChatCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getUserScopedChatCollection>);
+	});
 
 	return {
 		...query,
@@ -194,11 +227,10 @@ export function useRecentUserChatMessages(
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getUserScopedEventsCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getUserScopedEventsCollection>);
+	});
 
 	return {
 		...query,
@@ -218,13 +250,12 @@ export function useRecentUserStreamEvents(
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId
 			? getUserScopedLivestreamsCollection(currentId)
 			: undefined;
-	}) as () => ReturnType<typeof getUserScopedLivestreamsCollection>);
+	});
 
 	return {
 		...query,
@@ -244,11 +275,10 @@ export function useRecentUserLivestreams(
 }
 
 export function useUserViewers(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getUserScopedViewersCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getUserScopedViewersCollection>);
+	});
 
 	return {
 		...query,
@@ -290,11 +320,10 @@ const getWidgetConfigsCollection = createCollectionCache(
 );
 
 export function useWidgetConfigs(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getWidgetConfigsCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getWidgetConfigsCollection>);
+	});
 
 	return {
 		...query,
@@ -331,11 +360,10 @@ const getNotificationReadsCollection = createCollectionCache(
 );
 
 export function useNotifications(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getNotificationsCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getNotificationsCollection>);
+	});
 
 	return {
 		...query,
@@ -347,11 +375,10 @@ export function useNotifications(userId: () => string | undefined) {
 }
 
 export function useNotificationReads(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getNotificationReadsCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getNotificationReadsCollection>);
+	});
 
 	return {
 		...query,
@@ -446,11 +473,10 @@ export function useGlobalNotifications() {
 const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getUserRolesCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getUserRolesCollection>);
+	});
 
 	return {
 		...query,
@@ -516,11 +542,10 @@ const getStreamingAccountsCollection = createCollectionCache(
 );
 
 export function useStreamingAccounts(userId: () => string | undefined) {
-	// useLiveQuery runtime supports undefined but types don't - cast required
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getStreamingAccountsCollection(currentId) : undefined;
-	}) as () => ReturnType<typeof getStreamingAccountsCollection>);
+	});
 
 	return {
 		...query,
