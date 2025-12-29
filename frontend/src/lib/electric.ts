@@ -6,23 +6,6 @@ import { API_PATH, getApiBase } from "./constants";
 // Use the API base URL for Electric sync requests
 const getShapesBaseUrl = () => `${getApiBase()}${API_PATH}`;
 
-/**
- * An empty collection that never syncs any data.
- * Used as a fallback when userId is not available - prevents backend requests
- * while being type-compatible with useLiveQuery.
- */
-// biome-ignore lint/suspicious/noExplicitAny: Empty collection needs to match any collection type
-export const emptyCollection: any = createCollection(
-	electricCollectionOptions<{ id: string }>({
-		id: "empty",
-		shapeOptions: {
-			// Use an invalid URL that will never be called - the collection is never actually used
-			url: "about:blank",
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export type StreamEvent = Row & {
 	id: string;
 	type: string;

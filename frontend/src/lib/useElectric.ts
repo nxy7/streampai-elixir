@@ -23,7 +23,6 @@ import {
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
 	createWidgetConfigsCollection,
-	emptyCollection,
 	globalNotificationsCollection,
 	livestreamsCollection,
 	streamEventsCollection,
@@ -140,12 +139,11 @@ const getUserPreferencesCollection = createCollectionCache(
 );
 
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId
-			? getUserPreferencesCollection(currentId)
-			: emptyCollection;
-	});
+		return currentId ? getUserPreferencesCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getUserPreferencesCollection>);
 
 	return {
 		...query,
@@ -172,10 +170,11 @@ const getUserScopedViewersCollection = createCollectionCache(
 );
 
 export function useUserChatMessages(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId ? getUserScopedChatCollection(currentId) : emptyCollection;
-	});
+		return currentId ? getUserScopedChatCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getUserScopedChatCollection>);
 
 	return {
 		...query,
@@ -195,12 +194,11 @@ export function useRecentUserChatMessages(
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId
-			? getUserScopedEventsCollection(currentId)
-			: emptyCollection;
-	});
+		return currentId ? getUserScopedEventsCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getUserScopedEventsCollection>);
 
 	return {
 		...query,
@@ -220,12 +218,13 @@ export function useRecentUserStreamEvents(
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
 		return currentId
 			? getUserScopedLivestreamsCollection(currentId)
-			: emptyCollection;
-	});
+			: undefined;
+	}) as () => ReturnType<typeof getUserScopedLivestreamsCollection>);
 
 	return {
 		...query,
@@ -245,12 +244,11 @@ export function useRecentUserLivestreams(
 }
 
 export function useUserViewers(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId
-			? getUserScopedViewersCollection(currentId)
-			: emptyCollection;
-	});
+		return currentId ? getUserScopedViewersCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getUserScopedViewersCollection>);
 
 	return {
 		...query,
@@ -292,10 +290,11 @@ const getWidgetConfigsCollection = createCollectionCache(
 );
 
 export function useWidgetConfigs(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId ? getWidgetConfigsCollection(currentId) : emptyCollection;
-	});
+		return currentId ? getWidgetConfigsCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getWidgetConfigsCollection>);
 
 	return {
 		...query,
@@ -332,10 +331,11 @@ const getNotificationReadsCollection = createCollectionCache(
 );
 
 export function useNotifications(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId ? getNotificationsCollection(currentId) : emptyCollection;
-	});
+		return currentId ? getNotificationsCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getNotificationsCollection>);
 
 	return {
 		...query,
@@ -347,12 +347,11 @@ export function useNotifications(userId: () => string | undefined) {
 }
 
 export function useNotificationReads(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId
-			? getNotificationReadsCollection(currentId)
-			: emptyCollection;
-	});
+		return currentId ? getNotificationReadsCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getNotificationReadsCollection>);
 
 	return {
 		...query,
@@ -447,10 +446,11 @@ export function useGlobalNotifications() {
 const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId ? getUserRolesCollection(currentId) : emptyCollection;
-	});
+		return currentId ? getUserRolesCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getUserRolesCollection>);
 
 	return {
 		...query,
@@ -516,12 +516,11 @@ const getStreamingAccountsCollection = createCollectionCache(
 );
 
 export function useStreamingAccounts(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	// useLiveQuery runtime supports undefined but types don't - cast required
+	const query = useLiveQuery((() => {
 		const currentId = userId();
-		return currentId
-			? getStreamingAccountsCollection(currentId)
-			: emptyCollection;
-	});
+		return currentId ? getStreamingAccountsCollection(currentId) : undefined;
+	}) as () => ReturnType<typeof getStreamingAccountsCollection>);
 
 	return {
 		...query,
