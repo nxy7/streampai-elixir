@@ -26,6 +26,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
     # Subscribe to events for this user
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
 
+    # Subscribe to widget config changes for real-time updates
+    Phoenix.PubSub.subscribe(
+      Streampai.PubSub,
+      "widget_config:alertbox_widget:#{user_id}"
+    )
+
     state = %__MODULE__{
       user_id: user_id,
       alert_queue: :queue.new(),
@@ -92,13 +98,25 @@ defmodule Streampai.LivestreamManager.AlertManager do
   end
 
   @impl true
+  def handle_info(%{config: config, type: :alertbox_widget}, state) do
+    # Update alert settings when widget config changes
+    new_settings = extract_alert_settings(config)
+    Logger.debug("AlertManager received config update for user #{state.user_id}")
+    {:noreply, %{state | alert_settings: new_settings}}
+  end
+
+  @impl true
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_call(:get_current_alert, _from, state) do
     {:reply, state.current_alert, state}
   end
 
   @impl true
   def handle_cast({:update_alert_settings, settings}, state) do
-    # TODO: Validate and save settings to database
     state = %{state | alert_settings: Map.merge(state.alert_settings, settings)}
     {:noreply, state}
   end
@@ -124,9 +142,35 @@ defmodule Streampai.LivestreamManager.AlertManager do
     {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_manager, user_id}}}
   end
 
-  defp load_alert_settings(_user_id) do
-    # TODO: Load from WidgetConfig for alertbox_widget
-    # For now, return default settings
+  defp load_alert_settings(user_id) do
+    case Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+           %{user_id: user_id, type: :alertbox_widget},
+           actor: %{id: user_id}
+         ) do
+      {:ok, %{config: config}} ->
+        extract_alert_settings(config)
+
+      _ ->
+        # Fallback to defaults if no saved config
+        default_alert_settings()
+    end
+  end
+
+  defp extract_alert_settings(config) when is_map(config) do
+    defaults = default_alert_settings()
+
+    %{
+      donations_enabled: Map.get(config, :donations_enabled, defaults.donations_enabled),
+      donations_min_amount: Map.get(config, :donations_min_amount, defaults.donations_min_amount),
+      follows_enabled: Map.get(config, :follows_enabled, defaults.follows_enabled),
+      subscriptions_enabled: Map.get(config, :subscriptions_enabled, defaults.subscriptions_enabled),
+      raids_enabled: Map.get(config, :raids_enabled, defaults.raids_enabled),
+      raids_min_viewers: Map.get(config, :raids_min_viewers, defaults.raids_min_viewers),
+      alert_duration: Map.get(config, :display_duration, defaults.alert_duration)
+    }
+  end
+
+  defp default_alert_settings do
     %{
       donations_enabled: true,
       donations_min_amount: 1.0,
