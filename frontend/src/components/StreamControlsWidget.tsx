@@ -618,11 +618,13 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		props.moderationCallbacks?.highlightedMessageId === props.item.id;
 
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
-	// Highlighted messages always stick to top (top: 0)
+	// Highlighted messages and sticky items both use their stickyIndex for positioning
 	const stickyStyle = () => {
-		if (isHighlighted()) {
-			return { top: "0px" };
+		// Highlighted items use their stickyIndex (always 0 when highlighted)
+		if (isHighlighted() && props.stickyIndex !== undefined) {
+			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
 		}
+		// Sticky items (donations etc.) use their stickyIndex
 		if (props.isSticky && props.stickyIndex !== undefined) {
 			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
 		}
@@ -1861,9 +1863,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 	// Create a map of sticky item id -> index for stacking offset calculation
 	// Items are ordered by time (oldest first) to maintain visual consistency
+	// Highlighted messages always come first (index 0), then sticky items
 	const stickyIndexMap = createMemo(() => {
 		const ids = stickyItemIds();
-		if (ids.size === 0) return new Map<string, number>();
+		const highlightedId = props.moderationCallbacks?.highlightedMessageId;
+
+		// If nothing is sticky and nothing is highlighted, return empty map
+		if (ids.size === 0 && !highlightedId) return new Map<string, number>();
 
 		// Get sticky items sorted by timestamp (oldest first for consistent stacking)
 		const stickyItems = sortedActivities()
@@ -1881,8 +1887,20 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			});
 
 		const indexMap = new Map<string, number>();
+
+		// Highlighted message always gets index 0 if present
+		let startIndex = 0;
+		if (highlightedId) {
+			indexMap.set(highlightedId, 0);
+			startIndex = 1;
+		}
+
+		// Sticky items get subsequent indices
 		stickyItems.forEach((item, index) => {
-			indexMap.set(item.id, index);
+			// Don't override if this item is also highlighted (it keeps index 0)
+			if (item.id !== highlightedId) {
+				indexMap.set(item.id, index + startIndex);
+			}
 		});
 		return indexMap;
 	});
@@ -2258,8 +2276,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							{(item) => {
 								// Use reactive getters so sticky state updates when stickyItemIds changes
 								const isSticky = () => stickyItemIds().has(item.id);
-								const stickyIndex = () =>
-									isSticky() ? stickyIndexMap().get(item.id) : undefined;
+								// Get stickyIndex for both sticky items and highlighted items
+								const stickyIndex = () => stickyIndexMap().get(item.id);
 								return (
 									<ActivityRow
 										isSticky={isSticky()}
