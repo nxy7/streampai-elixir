@@ -1,7 +1,5 @@
-import type { ReactiveMap } from "@solid-primitives/map";
-import type { Collection, CollectionStatus } from "@tanstack/db";
+import type { Collection } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
-import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
@@ -48,25 +46,6 @@ function createCollectionCache<T>(factory: CollectionFactory<T>) {
 }
 
 /**
- * Return type for useOptionalLiveQuery - matches useLiveQuery's collection accessor return type
- * but with status that can also be 'disabled' when collection is undefined.
- */
-type OptionalLiveQueryResult<
-	TResult extends object,
-	TKey extends string | number = string | number,
-> = {
-	state: ReactiveMap<TKey, TResult>;
-	data: Array<TResult>;
-	collection: Accessor<Collection<TResult, TKey, object> | null>;
-	status: Accessor<CollectionStatus | "disabled">;
-	isLoading: Accessor<boolean>;
-	isReady: Accessor<boolean>;
-	isIdle: Accessor<boolean>;
-	isError: Accessor<boolean>;
-	isCleanedUp: Accessor<boolean>;
-};
-
-/**
  * Wrapper for useLiveQuery that supports returning undefined from the accessor.
  * The useLiveQuery runtime handles undefined (sets status to 'disabled', returns empty data,
  * makes no network requests), but TypeScript types don't expose this for collection accessors.
@@ -74,7 +53,7 @@ type OptionalLiveQueryResult<
  */
 function useOptionalLiveQuery<TResult extends object>(
 	accessor: () => Collection<TResult, string | number, object> | undefined,
-): OptionalLiveQueryResult<TResult> {
+): ReturnType<typeof useLiveQuery<TResult, string | number, object>> {
 	// biome-ignore lint/suspicious/noExplicitAny: Runtime supports undefined but types don't expose it for collection accessors
 	return useLiveQuery(accessor as any);
 }
