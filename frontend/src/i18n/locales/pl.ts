@@ -358,6 +358,19 @@ export const dict: Dictionary = {
 		networkError: "Błąd połączenia. Sprawdź internet.",
 	},
 
+	// 404 Page
+	notFound: {
+		title: "Ups! Nie znaleziono strony",
+		code: "404",
+		description:
+			"Wygląda na to, że ta strona poszła na przerwę od streamowania!",
+		suggestion:
+			"Strona, której szukasz, mogła zostać przeniesiona, usunięta lub nigdy nie istniała.",
+		homeButton: "Wróć na stronę główną",
+		dashboardButton: "Przejdź do panelu",
+		searchHint: "Lub poszukaj tego, czego potrzebujesz",
+	},
+
 	// Landing page
 	landing: {
 		features: "Funkcje",
