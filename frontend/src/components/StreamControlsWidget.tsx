@@ -1740,6 +1740,18 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		setSearchText(allParts.join(" "));
 	});
 
+	// Refocus input when editingPrefix changes (input element switches between modes)
+	createEffect(() => {
+		// Track the editingPrefix value to trigger effect on change
+		editingPrefix();
+		// Use queueMicrotask to ensure the new input element is mounted
+		queueMicrotask(() => {
+			if (searchInputRef) {
+				searchInputRef.focus();
+			}
+		});
+	});
+
 	// Handle input changes - detect filter prefixes
 	const handleInputChange = (value: string) => {
 		// If we're already editing a prefix, just update the input text
