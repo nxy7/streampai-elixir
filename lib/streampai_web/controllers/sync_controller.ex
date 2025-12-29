@@ -157,6 +157,12 @@ defmodule StreampaiWeb.SyncController do
     end
   end
 
+  def user_livestreams(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(l in Livestream, where: false)
+    sync_render(conn, params, query)
+  end
+
   def user_livestreams(conn, %{"user_id" => user_id} = params) do
     case Ecto.UUID.cast(user_id) do
       {:ok, uuid} ->
@@ -166,6 +172,12 @@ defmodule StreampaiWeb.SyncController do
       :error ->
         invalid_user_id_response(conn)
     end
+  end
+
+  def user_stream_events(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(se in StreamEvent, where: false)
+    sync_render(conn, params, query)
   end
 
   def user_stream_events(conn, %{"user_id" => user_id} = params) do
@@ -179,6 +191,12 @@ defmodule StreampaiWeb.SyncController do
     end
   end
 
+  def user_viewers(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(sv in StreamViewer, where: false)
+    sync_render(conn, params, query)
+  end
+
   def user_viewers(conn, %{"user_id" => user_id} = params) do
     case Ecto.UUID.cast(user_id) do
       {:ok, uuid} ->
@@ -190,15 +208,10 @@ defmodule StreampaiWeb.SyncController do
     end
   end
 
-  def user_stream_viewers(conn, %{"user_id" => user_id} = params) do
-    case Ecto.UUID.cast(user_id) do
-      {:ok, uuid} ->
-        query = from(sv in StreamViewer, where: sv.user_id == ^uuid)
-        sync_render(conn, params, query)
-
-      :error ->
-        invalid_user_id_response(conn)
-    end
+  def user_chat_messages(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(cm in ChatMessage, where: false)
+    sync_render(conn, params, query)
   end
 
   def user_chat_messages(conn, %{"user_id" => user_id} = params) do
