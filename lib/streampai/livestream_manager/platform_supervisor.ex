@@ -75,6 +75,63 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
     end)
   end
 
+  @doc """
+  Bans a user from the chat on a specific platform.
+
+  ## Parameters
+  - `user_id` - The user ID who owns the stream
+  - `platform` - The platform to ban the user on (:twitch, :youtube, etc.)
+  - `target_user_id` - Platform-specific identifier of the user to ban
+  - `reason` - Optional reason for the ban
+
+  ## Returns
+  - `{:ok, ban_id}` - User banned successfully
+  - `{:error, reason}` - Failed to ban user
+  """
+  def ban_user(user_id, platform, target_user_id, reason \\ nil) do
+    execute_on_single_platform(user_id, platform, fn platform_module ->
+      platform_module.ban_user(user_id, target_user_id, reason)
+    end)
+  end
+
+  @doc """
+  Times out a user from the chat on a specific platform.
+
+  ## Parameters
+  - `user_id` - The user ID who owns the stream
+  - `platform` - The platform to timeout the user on (:twitch, :youtube, etc.)
+  - `target_user_id` - Platform-specific identifier of the user to timeout
+  - `duration_seconds` - Duration of the timeout in seconds
+  - `reason` - Optional reason for the timeout
+
+  ## Returns
+  - `{:ok, timeout_id}` - User timed out successfully
+  - `{:error, reason}` - Failed to timeout user
+  """
+  def timeout_user(user_id, platform, target_user_id, duration_seconds, reason \\ nil) do
+    execute_on_single_platform(user_id, platform, fn platform_module ->
+      platform_module.timeout_user(user_id, target_user_id, duration_seconds, reason)
+    end)
+  end
+
+  @doc """
+  Unbans a user from the chat on a specific platform.
+
+  ## Parameters
+  - `user_id` - The user ID who owns the stream
+  - `platform` - The platform to unban the user on (:twitch, :youtube, etc.)
+  - `target_user_id` - Platform-specific identifier of the user to unban (or ban_id for YouTube)
+
+  ## Returns
+  - `:ok` - User unbanned successfully
+  - `{:error, reason}` - Failed to unban user
+  """
+  def unban_user(user_id, platform, target_user_id) do
+    execute_on_single_platform(user_id, platform, fn platform_module ->
+      platform_module.unban_user(user_id, target_user_id)
+    end)
+  end
+
   # Helper functions
 
   defp execute_on_platforms(user_id, platforms, callback) do
@@ -118,6 +175,34 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
     Task.await_many(tasks, 10_000)
 
     :ok
+  end
+
+  defp execute_on_single_platform(user_id, platform, callback) do
+    require Logger
+
+    case Registry.lookup(
+           Streampai.LivestreamManager.Registry,
+           {:platform_manager, user_id, platform}
+         ) do
+      [{_pid, _}] ->
+        platform_module = get_platform_module(platform)
+
+        try do
+          callback.(platform_module)
+        rescue
+          error ->
+            Logger.error("Error executing on platform #{platform}: #{inspect(error)}")
+            {:error, error}
+        catch
+          kind, value ->
+            Logger.error("Caught #{kind} while executing on platform #{platform}: #{inspect(value)}")
+
+            {:error, {kind, value}}
+        end
+
+      [] ->
+        {:error, :platform_not_connected}
+    end
   end
 
   defp normalize_platforms(user_id, :all), do: get_active_platforms(user_id)

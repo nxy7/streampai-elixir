@@ -13,6 +13,7 @@ defmodule Streampai.Stream.StreamAction do
     data_layer: :embedded,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias Streampai.LivestreamManager.PlatformSupervisor
   alias Streampai.LivestreamManager.UserStreamManager
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwner
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
@@ -144,12 +145,22 @@ defmodule Streampai.Stream.StreamAction do
       argument :platform, :atom, allow_nil?: false
       argument :reason, :string, allow_nil?: true
 
-      run fn _input, _context ->
-        # TODO: Implement ban_user in PlatformSupervisor
-        # user_id = input.arguments.user_id
-        # platform = input.arguments.platform
-        # username = input.arguments.target_username
-        {:error, "ban_user not yet implemented in PlatformSupervisor"}
+      run fn input, _context ->
+        user_id = to_string(input.arguments.user_id)
+        platform = input.arguments.platform
+        target_username = input.arguments.target_username
+        reason = Map.get(input.arguments, :reason)
+
+        case PlatformSupervisor.ban_user(user_id, platform, target_username, reason) do
+          {:ok, ban_id} ->
+            {:ok, %{success: true, ban_id: ban_id, message: "User banned successfully"}}
+
+          {:error, :platform_not_connected} ->
+            {:error, "Platform #{platform} is not connected"}
+
+          {:error, reason} ->
+            {:error, "Failed to ban user: #{inspect(reason)}"}
+        end
       end
     end
 
@@ -160,9 +171,21 @@ defmodule Streampai.Stream.StreamAction do
       argument :target_username, :string, allow_nil?: false
       argument :platform, :atom, allow_nil?: false
 
-      run fn _input, _context ->
-        # TODO: Implement unban_user in PlatformSupervisor
-        {:error, "unban_user not yet implemented in PlatformSupervisor"}
+      run fn input, _context ->
+        user_id = to_string(input.arguments.user_id)
+        platform = input.arguments.platform
+        target_username = input.arguments.target_username
+
+        case PlatformSupervisor.unban_user(user_id, platform, target_username) do
+          :ok ->
+            {:ok, %{success: true, message: "User unbanned successfully"}}
+
+          {:error, :platform_not_connected} ->
+            {:error, "Platform #{platform} is not connected"}
+
+          {:error, reason} ->
+            {:error, "Failed to unban user: #{inspect(reason)}"}
+        end
       end
     end
 
@@ -173,10 +196,37 @@ defmodule Streampai.Stream.StreamAction do
       argument :target_username, :string, allow_nil?: false
       argument :platform, :atom, allow_nil?: false
       argument :duration_seconds, :integer, allow_nil?: false
+      argument :reason, :string, allow_nil?: true
 
-      run fn _input, _context ->
-        # TODO: Implement timeout_user in PlatformSupervisor
-        {:error, "timeout_user not yet implemented in PlatformSupervisor"}
+      run fn input, _context ->
+        user_id = to_string(input.arguments.user_id)
+        platform = input.arguments.platform
+        target_username = input.arguments.target_username
+        duration_seconds = input.arguments.duration_seconds
+        reason = Map.get(input.arguments, :reason)
+
+        case PlatformSupervisor.timeout_user(
+               user_id,
+               platform,
+               target_username,
+               duration_seconds,
+               reason
+             ) do
+          {:ok, timeout_id} ->
+            {:ok,
+             %{
+               success: true,
+               timeout_id: timeout_id,
+               duration_seconds: duration_seconds,
+               message: "User timed out for #{duration_seconds} seconds"
+             }}
+
+          {:error, :platform_not_connected} ->
+            {:error, "Platform #{platform} is not connected"}
+
+          {:error, reason} ->
+            {:error, "Failed to timeout user: #{inspect(reason)}"}
+        end
       end
     end
   end
