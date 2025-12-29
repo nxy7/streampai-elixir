@@ -4,6 +4,7 @@ import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
+	type HighlightedMessage,
 	type Livestream,
 	type Notification,
 	type NotificationRead,
@@ -15,6 +16,7 @@ import {
 	type WidgetConfig,
 	type WidgetType,
 	chatMessagesCollection,
+	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
@@ -525,9 +527,31 @@ export function useStreamingAccounts(userId: () => string | undefined) {
 	};
 }
 
+const getHighlightedMessagesCollection = createCollectionCache(
+	createHighlightedMessagesCollection,
+);
+
+export function useHighlightedMessage(userId: () => string | undefined) {
+	const query = useOptionalLiveQuery(() => {
+		const currentId = userId();
+		return currentId ? getHighlightedMessagesCollection(currentId) : undefined;
+	});
+
+	return {
+		...query,
+		data: createMemo(() => {
+			if (!userId()) return null;
+			const messages = (query.data ?? []) as HighlightedMessage[];
+			// Return the first (and should be only) highlighted message, or null
+			return messages.length > 0 ? messages[0] : null;
+		}),
+	};
+}
+
 export type {
 	StreamEvent,
 	ChatMessage,
+	HighlightedMessage,
 	Livestream,
 	Viewer,
 	UserPreferences,

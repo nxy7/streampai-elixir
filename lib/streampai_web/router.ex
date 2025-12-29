@@ -166,6 +166,7 @@ defmodule StreampaiWeb.Router do
     get "/livestreams/:user_id", SyncController, :user_livestreams
     get "/viewers/:user_id", SyncController, :user_viewers
     get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
+    get "/highlighted_messages/:user_id", SyncController, :highlighted_messages
   end
 
   scope "/api/shapes", StreampaiWeb do

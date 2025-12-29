@@ -95,7 +95,8 @@ defmodule Streampai.Accounts.WidgetConfig do
                :poll_widget,
                :slider_widget,
                :giveaway_widget,
-               :eventlist_widget
+               :eventlist_widget,
+               :message_highlight_widget
              ])
 
     validate present([:user_id])
