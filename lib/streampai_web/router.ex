@@ -120,17 +120,30 @@ defmodule StreampaiWeb.Router do
     auth_routes(AuthController, Streampai.Accounts.User, path: "/auth")
   end
 
+  # Protected monitoring endpoints (require admin access)
+  pipeline :api_monitoring do
+    plug(:accepts, ["json"])
+    plug(:require_admin_access)
+    plug(ErrorTracker)
+  end
+
+  # Public health check only (for load balancers, no sensitive data)
   scope "/api", StreampaiWeb do
     pipe_through(:api)
 
     get("/health", MonitoringController, :health_check)
+    post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
+    post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
+  end
+
+  # Protected monitoring endpoints (admin access required)
+  scope "/api", StreampaiWeb do
+    pipe_through(:api_monitoring)
+
     get("/metrics", MonitoringController, :metrics)
     get("/system", MonitoringController, :system_info)
     get("/errors", MonitoringController, :errors)
     get("/errors/:id", MonitoringController, :error_detail)
-
-    post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
-    post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
   end
 
   scope "/api/shapes", StreampaiWeb do
@@ -177,21 +190,38 @@ defmodule StreampaiWeb.Router do
   @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
 
   def require_admin_access(conn, _opts) do
+    require Logger
+
     client_ip = get_client_ip(conn)
     admin_token = conn |> Plug.Conn.get_req_header("x-admin-token") |> List.first()
-    allowed_token = System.get_env("ADMIN_TOKEN") || "changeme"
+    allowed_token = System.get_env("ADMIN_TOKEN")
 
-    if client_ip in @monitoring_allowed_ips or (admin_token && admin_token == allowed_token) do
-      conn
-    else
-      require Logger
+    cond do
+      # Allow access from trusted IPs (localhost only)
+      client_ip in @monitoring_allowed_ips ->
+        conn
 
-      Logger.warning("Denied access to monitoring interface from IP: #{client_ip}")
+      # Allow access with valid admin token (token must be configured, no default)
+      allowed_token && admin_token && Plug.Crypto.secure_compare(admin_token, allowed_token) ->
+        conn
 
-      conn
-      |> put_status(:forbidden)
-      |> Phoenix.Controller.text("Access denied")
-      |> halt()
+      # Block access if ADMIN_TOKEN is not configured (security: no default token)
+      is_nil(allowed_token) ->
+        Logger.warning("Admin access denied: ADMIN_TOKEN not configured, from IP: #{client_ip}")
+
+        conn
+        |> put_status(:forbidden)
+        |> Phoenix.Controller.text("Access denied")
+        |> halt()
+
+      # Block access for invalid token
+      true ->
+        Logger.warning("Denied access to admin interface from IP: #{client_ip}")
+
+        conn
+        |> put_status(:forbidden)
+        |> Phoenix.Controller.text("Access denied")
+        |> halt()
     end
   end
 

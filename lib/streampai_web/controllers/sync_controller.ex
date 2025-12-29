@@ -1,4 +1,10 @@
 defmodule StreampaiWeb.SyncController do
+  @moduledoc """
+  Controller for Electric SQL sync endpoints.
+
+  SECURITY: All user_id parameters are validated as UUIDs before being used
+  in queries to prevent SQL injection attacks.
+  """
   use Phoenix.Controller, formats: [:json]
 
   import Phoenix.Sync.Controller
@@ -28,6 +34,9 @@ defmodule StreampaiWeb.SyncController do
     "inserted_at",
     "updated_at"
   ]
+
+  # UUID regex pattern for validation (prevents SQL injection)
+  @uuid_regex ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
   def stream_events(conn, params) do
     sync_render(conn, params, table: "stream_events")
@@ -65,11 +74,16 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def widget_configs(conn, %{"user_id" => user_id} = params) do
-    # User-scoped widget configs - syncs all widget configs for a specific user
-    sync_render(conn, params,
-      table: "widget_configs",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "widget_configs",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def notifications(conn, %{"user_id" => "_empty"} = params) do
@@ -81,11 +95,16 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def notifications(conn, %{"user_id" => user_id} = params) do
-    # Syncs notifications visible to a user: global (user_id IS NULL) OR user-specific
-    sync_render(conn, params,
-      table: "notifications",
-      where: "user_id IS NULL OR user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "notifications",
+          where: "user_id IS NULL OR user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def notification_reads(conn, %{"user_id" => "_empty"} = params) do
@@ -97,11 +116,16 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def notification_reads(conn, %{"user_id" => user_id} = params) do
-    # Syncs notification read status for a specific user
-    sync_render(conn, params,
-      table: "notification_reads",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "notification_reads",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def global_notifications(conn, params) do
@@ -121,52 +145,81 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def user_roles(conn, %{"user_id" => user_id} = params) do
-    # Syncs roles where the user is either the recipient (user_id) or the granter (granter_id)
-    # This allows syncing both "roles I have" and "roles I've granted"
-    sync_render(conn, params,
-      table: "user_roles",
-      where: "(user_id = '#{user_id}' OR granter_id = '#{user_id}') AND revoked_at IS NULL"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "user_roles",
+          where: "(user_id = '#{safe_user_id}' OR granter_id = '#{safe_user_id}') AND revoked_at IS NULL"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def user_livestreams(conn, %{"user_id" => user_id} = params) do
-    # User-scoped livestreams - syncs all streams for a specific user
-    sync_render(conn, params,
-      table: "livestreams",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "livestreams",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def user_stream_events(conn, %{"user_id" => user_id} = params) do
-    # User-scoped stream events - syncs all events for a specific streamer
-    sync_render(conn, params,
-      table: "stream_events",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "stream_events",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def user_viewers(conn, %{"user_id" => user_id} = params) do
-    # User-scoped viewers - syncs all viewers for a specific streamer
-    sync_render(conn, params,
-      table: "stream_viewers",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "stream_viewers",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def user_stream_viewers(conn, %{"user_id" => user_id} = params) do
-    # User-scoped stream viewers - syncs all viewers for a specific streamer
-    sync_render(conn, params,
-      table: "stream_viewers",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "stream_viewers",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   def user_chat_messages(conn, %{"user_id" => user_id} = params) do
-    # User-scoped chat messages - syncs all chat messages for a specific streamer
-    sync_render(conn, params,
-      table: "chat_messages",
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "chat_messages",
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
   end
 
   # Safe columns to sync from streaming_account table (excludes sensitive tokens)
@@ -193,11 +246,34 @@ defmodule StreampaiWeb.SyncController do
   end
 
   def streaming_accounts(conn, %{"user_id" => user_id} = params) do
-    # User-scoped streaming accounts - syncs all connected accounts for a specific user
-    sync_render(conn, params,
-      table: "streaming_account",
-      columns: @streaming_account_sync_columns,
-      where: "user_id = '#{user_id}'"
-    )
+    case validate_uuid(user_id) do
+      {:ok, safe_user_id} ->
+        sync_render(conn, params,
+          table: "streaming_account",
+          columns: @streaming_account_sync_columns,
+          where: "user_id = '#{safe_user_id}'"
+        )
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
+  end
+
+  # SECURITY: Validate that user_id is a valid UUID to prevent SQL injection
+  # Only characters [0-9a-f-] are allowed in UUID format
+  defp validate_uuid(user_id) when is_binary(user_id) do
+    if Regex.match?(@uuid_regex, user_id) do
+      {:ok, user_id}
+    else
+      :error
+    end
+  end
+
+  defp validate_uuid(_), do: :error
+
+  defp invalid_user_id_response(conn) do
+    conn
+    |> put_status(400)
+    |> json(%{error: "Invalid user_id format"})
   end
 end

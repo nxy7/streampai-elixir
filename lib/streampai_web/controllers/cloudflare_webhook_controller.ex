@@ -18,8 +18,46 @@ defmodule StreampaiWeb.CloudflareWebhookController do
   Expected events:
   - stream.live_input.connected - When a live stream starts
   - stream.live_input.disconnected - When a live stream ends
+
+  The signature is verified using HMAC-SHA256 with the webhook secret.
+  Format: Webhook-Signature: time=<unix_timestamp>,sig1=<hex_signature>
   """
   def handle_webhook(conn, params) do
+    with {:ok, raw_body} <- get_raw_body(conn),
+         :ok <- verify_webhook_signature(conn, raw_body) do
+      process_webhook(conn, params)
+    else
+      {:error, :missing_signature} ->
+        # In development/test, allow unsigned webhooks if secret not configured
+        if webhook_secret_configured?() do
+          Logger.warning("Cloudflare webhook rejected: missing signature")
+
+          conn
+          |> put_status(401)
+          |> json(%{error: "Missing webhook signature"})
+        else
+          Logger.warning("Cloudflare webhook signature verification skipped: secret not configured")
+
+          process_webhook(conn, params)
+        end
+
+      {:error, :invalid_signature} ->
+        Logger.warning("Cloudflare webhook rejected: invalid signature")
+
+        conn
+        |> put_status(401)
+        |> json(%{error: "Invalid webhook signature"})
+
+      {:error, :stale_timestamp} ->
+        Logger.warning("Cloudflare webhook rejected: stale timestamp")
+
+        conn
+        |> put_status(401)
+        |> json(%{error: "Stale webhook timestamp"})
+    end
+  end
+
+  defp process_webhook(conn, params) do
     # Extract relevant information
     event_type = params["eventType"]
     live_input_uid = params["liveInputUid"]
@@ -51,6 +89,97 @@ defmodule StreampaiWeb.CloudflareWebhookController do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, Jason.encode!(%{status: "received"}))
+  end
+
+  defp get_raw_body(conn) do
+    # The raw body should be cached by a plug that reads it before JSON parsing
+    case conn.assigns[:raw_body] do
+      nil -> {:ok, Jason.encode!(conn.params)}
+      body -> {:ok, body}
+    end
+  end
+
+  defp verify_webhook_signature(conn, raw_body) do
+    case conn |> get_req_header("webhook-signature") |> List.first() do
+      nil ->
+        {:error, :missing_signature}
+
+      signature_header ->
+        with {:ok, time, signature} <- parse_signature_header(signature_header),
+             :ok <- verify_timestamp_freshness(time) do
+          verify_signature(time, raw_body, signature)
+        end
+    end
+  end
+
+  defp parse_signature_header(header) do
+    parts =
+      header
+      |> String.split(",")
+      |> Enum.map(fn part ->
+        case String.split(part, "=", parts: 2) do
+          [key, value] -> {key, value}
+          _ -> nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Map.new()
+
+    case {Map.get(parts, "time"), Map.get(parts, "sig1")} do
+      {nil, _} -> {:error, :invalid_signature}
+      {_, nil} -> {:error, :invalid_signature}
+      {time, sig} -> {:ok, time, sig}
+    end
+  end
+
+  # Reject webhooks older than 5 minutes to prevent replay attacks
+  defp verify_timestamp_freshness(time_str) do
+    case Integer.parse(time_str) do
+      {timestamp, ""} ->
+        now = System.system_time(:second)
+        # Allow 5 minute window
+        if abs(now - timestamp) <= 300 do
+          :ok
+        else
+          {:error, :stale_timestamp}
+        end
+
+      _ ->
+        {:error, :invalid_signature}
+    end
+  end
+
+  defp verify_signature(time, raw_body, provided_signature) do
+    secret = get_webhook_secret()
+
+    if is_nil(secret) do
+      # If no secret is configured, skip verification
+      :ok
+    else
+      # Build the source string: time.body
+      source = "#{time}.#{raw_body}"
+
+      # Compute HMAC-SHA256
+      expected_signature =
+        :hmac
+        |> :crypto.mac(:sha256, secret, source)
+        |> Base.encode16(case: :lower)
+
+      # Use constant-time comparison to prevent timing attacks
+      if Plug.Crypto.secure_compare(expected_signature, provided_signature) do
+        :ok
+      else
+        {:error, :invalid_signature}
+      end
+    end
+  end
+
+  defp get_webhook_secret do
+    Application.get_env(:streampai, :cloudflare)[:webhook_secret]
+  end
+
+  defp webhook_secret_configured? do
+    not is_nil(get_webhook_secret())
   end
 
   defp process_webhook_event(event_type, live_input, timestamp) do
