@@ -353,7 +353,9 @@ stop-containers:
 	echo "🐳 Stopping streampai-related Docker containers..."
 
 	# Find all running containers with streampai in the name or project
-	containers=$(docker ps --filter "name=streampai" --format "{{.ID}} {{.Names}}" 2>/dev/null)
+	# Note: Escaping {{ "{{" }} by doubling them so Just passes them through to Docker
+	format_string='{{{{.ID}}}} {{{{.Names}}}}'
+	containers=$(docker ps --filter "name=streampai" --format "$format_string" 2>/dev/null)
 
 	if [ -z "$containers" ]; then
 		echo "✅ No running streampai containers found"
