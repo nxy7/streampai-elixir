@@ -21,22 +21,25 @@ defmodule Streampai.Accounts.User.Changes.ValidateAndCheckNameUniqueness do
   end
 
   defp validate_name_format(changeset, name) do
+    # Convert CiString to plain string for validation
+    name_str = to_string(name)
+
     cond do
-      String.length(name) < Streampai.Constants.username_min_length() ->
+      String.length(name_str) < Streampai.Constants.username_min_length() ->
         Ash.Changeset.add_error(
           changeset,
           field: :name,
           message: "Name must be at least #{Streampai.Constants.username_min_length()} characters"
         )
 
-      String.length(name) > Streampai.Constants.username_max_length() ->
+      String.length(name_str) > Streampai.Constants.username_max_length() ->
         Ash.Changeset.add_error(
           changeset,
           field: :name,
           message: "Name must be no more than #{Streampai.Constants.username_max_length()} characters"
         )
 
-      !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name) ->
+      !Regex.match?(~r/^[a-zA-Z0-9_]+$/, name_str) ->
         Ash.Changeset.add_error(
           changeset,
           field: :name,

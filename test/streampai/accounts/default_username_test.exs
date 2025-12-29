@@ -18,7 +18,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         |> Ash.create()
 
       # Should set name to sanitized version of email prefix
-      auto_assert "test_user" <- user.name
+      auto_assert "test_user" <- to_string(user.name)
     end
 
     test "generates unique username when base username exists" do
@@ -35,7 +35,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         })
         |> Ash.create()
 
-      assert user1.name == base_username
+      assert to_string(user1.name) == base_username
 
       # Create second user with same username base
       conflict_email = "duplicate2@example.com"
@@ -50,9 +50,9 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         |> Ash.create()
 
       # Should generate unique username with suffix
-      assert user2.name != base_username
-      assert String.starts_with?(user2.name, base_username)
-      auto_assert "duplicate2" <- user2.name
+      assert to_string(user2.name) != base_username
+      assert String.starts_with?(to_string(user2.name), base_username)
+      auto_assert "duplicate2" <- to_string(user2.name)
     end
 
     test "handles email with special characters" do
@@ -68,7 +68,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         |> Ash.create()
 
       # Should sanitize special characters to underscores
-      auto_assert "user_name_test" <- user.name
+      auto_assert "user_name_test" <- to_string(user.name)
     end
 
     test "limits username length to 30 characters" do
@@ -83,8 +83,8 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         })
         |> Ash.create()
 
-      assert String.length(user.name) <= 30
-      auto_assert "averylongusernamethatexceedsth" <- user.name
+      assert String.length(to_string(user.name)) <= 30
+      auto_assert "averylongusernamethatexceedsth" <- to_string(user.name)
     end
 
     test "handles various email formats" do
@@ -107,7 +107,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
           |> Ash.create()
 
         # Username should start with expected base, but might have suffix for uniqueness
-        assert String.starts_with?(user.name, expected_base),
+        assert String.starts_with?(to_string(user.name), expected_base),
                "Expected #{user.name} to start with #{expected_base}"
       end)
     end
@@ -134,7 +134,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         end
 
       # Verify usernames are unique and follow expected pattern
-      usernames = Enum.map(users, & &1.name)
+      usernames = Enum.map(users, &to_string(&1.name))
       assert Enum.uniq(usernames) == usernames, "All usernames should be unique"
 
       # First user should get base username, subsequent ones should get suffixes
@@ -175,7 +175,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         })
         |> Ash.create()
 
-      auto_assert "a" <- user.name
+      auto_assert "a" <- to_string(user.name)
     end
 
     test "fallback username when many conflicts exist" do
@@ -191,7 +191,7 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
         })
         |> Ash.create()
 
-      auto_assert ^base_username <- user.name
+      auto_assert ^base_username <- to_string(user.name)
     end
   end
 
@@ -215,12 +215,14 @@ defmodule Streampai.Accounts.DefaultUsernameTest do
           })
           |> Ash.create()
 
-        # Verify username matches expected pattern
-        assert Regex.match?(~r/^[a-zA-Z0-9_]+$/, user.name),
-               "Generated username '#{user.name}' contains invalid characters"
+        name = to_string(user.name)
 
-        assert String.length(user.name) >= 1, "Username too short"
-        assert String.length(user.name) <= 30, "Username too long"
+        # Verify username matches expected pattern
+        assert Regex.match?(~r/^[a-zA-Z0-9_]+$/, name),
+               "Generated username '#{name}' contains invalid characters"
+
+        assert String.length(name) >= 1, "Username too short"
+        assert String.length(name) <= 30, "Username too long"
       end)
     end
   end

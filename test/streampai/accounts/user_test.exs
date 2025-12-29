@@ -48,12 +48,13 @@ defmodule Streampai.Accounts.UserTest do
 
       user = Map.drop(user, [:__metadata__, :hashed_password, :aggregates])
 
+      assert to_string(user.name) == "user"
+
       auto_assert %User{
                     connected_platforms: 0,
                     email: "user@example.com",
-                    name: "user",
                     tier: :free
-                  } <- user
+                  } <- Map.delete(user, :name)
     end
 
     test "user registration creates valid user with correct tier", %{admin_user: admin_user} do
@@ -70,7 +71,7 @@ defmodule Streampai.Accounts.UserTest do
       business_logic = %{
         has_valid_email: user.email == "newuser@example.com",
         has_free_tier: user.tier == :free,
-        has_generated_name: is_binary(user.name),
+        has_generated_name: not is_nil(user.name),
         has_zero_connected_platforms: user.connected_platforms == 0,
         password_is_hashed: user.hashed_password != nil,
         password_not_stored_plaintext: !Map.has_key?(user, :password)
