@@ -591,6 +591,7 @@ interface ActivityRowProps {
 	item: ActivityItem;
 	isSticky?: boolean;
 	moderationCallbacks?: ModerationCallbacks;
+	onToggleUserFilter?: (username: string) => void;
 }
 
 // Row height constant for sticky offset calculations
@@ -674,6 +675,12 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		props.moderationCallbacks?.onDeleteMessage?.(props.item.id);
 	};
 
+	// Handle username click to toggle user filter
+	const handleUsernameClick = (e: MouseEvent) => {
+		e.stopPropagation();
+		props.onToggleUserFilter?.(props.item.username);
+	};
+
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
@@ -706,10 +713,13 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 							{getEventIcon(props.item.type)}
 						</span>
 					</Show>
-					<span
-						class={`font-medium text-sm ${props.item.type === "chat" ? "text-gray-800" : getEventColor(props.item.type)}`}>
+					<button
+						class={`cursor-pointer font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-gray-800" : getEventColor(props.item.type)}`}
+						onClick={handleUsernameClick}
+						title={`Filter by user: ${props.item.username}`}
+						type="button">
 						{props.item.username}
-					</span>
+					</button>
 					<Show when={props.item.amount}>
 						<span class="font-bold text-green-600 text-sm">
 							{formatAmount(props.item.amount, props.item.currency)}
@@ -1618,6 +1628,36 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		setSearchText("");
 	};
 
+	// Toggle a user filter - add "user:username" if not present, remove if present
+	const toggleUserFilter = (username: string) => {
+		const currentText = searchText();
+		const userFilter = `user:${username}`;
+		const userFilterLower = userFilter.toLowerCase();
+
+		// Check if this user filter already exists (case-insensitive)
+		const filterPattern = /\buser:(\S+)/gi;
+		const existingFilters: string[] = [];
+		for (const match of currentText.matchAll(filterPattern)) {
+			existingFilters.push(match[0].toLowerCase());
+		}
+
+		if (existingFilters.includes(userFilterLower)) {
+			// Remove the filter (case-insensitive)
+			const removePattern = new RegExp(
+				`\\buser:${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`,
+				"gi",
+			);
+			const newText = currentText.replace(removePattern, "").trim();
+			setSearchText(newText);
+		} else {
+			// Add the filter
+			const newText = currentText.trim()
+				? `${currentText.trim()} ${userFilter}`
+				: userFilter;
+			setSearchText(newText);
+		}
+	};
+
 	// Track sticky items based on time (max 3 most recent, 2 minute default duration)
 	const MAX_STICKY_ITEMS = 3;
 
@@ -1999,6 +2039,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 										isSticky={isSticky()}
 										item={item}
 										moderationCallbacks={props.moderationCallbacks}
+										onToggleUserFilter={toggleUserFilter}
 										stickyIndex={stickyIndex()}
 									/>
 								);
