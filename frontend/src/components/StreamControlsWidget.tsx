@@ -618,14 +618,12 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		props.moderationCallbacks?.highlightedMessageId === props.item.id;
 
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
-	// Highlighted messages and sticky items both use their stickyIndex for positioning
+	// Both highlighted and sticky items use stickyIndex for vertical positioning
 	const stickyStyle = () => {
-		// Highlighted items use their stickyIndex (always 0 when highlighted)
-		if (isHighlighted() && props.stickyIndex !== undefined) {
-			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
-		}
-		// Sticky items (donations etc.) use their stickyIndex
-		if (props.isSticky && props.stickyIndex !== undefined) {
+		if (
+			(isHighlighted() || props.isSticky) &&
+			props.stickyIndex !== undefined
+		) {
 			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
 		}
 		return {};
@@ -1895,12 +1893,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			startIndex = 1;
 		}
 
-		// Sticky items get subsequent indices
-		stickyItems.forEach((item, index) => {
-			// Don't override if this item is also highlighted (it keeps index 0)
-			if (item.id !== highlightedId) {
-				indexMap.set(item.id, index + startIndex);
-			}
+		// Filter out highlighted item from sticky items to avoid index gaps
+		// (a highlighted donation would otherwise leave a gap in indices)
+		const nonHighlightedStickyItems = stickyItems.filter(
+			(item) => item.id !== highlightedId,
+		);
+		nonHighlightedStickyItems.forEach((item, index) => {
+			indexMap.set(item.id, index + startIndex);
 		});
 		return indexMap;
 	});
