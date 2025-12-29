@@ -97,7 +97,7 @@ function useFilteredStreamEvents(eventType: string) {
 	return {
 		...query,
 		data: createMemo(() =>
-			(query.data || []).filter((e) => e.type === eventType),
+			(query.data ?? []).filter((e) => e.type === eventType),
 		),
 	};
 }
@@ -162,7 +162,7 @@ export function useTotalDonations() {
 
 export function useRecentEvents(limit: number = 20) {
 	const query = useStreamEvents();
-	return createMemo(() => sortByInsertedAt(query.data || []).slice(0, limit));
+	return createMemo(() => sortByInsertedAt(query.data ?? []).slice(0, limit));
 }
 
 // Cache for user-scoped preferences collection (uses IndexedDB persistence)
@@ -181,8 +181,7 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 		data: createMemo(() => {
 			const id = userId();
 			if (!id) return null;
-			const data = query.data || [];
-			return (data as UserPreferences[]).find((p) => p.id === id) || null;
+			return (query.data ?? []).find((p) => p.id === id) ?? null;
 		}),
 	};
 }
@@ -442,7 +441,7 @@ export function useGlobalNotifications() {
 	const query = useLiveQuery(() => globalNotificationsCollection);
 	return {
 		...query,
-		data: createMemo(() => sortByInsertedAt(query.data || [])),
+		data: createMemo(() => sortByInsertedAt(query.data ?? [])),
 	};
 }
 
