@@ -1742,6 +1742,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 	// Handle input changes - detect filter prefixes
 	const handleInputChange = (value: string) => {
+		// If we're already editing a prefix, just update the input text
+		// (don't re-process for prefixes)
+		if (editingPrefix()) {
+			setInputText(value);
+			return;
+		}
+
 		const prefixes = ["user:", "message:", "platform:"] as const;
 
 		// Check if input starts with a prefix
@@ -1754,7 +1761,6 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		}
 
 		// No prefix - just free text
-		setEditingPrefix(null);
 		setInputText(value);
 	};
 
