@@ -327,57 +327,6 @@ export function getAdminUsersCollection() {
 	return adminUsersCollectionCache;
 }
 
-// Empty placeholder collections for fallback when userId is undefined
-export const emptyUserPreferencesCollection = createCollection(
-	electricCollectionOptions<UserPreferences>({
-		id: "empty_user_preferences",
-		shapeOptions: {
-			url: `${SHAPES_URL}/user_preferences/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyWidgetConfigsCollection = createCollection(
-	electricCollectionOptions<WidgetConfig>({
-		id: "empty_widget_configs",
-		shapeOptions: {
-			url: `${SHAPES_URL}/widget_configs/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyNotificationsCollection = createCollection(
-	electricCollectionOptions<Notification>({
-		id: "empty_notifications",
-		shapeOptions: {
-			url: `${SHAPES_URL}/notifications/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyNotificationReadsCollection = createCollection(
-	electricCollectionOptions<NotificationRead>({
-		id: "empty_notification_reads",
-		shapeOptions: {
-			url: `${SHAPES_URL}/notification_reads/_empty`,
-		},
-		getKey: (item) => `${item.user_id}_${item.notification_id}`,
-	}),
-);
-
-export const emptyUserRolesCollection = createCollection(
-	electricCollectionOptions<UserRole>({
-		id: "empty_user_roles",
-		shapeOptions: {
-			url: `${SHAPES_URL}/user_roles/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export function createWidgetConfigsCollection(userId: string) {
 	return createCollection(
 		electricCollectionOptions<WidgetConfig>({
@@ -435,16 +384,6 @@ export function createUserRolesCollection(userId: string) {
 		}),
 	);
 }
-
-export const emptyStreamingAccountsCollection = createCollection(
-	electricCollectionOptions<StreamingAccount>({
-		id: "empty_streaming_accounts",
-		shapeOptions: {
-			url: `${SHAPES_URL}/streaming_accounts/_empty`,
-		},
-		getKey: (item) => `${item.user_id}_${item.platform}`,
-	}),
-);
 
 export function createStreamingAccountsCollection(userId: string) {
 	return createCollection(
