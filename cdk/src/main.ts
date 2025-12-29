@@ -95,8 +95,10 @@ class StreampaiCloudflareStack extends TerraformStack {
 		new ZoneSettingsOverride(this, "settings", {
 			zoneId: config.zoneId,
 			settings: {
-				// SSL/TLS Mode: strict - requires valid cert on origin
-				ssl: "strict",
+				// SSL/TLS Mode: flexible - HTTPS between user and Cloudflare, HTTP to origin
+			// Origin server (Phoenix) serves HTTP only on port 80
+			// Cloudflare terminates SSL and connects to origin via HTTP
+			ssl: "flexible",
 
 				// Always use HTTPS
 				alwaysUseHttps: "on",

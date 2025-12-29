@@ -1,7 +1,15 @@
 defmodule StreampaiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :streampai
 
-  @session_options Application.compile_env!(:streampai, :session_options)
+  # Session options can be overridden at runtime via runtime.exs
+  # Dev uses same_site: Lax, prod uses same_site: None for cross-subdomain cookies
+  # The release sets validate_compile_env: false to allow this runtime override
+  @session_options Application.compile_env(:streampai, :session_options,
+                     store: :cookie,
+                     key: "_streampai_key",
+                     signing_salt: "streampai_session_salt",
+                     same_site: "Lax"
+                   )
 
   plug Plug.Static,
     at: "/",
