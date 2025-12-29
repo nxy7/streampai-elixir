@@ -748,6 +748,187 @@ export const StickyEventsTest: Story = {
 };
 
 // =====================================================
+// Interactive Highlight Test Story
+// =====================================================
+
+function InteractiveHighlightWrapper() {
+	// Generate chat messages for testing
+	const generateHighlightTestActivities = (): ActivityItem[] => {
+		const now = Date.now();
+		return [
+			// Mix of chat messages to highlight
+			{
+				id: "highlight-chat-1",
+				type: "chat" as const,
+				username: "SuperFan",
+				message: "This is an amazing stream! I love your content so much!",
+				platform: "twitch",
+				timestamp: new Date(now - 120000),
+				viewerId: "viewer-1",
+				viewerPlatformId: "twitch-123",
+			},
+			{
+				id: "highlight-chat-2",
+				type: "chat" as const,
+				username: "QuestionAsker",
+				message: "What game are you playing next week?",
+				platform: "youtube",
+				timestamp: new Date(now - 100000),
+				viewerId: "viewer-2",
+				viewerPlatformId: "yt-456",
+			},
+			{
+				id: "highlight-chat-3",
+				type: "chat" as const,
+				username: "FunnyGuy",
+				message: "LOL that was hilarious! 😂",
+				platform: "kick",
+				timestamp: new Date(now - 80000),
+				viewerId: "viewer-3",
+				viewerPlatformId: "kick-789",
+			},
+			// A donation event (shouldn't have highlight button)
+			{
+				id: "highlight-donation-1",
+				type: "donation" as const,
+				username: "GenerousDonor",
+				message: "Keep up the great work!",
+				amount: 50,
+				currency: "$",
+				platform: "twitch",
+				timestamp: new Date(now - 60000),
+				isImportant: true,
+				viewerId: "viewer-4",
+				viewerPlatformId: "twitch-999",
+			},
+			// More chat messages
+			{
+				id: "highlight-chat-4",
+				type: "chat" as const,
+				username: "NewViewer",
+				message: "First time here, this is great!",
+				platform: "twitch",
+				timestamp: new Date(now - 40000),
+				viewerId: "viewer-5",
+				viewerPlatformId: "twitch-555",
+			},
+			{
+				id: "highlight-chat-5",
+				type: "chat" as const,
+				username: "RegularChatter",
+				message: "I've been watching for 2 years now!",
+				platform: "youtube",
+				timestamp: new Date(now - 20000),
+				viewerId: "viewer-6",
+				viewerPlatformId: "yt-666",
+			},
+			{
+				id: "highlight-chat-6",
+				type: "chat" as const,
+				username: "MemeLord",
+				message: "PogChamp moment right there!",
+				platform: "twitch",
+				timestamp: new Date(now - 10000),
+				viewerId: "viewer-7",
+				viewerPlatformId: "twitch-777",
+			},
+			{
+				id: "highlight-chat-7",
+				type: "chat" as const,
+				username: "TechExpert",
+				message: "What's your streaming setup? Looks professional!",
+				platform: "kick",
+				timestamp: new Date(now - 5000),
+				viewerId: "viewer-8",
+				viewerPlatformId: "kick-888",
+			},
+		];
+	};
+
+	const [activities] = createSignal(generateHighlightTestActivities());
+	const [highlightedMessageId, setHighlightedMessageId] = createSignal<
+		string | undefined
+	>(undefined);
+
+	// Create moderation callbacks with working highlight functionality
+	const highlightCallbacks: ModerationCallbacks = {
+		onReplayEvent: (eventId) => {
+			console.log(`Replay event: ${eventId}`);
+		},
+		onBanUser: (userId, platform, _viewerPlatformId, username) => {
+			console.log(`Ban user: ${username} (${userId}) on ${platform}`);
+		},
+		onTimeoutUser: (
+			_userId,
+			_platform,
+			_viewerPlatformId,
+			username,
+			durationSeconds,
+		) => {
+			const durationLabel =
+				durationSeconds >= 3600
+					? `${Math.floor(durationSeconds / 3600)}h`
+					: `${Math.floor(durationSeconds / 60)}m`;
+			console.log(`Timeout user: ${username} for ${durationLabel}`);
+		},
+		onDeleteMessage: (eventId) => {
+			console.log(`Delete message: ${eventId}`);
+		},
+		onHighlightMessage: (item) => {
+			console.log(`Highlight message: ${item.id} - "${item.message}"`);
+			setHighlightedMessageId(item.id);
+		},
+		onClearHighlight: () => {
+			console.log("Clear highlight");
+			setHighlightedMessageId(undefined);
+		},
+		get highlightedMessageId() {
+			return highlightedMessageId();
+		},
+	};
+
+	return (
+		<div class="flex flex-col gap-4">
+			<div class="rounded bg-blue-50 p-3 text-blue-800 text-sm">
+				<strong>Instructions:</strong> Hover over any chat message and click the
+				star (☆) button to highlight it. The highlighted message will turn
+				purple and become sticky. Click the filled star (★) to unhighlight.
+				<br />
+				<br />
+				<strong>Current highlighted:</strong> {highlightedMessageId() || "None"}
+			</div>
+			<StreamControlsWidget
+				activities={activities()}
+				connectedPlatforms={["twitch", "youtube", "kick"]}
+				moderationCallbacks={highlightCallbacks}
+				onSendMessage={(msg, platforms) =>
+					console.log(`Send to ${platforms}: ${msg}`)
+				}
+				phase="live"
+				stickyDuration={120000}
+				streamDuration={3600}
+				viewerCount={500}
+			/>
+		</div>
+	);
+}
+
+export const InteractiveHighlightTest: Story = {
+	render: () => <InteractiveHighlightWrapper />,
+	args: {
+		phase: "live",
+	},
+	parameters: {
+		docs: {
+			description: {
+				story:
+					"Interactive test for message highlighting. Hover over chat messages to see the highlight button (☆). Click to highlight - the message turns purple and sticks to the top. Click the filled star (★) to unhighlight. Note: Only chat messages can be highlighted, not donations or other events.",
+			},
+		},
+	},
+};
+
+// =====================================================
 // Filter Test Story
 // =====================================================
 
