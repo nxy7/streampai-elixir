@@ -357,6 +357,18 @@ export const dict = {
 		networkError: "Network error. Please check your connection.",
 	},
 
+	// 404 Page
+	notFound: {
+		title: "Oops! Page Not Found",
+		code: "404",
+		description: "Looks like this page went on a streaming break!",
+		suggestion:
+			"The page you're looking for might have been moved, deleted, or never existed.",
+		homeButton: "Back to Home",
+		dashboardButton: "Go to Dashboard",
+		searchHint: "Or try searching for what you need",
+	},
+
 	// Landing page
 	landing: {
 		// Navigation
