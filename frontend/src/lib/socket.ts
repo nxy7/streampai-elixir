@@ -59,13 +59,26 @@ async function getSocketToken(): Promise<string | null> {
 }
 
 /**
+ * Get the WebSocket base URL.
+ * Uses window.location.origin when available (browser) to work correctly
+ * when accessed through a proxy like Caddy, otherwise falls back to BASE_URL.
+ */
+function getSocketBaseUrl(): string {
+	if (typeof window !== "undefined") {
+		return window.location.origin.replace(/^http/, "ws");
+	}
+	return BASE_URL.replace(/^http/, "ws");
+}
+
+/**
  * Get or create the Phoenix socket instance.
  * Uses token-based authentication via params.
  */
 export function getSocket(): Socket {
 	if (!socketInstance) {
 		// WebSocket URL uses the API base with /socket path
-		const wsUrl = `${BASE_URL.replace(/^http/, "ws")}${API_PATH}/socket`;
+		// Uses getSocketBaseUrl() to work correctly through Caddy proxy
+		const wsUrl = `${getSocketBaseUrl()}${API_PATH}/socket`;
 
 		socketInstance = new Socket(wsUrl, {
 			params: () => ({ token: socketToken }),
@@ -277,6 +290,111 @@ export function useStreamPresence(streamId: Accessor<string | undefined>) {
 		viewers,
 		viewerCount: () => viewers().length,
 		isConnected,
+	};
+}
+
+/**
+ * Alert event type from the alertbox channel
+ */
+export interface AlertEvent {
+	id: string;
+	type: "donation" | "follow" | "subscription" | "raid" | "cheer";
+	username: string;
+	message?: string;
+	amount?: number;
+	currency?: string;
+	ttsUrl?: string;
+	timestamp: string;
+	platform: {
+		icon: string;
+		color: string;
+	};
+}
+
+/**
+ * Hook for subscribing to alertbox events via Phoenix channel.
+ * This is used by alertbox widgets to receive real-time alert events
+ * without requiring authentication (widgets are public URLs).
+ */
+export function useAlertboxChannel(userId: Accessor<string | undefined>) {
+	const [currentEvent, setCurrentEvent] = createSignal<AlertEvent | null>(null);
+	const [isConnected, setIsConnected] = createSignal(false);
+	const [queueState, setQueueState] = createSignal<string>("playing");
+	const [queueLength, setQueueLength] = createSignal<number>(0);
+
+	let channel: Channel | null = null;
+
+	createEffect(() => {
+		const id = userId();
+		if (!id) return;
+
+		// Clean up previous channel
+		channel?.leave();
+
+		const socket = getSocket();
+		channel = socket.channel(`alertbox:${id}`, {});
+
+		channel
+			.join()
+			.receive("ok", () => {
+				setIsConnected(true);
+				console.log(`[Alertbox] Connected to channel for user ${id}`);
+			})
+			.receive("error", (resp) => {
+				console.error(`[Alertbox] Failed to join channel:`, resp);
+			});
+
+		// Handle incoming alert events
+		channel.on("alert_event", (payload: AlertEvent) => {
+			console.log("[Alertbox] Received alert event:", payload);
+			setCurrentEvent(payload);
+		});
+
+		// Handle queue updates
+		channel.on(
+			"queue_update",
+			(payload: { queue_state: string; queue_length: number }) => {
+				setQueueState(payload.queue_state);
+				setQueueLength(payload.queue_length);
+			},
+		);
+	});
+
+	onCleanup(() => {
+		channel?.leave();
+	});
+
+	// Control functions to send commands to the server
+	const skipEvent = () => {
+		channel?.push("skip", {});
+	};
+
+	const pauseQueue = () => {
+		channel?.push("pause", {});
+	};
+
+	const resumeQueue = () => {
+		channel?.push("resume", {});
+	};
+
+	const clearQueue = () => {
+		channel?.push("clear", {});
+	};
+
+	const clearCurrentEvent = () => {
+		setCurrentEvent(null);
+	};
+
+	return {
+		currentEvent,
+		isConnected,
+		queueState,
+		queueLength,
+		skipEvent,
+		pauseQueue,
+		resumeQueue,
+		clearQueue,
+		clearCurrentEvent,
 	};
 }
 

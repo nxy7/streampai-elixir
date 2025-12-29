@@ -33,4 +33,21 @@ defmodule Streampai.LivestreamManager.DynamicSupervisor do
   def list_children do
     DynamicSupervisor.which_children(__MODULE__)
   end
+
+  def start_alert_queue(user_id) do
+    DynamicSupervisor.start_child(
+      __MODULE__,
+      {Streampai.LivestreamManager.AlertQueue, user_id}
+    )
+  end
+
+  def stop_alert_queue(user_id) do
+    case Registry.lookup(Streampai.LivestreamManager.Registry, {:alert_queue, user_id}) do
+      [{pid, _}] ->
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+
+      [] ->
+        {:error, :not_found}
+    end
+  end
 end
