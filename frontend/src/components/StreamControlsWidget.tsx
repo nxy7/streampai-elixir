@@ -1734,7 +1734,14 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		if (prefix && text) {
 			allParts.push(`${prefix}${text}`);
 		} else if (text) {
-			allParts.push(text);
+			// When there are chips, text without a prefix should filter message content
+			// (prevents the text from being parsed as extending the previous chip's value)
+			// When there are no chips, keep it as freeText to search both username and message
+			if (chips.length > 0) {
+				allParts.push(`message:${text}`);
+			} else {
+				allParts.push(text);
+			}
 		}
 
 		setSearchText(allParts.join(" "));
