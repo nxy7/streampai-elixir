@@ -43,8 +43,16 @@ defmodule Streampai.LivestreamManager.AlertManager do
         where: wc.user_id == ^user_id and wc.type == ^:alertbox_widget
       )
 
-    {:ok, shape_pid} = Shape.start_link(config_query)
-    shape_ref = Shape.subscribe(shape_pid)
+    {shape_pid, shape_ref} =
+      case Shape.start_link(config_query) do
+        {:ok, pid} ->
+          {pid, Shape.subscribe(pid)}
+
+        {:error, reason} ->
+          Logger.warning("AlertManager failed to start shape for user #{user_id}: #{inspect(reason)}")
+
+          {nil, nil}
+      end
 
     state = %__MODULE__{
       user_id: user_id,
@@ -123,8 +131,10 @@ defmodule Streampai.LivestreamManager.AlertManager do
   end
 
   @impl true
-  def handle_info({:sync, ref, {_operation, _data}}, state) when ref == state.config_shape_ref do
-    # Handle other sync operations (delete, etc.) - reset to defaults
+  def handle_info({:sync, ref, {:delete, _data}}, state) when ref == state.config_shape_ref do
+    # Config deleted - reset to defaults
+    Logger.debug("AlertManager widget config deleted for user #{state.user_id}, resetting to defaults")
+
     {:noreply, %{state | alert_settings: default_alert_settings()}}
   end
 
@@ -170,9 +180,9 @@ defmodule Streampai.LivestreamManager.AlertManager do
   @impl true
   def terminate(_reason, state) do
     # Clean up the shape process when AlertManager stops
+    # Note: Shape.unsubscribe is unnecessary since this process is terminating
     if state.config_shape_pid && Process.alive?(state.config_shape_pid) do
-      Shape.unsubscribe(state.config_shape_pid)
-      GenServer.stop(state.config_shape_pid)
+      GenServer.stop(state.config_shape_pid, :normal, 5000)
     end
 
     :ok
