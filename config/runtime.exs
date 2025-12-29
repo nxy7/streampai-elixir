@@ -258,6 +258,8 @@ if config_env() == :prod do
       "http://#{host}"
     ]
 
+  # Application URLs derived from APP_DOMAIN
+  # Backend URL is used for email links (confirmation emails, password reset, etc.)
   config :streampai,
     app_domain: app_domain,
     frontend_url: "https://#{app_domain}",
