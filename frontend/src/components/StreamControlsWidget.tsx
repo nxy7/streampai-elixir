@@ -2015,27 +2015,48 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 									</span>
 								)}
 							</For>
-							{/* Show editing prefix as partial chip */}
-							<Show when={editingPrefix()}>
-								<span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-gray-600 text-xs">
+							{/* Show editing prefix as partial chip with input inside */}
+							<Show
+								fallback={
+									<input
+										class="min-w-[100px] flex-1 border-none bg-transparent text-xs outline-none placeholder:text-gray-400"
+										data-testid="search-input"
+										onInput={(e) => handleInputChange(e.currentTarget.value)}
+										onKeyDown={handleSearchKeyDown}
+										placeholder={
+											filterChips().length > 0
+												? ""
+												: "Search or type user: platform: message:"
+										}
+										ref={searchInputRef}
+										type="text"
+										value={inputText()}
+									/>
+								}
+								when={editingPrefix()}>
+								<span
+									class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
+										editingPrefix() === "user:"
+											? "bg-blue-100 text-blue-700"
+											: editingPrefix() === "platform:"
+												? "bg-purple-100 text-purple-700"
+												: "bg-green-100 text-green-700"
+									}`}>
 									<span class="font-medium">{editingPrefix()}</span>
+									<input
+										class="ml-0.5 w-auto min-w-[60px] border-none bg-transparent text-xs outline-none"
+										data-testid="search-input"
+										onInput={(e) => handleInputChange(e.currentTarget.value)}
+										onKeyDown={handleSearchKeyDown}
+										ref={searchInputRef}
+										style={{
+											width: `${Math.max(60, inputText().length * 8)}px`,
+										}}
+										type="text"
+										value={inputText()}
+									/>
 								</span>
 							</Show>
-							{/* Actual input */}
-							<input
-								class="min-w-[100px] flex-1 border-none bg-transparent text-xs outline-none placeholder:text-gray-400"
-								data-testid="search-input"
-								onInput={(e) => handleInputChange(e.currentTarget.value)}
-								onKeyDown={handleSearchKeyDown}
-								placeholder={
-									filterChips().length > 0 || editingPrefix()
-										? ""
-										: "Search or type user: platform: message:"
-								}
-								ref={searchInputRef}
-								type="text"
-								value={inputText()}
-							/>
 							<Show when={searchText()}>
 								<button
 									class="text-gray-400 text-xs hover:text-gray-600"
