@@ -306,171 +306,249 @@ const handleModifyTimers = () => console.log("Modify timers clicked");
 const handleChangeStreamSettings = () =>
 	console.log("Change stream settings clicked");
 
-// Default moderation callbacks for all live stories
-const defaultModerationCallbacks: ModerationCallbacks = {
-	onReplayEvent: (eventId) => {
-		console.log(`Replay event: ${eventId}`);
-	},
-	onBanUser: (userId, platform, _viewerPlatformId, username) => {
-		console.log(`Ban user: ${username} (${userId}) on ${platform}`);
-	},
-	onTimeoutUser: (
-		_userId,
-		_platform,
-		_viewerPlatformId,
-		username,
-		durationSeconds,
-	) => {
-		const durationLabel =
-			durationSeconds >= 3600
-				? `${Math.floor(durationSeconds / 3600)}h`
-				: `${Math.floor(durationSeconds / 60)}m`;
-		console.log(`Timeout user: ${username} for ${durationLabel}`);
-	},
-	onDeleteMessage: (eventId) => {
-		console.log(`Delete message: ${eventId}`);
-	},
-	onHighlightMessage: (item) => {
-		console.log(`Highlight message: ${item.id} - "${item.message}"`);
-	},
-	onClearHighlight: () => {
-		console.log("Clear highlight");
-	},
-};
+// Helper to create reactive moderation callbacks with highlight state
+function createModerationCallbacks(): {
+	callbacks: ModerationCallbacks;
+	highlightedMessageId: () => string | undefined;
+} {
+	const [highlightedMessageId, setHighlightedMessageId] = createSignal<
+		string | undefined
+	>(undefined);
+
+	const callbacks: ModerationCallbacks = {
+		onReplayEvent: (eventId) => {
+			console.log(`Replay event: ${eventId}`);
+		},
+		onBanUser: (userId, platform, _viewerPlatformId, username) => {
+			console.log(`Ban user: ${username} (${userId}) on ${platform}`);
+		},
+		onTimeoutUser: (
+			_userId,
+			_platform,
+			_viewerPlatformId,
+			username,
+			durationSeconds,
+		) => {
+			const durationLabel =
+				durationSeconds >= 3600
+					? `${Math.floor(durationSeconds / 3600)}h`
+					: `${Math.floor(durationSeconds / 60)}m`;
+			console.log(`Timeout user: ${username} for ${durationLabel}`);
+		},
+		onDeleteMessage: (eventId) => {
+			console.log(`Delete message: ${eventId}`);
+		},
+		onHighlightMessage: (item) => {
+			console.log(`Highlight message: ${item.id} - "${item.message}"`);
+			setHighlightedMessageId(item.id);
+		},
+		onClearHighlight: () => {
+			console.log("Clear highlight");
+			setHighlightedMessageId(undefined);
+		},
+		get highlightedMessageId() {
+			return highlightedMessageId();
+		},
+	};
+
+	return { callbacks, highlightedMessageId };
+}
+
+// Wrapper for Live story with reactive highlight state
+function LiveWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	return (
+		<StreamControlsWidget
+			activities={manyActivities}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			stickyDuration={30000}
+			streamDuration={3723}
+			viewerCount={1024}
+		/>
+	);
+}
 
 export const Live: Story = {
-	args: {
-		phase: "live",
-		activities: manyActivities,
-		streamDuration: 3723, // 1 hour 2 minutes 3 seconds
-		viewerCount: 1024,
-		stickyDuration: 30000,
-		connectedPlatforms: ["twitch", "youtube", "kick"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
-	},
+	render: () => <LiveWrapper />,
+	args: { phase: "live" },
 };
+
+// Wrapper for LiveEmpty story with reactive highlight state
+function LiveEmptyWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	return (
+		<StreamControlsWidget
+			activities={[]}
+			connectedPlatforms={["twitch"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			streamDuration={60}
+			viewerCount={5}
+		/>
+	);
+}
 
 export const LiveEmpty: Story = {
+	render: () => <LiveEmptyWrapper />,
 	args: {
 		phase: "live",
-		activities: [],
-		streamDuration: 60,
-		viewerCount: 5,
-		connectedPlatforms: ["twitch"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
 	},
 };
 
+// Wrapper for LiveBusy story with reactive highlight state
+function LiveBusyWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	const [activities] = createSignal(generateActivities(50));
+	return (
+		<StreamControlsWidget
+			activities={activities()}
+			connectedPlatforms={["twitch", "youtube", "kick", "facebook"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			stickyDuration={30000}
+			streamDuration={10800}
+			viewerCount={5000}
+		/>
+	);
+}
+
 export const LiveBusy: Story = {
-	args: {
-		phase: "live",
-		activities: generateActivities(50),
-		streamDuration: 10800, // 3 hours
-		viewerCount: 5000,
-		stickyDuration: 30000,
-		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
-	},
+	render: () => <LiveBusyWrapper />,
+	args: { phase: "live" },
 };
+
+// Wrapper for LiveVirtualized story with reactive highlight state
+function LiveVirtualizedWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	const [activities] = createSignal(generateActivities(1000));
+	return (
+		<StreamControlsWidget
+			activities={activities()}
+			connectedPlatforms={["twitch", "youtube", "kick", "facebook"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			stickyDuration={30000}
+			streamDuration={36000}
+			viewerCount={15000}
+		/>
+	);
+}
 
 // Story with 1000+ events to test virtualization performance
 export const LiveVirtualized: Story = {
-	args: {
-		phase: "live",
-		activities: generateActivities(1000),
-		streamDuration: 36000, // 10 hours
-		viewerCount: 15000,
-		stickyDuration: 30000,
-		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
-	},
+	render: () => <LiveVirtualizedWrapper />,
+	args: { phase: "live" },
 };
+
+// Wrapper for LiveChatOnly story with reactive highlight state
+function LiveChatOnlyWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	const chatOnlyActivities = sampleActivities.filter((a) => a.type === "chat");
+	return (
+		<StreamControlsWidget
+			activities={chatOnlyActivities}
+			connectedPlatforms={["twitch", "youtube"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			stickyDuration={30000}
+			streamDuration={1800}
+			viewerCount={150}
+		/>
+	);
+}
 
 export const LiveChatOnly: Story = {
-	args: {
-		phase: "live",
-		activities: sampleActivities.filter((a) => a.type === "chat"),
-		streamDuration: 1800,
-		viewerCount: 150,
-		connectedPlatforms: ["twitch", "youtube"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
-	},
+	render: () => <LiveChatOnlyWrapper />,
+	args: { phase: "live" },
 };
 
+// Wrapper for LiveManyDonations story with reactive highlight state
+function LiveManyDonationsWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	const donationActivities: ActivityItem[] = [
+		{
+			id: "d1",
+			type: "donation" as const,
+			username: "BigSpender1",
+			message: "Amazing stream!",
+			amount: 500.0,
+			currency: "$",
+			platform: "twitch",
+			timestamp: new Date(),
+			isImportant: true,
+		},
+		{
+			id: "d2",
+			type: "donation" as const,
+			username: "Generous2",
+			message: "Keep up the great work!",
+			amount: 250.0,
+			currency: "$",
+			platform: "youtube",
+			timestamp: new Date(Date.now() - 30000),
+			isImportant: true,
+		},
+		{
+			id: "d3",
+			type: "donation" as const,
+			username: "Supporter3",
+			message: "Love your content!",
+			amount: 100.0,
+			currency: "$",
+			platform: "kick",
+			timestamp: new Date(Date.now() - 60000),
+			isImportant: true,
+		},
+		...generateActivities(20),
+	];
+	return (
+		<StreamControlsWidget
+			activities={donationActivities}
+			connectedPlatforms={["twitch", "youtube", "kick"]}
+			moderationCallbacks={callbacks}
+			onChangeStreamSettings={handleChangeStreamSettings}
+			onModifyTimers={handleModifyTimers}
+			onSendMessage={handleSendMessage}
+			onStartGiveaway={handleStartGiveaway}
+			onStartPoll={handleStartPoll}
+			phase="live"
+			stickyDuration={30000}
+			streamDuration={2400}
+			viewerCount={2500}
+		/>
+	);
+}
+
 export const LiveManyDonations: Story = {
-	args: {
-		phase: "live",
-		activities: [
-			{
-				id: "d1",
-				type: "donation" as const,
-				username: "BigSpender1",
-				message: "Amazing stream!",
-				amount: 500.0,
-				currency: "$",
-				platform: "twitch",
-				timestamp: new Date(),
-				isImportant: true,
-			},
-			{
-				id: "d2",
-				type: "donation" as const,
-				username: "Generous2",
-				message: "Keep up the great work!",
-				amount: 250.0,
-				currency: "$",
-				platform: "youtube",
-				timestamp: new Date(Date.now() - 30000),
-				isImportant: true,
-			},
-			{
-				id: "d3",
-				type: "donation" as const,
-				username: "Supporter3",
-				message: "Love your content!",
-				amount: 100.0,
-				currency: "$",
-				platform: "kick",
-				timestamp: new Date(Date.now() - 60000),
-				isImportant: true,
-			},
-			...generateActivities(20),
-		],
-		streamDuration: 2400,
-		viewerCount: 2500,
-		connectedPlatforms: ["twitch", "youtube", "kick"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
-		onStartPoll: handleStartPoll,
-		onStartGiveaway: handleStartGiveaway,
-		onModifyTimers: handleModifyTimers,
-		onChangeStreamSettings: handleChangeStreamSettings,
-	},
+	render: () => <LiveManyDonationsWrapper />,
+	args: { phase: "live" },
 };
 
 // =====================================================
@@ -631,11 +709,13 @@ function InteractiveLiveWrapper() {
 		console.log(`Message sent to ${platforms.join(", ")}: ${message}`);
 	};
 
+	const { callbacks } = createModerationCallbacks();
+
 	return (
 		<StreamControlsWidget
 			activities={activities()}
 			connectedPlatforms={["twitch", "youtube", "kick"]}
-			moderationCallbacks={defaultModerationCallbacks}
+			moderationCallbacks={callbacks}
 			onSendMessage={handleSendMessage}
 			phase="live"
 			stickyDuration={15000}
@@ -715,12 +795,13 @@ function StickyTestWrapper() {
 
 	// Use createSignal to store activities - generates fresh on component mount
 	const [activities] = createSignal(generateStickyTestActivities());
+	const { callbacks } = createModerationCallbacks();
 
 	return (
 		<StreamControlsWidget
 			activities={activities()}
 			connectedPlatforms={["twitch", "youtube", "kick"]}
-			moderationCallbacks={defaultModerationCallbacks}
+			moderationCallbacks={callbacks}
 			onSendMessage={(msg, platforms) =>
 				console.log(`Send to ${platforms}: ${msg}`)
 			}
@@ -1043,15 +1124,27 @@ const generateFilterTestActivities = (): ActivityItem[] => {
 	];
 };
 
+// Wrapper for FilterTest story with reactive highlight state
+function FilterTestWrapper() {
+	const { callbacks } = createModerationCallbacks();
+	const [activities] = createSignal(generateFilterTestActivities());
+	return (
+		<StreamControlsWidget
+			activities={activities()}
+			connectedPlatforms={["twitch", "youtube", "kick", "facebook"]}
+			moderationCallbacks={callbacks}
+			onSendMessage={handleSendMessage}
+			phase="live"
+			streamDuration={1800}
+			viewerCount={500}
+		/>
+	);
+}
+
 export const FilterTest: Story = {
+	render: () => <FilterTestWrapper />,
 	args: {
 		phase: "live",
-		activities: generateFilterTestActivities(),
-		streamDuration: 1800,
-		viewerCount: 500,
-		connectedPlatforms: ["twitch", "youtube", "kick", "facebook"],
-		onSendMessage: handleSendMessage,
-		moderationCallbacks: defaultModerationCallbacks,
 	},
 	parameters: {
 		docs: {
