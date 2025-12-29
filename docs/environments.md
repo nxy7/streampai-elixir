@@ -72,7 +72,7 @@ The development environment uses Caddy as a local reverse proxy for several crit
 | HMR Client | 3001 | Vite HMR (client router) |
 | HMR Server | 3002 | Vite HMR (server router) |
 | HMR Server Function | 3003 | Vite HMR (server function router) |
-| PostgreSQL | 5432 | TimescaleDB with Electric SQL |
+| PostgreSQL | 5432 | TimescaleDB (PostgreSQL + time-series) |
 | PgWeb | 8082 | Database admin UI |
 | MinIO | 9000/9001 | S3-compatible storage |
 
@@ -104,6 +104,8 @@ For parallel development, worktrees get isolated port ranges:
 Setup: `just worktree-setup` (run inside the worktree)
 
 ### Caddyfile Configuration
+
+Simplified example (see actual `Caddyfile` for full config including admin routes and compression):
 
 ```caddyfile
 localhost:{$CADDY_PORT:8000} {
