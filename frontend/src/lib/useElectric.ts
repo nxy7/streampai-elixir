@@ -1,4 +1,3 @@
-import type { ReactiveMap } from "@solid-primitives/map";
 import type { Collection, CollectionStatus } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
 import type { Accessor } from "solid-js";
@@ -210,8 +209,8 @@ export function useUserChatMessages(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as ChatMessage[];
+			if (!userId()) return [] as ChatMessage[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -233,8 +232,8 @@ export function useUserStreamEvents(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as StreamEvent[];
+			if (!userId()) return [] as StreamEvent[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -258,8 +257,8 @@ export function useUserLivestreams(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as Livestream[];
+			if (!userId()) return [] as Livestream[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -281,8 +280,8 @@ export function useUserViewers(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as Viewer[];
+			if (!userId()) return [] as Viewer[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -326,8 +325,8 @@ export function useWidgetConfigs(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as WidgetConfig[];
+			if (!userId()) return [] as WidgetConfig[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -366,8 +365,8 @@ export function useNotifications(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as Notification[];
+			if (!userId()) return [] as Notification[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -381,8 +380,8 @@ export function useNotificationReads(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as NotificationRead[];
+			if (!userId()) return [] as NotificationRead[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -479,8 +478,8 @@ export function useUserRoles(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as UserRole[];
+			if (!userId()) return [] as UserRole[];
+			return query.data ?? [];
 		}),
 	};
 }
@@ -548,8 +547,8 @@ export function useStreamingAccounts(userId: () => string | undefined) {
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as StreamingAccount[];
+			if (!userId()) return [] as StreamingAccount[];
+			return query.data ?? [];
 		}),
 	};
 }
