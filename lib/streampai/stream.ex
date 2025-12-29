@@ -5,6 +5,7 @@ defmodule Streampai.Stream do
 
   alias Streampai.Stream.BannedViewer
   alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamActor
   alias Streampai.Stream.StreamEvent
@@ -53,11 +54,18 @@ defmodule Streampai.Stream do
       rpc_action(:stop_stream_timer, :stop_timer)
       rpc_action(:delete_stream_timer, :destroy)
     end
+
+    resource HighlightedMessage do
+      rpc_action(:highlight_message, :highlight_message)
+      rpc_action(:clear_highlight, :clear_highlight)
+      rpc_action(:get_highlighted_message, :get_for_user)
+    end
   end
 
   resources do
     resource BannedViewer
     resource ChatMessage
+    resource HighlightedMessage
     resource Livestream
     resource Streampai.Stream.LivestreamMetric
     resource StreamActor

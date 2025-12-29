@@ -233,6 +233,9 @@ export interface ModerationCallbacks {
 		reason?: string,
 	) => void;
 	onDeleteMessage?: (eventId: string) => void;
+	onHighlightMessage?: (item: ActivityItem) => void;
+	onClearHighlight?: () => void;
+	highlightedMessageId?: string;
 }
 
 // Types for stream summary
@@ -610,9 +613,17 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 	const [isHovered, setIsHovered] = createSignal(false);
 	const [showTimeoutMenu, setShowTimeoutMenu] = createSignal(false);
 
+	// Check if this message is currently highlighted
+	const isHighlighted = () =>
+		props.moderationCallbacks?.highlightedMessageId === props.item.id;
+
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
+	// Both highlighted and sticky items use stickyIndex for vertical positioning
 	const stickyStyle = () => {
-		if (props.isSticky && props.stickyIndex !== undefined) {
+		if (
+			(isHighlighted() || props.isSticky) &&
+			props.stickyIndex !== undefined
+		) {
 			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
 		}
 		return {};
@@ -625,7 +636,8 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 			return !!(
 				props.moderationCallbacks.onBanUser ||
 				props.moderationCallbacks.onTimeoutUser ||
-				props.moderationCallbacks.onDeleteMessage
+				props.moderationCallbacks.onDeleteMessage ||
+				props.moderationCallbacks.onHighlightMessage
 			);
 		}
 		if (isImportantEvent(props.item.type)) {
@@ -675,6 +687,16 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		props.moderationCallbacks?.onDeleteMessage?.(props.item.id);
 	};
 
+	// Handle highlight action
+	const handleHighlight = (e: MouseEvent) => {
+		e.stopPropagation();
+		if (isHighlighted()) {
+			props.moderationCallbacks?.onClearHighlight?.();
+		} else {
+			props.moderationCallbacks?.onHighlightMessage?.(props.item);
+		}
+	};
+
 	// Handle username click to toggle user filter
 	const handleUsernameClick = (e: MouseEvent) => {
 		e.stopPropagation();
@@ -685,11 +707,13 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
 			class={`group relative flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
-				props.isSticky
-					? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
-					: isImportantEvent(props.item.type)
-						? "bg-gray-50/50"
-						: ""
+				isHighlighted()
+					? "sticky z-20 border-purple-400 border-l-4 bg-purple-50 shadow-md ring-1 ring-purple-200"
+					: props.isSticky
+						? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+						: isImportantEvent(props.item.type)
+							? "bg-gray-50/50"
+							: ""
 			}`}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
@@ -757,6 +781,24 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 
 					{/* Chat moderation actions */}
 					<Show when={props.item.type === "chat"}>
+						{/* Highlight message button */}
+						<Show when={props.moderationCallbacks?.onHighlightMessage}>
+							<button
+								class={`flex h-5 w-5 items-center justify-center rounded transition-colors ${
+									isHighlighted()
+										? "bg-purple-600 text-white hover:bg-purple-700"
+										: "text-purple-500 hover:bg-purple-50 hover:text-purple-600"
+								}`}
+								data-testid="highlight-button"
+								onClick={handleHighlight}
+								title={
+									isHighlighted() ? "Remove highlight" : "Highlight message"
+								}
+								type="button">
+								<span class="text-xs">{isHighlighted() ? "★" : "☆"}</span>
+							</button>
+						</Show>
+
 						{/* Delete message button */}
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button
@@ -1819,9 +1861,13 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 	// Create a map of sticky item id -> index for stacking offset calculation
 	// Items are ordered by time (oldest first) to maintain visual consistency
+	// Highlighted messages always come first (index 0), then sticky items
 	const stickyIndexMap = createMemo(() => {
 		const ids = stickyItemIds();
-		if (ids.size === 0) return new Map<string, number>();
+		const highlightedId = props.moderationCallbacks?.highlightedMessageId;
+
+		// If nothing is sticky and nothing is highlighted, return empty map
+		if (ids.size === 0 && !highlightedId) return new Map<string, number>();
 
 		// Get sticky items sorted by timestamp (oldest first for consistent stacking)
 		const stickyItems = sortedActivities()
@@ -1839,8 +1885,21 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			});
 
 		const indexMap = new Map<string, number>();
-		stickyItems.forEach((item, index) => {
-			indexMap.set(item.id, index);
+
+		// Highlighted message always gets index 0 if present
+		let startIndex = 0;
+		if (highlightedId) {
+			indexMap.set(highlightedId, 0);
+			startIndex = 1;
+		}
+
+		// Filter out highlighted item from sticky items to avoid index gaps
+		// (a highlighted donation would otherwise leave a gap in indices)
+		const nonHighlightedStickyItems = stickyItems.filter(
+			(item) => item.id !== highlightedId,
+		);
+		nonHighlightedStickyItems.forEach((item, index) => {
+			indexMap.set(item.id, index + startIndex);
 		});
 		return indexMap;
 	});
@@ -2216,8 +2275,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							{(item) => {
 								// Use reactive getters so sticky state updates when stickyItemIds changes
 								const isSticky = () => stickyItemIds().has(item.id);
-								const stickyIndex = () =>
-									isSticky() ? stickyIndexMap().get(item.id) : undefined;
+								// Get stickyIndex for both sticky items and highlighted items
+								const stickyIndex = () => stickyIndexMap().get(item.id);
 								return (
 									<ActivityRow
 										isSticky={isSticky()}

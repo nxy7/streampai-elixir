@@ -153,6 +153,20 @@ export type StreamingAccount = Row & {
 	updated_at: string;
 };
 
+export type HighlightedMessage = Row & {
+	id: string;
+	user_id: string;
+	chat_message_id: string;
+	message: string;
+	sender_username: string;
+	sender_channel_id: string;
+	platform: string;
+	viewer_id: string | null;
+	highlighted_at: string;
+	inserted_at: string;
+	updated_at: string;
+};
+
 export type WidgetType =
 	| "placeholder_widget"
 	| "chat_widget"
@@ -172,7 +186,8 @@ export type WidgetType =
 	| "poll_widget"
 	| "slider_widget"
 	| "giveaway_widget"
-	| "eventlist_widget";
+	| "eventlist_widget"
+	| "message_highlight_widget";
 
 const SHAPES_URL = `${getShapesBaseUrl()}/shapes`;
 
@@ -393,6 +408,28 @@ export function createStreamingAccountsCollection(userId: string) {
 				url: `${SHAPES_URL}/streaming_accounts/${userId}`,
 			},
 			getKey: (item) => `${item.user_id}_${item.platform}`,
+		}),
+	);
+}
+
+export const emptyHighlightedMessagesCollection = createCollection(
+	electricCollectionOptions<HighlightedMessage>({
+		id: "empty_highlighted_messages",
+		shapeOptions: {
+			url: `${SHAPES_URL}/highlighted_messages/_empty`,
+		},
+		getKey: (item) => item.id,
+	}),
+);
+
+export function createHighlightedMessagesCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<HighlightedMessage>({
+			id: `highlighted_messages_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/highlighted_messages/${userId}`,
+			},
+			getKey: (item) => item.id,
 		}),
 	);
 }

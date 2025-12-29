@@ -17,6 +17,7 @@ defmodule StreampaiWeb.SyncController do
   alias Streampai.Notifications.Notification
   alias Streampai.Notifications.NotificationRead
   alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamEvent
   alias Streampai.Stream.StreamViewer
@@ -200,6 +201,23 @@ defmodule StreampaiWeb.SyncController do
             select: map(sa, @streaming_account_sync_columns)
           )
 
+        sync_render(conn, params, query)
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
+  end
+
+  def highlighted_messages(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(hm in HighlightedMessage, where: false)
+    sync_render(conn, params, query)
+  end
+
+  def highlighted_messages(conn, %{"user_id" => user_id} = params) do
+    case Ecto.UUID.cast(user_id) do
+      {:ok, uuid} ->
+        query = from(hm in HighlightedMessage, where: hm.user_id == ^uuid)
         sync_render(conn, params, query)
 
       :error ->

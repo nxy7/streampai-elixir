@@ -5,6 +5,7 @@ import DonationGoalWidget from "./widgets/DonationGoalWidget";
 import EventListWidget from "./widgets/EventListWidget";
 import FollowerCountWidget from "./widgets/FollowerCountWidget";
 import GiveawayWidget from "./widgets/GiveawayWidget";
+import MessageHighlightWidget from "./widgets/MessageHighlightWidget";
 import PlaceholderWidget from "./widgets/PlaceholderWidget";
 import PollWidget from "./widgets/PollWidget";
 import SliderWidget from "./widgets/SliderWidget";
@@ -196,6 +197,22 @@ export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
 		},
 		render: (config) => (
 			<DonationGoalWidget config={config as never} currentAmount={0} />
+		),
+	},
+
+	"message-highlight": {
+		defaultConfig: {
+			fontSize: "medium",
+			showPlatform: true,
+			showTimestamp: true,
+			animationType: "slide",
+			backgroundColor: "rgba(0, 0, 0, 0.9)",
+			textColor: "#ffffff",
+			accentColor: "#9333ea",
+			borderRadius: 12,
+		},
+		render: (config) => (
+			<MessageHighlightWidget config={config as never} message={null} />
 		),
 	},
 };
