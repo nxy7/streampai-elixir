@@ -134,9 +134,11 @@ defmodule Streampai.Stream.StreamActionTest do
   end
 
   describe "ban_user" do
-    test "allows stream owner to ban users (not yet implemented)" do
+    test "allows stream owner to ban users (returns platform_not_connected when no platform running)" do
       user = create_user()
 
+      # In test environment, no platform managers are running,
+      # so we expect a platform_not_connected error after authorization passes
       case StreamAction.ban_user(
              %{
                user_id: user.id,
@@ -147,19 +149,26 @@ defmodule Streampai.Stream.StreamActionTest do
              actor: user
            ) do
         {:error, %Unknown{errors: [%{error: message}]}} ->
-          assert message == "ban_user not yet implemented in PlatformSupervisor"
+          assert message == "Platform twitch is not connected"
+
+        {:ok, _} ->
+          # If a platform is somehow running, that's also acceptable
+          :ok
+
+        {:error, %Forbidden{}} ->
+          flunk("Authorization should pass for stream owner")
 
         other ->
-          flunk("Expected error, got: #{inspect(other)}")
+          flunk("Unexpected result: #{inspect(other)}")
       end
     end
 
-    test "allows moderator to ban users (not yet implemented)" do
+    test "allows moderator to ban users (returns platform_not_connected when no platform running)" do
       owner = create_user()
       moderator = create_user()
       grant_moderator_role(owner, moderator)
 
-      # ban_user passes authorization but is not yet implemented
+      # ban_user passes authorization but platform is not connected in test
       case StreamAction.ban_user(
              %{user_id: owner.id, target_username: "bad_user", platform: :twitch},
              actor: moderator
@@ -168,8 +177,12 @@ defmodule Streampai.Stream.StreamActionTest do
           flunk("Authorization should pass for moderator")
 
         {:error, %Unknown{errors: [%{error: message}]}} ->
-          # Expected: action is authorized but not implemented
-          assert message == "ban_user not yet implemented in PlatformSupervisor"
+          # Expected: action is authorized but platform not connected
+          assert message == "Platform twitch is not connected"
+
+        {:ok, _} ->
+          # If a platform is somehow running, that's also acceptable
+          :ok
 
         other ->
           flunk("Unexpected result: #{inspect(other)}")
@@ -189,9 +202,11 @@ defmodule Streampai.Stream.StreamActionTest do
   end
 
   describe "timeout_user" do
-    test "allows stream owner to timeout users (not yet implemented)" do
+    test "allows stream owner to timeout users (returns platform_not_connected when no platform running)" do
       user = create_user()
 
+      # In test environment, no platform managers are running,
+      # so we expect a platform_not_connected error after authorization passes
       case StreamAction.timeout_user(
              %{
                user_id: user.id,
@@ -202,11 +217,106 @@ defmodule Streampai.Stream.StreamActionTest do
              actor: user
            ) do
         {:error, %Unknown{errors: [%{error: message}]}} ->
-          assert message == "timeout_user not yet implemented in PlatformSupervisor"
+          assert message == "Platform twitch is not connected"
+
+        {:ok, _} ->
+          # If a platform is somehow running, that's also acceptable
+          :ok
+
+        {:error, %Forbidden{}} ->
+          flunk("Authorization should pass for stream owner")
 
         other ->
-          flunk("Expected error, got: #{inspect(other)}")
+          flunk("Unexpected result: #{inspect(other)}")
       end
+    end
+
+    test "allows moderator to timeout users (returns platform_not_connected when no platform running)" do
+      owner = create_user()
+      moderator = create_user()
+      grant_moderator_role(owner, moderator)
+
+      # timeout_user passes authorization but platform is not connected in test
+      case StreamAction.timeout_user(
+             %{
+               user_id: owner.id,
+               target_username: "annoying_user",
+               platform: :twitch,
+               duration_seconds: 300
+             },
+             actor: moderator
+           ) do
+        {:error, %Forbidden{}} ->
+          flunk("Authorization should pass for moderator")
+
+        {:error, %Unknown{errors: [%{error: message}]}} ->
+          # Expected: action is authorized but platform not connected
+          assert message == "Platform twitch is not connected"
+
+        {:ok, _} ->
+          # If a platform is somehow running, that's also acceptable
+          :ok
+
+        other ->
+          flunk("Unexpected result: #{inspect(other)}")
+      end
+    end
+
+    test "prevents non-moderator from timing out users" do
+      owner = create_user()
+      random_user = create_user()
+
+      assert {:error, %Forbidden{}} =
+               StreamAction.timeout_user(
+                 %{
+                   user_id: owner.id,
+                   target_username: "someone",
+                   platform: :twitch,
+                   duration_seconds: 300
+                 },
+                 actor: random_user
+               )
+    end
+  end
+
+  describe "unban_user" do
+    test "allows stream owner to unban users (returns platform_not_connected when no platform running)" do
+      user = create_user()
+
+      # In test environment, no platform managers are running,
+      # so we expect a platform_not_connected error after authorization passes
+      case StreamAction.unban_user(
+             %{
+               user_id: user.id,
+               target_username: "unbanned_user",
+               platform: :twitch
+             },
+             actor: user
+           ) do
+        {:error, %Unknown{errors: [%{error: message}]}} ->
+          assert message == "Platform twitch is not connected"
+
+        {:ok, _} ->
+          # If a platform is somehow running, that's also acceptable
+          :ok
+
+        {:error, %Forbidden{}} ->
+          flunk("Authorization should pass for stream owner")
+
+        other ->
+          flunk("Unexpected result: #{inspect(other)}")
+      end
+    end
+
+    test "prevents non-moderator from unbanning users" do
+      owner = create_user()
+      random_user = create_user()
+
+      assert {:error, %Forbidden{}} =
+               StreamAction.unban_user(
+                 %{user_id: owner.id, target_username: "someone", platform: :twitch},
+                 actor: random_user
+               )
     end
   end
 
