@@ -208,10 +208,7 @@ export function useUserChatMessages(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as ChatMessage[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -231,10 +228,7 @@ export function useUserStreamEvents(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as StreamEvent[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -256,10 +250,7 @@ export function useUserLivestreams(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as Livestream[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -279,10 +270,7 @@ export function useUserViewers(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as Viewer[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -324,10 +312,7 @@ export function useWidgetConfigs(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as WidgetConfig[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -364,10 +349,7 @@ export function useNotifications(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as Notification[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -379,10 +361,7 @@ export function useNotificationReads(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as NotificationRead[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -477,10 +456,7 @@ export function useUserRoles(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as UserRole[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -546,10 +522,7 @@ export function useStreamingAccounts(userId: () => string | undefined) {
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [] as StreamingAccount[];
-			return query.data ?? [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
