@@ -8,9 +8,12 @@
 #   - https://hub.docker.com/_/elixir/tags - for the build image
 #   - https://hub.docker.com/_/debian/tags - for the release image
 #
+# IMPORTANT: The runner image must use the same Debian version as the builder
+# to avoid glibc version mismatches. elixir:1.19.4-otp-28-slim uses Debian trixie.
+#
 ARG ELIXIR_VERSION=1.19.4
 ARG OTP_VERSION=28
-ARG DEBIAN_VERSION=bookworm-slim
+ARG DEBIAN_VERSION=trixie-slim
 
 ARG BUILDER_IMAGE="docker.io/elixir:${ELIXIR_VERSION}-otp-${OTP_VERSION}-slim"
 ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
@@ -42,6 +45,15 @@ RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
+# Remove duplicate Google.Protobuf modules from protox
+# Both protobuf and protox define these modules - we keep protobuf's versions
+# This must happen after deps.compile but before app compile
+# We need to: 1) remove BEAM files 2) edit .app file to remove module entries
+RUN rm -f _build/prod/lib/protox/ebin/'Elixir.Google.Protobuf.'*.beam && \
+    sed -i "s/'Elixir.Google.Protobuf.[^']*',//g" _build/prod/lib/protox/ebin/protox.app && \
+    echo "Checking .app file for Google.Protobuf modules after edit:" && \
+    (cat _build/prod/lib/protox/ebin/protox.app | grep -o "'Elixir.Google.Protobuf[^']*'" | head -5 || echo "None found - success!")
+
 COPY priv priv
 COPY lib lib
 
@@ -58,7 +70,7 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE} AS final
 
-RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 ca-certificates \
+RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses6 ca-certificates \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale

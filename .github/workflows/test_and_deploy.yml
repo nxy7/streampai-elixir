@@ -245,7 +245,7 @@ jobs:
             export SECRET_KEY="${{ secrets.SECRET_KEY }}"
             export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
             export TOKEN_SIGNING_SECRET="${{ secrets.TOKEN_SIGNING_SECRET }}"
-            export PHX_HOST="streampai.com"
+            export PHX_HOST="api.streampai.com"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull ghcr.io/${{ github.repository }}:latest
