@@ -26,12 +26,12 @@ import {
 	emptyNotificationReadsCollection,
 	emptyNotificationsCollection,
 	emptyStreamingAccountsCollection,
+	emptyUserPreferencesCollection,
 	emptyUserRolesCollection,
 	emptyWidgetConfigsCollection,
 	globalNotificationsCollection,
 	livestreamsCollection,
 	streamEventsCollection,
-	userPreferencesCollection,
 	viewersCollection,
 } from "./electric";
 import { sortByInsertedAt } from "./formatters";
@@ -139,10 +139,6 @@ export function useRecentEvents(limit: number = 20) {
 	return createMemo(() => sortByInsertedAt(query.data || []).slice(0, limit));
 }
 
-export function useUserPreferences() {
-	return useLiveQuery(() => userPreferencesCollection);
-}
-
 // Cache for user-scoped preferences collection (uses IndexedDB persistence)
 const getUserPreferencesCollection = createCollectionCache(
 	createUserPreferencesCollection,
@@ -151,7 +147,7 @@ const getUserPreferencesCollection = createCollectionCache(
 export function useUserPreferencesForUser(userId: () => string | undefined) {
 	const query = useLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return userPreferencesCollection;
+		if (!currentId) return emptyUserPreferencesCollection;
 		return getUserPreferencesCollection(currentId);
 	});
 

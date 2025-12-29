@@ -216,16 +216,6 @@ export const viewersCollection = createCollection(
 	}),
 );
 
-export const userPreferencesCollection = createCollection(
-	electricCollectionOptions<UserPreferences>({
-		id: "user_preferences",
-		shapeOptions: {
-			url: `${SHAPES_URL}/user_preferences`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export function createUserPreferencesCollection(userId: string) {
 	return createCollection(
 		electricCollectionOptions<UserPreferences>({
@@ -338,6 +328,16 @@ export function getAdminUsersCollection() {
 }
 
 // Empty placeholder collections for fallback when userId is undefined
+export const emptyUserPreferencesCollection = createCollection(
+	electricCollectionOptions<UserPreferences>({
+		id: "empty_user_preferences",
+		shapeOptions: {
+			url: `${SHAPES_URL}/user_preferences/_empty`,
+		},
+		getKey: (item) => item.id,
+	}),
+);
+
 export const emptyWidgetConfigsCollection = createCollection(
 	electricCollectionOptions<WidgetConfig>({
 		id: "empty_widget_configs",

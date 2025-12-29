@@ -63,6 +63,12 @@ defmodule StreampaiWeb.SyncController do
     sync_render(conn, params, StreamViewer)
   end
 
+  def user_preferences(conn, %{"user_id" => "_empty"} = params) do
+    # Return empty result for placeholder requests (no logged in user)
+    query = from(u in User, where: false, select: map(u, @user_sync_columns))
+    sync_render(conn, params, query)
+  end
+
   def user_preferences(conn, %{"user_id" => user_id} = params) when is_binary(user_id) do
     {:ok, uuid} = Ecto.UUID.cast(user_id)
     query = from(u in User, where: u.id == ^uuid, select: map(u, @user_sync_columns))
