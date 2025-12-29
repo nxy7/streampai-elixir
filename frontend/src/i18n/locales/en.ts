@@ -127,7 +127,7 @@ export const dict = {
 		streamTitlePlaceholder: "Enter your stream title...",
 		streamDescriptionPlaceholder: "Describe your stream...",
 		addTagPlaceholder: "Add a tag...",
-		searchByNameOrMessage: "Search by name or message...",
+		searchByNameOrMessage: "Search (user: message: platform:)...",
 		sendMessageToChat: "Send a message to chat...",
 		timerLabelPlaceholder: "e.g., Social Links, Discord, etc.",
 		timerMessagePlaceholder: "Message to send at each interval...",

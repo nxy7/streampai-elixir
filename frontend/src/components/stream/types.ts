@@ -294,6 +294,111 @@ export interface TimerActionCallbacks {
 }
 
 // =============================================================================
+// Smart Filter Types and Parsing
+// =============================================================================
+
+// Available smart filter prefixes
+export const SMART_FILTER_PREFIXES = [
+	"user:",
+	"message:",
+	"platform:",
+] as const;
+export type SmartFilterPrefix = (typeof SMART_FILTER_PREFIXES)[number];
+
+// Parsed filter result
+export interface ParsedFilters {
+	user: string[];
+	message: string[];
+	platform: string[];
+	freeText: string[];
+}
+
+/**
+ * Parse a search query into smart filters.
+ *
+ * Supports:
+ * - `user:` - Match only usernames
+ * - `message:` - Match only message content
+ * - `platform:` - Match by platform
+ * - Free text (no prefix) - Searches both username and message
+ *
+ * Multiple words after a filter prefix are captured until the next filter prefix.
+ *
+ * Examples:
+ * - "user:ninja" -> { user: ["ninja"], message: [], platform: [], freeText: [] }
+ * - "user:ninja platform:twitch" -> { user: ["ninja"], message: [], platform: ["twitch"], freeText: [] }
+ * - "hello world" -> { user: [], message: [], platform: [], freeText: ["hello world"] }
+ * - "user:john doe message:hello" -> { user: ["john doe"], message: ["hello"], platform: [], freeText: [] }
+ */
+export function parseSmartFilters(query: string): ParsedFilters {
+	const result: ParsedFilters = {
+		user: [],
+		message: [],
+		platform: [],
+		freeText: [],
+	};
+
+	if (!query.trim()) {
+		return result;
+	}
+
+	// Pattern to find filter prefixes with their content
+	// Captures: prefix (user:|message:|platform:) and content until next prefix or end
+	const filterPattern =
+		/\b(user:|message:|platform:)((?:(?!(?:user:|message:|platform:)).)*)/gi;
+
+	// First pass: find all matches and their positions
+	const matches: { prefix: string; content: string; start: number }[] = [];
+	const allMatches = query.matchAll(filterPattern);
+
+	for (const match of allMatches) {
+		matches.push({
+			prefix: match[1].toLowerCase(),
+			content: match[2].trim(),
+			start: match.index ?? 0,
+		});
+	}
+
+	// Extract free text (text before first filter or between filters if any)
+	if (matches.length === 0) {
+		// No filters found, everything is free text
+		const trimmed = query.trim();
+		if (trimmed) {
+			result.freeText.push(trimmed);
+		}
+	} else {
+		// Check for free text before the first filter
+		const firstFilterStart = matches[0].start;
+		if (firstFilterStart > 0) {
+			const freeTextBefore = query.substring(0, firstFilterStart).trim();
+			if (freeTextBefore) {
+				result.freeText.push(freeTextBefore);
+			}
+		}
+
+		// Process each matched filter
+		for (const m of matches) {
+			const content = m.content;
+			if (!content) continue;
+
+			switch (m.prefix) {
+				case "user:":
+					result.user.push(content.toLowerCase());
+					break;
+				case "message:":
+					result.message.push(content.toLowerCase());
+					break;
+				case "platform:":
+					result.platform.push(content.toLowerCase());
+					break;
+			}
+		}
+	}
+
+	return result;
+}
+
+// =============================================================================
 // Helper Functions
 // =============================================================================
 
