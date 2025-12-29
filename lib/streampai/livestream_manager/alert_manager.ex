@@ -2,19 +2,24 @@ defmodule Streampai.LivestreamManager.AlertManager do
   @moduledoc """
   Processes and manages alerts for a user's livestream.
   Receives events from EventBroadcaster and formats them for alertbox widgets.
+  Uses Phoenix.Sync.Shape to sync widget configuration in real-time.
   """
   use GenServer
+
+  import Ecto.Query
+
+  alias Phoenix.Sync.Shape
+  alias Streampai.Accounts.WidgetConfig
 
   require Logger
 
   defstruct [
     :user_id,
-    # Queue of pending alerts
     :alert_queue,
-    # Currently displayed alert
     :current_alert,
-    # User's alert configuration
-    :alert_settings
+    :alert_settings,
+    :config_shape_ref,
+    :config_shape_pid
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -23,53 +28,58 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def init(user_id) do
-    # Subscribe to events for this user
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
+
+    config_query =
+      from(wc in WidgetConfig,
+        where: wc.user_id == ^user_id and wc.type == ^:alertbox_widget
+      )
+
+    {shape_pid, shape_ref} =
+      case Shape.start_link(config_query) do
+        {:ok, pid} ->
+          {pid, Shape.subscribe(pid)}
+
+        {:error, reason} ->
+          Logger.warning("AlertManager failed to start shape for user #{user_id}: #{inspect(reason)}")
+
+          {nil, nil}
+      end
 
     state = %__MODULE__{
       user_id: user_id,
       alert_queue: :queue.new(),
       current_alert: nil,
-      alert_settings: load_alert_settings(user_id)
+      alert_settings: load_alert_settings(user_id),
+      config_shape_ref: shape_ref,
+      config_shape_pid: shape_pid
     }
 
     Logger.info("AlertManager started for user #{user_id}")
     {:ok, state}
   end
 
-  # Client API
-
-  @doc """
-  Gets the current alert being displayed.
-  """
+  @doc "Gets the current alert being displayed."
   def get_current_alert(server) do
     GenServer.call(server, :get_current_alert)
   end
 
-  @doc """
-  Updates alert settings for the user.
-  """
+  @doc "Updates alert settings for the user."
   def update_alert_settings(server, settings) do
     GenServer.cast(server, {:update_alert_settings, settings})
   end
 
-  @doc """
-  Manually triggers an alert (for testing purposes).
-  """
+  @doc "Manually triggers an alert (for testing purposes)."
   def trigger_test_alert(server, alert_type) do
     GenServer.cast(server, {:trigger_test_alert, alert_type})
   end
 
-  # Server callbacks
-
   @impl true
   def handle_info({:stream_event, event}, state) do
-    # Process stream events that should become alerts
     if should_create_alert?(event, state.alert_settings) do
       alert = create_alert_from_event(event, state.alert_settings)
       state = enqueue_alert(state, alert)
 
-      # If no alert is currently displayed, process immediately
       new_state =
         if state.current_alert == nil do
           process_next_alert(state)
@@ -85,9 +95,35 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def handle_info(:alert_finished, state) do
-    # Current alert finished, process next one
     state = %{state | current_alert: nil}
     state = process_next_alert(state)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:sync, ref, {operation, {_key, widget_config}}}, state)
+      when operation in [:insert, :update] and ref == state.config_shape_ref do
+    new_settings = extract_alert_settings(widget_config.config)
+    Logger.debug("AlertManager received config sync update for user #{state.user_id}")
+    {:noreply, %{state | alert_settings: new_settings}}
+  end
+
+  @impl true
+  def handle_info({:sync, ref, {:delete, _data}}, state) when ref == state.config_shape_ref do
+    Logger.debug("AlertManager widget config deleted for user #{state.user_id}, resetting to defaults")
+
+    {:noreply, %{state | alert_settings: default_alert_settings()}}
+  end
+
+  @impl true
+  def handle_info({:sync, ref, control}, state)
+      when ref == state.config_shape_ref and control in [:up_to_date, :must_refetch] do
+    Logger.debug("AlertManager sync control: #{control} for user #{state.user_id}")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(_msg, state) do
     {:noreply, state}
   end
 
@@ -98,7 +134,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def handle_cast({:update_alert_settings, settings}, state) do
-    # TODO: Validate and save settings to database
     state = %{state | alert_settings: Map.merge(state.alert_settings, settings)}
     {:noreply, state}
   end
@@ -118,15 +153,54 @@ defmodule Streampai.LivestreamManager.AlertManager do
     {:noreply, new_state}
   end
 
-  # Helper functions
+  @impl true
+  def terminate(_reason, state) do
+    if state.config_shape_pid && Process.alive?(state.config_shape_pid) do
+      GenServer.stop(state.config_shape_pid, :normal, 5000)
+    end
+
+    :ok
+  end
 
   defp via_tuple(user_id) do
     {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_manager, user_id}}}
   end
 
-  defp load_alert_settings(_user_id) do
-    # TODO: Load from WidgetConfig for alertbox_widget
-    # For now, return default settings
+  defp load_alert_settings(user_id) do
+    case WidgetConfig.get_by_user_and_type(
+           %{user_id: user_id, type: :alertbox_widget},
+           actor: %{id: user_id}
+         ) do
+      {:ok, %{config: config}} ->
+        extract_alert_settings(config)
+
+      _ ->
+        default_alert_settings()
+    end
+  end
+
+  defp extract_alert_settings(config) when is_map(config) do
+    defaults = default_alert_settings()
+
+    %{
+      donations_enabled: get_config_value(config, :donations_enabled, defaults.donations_enabled),
+      donations_min_amount: get_config_value(config, :donations_min_amount, defaults.donations_min_amount),
+      follows_enabled: get_config_value(config, :follows_enabled, defaults.follows_enabled),
+      subscriptions_enabled: get_config_value(config, :subscriptions_enabled, defaults.subscriptions_enabled),
+      raids_enabled: get_config_value(config, :raids_enabled, defaults.raids_enabled),
+      raids_min_viewers: get_config_value(config, :raids_min_viewers, defaults.raids_min_viewers),
+      alert_duration: get_config_value(config, :display_duration, defaults.alert_duration)
+    }
+  end
+
+  defp get_config_value(config, key, default) when is_atom(key) do
+    case Map.get(config, key) do
+      nil -> Map.get(config, Atom.to_string(key), default)
+      value -> value
+    end
+  end
+
+  defp default_alert_settings do
     %{
       donations_enabled: true,
       donations_min_amount: 1.0,
@@ -141,8 +215,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
   defp should_create_alert?(event, settings) do
     case event.type do
       :donation ->
-        settings.donations_enabled and
-          event.amount >= settings.donations_min_amount
+        settings.donations_enabled and event.amount >= settings.donations_min_amount
 
       :follow ->
         settings.follows_enabled
@@ -151,8 +224,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
         settings.subscriptions_enabled
 
       :raid ->
-        settings.raids_enabled and
-          event.viewer_count >= settings.raids_min_viewers
+        settings.raids_enabled and event.viewer_count >= settings.raids_min_viewers
 
       _ ->
         false
@@ -253,14 +325,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
   defp process_next_alert(state) do
     case :queue.out(state.alert_queue) do
       {{:value, alert}, remaining_queue} ->
-        # Send alert to alertbox widget
         Phoenix.PubSub.broadcast(
           Streampai.PubSub,
           "widget_events:#{state.user_id}:alertbox",
           {:widget_event, alert}
         )
 
-        # Schedule alert finish
         Process.send_after(self(), :alert_finished, alert.display_time * 1000)
 
         %{state | current_alert: alert, alert_queue: remaining_queue}

@@ -33,7 +33,14 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
       sound_volume: 80,
       show_amount: true,
       show_message: true,
-      font_size: "medium"
+      font_size: "medium",
+      # Alert filtering settings (used by AlertManager)
+      donations_enabled: true,
+      donations_min_amount: 1.0,
+      follows_enabled: true,
+      subscriptions_enabled: true,
+      raids_enabled: true,
+      raids_min_viewers: 1
     },
     viewer_count_widget: %{
       label: "viewers",
