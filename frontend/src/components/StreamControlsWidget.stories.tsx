@@ -880,27 +880,27 @@ function InteractiveHighlightWrapper() {
 	};
 
 	return (
-		<div class="flex flex-col gap-4">
-			<div class="rounded bg-blue-50 p-3 text-blue-800 text-sm">
-				<strong>Instructions:</strong> Hover over any chat message and click the
-				star (☆) button to highlight it. The highlighted message will turn
-				purple and become sticky. Click the filled star (★) to unhighlight.
-				<br />
-				<br />
-				<strong>Current highlighted:</strong> {highlightedMessageId() || "None"}
+		<div class="flex h-full flex-col gap-2 overflow-hidden">
+			<div class="shrink-0 rounded bg-blue-50 p-2 text-blue-800 text-xs">
+				<strong>Instructions:</strong> Hover over chat messages and click ☆ to
+				highlight. Click ★ to unhighlight.
+				<strong class="ml-2">Highlighted:</strong>{" "}
+				{highlightedMessageId() || "None"}
 			</div>
-			<StreamControlsWidget
-				activities={activities()}
-				connectedPlatforms={["twitch", "youtube", "kick"]}
-				moderationCallbacks={highlightCallbacks}
-				onSendMessage={(msg, platforms) =>
-					console.log(`Send to ${platforms}: ${msg}`)
-				}
-				phase="live"
-				stickyDuration={120000}
-				streamDuration={3600}
-				viewerCount={500}
-			/>
+			<div class="min-h-0 flex-1">
+				<StreamControlsWidget
+					activities={activities()}
+					connectedPlatforms={["twitch", "youtube", "kick"]}
+					moderationCallbacks={highlightCallbacks}
+					onSendMessage={(msg, platforms) =>
+						console.log(`Send to ${platforms}: ${msg}`)
+					}
+					phase="live"
+					stickyDuration={120000}
+					streamDuration={3600}
+					viewerCount={500}
+				/>
+			</div>
 		</div>
 	);
 }
