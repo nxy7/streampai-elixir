@@ -19,6 +19,7 @@ import {
 } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
 import { badge, button, card, input, text } from "~/styles/design-system";
+import { type ParsedFilters, parseSmartFilters } from "./stream/types";
 
 // Maximum number of activities to keep in memory for performance
 const MAX_ACTIVITIES = 200;
@@ -1477,20 +1478,61 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
-	// Filter activities by type and search text
-	const matchesFilters = (item: ActivityItem): boolean => {
+	// Parse smart filters from search text (memoized to avoid re-parsing per item)
+	const parsedSearchFilters = createMemo(() => parseSmartFilters(searchText()));
+
+	// Filter activities by type and search text (with smart filter support)
+	const matchesFilters = (
+		item: ActivityItem,
+		filters: ParsedFilters,
+	): boolean => {
 		// Check type filter
 		if (!selectedTypeFilters().has(item.type)) {
 			return false;
 		}
 
-		// Check text search
-		const query = searchText().toLowerCase().trim();
-		if (query) {
-			const usernameMatch = item.username.toLowerCase().includes(query);
-			const messageMatch = item.message?.toLowerCase().includes(query) ?? false;
-			if (!usernameMatch && !messageMatch) {
-				return false;
+		// Check text search with smart filter support
+		const hasAnyFilter =
+			filters.user.length > 0 ||
+			filters.message.length > 0 ||
+			filters.platform.length > 0 ||
+			filters.freeText.length > 0;
+
+		if (hasAnyFilter) {
+			// Check user filters (any user filter must match)
+			if (filters.user.length > 0) {
+				const usernameMatch = filters.user.some((u) =>
+					item.username.toLowerCase().includes(u),
+				);
+				if (!usernameMatch) return false;
+			}
+
+			// Check message filters (any message filter must match)
+			if (filters.message.length > 0) {
+				const messageMatch = filters.message.some(
+					(m) => item.message?.toLowerCase().includes(m) ?? false,
+				);
+				if (!messageMatch) return false;
+			}
+
+			// Check platform filters (any platform filter must match)
+			if (filters.platform.length > 0) {
+				const platformMatch = filters.platform.some((p) =>
+					item.platform.toLowerCase().includes(p),
+				);
+				if (!platformMatch) return false;
+			}
+
+			// Check free text (searches both username and message)
+			if (filters.freeText.length > 0) {
+				const freeTextMatch = filters.freeText.some((text) => {
+					const lowerText = text.toLowerCase();
+					const usernameMatch = item.username.toLowerCase().includes(lowerText);
+					const messageMatch =
+						item.message?.toLowerCase().includes(lowerText) ?? false;
+					return usernameMatch || messageMatch;
+				});
+				if (!freeTextMatch) return false;
 			}
 		}
 
@@ -1501,7 +1543,10 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	// With flex-direction: column-reverse, the container naturally anchors to bottom
 	// Items are sorted oldest-first so newest appear at visual bottom
 	const sortedActivities = createMemo(() => {
-		const filtered = props.activities.filter(matchesFilters);
+		const filters = parsedSearchFilters();
+		const filtered = props.activities.filter((item) =>
+			matchesFilters(item, filters),
+		);
 		const sorted = filtered.sort((a, b) => {
 			const timeA =
 				a.timestamp instanceof Date
@@ -1523,6 +1568,27 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 			selectedTypeFilters().size === ALL_ACTIVITY_TYPES.length;
 		const hasSearchText = searchText().trim().length > 0;
 		return !allTypesSelected || hasSearchText;
+	});
+
+	// Format active smart filters for display
+	const formatActiveFilters = createMemo(() => {
+		const filters = parsedSearchFilters();
+		const parts: string[] = [];
+
+		if (filters.user.length > 0) {
+			parts.push(`user: ${filters.user.join(", ")}`);
+		}
+		if (filters.message.length > 0) {
+			parts.push(`message: ${filters.message.join(", ")}`);
+		}
+		if (filters.platform.length > 0) {
+			parts.push(`platform: ${filters.platform.join(", ")}`);
+		}
+		if (filters.freeText.length > 0) {
+			parts.push(`"${filters.freeText.join(", ")}"`);
+		}
+
+		return parts.join(" + ");
 	});
 
 	// Toggle a type filter
@@ -1869,7 +1935,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 									selectedTypeFilters().size === ALL_ACTIVITY_TYPES.length
 								}>
 								<span class="font-medium text-gray-700">
-									matching "{searchText().trim()}"
+									matching {formatActiveFilters()}
 								</span>
 							</Show>
 							<Show
@@ -1879,7 +1945,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 								}>
 								<span class="text-gray-400">•</span>
 								<span class="font-medium text-gray-700">
-									matching "{searchText().trim()}"
+									matching {formatActiveFilters()}
 								</span>
 							</Show>
 							<span class="text-gray-400">
