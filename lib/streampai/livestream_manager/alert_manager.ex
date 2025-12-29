@@ -2,8 +2,14 @@ defmodule Streampai.LivestreamManager.AlertManager do
   @moduledoc """
   Processes and manages alerts for a user's livestream.
   Receives events from EventBroadcaster and formats them for alertbox widgets.
+  Uses Phoenix.Sync.Shape to sync widget configuration in real-time.
   """
   use GenServer
+
+  import Ecto.Query
+
+  alias Phoenix.Sync.Shape
+  alias Streampai.Accounts.WidgetConfig
 
   require Logger
 
@@ -14,7 +20,11 @@ defmodule Streampai.LivestreamManager.AlertManager do
     # Currently displayed alert
     :current_alert,
     # User's alert configuration
-    :alert_settings
+    :alert_settings,
+    # Reference to the config shape subscription
+    :config_shape_ref,
+    # PID of the config shape process
+    :config_shape_pid
   ]
 
   def start_link(user_id) when is_binary(user_id) do
@@ -26,17 +36,23 @@ defmodule Streampai.LivestreamManager.AlertManager do
     # Subscribe to events for this user
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
 
-    # Subscribe to widget config changes for real-time updates
-    Phoenix.PubSub.subscribe(
-      Streampai.PubSub,
-      "widget_config:alertbox_widget:#{user_id}"
-    )
+    # Start a Phoenix.Sync.Shape to sync widget config in real-time
+    # This uses Electric SQL's sync mechanism for efficient updates
+    config_query =
+      from(wc in WidgetConfig,
+        where: wc.user_id == ^user_id and wc.type == ^:alertbox_widget
+      )
+
+    {:ok, shape_pid} = Shape.start_link(config_query)
+    shape_ref = Shape.subscribe(shape_pid)
 
     state = %__MODULE__{
       user_id: user_id,
       alert_queue: :queue.new(),
       current_alert: nil,
-      alert_settings: load_alert_settings(user_id)
+      alert_settings: load_alert_settings(user_id),
+      config_shape_ref: shape_ref,
+      config_shape_pid: shape_pid
     }
 
     Logger.info("AlertManager started for user #{user_id}")
@@ -98,11 +114,26 @@ defmodule Streampai.LivestreamManager.AlertManager do
   end
 
   @impl true
-  def handle_info(%{config: config, type: :alertbox_widget}, state) do
-    # Update alert settings when widget config changes
-    new_settings = extract_alert_settings(config)
-    Logger.debug("AlertManager received config update for user #{state.user_id}")
+  def handle_info({:sync, ref, {operation, {_key, widget_config}}}, state)
+      when operation in [:insert, :update] and ref == state.config_shape_ref do
+    # Update alert settings when widget config changes via Phoenix.Sync.Shape
+    new_settings = extract_alert_settings(widget_config.config)
+    Logger.debug("AlertManager received config sync update for user #{state.user_id}")
     {:noreply, %{state | alert_settings: new_settings}}
+  end
+
+  @impl true
+  def handle_info({:sync, ref, {_operation, _data}}, state) when ref == state.config_shape_ref do
+    # Handle other sync operations (delete, etc.) - reset to defaults
+    {:noreply, %{state | alert_settings: default_alert_settings()}}
+  end
+
+  @impl true
+  def handle_info({:sync, ref, control}, state)
+      when ref == state.config_shape_ref and control in [:up_to_date, :must_refetch] do
+    # Handle sync control messages
+    Logger.debug("AlertManager sync control: #{control} for user #{state.user_id}")
+    {:noreply, state}
   end
 
   @impl true
@@ -136,6 +167,17 @@ defmodule Streampai.LivestreamManager.AlertManager do
     {:noreply, new_state}
   end
 
+  @impl true
+  def terminate(_reason, state) do
+    # Clean up the shape process when AlertManager stops
+    if state.config_shape_pid && Process.alive?(state.config_shape_pid) do
+      Shape.unsubscribe(state.config_shape_pid)
+      GenServer.stop(state.config_shape_pid)
+    end
+
+    :ok
+  end
+
   # Helper functions
 
   defp via_tuple(user_id) do
@@ -143,7 +185,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
   end
 
   defp load_alert_settings(user_id) do
-    case Streampai.Accounts.WidgetConfig.get_by_user_and_type(
+    case WidgetConfig.get_by_user_and_type(
            %{user_id: user_id, type: :alertbox_widget},
            actor: %{id: user_id}
          ) do
