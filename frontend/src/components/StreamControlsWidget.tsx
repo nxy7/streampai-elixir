@@ -1657,6 +1657,36 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		}
 	};
 
+	// Toggle a user filter - add "user:username" if not present, remove if present
+	const toggleUserFilter = (username: string) => {
+		const currentText = searchText();
+		const userFilter = `user:${username}`;
+		const userFilterLower = userFilter.toLowerCase();
+
+		// Check if this user filter already exists (case-insensitive)
+		const filterPattern = /\buser:(\S+)/gi;
+		const existingFilters: string[] = [];
+		for (const match of currentText.matchAll(filterPattern)) {
+			existingFilters.push(match[0].toLowerCase());
+		}
+
+		if (existingFilters.includes(userFilterLower)) {
+			// Remove the filter (case-insensitive)
+			const removePattern = new RegExp(
+				`\\buser:${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`,
+				"gi",
+			);
+			const newText = currentText.replace(removePattern, "").trim();
+			setSearchText(newText);
+		} else {
+			// Add the filter
+			const newText = currentText.trim()
+				? `${currentText.trim()} ${userFilter}`
+				: userFilter;
+			setSearchText(newText);
+		}
+	};
+
 	// Track sticky items based on time (max 3 most recent, 2 minute default duration)
 	const MAX_STICKY_ITEMS = 3;
 
