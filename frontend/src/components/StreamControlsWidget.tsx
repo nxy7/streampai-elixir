@@ -1312,7 +1312,19 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	const [searchText, setSearchText] = createSignal("");
 	const [showFilters, setShowFilters] = createSignal(false);
 	const [viewMode, setViewMode] = createSignal<LiveViewMode>("events");
+	// Filter chips state - stores completed filter chips
+	const [filterChips, setFilterChips] = createSignal<
+		Array<{ type: "user" | "message" | "platform"; value: string }>
+	>([]);
+	// Current input text (excluding completed chips)
+	const [inputText, setInputText] = createSignal("");
+	// Track if we're currently editing a filter prefix
+	const [editingPrefix, setEditingPrefix] = createSignal<
+		"user:" | "message:" | "platform:" | null
+	>(null);
 	let scrollContainerRef: HTMLDivElement | undefined;
+	let filterPanelRef: HTMLDivElement | undefined;
+	let searchInputRef: HTMLInputElement | undefined;
 
 	// Poll creation form state
 	const [pollFormValues, setPollFormValues] = createSignal<PollCreationValues>({
@@ -1625,36 +1637,23 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	// Clear all filters
 	const clearFilters = () => {
 		setSelectedTypeFilters(new Set(ALL_ACTIVITY_TYPES));
-		setSearchText("");
+		setFilterChips([]);
+		setInputText("");
+		setEditingPrefix(null);
 	};
 
-	// Toggle a user filter - add "user:username" if not present, remove if present
+	// Toggle a user filter - add chip if not present, remove if present
 	const toggleUserFilter = (username: string) => {
-		const currentText = searchText();
-		const userFilter = `user:${username}`;
-		const userFilterLower = userFilter.toLowerCase();
-
-		// Check if this user filter already exists (case-insensitive)
-		const filterPattern = /\buser:(\S+)/gi;
-		const existingFilters: string[] = [];
-		for (const match of currentText.matchAll(filterPattern)) {
-			existingFilters.push(match[0].toLowerCase());
-		}
-
-		if (existingFilters.includes(userFilterLower)) {
-			// Remove the filter (case-insensitive)
-			const removePattern = new RegExp(
-				`\\buser:${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`,
-				"gi",
-			);
-			const newText = currentText.replace(removePattern, "").trim();
-			setSearchText(newText);
+		const existingIndex = filterChips().findIndex(
+			(c) =>
+				c.type === "user" && c.value.toLowerCase() === username.toLowerCase(),
+		);
+		if (existingIndex >= 0) {
+			// Remove the existing chip
+			removeChip(existingIndex);
 		} else {
-			// Add the filter
-			const newText = currentText.trim()
-				? `${currentText.trim()} ${userFilter}`
-				: userFilter;
-			setSearchText(newText);
+			// Add a new chip
+			setFilterChips((chips) => [...chips, { type: "user", value: username }]);
 		}
 	};
 
@@ -1704,6 +1703,112 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		const interval = setInterval(updateStickyItems, 10000);
 		onCleanup(() => clearInterval(interval));
 	});
+
+	// Click outside handler for filter panel
+	onMount(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				showFilters() &&
+				filterPanelRef &&
+				!filterPanelRef.contains(e.target as Node)
+			) {
+				setShowFilters(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		onCleanup(() =>
+			document.removeEventListener("mousedown", handleClickOutside),
+		);
+	});
+
+	// Combine filter chips and input text into searchText for filtering
+	createEffect(() => {
+		const chips = filterChips();
+		const text = inputText();
+		const prefix = editingPrefix();
+
+		// Build search query from chips
+		const chipParts = chips.map((chip) => `${chip.type}:${chip.value}`);
+		// Add current input (might include an incomplete filter prefix)
+		const allParts = [...chipParts];
+		if (prefix && text) {
+			allParts.push(`${prefix}${text}`);
+		} else if (text) {
+			allParts.push(text);
+		}
+
+		setSearchText(allParts.join(" "));
+	});
+
+	// Refocus input when editingPrefix changes (input element switches between modes)
+	createEffect(() => {
+		// Track the editingPrefix value to trigger effect on change
+		editingPrefix();
+		// Use queueMicrotask to ensure the new input element is mounted
+		queueMicrotask(() => {
+			if (searchInputRef) {
+				searchInputRef.focus();
+			}
+		});
+	});
+
+	// Handle input changes - detect filter prefixes
+	const handleInputChange = (value: string) => {
+		// If we're already editing a prefix, just update the input text
+		// (don't re-process for prefixes)
+		if (editingPrefix()) {
+			setInputText(value);
+			return;
+		}
+
+		const prefixes = ["user:", "message:", "platform:"] as const;
+
+		// Check if input starts with a prefix
+		for (const prefix of prefixes) {
+			if (value.toLowerCase().startsWith(prefix)) {
+				setEditingPrefix(prefix);
+				setInputText(value.slice(prefix.length));
+				return;
+			}
+		}
+
+		// No prefix - just free text
+		setInputText(value);
+	};
+
+	// Handle keydown in search input
+	const handleSearchKeyDown = (e: KeyboardEvent) => {
+		const prefix = editingPrefix();
+		const text = inputText().trim();
+
+		if (e.key === "Enter" && prefix && text) {
+			// Create a chip from the current filter
+			e.preventDefault();
+			const type = prefix.replace(":", "") as "user" | "message" | "platform";
+			setFilterChips((chips) => [...chips, { type, value: text }]);
+			setInputText("");
+			setEditingPrefix(null);
+		} else if (e.key === "Escape" && prefix) {
+			// Cancel the current filter prefix
+			e.preventDefault();
+			setInputText("");
+			setEditingPrefix(null);
+		} else if (
+			e.key === "Backspace" &&
+			!prefix &&
+			!inputText() &&
+			filterChips().length > 0
+		) {
+			// Remove the last chip when backspacing on empty input
+			e.preventDefault();
+			setFilterChips((chips) => chips.slice(0, -1));
+		}
+	};
+
+	// Remove a specific chip
+	const removeChip = (index: number) => {
+		setFilterChips((chips) => chips.filter((_, i) => i !== index));
+	};
 
 	// Create a map of sticky item id -> index for stacking offset calculation
 	// Items are ordered by time (oldest first) to maintain visual consistency
@@ -1888,23 +1993,93 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 							<span class="text-[10px]">{showFilters() ? "^" : "v"}</span>
 						</button>
 
-						{/* Quick search input - always visible */}
-						<div class="relative flex-1">
-							<input
-								class="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 pr-6 text-xs placeholder:text-gray-400 focus:border-purple-300 focus:bg-white focus:outline-none"
-								data-testid="search-input"
-								onInput={(e) => setSearchText(e.currentTarget.value)}
-								placeholder="Search by name or message..."
-								type="text"
-								value={searchText()}
-							/>
+						{/* Quick search input with chips - always visible */}
+						{/* biome-ignore lint/a11y/useKeyWithClickEvents: focus delegation to input */}
+						{/* biome-ignore lint/a11y/noStaticElementInteractions: focus delegation to input */}
+						<div
+							class="relative flex flex-1 flex-wrap items-center gap-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 focus-within:border-purple-300 focus-within:bg-white"
+							onClick={() => searchInputRef?.focus()}>
+							{/* Render filter chips */}
+							<For each={filterChips()}>
+								{(chip, index) => (
+									<span
+										class={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs ${
+											chip.type === "user"
+												? "bg-blue-100 text-blue-700"
+												: chip.type === "platform"
+													? "bg-purple-100 text-purple-700"
+													: "bg-green-100 text-green-700"
+										}`}
+										data-testid={`filter-chip-${chip.type}`}>
+										<span class="font-medium">{chip.type}:</span>
+										<span>{chip.value}</span>
+										<button
+											aria-label={`Remove ${chip.type} filter`}
+											class="ml-0.5 rounded-full hover:bg-black/10"
+											data-testid={`remove-chip-${index()}`}
+											onClick={(e) => {
+												e.stopPropagation();
+												removeChip(index());
+											}}
+											type="button">
+											×
+										</button>
+									</span>
+								)}
+							</For>
+							{/* Show editing prefix as partial chip with input inside */}
+							<Show
+								fallback={
+									<input
+										class="min-w-[100px] flex-1 border-none bg-transparent text-xs outline-none placeholder:text-gray-400"
+										data-testid="search-input"
+										onInput={(e) => handleInputChange(e.currentTarget.value)}
+										onKeyDown={handleSearchKeyDown}
+										placeholder={
+											filterChips().length > 0
+												? ""
+												: "Search or type user: platform: message:"
+										}
+										ref={searchInputRef}
+										type="text"
+										value={inputText()}
+									/>
+								}
+								when={editingPrefix()}>
+								<span
+									class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
+										editingPrefix() === "user:"
+											? "bg-blue-100 text-blue-700"
+											: editingPrefix() === "platform:"
+												? "bg-purple-100 text-purple-700"
+												: "bg-green-100 text-green-700"
+									}`}>
+									<span class="font-medium">{editingPrefix()}</span>
+									<input
+										class="ml-0.5 w-auto min-w-[60px] border-none bg-transparent text-xs outline-none"
+										data-testid="search-input"
+										onInput={(e) => handleInputChange(e.currentTarget.value)}
+										onKeyDown={handleSearchKeyDown}
+										ref={searchInputRef}
+										style={{
+											width: `${Math.max(60, inputText().length * 8)}px`,
+										}}
+										type="text"
+										value={inputText()}
+									/>
+								</span>
+							</Show>
 							<Show when={searchText()}>
 								<button
-									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-gray-400 text-xs hover:text-gray-600"
+									class="text-gray-400 text-xs hover:text-gray-600"
 									data-testid="clear-search"
-									onClick={() => setSearchText("")}
+									onClick={() => {
+										setFilterChips([]);
+										setInputText("");
+										setEditingPrefix(null);
+									}}
 									type="button">
-									x
+									×
 								</button>
 							</Show>
 						</div>
@@ -1912,7 +2087,9 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 					{/* Expandable filter panel - absolute positioned to prevent layout shift */}
 					<Show when={showFilters()}>
-						<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+						<div
+							class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+							ref={filterPanelRef}>
 							<div class="mb-1.5 flex items-center justify-between">
 								<span class="font-medium text-gray-600 text-xs">
 									Event Types
