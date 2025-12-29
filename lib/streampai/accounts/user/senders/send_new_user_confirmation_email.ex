@@ -12,7 +12,14 @@ defmodule Streampai.Accounts.User.Senders.SendNewUserConfirmationEmail do
     def send(_user, _token, _), do: :ok
   else
     def send(user, token, _) do
-      Streampai.Emails.send_new_user_confirmation_email(user, token)
+      # Skip confirmation email for OAuth users - they're already verified by the provider
+      # and their confirmed_at is set automatically during registration
+      if user.confirmed_at do
+        Logger.debug("Skipping confirmation email for already-confirmed user #{user.id}")
+        :ok
+      else
+        Streampai.Emails.send_new_user_confirmation_email(user, token)
+      end
     end
   end
 end

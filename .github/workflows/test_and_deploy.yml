@@ -236,6 +236,7 @@ jobs:
             export CLOUDFLARE_AUTH_EMAIL="${{ secrets.CLOUDFLARE_AUTH_EMAIL }}"
             export CLOUDFLARE_ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
             export ELEVENLABS_API_KEY="${{ secrets.ELEVENLABS_API_KEY }}"
+            export RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
             export S3_HOST="${{ secrets.S3_HOST }}"
             export S3_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY_ID }}"
             export S3_SECRET_ACCESS_KEY="${{ secrets.S3_SECRET_ACCESS_KEY }}"

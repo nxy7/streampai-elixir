@@ -135,7 +135,7 @@ config :spark,
 config :streampai, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10, donations: 5, media: 3, maintenance: 1, storage_cleanup: 2],
+  queues: [default: 10, donations: 5, media: 3, maintenance: 1, storage_cleanup: 2, emails: 5],
   repo: Streampai.Repo,
   plugins: [
     {Oban.Plugins.Cron,

@@ -244,6 +244,9 @@ if config_env() == :prod do
       "http://#{host}"
     ]
 
+  # Backend URL for email links (confirmation emails, password reset, etc.)
+  config :streampai, backend_url: "https://api.streampai.com"
+
   # Production session options for cross-subdomain cookies
   # Frontend is at streampai.com, API is at api.streampai.com
   # SameSite=None + Secure allows cross-origin requests with credentials
@@ -257,4 +260,13 @@ if config_env() == :prod do
       secure: true,
       domain: ".streampai.com"
     ]
+
+  # Production email configuration (optional)
+  # Currently OAuth users skip confirmation emails (already verified by provider)
+  # For password-based auth, set RESEND_API_KEY to enable email delivery:
+  if resend_api_key = System.get_env("RESEND_API_KEY") do
+    config :streampai, Streampai.Mailer,
+      adapter: Swoosh.Adapters.Resend,
+      api_key: resend_api_key
+  end
 end
