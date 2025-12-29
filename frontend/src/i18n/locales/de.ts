@@ -129,7 +129,7 @@ export const dict: Dictionary = {
 		streamTitlePlaceholder: "Titel deines Streams...",
 		streamDescriptionPlaceholder: "Beschreibe deinen Stream...",
 		addTagPlaceholder: "Tag hinzufügen...",
-		searchByNameOrMessage: "Nach Name oder Nachricht suchen...",
+		searchByNameOrMessage: "Suche (user: message: platform:)...",
 		sendMessageToChat: "Nachricht an den Chat senden...",
 		timerLabelPlaceholder: "z.B. Social Media, Discord usw.",
 		timerMessagePlaceholder: "Nachricht für jedes Intervall...",
