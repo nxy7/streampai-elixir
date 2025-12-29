@@ -153,7 +153,7 @@ defmodule StreampaiWeb.Router do
     get "/chat_messages", SyncController, :chat_messages
     get "/livestreams", SyncController, :livestreams
     get "/viewers", SyncController, :viewers
-    get "/user_preferences", SyncController, :user_preferences
+    get "/user_preferences/:user_id", SyncController, :user_preferences
     get "/widget_configs/:user_id", SyncController, :widget_configs
     get "/notifications/:user_id", SyncController, :notifications
     get "/notification_reads/:user_id", SyncController, :notification_reads

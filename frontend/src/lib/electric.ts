@@ -231,10 +231,7 @@ export function createUserPreferencesCollection(userId: string) {
 		electricCollectionOptions<UserPreferences>({
 			id: `user_preferences_${userId}`,
 			shapeOptions: {
-				url: `${SHAPES_URL}/user_preferences`,
-				params: {
-					where: `id='${userId}'`,
-				},
+				url: `${SHAPES_URL}/user_preferences/${userId}`,
 			},
 			getKey: (item) => item.id,
 		}),
