@@ -359,6 +359,18 @@ export const dict: Dictionary = {
 		networkError: "Netzwerkfehler. Bitte überprüfe deine Verbindung.",
 	},
 
+	// 404 Page
+	notFound: {
+		title: "Hoppla! Seite nicht gefunden",
+		code: "404",
+		description: "Diese Seite macht wohl gerade eine Stream-Pause!",
+		suggestion:
+			"Die gesuchte Seite wurde möglicherweise verschoben, gelöscht oder hat nie existiert.",
+		homeButton: "Zur Startseite",
+		dashboardButton: "Zum Dashboard",
+		searchHint: "Oder such nach dem, was du brauchst",
+	},
+
 	// Landing page
 	landing: {
 		features: "Funktionen",

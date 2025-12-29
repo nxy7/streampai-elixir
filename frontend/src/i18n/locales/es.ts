@@ -361,6 +361,18 @@ export const dict: Dictionary = {
 		networkError: "Error de red. Verifica tu conexión.",
 	},
 
+	// 404 Page
+	notFound: {
+		title: "¡Ups! Página no encontrada",
+		code: "404",
+		description: "¡Parece que esta página se fue a un descanso de streaming!",
+		suggestion:
+			"La página que buscas pudo haber sido movida, eliminada o nunca existió.",
+		homeButton: "Volver al inicio",
+		dashboardButton: "Ir al panel",
+		searchHint: "O intenta buscar lo que necesitas",
+	},
+
 	// Landing page
 	landing: {
 		features: "Funciones",
