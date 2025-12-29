@@ -1,5 +1,7 @@
+import type { ReactiveMap } from "@solid-primitives/map";
+import type { Collection, CollectionStatus } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createMemo } from "solid-js";
+import { type Accessor, createMemo } from "solid-js";
 import {
 	type ChatMessage,
 	type Livestream,
@@ -29,6 +31,30 @@ import {
 	viewersCollection,
 } from "./electric";
 import { sortByInsertedAt } from "./formatters";
+
+/**
+ * A wrapper for useLiveQuery that properly handles optional collections.
+ * The runtime already supports undefined (returns disabled status), but TypeScript
+ * doesn't expose this in the collection accessor overload. This wrapper provides
+ * proper typing without using `any`.
+ */
+function useOptionalLiveQuery<T extends object>(
+	collectionFn: () => Collection<T, string | number> | undefined,
+): {
+	state: ReactiveMap<string | number, T>;
+	data: T[];
+	collection: Accessor<Collection<T, string | number> | null>;
+	status: Accessor<CollectionStatus | "disabled">;
+	isLoading: Accessor<boolean>;
+	isReady: Accessor<boolean>;
+	isIdle: Accessor<boolean>;
+	isError: Accessor<boolean>;
+	isCleanedUp: Accessor<boolean>;
+} {
+	// The runtime handles undefined - it returns disabled status and empty data.
+	// We just need to convince TypeScript this is valid.
+	return useLiveQuery(collectionFn as () => Collection<T, string | number>);
+}
 
 type CollectionFactory<T> = (userId: string) => T;
 
@@ -139,12 +165,11 @@ const getUserPreferencesCollection = createCollectionCache(
 );
 
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserPreferencesCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
@@ -152,7 +177,7 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 			const id = userId();
 			if (!id) return null;
 			const data = query.data || [];
-			return (data as UserPreferences[]).find((p) => p.id === id) || null;
+			return data.find((p) => p.id === id) || null;
 		}),
 	};
 }
@@ -171,18 +196,17 @@ const getUserScopedViewersCollection = createCollectionCache(
 );
 
 export function useUserChatMessages(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserScopedChatCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as ChatMessage[];
+			return query.data || [];
 		}),
 	};
 }
@@ -196,18 +220,17 @@ export function useRecentUserChatMessages(
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserScopedEventsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as StreamEvent[];
+			return query.data || [];
 		}),
 	};
 }
@@ -221,18 +244,17 @@ export function useRecentUserStreamEvents(
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserScopedLivestreamsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as Livestream[];
+			return query.data || [];
 		}),
 	};
 }
@@ -246,18 +268,17 @@ export function useRecentUserLivestreams(
 }
 
 export function useUserViewers(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserScopedViewersCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as Viewer[];
+			return query.data || [];
 		}),
 	};
 }
@@ -299,18 +320,17 @@ const getWidgetConfigsCollection = createCollectionCache(
 );
 
 export function useWidgetConfigs(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getWidgetConfigsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as WidgetConfig[];
+			return query.data || [];
 		}),
 	};
 }
@@ -341,35 +361,33 @@ const getNotificationReadsCollection = createCollectionCache(
 );
 
 export function useNotifications(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getNotificationsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as Notification[];
+			return query.data || [];
 		}),
 	};
 }
 
 export function useNotificationReads(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getNotificationReadsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as NotificationRead[];
+			return query.data || [];
 		}),
 	};
 }
@@ -465,18 +483,17 @@ export function useGlobalNotifications() {
 const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getUserRolesCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as UserRole[];
+			return query.data || [];
 		}),
 	};
 }
@@ -551,18 +568,17 @@ function getStreamingAccountsCollection(userId: string) {
 }
 
 export function useStreamingAccounts(userId: () => string | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: useLiveQuery handles undefined at runtime (returns disabled status)
-	const query = useLiveQuery((() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		if (!currentId) return undefined;
 		return getStreamingAccountsCollection(currentId);
-	}) as () => any);
+	});
 
 	return {
 		...query,
 		data: createMemo(() => {
 			if (!userId()) return [];
-			return (query.data || []) as StreamingAccount[];
+			return query.data || [];
 		}),
 	};
 }
