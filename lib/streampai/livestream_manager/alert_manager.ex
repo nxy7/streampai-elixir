@@ -15,15 +15,10 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   defstruct [
     :user_id,
-    # Queue of pending alerts
     :alert_queue,
-    # Currently displayed alert
     :current_alert,
-    # User's alert configuration
     :alert_settings,
-    # Reference to the config shape subscription
     :config_shape_ref,
-    # PID of the config shape process
     :config_shape_pid
   ]
 
@@ -33,11 +28,8 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def init(user_id) do
-    # Subscribe to events for this user
     Phoenix.PubSub.subscribe(Streampai.PubSub, "user_stream:#{user_id}:events")
 
-    # Start a Phoenix.Sync.Shape to sync widget config in real-time
-    # This uses Electric SQL's sync mechanism for efficient updates
     config_query =
       from(wc in WidgetConfig,
         where: wc.user_id == ^user_id and wc.type == ^:alertbox_widget
@@ -67,39 +59,27 @@ defmodule Streampai.LivestreamManager.AlertManager do
     {:ok, state}
   end
 
-  # Client API
-
-  @doc """
-  Gets the current alert being displayed.
-  """
+  @doc "Gets the current alert being displayed."
   def get_current_alert(server) do
     GenServer.call(server, :get_current_alert)
   end
 
-  @doc """
-  Updates alert settings for the user.
-  """
+  @doc "Updates alert settings for the user."
   def update_alert_settings(server, settings) do
     GenServer.cast(server, {:update_alert_settings, settings})
   end
 
-  @doc """
-  Manually triggers an alert (for testing purposes).
-  """
+  @doc "Manually triggers an alert (for testing purposes)."
   def trigger_test_alert(server, alert_type) do
     GenServer.cast(server, {:trigger_test_alert, alert_type})
   end
 
-  # Server callbacks
-
   @impl true
   def handle_info({:stream_event, event}, state) do
-    # Process stream events that should become alerts
     if should_create_alert?(event, state.alert_settings) do
       alert = create_alert_from_event(event, state.alert_settings)
       state = enqueue_alert(state, alert)
 
-      # If no alert is currently displayed, process immediately
       new_state =
         if state.current_alert == nil do
           process_next_alert(state)
@@ -115,7 +95,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def handle_info(:alert_finished, state) do
-    # Current alert finished, process next one
     state = %{state | current_alert: nil}
     state = process_next_alert(state)
     {:noreply, state}
@@ -124,7 +103,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
   @impl true
   def handle_info({:sync, ref, {operation, {_key, widget_config}}}, state)
       when operation in [:insert, :update] and ref == state.config_shape_ref do
-    # Update alert settings when widget config changes via Phoenix.Sync.Shape
     new_settings = extract_alert_settings(widget_config.config)
     Logger.debug("AlertManager received config sync update for user #{state.user_id}")
     {:noreply, %{state | alert_settings: new_settings}}
@@ -132,7 +110,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def handle_info({:sync, ref, {:delete, _data}}, state) when ref == state.config_shape_ref do
-    # Config deleted - reset to defaults
     Logger.debug("AlertManager widget config deleted for user #{state.user_id}, resetting to defaults")
 
     {:noreply, %{state | alert_settings: default_alert_settings()}}
@@ -141,7 +118,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
   @impl true
   def handle_info({:sync, ref, control}, state)
       when ref == state.config_shape_ref and control in [:up_to_date, :must_refetch] do
-    # Handle sync control messages
     Logger.debug("AlertManager sync control: #{control} for user #{state.user_id}")
     {:noreply, state}
   end
@@ -179,16 +155,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
 
   @impl true
   def terminate(_reason, state) do
-    # Clean up the shape process when AlertManager stops
-    # Note: Shape.unsubscribe is unnecessary since this process is terminating
     if state.config_shape_pid && Process.alive?(state.config_shape_pid) do
       GenServer.stop(state.config_shape_pid, :normal, 5000)
     end
 
     :ok
   end
-
-  # Helper functions
 
   defp via_tuple(user_id) do
     {:via, Registry, {Streampai.LivestreamManager.Registry, {:alert_manager, user_id}}}
@@ -203,7 +175,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
         extract_alert_settings(config)
 
       _ ->
-        # Fallback to defaults if no saved config
         default_alert_settings()
     end
   end
@@ -222,7 +193,6 @@ defmodule Streampai.LivestreamManager.AlertManager do
     }
   end
 
-  # Handle both atom and string keys (JSON parsing may produce string keys)
   defp get_config_value(config, key, default) when is_atom(key) do
     case Map.get(config, key) do
       nil -> Map.get(config, Atom.to_string(key), default)
@@ -245,8 +215,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
   defp should_create_alert?(event, settings) do
     case event.type do
       :donation ->
-        settings.donations_enabled and
-          event.amount >= settings.donations_min_amount
+        settings.donations_enabled and event.amount >= settings.donations_min_amount
 
       :follow ->
         settings.follows_enabled
@@ -255,8 +224,7 @@ defmodule Streampai.LivestreamManager.AlertManager do
         settings.subscriptions_enabled
 
       :raid ->
-        settings.raids_enabled and
-          event.viewer_count >= settings.raids_min_viewers
+        settings.raids_enabled and event.viewer_count >= settings.raids_min_viewers
 
       _ ->
         false
@@ -357,14 +325,12 @@ defmodule Streampai.LivestreamManager.AlertManager do
   defp process_next_alert(state) do
     case :queue.out(state.alert_queue) do
       {{:value, alert}, remaining_queue} ->
-        # Send alert to alertbox widget
         Phoenix.PubSub.broadcast(
           Streampai.PubSub,
           "widget_events:#{state.user_id}:alertbox",
           {:widget_event, alert}
         )
 
-        # Schedule alert finish
         Process.send_after(self(), :alert_finished, alert.display_time * 1000)
 
         %{state | current_alert: alert, alert_queue: remaining_queue}
