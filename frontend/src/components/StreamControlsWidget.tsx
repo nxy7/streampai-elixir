@@ -613,17 +613,21 @@ function ActivityRow(props: ActivityRowProps & { stickyIndex?: number }) {
 	const [isHovered, setIsHovered] = createSignal(false);
 	const [showTimeoutMenu, setShowTimeoutMenu] = createSignal(false);
 
+	// Check if this message is currently highlighted
+	const isHighlighted = () =>
+		props.moderationCallbacks?.highlightedMessageId === props.item.id;
+
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
+	// Highlighted messages always stick to top (top: 0)
 	const stickyStyle = () => {
+		if (isHighlighted()) {
+			return { top: "0px" };
+		}
 		if (props.isSticky && props.stickyIndex !== undefined) {
 			return { top: `${props.stickyIndex * ACTIVITY_ROW_HEIGHT}px` };
 		}
 		return {};
 	};
-
-	// Check if this message is currently highlighted
-	const isHighlighted = () =>
-		props.moderationCallbacks?.highlightedMessageId === props.item.id;
 
 	// Determine if this row should show moderation actions
 	const showModerationActions = () => {
