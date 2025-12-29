@@ -229,9 +229,9 @@ const getUserScopedViewersCollection = createCollectionCache(
 );
 
 export function useUserChatMessages(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return chatMessagesCollection;
+		if (!currentId) return undefined;
 		return getUserScopedChatCollection(currentId);
 	});
 
@@ -253,9 +253,9 @@ export function useRecentUserChatMessages(
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return streamEventsCollection;
+		if (!currentId) return undefined;
 		return getUserScopedEventsCollection(currentId);
 	});
 
@@ -277,9 +277,9 @@ export function useRecentUserStreamEvents(
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return livestreamsCollection;
+		if (!currentId) return undefined;
 		return getUserScopedLivestreamsCollection(currentId);
 	});
 
@@ -301,9 +301,9 @@ export function useRecentUserLivestreams(
 }
 
 export function useUserViewers(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return viewersCollection;
+		if (!currentId) return undefined;
 		return getUserScopedViewersCollection(currentId);
 	});
 
