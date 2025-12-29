@@ -552,20 +552,9 @@ export function useUserRolesData(userId: () => string | undefined): {
 	};
 }
 
-// Cache for streaming accounts collection by user ID
-const streamingAccountsCollections = new Map<
-	string,
-	ReturnType<typeof createStreamingAccountsCollection>
->();
-
-function getStreamingAccountsCollection(userId: string) {
-	let collection = streamingAccountsCollections.get(userId);
-	if (!collection) {
-		collection = createStreamingAccountsCollection(userId);
-		streamingAccountsCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getStreamingAccountsCollection = createCollectionCache(
+	createStreamingAccountsCollection,
+);
 
 export function useStreamingAccounts(userId: () => string | undefined) {
 	const query = useOptionalLiveQuery(() => {
