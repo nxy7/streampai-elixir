@@ -1,5 +1,7 @@
+import type { ReactiveMap } from "@solid-primitives/map";
+import type { Collection, CollectionStatus } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createMemo } from "solid-js";
+import { type Accessor, createMemo } from "solid-js";
 import {
 	type ChatMessage,
 	type Livestream,
@@ -23,12 +25,6 @@ import {
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
 	createWidgetConfigsCollection,
-	emptyNotificationReadsCollection,
-	emptyNotificationsCollection,
-	emptyStreamingAccountsCollection,
-	emptyUserPreferencesCollection,
-	emptyUserRolesCollection,
-	emptyWidgetConfigsCollection,
 	globalNotificationsCollection,
 	livestreamsCollection,
 	streamEventsCollection,
@@ -37,6 +33,63 @@ import {
 import { sortByInsertedAt } from "./formatters";
 
 type CollectionFactory<T> = (userId: string) => T;
+
+/**
+ * Result type for optional live queries that may be disabled when prerequisite data is missing.
+ * Returns a disabled status and empty data when the collection is not available.
+ */
+interface OptionalLiveQueryResult<T extends object> {
+	state: ReactiveMap<string | number, T>;
+	data: T[];
+	// biome-ignore lint/suspicious/noExplicitAny: Complex generic type from collection
+	collection: Accessor<Collection<T, string | number, any> | null>;
+	status: Accessor<CollectionStatus | "disabled">;
+	isLoading: Accessor<boolean>;
+	isReady: Accessor<boolean>;
+	isIdle: Accessor<boolean>;
+	isError: Accessor<boolean>;
+	isCleanedUp: Accessor<boolean>;
+}
+
+/**
+ * Hook for optional live queries that gracefully handles missing prerequisite data.
+ * When the collection accessor returns undefined, the query is disabled and returns empty data
+ * without making any network requests to the backend.
+ *
+ * @param collectionFn - Function that returns a collection or undefined if prerequisites are missing
+ * @returns Query result with data, status, and loading states
+ */
+function useOptionalLiveQuery<T extends object>(
+	// biome-ignore lint/suspicious/noExplicitAny: Complex generic type from collection
+	collectionFn: () => Collection<T, any, any> | undefined,
+): OptionalLiveQueryResult<T> {
+	// Create a memo to track if we have a collection
+	const hasCollection = createMemo(() => collectionFn() !== undefined);
+
+	// biome-ignore lint/suspicious/noExplicitAny: Complex type from useLiveQuery overloads
+	const query = useLiveQuery(collectionFn as () => any);
+
+	return {
+		state: query.state as ReactiveMap<string | number, T>,
+		data: query.data as T[],
+		collection: query.collection as Accessor<Collection<
+			T,
+			string | number,
+			// biome-ignore lint/suspicious/noExplicitAny: Collection's 3rd type param for utilities
+			any
+		> | null>,
+		isLoading: query.isLoading,
+		isReady: query.isReady,
+		isIdle: query.isIdle,
+		isError: query.isError,
+		isCleanedUp: query.isCleanedUp,
+		// Override status to properly show disabled when no collection
+		status: createMemo(() => {
+			if (!hasCollection()) return "disabled" as const;
+			return query.status() as CollectionStatus;
+		}),
+	};
+}
 
 function createCollectionCache<T>(factory: CollectionFactory<T>) {
 	const cache = new Map<string, T>();
@@ -145,9 +198,9 @@ const getUserPreferencesCollection = createCollectionCache(
 );
 
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyUserPreferencesCollection;
+		if (!currentId) return undefined;
 		return getUserPreferencesCollection(currentId);
 	});
 
@@ -294,9 +347,9 @@ const getWidgetConfigsCollection = createCollectionCache(
 );
 
 export function useWidgetConfigs(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyWidgetConfigsCollection;
+		if (!currentId) return undefined;
 		return getWidgetConfigsCollection(currentId);
 	});
 
@@ -335,9 +388,9 @@ const getNotificationReadsCollection = createCollectionCache(
 );
 
 export function useNotifications(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyNotificationsCollection;
+		if (!currentId) return undefined;
 		return getNotificationsCollection(currentId);
 	});
 
@@ -351,9 +404,9 @@ export function useNotifications(userId: () => string | undefined) {
 }
 
 export function useNotificationReads(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyNotificationReadsCollection;
+		if (!currentId) return undefined;
 		return getNotificationReadsCollection(currentId);
 	});
 
@@ -450,9 +503,9 @@ export function useGlobalNotifications() {
 const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyUserRolesCollection;
+		if (!currentId) return undefined;
 		return getUserRolesCollection(currentId);
 	});
 
@@ -531,9 +584,9 @@ function getStreamingAccountsCollection(userId: string) {
 }
 
 export function useStreamingAccounts(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyStreamingAccountsCollection;
+		if (!currentId) return undefined;
 		return getStreamingAccountsCollection(currentId);
 	});
 
