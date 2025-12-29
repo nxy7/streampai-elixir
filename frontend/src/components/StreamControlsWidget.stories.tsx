@@ -752,97 +752,89 @@ export const StickyEventsTest: Story = {
 // =====================================================
 
 function InteractiveHighlightWrapper() {
-	// Generate chat messages for testing
+	// Generate many chat messages for testing scrolling and sticky behavior
 	const generateHighlightTestActivities = (): ActivityItem[] => {
 		const now = Date.now();
-		return [
-			// Mix of chat messages to highlight
-			{
-				id: "highlight-chat-1",
-				type: "chat" as const,
-				username: "SuperFan",
-				message: "This is an amazing stream! I love your content so much!",
-				platform: "twitch",
-				timestamp: new Date(now - 120000),
-				viewerId: "viewer-1",
-				viewerPlatformId: "twitch-123",
-			},
-			{
-				id: "highlight-chat-2",
-				type: "chat" as const,
-				username: "QuestionAsker",
-				message: "What game are you playing next week?",
-				platform: "youtube",
-				timestamp: new Date(now - 100000),
-				viewerId: "viewer-2",
-				viewerPlatformId: "yt-456",
-			},
-			{
-				id: "highlight-chat-3",
-				type: "chat" as const,
-				username: "FunnyGuy",
-				message: "LOL that was hilarious! 😂",
-				platform: "kick",
-				timestamp: new Date(now - 80000),
-				viewerId: "viewer-3",
-				viewerPlatformId: "kick-789",
-			},
-			// A donation event (shouldn't have highlight button)
-			{
-				id: "highlight-donation-1",
-				type: "donation" as const,
-				username: "GenerousDonor",
-				message: "Keep up the great work!",
-				amount: 50,
-				currency: "$",
-				platform: "twitch",
-				timestamp: new Date(now - 60000),
-				isImportant: true,
-				viewerId: "viewer-4",
-				viewerPlatformId: "twitch-999",
-			},
-			// More chat messages
-			{
-				id: "highlight-chat-4",
-				type: "chat" as const,
-				username: "NewViewer",
-				message: "First time here, this is great!",
-				platform: "twitch",
-				timestamp: new Date(now - 40000),
-				viewerId: "viewer-5",
-				viewerPlatformId: "twitch-555",
-			},
-			{
-				id: "highlight-chat-5",
-				type: "chat" as const,
-				username: "RegularChatter",
-				message: "I've been watching for 2 years now!",
-				platform: "youtube",
-				timestamp: new Date(now - 20000),
-				viewerId: "viewer-6",
-				viewerPlatformId: "yt-666",
-			},
-			{
-				id: "highlight-chat-6",
-				type: "chat" as const,
-				username: "MemeLord",
-				message: "PogChamp moment right there!",
-				platform: "twitch",
-				timestamp: new Date(now - 10000),
-				viewerId: "viewer-7",
-				viewerPlatformId: "twitch-777",
-			},
-			{
-				id: "highlight-chat-7",
-				type: "chat" as const,
-				username: "TechExpert",
-				message: "What's your streaming setup? Looks professional!",
-				platform: "kick",
-				timestamp: new Date(now - 5000),
-				viewerId: "viewer-8",
-				viewerPlatformId: "kick-888",
-			},
+		const platforms = ["twitch", "youtube", "kick", "facebook"];
+		const usernames = [
+			"SuperFan",
+			"QuestionAsker",
+			"FunnyGuy",
+			"NewViewer",
+			"RegularChatter",
+			"MemeLord",
+			"TechExpert",
+			"GamerPro",
+			"StreamLover",
+			"ChattyKathy",
+			"SilentWatcher",
+			"HypeMan",
+			"CoolDude",
+			"NightOwl",
+			"EarlyBird",
 		];
+		const messages = [
+			"This is an amazing stream! I love your content so much!",
+			"What game are you playing next week?",
+			"LOL that was hilarious! 😂",
+			"First time here, this is great!",
+			"I've been watching for 2 years now!",
+			"PogChamp moment right there!",
+			"What's your streaming setup? Looks professional!",
+			"Can you explain that again?",
+			"GG! That was insane!",
+			"Hello from Germany! 🇩🇪",
+			"Love the vibes here",
+			"When is the next stream?",
+			"That play was so clean!",
+			"Can we get a shoutout?",
+			"Best streamer ever!",
+			"How long have you been streaming?",
+			"The audio quality is perfect",
+			"Nice background music!",
+			"Greetings from Australia! 🇦🇺",
+			"This community is so friendly",
+			"Can you do a tutorial?",
+			"What's your favorite game?",
+			"The graphics look amazing!",
+			"I just subscribed!",
+			"Keep up the great work!",
+		];
+
+		const activities: ActivityItem[] = [];
+
+		// Generate 25 chat messages spread over time
+		for (let i = 0; i < 25; i++) {
+			activities.push({
+				id: `highlight-chat-${i + 1}`,
+				type: "chat" as const,
+				username: usernames[i % usernames.length],
+				message: messages[i % messages.length],
+				platform: platforms[i % platforms.length],
+				timestamp: new Date(now - (25 - i) * 5000), // 5 seconds apart
+				viewerId: `viewer-${i + 1}`,
+				viewerPlatformId: `${platforms[i % platforms.length]}-${i + 100}`,
+			});
+
+			// Add a donation every 8 messages to test that highlight doesn't appear on donations
+			if (i > 0 && i % 8 === 0) {
+				activities.push({
+					id: `highlight-donation-${Math.floor(i / 8)}`,
+					type: "donation" as const,
+					username: `Donor${Math.floor(i / 8)}`,
+					message: "Supporting the stream!",
+					amount: Math.floor(Math.random() * 100) + 5,
+					currency: "$",
+					platform: platforms[i % platforms.length],
+					timestamp: new Date(now - (25 - i) * 5000 + 1000),
+					isImportant: true,
+					viewerId: `donor-${Math.floor(i / 8)}`,
+					viewerPlatformId: `${platforms[i % platforms.length]}-donor-${i}`,
+				});
+			}
+		}
+
+		return activities;
 	};
 
 	const [activities] = createSignal(generateHighlightTestActivities());
