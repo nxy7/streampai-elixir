@@ -95,7 +95,7 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   end
 
   @doc """
-  Timeouts a user from the chat on a specific platform.
+  Times out a user from the chat on a specific platform.
 
   ## Parameters
   - `user_id` - The user ID who owns the stream
@@ -178,13 +178,27 @@ defmodule Streampai.LivestreamManager.PlatformSupervisor do
   end
 
   defp execute_on_single_platform(user_id, platform, callback) do
+    require Logger
+
     case Registry.lookup(
            Streampai.LivestreamManager.Registry,
            {:platform_manager, user_id, platform}
          ) do
       [{_pid, _}] ->
         platform_module = get_platform_module(platform)
-        callback.(platform_module)
+
+        try do
+          callback.(platform_module)
+        rescue
+          error ->
+            Logger.error("Error executing on platform #{platform}: #{inspect(error)}")
+            {:error, error}
+        catch
+          kind, value ->
+            Logger.error("Caught #{kind} while executing on platform #{platform}: #{inspect(value)}")
+
+            {:error, {kind, value}}
+        end
 
       [] ->
         {:error, :platform_not_connected}
