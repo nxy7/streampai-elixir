@@ -10,6 +10,7 @@ defmodule Streampai.Stream.HighlightedMessage do
     otp_app: :streampai,
     domain: Streampai.Stream,
     data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer],
     extensions: [AshTypescript.Resource]
 
   postgres do
@@ -72,14 +73,14 @@ defmodule Streampai.Stream.HighlightedMessage do
 
       argument :user_id, :uuid, allow_nil?: false
 
-      run fn input, _context ->
+      run fn input, context ->
         require Ash.Query
 
         query = Ash.Query.filter(__MODULE__, user_id == ^input.arguments.user_id)
 
-        case Ash.read(query) do
+        case Ash.read(query, actor: context.actor) do
           {:ok, [highlight]} ->
-            case Ash.destroy(highlight) do
+            case Ash.destroy(highlight, actor: context.actor) do
               :ok -> {:ok, true}
               {:error, error} -> {:error, error}
             end
@@ -104,12 +105,38 @@ defmodule Streampai.Stream.HighlightedMessage do
     end
   end
 
+  policies do
+    # Anyone can read highlighted messages (needed for unauthenticated widget access)
+    policy action_type(:read) do
+      authorize_if always()
+    end
+
+    # Only the owner or admin can highlight messages
+    policy action(:highlight_message) do
+      authorize_if expr(arg(:user_id) == ^actor(:id))
+      authorize_if expr(^actor(:role) == :admin)
+    end
+
+    # Only the owner or admin can clear highlights
+    policy action(:clear_highlight) do
+      authorize_if expr(arg(:user_id) == ^actor(:id))
+      authorize_if expr(^actor(:role) == :admin)
+    end
+
+    # Only the owner or admin can destroy highlights
+    policy action_type(:destroy) do
+      authorize_if expr(user_id == ^actor(:id))
+      authorize_if expr(^actor(:role) == :admin)
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
     attribute :chat_message_id, :string do
       allow_nil? false
       public? true
+      constraints max_length: 255
       description "The ID of the original chat message"
     end
 
@@ -130,6 +157,7 @@ defmodule Streampai.Stream.HighlightedMessage do
     attribute :sender_channel_id, :string do
       allow_nil? false
       public? true
+      constraints max_length: 255
       description "Platform-specific channel ID of the sender"
     end
 
@@ -141,6 +169,7 @@ defmodule Streampai.Stream.HighlightedMessage do
 
     attribute :viewer_id, :string do
       public? true
+      constraints max_length: 255
       description "Optional viewer ID for identity linking"
     end
 
