@@ -32,6 +32,7 @@ defmodule Streampai.Accounts.WidgetConfig do
       upsert_identity :user_type_unique
 
       change Streampai.Accounts.WidgetConfig.Changes.AtomizeConfigKeys
+      change Streampai.Accounts.WidgetConfig.Changes.BroadcastConfigUpdate
     end
 
     read :get_by_user_and_type do

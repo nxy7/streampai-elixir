@@ -160,14 +160,22 @@ defmodule Streampai.LivestreamManager.AlertManager do
     defaults = default_alert_settings()
 
     %{
-      donations_enabled: Map.get(config, :donations_enabled, defaults.donations_enabled),
-      donations_min_amount: Map.get(config, :donations_min_amount, defaults.donations_min_amount),
-      follows_enabled: Map.get(config, :follows_enabled, defaults.follows_enabled),
-      subscriptions_enabled: Map.get(config, :subscriptions_enabled, defaults.subscriptions_enabled),
-      raids_enabled: Map.get(config, :raids_enabled, defaults.raids_enabled),
-      raids_min_viewers: Map.get(config, :raids_min_viewers, defaults.raids_min_viewers),
-      alert_duration: Map.get(config, :display_duration, defaults.alert_duration)
+      donations_enabled: get_config_value(config, :donations_enabled, defaults.donations_enabled),
+      donations_min_amount: get_config_value(config, :donations_min_amount, defaults.donations_min_amount),
+      follows_enabled: get_config_value(config, :follows_enabled, defaults.follows_enabled),
+      subscriptions_enabled: get_config_value(config, :subscriptions_enabled, defaults.subscriptions_enabled),
+      raids_enabled: get_config_value(config, :raids_enabled, defaults.raids_enabled),
+      raids_min_viewers: get_config_value(config, :raids_min_viewers, defaults.raids_min_viewers),
+      alert_duration: get_config_value(config, :display_duration, defaults.alert_duration)
     }
+  end
+
+  # Handle both atom and string keys (JSON parsing may produce string keys)
+  defp get_config_value(config, key, default) when is_atom(key) do
+    case Map.get(config, key) do
+      nil -> Map.get(config, Atom.to_string(key), default)
+      value -> value
+    end
   end
 
   defp default_alert_settings do
