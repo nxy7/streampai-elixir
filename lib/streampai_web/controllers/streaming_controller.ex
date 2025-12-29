@@ -8,7 +8,11 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
   plug(Ueberauth)
 
-  @redirect_url "/dashboard/settings"
+  defp frontend_url do
+    Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+  end
+
+  defp redirect_url, do: "#{frontend_url()}/dashboard/settings"
 
   def request(conn, _params) do
     # Ueberauth should intercept this request and redirect to the OAuth provider.
@@ -23,7 +27,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
       |> send_resp(500, "OAuth configuration error: Ueberauth did not intercept the request")
     else
       # User is not logged in - redirect to login
-      redirect(conn, to: "/login")
+      redirect(conn, external: "#{frontend_url()}/login")
     end
   end
 
@@ -33,7 +37,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
 
     conn
     |> put_flash(:error, error_message)
-    |> redirect(to: @redirect_url)
+    |> redirect(external: redirect_url())
   end
 
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{}, current_user: nil}} = conn, %{"provider" => _provider}) do
@@ -49,7 +53,7 @@ defmodule StreampaiWeb.MultiProviderAuth do
   defp handle_unauthenticated_callback(conn) do
     conn
     |> put_flash(:error, "You must be logged in to connect streaming accounts")
-    |> redirect(to: "/auth/sign-in")
+    |> redirect(external: "#{frontend_url()}/auth/sign-in")
   end
 
   defp handle_authenticated_callback(conn, user, auth, provider) do
@@ -57,12 +61,12 @@ defmodule StreampaiWeb.MultiProviderAuth do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Successfully connected #{String.capitalize(provider)} account")
-        |> redirect(to: @redirect_url)
+        |> redirect(external: redirect_url())
 
       {:error, error} ->
         conn
         |> put_flash(:error, format_connection_error(provider, error))
-        |> redirect(to: @redirect_url)
+        |> redirect(external: redirect_url())
     end
   end
 

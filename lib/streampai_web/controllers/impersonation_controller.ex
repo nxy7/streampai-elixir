@@ -12,6 +12,10 @@ defmodule StreampaiWeb.ImpersonationController do
 
   alias Streampai.Accounts.UserPolicy
 
+  defp frontend_url do
+    Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+  end
+
   def start_impersonation(conn, %{"user_id" => user_id}) do
     # If impersonation is already active, use the impersonator as the real user
     real_user = conn.assigns[:impersonator] || conn.assigns.current_user
@@ -64,7 +68,7 @@ defmodule StreampaiWeb.ImpersonationController do
       _ ->
         conn
         |> put_flash(:info, message)
-        |> redirect(to: redirect_path_for_response(data))
+        |> redirect(external: redirect_url_for_response(data))
     end
   end
 
@@ -78,10 +82,10 @@ defmodule StreampaiWeb.ImpersonationController do
       _ ->
         conn
         |> put_flash(:error, message)
-        |> redirect(to: "/dashboard/admin/users")
+        |> redirect(external: "#{frontend_url()}/dashboard/admin/users")
     end
   end
 
-  defp redirect_path_for_response(%{impersonating: true}), do: "/dashboard"
-  defp redirect_path_for_response(_), do: "/dashboard/admin/users"
+  defp redirect_url_for_response(%{impersonating: true}), do: "#{frontend_url()}/dashboard"
+  defp redirect_url_for_response(_), do: "#{frontend_url()}/dashboard/admin/users"
 end

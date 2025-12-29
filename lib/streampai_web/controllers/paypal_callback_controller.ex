@@ -10,6 +10,12 @@ defmodule StreampaiWeb.PayPalCallbackController do
 
   require Logger
 
+  defp frontend_url do
+    Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+  end
+
+  defp settings_url, do: "#{frontend_url()}/dashboard/settings"
+
   def handle_callback(conn, params) do
     user_id = params["user_id"]
     merchant_id_in_paypal = params["merchantIdInPayPal"]
@@ -27,21 +33,21 @@ defmodule StreampaiWeb.PayPalCallbackController do
            PartnerReferrals.handle_onboarding_callback(auth_code, shared_id, user) do
       conn
       |> put_flash(:info, "PayPal account connected successfully!")
-      |> redirect(to: "/dashboard/settings")
+      |> redirect(external: settings_url())
     else
       {:error, :user_not_found} ->
         Logger.error("User not found: #{user_id}")
 
         conn
         |> put_flash(:error, "Session expired. Please try again.")
-        |> redirect(to: "/dashboard/settings")
+        |> redirect(external: settings_url())
 
       {:error, reason} ->
         Logger.error("PayPal callback error: #{inspect(reason)}")
 
         conn
         |> put_flash(:error, "Failed to connect PayPal account. Please try again.")
-        |> redirect(to: "/dashboard/settings")
+        |> redirect(external: settings_url())
     end
   end
 

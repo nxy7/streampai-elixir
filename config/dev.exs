@@ -46,10 +46,10 @@ config :streampai, :paypal,
   webhook_id: System.get_env("PAYPAL_SANDBOX_WEBHOOK_ID") || "your_sandbox_webhook_id"
 
 # Development specific settings
+# Note: frontend_url is configured in runtime.exs after .env is loaded (needed for worktree ports)
 config :streampai,
   dev_routes: true,
-  token_signing_secret: System.get_env("SECRET_KEY"),
-  frontend_url: System.get_env("FRONTEND_URL", "http://localhost:3000")
+  token_signing_secret: System.get_env("SECRET_KEY")
 
 # External services (disabled in dev)
 config :swoosh, :api_client, false

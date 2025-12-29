@@ -10,12 +10,14 @@ defmodule StreampaiWeb.AuthController do
       get_session(conn, :return_to) ||
         get_session(conn, :oauth_redirect_to)
 
-    # Use relative paths so redirects work with any proxy/port configuration
-    redirect_path =
+    # Build absolute URL to frontend
+    frontend_url = Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+
+    redirect_url =
       case return_to do
-        nil -> "/dashboard"
-        "/" <> _ = path -> path
-        _url -> "/dashboard"
+        nil -> "#{frontend_url}/dashboard"
+        "/" <> _ = path -> "#{frontend_url}#{path}"
+        url when is_binary(url) -> url
       end
 
     conn
@@ -23,13 +25,14 @@ defmodule StreampaiWeb.AuthController do
     |> delete_session(:oauth_redirect_to)
     |> store_in_session(user)
     |> assign(:current_user, user)
-    |> redirect(to: redirect_path)
+    |> redirect(external: redirect_url)
   end
 
   def failure(conn, activity, reason) do
     Logger.error("Authentication failure for #{inspect(activity)}: #{inspect(reason)}")
 
-    redirect(conn, to: "/login?error=authentication_failed")
+    frontend_url = Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+    redirect(conn, external: "#{frontend_url}/login?error=authentication_failed")
   end
 
   def sign_out(conn, _params) do

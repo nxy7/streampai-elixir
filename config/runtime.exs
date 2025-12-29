@@ -149,9 +149,17 @@ if config_env() == :dev do
   # Port configuration for worktree isolation
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  # In dev, we access the app through Caddy (HTTPS) which proxies both frontend and backend
+  # This is required for auth flows to work correctly (cookies, OAuth callbacks, etc.)
+  caddy_port = System.get_env("CADDY_PORT") || "8000"
+  frontend_url = System.get_env("FRONTEND_URL") || "https://localhost:#{caddy_port}"
+
   config :streampai, StreampaiWeb.Endpoint,
     secret_key_base: secret_key_base,
     http: [ip: {127, 0, 0, 1}, port: port]
+
+  config :streampai,
+    frontend_url: frontend_url
 end
 
 # S3-compatible storage configuration (works with MinIO, R2, AWS S3, etc.)
@@ -228,6 +236,12 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "streampai.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  # Application domain configuration
+  # All URLs are derived from APP_DOMAIN (defaults to streampai.com)
+  # Frontend: https://streampai.com
+  # Backend:  https://api.streampai.com
+  app_domain = System.get_env("APP_DOMAIN", "streampai.com")
+
   # Add production-specific database settings
   config :streampai, Streampai.Repo, socket_options: maybe_ipv6
 
@@ -244,8 +258,10 @@ if config_env() == :prod do
       "http://#{host}"
     ]
 
-  # Backend URL for email links (confirmation emails, password reset, etc.)
-  config :streampai, backend_url: "https://api.streampai.com"
+  config :streampai,
+    app_domain: app_domain,
+    frontend_url: "https://#{app_domain}",
+    backend_url: "https://api.#{app_domain}"
 
   # Production session options for cross-subdomain cookies
   # Frontend is at streampai.com, API is at api.streampai.com
