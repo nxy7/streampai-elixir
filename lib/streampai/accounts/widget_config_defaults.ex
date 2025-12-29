@@ -135,6 +135,16 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
       background_color: "#e5e7eb",
       text_color: "#1f2937",
       animation_enabled: true
+    },
+    message_highlight_widget: %{
+      font_size: "medium",
+      show_platform: true,
+      show_timestamp: true,
+      animation_type: "slide",
+      background_color: "rgba(0, 0, 0, 0.9)",
+      text_color: "#ffffff",
+      accent_color: "#9333ea",
+      border_radius: 12
     }
   }
 
@@ -160,6 +170,14 @@ defmodule Streampai.Accounts.WidgetConfigDefaults do
       :bar_color,
       :background_color,
       :text_color
+    ],
+    message_highlight_widget: [
+      :font_size,
+      :show_platform,
+      :animation_type,
+      :background_color,
+      :text_color,
+      :accent_color
     ]
   }
 

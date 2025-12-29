@@ -32,6 +32,10 @@ export function ActivityRow(props: ActivityRowProps) {
 		return {};
 	};
 
+	// Check if this message is currently highlighted
+	const isHighlighted = () =>
+		props.moderationCallbacks?.highlightedMessageId === props.item.id;
+
 	// Determine if this row should show moderation actions
 	const showModerationActions = () => {
 		if (!props.moderationCallbacks) return false;
@@ -39,7 +43,8 @@ export function ActivityRow(props: ActivityRowProps) {
 			return !!(
 				props.moderationCallbacks.onBanUser ||
 				props.moderationCallbacks.onTimeoutUser ||
-				props.moderationCallbacks.onDeleteMessage
+				props.moderationCallbacks.onDeleteMessage ||
+				props.moderationCallbacks.onHighlightMessage
 			);
 		}
 		if (isImportantEvent(props.item.type)) {
@@ -89,15 +94,27 @@ export function ActivityRow(props: ActivityRowProps) {
 		props.moderationCallbacks?.onDeleteMessage?.(props.item.id);
 	};
 
+	// Handle highlight action
+	const handleHighlight = (e: MouseEvent) => {
+		e.stopPropagation();
+		if (isHighlighted()) {
+			props.moderationCallbacks?.onClearHighlight?.();
+		} else {
+			props.moderationCallbacks?.onHighlightMessage?.(props.item);
+		}
+	};
+
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
 			class={`group relative flex items-center gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
-				props.isSticky
-					? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
-					: isImportantEvent(props.item.type)
-						? "bg-gray-50/50"
-						: ""
+				isHighlighted()
+					? "sticky z-20 border-purple-400 border-l-4 bg-purple-50 shadow-md ring-1 ring-purple-200"
+					: props.isSticky
+						? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+						: isImportantEvent(props.item.type)
+							? "bg-gray-50/50"
+							: ""
 			}`}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
@@ -162,6 +179,24 @@ export function ActivityRow(props: ActivityRowProps) {
 
 					{/* Chat moderation actions */}
 					<Show when={props.item.type === "chat"}>
+						{/* Highlight message button */}
+						<Show when={props.moderationCallbacks?.onHighlightMessage}>
+							<button
+								class={`flex h-5 w-5 items-center justify-center rounded transition-colors ${
+									isHighlighted()
+										? "bg-purple-600 text-white hover:bg-purple-700"
+										: "text-purple-500 hover:bg-purple-50 hover:text-purple-600"
+								}`}
+								data-testid="highlight-button"
+								onClick={handleHighlight}
+								title={
+									isHighlighted() ? "Remove highlight" : "Highlight message"
+								}
+								type="button">
+								<span class="text-xs">{isHighlighted() ? "★" : "☆"}</span>
+							</button>
+						</Show>
+
 						{/* Delete message button */}
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button

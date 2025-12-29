@@ -144,6 +144,9 @@ export interface ModerationCallbacks {
 		reason?: string,
 	) => void;
 	onDeleteMessage?: (eventId: string) => void;
+	onHighlightMessage?: (item: ActivityItem) => void;
+	onClearHighlight?: () => void;
+	highlightedMessageId?: string;
 }
 
 // Types for stream summary

@@ -155,6 +155,24 @@ export type StreamTimerResourceSchema = {
 
 
 
+// HighlightedMessage Schema
+export type HighlightedMessageResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
+  id: UUID;
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId: string | null;
+  highlightedAt: UtcDateTimeUsec;
+  userId: UUID;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
 // User Schema
 export type UserResourceSchema = {
   __type: "Resource";
@@ -917,6 +935,73 @@ export type StreamTimerFilterInput = {
   };
 
 
+
+};
+export type HighlightedMessageFilterInput = {
+  and?: Array<HighlightedMessageFilterInput>;
+  or?: Array<HighlightedMessageFilterInput>;
+  not?: Array<HighlightedMessageFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  chatMessageId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderUsername?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderChannelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  highlightedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  user?: UserFilterInput;
 
 };
 export type UserFilterInput = {
@@ -3208,6 +3293,191 @@ export async function deleteStreamTimerChannel(config: {
     {
     action: "delete_stream_timer",
     identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type HighlightMessageInput = {
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId?: string | null;
+  userId: UUID;
+};
+
+export type HighlightMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
+
+export type InferHighlightMessageResult<
+  Fields extends HighlightMessageFields | undefined,
+> = InferResult<HighlightedMessageResourceSchema, Fields>;
+
+export type HighlightMessageResult<Fields extends HighlightMessageFields | undefined = undefined> = | { success: true; data: InferHighlightMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function highlightMessage<Fields extends HighlightMessageFields | undefined = undefined>(
+  config: {
+  input: HighlightMessageInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<HighlightMessageResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "highlight_message",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<HighlightMessageResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function highlightMessageChannel<Fields extends HighlightMessageFields | undefined = undefined>(config: {
+  channel: Channel;
+  input: HighlightMessageInput;
+  fields?: Fields;
+  resultHandler: (result: HighlightMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<HighlightMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "highlight_message",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ClearHighlightInput = {
+  userId: UUID;
+};
+
+export type InferClearHighlightResult = boolean;
+
+export type ClearHighlightResult = | { success: true; data: InferClearHighlightResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function clearHighlight(
+  config: {
+  input: ClearHighlightInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ClearHighlightResult> {
+  const payload = {
+    action: "clear_highlight",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<ClearHighlightResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function clearHighlightChannel(config: {
+  channel: Channel;
+  input: ClearHighlightInput;
+  resultHandler: (result: ClearHighlightResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ClearHighlightResult>(
+    config.channel,
+    {
+    action: "clear_highlight",
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetHighlightedMessageInput = {
+  userId: UUID;
+};
+
+export type GetHighlightedMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
+export type InferGetHighlightedMessageResult<
+  Fields extends GetHighlightedMessageFields,
+> = Array<InferResult<HighlightedMessageResourceSchema, Fields>>;
+
+export type GetHighlightedMessageResult<Fields extends GetHighlightedMessageFields> = | { success: true; data: InferGetHighlightedMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getHighlightedMessage<Fields extends GetHighlightedMessageFields>(
+  config: {
+  input: GetHighlightedMessageInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: HighlightedMessageFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetHighlightedMessageResult<Fields>> {
+  const payload = {
+    action: "get_highlighted_message",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetHighlightedMessageResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getHighlightedMessageChannel<Fields extends GetHighlightedMessageFields>(config: {
+  channel: Channel;
+  input: GetHighlightedMessageInput;
+  fields: Fields;
+  filter?: HighlightedMessageFilterInput;
+  sort?: string;
+  resultHandler: (result: GetHighlightedMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetHighlightedMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "get_highlighted_message",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
   },
     config.timeout,
     config

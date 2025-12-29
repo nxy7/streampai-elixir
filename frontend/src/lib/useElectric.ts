@@ -1,7 +1,10 @@
+import type { Collection, CollectionStatus } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
+import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ChatMessage,
+	type HighlightedMessage,
 	type Livestream,
 	type Notification,
 	type NotificationRead,
@@ -13,6 +16,7 @@ import {
 	type WidgetConfig,
 	type WidgetType,
 	chatMessagesCollection,
+	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
@@ -23,12 +27,6 @@ import {
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
 	createWidgetConfigsCollection,
-	emptyNotificationReadsCollection,
-	emptyNotificationsCollection,
-	emptyStreamingAccountsCollection,
-	emptyUserPreferencesCollection,
-	emptyUserRolesCollection,
-	emptyWidgetConfigsCollection,
 	globalNotificationsCollection,
 	livestreamsCollection,
 	streamEventsCollection,
@@ -48,6 +46,36 @@ function createCollectionCache<T>(factory: CollectionFactory<T>) {
 		}
 		return collection;
 	};
+}
+
+/**
+ * Return type for useOptionalLiveQuery - matches useLiveQuery but with optional collection.
+ * Derived from useLiveQuery's return type but adds 'disabled' status and nullable collection.
+ */
+type OptionalLiveQueryResult<TResult extends object> = Omit<
+	ReturnType<typeof useLiveQuery<TResult, string | number, object>>,
+	"status" | "collection"
+> & {
+	status: Accessor<CollectionStatus | "disabled">;
+	collection: Accessor<Collection<TResult, string | number, object> | null>;
+};
+
+/**
+ * Wrapper for useLiveQuery that supports returning undefined from the accessor.
+ * The useLiveQuery runtime handles undefined (sets status to 'disabled', returns empty data,
+ * makes no network requests), but TypeScript types don't expose this for collection accessors.
+ *
+ * This wrapper:
+ * 1. Accepts accessors that may return undefined
+ * 2. Returns properly typed result with 'disabled' status possibility
+ * 3. Localizes the type assertion to a single place
+ */
+function useOptionalLiveQuery<TResult extends object>(
+	accessor: () => Collection<TResult, string | number, object> | undefined,
+): OptionalLiveQueryResult<TResult> {
+	return useLiveQuery(
+		accessor as () => Collection<TResult, string | number, object>,
+	);
 }
 
 export function useStreamEvents() {
@@ -71,7 +99,7 @@ function useFilteredStreamEvents(eventType: string) {
 	return {
 		...query,
 		data: createMemo(() =>
-			(query.data || []).filter((e) => e.type === eventType),
+			(query.data ?? []).filter((e) => e.type === eventType),
 		),
 	};
 }
@@ -136,7 +164,7 @@ export function useTotalDonations() {
 
 export function useRecentEvents(limit: number = 20) {
 	const query = useStreamEvents();
-	return createMemo(() => sortByInsertedAt(query.data || []).slice(0, limit));
+	return createMemo(() => sortByInsertedAt(query.data ?? []).slice(0, limit));
 }
 
 // Cache for user-scoped preferences collection (uses IndexedDB persistence)
@@ -145,10 +173,9 @@ const getUserPreferencesCollection = createCollectionCache(
 );
 
 export function useUserPreferencesForUser(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyUserPreferencesCollection;
-		return getUserPreferencesCollection(currentId);
+		return currentId ? getUserPreferencesCollection(currentId) : undefined;
 	});
 
 	return {
@@ -156,8 +183,7 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 		data: createMemo(() => {
 			const id = userId();
 			if (!id) return null;
-			const data = query.data || [];
-			return data.find((p) => p.id === id) || null;
+			return (query.data ?? []).find((p) => p.id === id) ?? null;
 		}),
 	};
 }
@@ -176,18 +202,14 @@ const getUserScopedViewersCollection = createCollectionCache(
 );
 
 export function useUserChatMessages(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return chatMessagesCollection;
-		return getUserScopedChatCollection(currentId);
+		return currentId ? getUserScopedChatCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return query.data || [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -200,18 +222,14 @@ export function useRecentUserChatMessages(
 }
 
 export function useUserStreamEvents(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return streamEventsCollection;
-		return getUserScopedEventsCollection(currentId);
+		return currentId ? getUserScopedEventsCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return query.data || [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -224,18 +242,16 @@ export function useRecentUserStreamEvents(
 }
 
 export function useUserLivestreams(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return livestreamsCollection;
-		return getUserScopedLivestreamsCollection(currentId);
+		return currentId
+			? getUserScopedLivestreamsCollection(currentId)
+			: undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return query.data || [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -248,18 +264,14 @@ export function useRecentUserLivestreams(
 }
 
 export function useUserViewers(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return viewersCollection;
-		return getUserScopedViewersCollection(currentId);
+		return currentId ? getUserScopedViewersCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return query.data || [];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -294,18 +306,14 @@ const getWidgetConfigsCollection = createCollectionCache(
 );
 
 export function useWidgetConfigs(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyWidgetConfigsCollection;
-		return getWidgetConfigsCollection(currentId);
+		return currentId ? getWidgetConfigsCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as WidgetConfig[];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -335,34 +343,26 @@ const getNotificationReadsCollection = createCollectionCache(
 );
 
 export function useNotifications(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyNotificationsCollection;
-		return getNotificationsCollection(currentId);
+		return currentId ? getNotificationsCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as Notification[];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
 export function useNotificationReads(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyNotificationReadsCollection;
-		return getNotificationReadsCollection(currentId);
+		return currentId ? getNotificationReadsCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as NotificationRead[];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -443,25 +443,21 @@ export function useGlobalNotifications() {
 	const query = useLiveQuery(() => globalNotificationsCollection);
 	return {
 		...query,
-		data: createMemo(() => sortByInsertedAt(query.data || [])),
+		data: createMemo(() => sortByInsertedAt(query.data ?? [])),
 	};
 }
 
 const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
 
 export function useUserRoles(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyUserRolesCollection;
-		return getUserRolesCollection(currentId);
+		return currentId ? getUserRolesCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
-		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as UserRole[];
-		}),
+		data: createMemo(() => query.data ?? []),
 	};
 }
 
@@ -515,33 +511,39 @@ export function useUserRolesData(userId: () => string | undefined): {
 	};
 }
 
-// Cache for streaming accounts collection by user ID
-const streamingAccountsCollections = new Map<
-	string,
-	ReturnType<typeof createStreamingAccountsCollection>
->();
-
-function getStreamingAccountsCollection(userId: string) {
-	let collection = streamingAccountsCollections.get(userId);
-	if (!collection) {
-		collection = createStreamingAccountsCollection(userId);
-		streamingAccountsCollections.set(userId, collection);
-	}
-	return collection;
-}
+const getStreamingAccountsCollection = createCollectionCache(
+	createStreamingAccountsCollection,
+);
 
 export function useStreamingAccounts(userId: () => string | undefined) {
-	const query = useLiveQuery(() => {
+	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
-		if (!currentId) return emptyStreamingAccountsCollection;
-		return getStreamingAccountsCollection(currentId);
+		return currentId ? getStreamingAccountsCollection(currentId) : undefined;
+	});
+
+	return {
+		...query,
+		data: createMemo(() => query.data ?? []),
+	};
+}
+
+const getHighlightedMessagesCollection = createCollectionCache(
+	createHighlightedMessagesCollection,
+);
+
+export function useHighlightedMessage(userId: () => string | undefined) {
+	const query = useOptionalLiveQuery(() => {
+		const currentId = userId();
+		return currentId ? getHighlightedMessagesCollection(currentId) : undefined;
 	});
 
 	return {
 		...query,
 		data: createMemo(() => {
-			if (!userId()) return [];
-			return (query.data || []) as StreamingAccount[];
+			if (!userId()) return null;
+			const messages = (query.data ?? []) as HighlightedMessage[];
+			// Return the first (and should be only) highlighted message, or null
+			return messages.length > 0 ? messages[0] : null;
 		}),
 	};
 }
@@ -549,6 +551,7 @@ export function useStreamingAccounts(userId: () => string | undefined) {
 export type {
 	StreamEvent,
 	ChatMessage,
+	HighlightedMessage,
 	Livestream,
 	Viewer,
 	UserPreferences,

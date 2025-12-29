@@ -153,6 +153,20 @@ export type StreamingAccount = Row & {
 	updated_at: string;
 };
 
+export type HighlightedMessage = Row & {
+	id: string;
+	user_id: string;
+	chat_message_id: string;
+	message: string;
+	sender_username: string;
+	sender_channel_id: string;
+	platform: string;
+	viewer_id: string | null;
+	highlighted_at: string;
+	inserted_at: string;
+	updated_at: string;
+};
+
 export type WidgetType =
 	| "placeholder_widget"
 	| "chat_widget"
@@ -172,7 +186,8 @@ export type WidgetType =
 	| "poll_widget"
 	| "slider_widget"
 	| "giveaway_widget"
-	| "eventlist_widget";
+	| "eventlist_widget"
+	| "message_highlight_widget";
 
 const SHAPES_URL = `${getShapesBaseUrl()}/shapes`;
 
@@ -327,57 +342,6 @@ export function getAdminUsersCollection() {
 	return adminUsersCollectionCache;
 }
 
-// Empty placeholder collections for fallback when userId is undefined
-export const emptyUserPreferencesCollection = createCollection(
-	electricCollectionOptions<UserPreferences>({
-		id: "empty_user_preferences",
-		shapeOptions: {
-			url: `${SHAPES_URL}/user_preferences/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyWidgetConfigsCollection = createCollection(
-	electricCollectionOptions<WidgetConfig>({
-		id: "empty_widget_configs",
-		shapeOptions: {
-			url: `${SHAPES_URL}/widget_configs/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyNotificationsCollection = createCollection(
-	electricCollectionOptions<Notification>({
-		id: "empty_notifications",
-		shapeOptions: {
-			url: `${SHAPES_URL}/notifications/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
-export const emptyNotificationReadsCollection = createCollection(
-	electricCollectionOptions<NotificationRead>({
-		id: "empty_notification_reads",
-		shapeOptions: {
-			url: `${SHAPES_URL}/notification_reads/_empty`,
-		},
-		getKey: (item) => `${item.user_id}_${item.notification_id}`,
-	}),
-);
-
-export const emptyUserRolesCollection = createCollection(
-	electricCollectionOptions<UserRole>({
-		id: "empty_user_roles",
-		shapeOptions: {
-			url: `${SHAPES_URL}/user_roles/_empty`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export function createWidgetConfigsCollection(userId: string) {
 	return createCollection(
 		electricCollectionOptions<WidgetConfig>({
@@ -436,16 +400,6 @@ export function createUserRolesCollection(userId: string) {
 	);
 }
 
-export const emptyStreamingAccountsCollection = createCollection(
-	electricCollectionOptions<StreamingAccount>({
-		id: "empty_streaming_accounts",
-		shapeOptions: {
-			url: `${SHAPES_URL}/streaming_accounts/_empty`,
-		},
-		getKey: (item) => `${item.user_id}_${item.platform}`,
-	}),
-);
-
 export function createStreamingAccountsCollection(userId: string) {
 	return createCollection(
 		electricCollectionOptions<StreamingAccount>({
@@ -454,6 +408,28 @@ export function createStreamingAccountsCollection(userId: string) {
 				url: `${SHAPES_URL}/streaming_accounts/${userId}`,
 			},
 			getKey: (item) => `${item.user_id}_${item.platform}`,
+		}),
+	);
+}
+
+export const emptyHighlightedMessagesCollection = createCollection(
+	electricCollectionOptions<HighlightedMessage>({
+		id: "empty_highlighted_messages",
+		shapeOptions: {
+			url: `${SHAPES_URL}/highlighted_messages/_empty`,
+		},
+		getKey: (item) => item.id,
+	}),
+);
+
+export function createHighlightedMessagesCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<HighlightedMessage>({
+			id: `highlighted_messages_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/highlighted_messages/${userId}`,
+			},
+			getKey: (item) => item.id,
 		}),
 	);
 }

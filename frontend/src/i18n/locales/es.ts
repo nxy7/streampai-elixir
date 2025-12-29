@@ -133,6 +133,10 @@ export const dict: Dictionary = {
 		sendMessageToChat: "Enviar mensaje al chat...",
 		timerLabelPlaceholder: "ej. Redes sociales, Discord, etc.",
 		timerMessagePlaceholder: "Mensaje a enviar en cada intervalo...",
+		// Message highlight
+		highlightMessage: "Destacar mensaje",
+		removeHighlight: "Quitar destacado",
+		noMessageHighlighted: "Sin mensaje destacado",
 		// Stream settings
 		settings: {
 			title: "Configuración del stream",
