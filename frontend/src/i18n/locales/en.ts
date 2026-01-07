@@ -181,6 +181,11 @@ export const dict = {
 		searchPlaceholder: "Search by display name...",
 	},
 
+	// Chat History page
+	chatHistory: {
+		searchPlaceholder: "Search messages...",
+	},
+
 	// Analytics page
 	analytics: {
 		title: "Stream Analytics",
