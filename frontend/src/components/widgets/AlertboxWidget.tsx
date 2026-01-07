@@ -1,4 +1,10 @@
-import { Show, createMemo } from "solid-js";
+import {
+	Show,
+	createEffect,
+	createMemo,
+	createSignal,
+	onCleanup,
+} from "solid-js";
 import {
 	getEventColor,
 	getEventGradient,
@@ -44,6 +50,14 @@ interface AlertboxWidgetProps {
 }
 
 export default function AlertboxWidget(props: AlertboxWidgetProps) {
+	const [audioElement, setAudioElement] = createSignal<HTMLAudioElement | null>(
+		null,
+	);
+	const [isPlayingTts, setIsPlayingTts] = createSignal(false);
+
+	// Track which event's TTS we've already played to avoid replaying
+	let lastPlayedTtsEventId: string | null = null;
+
 	const fontClass = createMemo(() =>
 		getFontClass(props.config.fontSize, "alertbox"),
 	);
@@ -62,6 +76,66 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 		};
 		return labels[type] || getEventLabel(type);
 	};
+
+	// Play TTS audio when a new event with ttsUrl arrives
+	createEffect(() => {
+		const event = props.event;
+		const soundEnabled = props.config.soundEnabled;
+		const volume = props.config.soundVolume / 100; // Convert 0-100 to 0-1
+
+		if (!event || !event.ttsUrl || !soundEnabled) {
+			return;
+		}
+
+		// Don't replay TTS for the same event
+		if (event.id === lastPlayedTtsEventId) {
+			return;
+		}
+
+		lastPlayedTtsEventId = event.id;
+
+		// Create and play audio
+		const audio = new Audio(event.ttsUrl);
+		audio.volume = volume;
+		audio.crossOrigin = "anonymous";
+
+		audio.onplay = () => {
+			setIsPlayingTts(true);
+			console.log("[AlertboxWidget] TTS playback started", {
+				eventId: event.id,
+			});
+		};
+
+		audio.onended = () => {
+			setIsPlayingTts(false);
+			console.log("[AlertboxWidget] TTS playback ended", { eventId: event.id });
+		};
+
+		audio.onerror = (e) => {
+			setIsPlayingTts(false);
+			console.error("[AlertboxWidget] TTS playback error", {
+				eventId: event.id,
+				error: e,
+			});
+		};
+
+		setAudioElement(audio);
+
+		// Play the audio
+		audio.play().catch((error) => {
+			console.error("[AlertboxWidget] Failed to play TTS audio:", error);
+			setIsPlayingTts(false);
+		});
+	});
+
+	// Cleanup audio on component unmount or when event changes
+	onCleanup(() => {
+		const audio = audioElement();
+		if (audio) {
+			audio.pause();
+			audio.src = "";
+		}
+	});
 
 	return (
 		<div class="alertbox-widget relative h-full w-full overflow-hidden">
@@ -149,6 +223,14 @@ export default function AlertboxWidget(props: AlertboxWidgetProps) {
 											{props.event?.message}
 										</div>
 									</div>
+								</div>
+							</Show>
+
+							{/* TTS indicator */}
+							<Show when={isPlayingTts()}>
+								<div class="absolute top-4 left-4 flex items-center gap-1">
+									<div class="h-2 w-2 animate-pulse rounded-full bg-green-400"></div>
+									<span class="text-green-400 text-xs">TTS</span>
 								</div>
 							</Show>
 
