@@ -124,32 +124,6 @@ export default function DonationPage() {
 		setStreamerPrefs(id, { ...current, ...updates });
 	};
 
-	// Invalidate preset selection when user preferences change and amount is out of range
-	// Note: We only invalidate preset amounts, not custom amounts, to allow typing
-	createEffect(() => {
-		const userPrefs = prefs();
-		const id = userId();
-		if (!userPrefs || !id) return;
-
-		const current = streamerPrefs[id];
-		if (!current) return;
-
-		const min = userPrefs.min_donation_amount ?? 0;
-		const max = userPrefs.max_donation_amount;
-
-		// Check if selected preset amount is now out of range
-		if (current.selectedAmount !== null) {
-			const isOutOfRange =
-				current.selectedAmount < min ||
-				(max !== null && current.selectedAmount > max);
-			if (isOutOfRange) {
-				setStreamerPrefs(id, { ...current, selectedAmount: null });
-			}
-		}
-		// Custom amounts are validated via isValidAmount() - we don't clear them
-		// to allow users to type freely (e.g., typing "10" requires first typing "1")
-	});
-
 	const presetAmounts = () => {
 		const userPrefs = prefs();
 		const min = userPrefs?.min_donation_amount ?? 1;

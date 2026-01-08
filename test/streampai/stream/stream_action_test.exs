@@ -147,7 +147,7 @@ defmodule Streampai.Stream.StreamActionTest do
              actor: user
            ) do
         {:error, %Unknown{errors: [%{error: message}]}} ->
-          assert message == "ban_user not yet implemented in PlatformSupervisor"
+          assert message == "ban_user not yet implemented"
 
         other ->
           flunk("Expected error, got: #{inspect(other)}")
@@ -169,7 +169,7 @@ defmodule Streampai.Stream.StreamActionTest do
 
         {:error, %Unknown{errors: [%{error: message}]}} ->
           # Expected: action is authorized but not implemented
-          assert message == "ban_user not yet implemented in PlatformSupervisor"
+          assert message == "ban_user not yet implemented"
 
         other ->
           flunk("Unexpected result: #{inspect(other)}")
@@ -202,7 +202,7 @@ defmodule Streampai.Stream.StreamActionTest do
              actor: user
            ) do
         {:error, %Unknown{errors: [%{error: message}]}} ->
-          assert message == "timeout_user not yet implemented in PlatformSupervisor"
+          assert message == "timeout_user not yet implemented"
 
         other ->
           flunk("Expected error, got: #{inspect(other)}")

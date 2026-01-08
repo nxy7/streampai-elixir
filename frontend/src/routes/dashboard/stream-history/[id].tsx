@@ -9,10 +9,17 @@ import {
 	createResource,
 	createSignal,
 } from "solid-js";
-import { Badge, Skeleton, SkeletonListItem } from "~/components/ui";
+import {
+	Badge,
+	Button,
+	Card,
+	Skeleton,
+	SkeletonListItem,
+} from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
+import { formatDuration } from "~/lib/formatters";
 import {
 	type SuccessDataFunc,
 	getLivestream,
@@ -55,61 +62,119 @@ const livestreamFields: (
 	"platforms",
 ];
 
-const chatMessageFields: (
-	| "id"
-	| "message"
-	| "senderUsername"
-	| "platform"
-	| "senderIsModerator"
-	| "senderIsPatreon"
-	| "insertedAt"
-	| "viewerId"
-)[] = [
+const chatMessageFields = [
 	"id",
-	"message",
-	"senderUsername",
+	"type",
+	{
+		data: [
+			{
+				chatMessage: [
+					"message",
+					"username",
+					"senderChannelId",
+					"isModerator",
+					"isPatreon",
+					"isSentByStreamer",
+					"deliveryStatus",
+				],
+			},
+		],
+	},
 	"platform",
-	"senderIsModerator",
-	"senderIsPatreon",
 	"insertedAt",
 	"viewerId",
 ];
 
-const streamEventFields: (
-	| "id"
-	| "type"
-	| "data"
-	| "authorId"
-	| "platform"
-	| "insertedAt"
-)[] = ["id", "type", "data", "authorId", "platform", "insertedAt"];
+const streamEventFields = [
+	"id",
+	"type",
+	{
+		data: [
+			{
+				donation: [
+					"donorName",
+					"amount",
+					"currency",
+					"message",
+					"platformDonationId",
+					"username",
+					"channelId",
+					"amountMicros",
+					"amountCents",
+					"comment",
+					"metadata",
+				],
+				follow: ["username", "displayName"],
+				subscription: [
+					"username",
+					"tier",
+					"months",
+					"message",
+					"channelId",
+					"metadata",
+				],
+				raid: ["raiderName", "viewerCount", "message"],
+				platformStarted: ["platform"],
+				platformStopped: ["platform"],
+			},
+		],
+	},
+	"authorId",
+	"platform",
+	"insertedAt",
+];
 
 type Livestream = SuccessDataFunc<
 	typeof getLivestream<typeof livestreamFields>
 >;
-// Using underscore prefix to indicate these types are not directly used
-// but are kept for documentation/reference
-type _ChatMessage = SuccessDataFunc<
-	typeof getLivestreamChat<typeof chatMessageFields>
->[number];
-type _StreamEvent = SuccessDataFunc<
-	typeof getLivestreamEvents<typeof streamEventFields>
->[number];
+
+interface ChatMessageEvent {
+	id: string;
+	type: string;
+	data: {
+		chatMessage?: {
+			message?: string;
+			username?: string;
+			senderChannelId?: string | null;
+			isModerator?: boolean | null;
+			isPatreon?: boolean | null;
+			isSentByStreamer?: boolean | null;
+			deliveryStatus?: Record<string, any> | null;
+		};
+	};
+	platform: string | null;
+	insertedAt: string;
+	viewerId: string | null;
+}
+
+interface StreamActivityEvent {
+	id: string;
+	type: string;
+	data: {
+		donation?: {
+			donorName?: string;
+			amount?: number;
+			currency?: string;
+			message?: string;
+			username?: string;
+		};
+		follow?: { username?: string; displayName?: string };
+		subscription?: {
+			username?: string;
+			tier?: string;
+			months?: number;
+			message?: string;
+		};
+		raid?: { raiderName?: string; viewerCount?: number; message?: string };
+		platformStarted?: { platform?: string };
+		platformStopped?: { platform?: string };
+	};
+	authorId: string;
+	platform: string | null;
+	insertedAt: string;
+}
 
 // Helper functions for formatting
-const formatDuration = (seconds: number) => {
-	if (!seconds) return "0:00";
-	const hours = Math.floor(seconds / 3600);
-	const minutes = Math.floor((seconds % 3600) / 60);
-	const secs = seconds % 60;
-
-	if (hours > 0) {
-		return `${hours}:${String(minutes).padStart(2, "0")}:${String(
-			secs,
-		).padStart(2, "0")}`;
-	}
-	return `${minutes}:${String(secs).padStart(2, "0")}`;
-};
 
 const formatDate = (dateString: string) => {
 	const date = new Date(dateString);
@@ -198,7 +263,7 @@ function StreamDetailSkeleton() {
 	return (
 		<div class="mx-auto max-w-7xl">
 			{/* Stream Header skeleton */}
-			<div class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card class="mb-6">
 				<div class="flex items-start space-x-4">
 					<Skeleton class="aspect-video w-48 shrink-0 rounded-lg" />
 					<div class="flex-1 space-y-3">
@@ -217,25 +282,25 @@ function StreamDetailSkeleton() {
 					</div>
 					<Skeleton class="h-10 w-32 shrink-0 rounded-md" />
 				</div>
-			</div>
+			</Card>
 
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Main Content skeleton */}
 				<div class="space-y-6 lg:col-span-2">
 					{/* Chart skeleton */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<Skeleton class="mb-4 h-6 w-48" />
 						<Skeleton class="h-64 w-full rounded-lg" />
-					</div>
+					</Card>
 
 					{/* Player skeleton */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<Skeleton class="mb-4 h-6 w-36" />
 						<Skeleton class="aspect-video w-full rounded-lg" />
-					</div>
+					</Card>
 
 					{/* Timeline skeleton */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<Skeleton class="mb-4 h-6 w-36" />
 						<Skeleton class="mb-6 h-3 w-full rounded-full" />
 						<Skeleton class="h-2 w-full rounded-lg" />
@@ -249,22 +314,22 @@ function StreamDetailSkeleton() {
 								)}
 							</For>
 						</div>
-					</div>
+					</Card>
 				</div>
 
 				{/* Sidebar skeleton */}
 				<div class="space-y-6">
 					{/* Insights skeleton */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<Skeleton class="mb-4 h-6 w-32" />
 						<div class="space-y-4">
 							<Skeleton class="h-24 w-full rounded-lg" />
 							<Skeleton class="h-24 w-full rounded-lg" />
 						</div>
-					</div>
+					</Card>
 
 					{/* Chat skeleton */}
-					<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+					<Card class="p-0">
 						<div class="border-gray-200 border-b px-6 py-4">
 							<Skeleton class="h-6 w-28" />
 							<Skeleton class="mt-1 h-3 w-40" />
@@ -278,7 +343,7 @@ function StreamDetailSkeleton() {
 								</For>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</div>
 		</div>
@@ -324,11 +389,11 @@ export default function StreamHistoryDetail() {
 								<p class="mb-6 text-gray-300">
 									Please sign in to view stream details.
 								</p>
-								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
-									href={getLoginUrl()}>
-									Sign In
-								</a>
+								<A href={getLoginUrl()}>
+									<Button size="lg" variant="gradient">
+										Sign In
+									</Button>
+								</A>
 							</div>
 						</div>
 					}
@@ -382,14 +447,14 @@ function StreamDetailContent(props: { streamId: string }) {
 		async (livestreamId) => {
 			const result = await getLivestreamChat({
 				input: { livestreamId },
-				fields: [...chatMessageFields],
+				fields: chatMessageFields as any,
 				fetchOptions: { credentials: "include" },
 			});
 			if (!result.success) {
 				console.error("Failed to fetch chat messages:", result.errors);
-				return [];
+				return [] as ChatMessageEvent[];
 			}
-			return result.data;
+			return result.data as unknown as ChatMessageEvent[];
 		},
 	);
 
@@ -399,14 +464,14 @@ function StreamDetailContent(props: { streamId: string }) {
 		async (livestreamId) => {
 			const result = await getLivestreamEvents({
 				input: { livestreamId },
-				fields: [...streamEventFields],
+				fields: streamEventFields as any,
 				fetchOptions: { credentials: "include" },
 			});
 			if (!result.success) {
 				console.error("Failed to fetch stream events:", result.errors);
-				return [];
+				return [] as StreamActivityEvent[];
 			}
-			return result.data;
+			return result.data as unknown as StreamActivityEvent[];
 		},
 	);
 
@@ -541,7 +606,7 @@ function StreamDetailContent(props: { streamId: string }) {
 	return (
 		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Stream Header */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<div class="flex items-start space-x-4">
 					<Show when={stream()?.thumbnailUrl}>
 						<img
@@ -575,7 +640,7 @@ function StreamDetailContent(props: { streamId: string }) {
 						{/* Category, Subcategory, Language, Tags */}
 						<div class="mt-3 flex flex-wrap items-center gap-y-2 space-x-2">
 							<Show when={stream()?.category}>
-								<span class="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 font-medium text-indigo-800 text-xs">
+								<Badge class="rounded-md" variant="info">
 									<svg
 										aria-hidden="true"
 										class="mr-1 h-3 w-3"
@@ -590,17 +655,17 @@ function StreamDetailContent(props: { streamId: string }) {
 										/>
 									</svg>
 									{formatCategoryLabel(stream()?.category)}
-								</span>
+								</Badge>
 							</Show>
 
 							<Show when={stream()?.subcategory}>
-								<span class="inline-flex items-center rounded-md bg-purple-100 px-2.5 py-1 font-medium text-purple-800 text-xs">
+								<Badge class="rounded-md" variant="purple">
 									{formatCategoryLabel(stream()?.subcategory)}
-								</span>
+								</Badge>
 							</Show>
 
 							<Show when={stream()?.language}>
-								<span class="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1 font-medium text-blue-800 text-xs">
+								<Badge class="rounded-md" variant="info">
 									<svg
 										aria-hidden="true"
 										class="mr-1 h-3 w-3"
@@ -615,26 +680,26 @@ function StreamDetailContent(props: { streamId: string }) {
 										/>
 									</svg>
 									{languageName(stream()?.language)}
-								</span>
+								</Badge>
 							</Show>
 
 							<For each={stream()?.tags || []}>
 								{(tag) => (
-									<span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-800 text-xs">
+									<Badge class="rounded-md" variant="neutral">
 										#{tag}
-									</span>
+									</Badge>
 								)}
 							</For>
 						</div>
 					</div>
 				</div>
-			</div>
+			</Card>
 
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Main Content */}
 				<div class="space-y-6 lg:col-span-2">
 					{/* Viewer Chart */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<h3 class="mb-4 font-medium text-gray-900 text-lg">
 							Viewer Count Over Time
 						</h3>
@@ -707,10 +772,10 @@ function StreamDetailContent(props: { streamId: string }) {
 								</div>
 							</div>
 						</Show>
-					</div>
+					</Card>
 
 					{/* Stream Playback Placeholder */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<h3 class="mb-4 font-medium text-gray-900 text-lg">
 							Stream Playback
 						</h3>
@@ -733,10 +798,10 @@ function StreamDetailContent(props: { streamId: string }) {
 								<p class="text-sm">Video playback will be available here</p>
 							</div>
 						</div>
-					</div>
+					</Card>
 
 					{/* Timeline with Events */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<h3 class="mb-4 font-medium text-gray-900 text-lg">
 							Stream Timeline
 						</h3>
@@ -792,13 +857,13 @@ function StreamDetailContent(props: { streamId: string }) {
 								</div>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 
 				{/* Sidebar */}
 				<div class="space-y-6">
 					{/* Stream Insights */}
-					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<Card>
 						<h3 class="mb-4 font-medium text-gray-900 text-lg">
 							Stream Insights
 						</h3>
@@ -845,10 +910,10 @@ function StreamDetailContent(props: { streamId: string }) {
 								</Show>
 							</div>
 						</div>
-					</div>
+					</Card>
 
 					{/* Stream Chat */}
-					<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+					<Card class="p-0">
 						<div class="border-gray-200 border-b px-6 py-4">
 							<h3 class="font-medium text-gray-900 text-lg">Chat Replay</h3>
 							<p class="mt-1 text-gray-500 text-xs">
@@ -868,17 +933,18 @@ function StreamDetailContent(props: { streamId: string }) {
 												<div class="shrink-0">
 													<div
 														class={`flex h-6 w-6 items-center justify-center rounded-full ${
-															message.senderIsPatreon
+															message.data.chatMessage?.isPatreon
 																? "bg-purple-100"
 																: "bg-gray-100"
 														}`}>
 														<span
 															class={`font-medium text-xs ${
-																message.senderIsPatreon
+																message.data.chatMessage?.isPatreon
 																	? "text-purple-600"
 																	: "text-gray-600"
 															}`}>
-															{message.senderUsername?.charAt(0) || "?"}
+															{message.data.chatMessage?.username?.charAt(0) ||
+																"?"}
 														</span>
 													</div>
 												</div>
@@ -886,11 +952,11 @@ function StreamDetailContent(props: { streamId: string }) {
 													<div class="flex items-center space-x-1">
 														<span
 															class={`font-medium text-xs ${
-																message.senderIsModerator
+																message.data.chatMessage?.isModerator
 																	? "text-green-600"
 																	: "text-gray-900"
 															}`}>
-															{message.senderUsername}
+															{message.data.chatMessage?.username}
 														</span>
 														<Show when={message.platform}>
 															<Badge
@@ -900,15 +966,15 @@ function StreamDetailContent(props: { streamId: string }) {
 																{platformInitial(message.platform ?? "")}
 															</Badge>
 														</Show>
-														<Show when={message.senderIsModerator}>
+														<Show when={message.data.chatMessage?.isModerator}>
 															<Badge variant="success">MOD</Badge>
 														</Show>
-														<Show when={message.senderIsPatreon}>
+														<Show when={message.data.chatMessage?.isPatreon}>
 															<Badge variant="info">SUB</Badge>
 														</Show>
 													</div>
 													<p class="mt-0.5 text-gray-600 text-xs">
-														{message.message}
+														{message.data.chatMessage?.message}
 													</p>
 												</div>
 											</div>
@@ -917,7 +983,7 @@ function StreamDetailContent(props: { streamId: string }) {
 								</For>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</div>
 		</div>

@@ -1,10 +1,10 @@
 import { Title } from "@solidjs/meta";
 import { For, Show, createEffect, createSignal, onMount } from "solid-js";
-import Button from "~/components/ui/Button";
-import Card from "~/components/ui/Card";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
 import { useCurrentUser } from "~/lib/auth";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 interface CanvasWidget {
 	id: string;

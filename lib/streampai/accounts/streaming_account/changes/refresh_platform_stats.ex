@@ -17,6 +17,11 @@ defmodule Streampai.Accounts.StreamingAccount.Changes.RefreshPlatformStats do
 
   require Logger
 
+  @impl true
+  def atomic(_changeset, _opts, _context) do
+    {:not_atomic, "requires external API calls"}
+  end
+
   # Refresh token 5 minutes before expiry
   @refresh_buffer_seconds 300
 

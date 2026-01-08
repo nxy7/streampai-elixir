@@ -17,18 +17,19 @@
 
 localhost:{$CADDY_PORT:8000} {
 	# All backend routes are prefixed with /api - proxy to Phoenix
+	# Use 127.0.0.1 (IPv4) to avoid Docker Desktop's IPv6 listener on the same port
 	handle /api/* {
-		reverse_proxy localhost:{$PORT:4000}
+		reverse_proxy 127.0.0.1:{$PORT:4000}
 	}
 
 	# Admin routes (internal only, not prefixed)
 	handle /admin/* {
-		reverse_proxy localhost:{$PORT:4000}
+		reverse_proxy 127.0.0.1:{$PORT:4000}
 	}
 
 	# Tidewave MCP for Claude integration
 	handle /tidewave/* {
-		reverse_proxy localhost:{$PORT:4000}
+		reverse_proxy 127.0.0.1:{$PORT:4000}
 	}
 
 	# Vite HMR WebSocket - client router (must be before generic /_build/*)

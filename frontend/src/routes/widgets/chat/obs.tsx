@@ -2,8 +2,8 @@ import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createMemo } from "solid-js";
 import {
-	chatMessagesCollection,
-	createUserScopedChatMessagesCollection,
+	createUserScopedStreamEventsCollection,
+	streamEventsCollection,
 } from "~/lib/electric";
 
 type ChatMessage = {
@@ -16,16 +16,16 @@ type ChatMessage = {
 	isSubscriber?: boolean;
 };
 
-// Cache for user-scoped chat collections
-const chatCollections = new Map<
+// Cache for user-scoped event collections
+const eventCollections = new Map<
 	string,
-	ReturnType<typeof createUserScopedChatMessagesCollection>
+	ReturnType<typeof createUserScopedStreamEventsCollection>
 >();
-function getChatCollection(userId: string) {
-	let collection = chatCollections.get(userId);
+function getEventCollection(userId: string) {
+	let collection = eventCollections.get(userId);
 	if (!collection) {
-		collection = createUserScopedChatMessagesCollection(userId);
-		chatCollections.set(userId, collection);
+		collection = createUserScopedStreamEventsCollection(userId);
+		eventCollections.set(userId, collection);
 	}
 	return collection;
 }
@@ -42,24 +42,32 @@ export default function ChatOBS() {
 			10,
 		);
 
-	const chatQuery = useLiveQuery(() => {
+	const eventsQuery = useLiveQuery(() => {
 		const id = userId();
-		if (!id) return chatMessagesCollection;
-		return getChatCollection(id);
+		if (!id) return streamEventsCollection;
+		return getEventCollection(id);
 	});
 
 	const messages = createMemo(() => {
-		const data = chatQuery.data || [];
+		const data = eventsQuery.data || [];
 		return data
+			.filter((e) => e.type === "chat_message")
 			.map(
 				(msg): ChatMessage => ({
 					id: msg.id,
-					username: msg.sender_username,
-					message: msg.message,
+					username:
+						((msg.data as Record<string, unknown>).username as string) ||
+						"Unknown",
+					message:
+						((msg.data as Record<string, unknown>).message as string) || "",
 					timestamp: new Date(msg.inserted_at),
-					platform: msg.platform,
-					isModerator: msg.sender_is_moderator || false,
-					isSubscriber: msg.sender_is_patreon || false,
+					platform: msg.platform || "unknown",
+					isModerator:
+						((msg.data as Record<string, unknown>).is_moderator as boolean) ||
+						false,
+					isSubscriber:
+						((msg.data as Record<string, unknown>).is_patreon as boolean) ||
+						false,
 				}),
 			)
 			.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())

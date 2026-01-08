@@ -1,4 +1,5 @@
 import { For, Show, createMemo, createSignal } from "solid-js";
+import { Skeleton } from "~/design-system";
 import { useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { formatTimeAgo } from "~/lib/formatters";
@@ -137,11 +138,11 @@ export default function NotificationBell() {
 								<div class="px-4 py-3">
 									<For each={[1, 2, 3]}>
 										{() => (
-											<div class="flex animate-pulse items-start gap-3 py-3">
-												<div class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gray-200" />
+											<div class="flex items-start gap-3 py-3">
+												<Skeleton circle class="mt-1 h-2 w-2 shrink-0" />
 												<div class="min-w-0 flex-1">
-													<div class="h-4 w-3/4 rounded bg-gray-200" />
-													<div class="mt-2 h-3 w-1/4 rounded bg-gray-200" />
+													<Skeleton class="h-4 w-3/4" />
+													<Skeleton class="mt-2 h-3 w-1/4" />
 												</div>
 											</div>
 										)}

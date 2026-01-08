@@ -11,6 +11,8 @@ defmodule Streampai.Stream.StreamEvent do
     data_layer: AshPostgres.DataLayer,
     extensions: [AshTypescript.Resource]
 
+  alias Streampai.Stream.EventData.PlatformEventData
+
   postgres do
     table "stream_events"
     repo Streampai.Repo
@@ -52,6 +54,9 @@ defmodule Streampai.Stream.StreamEvent do
     define :get_activity_events_for_livestream, args: [:livestream_id]
     define :get_platform_started_for_livestream, args: [:livestream_id]
     define :get_for_viewer, args: [:viewer_id, :user_id]
+    define :get_chat_for_user, args: [:user_id, :platform, :date_range]
+    define :get_chat_for_livestream, args: [:livestream_id]
+    define :get_chat_for_viewer, args: [:viewer_id, :user_id]
     define :upsert
     define :create_stream_updated, args: [:livestream_id, :user_id, :author_id, :metadata]
     define :mark_as_displayed
@@ -64,7 +69,6 @@ defmodule Streampai.Stream.StreamEvent do
       accept [
         :type,
         :data,
-        :data_raw,
         :author_id,
         :livestream_id,
         :user_id,
@@ -99,14 +103,10 @@ defmodule Streampai.Stream.StreamEvent do
 
       argument :livestream_id, :uuid, allow_nil?: false
 
-      filter expr(livestream_id == ^arg(:livestream_id))
-
-      prepare fn query, _context ->
-        import Ash.Expr
-
-        activity_types = [:donation, :follow, :raid, :cheer, :patreon]
-        Ash.Query.filter(query, expr(type in ^activity_types))
-      end
+      filter expr(
+               livestream_id == ^arg(:livestream_id) and
+                 type in [:donation, :follow, :raid, :cheer, :patreon]
+             )
 
       prepare build(sort: [inserted_at: :asc])
     end
@@ -129,11 +129,107 @@ defmodule Streampai.Stream.StreamEvent do
       prepare build(sort: [inserted_at: :desc], limit: 50)
     end
 
+    read :get_chat_for_user do
+      description "Get chat messages for a user with search, platform and date filters"
+
+      argument :user_id, :uuid, allow_nil?: false
+      argument :platform, :atom, allow_nil?: true
+      argument :date_range, :string, allow_nil?: true
+      argument :search, :string, allow_nil?: true
+
+      filter expr(user_id == ^arg(:user_id) and type == :chat_message)
+      prepare build(sort: [inserted_at: :desc, id: :desc])
+
+      pagination do
+        required? false
+        offset? false
+        keyset? true
+        countable false
+        default_limit 20
+        max_page_size 100
+      end
+
+      prepare fn query, _context ->
+        require Ash.Query
+
+        platform = Ash.Query.get_argument(query, :platform)
+        date_range = Ash.Query.get_argument(query, :date_range)
+        search = Ash.Query.get_argument(query, :search)
+
+        query =
+          if platform do
+            Ash.Query.filter(query, expr(platform == ^platform))
+          else
+            query
+          end
+
+        query =
+          if search && String.trim(search) != "" do
+            search_term = String.downcase(search)
+
+            Ash.Query.filter(
+              query,
+              expr(
+                contains(fragment("LOWER(?->>?)", data, "message"), ^search_term) or
+                  contains(fragment("LOWER(?->>?)", data, "username"), ^search_term)
+              )
+            )
+          else
+            query
+          end
+
+        case date_range do
+          "7days" ->
+            Ash.Query.filter(
+              query,
+              expr(inserted_at >= ^DateTime.add(DateTime.utc_now(), -7, :day))
+            )
+
+          "30days" ->
+            Ash.Query.filter(
+              query,
+              expr(inserted_at >= ^DateTime.add(DateTime.utc_now(), -30, :day))
+            )
+
+          "3months" ->
+            Ash.Query.filter(
+              query,
+              expr(inserted_at >= ^DateTime.add(DateTime.utc_now(), -90, :day))
+            )
+
+          _ ->
+            query
+        end
+      end
+    end
+
+    read :get_chat_for_livestream do
+      description "Get chat messages for a livestream, sorted chronologically"
+
+      argument :livestream_id, :uuid, allow_nil?: false
+
+      filter expr(livestream_id == ^arg(:livestream_id) and type == :chat_message)
+      prepare build(sort: [inserted_at: :asc])
+    end
+
+    read :get_chat_for_viewer do
+      description "Get chat messages for a specific viewer on a user's streams"
+
+      argument :viewer_id, :string, allow_nil?: false
+      argument :user_id, :uuid, allow_nil?: false
+
+      filter expr(
+               viewer_id == ^arg(:viewer_id) and user_id == ^arg(:user_id) and
+                 type == :chat_message
+             )
+
+      prepare build(sort: [inserted_at: :desc], limit: 50)
+    end
+
     create :upsert do
       accept [
         :type,
         :data,
-        :data_raw,
         :author_id,
         :livestream_id,
         :user_id,
@@ -153,7 +249,6 @@ defmodule Streampai.Stream.StreamEvent do
       upsert_fields [
         :type,
         :data,
-        :data_raw,
         :author_id,
         :livestream_id,
         :user_id,
@@ -180,6 +275,7 @@ defmodule Streampai.Stream.StreamEvent do
         metadata = Ash.Changeset.get_argument(changeset, :metadata)
 
         data = %{
+          "type" => "stream_updated",
           "username" => metadata["username"],
           "title" => metadata["title"],
           "description" => metadata["description"],
@@ -187,9 +283,7 @@ defmodule Streampai.Stream.StreamEvent do
           "user" => metadata["user"]
         }
 
-        changeset
-        |> Ash.Changeset.change_attribute(:data, data)
-        |> Ash.Changeset.change_attribute(:data_raw, metadata)
+        Ash.Changeset.change_attribute(changeset, :data, data)
       end
 
       change fn changeset, _context ->
@@ -201,6 +295,11 @@ defmodule Streampai.Stream.StreamEvent do
 
         Ash.Changeset.change_attribute(changeset, :viewer_id, to_string(viewer_id))
       end
+    end
+
+    update :update_data do
+      description "Update the data field of a stream event"
+      accept [:data]
     end
 
     update :mark_as_displayed do
@@ -219,19 +318,54 @@ defmodule Streampai.Stream.StreamEvent do
       allow_nil? false
     end
 
-    attribute :data, :map do
-      description "
-      Event-specific data stored as JSONB, unlike RAW data
-      this should be pre-processed into a consistent format.
-      "
+    attribute :data, :union do
+      description "Typed event data. Shape depends on event type (union with :map_with_tag storage)."
       public? true
       allow_nil? false
-    end
 
-    attribute :data_raw, :map do
-      description "Raw data as received from platform, unprocessed"
-      public? true
-      allow_nil? false
+      constraints storage: :map_with_tag,
+                  types: [
+                    chat_message: [
+                      type: Streampai.Stream.EventData.ChatMessageData,
+                      tag: :type,
+                      tag_value: "chat_message"
+                    ],
+                    donation: [
+                      type: Streampai.Stream.EventData.DonationData,
+                      tag: :type,
+                      tag_value: "donation"
+                    ],
+                    follow: [
+                      type: Streampai.Stream.EventData.FollowData,
+                      tag: :type,
+                      tag_value: "follow"
+                    ],
+                    subscription: [
+                      type: Streampai.Stream.EventData.SubscriptionData,
+                      tag: :type,
+                      tag_value: "subscription"
+                    ],
+                    raid: [
+                      type: Streampai.Stream.EventData.RaidData,
+                      tag: :type,
+                      tag_value: "raid"
+                    ],
+                    stream_updated: [
+                      type: Streampai.Stream.EventData.StreamUpdatedData,
+                      tag: :type,
+                      tag_value: "stream_updated"
+                    ],
+                    platform_started: [
+                      type: PlatformEventData,
+                      tag: :type,
+                      tag_value: "platform_started"
+                    ],
+                    platform_stopped: [
+                      type: PlatformEventData,
+                      tag: :type,
+                      tag_value: "platform_stopped"
+                    ]
+                  ]
     end
 
     attribute :author_id, :string do

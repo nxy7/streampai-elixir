@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { cn } from "~/styles/design-system";
+import { cn } from "~/design-system/design-system";
 
 export interface UserAvatarProps {
 	name?: string | null;

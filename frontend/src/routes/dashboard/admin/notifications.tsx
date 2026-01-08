@@ -1,10 +1,11 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { For, Index, Show, createEffect, createSignal } from "solid-js";
-import Badge from "~/components/ui/Badge";
-import Button from "~/components/ui/Button";
-import Card from "~/components/ui/Card";
-import Input, { Select, Textarea } from "~/components/ui/Input";
+import Badge from "~/design-system/Badge";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
+import Input, { Select, Textarea } from "~/design-system/Input";
 import {
 	LOCALE_NAMES,
 	type Locale,
@@ -14,7 +15,6 @@ import {
 import { useCurrentUser } from "~/lib/auth";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 type LocalizationEntry = {
 	locale: Locale;

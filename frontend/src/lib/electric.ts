@@ -10,27 +10,12 @@ export type StreamEvent = Row & {
 	id: string;
 	type: string;
 	data: Record<string, unknown>;
-	data_raw: Record<string, unknown>;
 	author_id: string;
 	livestream_id: string;
 	user_id: string;
 	platform: string | null;
 	viewer_id: string | null;
 	was_displayed: boolean;
-	inserted_at: string;
-};
-
-export type ChatMessage = Row & {
-	id: string;
-	message: string;
-	platform: string;
-	sender_username: string;
-	sender_channel_id: string;
-	sender_is_moderator: boolean;
-	sender_is_patreon: boolean;
-	user_id: string;
-	livestream_id: string;
-	viewer_id: string | null;
 	inserted_at: string;
 };
 
@@ -41,6 +26,8 @@ export type Livestream = Row & {
 	status: string;
 	started_at: string | null;
 	ended_at: string | null;
+	thumbnail_file_id: string | null;
+	thumbnail_url: string | null;
 	inserted_at: string;
 	updated_at: string;
 };
@@ -201,16 +188,6 @@ export const streamEventsCollection = createCollection(
 	}),
 );
 
-export const chatMessagesCollection = createCollection(
-	electricCollectionOptions<ChatMessage>({
-		id: "chat_messages",
-		shapeOptions: {
-			url: `${SHAPES_URL}/chat_messages`,
-		},
-		getKey: (item) => item.id,
-	}),
-);
-
 export const livestreamsCollection = createCollection(
 	electricCollectionOptions<Livestream>({
 		id: "livestreams",
@@ -255,18 +232,6 @@ export function createUserScopedStreamEventsCollection(userId: string) {
 	);
 }
 
-export function createUserScopedChatMessagesCollection(userId: string) {
-	return createCollection(
-		electricCollectionOptions<ChatMessage>({
-			id: `chat_messages_${userId}`,
-			shapeOptions: {
-				url: `${SHAPES_URL}/chat_messages/${userId}`,
-			},
-			getKey: (item) => item.id,
-		}),
-	);
-}
-
 export function createUserScopedLivestreamsCollection(userId: string) {
 	return createCollection(
 		electricCollectionOptions<Livestream>({
@@ -287,21 +252,6 @@ export function createUserScopedViewersCollection(userId: string) {
 				url: `${SHAPES_URL}/viewers/${userId}`,
 			},
 			getKey: (item) => item.viewer_id,
-		}),
-	);
-}
-
-export function createLivestreamChatCollection(livestreamId: string) {
-	return createCollection(
-		electricCollectionOptions<ChatMessage>({
-			id: `chat_${livestreamId}`,
-			shapeOptions: {
-				url: `${SHAPES_URL}/chat_messages`,
-				params: {
-					where: `livestream_id='${livestreamId}'`,
-				},
-			},
-			getKey: (item) => item.id,
 		}),
 	);
 }
@@ -428,6 +378,53 @@ export function createHighlightedMessagesCollection(userId: string) {
 			id: `highlighted_messages_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/highlighted_messages/${userId}`,
+			},
+			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export type ActorState = Row & {
+	id: string;
+	type: string;
+	user_id: string;
+	data: Record<string, unknown>;
+	status: string;
+	inserted_at: string;
+	updated_at: string;
+};
+
+export function createActorStatesCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<ActorState>({
+			id: `actor_states_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/actor_states/${userId}`,
+			},
+			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export type CurrentStreamData = Row & {
+	id: string;
+	user_id: string;
+	status: string;
+	stream_data: Record<string, unknown>;
+	cloudflare_data: Record<string, unknown>;
+	youtube_data: Record<string, unknown>;
+	twitch_data: Record<string, unknown>;
+	kick_data: Record<string, unknown>;
+	inserted_at: string;
+	updated_at: string;
+};
+
+export function createCurrentStreamDataCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<CurrentStreamData>({
+			id: `current_stream_data_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/current_stream_data/${userId}`,
 			},
 			getKey: (item) => item.id,
 		}),

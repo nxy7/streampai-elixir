@@ -9,7 +9,11 @@
   outputs =
     { flake-parts, nixpkgs, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
       perSystem =
         { config, system, ... }:
         let
@@ -18,28 +22,22 @@
         in
         {
           devShells.default = pkgs.mkShell {
-            packages = with pkgs; [
-              ffmpeg
-              # elixir
-              elixir_1_19
-              elixir-ls
-              lexical
-              next-ls
-              erlang_28
-              just
-              nodejs
-              bun
-              protobuf
-              protoc-gen-elixir
-              lefthook
-              overmind # Process manager with tmux-based log separation
-              # dbmate
-              # telepresence2
-              # cilium-cli
-              # kubernetes-helm
-            ] ++ pkgs.lib.optionals isLinux [
-              inotify-tools
-            ];
+            packages =
+              with pkgs;
+              [
+                ffmpeg
+                elixir_1_19
+                erlang_28
+                just
+                nodejs
+                bun
+                protobuf
+                protoc-gen-elixir
+                lefthook
+              ]
+              ++ pkgs.lib.optionals isLinux [
+                inotify-tools
+              ];
           };
         };
     };

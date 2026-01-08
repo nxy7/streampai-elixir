@@ -295,7 +295,7 @@ defmodule Streampai.LivestreamManager.TimerManager do
         is_paused: false
     }
 
-    schedule_tick(new_state)
+    new_state = schedule_tick(new_state)
     broadcast_event(new_state, %{type: :restart, auto_restart: true})
     {:noreply, new_state}
   end

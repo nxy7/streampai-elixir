@@ -17,9 +17,10 @@ import {
 	CardTitle,
 	Skeleton,
 	Stat,
-} from "~/components/ui";
+} from "~/design-system";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import type { Livestream } from "~/lib/electric";
+import { formatDurationShort } from "~/lib/formatters";
 import { useUserLivestreams } from "~/lib/useElectric";
 
 type DateRange = "7days" | "30days" | "all";
@@ -251,14 +252,6 @@ function StreamHistoryContent(props: {
 		});
 	};
 
-	const formatDuration = (seconds: number | undefined) => {
-		if (!seconds) return "0m";
-		const hours = Math.floor(seconds / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-		if (hours > 0) return `${hours}h ${minutes}m`;
-		return `${minutes}m`;
-	};
-
 	return (
 		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Filters */}
@@ -382,21 +375,38 @@ function StreamHistoryContent(props: {
 										class="block p-6 transition-colors hover:bg-gray-50"
 										href={`/dashboard/stream-history/${stream.id}`}>
 										<div class="flex items-center space-x-4">
-											<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
-												<svg
-													aria-hidden="true"
-													class="h-6 w-6 text-purple-600"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24">
-													<path
-														d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-													/>
-												</svg>
-											</div>
+											<Show
+												fallback={
+													<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+														<svg
+															aria-hidden="true"
+															class="h-6 w-6 text-purple-600"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24">
+															<path
+																d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																stroke-width="2"
+															/>
+														</svg>
+													</div>
+												}
+												when={stream.thumbnail_url}>
+												<img
+													alt=""
+													class="h-12 w-12 shrink-0 rounded-lg object-cover"
+													onError={(e) => {
+														(e.target as HTMLImageElement).style.display =
+															"none";
+														(
+															e.target as HTMLImageElement
+														).nextElementSibling?.classList.remove("hidden");
+													}}
+													src={stream.thumbnail_url!}
+												/>
+											</Show>
 											<div class="min-w-0 flex-1">
 												<div class="flex items-start justify-between">
 													<div>
@@ -413,7 +423,7 @@ function StreamHistoryContent(props: {
 																)}
 															</Show>
 															<span class="text-gray-500 text-xs">
-																{formatDuration(
+																{formatDurationShort(
 																	computeDurationSeconds(
 																		stream.started_at,
 																		stream.ended_at,

@@ -8,14 +8,14 @@ import {
 	createEffect,
 	createSignal,
 } from "solid-js";
-import { Skeleton } from "~/components/ui";
-import Badge from "~/components/ui/Badge";
-import Card from "~/components/ui/Card";
-import Input, { Select } from "~/components/ui/Input";
+import { Skeleton } from "~/design-system";
+import Badge from "~/design-system/Badge";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
+import Input, { Select } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getChatHistory } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type DateRange = "7days" | "30days" | "3months" | "";
@@ -62,41 +62,52 @@ function ChatHistorySkeleton() {
 	);
 }
 
-const chatMessageFields: (
-	| "id"
-	| "message"
-	| "senderUsername"
-	| "platform"
-	| "senderIsModerator"
-	| "senderIsPatreon"
-	| "insertedAt"
-	| "viewerId"
-	| "userId"
-)[] = [
+const streamEventFields = [
 	"id",
-	"message",
-	"senderUsername",
+	"type",
+	{
+		data: [
+			{
+				chatMessage: [
+					"message",
+					"username",
+					"senderChannelId",
+					"isModerator",
+					"isPatreon",
+					"isSentByStreamer",
+					"deliveryStatus",
+				],
+			},
+		],
+	},
 	"platform",
-	"senderIsModerator",
-	"senderIsPatreon",
 	"insertedAt",
 	"viewerId",
 	"userId",
 ];
 
-export interface ChatMessage {
+export interface StreamEvent {
 	id: string;
-	message: string;
-	senderUsername: string;
-	platform: string;
-	senderIsModerator: boolean | null;
-	senderIsPatreon: boolean | null;
+	type: string;
+	data: {
+		chatMessage: {
+			message: string;
+			username: string;
+			senderChannelId?: string | null;
+			isModerator?: boolean | null;
+			isPatreon?: boolean | null;
+			isSentByStreamer?: boolean | null;
+			deliveryStatus?: Record<string, any> | null;
+		} | null;
+	};
+	platform: string | null;
 	insertedAt: string;
 	viewerId: string | null;
 	userId: string;
 }
 
 export default function ChatHistory() {
+	const { t } = useTranslation();
 	const { user } = useCurrentUser();
 
 	const [platform, setPlatform] = createSignal<Platform>("");
@@ -117,15 +128,15 @@ export default function ChatHistory() {
 					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 						<div class="py-12 text-center">
 							<h2 class="mb-4 font-bold text-2xl text-white">
-								Not Authenticated
+								{t("chatHistory.empty.notAuthenticated")}
 							</h2>
 							<p class="mb-6 text-gray-300">
-								Please sign in to view chat history.
+								{t("chatHistory.empty.signInToView")}
 							</p>
 							<a
 								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
 								href={getLoginUrl()}>
-								Sign In
+								{t("chatHistory.empty.signIn")}
 							</a>
 						</div>
 					</div>
@@ -136,7 +147,7 @@ export default function ChatHistory() {
 						fallback={(err) => (
 							<div class="mx-auto mt-8 max-w-6xl">
 								<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-									Error loading chat messages: {err.message}
+									{t("chatHistory.messages.errorLoading")} {err.message}
 								</div>
 							</div>
 						)}>
@@ -172,7 +183,7 @@ function ChatHistoryContent(props: {
 	handleSearch: (e: Event) => void;
 }) {
 	const { t } = useTranslation();
-	const [messages, setMessages] = createSignal<ChatMessage[]>([]);
+	const [messages, setMessages] = createSignal<StreamEvent[]>([]);
 	const [_isLoading, setIsLoading] = createSignal(true);
 
 	const loadMessages = async () => {
@@ -184,12 +195,12 @@ function ChatHistoryContent(props: {
 				dateRange: props.dateRange() || undefined,
 				search: props.search() || undefined,
 			},
-			fields: [...chatMessageFields],
+			fields: streamEventFields as any,
 			fetchOptions: { credentials: "include" },
 		});
 
 		if (result.success && result.data) {
-			setMessages(result.data as ChatMessage[]);
+			setMessages(result.data as unknown as StreamEvent[]);
 		} else {
 			setMessages([]);
 		}
@@ -229,7 +240,7 @@ function ChatHistoryContent(props: {
 		<div class="mx-auto max-w-6xl space-y-6">
 			{/* Filters Section */}
 			<Card>
-				<h3 class={`${text.h3} mb-4`}>Filters</h3>
+				<h3 class={`${text.h3} mb-4`}>{t("chatHistory.filters.title")}</h3>
 
 				<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{/* Platform Filter */}
@@ -237,7 +248,7 @@ function ChatHistoryContent(props: {
 						<label
 							class="block font-medium text-gray-700 text-sm"
 							for="chat-platform-filter">
-							Platform
+							{t("chatHistory.filters.platform")}
 						</label>
 						<Select
 							class="mt-2"
@@ -246,7 +257,7 @@ function ChatHistoryContent(props: {
 								props.setPlatform(e.currentTarget.value as Platform);
 							}}
 							value={props.platform()}>
-							<option value="">All Platforms</option>
+							<option value="">{t("chatHistory.filters.allPlatforms")}</option>
 							<option value="twitch">Twitch</option>
 							<option value="youtube">YouTube</option>
 							<option value="facebook">Facebook</option>
@@ -259,7 +270,7 @@ function ChatHistoryContent(props: {
 						<label
 							class="block font-medium text-gray-700 text-sm"
 							for="chat-date-range">
-							Date Range
+							{t("chatHistory.filters.dateRange")}
 						</label>
 						<Select
 							class="mt-2"
@@ -268,10 +279,16 @@ function ChatHistoryContent(props: {
 								props.setDateRange(e.currentTarget.value as DateRange);
 							}}
 							value={props.dateRange()}>
-							<option value="">All Time</option>
-							<option value="7days">Last 7 Days</option>
-							<option value="30days">Last 30 Days</option>
-							<option value="3months">Last 3 Months</option>
+							<option value="">{t("chatHistory.filters.allTime")}</option>
+							<option value="7days">
+								{t("chatHistory.filters.last7Days")}
+							</option>
+							<option value="30days">
+								{t("chatHistory.filters.last30Days")}
+							</option>
+							<option value="3months">
+								{t("chatHistory.filters.last3Months")}
+							</option>
 						</Select>
 					</div>
 
@@ -280,7 +297,7 @@ function ChatHistoryContent(props: {
 						<label
 							class="block font-medium text-gray-700 text-sm"
 							for="chat-search">
-							Search
+							{t("chatHistory.filters.search")}
 						</label>
 						<form onSubmit={props.handleSearch}>
 							<Input
@@ -298,15 +315,20 @@ function ChatHistoryContent(props: {
 				{/* Active Filters Summary */}
 				<Show when={props.platform() || props.dateRange() || props.search()}>
 					<div class="flex items-center gap-2 text-gray-600 text-sm">
-						<span class="font-medium">Active filters:</span>
+						<span class="font-medium">
+							{t("chatHistory.filters.activeFilters")}
+						</span>
 						<Show when={props.platform()}>
 							<Badge variant="info">{props.platform()}</Badge>
 						</Show>
 						<Show when={props.dateRange()}>
 							<Badge variant="info">
-								{props.dateRange() === "7days" && "Last 7 Days"}
-								{props.dateRange() === "30days" && "Last 30 Days"}
-								{props.dateRange() === "3months" && "Last 3 Months"}
+								{props.dateRange() === "7days" &&
+									t("chatHistory.filters.last7Days")}
+								{props.dateRange() === "30days" &&
+									t("chatHistory.filters.last30Days")}
+								{props.dateRange() === "3months" &&
+									t("chatHistory.filters.last3Months")}
 							</Badge>
 						</Show>
 						<Show when={props.search()}>
@@ -320,7 +342,7 @@ function ChatHistoryContent(props: {
 								props.setSearchInput("");
 							}}
 							type="button">
-							Clear all
+							{t("chatHistory.filters.clearAll")}
 						</button>
 					</div>
 				</Show>
@@ -328,7 +350,7 @@ function ChatHistoryContent(props: {
 
 			{/* Messages List */}
 			<Card>
-				<h3 class={`${text.h3} mb-4`}>Messages</h3>
+				<h3 class={`${text.h3} mb-4`}>{t("chatHistory.messages.title")}</h3>
 
 				<Show
 					fallback={
@@ -347,12 +369,12 @@ function ChatHistoryContent(props: {
 								/>
 							</svg>
 							<p class="font-medium text-gray-700 text-lg">
-								No chat messages found
+								{t("chatHistory.messages.noMessages")}
 							</p>
 							<p class="mt-2 text-gray-500 text-sm">
 								{props.platform() || props.dateRange() || props.search()
-									? "Try adjusting your filters or search criteria"
-									: "Connect your streaming accounts to see chat messages"}
+									? t("chatHistory.messages.adjustFilters")
+									: t("chatHistory.messages.connectAccounts")}
 							</p>
 						</div>
 					}
@@ -368,23 +390,24 @@ function ChatHistoryContent(props: {
 												<Show
 													fallback={
 														<span class="font-semibold text-gray-900">
-															{msg.senderUsername}
+															{msg.data.chatMessage?.username}
 														</span>
 													}
 													when={msg.viewerId && msg.userId}>
 													<A
 														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline"
 														href={`/dashboard/viewers/${msg.viewerId}`}>
-														{msg.senderUsername}
+														{msg.data.chatMessage?.username}
 													</A>
 												</Show>
-												<Badge variant={getPlatformBadgeVariant(msg.platform)}>
+												<Badge
+													variant={getPlatformBadgeVariant(msg.platform ?? "")}>
 													{msg.platform}
 												</Badge>
-												<Show when={msg.senderIsModerator}>
+												<Show when={msg.data.chatMessage?.isModerator}>
 													<Badge variant="success">MOD</Badge>
 												</Show>
-												<Show when={msg.senderIsPatreon}>
+												<Show when={msg.data.chatMessage?.isPatreon}>
 													<Badge variant="warning">Patron</Badge>
 												</Show>
 												<span class={text.muted}>
@@ -393,7 +416,9 @@ function ChatHistoryContent(props: {
 											</div>
 
 											{/* Message Content */}
-											<p class="wrap-break-word text-gray-700">{msg.message}</p>
+											<p class="wrap-break-word text-gray-700">
+												{msg.data.chatMessage?.message}
+											</p>
 										</div>
 									</div>
 								</div>

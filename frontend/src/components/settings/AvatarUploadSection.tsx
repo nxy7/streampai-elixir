@@ -1,4 +1,5 @@
 import { Show, createSignal } from "solid-js";
+import { Button } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import {
 	confirmFileUpload,
@@ -157,19 +158,15 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 						ref={fileInputRef}
 						type="file"
 					/>
-					<button
-						class={`rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors ${
-							isUploading()
-								? "cursor-not-allowed opacity-50"
-								: "hover:bg-purple-700"
-						}`}
+					<Button
 						disabled={isUploading()}
 						onClick={() => fileInputRef?.click()}
-						type="button">
+						type="button"
+						variant="primary">
 						{isUploading()
 							? t("settings.uploading")
 							: t("settings.uploadNewAvatar")}
-					</button>
+					</Button>
 					<p class="mt-1 text-gray-500 text-xs">{t("settings.avatarHelp")}</p>
 					<Show when={uploadError()}>
 						<p class="mt-1 text-red-600 text-xs">{uploadError()}</p>

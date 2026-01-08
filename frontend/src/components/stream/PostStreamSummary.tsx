@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js";
-import { formatTimeAgo } from "~/lib/formatters";
-import { badge, button, card, text } from "~/styles/design-system";
+import { badge, button, card, text } from "~/design-system/design-system";
+import { formatDurationShort, formatTimeAgo } from "~/lib/formatters";
 import type { StreamSummary } from "./types";
 
 interface PostStreamSummaryProps {
@@ -9,15 +9,6 @@ interface PostStreamSummaryProps {
 }
 
 export function PostStreamSummary(props: PostStreamSummaryProps) {
-	const formatDuration = (seconds: number): string => {
-		const hrs = Math.floor(seconds / 3600);
-		const mins = Math.floor((seconds % 3600) / 60);
-		if (hrs > 0) {
-			return `${hrs}h ${mins}m`;
-		}
-		return `${mins}m`;
-	};
-
 	const endedAgo = createMemo(() => {
 		const ended = props.summary.endedAt;
 		const endedDate = ended instanceof Date ? ended : new Date(ended);
@@ -39,7 +30,7 @@ export function PostStreamSummary(props: PostStreamSummaryProps) {
 			<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
 				<div class="rounded-lg bg-purple-50 p-4 text-center">
 					<div class="font-bold text-2xl text-purple-600">
-						{formatDuration(props.summary.duration)}
+						{formatDurationShort(props.summary.duration)}
 					</div>
 					<div class="text-gray-600 text-sm">Duration</div>
 				</div>

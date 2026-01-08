@@ -1,4 +1,5 @@
-import { For, Show, createEffect, createSignal } from "solid-js";
+import { For, Show, createSignal } from "solid-js";
+import { Alert, Button, Card } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { saveDonationSettings } from "~/sdk/ash_rpc";
 
@@ -14,24 +15,19 @@ const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
 
 export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 	const { t } = useTranslation();
-	const [minAmount, setMinAmount] = createSignal<number | null>(null);
-	const [maxAmount, setMaxAmount] = createSignal<number | null>(null);
-	const [currency, setCurrency] = createSignal("USD");
-	const [defaultVoice, setDefaultVoice] = createSignal("random");
+	const [minAmount, setMinAmount] = createSignal<number | null>(
+		props.initialMinAmount ?? null,
+	);
+	const [maxAmount, setMaxAmount] = createSignal<number | null>(
+		props.initialMaxAmount ?? null,
+	);
+	const [currency, setCurrency] = createSignal(props.initialCurrency || "USD");
+	const [defaultVoice, setDefaultVoice] = createSignal(
+		props.initialDefaultVoice || "random",
+	);
 	const [isSavingSettings, setIsSavingSettings] = createSignal(false);
 	const [saveError, setSaveError] = createSignal<string | null>(null);
 	const [saveSuccess, setSaveSuccess] = createSignal(false);
-	const [formInitialized, setFormInitialized] = createSignal(false);
-
-	createEffect(() => {
-		if (!formInitialized()) {
-			setMinAmount(props.initialMinAmount ?? null);
-			setMaxAmount(props.initialMaxAmount ?? null);
-			setCurrency(props.initialCurrency || "USD");
-			setDefaultVoice(props.initialDefaultVoice || "random");
-			setFormInitialized(true);
-		}
-	});
 
 	const handleSaveDonationSettings = async (e: Event) => {
 		e.preventDefault();
@@ -69,7 +65,7 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 	};
 
 	return (
-		<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+		<Card padding="lg">
 			<h3 class="mb-6 font-medium text-gray-900 text-lg">
 				{t("settings.donationSettings")}
 			</h3>
@@ -157,44 +153,21 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 					<p class="mt-1 text-gray-500 text-xs">{t("settings.voiceHelp")}</p>
 				</div>
 
-				<div class="flex items-start space-x-3 rounded-lg bg-blue-50 p-3">
-					<svg
-						aria-hidden="true"
-						class="mt-0.5 h-5 w-5 shrink-0 text-blue-500"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24">
-						<path
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-						/>
-					</svg>
-					<div class="text-blue-800 text-sm">
-						<p class="mb-1 font-medium">{t("settings.donationLimitsInfo")}</p>
-						<ul class="space-y-1 text-blue-700">
-							<li>• {t("settings.donationLimitsItem1")}</li>
-							<li>• {t("settings.donationLimitsItem2")}</li>
-							<li>• {t("settings.donationLimitsItem3")}</li>
-							<li>• {t("settings.donationLimitsItem4")}</li>
-						</ul>
-					</div>
-				</div>
+				<Alert title={t("settings.donationLimitsInfo")} variant="info">
+					<ul class="space-y-1">
+						<li>• {t("settings.donationLimitsItem1")}</li>
+						<li>• {t("settings.donationLimitsItem2")}</li>
+						<li>• {t("settings.donationLimitsItem3")}</li>
+						<li>• {t("settings.donationLimitsItem4")}</li>
+					</ul>
+				</Alert>
 
 				<div class="flex items-center gap-4 pt-4">
-					<button
-						class={`rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors ${
-							isSavingSettings()
-								? "cursor-not-allowed opacity-50"
-								: "hover:bg-purple-700"
-						}`}
-						disabled={isSavingSettings()}
-						type="submit">
+					<Button disabled={isSavingSettings()} type="submit" variant="primary">
 						{isSavingSettings()
 							? t("settings.saving")
 							: t("settings.saveDonationSettings")}
-					</button>
+					</Button>
 					<Show when={saveSuccess()}>
 						<span class="text-green-600 text-sm">
 							{t("settings.settingsSaved")}
@@ -205,6 +178,6 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 					</Show>
 				</div>
 			</form>
-		</div>
+		</Card>
 	);
 }

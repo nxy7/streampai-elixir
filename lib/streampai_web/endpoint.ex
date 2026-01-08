@@ -37,7 +37,7 @@ defmodule StreampaiWeb.Endpoint do
   end
 
   plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint], log: {__MODULE__, :log_level, []}
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
@@ -49,6 +49,9 @@ defmodule StreampaiWeb.Endpoint do
   plug :cors
   plug Plug.Session, @session_options
   plug StreampaiWeb.Router
+
+  def log_level(%{path_info: ["api", "shapes" | _]}), do: false
+  def log_level(_), do: :info
 
   defp cors(conn, _opts) do
     # Allow frontend dev server, Caddy proxy, and production origins

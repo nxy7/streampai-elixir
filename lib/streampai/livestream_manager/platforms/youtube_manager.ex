@@ -7,12 +7,14 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   use GenServer
 
-  alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.RegistryHelpers
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.StreamManager
   alias Streampai.Stream.MetadataHelper
+  alias Streampai.Stream.PlatformStatus
   alias Streampai.YouTube.ApiClient
   alias Streampai.YouTube.GrpcStreamClient
   alias Streampai.YouTube.TokenManager
@@ -32,6 +34,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :metrics_collector_pid,
     :stream_key,
     :rtmp_url,
+    :cloudflare_input_id,
     :cloudflare_output_id,
     :is_active,
     :started_at,
@@ -85,8 +88,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   @impl true
   def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
-    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
-      :ok -> {:ok, "message_sent"}
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}, 15_000) do
+      {:ok, platform_message_id} -> {:ok, platform_message_id}
       error -> error
     end
   end
@@ -146,6 +149,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   @impl true
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id} with metadata: #{inspect(metadata)}")
+    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
 
     with {:create_broadcast, {:ok, broadcast}} <-
            {:create_broadcast, create_broadcast(state, livestream_id, metadata)},
@@ -159,7 +163,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
          {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)},
+           {:create_output, create_cloudflare_output(cloudflare_input_id, rtmp_url, stream_key)},
          {:start_metrics_collector, {:ok, collector_pid}} <-
            {:start_metrics_collector, start_metrics_collector(state, broadcast["id"])} do
       new_state = %{
@@ -173,12 +177,25 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
           metrics_collector_pid: collector_pid,
           stream_key: stream_key,
           rtmp_url: rtmp_url,
+          cloudflare_input_id: cloudflare_input_id,
           cloudflare_output_id: output_id
       }
 
       Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Cloudflare Output: #{output_id}")
 
       StreamEvents.emit_platform_started(state.user_id, livestream_id, :youtube)
+
+      StreamManager.report_platform_status(
+        state.user_id,
+        :youtube,
+        PlatformStatus.new(:live,
+          started_at: DateTime.to_iso8601(DateTime.utc_now()),
+          url: "https://www.youtube.com/watch?v=#{broadcast["id"]}"
+        )
+      )
+
+      # Store reconnection data for reattach after restart
+      store_reconnection_data(new_state)
 
       {:reply, {:ok, %{rtmp_url: rtmp_url, stream_key: stream_key}}, new_state}
     else
@@ -193,7 +210,12 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     Logger.info("Stopping stream")
 
     if state.chat_pid do
-      GrpcStreamClient.stop(state.chat_pid)
+      try do
+        GrpcStreamClient.stop(state.chat_pid)
+      catch
+        kind, reason ->
+          Logger.warning("gRPC client stop failed (#{kind}): #{inspect(reason)}")
+      end
     end
 
     if state.metrics_collector_pid do
@@ -206,6 +228,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
     if state.livestream_id do
       StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :youtube)
+      StreamManager.report_platform_stopped(state.user_id, :youtube)
     end
 
     new_state = %{
@@ -226,8 +249,17 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
-  def handle_call({:send_chat_message, message}, _from, state) do
-    do_send_chat_message(message, state)
+  def handle_call({:send_chat_message, message}, from, state) do
+    if state.chat_id == nil do
+      {:reply, {:error, :no_active_chat}, state}
+    else
+      Task.start(fn ->
+        result = do_send_chat_message(message, state)
+        GenServer.reply(from, result)
+      end)
+
+      {:noreply, state}
+    end
   end
 
   @impl true
@@ -270,6 +302,55 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
+  def handle_call({:reattach_streaming, livestream_id, reattach_data}, _from, state) do
+    Logger.info("Reattaching to YouTube stream #{livestream_id}")
+
+    broadcast_id = reattach_data["broadcast_id"]
+    stream_id = reattach_data["stream_id"]
+    chat_id = reattach_data["chat_id"]
+    cloudflare_input_id = reattach_data["cloudflare_input_id"]
+    cloudflare_output_id = reattach_data["cloudflare_output_id"]
+
+    # Start gRPC chat client if we have a chat_id
+    chat_pid =
+      if chat_id do
+        case start_chat_streaming(state, livestream_id, chat_id) do
+          {:ok, pid} -> pid
+          {:error, reason} ->
+            Logger.warning("Failed to start chat on reattach: #{inspect(reason)}")
+            nil
+        end
+      end
+
+    # Start metrics collector if we have a broadcast_id
+    metrics_pid =
+      if broadcast_id do
+        case start_metrics_collector(state, broadcast_id) do
+          {:ok, pid} -> pid
+          {:error, reason} ->
+            Logger.warning("Failed to start metrics on reattach: #{inspect(reason)}")
+            nil
+        end
+      end
+
+    new_state = %{
+      state
+      | is_active: true,
+        livestream_id: livestream_id,
+        broadcast_id: broadcast_id,
+        stream_id: stream_id,
+        chat_id: chat_id,
+        chat_pid: chat_pid,
+        metrics_collector_pid: metrics_pid,
+        cloudflare_input_id: cloudflare_input_id,
+        cloudflare_output_id: cloudflare_output_id
+    }
+
+    Logger.info("Reattached to YouTube stream #{livestream_id}, broadcast=#{broadcast_id}")
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
   def handle_call(request, _from, state) do
     Logger.debug("Unhandled call: #{inspect(request)}")
     {:reply, :ok, state}
@@ -305,8 +386,18 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       {:viewer_update, :youtube, viewer_count}
     )
 
-    # Update StreamActor with viewer count
-    UserStreamManager.update_stream_actor_viewers(state.user_id, :youtube, viewer_count)
+    # Update viewer count
+    StreamManager.update_stream_actor_viewers(state.user_id, :youtube, viewer_count)
+
+    # Report platform status with viewer count
+    StreamManager.report_platform_status(
+      state.user_id,
+      :youtube,
+      PlatformStatus.new(:live,
+        viewer_count: viewer_count,
+        url: if(state.broadcast_id, do: "https://www.youtube.com/watch?v=#{state.broadcast_id}")
+      )
+    )
 
     {:noreply, %{state | viewer_count: viewer_count}}
   end
@@ -369,7 +460,12 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
     # Stop chat stream
     if state.chat_pid do
-      GrpcStreamClient.stop(state.chat_pid)
+      try do
+        GrpcStreamClient.stop(state.chat_pid)
+      catch
+        kind, err ->
+          Logger.warning("gRPC client stop failed during terminate (#{kind}): #{inspect(err)}")
+      end
     end
 
     # Stop metrics collector
@@ -387,6 +483,27 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     cleanup_stream(state)
 
     :ok
+  end
+
+  # ── Reattach after restart ──
+
+  @doc """
+  Reattaches to a running YouTube stream after app restart.
+  Restores broadcast/stream/chat IDs and starts chat + metrics without creating new resources.
+  """
+  def reattach_streaming(user_id, livestream_id, reattach_data) do
+    GenServer.call(via_tuple(user_id), {:reattach_streaming, livestream_id, reattach_data}, 15_000)
+  end
+
+  defp store_reconnection_data(state) do
+    CurrentStreamData.update_platform_data_for_user(state.user_id, :youtube, %{
+      "livestream_id" => state.livestream_id,
+      "broadcast_id" => state.broadcast_id,
+      "stream_id" => state.stream_id,
+      "chat_id" => state.chat_id,
+      "cloudflare_input_id" => state.cloudflare_input_id,
+      "cloudflare_output_id" => state.cloudflare_output_id
+    })
   end
 
   # Private functions
@@ -428,10 +545,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end
   end
 
-  defp do_send_chat_message(_message, %{chat_id: nil} = state) do
-    {:reply, {:error, :no_active_chat}, state}
-  end
-
   defp do_send_chat_message(message, state) do
     message_data = %{
       snippet: %{
@@ -446,13 +559,14 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     case with_token_retry(state, fn token ->
            ApiClient.insert_live_chat_message(token, "snippet", message_data)
          end) do
-      {:ok, _result} ->
-        Logger.info("Chat message sent: #{message}")
-        {:reply, :ok, state}
+      {:ok, result} ->
+        platform_message_id = result["id"]
+        Logger.info("Chat message sent: #{message}, message_id: #{inspect(platform_message_id)}")
+        {:ok, platform_message_id}
 
       {:error, reason} ->
         Logger.error("Failed to send chat message: #{inspect(reason)}")
-        {:reply, {:error, reason}, state}
+        {:error, reason}
     end
   end
 
@@ -618,25 +732,35 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     )
   end
 
-  defp create_cloudflare_output(state, rtmp_url, stream_key) do
-    CloudflareManager.create_platform_output(
-      RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-      :youtube,
-      rtmp_url,
-      stream_key
-    )
+  defp create_cloudflare_output(nil, _rtmp_url, _stream_key) do
+    Logger.error("Cannot create Cloudflare output: no input ID")
+    {:error, :no_input_id}
   end
 
+  defp create_cloudflare_output(input_id, rtmp_url, stream_key) do
+    output_config = %{rtmp_url: rtmp_url, stream_key: stream_key, enabled: true}
+
+    case APIClient.create_live_output(input_id, output_config) do
+      {:ok, %{"uid" => output_id}} ->
+        Logger.info("Created Cloudflare output for youtube: #{output_id}")
+        {:ok, output_id}
+
+      {:error, error_type, message} ->
+        Logger.error("Failed to create Cloudflare output for youtube: #{message}")
+        {:error, {error_type, message}}
+    end
+  end
+
+  defp delete_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
+  defp delete_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
+
   defp delete_cloudflare_output(state) do
-    case CloudflareManager.delete_platform_output(
-           RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-           :youtube
-         ) do
+    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
       :ok ->
         Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
 
-      {:error, reason} ->
-        Logger.warning("Failed to delete Cloudflare output: #{inspect(reason)}")
+      {:error, _error_type, message} ->
+        Logger.warning("Failed to delete Cloudflare output: #{message}")
     end
   end
 
@@ -675,29 +799,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end
   end
 
-  defp broadcast_chat_message(user_id, data) do
-    # Data already comes in the correct format from GrpcStreamClient
-    chat_event = %{
-      id: data.id,
-      username: data.username,
-      message: data.message,
-      platform: :youtube,
-      timestamp: data.timestamp,
-      author_channel_id: data.channel_id,
-      is_moderator: data.is_moderator,
-      is_owner: data.is_owner,
-      is_subscriber: data.is_sponsor,
-      is_vip: false,
-      color: nil,
-      badges: [],
-      profile_image_url: nil
-    }
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "chat:#{user_id}",
-      {:chat_message, chat_event}
-    )
+  defp broadcast_chat_message(_user_id, _data) do
+    # Chat messages are persisted via EventPersister and synced to frontend via Electric SQL.
+    # No PubSub broadcast needed.
+    :ok
   end
 
   defp set_broadcast_thumbnail(_state, _broadcast_id, %{thumbnail_file_id: nil}), do: :ok

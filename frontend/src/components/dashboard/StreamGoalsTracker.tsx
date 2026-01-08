@@ -1,5 +1,5 @@
 import { For, Show, createMemo } from "solid-js";
-import Card from "~/components/ui/Card";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
 interface StreamGoalsTrackerProps {

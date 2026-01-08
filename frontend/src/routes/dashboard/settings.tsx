@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import {
 	AvatarUploadSection,
@@ -7,7 +7,7 @@ import {
 	PlatformConnectionsPanel,
 	UserRolesManagement,
 } from "~/components/settings";
-import { Skeleton } from "~/components/ui";
+import { Button, Card, Skeleton } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import {
@@ -25,7 +25,7 @@ function SettingsPageSkeleton() {
 			<Skeleton class="h-24 w-full rounded-lg" />
 
 			{/* Account Settings skeleton */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<Skeleton class="mb-6 h-6 w-36" />
 				<div class="space-y-6">
 					{/* Profile section */}
@@ -53,10 +53,10 @@ function SettingsPageSkeleton() {
 						<Skeleton class="h-6 w-12 rounded-full" />
 					</div>
 				</div>
-			</div>
+			</Card>
 
 			{/* Donation Settings skeleton */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<Skeleton class="mb-6 h-6 w-36" />
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<For each={[1, 2, 3, 4]}>
@@ -69,10 +69,10 @@ function SettingsPageSkeleton() {
 					</For>
 				</div>
 				<Skeleton class="mt-4 h-10 w-36 rounded-lg" />
-			</div>
+			</Card>
 
 			{/* Platform Connections skeleton */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<Skeleton class="mb-6 h-6 w-44" />
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<For each={[1, 2, 3, 4]}>
@@ -87,7 +87,7 @@ function SettingsPageSkeleton() {
 						)}
 					</For>
 				</div>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -106,8 +106,6 @@ export default function Settings() {
 	const [isTogglingNotifications, setIsTogglingNotifications] =
 		createSignal(false);
 
-	const [formInitialized, setFormInitialized] = createSignal(false);
-
 	const pendingInvitations = createMemo(
 		() => rolesData.data().pendingInvitations,
 	);
@@ -118,19 +116,11 @@ export default function Settings() {
 	);
 	const loadingRoles = createMemo(() => rolesData.isLoading());
 
-	createEffect(() => {
-		const data = prefs.data();
-		if (data && !formInitialized()) {
-			setDisplayName(data.name || "");
-			setFormInitialized(true);
-		}
-	});
-
 	const handleUpdateName = async () => {
 		const currentUser = user();
 		if (!currentUser) return;
 
-		const name = displayName().trim();
+		const name = (displayName() || prefs.data()?.name || "").trim();
 		if (!name) {
 			setNameError("Name is required");
 			return;
@@ -222,16 +212,16 @@ export default function Settings() {
 									</h3>
 									<p class="text-purple-100">{t("settings.getStarted")}</p>
 								</div>
-								<button
-									class="rounded-lg bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50"
-									type="button">
+								<Button
+									class="bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50"
+									variant="secondary">
 									{t("settings.upgradeToPro")}
-								</button>
+								</Button>
 							</div>
 						</div>
 
 						{/* Account Settings */}
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Card>
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
 								{t("settings.accountSettings")}
 							</h3>
@@ -270,19 +260,15 @@ export default function Settings() {
 										{t("settings.displayNameHelp")}
 									</p>
 									<div class="mt-3 flex items-center gap-3">
-										<button
-											class={`rounded-lg bg-purple-600 px-4 py-2 text-sm text-white transition-colors ${
-												isUpdatingName()
-													? "cursor-not-allowed opacity-50"
-													: "hover:bg-purple-700"
-											}`}
+										<Button
 											disabled={isUpdatingName()}
 											onClick={handleUpdateName}
-											type="button">
+											size="sm"
+											variant="primary">
 											{isUpdatingName()
 												? t("settings.updating")
 												: t("settings.updateName")}
-										</button>
+										</Button>
 										<Show when={nameSuccess()}>
 											<span class="text-green-600 text-sm">
 												{t("settings.nameUpdated")}
@@ -308,10 +294,10 @@ export default function Settings() {
 									userId={user()?.id || ""}
 								/>
 							</div>
-						</div>
+						</Card>
 
 						{/* Language Settings */}
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Card>
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
 								{t("settings.language")}
 							</h3>
@@ -337,10 +323,10 @@ export default function Settings() {
 									</p>
 								</div>
 							</div>
-						</div>
+						</Card>
 
 						{/* Donation Page */}
-						<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+						<Card>
 							<h3 class="mb-6 font-medium text-gray-900 text-lg">
 								{t("settings.donationPage")}
 							</h3>
@@ -357,8 +343,7 @@ export default function Settings() {
 													prefs.data()?.name || ""
 												}`}
 											/>
-											<button
-												class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700"
+											<Button
 												onClick={() => {
 													navigator.clipboard.writeText(
 														`${window.location.origin}/u/${
@@ -366,9 +351,10 @@ export default function Settings() {
 														}`,
 													);
 												}}
-												type="button">
+												size="sm"
+												variant="primary">
 												{t("settings.copyUrl")}
-											</button>
+											</Button>
 										</div>
 									</label>
 									<p class="mt-1 text-gray-500 text-xs">
@@ -411,7 +397,7 @@ export default function Settings() {
 									</a>
 								</div>
 							</div>
-						</div>
+						</Card>
 
 						{/* Donation Settings Form */}
 						<DonationSettingsForm
@@ -434,7 +420,7 @@ export default function Settings() {
 
 						{/* Notification Preferences */}
 						<Show when={user()}>
-							<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+							<Card>
 								<h3 class="mb-6 font-medium text-gray-900 text-lg">
 									{t("settings.notificationPreferences")}
 								</h3>
@@ -471,7 +457,7 @@ export default function Settings() {
 										</button>
 									</div>
 								</div>
-							</div>
+							</Card>
 						</Show>
 					</div>
 				</Show>

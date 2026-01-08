@@ -7,11 +7,12 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   use GenServer
 
-  alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.RegistryHelpers
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
-  alias Streampai.LivestreamManager.StreamStateServer
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.PlatformStatus
   alias Streampai.Twitch.ApiClient
   alias Streampai.Twitch.EventsubClient
 
@@ -28,6 +29,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     :websocket_pid,
     :eventsub_client_pid,
     :stream_key,
+    :cloudflare_input_id,
     :cloudflare_output_id,
     # :connecting, :connected, :disconnected, :error
     :connection_status,
@@ -95,8 +97,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   Sends a chat message to the Twitch channel.
   """
   def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
-    GenServer.cast(via_tuple(user_id), {:send_chat_message, message})
-    {:ok, "message_sent"}
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}, 15_000) do
+      {:ok, platform_message_id} -> {:ok, platform_message_id}
+      error -> error
+    end
   end
 
   @impl true
@@ -160,7 +164,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         {:ok, updated_state} ->
           # Start periodic tasks
           schedule_viewer_count_check()
-          schedule_token_refresh()
+          schedule_token_refresh(updated_state)
 
           Logger.info("Connected to Twitch for user #{state.user_id}")
           updated_state
@@ -188,13 +192,25 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
       # Update stream state
       update_platform_status(state, %{viewer_count: stream_info.viewer_count})
 
-      # Update StreamActor with viewer count
-      UserStreamManager.update_stream_actor_viewers(
+      # Update viewer count
+      StreamManager.update_stream_actor_viewers(
         state.user_id,
         :twitch,
         stream_info.viewer_count
       )
     end
+
+    # Report platform status with metadata (title, category, viewer count)
+    StreamManager.report_platform_status(
+      state.user_id,
+      :twitch,
+      PlatformStatus.new(:live,
+        viewer_count: stream_info.viewer_count,
+        title: stream_info.title,
+        category: stream_info.category,
+        url: if(state.username, do: "https://www.twitch.tv/#{state.username}")
+      )
+    )
 
     schedule_viewer_count_check()
     {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
@@ -202,10 +218,17 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def handle_info(:refresh_token, state) do
-    {:ok, new_state} = refresh_access_token(state)
-    Logger.info("Refreshed Twitch token for user #{state.user_id}")
-    schedule_token_refresh()
-    {:noreply, new_state}
+    case refresh_access_token(state) do
+      {:ok, new_state} ->
+        Logger.info("Refreshed Twitch token for user #{state.user_id}")
+        schedule_token_refresh(new_state)
+        {:noreply, new_state}
+
+      {:error, reason} ->
+        Logger.error("Failed to refresh Twitch token: #{inspect(reason)}, retrying in 60s")
+        Process.send_after(self(), :refresh_token, 60_000)
+        {:noreply, state}
+    end
   end
 
   @impl true
@@ -214,11 +237,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     {:noreply, state}
   end
 
-  @impl true
-  def handle_info({:twitch_message, :chat_message, _data}, state) do
-    # Chat messages are already broadcast by EventsubClient, no need to rebroadcast
-    {:noreply, state}
-  end
+
 
   @impl true
   def handle_info({:twitch_eventsub_ended, :missing_scopes}, state) do
@@ -239,52 +258,59 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   end
 
   @impl true
-  def handle_cast({:send_chat_message, message}, state) do
+  def handle_call({:send_chat_message, message}, from, state) do
     if state.connection_status == :connected and state.chat_enabled and state.channel_id do
-      case ApiClient.send_chat_message(
-             state.access_token,
-             state.channel_id,
-             state.channel_id,
-             message
-           ) do
-        {:ok, _response} ->
-          Logger.debug("Sent chat message to Twitch for user #{state.user_id}")
+      # Spawn task to avoid blocking the GenServer
+      access_token = state.access_token
+      channel_id = state.channel_id
+      user_id = state.user_id
 
-        {:error, reason} ->
-          Logger.error("Failed to send chat message: #{inspect(reason)}")
-      end
+      Task.start(fn ->
+        result =
+          case ApiClient.send_chat_message(access_token, channel_id, channel_id, message) do
+            {:ok, response} ->
+              platform_message_id = extract_message_id(response)
+              Logger.debug("Sent chat message to Twitch for user #{user_id}, message_id: #{inspect(platform_message_id)}")
+              {:ok, platform_message_id}
+
+            {:error, reason} ->
+              Logger.error("Failed to send chat message: #{inspect(reason)}")
+              {:error, reason}
+          end
+
+        GenServer.reply(from, result)
+      end)
+
+      {:noreply, state}
     else
       Logger.warning("Cannot send chat message: not connected or missing channel_id")
+      {:reply, {:error, :not_connected}, state}
     end
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_cast({:update_stream_metadata, metadata}, state) do
-    :ok = update_twitch_stream_info(state, metadata)
-    Logger.info("Updated Twitch stream metadata for user #{state.user_id}")
-
-    update_platform_status(state, %{
-      title: metadata[:title],
-      category: metadata[:category]
-    })
-
-    {:noreply, state}
   end
 
   @impl true
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id}, stream_key present: #{!is_nil(state.stream_key)}")
 
+    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
+
     # Start EventSub chat client
     eventsub_client_pid = start_chat_streaming(state, livestream_id)
 
     # Create Cloudflare output for Twitch if stream key is available
-    case create_cloudflare_output(state) do
+    case create_cloudflare_output(cloudflare_input_id, state) do
       {:ok, output_id} ->
         Logger.info("Created Cloudflare output for Twitch: #{output_id}")
         StreamEvents.emit_platform_started(state.user_id, livestream_id, :twitch)
+
+        StreamManager.report_platform_status(
+          state.user_id,
+          :twitch,
+          PlatformStatus.new(:live,
+            started_at: DateTime.to_iso8601(DateTime.utc_now()),
+            url: if(state.username, do: "https://www.twitch.tv/#{state.username}")
+          )
+        )
 
         # Set the stream title if provided
         if metadata[:title] do
@@ -294,9 +320,13 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         new_state = %{
           state
           | livestream_id: livestream_id,
+            cloudflare_input_id: cloudflare_input_id,
             cloudflare_output_id: output_id,
             eventsub_client_pid: eventsub_client_pid
         }
+
+        # Store reconnection data for reattach after restart
+        store_reconnection_data(new_state)
 
         {:reply, :ok, new_state}
 
@@ -308,11 +338,23 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         # Still start streaming but without Cloudflare output
         StreamEvents.emit_platform_started(state.user_id, livestream_id, :twitch)
 
+        StreamManager.report_platform_status(
+          state.user_id,
+          :twitch,
+          PlatformStatus.new(:live,
+            started_at: DateTime.to_iso8601(DateTime.utc_now()),
+            url: if(state.username, do: "https://www.twitch.tv/#{state.username}")
+          )
+        )
+
         new_state = %{
           state
           | livestream_id: livestream_id,
             eventsub_client_pid: eventsub_client_pid
         }
+
+        # Store reconnection data for reattach after restart
+        store_reconnection_data(new_state)
 
         {:reply, {:error, :no_stream_key}, new_state}
 
@@ -334,6 +376,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
     if state.livestream_id do
       StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :twitch)
+      StreamManager.report_platform_stopped(state.user_id, :twitch)
     end
 
     new_state = %{state | livestream_id: nil, cloudflare_output_id: nil, eventsub_client_pid: nil}
@@ -375,6 +418,41 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   @impl true
   def handle_call({:unban_user, target_user_id}, _from, state) do
     do_unban_user(target_user_id, state)
+  end
+
+  @impl true
+  def handle_call({:reattach_streaming, livestream_id, reattach_data}, _from, state) do
+    Logger.info("Reattaching to stream #{livestream_id}")
+
+    cloudflare_input_id = reattach_data["cloudflare_input_id"]
+    cloudflare_output_id = reattach_data["cloudflare_output_id"]
+
+    # Start EventSub chat client
+    eventsub_client_pid = start_chat_streaming(state, livestream_id)
+
+    new_state = %{
+      state
+      | livestream_id: livestream_id,
+        cloudflare_input_id: cloudflare_input_id,
+        cloudflare_output_id: cloudflare_output_id,
+        eventsub_client_pid: eventsub_client_pid
+    }
+
+    Logger.info("Reattached to Twitch stream #{livestream_id}")
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
+  def handle_cast({:update_stream_metadata, metadata}, state) do
+    :ok = update_twitch_stream_info(state, metadata)
+    Logger.info("Updated Twitch stream metadata for user #{state.user_id}")
+
+    update_platform_status(state, %{
+      title: metadata[:title],
+      category: metadata[:category]
+    })
+
+    {:noreply, state}
   end
 
   # Helper functions
@@ -496,9 +574,87 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     end
   end
 
+  @refresh_buffer_seconds 300
+
   defp refresh_access_token(state) do
-    # TODO: Implement actual token refresh logic
-    {:ok, state}
+    client_id = System.get_env("TWITCH_CLIENT_ID")
+    client_secret = System.get_env("TWITCH_CLIENT_SECRET")
+
+    if is_nil(state.refresh_token) or is_nil(client_id) or is_nil(client_secret) do
+      Logger.warning("Cannot refresh Twitch token: missing refresh_token or client credentials")
+      {:error, :missing_credentials}
+    else
+      case Req.post("https://id.twitch.tv/oauth2/token",
+             form: [
+               client_id: client_id,
+               client_secret: client_secret,
+               refresh_token: state.refresh_token,
+               grant_type: "refresh_token"
+             ]
+           ) do
+        {:ok, %{status: 200, body: body}} ->
+          new_access_token = body["access_token"]
+          new_refresh_token = Map.get(body, "refresh_token", state.refresh_token)
+          expires_in = body["expires_in"] || 3600
+          expires_at = DateTime.add(DateTime.utc_now(), expires_in, :second)
+
+          # Persist to database
+          update_streaming_account_tokens(state.user_id, %{
+            access_token: new_access_token,
+            refresh_token: new_refresh_token,
+            access_token_expires_at: expires_at
+          })
+
+          # Broadcast to EventSub client and any other subscribers
+          broadcast_token_update(state.user_id, new_access_token)
+
+          new_state = %{
+            state
+            | access_token: new_access_token,
+              refresh_token: new_refresh_token,
+              expires_at: expires_at
+          }
+
+          {:ok, new_state}
+
+        {:ok, %{status: status, body: body}} ->
+          Logger.error("Twitch token refresh failed: HTTP #{status}, body: #{inspect(body)}")
+          {:error, {:http_error, status, body}}
+
+        {:error, reason} ->
+          Logger.error("Twitch token refresh request failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    end
+  end
+
+  defp update_streaming_account_tokens(user_id, new_config) do
+    require Ash.Query
+
+    Streampai.Accounts.StreamingAccount
+    |> Ash.Query.filter(user_id: user_id, platform: :twitch)
+    |> Ash.read_one!(authorize?: false)
+    |> case do
+      nil ->
+        Logger.warning("No Twitch streaming account found for user #{user_id}")
+
+      account ->
+        account
+        |> Ash.Changeset.for_update(:refresh_token, %{
+          access_token: new_config.access_token,
+          refresh_token: new_config.refresh_token,
+          access_token_expires_at: new_config.access_token_expires_at
+        })
+        |> Ash.update!(authorize?: false)
+    end
+  end
+
+  defp broadcast_token_update(user_id, new_token) do
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "twitch_token:#{user_id}",
+      {:token_updated, user_id, new_token}
+    )
   end
 
   defp start_chat_streaming(state, livestream_id) do
@@ -554,63 +710,11 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     end
   end
 
-  defp process_twitch_event(%{type: "follow", user_name: username}, state) do
-    process_follow_event(username, state)
-  end
-
-  defp process_twitch_event(%{type: "subscription", user_name: username, tier: tier}, state) do
-    process_subscription_event(username, tier, state)
-  end
-
-  defp process_twitch_event(%{type: "raid", from_broadcaster_user_name: username, viewers: viewers}, state) do
-    process_raid_event(username, viewers, state)
-  end
-
+  # Event processing stubs — will be implemented when EventBroadcaster is ready
   defp process_twitch_event(_event, _state), do: :ok
 
-  defp process_follow_event(username, state) do
-    _follow_event = %{
-      type: :follow,
-      user_id: state.user_id,
-      platform: :twitch,
-      username: username
-    }
-
-    # EventBroadcaster.broadcast_event(follow_event)
-  end
-
-  defp process_subscription_event(username, tier, state) do
-    _sub_event = %{
-      type: :subscription,
-      user_id: state.user_id,
-      platform: :twitch,
-      username: username,
-      tier: tier
-    }
-
-    # EventBroadcaster.broadcast_event(sub_event)
-  end
-
-  defp process_raid_event(username, viewers, state) do
-    _raid_event = %{
-      type: :raid,
-      user_id: state.user_id,
-      platform: :twitch,
-      username: username,
-      viewer_count: viewers
-    }
-
-    # EventBroadcaster.broadcast_event(raid_event)
-  end
-
-  defp update_platform_status(state, status_update) do
-    case Registry.lookup(Streampai.LivestreamManager.Registry, {:stream_state, state.user_id}) do
-      [{pid, _}] ->
-        StreamStateServer.update_platform_status(pid, :twitch, status_update)
-
-      [] ->
-        :ok
-    end
+  defp update_platform_status(_state, _status_update) do
+    :ok
   end
 
   defp schedule_viewer_count_check do
@@ -618,50 +722,89 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     Process.send_after(self(), :check_viewer_count, 30_000)
   end
 
-  defp schedule_token_refresh do
-    # Every hour
-    Process.send_after(self(), :refresh_token, 3_600_000)
+  defp schedule_token_refresh(state) do
+    delay_ms =
+      if state.expires_at do
+        seconds_until_expiry = DateTime.diff(state.expires_at, DateTime.utc_now(), :second)
+        # Refresh 5 minutes before expiry, minimum 10 seconds
+        max(10_000, (seconds_until_expiry - @refresh_buffer_seconds) * 1000)
+      else
+        # Fallback: refresh in 1 hour
+        3_600_000
+      end
+
+    Logger.debug("Scheduling Twitch token refresh in #{div(delay_ms, 1000)}s")
+    Process.send_after(self(), :refresh_token, delay_ms)
   end
 
   defp via_tuple(user_id) do
     RegistryHelpers.via_tuple(:platform_manager, user_id, :twitch)
   end
 
-  defp create_cloudflare_output(%{stream_key: nil}) do
+  defp create_cloudflare_output(_input_id, %{stream_key: nil}) do
     {:error, :no_stream_key}
   end
 
-  defp create_cloudflare_output(state) do
-    # Twitch's primary RTMP ingest server
+  defp create_cloudflare_output(nil, _state) do
+    Logger.error("Cannot create Cloudflare output: no input ID")
+    {:error, :no_input_id}
+  end
+
+  defp create_cloudflare_output(input_id, state) do
     rtmp_url = "rtmp://live.twitch.tv/app"
 
     Logger.info(
       "Creating Cloudflare output with RTMP URL: #{rtmp_url}, stream_key length: #{String.length(state.stream_key)}"
     )
 
-    CloudflareManager.create_platform_output(
-      RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-      :twitch,
-      rtmp_url,
-      state.stream_key
-    )
+    output_config = %{rtmp_url: rtmp_url, stream_key: state.stream_key, enabled: true}
+
+    case APIClient.create_live_output(input_id, output_config) do
+      {:ok, %{"uid" => output_id}} ->
+        Logger.info("Created Cloudflare output for twitch: #{output_id}")
+        {:ok, output_id}
+
+      {:error, error_type, message} ->
+        Logger.error("Failed to create Cloudflare output for twitch: #{message}")
+        {:error, {error_type, message}}
+    end
   end
 
   defp cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
+  defp cleanup_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
 
   defp cleanup_cloudflare_output(state) do
     Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
 
-    case CloudflareManager.delete_platform_output(
-           RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-           :twitch
-         ) do
+    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
       :ok ->
         Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
 
-      {:error, reason} ->
-        Logger.warning("Failed to delete Cloudflare output: #{inspect(reason)}")
+      {:error, _error_type, message} ->
+        Logger.warning("Failed to delete Cloudflare output: #{message}")
     end
+  end
+
+  # ── Reattach after restart ──
+
+  @doc """
+  Reattaches to a running stream after app restart.
+  Restores state from stored reconnection data without creating new Cloudflare outputs.
+  """
+  def reattach_streaming(user_id, livestream_id, reattach_data) do
+    GenServer.call(via_tuple(user_id), {:reattach_streaming, livestream_id, reattach_data}, 15_000)
+  end
+
+  # Twitch Send Chat Message returns: %{"data" => [%{"message_id" => "...", ...}]}
+  defp extract_message_id(%{"data" => [%{"message_id" => id} | _]}), do: id
+  defp extract_message_id(_), do: nil
+
+  defp store_reconnection_data(state) do
+    CurrentStreamData.update_platform_data_for_user(state.user_id, :twitch, %{
+      "livestream_id" => state.livestream_id,
+      "cloudflare_input_id" => state.cloudflare_input_id,
+      "cloudflare_output_id" => state.cloudflare_output_id
+    })
   end
 
   defp do_ban_user(_target_user_id, _reason, %{channel_id: nil} = state) do

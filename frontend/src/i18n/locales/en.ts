@@ -60,6 +60,9 @@ export const dict = {
 		goToSettings: "Go to Settings",
 		closeSidebar: "Close sidebar",
 		welcomeMessage: "Welcome to your Streampai dashboard.",
+		greetingMorning: "Good morning",
+		greetingAfternoon: "Good afternoon",
+		greetingEvening: "Good evening",
 		// Quick Stats
 		messages: "Messages",
 		viewers: "Viewers",
@@ -74,6 +77,7 @@ export const dict = {
 		good: "Good",
 		fair: "Fair",
 		poor: "Poor",
+		offline: "Offline",
 		// Engagement Score
 		engagementScore: "Engagement Score",
 		building: "Building",
@@ -84,6 +88,9 @@ export const dict = {
 		donationGoal: "Donation Goal",
 		chatActivity: "Chat Activity",
 		goalReached: "Goal reached!",
+		streamHealthHint: "Go live to see real-time stats",
+		totalValue: "Value",
+		chat: "Chat",
 		// Recent sections
 		recentChat: "Recent Chat",
 		recentEvents: "Recent Events",
@@ -124,17 +131,142 @@ export const dict = {
 
 	// Stream page
 	stream: {
+		viewer: "viewer",
+		viewers: "viewers",
 		streamTitlePlaceholder: "Enter your stream title...",
 		streamDescriptionPlaceholder: "Describe your stream...",
 		addTagPlaceholder: "Add a tag...",
 		searchByNameOrMessage: "Search (user: message: platform:)...",
 		sendMessageToChat: "Send a message to chat...",
+		noPlatformsConnected: "Connect a platform to send messages",
 		timerLabelPlaceholder: "e.g., Social Links, Discord, etc.",
 		timerMessagePlaceholder: "Message to send at each interval...",
 		// Message highlight
 		highlightMessage: "Highlight message",
 		removeHighlight: "Remove highlight",
 		noMessageHighlighted: "No message highlighted",
+		// Stream controls
+		controls: {
+			title: "Stream Controls",
+			subtitle: "Manage your multi-platform stream",
+			live: "LIVE",
+			goLive: "Go Live",
+			starting: "Starting...",
+			stopStream: "Stop Stream",
+			stopping: "Stopping...",
+			streamTitle: "Stream Title",
+			description: "Description",
+			tags: "Tags",
+			tagsPlaceholder: "Add a tag...",
+			thumbnail: "Thumbnail",
+			platforms: "Platforms",
+		},
+		// Encoder status
+		encoder: {
+			waiting: "Waiting for encoder...",
+			connected: "Encoder connected",
+			connectFirst: "Connect your encoder (OBS) first",
+		},
+		// Live preview
+		preview: {
+			noInput: "No input. Start streaming to OBS to see a preview.",
+		},
+		// Stream key
+		key: {
+			show: "Show Stream Key",
+			hide: "Hide Stream Key",
+			label: "Stream Key",
+			copy: "Copy Key",
+			copied: "Copied!",
+			regenerate: "Regenerate",
+			regenerating: "Regenerating...",
+			retry: "Retry",
+			rtmpUrl: "RTMP URL",
+			srtUrl: "SRT URL (Alternative)",
+			instructions:
+				"Use this RTMP URL and stream key in your streaming software (OBS, Streamlabs, etc.)",
+			regenerateConfirm:
+				"Are you sure you want to regenerate your stream key? Your old key will stop working immediately.",
+		},
+		// Platform connections
+		platforms: {
+			title: "Platform Connections",
+			subtitle: "Connect your streaming platforms to multicast",
+			connected: "Connected",
+			notConnected: "Not connected",
+			connect: "Connect",
+			disconnect: "Disconnect",
+			disconnectConfirm:
+				"Are you sure you want to disconnect this platform? You will need to reconnect it to stream again.",
+		},
+		// Live statistics
+		stats: {
+			title: "Live Statistics",
+			viewers: "Viewers",
+			chatMessages: "Chat Messages",
+			duration: "Stream Duration",
+		},
+		// Activity feed
+		activityFeed: {
+			filter: "Filter",
+			eventTypes: "Event Types",
+			all: "All",
+			clear: "Clear",
+			showing: "Showing:",
+			events: "events",
+			waitingForActivity: "Waiting for activity...",
+			noEventsMatch: "No events match your filters",
+			clearFilters: "Clear filters",
+		},
+		// View modes
+		viewMode: {
+			events: "Events",
+			actions: "Actions",
+		},
+		// Actions panel
+		actions: {
+			title: "Stream Actions",
+			subtitle: "Control your stream with quick actions",
+			startPoll: "Start Poll",
+			startPollDescription: "Create an interactive poll for viewers",
+			startGiveaway: "Start Giveaway",
+			startGiveawayDescription: "Launch a giveaway for your audience",
+			modifyTimers: "Modify Timers",
+			modifyTimersDescription: "Adjust stream timers and countdowns",
+			streamSettings: "Stream Settings",
+			streamSettingsDescription: "Change title, category, and tags",
+			moreComingSoon: "More actions coming soon",
+		},
+		// Poll creation
+		poll: {
+			title: "Create Poll",
+			subtitle: "Set up an interactive poll for your viewers",
+			cancel: "Cancel",
+			start: "Start Poll",
+		},
+		// Giveaway creation
+		giveaway: {
+			title: "Create Giveaway",
+			subtitle: "Set up a giveaway for your audience",
+			cancel: "Cancel",
+			start: "Start Giveaway",
+		},
+		// Chat input
+		chat: {
+			sendTo: "Send to:",
+			all: "All",
+			selectPlatforms: "Select platforms",
+			selectAll: "Select all",
+			platformCount: "{{count}} platforms",
+		},
+		// Thumbnail upload
+		upload: {
+			uploading: "Uploading...",
+			clickToUpload: "Click to upload",
+		},
+		// Fullscreen
+		fullscreen: "Fullscreen",
+		exitFullscreen: "Exit Fullscreen",
 		// Stream settings
 		settings: {
 			title: "Stream Settings",
@@ -174,6 +306,34 @@ export const dict = {
 	// Chat History page
 	chatHistory: {
 		searchPlaceholder: "Search messages...",
+		// Filters
+		filters: {
+			title: "Filters",
+			platform: "Platform",
+			allPlatforms: "All Platforms",
+			dateRange: "Date Range",
+			allTime: "All Time",
+			last7Days: "Last 7 Days",
+			last30Days: "Last 30 Days",
+			last3Months: "Last 3 Months",
+			search: "Search",
+			activeFilters: "Active filters:",
+			clearAll: "Clear all",
+		},
+		// Messages
+		messages: {
+			title: "Messages",
+			noMessages: "No chat messages found",
+			adjustFilters: "Try adjusting your filters or search criteria",
+			connectAccounts: "Connect your streaming accounts to see chat messages",
+			errorLoading: "Error loading chat messages:",
+		},
+		// Empty state
+		empty: {
+			notAuthenticated: "Not Authenticated",
+			signInToView: "Please sign in to view chat history.",
+			signIn: "Sign In",
+		},
 	},
 
 	// Viewers page
@@ -351,6 +511,14 @@ export const dict = {
 		emailPlaceholder: "you@example.com",
 		passwordPlaceholder: "Enter your password",
 		confirmPasswordPlaceholder: "Confirm your password",
+		// Form labels
+		emailLabel: "Email",
+		passwordLabel: "Password",
+		confirmPasswordLabel: "Confirm Password",
+		// Not authenticated (shared)
+		notAuthenticated: "Not Authenticated",
+		signInToAccessStream: "Please sign in to access the stream page.",
+		signIn: "Sign In",
 	},
 
 	// Errors

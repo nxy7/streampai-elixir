@@ -22,8 +22,6 @@ import {
 	onMount,
 } from "solid-js";
 import { z } from "zod";
-import Button from "~/components/ui/Button";
-import { Select } from "~/components/ui/Input";
 import AlertboxWidget from "~/components/widgets/AlertboxWidget";
 import ChatWidget from "~/components/widgets/ChatWidget";
 import DonationGoalWidget from "~/components/widgets/DonationGoalWidget";
@@ -36,6 +34,9 @@ import SliderWidget from "~/components/widgets/SliderWidget";
 import TimerWidget from "~/components/widgets/TimerWidget";
 import TopDonorsWidget from "~/components/widgets/TopDonorsWidget";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
+import Button from "~/design-system/Button";
+import { text } from "~/design-system/design-system";
+import { Select } from "~/design-system/Input";
 import type { WidgetType } from "~/lib/electric";
 import {
 	type ViewerData,
@@ -43,7 +44,6 @@ import {
 	generateViewerUpdate,
 } from "~/lib/fake/viewer-count";
 import type { FormMeta } from "~/lib/schema-form";
-import { text } from "~/styles/design-system";
 
 // =============================================================================
 // Widget Definition Type

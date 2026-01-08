@@ -3,7 +3,8 @@ import { useLiveQuery } from "@tanstack/solid-db";
 import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
-	type ChatMessage,
+	type ActorState,
+	type CurrentStreamData,
 	type HighlightedMessage,
 	type Livestream,
 	type Notification,
@@ -15,14 +16,14 @@ import {
 	type Viewer,
 	type WidgetConfig,
 	type WidgetType,
-	chatMessagesCollection,
+	createActorStatesCollection,
+	createCurrentStreamDataCollection,
 	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
 	createStreamingAccountsCollection,
 	createUserPreferencesCollection,
 	createUserRolesCollection,
-	createUserScopedChatMessagesCollection,
 	createUserScopedLivestreamsCollection,
 	createUserScopedStreamEventsCollection,
 	createUserScopedViewersCollection,
@@ -78,23 +79,19 @@ function useOptionalLiveQuery<TResult extends object>(
 	);
 }
 
-export function useStreamEvents() {
+function useStreamEvents() {
 	return useLiveQuery(() => streamEventsCollection);
 }
 
-export function useChatMessages() {
-	return useLiveQuery(() => chatMessagesCollection);
-}
-
-export function useLivestreams() {
+function _useLivestreams() {
 	return useLiveQuery(() => livestreamsCollection);
 }
 
-export function useViewers() {
+function _useViewers() {
 	return useLiveQuery(() => viewersCollection);
 }
 
-function useFilteredStreamEvents(eventType: string) {
+function _useFilteredStreamEvents(eventType: string) {
 	const query = useStreamEvents();
 	return {
 		...query,
@@ -102,69 +99,6 @@ function useFilteredStreamEvents(eventType: string) {
 			(query.data ?? []).filter((e) => e.type === eventType),
 		),
 	};
-}
-
-export function useDonations() {
-	return useFilteredStreamEvents("donation");
-}
-
-export function useFollows() {
-	return useFilteredStreamEvents("follow");
-}
-
-export function useRaids() {
-	return useFilteredStreamEvents("raid");
-}
-
-export function useCheers() {
-	return useFilteredStreamEvents("cheer");
-}
-
-export function useTopDonors(limit: number = 10) {
-	const query = useDonations();
-
-	return createMemo(() => {
-		const donations = query.data();
-		const donationsByUser = new Map<
-			string,
-			{ username: string; total: number; count: number }
-		>();
-
-		for (const donation of donations) {
-			const username =
-				(donation.data?.username as string) || donation.author_id;
-			const amount = (donation.data?.amount as number) || 0;
-
-			const existing = donationsByUser.get(username);
-			if (existing) {
-				existing.total += amount;
-				existing.count += 1;
-			} else {
-				donationsByUser.set(username, { username, total: amount, count: 1 });
-			}
-		}
-
-		return Array.from(donationsByUser.values())
-			.sort((a, b) => b.total - a.total)
-			.slice(0, limit);
-	});
-}
-
-export function useTotalDonations() {
-	const query = useDonations();
-
-	return createMemo(() => {
-		const donations = query.data();
-		return donations.reduce((sum: number, d) => {
-			const amount = (d.data?.amount as number) || 0;
-			return sum + amount;
-		}, 0);
-	});
-}
-
-export function useRecentEvents(limit: number = 20) {
-	const query = useStreamEvents();
-	return createMemo(() => sortByInsertedAt(query.data ?? []).slice(0, limit));
 }
 
 // Cache for user-scoped preferences collection (uses IndexedDB persistence)
@@ -188,9 +122,6 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 	};
 }
 
-const getUserScopedChatCollection = createCollectionCache(
-	createUserScopedChatMessagesCollection,
-);
 const getUserScopedEventsCollection = createCollectionCache(
 	createUserScopedStreamEventsCollection,
 );
@@ -200,26 +131,6 @@ const getUserScopedLivestreamsCollection = createCollectionCache(
 const getUserScopedViewersCollection = createCollectionCache(
 	createUserScopedViewersCollection,
 );
-
-export function useUserChatMessages(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getUserScopedChatCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
-
-export function useRecentUserChatMessages(
-	userId: () => string | undefined,
-	limit = 10,
-) {
-	const query = useUserChatMessages(userId);
-	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
-}
 
 export function useUserStreamEvents(userId: () => string | undefined) {
 	const query = useOptionalLiveQuery(() => {
@@ -276,13 +187,14 @@ export function useUserViewers(userId: () => string | undefined) {
 }
 
 export function useDashboardStats(userId: () => string | undefined) {
-	const chatQuery = useUserChatMessages(userId);
 	const eventsQuery = useUserStreamEvents(userId);
 	const viewersQuery = useUserViewers(userId);
 	const streamsQuery = useUserLivestreams(userId);
 
 	return {
-		totalMessages: createMemo(() => chatQuery.data().length),
+		totalMessages: createMemo(() => {
+			return eventsQuery.data().filter((e) => e.type === "chat_message").length;
+		}),
 		totalEvents: createMemo(() => eventsQuery.data().length),
 		uniqueViewers: createMemo(() => viewersQuery.data().length),
 		totalStreams: createMemo(() => streamsQuery.data().length),
@@ -305,7 +217,7 @@ const getWidgetConfigsCollection = createCollectionCache(
 	createWidgetConfigsCollection,
 );
 
-export function useWidgetConfigs(userId: () => string | undefined) {
+function useWidgetConfigs(userId: () => string | undefined) {
 	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getWidgetConfigsCollection(currentId) : undefined;
@@ -548,9 +460,67 @@ export function useHighlightedMessage(userId: () => string | undefined) {
 	};
 }
 
+const _getActorStatesCollection = createCollectionCache(
+	createActorStatesCollection,
+);
+
+const getCurrentStreamDataCollection = createCollectionCache(
+	createCurrentStreamDataCollection,
+);
+
+export function useStreamActor(userId: () => string | undefined) {
+	const query = useOptionalLiveQuery(() => {
+		const currentId = userId();
+		return currentId ? getCurrentStreamDataCollection(currentId) : undefined;
+	});
+
+	const streamData = createMemo(() => {
+		const rows = query.data ?? [];
+		return (rows as CurrentStreamData[])[0] ?? null;
+	});
+
+	return {
+		...query,
+		data: streamData,
+		encoderConnected: () =>
+			streamData()?.cloudflare_data?.input_streaming === true,
+		streamStatus: () => streamData()?.status ?? "idle",
+		livestreamId: () =>
+			(streamData()?.stream_data?.livestream_id as string) ?? null,
+		liveInputUid: () =>
+			(streamData()?.cloudflare_data?.live_input_uid as string) ?? null,
+		platformStatuses: () => {
+			const row = streamData();
+			if (!row) return {} as Record<string, PlatformStatusData>;
+			const result: Record<string, PlatformStatusData> = {};
+			if (row.youtube_data && Object.keys(row.youtube_data).length > 0) {
+				result.youtube = row.youtube_data as unknown as PlatformStatusData;
+			}
+			if (row.twitch_data && Object.keys(row.twitch_data).length > 0) {
+				result.twitch = row.twitch_data as unknown as PlatformStatusData;
+			}
+			if (row.kick_data && Object.keys(row.kick_data).length > 0) {
+				result.kick = row.kick_data as unknown as PlatformStatusData;
+			}
+			return result;
+		},
+	};
+}
+
+interface PlatformStatusData {
+	status: "starting" | "live" | "stopping" | "error";
+	started_at?: string;
+	error_message?: string;
+	error_at?: string;
+	viewer_count?: number;
+	title?: string;
+	category?: string;
+}
+
 export type {
+	ActorState,
+	CurrentStreamData,
 	StreamEvent,
-	ChatMessage,
 	HighlightedMessage,
 	Livestream,
 	Viewer,

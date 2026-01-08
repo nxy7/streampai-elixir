@@ -4,55 +4,55 @@ defmodule Streampai.LivestreamManager do
   Provides public API for managing user livestreams.
   """
 
-  alias Streampai.LivestreamManager.UserStreamManager
-  alias Streampai.LivestreamManager.UserSupervisor
+  alias Streampai.LivestreamManager.StreamManager
 
   @doc """
   Gets the existing user stream manager or creates it if it doesn't exist.
-  Returns the PID of the UserStreamManager process.
+  Returns the PID of the StreamManager process.
   """
   def start_user_stream(user_id) when is_binary(user_id) do
-    UserSupervisor.get_user_stream(user_id)
+    case Registry.lookup(Streampai.LivestreamManager.Registry, {:stream_manager, user_id}) do
+      [{pid, _}] ->
+        {:ok, pid}
+
+      [] ->
+        child_spec = %{
+          id: {:stream_manager, user_id},
+          start: {StreamManager, :start_link, [user_id]},
+          restart: :permanent,
+          type: :worker
+        }
+
+        case DynamicSupervisor.start_child(Streampai.LivestreamManager.UserSupervisor, child_spec) do
+          {:ok, pid} -> {:ok, pid}
+          {:error, {:already_started, pid}} -> {:ok, pid}
+          error -> error
+        end
+    end
   end
 
   @doc """
   Gets the current stream state for a user.
-  Creates the user stream manager if it doesn't exist.
   """
   def get_stream_state(user_id) when is_binary(user_id) do
-    {:ok, pid} = get_user_stream_pid(user_id)
-    UserStreamManager.get_state(pid)
+    ensure_started(user_id)
+    StreamManager.get_state(user_id)
   end
 
   @doc """
   Sends a chat message to one or all platforms for a user.
-  Creates the user stream manager if it doesn't exist.
   """
   def send_chat_message(user_id, message, platforms \\ :all) do
-    {:ok, pid} = get_user_stream_pid(user_id)
-    UserStreamManager.send_chat_message(pid, message, platforms)
+    ensure_started(user_id)
+    StreamManager.send_chat_message(user_id, message, platforms)
   end
 
   @doc """
   Updates stream metadata (title, thumbnail) on specified platforms.
-  Creates the user stream manager if it doesn't exist.
   """
   def update_stream_metadata(user_id, metadata, platforms \\ :all) do
-    {:ok, pid} = get_user_stream_pid(user_id)
-    UserStreamManager.update_stream_metadata(pid, metadata, platforms)
-  end
-
-  @doc """
-  Configures which platforms should receive the stream output.
-  Creates the user stream manager if it doesn't exist.
-  """
-  def configure_stream_outputs(user_id, platform_configs) do
-    {:ok, pid} = get_user_stream_pid(user_id)
-    UserStreamManager.configure_stream_outputs(pid, platform_configs)
-  end
-
-  defp get_user_stream_pid(user_id) do
-    UserSupervisor.get_user_stream(user_id)
+    ensure_started(user_id)
+    StreamManager.update_stream_metadata(user_id, metadata, platforms)
   end
 
   @doc """
@@ -60,7 +60,11 @@ defmodule Streampai.LivestreamManager do
   """
   def list_active_streams do
     Registry.select(Streampai.LivestreamManager.Registry, [
-      {{{:user_stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
+      {{{:stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
     ])
+  end
+
+  defp ensure_started(user_id) do
+    start_user_stream(user_id)
   end
 end

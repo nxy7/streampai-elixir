@@ -1,10 +1,10 @@
 import { A } from "@solidjs/router";
 import { type Accessor, Show } from "solid-js";
+import { Breadcrumbs, Skeleton } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 import type { UserPreferences } from "~/lib/electric";
 import NotificationBell from "../NotificationBell";
-import { Breadcrumbs } from "../ui";
 import { MenuIcon } from "./navConfig";
 
 interface User {
@@ -110,10 +110,10 @@ function UserSection(props: UserSectionProps) {
 function UserSectionSkeleton() {
 	return (
 		<div class="flex items-center space-x-3">
-			<div class="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+			<Skeleton circle class="h-8 w-8" />
 			<div class="hidden md:block">
-				<div class="h-4 w-20 animate-pulse rounded bg-gray-200" />
-				<div class="mt-1 h-3 w-14 animate-pulse rounded bg-gray-200" />
+				<Skeleton class="h-4 w-20" />
+				<Skeleton class="mt-1 h-3 w-14" />
 			</div>
 		</div>
 	);

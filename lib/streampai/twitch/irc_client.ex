@@ -160,7 +160,9 @@ defmodule Streampai.Twitch.IrcClient do
   @impl true
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
-      Logger.info("Reconnecting to Twitch IRC (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
+      Logger.info(
+        "Reconnecting to Twitch IRC (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})"
+      )
 
       cleanup_connection(state)
       send(self(), :connect)
@@ -473,29 +475,10 @@ defmodule Streampai.Twitch.IrcClient do
     "twitch_#{:erlang.system_time(:microsecond)}_#{:rand.uniform(999_999)}"
   end
 
-  defp broadcast_chat_message(state, message_data) do
-    chat_event = %{
-      id: message_data.id,
-      username: message_data.username,
-      message: message_data.message,
-      platform: :twitch,
-      timestamp: message_data.timestamp,
-      author_channel_id: message_data.user_id,
-      is_moderator: message_data.is_moderator,
-      is_subscriber: message_data.is_subscriber,
-      is_vip: message_data.is_vip,
-      color: message_data.color,
-      badges: message_data.badges
-    }
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "chat:#{state.user_id}",
-      {:chat_message, chat_event}
-    )
-
-    # Also send to callback pid
-    send(state.callback_pid, {:twitch_message, :chat_message, chat_event})
+  defp broadcast_chat_message(_state, _message_data) do
+    # Chat messages are persisted via EventPersister and synced to frontend via Electric SQL.
+    # No PubSub broadcast needed.
+    :ok
   end
 
   defp queue_message_for_persistence(state, message_data) do

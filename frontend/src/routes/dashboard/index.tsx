@@ -15,10 +15,9 @@ import {
 } from "~/components/dashboard";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { getGreeting, sortByInsertedAt } from "~/lib/formatters";
+import { getGreetingKey, sortByInsertedAt } from "~/lib/formatters";
 import {
 	useDashboardStats,
-	useRecentUserChatMessages,
 	useRecentUserLivestreams,
 	useRecentUserStreamEvents,
 	useUserPreferencesForUser,
@@ -29,10 +28,15 @@ export default function Dashboard() {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
-	const greeting = getGreeting();
+	const greetingKey = getGreetingKey();
 
 	// User-scoped data
-	const recentMessages = useRecentUserChatMessages(() => user()?.id, 5);
+	const recentEventsAll = useRecentUserStreamEvents(() => user()?.id, 50);
+	const recentMessages = createMemo(() =>
+		recentEventsAll()
+			.filter((e) => e.type === "chat_message")
+			.slice(0, 5),
+	);
 	const recentEvents = useRecentUserStreamEvents(() => user()?.id, 5);
 	const recentStreams = useRecentUserLivestreams(() => user()?.id, 3);
 	const stats = useDashboardStats(() => user()?.id);
@@ -75,8 +79,8 @@ export default function Dashboard() {
 						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
 							<div>
 								<h1 class="mb-2 font-bold text-3xl text-gray-900">
-									{greeting}, {prefs.data()?.name || user()?.name || "Streamer"}
-									!
+									{t(greetingKey)},{" "}
+									{prefs.data()?.name || user()?.name || "Streamer"}!
 								</h1>
 								<p class="text-gray-600">{t("dashboard.welcomeMessage")}</p>
 							</div>

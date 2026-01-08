@@ -1,12 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { For, Show, createSignal, onMount } from "solid-js";
-import { Badge, Card, Skeleton } from "~/components/ui";
+import { Badge, Card, Skeleton } from "~/design-system";
+import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getViewerChat, getViewerEvents, listViewers } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 const viewerFields: (
 	| "viewerId"
@@ -40,34 +40,67 @@ const viewerFields: (
 	"lastSeenAt",
 ];
 
-const chatFields: (
-	| "id"
-	| "message"
-	| "senderUsername"
-	| "platform"
-	| "senderIsModerator"
-	| "senderIsPatreon"
-	| "livestreamId"
-	| "insertedAt"
-)[] = [
+const chatFields = [
 	"id",
-	"message",
-	"senderUsername",
+	"type",
+	{
+		data: [
+			{
+				chatMessage: [
+					"message",
+					"username",
+					"senderChannelId",
+					"isModerator",
+					"isPatreon",
+					"isSentByStreamer",
+					"deliveryStatus",
+				],
+			},
+		],
+	},
 	"platform",
-	"senderIsModerator",
-	"senderIsPatreon",
 	"livestreamId",
 	"insertedAt",
 ];
 
-const eventFields: (
-	| "id"
-	| "type"
-	| "data"
-	| "platform"
-	| "livestreamId"
-	| "insertedAt"
-)[] = ["id", "type", "data", "platform", "livestreamId", "insertedAt"];
+const eventFields = [
+	"id",
+	"type",
+	{
+		data: [
+			{
+				donation: [
+					"donorName",
+					"amount",
+					"currency",
+					"message",
+					"platformDonationId",
+					"username",
+					"channelId",
+					"amountMicros",
+					"amountCents",
+					"comment",
+					"metadata",
+				],
+				follow: ["username", "displayName"],
+				subscription: [
+					"username",
+					"tier",
+					"months",
+					"message",
+					"channelId",
+					"metadata",
+				],
+				raid: ["raiderName", "viewerCount", "message"],
+				platformStarted: ["platform"],
+				platformStopped: ["platform"],
+			},
+		],
+	},
+	"platform",
+	"livestreamId",
+	"insertedAt",
+];
 
 interface StreamViewer {
 	viewerId: string;
@@ -88,11 +121,19 @@ interface StreamViewer {
 
 interface ChatMessage {
 	id: string;
-	message: string;
-	senderUsername: string;
-	platform: string;
-	senderIsModerator: boolean | null;
-	senderIsPatreon: boolean | null;
+	type: string;
+	data: {
+		chatMessage: {
+			message: string;
+			username: string;
+			senderChannelId?: string | null;
+			isModerator?: boolean | null;
+			isPatreon?: boolean | null;
+			isSentByStreamer?: boolean | null;
+			deliveryStatus?: Record<string, any> | null;
+		} | null;
+	};
+	platform: string | null;
 	livestreamId: string;
 	insertedAt: string;
 }
@@ -100,7 +141,44 @@ interface ChatMessage {
 interface StreamEvent {
 	id: string;
 	type: string;
-	data: Record<string, unknown>;
+	data: {
+		donation?: {
+			donorName: string;
+			amount: string;
+			currency: string;
+			message?: string | null;
+			platformDonationId?: string | null;
+			username?: string | null;
+			channelId?: string | null;
+			amountMicros?: string | null;
+			amountCents?: number | null;
+			comment?: string | null;
+			metadata?: Record<string, any> | null;
+		} | null;
+		follow?: {
+			username: string;
+			displayName?: string | null;
+		} | null;
+		subscription?: {
+			username: string;
+			tier: string;
+			months?: string | null;
+			message?: string | null;
+			channelId?: string | null;
+			metadata?: Record<string, any> | null;
+		} | null;
+		raid?: {
+			raiderName: string;
+			viewerCount: string;
+			message?: string | null;
+		} | null;
+		platformStarted?: {
+			platform: string;
+		} | null;
+		platformStopped?: {
+			platform: string;
+		} | null;
+	};
 	platform: string | null;
 	livestreamId: string;
 	insertedAt: string;
@@ -170,11 +248,28 @@ const formatFullDate = (datetime: string) => {
 };
 
 const formatEventData = (event: StreamEvent) => {
-	if (!event.data || typeof event.data !== "object") return "—";
+	const data = event.data;
 
-	return Object.entries(event.data)
-		.map(([key, value]) => `${key}: ${value}`)
-		.join(", ");
+	if (data.donation) {
+		return `${data.donation.donorName} donated ${data.donation.amount} ${data.donation.currency}${data.donation.message ? `: ${data.donation.message}` : ""}`;
+	}
+	if (data.follow) {
+		return `${data.follow.displayName || data.follow.username} followed`;
+	}
+	if (data.subscription) {
+		return `${data.subscription.username} subscribed (Tier ${data.subscription.tier})${data.subscription.message ? `: ${data.subscription.message}` : ""}`;
+	}
+	if (data.raid) {
+		return `${data.raid.raiderName} raided with ${data.raid.viewerCount} viewers`;
+	}
+	if (data.platformStarted) {
+		return `Stream started on ${data.platformStarted.platform}`;
+	}
+	if (data.platformStopped) {
+		return `Stream stopped on ${data.platformStopped.platform}`;
+	}
+
+	return "—";
 };
 
 // Skeleton for viewer detail page
@@ -324,12 +419,12 @@ export default function ViewerDetail() {
 			const [messagesResult, eventsResult] = await Promise.all([
 				getViewerChat({
 					input: { viewerId: vId, userId: user.id },
-					fields: [...chatFields],
+					fields: chatFields as any,
 					fetchOptions: { credentials: "include" },
 				}),
 				getViewerEvents({
 					input: { viewerId: vId, userId: user.id },
-					fields: [...eventFields],
+					fields: eventFields as any,
 					fetchOptions: { credentials: "include" },
 				}),
 			]);
@@ -337,13 +432,13 @@ export default function ViewerDetail() {
 			if (!messagesResult.success) {
 				console.error("Error loading messages:", messagesResult.errors);
 			} else {
-				setMessages((messagesResult.data || []) as ChatMessage[]);
+				setMessages((messagesResult.data || []) as unknown as ChatMessage[]);
 			}
 
 			if (!eventsResult.success) {
 				console.error("Error loading events:", eventsResult.errors);
 			} else {
-				setEvents((eventsResult.data || []) as StreamEvent[]);
+				setEvents((eventsResult.data || []) as unknown as StreamEvent[]);
 			}
 		} catch (err) {
 			console.error("Error loading viewer details:", err);
@@ -495,7 +590,7 @@ export default function ViewerDetail() {
 														{platformName(message.platform ?? "")}
 													</Badge>
 												</Show>
-												<Show when={message.senderIsModerator}>
+												<Show when={message.data.chatMessage?.isModerator}>
 													<Badge variant="success">Moderator</Badge>
 												</Show>
 												<Show when={message.livestreamId}>
@@ -516,7 +611,9 @@ export default function ViewerDetail() {
 													</span>
 												</Show>
 											</div>
-											<p class="text-gray-600 text-sm">{message.message}</p>
+											<p class="text-gray-600 text-sm">
+												{message.data.chatMessage?.message}
+											</p>
 										</div>
 									)}
 								</For>

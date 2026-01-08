@@ -6,7 +6,7 @@ import {
 	Skeleton,
 	SkeletonChart,
 	SkeletonTableRow,
-} from "~/components/ui";
+} from "~/design-system";
 
 export function AnalyticsSkeleton() {
 	return (

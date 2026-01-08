@@ -31,14 +31,37 @@ export function formatAmount(
 	currency?: string,
 ): string {
 	if (!amount) return "";
-	return `${currency || "$"}${amount.toFixed(2)}`;
+	const num = typeof amount === "string" ? Number.parseFloat(amount) : amount;
+	if (Number.isNaN(num)) return "";
+	return `${currency || "$"}${num.toFixed(2)}`;
 }
 
-export function getGreeting(): string {
+/**
+ * Format seconds as HH:MM:SS (for live stream timers).
+ */
+export function formatDuration(seconds: number): string {
+	const h = Math.floor(seconds / 3600);
+	const m = Math.floor((seconds % 3600) / 60);
+	const s = seconds % 60;
+	return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+}
+
+/**
+ * Format seconds as human-readable short duration (e.g. "2h 15m").
+ */
+export function formatDurationShort(seconds: number | undefined): string {
+	if (!seconds) return "0m";
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	if (hours > 0) return `${hours}h ${minutes}m`;
+	return `${minutes}m`;
+}
+
+export function getGreetingKey(): string {
 	const hour = new Date().getHours();
-	if (hour < 12) return "Good morning";
-	if (hour < 18) return "Good afternoon";
-	return "Good evening";
+	if (hour < 12) return "dashboard.greetingMorning";
+	if (hour < 18) return "dashboard.greetingAfternoon";
+	return "dashboard.greetingEvening";
 }
 
 export function sortByInsertedAt<T extends { inserted_at: string }>(

@@ -16,7 +16,7 @@ defmodule StreampaiWeb.SyncController do
   alias Streampai.Accounts.WidgetConfig
   alias Streampai.Notifications.Notification
   alias Streampai.Notifications.NotificationRead
-  alias Streampai.Stream.ChatMessage
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamEvent
@@ -50,10 +50,6 @@ defmodule StreampaiWeb.SyncController do
 
   def stream_events(conn, params) do
     sync_render(conn, params, StreamEvent)
-  end
-
-  def chat_messages(conn, params) do
-    sync_render(conn, params, ChatMessage)
   end
 
   def livestreams(conn, params) do
@@ -167,17 +163,6 @@ defmodule StreampaiWeb.SyncController do
     end
   end
 
-  def user_chat_messages(conn, %{"user_id" => user_id} = params) do
-    case Ecto.UUID.cast(user_id) do
-      {:ok, uuid} ->
-        query = from(cm in ChatMessage, where: cm.user_id == ^uuid)
-        sync_render(conn, params, query)
-
-      :error ->
-        invalid_user_id_response(conn)
-    end
-  end
-
   # Safe columns to sync from streaming_account table (excludes sensitive tokens)
   @streaming_account_sync_columns [
     :user_id,
@@ -218,6 +203,17 @@ defmodule StreampaiWeb.SyncController do
     case Ecto.UUID.cast(user_id) do
       {:ok, uuid} ->
         query = from(hm in HighlightedMessage, where: hm.user_id == ^uuid)
+        sync_render(conn, params, query)
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
+  end
+
+  def current_stream_data(conn, %{"user_id" => user_id} = params) do
+    case Ecto.UUID.cast(user_id) do
+      {:ok, uuid} ->
+        query = from(c in CurrentStreamData, where: c.user_id == ^uuid)
         sync_render(conn, params, query)
 
       :error ->

@@ -3,6 +3,8 @@ defmodule Streampai.Cloudflare.APIClient do
   Stateless Cloudflare API client for livestream system.
   Handles all Cloudflare API requests.
   """
+  @behaviour Streampai.Cloudflare.APIClientBehaviour
+
   require Logger
 
   # URL builders for live inputs and outputs
@@ -41,7 +43,11 @@ defmodule Streampai.Cloudflare.APIClient do
           },
           opts[:meta] || %{}
         ),
-      "recording" => Map.merge(%{"mode" => "off"}, opts[:recording] || %{})
+      "recording" =>
+        Map.merge(
+          %{"mode" => "automatic", "deleteRecordingAfterDays" => 30},
+          opts[:recording] || %{}
+        )
     }
 
     path = live_input_url()

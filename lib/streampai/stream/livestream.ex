@@ -60,6 +60,7 @@ defmodule Streampai.Stream.Livestream do
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:started_at, &DateTime.utc_now/0)
       change Streampai.Stream.Livestream.Changes.SetDefaultTitle
+      change Streampai.Stream.Livestream.Changes.ResolveThumbnailUrl
 
       validate ValidateSubcategory
     end
@@ -125,10 +126,7 @@ defmodule Streampai.Stream.Livestream do
       default []
     end
 
-    # Legacy field - use thumbnail_file_id instead
-    # This field is kept for backward compatibility but should not be used for new code
-    # Use the thumbnail_url calculation instead which derives from thumbnail_file
-    attribute :legacy_thumbnail_url, :string do
+    attribute :thumbnail_url, :string do
       public? true
       allow_nil? true
     end
@@ -167,11 +165,6 @@ defmodule Streampai.Stream.Livestream do
       public? true
     end
 
-    has_many :chat_messages, Streampai.Stream.ChatMessage do
-      destination_attribute :livestream_id
-      public? true
-    end
-
     has_many :stream_events, Streampai.Stream.StreamEvent do
       destination_attribute :livestream_id
       public? true
@@ -199,26 +192,7 @@ defmodule Streampai.Stream.Livestream do
       public? true
     end
 
-    # Derive thumbnail URL from the file relationship
-    calculate :thumbnail_url, :string, fn records, _context ->
-      Enum.map(records, fn record ->
-        case record.thumbnail_file do
-          nil ->
-            # Fall back to legacy thumbnail_url field if no file
-            record.legacy_thumbnail_url
-
-          %{url: url} ->
-            # Use the URL calculation from the File resource
-            url
-
-          file ->
-            # Fallback in case URL wasn't loaded - should not happen in practice
-            Streampai.Storage.Adapters.S3.get_url(file.storage_key)
-        end
-      end)
-    end do
-      public? true
-      load [:legacy_thumbnail_url, thumbnail_file: [:url, :storage_key]]
-    end
+    # thumbnail_url is now a stored attribute, resolved at write time
+    # by ResolveThumbnailUrl change from thumbnail_file_id
   end
 end

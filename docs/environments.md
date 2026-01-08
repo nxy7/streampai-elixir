@@ -64,42 +64,43 @@ The development environment uses Caddy as a local reverse proxy for several crit
 
 ### Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Caddy | 8000 | HTTPS reverse proxy (entry point) |
-| Phoenix | 4000 | Elixir backend API |
-| Frontend | 3000 | SolidJS dev server |
-| HMR Client | 3001 | Vite HMR (client router) |
-| HMR Server | 3002 | Vite HMR (server router) |
-| HMR Server Function | 3003 | Vite HMR (server function router) |
-| PostgreSQL | 5432 | TimescaleDB (PostgreSQL + time-series) |
-| PgWeb | 8082 | Database admin UI |
-| MinIO | 9000/9001 | S3-compatible storage |
+| Service             | Port      | Description                            |
+| ------------------- | --------- | -------------------------------------- |
+| Caddy               | 8000      | HTTPS reverse proxy (entry point)      |
+| Phoenix             | 4000      | Elixir backend API                     |
+| Frontend            | 3000      | SolidJS dev server                     |
+| HMR Client          | 3001      | Vite HMR (client router)               |
+| HMR Server          | 3002      | Vite HMR (server router)               |
+| HMR Server Function | 3003      | Vite HMR (server function router)      |
+| PostgreSQL          | 5432      | TimescaleDB (PostgreSQL + time-series) |
+| PgWeb               | 8082      | Database admin UI                      |
+| MinIO               | 9000/9001 | S3-compatible storage                  |
 
 ### Starting Development
 
 ```bash
 # First-time setup
 caddy trust           # Install local CA certificates
-just dev              # Start all services with overmind
+just dev              # Start all services
 ```
 
-The `just dev` command uses `overmind` to manage:
-- PostgreSQL (docker compose)
-- Phoenix backend
-- Frontend dev server
-- Caddy reverse proxy
+The `just dev` command manages:
+
+- PostgreSQL (docker compose, started in background)
+- Phoenix backend (interactive `iex` session in foreground)
+- Frontend dev server (background)
+- Caddy reverse proxy (background)
 
 ### Worktree Isolation
 
 For parallel development, worktrees get isolated port ranges:
 
-| Service | Main Repo | Worktree Range |
-|---------|-----------|----------------|
-| Phoenix | 4000 | 4100-4999 |
-| Frontend | 3000 | 3100-3999 |
-| Caddy | 8000 | 8100-8999 |
-| PostgreSQL | 5432 | 5433-5999 |
+| Service    | Main Repo | Worktree Range |
+| ---------- | --------- | -------------- |
+| Phoenix    | 4000      | 4100-4999      |
+| Frontend   | 3000      | 3100-3999      |
+| Caddy      | 8000      | 8100-8999      |
+| PostgreSQL | 5432      | 5433-5999      |
 
 Setup: `just worktree-setup` (run inside the worktree)
 
@@ -132,10 +133,10 @@ localhost:{$CADDY_PORT:8000} {
 
 Production uses a two-domain architecture:
 
-| Domain | Purpose | Hosted On |
-|--------|---------|-----------|
-| `streampai.com` | Frontend SPA | Cloudflare Pages |
-| `api.streampai.com` | Phoenix API | Oracle Cloud + Cloudflare proxy |
+| Domain              | Purpose      | Hosted On                       |
+| ------------------- | ------------ | ------------------------------- |
+| `streampai.com`     | Frontend SPA | Cloudflare Pages                |
+| `api.streampai.com` | Phoenix API  | Oracle Cloud + Cloudflare proxy |
 
 This architecture works with Cloudflare's free plan (no Origin Rules required).
 
@@ -156,13 +157,14 @@ services:
   streampai:
     image: ghcr.io/nxy7/streampai-elixir:latest
     ports:
-      - "80:4000"   # Cloudflare connects to port 80
+      - "80:4000" # Cloudflare connects to port 80
     environment:
       PHX_HOST: "streampai.com"
-      PORT: "4000"  # Internal Phoenix port
+      PORT: "4000" # Internal Phoenix port
 ```
 
 **Port Flow**:
+
 1. Browser → Cloudflare (HTTPS, port 443)
 2. Cloudflare terminates SSL → Origin (HTTP, port 80)
 3. Docker maps port 80 → Phoenix (port 4000)
@@ -254,43 +256,49 @@ CLOUDFLARE_ACCOUNT_ID
 ### Development
 
 **"Electric SQL not syncing"**
+
 - Ensure you're accessing via Caddy (`https://localhost:8000`), not direct ports
 - HTTP/2 is required for Electric's multiplexing
 
 **"Cookies not being set"**
+
 - Access via HTTPS (Caddy), not HTTP
 - Check browser dev tools for cookie warnings
 
 **"Port already in use"**
-- Run `just kill-ports` to free overmind ports
+
+- Run `just kill-ports` to free dev ports
 - Or use `just worktree-setup` to get new random ports
 
 **"Electric slot conflict"**
+
 - Run `just cleanup-slots` to drop orphaned replication slots
 
 ### Production
 
 **"OAuth callback fails"**
+
 - Verify redirect URIs in Google/Twitch console match `api.streampai.com`
 - Check CORS headers in Phoenix endpoint
 
 **"Cookies not shared between domains"**
+
 - Verify `domain: ".streampai.com"` in session config
 - Check `SameSite=None; Secure` attributes
 
 **"502 Bad Gateway from Cloudflare"**
+
 - Check Phoenix is running: `docker compose logs streampai`
 - Verify port 80 is exposed and mapped to 4000
 - Check Oracle Cloud security list allows port 80
 
 ## Files Reference
 
-| File | Purpose |
-|------|---------|
-| `Caddyfile` | Local HTTPS reverse proxy config |
-| `Procfile.dev` | Overmind process definitions |
-| `docker-compose.yml` | Local PostgreSQL, MinIO, PgWeb |
-| `docker-compose.prod.yml` | Production deployment |
-| `Dockerfile` | Phoenix release build |
-| `cdk/` | Cloudflare infrastructure (CDKTF) |
-| `.github/workflows/test_and_deploy.yml` | CI/CD pipeline |
+| File                                    | Purpose                           |
+| --------------------------------------- | --------------------------------- |
+| `Caddyfile`                             | Local HTTPS reverse proxy config  |
+| `docker-compose.yml`                    | Local PostgreSQL, MinIO, PgWeb    |
+| `docker-compose.prod.yml`               | Production deployment             |
+| `Dockerfile`                            | Phoenix release build             |
+| `cdk/`                                  | Cloudflare infrastructure (CDKTF) |
+| `.github/workflows/test_and_deploy.yml` | CI/CD pipeline                    |

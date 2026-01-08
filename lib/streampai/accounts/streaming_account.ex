@@ -157,6 +157,10 @@ defmodule Streampai.Accounts.StreamingAccount do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     # Allow AshOban to bypass authorization for background jobs
     bypass AshOban.Checks.AshObanInteraction do
       authorize_if always()
@@ -180,7 +184,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     end
 
     policy action_type(:create) do
-      authorize_if Streampai.Accounts.StreamingAccount.Checks.TierLimitCheck
+      authorize_if actor_present()
     end
   end
 

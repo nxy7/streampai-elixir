@@ -1,6 +1,6 @@
 import { Show, createSignal } from "solid-js";
-import Badge, { type BadgeVariant } from "~/components/ui/Badge";
-import Card from "~/components/ui/Card";
+import Badge, { type BadgeVariant } from "~/design-system/Badge";
+import Card from "~/design-system/Card";
 
 export interface StreamingAccountData {
 	platform:
@@ -32,6 +32,7 @@ const platformConfig = {
 		name: "YouTube",
 		color: "from-red-600 to-red-700",
 		bgColor: "bg-red-50",
+		hoverBgColor: "hover:bg-red-100",
 		textColor: "text-red-700",
 		borderColor: "border-red-200",
 		badgeVariant: "error" as BadgeVariant,
@@ -40,6 +41,7 @@ const platformConfig = {
 		name: "Twitch",
 		color: "from-purple-600 to-purple-700",
 		bgColor: "bg-purple-50",
+		hoverBgColor: "hover:bg-purple-100",
 		textColor: "text-purple-700",
 		borderColor: "border-purple-200",
 		badgeVariant: "purple" as BadgeVariant,
@@ -48,6 +50,7 @@ const platformConfig = {
 		name: "Facebook",
 		color: "from-blue-600 to-blue-700",
 		bgColor: "bg-blue-50",
+		hoverBgColor: "hover:bg-blue-100",
 		textColor: "text-blue-700",
 		borderColor: "border-blue-200",
 		badgeVariant: "info" as BadgeVariant,
@@ -56,6 +59,7 @@ const platformConfig = {
 		name: "Kick",
 		color: "from-green-600 to-green-700",
 		bgColor: "bg-green-50",
+		hoverBgColor: "hover:bg-green-100",
 		textColor: "text-green-700",
 		borderColor: "border-green-200",
 		badgeVariant: "success" as BadgeVariant,
@@ -64,6 +68,7 @@ const platformConfig = {
 		name: "TikTok",
 		color: "from-gray-800 to-black",
 		bgColor: "bg-gray-50",
+		hoverBgColor: "hover:bg-gray-100",
 		textColor: "text-gray-700",
 		borderColor: "border-gray-200",
 		badgeVariant: "neutral" as BadgeVariant,
@@ -72,6 +77,7 @@ const platformConfig = {
 		name: "Trovo",
 		color: "from-green-500 to-teal-600",
 		bgColor: "bg-teal-50",
+		hoverBgColor: "hover:bg-teal-100",
 		textColor: "text-teal-700",
 		borderColor: "border-teal-200",
 		badgeVariant: "success" as BadgeVariant,
@@ -80,6 +86,7 @@ const platformConfig = {
 		name: "Instagram",
 		color: "from-pink-500 to-purple-600",
 		bgColor: "bg-pink-50",
+		hoverBgColor: "hover:bg-pink-100",
 		textColor: "text-pink-700",
 		borderColor: "border-pink-200",
 		badgeVariant: "pink" as BadgeVariant,
@@ -88,6 +95,7 @@ const platformConfig = {
 		name: "Rumble",
 		color: "from-green-600 to-green-800",
 		bgColor: "bg-green-50",
+		hoverBgColor: "hover:bg-green-100",
 		textColor: "text-green-700",
 		borderColor: "border-green-200",
 		badgeVariant: "success" as BadgeVariant,
@@ -164,8 +172,11 @@ export default function StreamingAccountStats(
 							when={props.data.accountImage}>
 							{(image) => (
 								<img
-									alt={config().name}
+									alt=""
 									class="h-12 w-12 rounded-lg object-cover"
+									onError={(e) => {
+										(e.target as HTMLImageElement).style.display = "none";
+									}}
 									src={image()}
 								/>
 							)}
@@ -190,7 +201,7 @@ export default function StreamingAccountStats(
 						class={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
 							isRefreshing()
 								? "cursor-not-allowed bg-gray-100 text-gray-400"
-								: `${config().bgColor} ${config().textColor} hover:bg-opacity-80`
+								: `${config().bgColor} ${config().textColor} ${config().hoverBgColor}`
 						}`}
 						disabled={isRefreshing()}
 						onClick={handleRefresh}

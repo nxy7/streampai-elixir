@@ -1,6 +1,7 @@
 import { For, Show, createSignal } from "solid-js";
+import { Skeleton } from "~/design-system";
+import { badge, button, input, text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
-import { badge, button, input, text } from "~/styles/design-system";
 import {
 	STREAM_CATEGORIES,
 	type StreamKeyData,
@@ -194,9 +195,9 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 					<Show
 						fallback={
 							<div class="space-y-3">
-								<div class="h-4 w-24 animate-pulse rounded bg-gray-200" />
-								<div class="h-5 w-full animate-pulse rounded bg-gray-200" />
-								<div class="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+								<Skeleton class="h-4 w-24" />
+								<Skeleton class="h-5 w-full" />
+								<Skeleton class="h-5 w-3/4" />
 							</div>
 						}
 						when={!props.isLoadingStreamKey}>

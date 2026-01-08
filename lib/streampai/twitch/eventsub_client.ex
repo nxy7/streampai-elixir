@@ -108,6 +108,9 @@ defmodule Streampai.Twitch.EventsubClient do
       reconnect_attempts: 0
     }
 
+    # Subscribe to token updates from TwitchManager
+    Phoenix.PubSub.subscribe(Streampai.PubSub, "twitch_token:#{user_id}")
+
     send(self(), :connect)
 
     {:ok, state}
@@ -144,7 +147,9 @@ defmodule Streampai.Twitch.EventsubClient do
   @impl true
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
-      Logger.info("Reconnecting to Twitch EventSub (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
+      Logger.info(
+        "Reconnecting to Twitch EventSub (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})"
+      )
 
       cleanup_connection(state)
       send(self(), :connect)
@@ -209,6 +214,20 @@ defmodule Streampai.Twitch.EventsubClient do
   def handle_info({:gun_error, _conn_pid, reason}, state) do
     Logger.error("Gun connection error: #{inspect(reason)}")
     handle_reconnect(state, {:gun_error, reason})
+  end
+
+  @impl true
+  def handle_info({:token_updated, _user_id, new_token}, state) do
+    Logger.info("Received updated Twitch token, updating state")
+    new_state = %{state | access_token: new_token}
+
+    # If we're in a reconnect loop (likely due to 401), trigger immediate reconnect with fresh token
+    if state.reconnect_attempts > 0 do
+      Logger.info("Triggering immediate reconnect with fresh token")
+      send(self(), :reconnect)
+    end
+
+    {:noreply, new_state}
   end
 
   @impl true
@@ -291,7 +310,10 @@ defmodule Streampai.Twitch.EventsubClient do
     end
   end
 
-  defp handle_eventsub_message(%{"metadata" => %{"message_type" => "session_welcome"}} = msg, state) do
+  defp handle_eventsub_message(
+         %{"metadata" => %{"message_type" => "session_welcome"}} = msg,
+         state
+       ) do
     session_id = get_in(msg, ["payload", "session", "id"])
     Logger.info("Received EventSub welcome, session_id: #{session_id}")
 
@@ -336,7 +358,10 @@ defmodule Streampai.Twitch.EventsubClient do
     end
   end
 
-  defp handle_eventsub_message(%{"metadata" => %{"message_type" => "session_reconnect"}} = msg, state) do
+  defp handle_eventsub_message(
+         %{"metadata" => %{"message_type" => "session_reconnect"}} = msg,
+         state
+       ) do
     reconnect_url = get_in(msg, ["payload", "session", "reconnect_url"])
     Logger.warning("EventSub requested reconnection to: #{reconnect_url}")
     # TODO: Handle reconnection to new URL
@@ -465,34 +490,15 @@ defmodule Streampai.Twitch.EventsubClient do
 
   defp has_badge?(_, _), do: false
 
-  defp broadcast_chat_message(state, message_data) do
-    chat_event = %{
-      id: message_data.id,
-      username: message_data.username,
-      message: message_data.message,
-      platform: :twitch,
-      timestamp: message_data.timestamp,
-      author_channel_id: message_data.author_channel_id,
-      is_moderator: message_data.is_moderator,
-      is_owner: false,
-      is_subscriber: message_data.is_subscriber,
-      is_vip: message_data.is_vip,
-      color: message_data.color,
-      badges: message_data.badges,
-      profile_image_url: nil
-    }
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "chat:#{state.user_id}",
-      {:chat_message, chat_event}
-    )
-
-    # Also send to callback pid
-    send(state.callback_pid, {:twitch_message, :chat_message, chat_event})
+  defp broadcast_chat_message(_state, _message_data) do
+    # Chat messages are persisted via EventPersister and synced to frontend via Electric SQL.
+    # No PubSub broadcast needed.
+    :ok
   end
 
   defp queue_message_for_persistence(state, message_data) do
+    is_owner = message_data.author_channel_id == state.broadcaster_id
+
     message_attrs = %{
       id: message_data.id,
       message: message_data.message,
@@ -502,7 +508,8 @@ defmodule Streampai.Twitch.EventsubClient do
       sender_is_moderator: message_data.is_moderator,
       sender_is_patreon: message_data.is_subscriber,
       user_id: state.user_id,
-      livestream_id: state.livestream_id
+      livestream_id: state.livestream_id,
+      is_owner: is_owner
     }
 
     author_attrs = %{
@@ -512,7 +519,7 @@ defmodule Streampai.Twitch.EventsubClient do
       avatar_url: nil,
       channel_url: "https://www.twitch.tv/#{String.downcase(message_data.username)}",
       is_verified: false,
-      is_owner: false,
+      is_owner: is_owner,
       is_moderator: message_data.is_moderator,
       is_patreon: message_data.is_subscriber
     }

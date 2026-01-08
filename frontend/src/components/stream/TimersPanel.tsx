@@ -1,6 +1,6 @@
 import { For, Show, createSignal } from "solid-js";
+import { button, input } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
-import { button, input } from "~/styles/design-system";
 import type { StreamTimer, TimerActionCallbacks } from "./types";
 
 interface TimersPanelProps extends TimerActionCallbacks {

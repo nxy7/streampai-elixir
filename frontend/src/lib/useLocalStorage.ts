@@ -1,33 +1,26 @@
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { type SetStoreFunction, createStore, reconcile } from "solid-js/store";
+
+function readFromStorage<T>(key: string, defaultValue: T): T {
+	if (typeof window === "undefined") return defaultValue;
+	const stored = localStorage.getItem(key);
+	if (stored === null) return defaultValue;
+	try {
+		return JSON.parse(stored) as T;
+	} catch {
+		return defaultValue;
+	}
+}
 
 export function createLocalStorageSignal<T>(
 	key: string,
 	defaultValue: T,
 ): [() => T, (value: T | ((prev: T) => T)) => void] {
-	const [value, setValue] = createSignal<T>(defaultValue);
-	const [mounted, setMounted] = createSignal(false);
-
-	onMount(() => {
-		const stored = localStorage.getItem(key);
-		if (stored !== null) {
-			try {
-				setValue(() => JSON.parse(stored) as T);
-			} catch {
-				setValue(() => defaultValue);
-			}
-		}
-		setMounted(true);
-	});
+	const initial = readFromStorage(key, defaultValue);
+	const [value, setValue] = createSignal<T>(initial);
 
 	createEffect(() => {
-		if (mounted()) {
-			const current = value();
-			if (current === defaultValue && localStorage.getItem(key) === null) {
-				return;
-			}
-			localStorage.setItem(key, JSON.stringify(current));
-		}
+		localStorage.setItem(key, JSON.stringify(value()));
 	});
 
 	return [value, setValue];
@@ -37,26 +30,11 @@ export function createLocalStorageStore<T extends object>(
 	key: string,
 	defaultValue: T,
 ): [T, SetStoreFunction<T>, () => void] {
-	const [store, setStore] = createStore<T>(defaultValue);
-	const [mounted, setMounted] = createSignal(false);
-
-	onMount(() => {
-		const stored = localStorage.getItem(key);
-		if (stored !== null) {
-			try {
-				const parsed = JSON.parse(stored) as T;
-				setStore(reconcile({ ...defaultValue, ...parsed }));
-			} catch {
-				// Keep default value
-			}
-		}
-		setMounted(true);
-	});
+	const initial = readFromStorage(key, defaultValue);
+	const [store, setStore] = createStore<T>({ ...defaultValue, ...initial });
 
 	createEffect(() => {
-		if (mounted()) {
-			localStorage.setItem(key, JSON.stringify(store));
-		}
+		localStorage.setItem(key, JSON.stringify(store));
 	});
 
 	const clear = () => {

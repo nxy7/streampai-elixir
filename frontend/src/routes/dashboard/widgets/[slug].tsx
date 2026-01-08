@@ -13,12 +13,12 @@
  */
 import { useNavigate, useParams } from "@solidjs/router";
 import { Show, createMemo } from "solid-js";
-import { Button } from "~/components/ui";
 import { WidgetSettingsPage } from "~/components/WidgetSettingsPage";
+import { Button } from "~/design-system";
+import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getWidgetDefinition } from "~/lib/widget-registry";
-import { text } from "~/styles/design-system";
 
 export default function WidgetSettingsRoute() {
 	const params = useParams<{ slug: string }>();

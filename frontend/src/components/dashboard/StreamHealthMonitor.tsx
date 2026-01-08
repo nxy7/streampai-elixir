@@ -1,71 +1,94 @@
-import { createSignal } from "solid-js";
-import Card from "~/components/ui/Card";
+import { Show, createEffect, createSignal, onCleanup } from "solid-js";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
+import { useCurrentUser } from "~/lib/auth";
+import { formatDurationShort } from "~/lib/formatters";
+import { useStreamActor } from "~/lib/useElectric";
+
+type Quality = "excellent" | "good" | "fair" | "poor" | "offline";
 
 export default function StreamHealthMonitor() {
 	const { t } = useTranslation();
-	// Simulated stream health data - in production this would come from actual stream metrics
-	const [connectionQuality] = createSignal<
-		"excellent" | "good" | "fair" | "poor"
-	>("excellent");
-	const [bitrate] = createSignal(6000);
-	const [droppedFrames] = createSignal(0);
-	const [uptime] = createSignal("2h 34m");
+	const { user } = useCurrentUser();
+	const streamActor = useStreamActor(() => user()?.id);
+
+	const isLive = () => streamActor.streamStatus() === "streaming";
+
+	const connectionQuality = (): Quality => {
+		if (!isLive()) return "offline";
+		const platforms = streamActor.platformStatuses();
+		const hasError = Object.values(platforms).some((p) => p.status === "error");
+		if (hasError) return "poor";
+		return "excellent";
+	};
+
+	const totalViewers = () => {
+		const platforms = streamActor.platformStatuses();
+		return Object.values(platforms).reduce(
+			(sum, p) => sum + (p.viewer_count ?? 0),
+			0,
+		);
+	};
+
+	const [uptime, setUptime] = createSignal(0);
+
+	createEffect(() => {
+		const startedAt = streamActor.data()?.stream_data?.started_at as
+			| string
+			| undefined;
+		if (isLive() && startedAt) {
+			const startTime = new Date(startedAt).getTime();
+			const update = () =>
+				setUptime(Math.floor((Date.now() - startTime) / 1000));
+			update();
+			const interval = setInterval(update, 1000);
+			onCleanup(() => clearInterval(interval));
+		} else {
+			setUptime(0);
+		}
+	});
 
 	const qualityColor = () => {
-		switch (connectionQuality()) {
-			case "excellent":
-				return "text-green-500";
-			case "good":
-				return "text-blue-500";
-			case "fair":
-				return "text-yellow-500";
-			case "poor":
-				return "text-red-500";
-		}
+		const q = connectionQuality();
+		if (q === "offline") return "text-gray-400";
+		if (q === "excellent") return "text-green-500";
+		if (q === "good") return "text-blue-500";
+		if (q === "fair") return "text-yellow-500";
+		return "text-red-500";
 	};
 
 	const qualityBg = () => {
-		switch (connectionQuality()) {
-			case "excellent":
-				return "bg-green-500";
-			case "good":
-				return "bg-blue-500";
-			case "fair":
-				return "bg-yellow-500";
-			case "poor":
-				return "bg-red-500";
-		}
+		const q = connectionQuality();
+		if (q === "offline") return "bg-gray-400";
+		if (q === "excellent") return "bg-green-500";
+		if (q === "good") return "bg-blue-500";
+		if (q === "fair") return "bg-yellow-500";
+		return "bg-red-500";
 	};
 
 	const qualityBgLight = () => {
-		switch (connectionQuality()) {
-			case "excellent":
-				return "bg-green-500/10";
-			case "good":
-				return "bg-blue-500/10";
-			case "fair":
-				return "bg-yellow-500/10";
-			case "poor":
-				return "bg-red-500/10";
-		}
+		const q = connectionQuality();
+		if (q === "offline") return "bg-gray-100";
+		if (q === "excellent") return "bg-green-500/10";
+		if (q === "good") return "bg-blue-500/10";
+		if (q === "fair") return "bg-yellow-500/10";
+		return "bg-red-500/10";
 	};
 
 	const qualityLabel = () => {
-		switch (connectionQuality()) {
-			case "excellent":
-				return t("dashboard.excellent");
-			case "good":
-				return t("dashboard.good");
-			case "fair":
-				return t("dashboard.fair");
-			case "poor":
-				return t("dashboard.poor");
-		}
+		const q = connectionQuality();
+		if (q === "offline") return t("dashboard.offline");
+		if (q === "excellent") return t("dashboard.excellent");
+		if (q === "good") return t("dashboard.good");
+		if (q === "fair") return t("dashboard.fair");
+		return t("dashboard.poor");
 	};
 
 	return (
-		<Card data-testid="stream-health-monitor" padding="sm">
+		<Card
+			class="flex h-full flex-col justify-between"
+			data-testid="stream-health-monitor"
+			padding="sm">
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
 					<svg
@@ -85,7 +108,12 @@ export default function StreamHealthMonitor() {
 				</h3>
 				<div
 					class={`flex items-center gap-1.5 rounded-full px-2 py-1 ${qualityBgLight()}`}>
-					<div class={`h-2 w-2 rounded-full ${qualityBg()} animate-pulse`} />
+					<Show when={isLive()}>
+						<div class={`h-2 w-2 rounded-full ${qualityBg()} animate-pulse`} />
+					</Show>
+					<Show when={!isLive()}>
+						<div class={`h-2 w-2 rounded-full ${qualityBg()}`} />
+					</Show>
 					<span class={`font-medium text-xs capitalize ${qualityColor()}`}>
 						{qualityLabel()}
 					</span>
@@ -93,18 +121,27 @@ export default function StreamHealthMonitor() {
 			</div>
 			<div class="grid grid-cols-3 gap-3">
 				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{bitrate()} kbps</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.bitrate")}</p>
+					<p class="font-bold text-gray-900 text-lg">
+						{isLive() ? totalViewers() : "—"}
+					</p>
+					<p class="text-gray-500 text-xs">{t("dashboard.viewers")}</p>
 				</div>
 				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{droppedFrames()}</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.dropped")}</p>
-				</div>
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{uptime()}</p>
+					<p class="font-bold text-gray-900 text-lg">
+						{isLive() ? formatDurationShort(uptime()) : "—"}
+					</p>
 					<p class="text-gray-500 text-xs">{t("dashboard.uptime")}</p>
 				</div>
+				<div class="rounded-lg bg-gray-50 p-2 text-center">
+					<p class="font-bold text-gray-900 text-lg">{isLive() ? "—" : "—"}</p>
+					<p class="text-gray-500 text-xs">{t("dashboard.bitrate")}</p>
+				</div>
 			</div>
+			<Show when={!isLive()}>
+				<p class="mt-3 text-center text-gray-400 text-xs">
+					{t("dashboard.streamHealthHint")}
+				</p>
+			</Show>
 		</Card>
 	);
 }

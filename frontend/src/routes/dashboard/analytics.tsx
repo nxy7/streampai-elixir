@@ -24,9 +24,10 @@ import {
 	Skeleton,
 	SkeletonChart,
 	SkeletonTableRow,
-} from "~/components/ui";
+} from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { formatDurationShort } from "~/lib/formatters";
 import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
@@ -228,13 +229,6 @@ export default function Analytics() {
 			.join(", ");
 	};
 
-	const formatDuration = (seconds: number): string => {
-		const hours = Math.floor(seconds / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-		if (hours > 0) return `${hours}h ${minutes}m`;
-		return `${minutes}m`;
-	};
-
 	const recentStreams = createMemo((): StreamData[] => {
 		return filteredStreams()
 			.slice(0, 5)
@@ -243,7 +237,7 @@ export default function Analytics() {
 				title: stream.title || "Untitled Stream",
 				platform: formatPlatforms(stream.platforms || []),
 				startTime: new Date(stream.startedAt),
-				duration: formatDuration(stream.durationSeconds || 0),
+				duration: formatDurationShort(stream.durationSeconds || 0),
 				viewers: {
 					peak: stream.peakViewers || 0,
 					average: stream.averageViewers || 0,

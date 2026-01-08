@@ -5,8 +5,8 @@ import {
 	SkeletonMetricCard,
 	SkeletonStat,
 	SkeletonStreamCard,
-} from "~/components/ui";
-import Card from "~/components/ui/Card";
+} from "~/design-system";
+import Card from "~/design-system/Card";
 
 // Skeleton for Quick Stats grid
 export function QuickStatsSkeleton() {

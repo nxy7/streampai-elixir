@@ -8,7 +8,6 @@ defmodule Streampai.Stream.EventPersister do
   """
   use GenServer
 
-  alias Streampai.Stream.ChatMessage
   alias Streampai.Stream.StreamEvent
   alias Streampai.Stream.StreamViewer
 
@@ -16,6 +15,8 @@ defmodule Streampai.Stream.EventPersister do
 
   @batch_size 100
   @flush_interval 3_000
+  @sent_message_ttl_ms 30_000
+  @sent_message_ids_table :event_persister_sent_message_ids
 
   defstruct [
     :chat_messages,
@@ -39,8 +40,21 @@ defmodule Streampai.Stream.EventPersister do
       flush_timer: schedule_flush()
     }
 
+    ensure_sent_message_ids_table()
     Logger.info("EventPersister started")
     {:ok, state}
+  end
+
+  @doc """
+  Registers a platform message ID for a message sent by the streamer
+  through Streampai, so the platform echo can be identified and skipped.
+  """
+  def register_sent_message_id(user_id, platform_message_id)
+      when is_binary(user_id) and is_binary(platform_message_id) do
+    ensure_sent_message_ids_table()
+    now = :os.system_time(:millisecond)
+    :ets.insert(@sent_message_ids_table, {{user_id, platform_message_id}, now})
+    :ok
   end
 
   @doc """
@@ -79,17 +93,25 @@ defmodule Streampai.Stream.EventPersister do
 
   @impl true
   def handle_cast({:add_message, {message_attrs, author_attrs}}, state) do
-    new_messages = [struct(ChatMessage, message_attrs) | state.chat_messages]
+    if echo_message?(message_attrs) do
+      Logger.debug(
+        "Skipping echo message from #{message_attrs.sender_username} on #{message_attrs.platform}"
+      )
 
-    author_key = {author_attrs.viewer_id, author_attrs.user_id}
-    new_author_details = Map.put(state.author_details, author_key, author_attrs)
+      {:noreply, state}
+    else
+      new_messages = [message_attrs | state.chat_messages]
 
-    maybe_flush_on_batch_size(
-      %{state | author_details: new_author_details},
-      new_messages,
-      state.stream_events,
-      :messages
-    )
+      author_key = {author_attrs.viewer_id, author_attrs.user_id}
+      new_author_details = Map.put(state.author_details, author_key, author_attrs)
+
+      maybe_flush_on_batch_size(
+        %{state | author_details: new_author_details},
+        new_messages,
+        state.stream_events,
+        :messages
+      )
+    end
   end
 
   @impl true
@@ -150,6 +172,7 @@ defmodule Streampai.Stream.EventPersister do
         state
       end
 
+    purge_expired_sent_messages()
     {:noreply, %{new_state | flush_timer: schedule_flush()}}
   end
 
@@ -163,7 +186,8 @@ defmodule Streampai.Stream.EventPersister do
       upsert_viewers_from_author_details(state.author_details)
 
       if !Enum.empty?(state.chat_messages) do
-        bulk_upsert(state.chat_messages, ChatMessage, &message_to_attrs/1)
+        chat_events = Enum.map(state.chat_messages, &message_to_stream_event/1)
+        bulk_upsert(chat_events, StreamEvent, &event_to_attrs/1)
       end
 
       if !Enum.empty?(state.stream_events) do
@@ -192,7 +216,9 @@ defmodule Streampai.Stream.EventPersister do
   defp handle_flush_results(state, {:ok, msg_count}, {:ok, event_count}, flush_type) do
     total = msg_count + event_count
 
-    Logger.debug("#{String.capitalize(flush_type)} flush completed: #{msg_count} messages, #{event_count} events")
+    Logger.debug(
+      "#{String.capitalize(flush_type)} flush completed: #{msg_count} messages, #{event_count} events"
+    )
 
     new_state = %{
       state
@@ -217,7 +243,9 @@ defmodule Streampai.Stream.EventPersister do
 
   defp flush_messages(messages, author_details) do
     upsert_viewers_from_author_details(author_details)
-    bulk_upsert(messages, ChatMessage, &message_to_attrs/1)
+
+    chat_events = Enum.map(messages, &message_to_stream_event/1)
+    bulk_upsert(chat_events, StreamEvent, &event_to_attrs/1)
   end
 
   defp upsert_viewers_from_author_details(author_details) do
@@ -242,23 +270,33 @@ defmodule Streampai.Stream.EventPersister do
 
   defp handle_bulk_result(%Ash.BulkResult{status: :success}, count), do: {:ok, count}
 
-  defp handle_bulk_result(%Ash.BulkResult{status: :error, errors: errors}, _count), do: {:error, errors}
+  defp handle_bulk_result(%Ash.BulkResult{status: :error, errors: errors}, _count),
+    do: {:error, errors}
 
   defp handle_bulk_result(error, _count), do: {:error, error}
 
-  defp message_to_attrs(%ChatMessage{} = message) do
-    %{
-      id: message.id,
-      message: message.message,
-      sender_username: message.sender_username,
-      platform: message.platform,
-      sender_channel_id: message.sender_channel_id,
-      sender_is_moderator: message.sender_is_moderator,
-      sender_is_patreon: message.sender_is_patreon,
-      user_id: message.user_id,
-      livestream_id: message.livestream_id,
-      viewer_id: message.sender_channel_id
-    }
+  defp message_to_stream_event(msg) when is_map(msg) do
+    # Use UUID v5 to derive a deterministic StreamEvent ID from the chat message ID
+    event_id = UUID.uuid5(:url, "chat_message:#{msg.id}")
+
+    struct(StreamEvent, %{
+      id: event_id,
+      type: :chat_message,
+      data: %{
+        "type" => "chat_message",
+        "message" => msg.message,
+        "username" => msg.sender_username,
+        "sender_channel_id" => msg.sender_channel_id,
+        "is_moderator" => msg.sender_is_moderator,
+        "is_patreon" => msg.sender_is_patreon,
+        "is_sent_by_streamer" => false
+      },
+      author_id: msg.sender_channel_id || "unknown",
+      platform: msg.platform,
+      user_id: msg.user_id,
+      livestream_id: msg.livestream_id,
+      viewer_id: Map.get(msg, :viewer_id) || msg.sender_channel_id
+    })
   end
 
   defp event_to_attrs(%StreamEvent{} = event) do
@@ -266,7 +304,6 @@ defmodule Streampai.Stream.EventPersister do
       id: event.id,
       type: event.type,
       data: event.data,
-      data_raw: event.data_raw,
       author_id: event.author_id,
       platform: event.platform,
       user_id: event.user_id,
@@ -277,5 +314,36 @@ defmodule Streampai.Stream.EventPersister do
 
   defp schedule_flush do
     Process.send_after(self(), :flush_timer, @flush_interval)
+  end
+
+  # Echo detection: check if the incoming message's platform ID was registered as sent by us
+  defp echo_message?(msg) do
+    id = to_string(msg.id)
+    user_id = msg.user_id
+    key = {user_id, id}
+
+    case :ets.lookup(@sent_message_ids_table, key) do
+      [{^key, _timestamp}] ->
+        :ets.delete(@sent_message_ids_table, key)
+        true
+
+      [] ->
+        false
+    end
+  end
+
+  defp purge_expired_sent_messages do
+    now = :os.system_time(:millisecond)
+
+    :ets.select_delete(@sent_message_ids_table, [
+      {{:_, :"$1"}, [{:<, :"$1", now - @sent_message_ttl_ms}], [true]}
+    ])
+  end
+
+  defp ensure_sent_message_ids_table do
+    case :ets.whereis(@sent_message_ids_table) do
+      :undefined -> :ets.new(@sent_message_ids_table, [:set, :public, :named_table])
+      _ref -> @sent_message_ids_table
+    end
   end
 end

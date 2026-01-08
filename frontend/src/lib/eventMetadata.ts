@@ -126,7 +126,7 @@ export function getPlatformName(platform: string): string {
 /**
  * Common gradient classes for event types.
  */
-export const EVENT_GRADIENTS: Record<string, string> = {
+const EVENT_GRADIENTS: Record<string, string> = {
 	donation: "from-green-500 to-emerald-600",
 	follow: "from-blue-500 to-cyan-600",
 	subscription: "from-purple-500 to-violet-600",

@@ -70,17 +70,19 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
 
   defp save_current_metrics(state) do
     if map_size(state.current_viewers) > 0 do
-      {:ok, _} =
-        LivestreamMetric.create(
-          %{
-            livestream_id: state.stream_id,
-            youtube_viewers: Map.get(state.current_viewers, :youtube, 0),
-            twitch_viewers: Map.get(state.current_viewers, :twitch, 0),
-            facebook_viewers: Map.get(state.current_viewers, :facebook, 0),
-            kick_viewers: Map.get(state.current_viewers, :kick, 0)
-          },
-          authorize?: false
-        )
+      case LivestreamMetric.create(
+             %{
+               livestream_id: state.stream_id,
+               youtube_viewers: Map.get(state.current_viewers, :youtube, 0),
+               twitch_viewers: Map.get(state.current_viewers, :twitch, 0),
+               facebook_viewers: Map.get(state.current_viewers, :facebook, 0),
+               kick_viewers: Map.get(state.current_viewers, :kick, 0)
+             },
+             actor: Streampai.SystemActor.system()
+           ) do
+        {:ok, _} -> :ok
+        {:error, reason} -> Logger.error("Failed to save metrics: #{inspect(reason)}")
+      end
     end
   end
 

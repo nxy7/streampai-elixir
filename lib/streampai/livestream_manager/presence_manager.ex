@@ -1,12 +1,13 @@
 defmodule Streampai.LivestreamManager.PresenceManager do
   @moduledoc """
-  Manages UserStreamManager processes based on user presence.
+  Manages StreamManager processes based on user presence.
   Spawns processes for active users and cleans them up after 5 seconds of inactivity.
   """
   use GenServer
 
   alias Phoenix.PubSub
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.LivestreamManager.UserSupervisor
 
   @cleanup_timeout 5_000
   @initialization_delay 1_000
@@ -44,14 +45,14 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info({:user_joined, user_id}, state) do
     require Logger
 
-    Logger.debug("User #{user_id} joined - starting UserStreamManager")
+    Logger.debug("User #{user_id} joined - starting StreamManager")
 
     # Cancel any existing cleanup timer
     state = cancel_cleanup_timer(state, user_id)
 
     active_users = MapSet.put(state.active_users, user_id)
 
-    # Start UserStreamManager if not already running
+    # Start StreamManager if not already running
     managers = ensure_manager_started(state.managers, user_id)
 
     {:noreply, %{state | active_users: active_users, managers: managers}}
@@ -82,7 +83,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
       {:noreply, %{state | cleanup_timers: cleanup_timers}}
     else
-      Logger.debug("Cleaning up UserStreamManager for user #{user_id}")
+      Logger.debug("Cleaning up StreamManager for user #{user_id}")
 
       managers = stop_manager(state.managers, user_id)
       cleanup_timers = Map.delete(state.cleanup_timers, user_id)
@@ -95,7 +96,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   def handle_info(:initialize_existing_presence, state) do
     require Logger
 
-    Logger.debug("Initializing UserStreamManagers for existing presence...")
+    Logger.debug("Initializing StreamManagers for existing presence...")
 
     try do
       existing_users = "users_presence" |> StreampaiWeb.Presence.list() |> Map.keys()
@@ -138,26 +139,17 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
     {active_users, cleanup_timers} =
       Enum.reduce(leaves, {active_users, cleanup_timers}, fn {user_id, _meta}, {users_acc, timers_acc} ->
-        current_presence = StreampaiWeb.Presence.list("users_presence")
-        user_still_present = Map.has_key?(current_presence, user_id)
+        # Always schedule cleanup on leave. The cleanup_user handler will
+        # re-check active_users before actually stopping the manager, so
+        # if a join arrives before the timer fires, the cleanup is skipped.
+        # This avoids TOCTOU races from calling Presence.list() here.
+        users_acc = MapSet.delete(users_acc, user_id)
 
-        if user_still_present do
-          # IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - but still has other sessions, keeping active")
+        timers_acc = cancel_cleanup_timer_for_user(timers_acc, user_id)
+        timer_ref = Process.send_after(self(), {:cleanup_user, user_id}, @cleanup_timeout)
+        timers_acc = Map.put(timers_acc, user_id, timer_ref)
 
-          # User still has other sessions, don't schedule cleanup
-          {users_acc, timers_acc}
-        else
-          # IO.puts("[PresenceManager] Phoenix.Presence leave: #{user_id} - no more sessions, scheduling cleanup")
-
-          users_acc = MapSet.delete(users_acc, user_id)
-
-          # Cancel existing timer and schedule cleanup
-          timers_acc = cancel_cleanup_timer_for_user(timers_acc, user_id)
-          timer_ref = Process.send_after(self(), {:cleanup_user, user_id}, @cleanup_timeout)
-          timers_acc = Map.put(timers_acc, user_id, timer_ref)
-
-          {users_acc, timers_acc}
-        end
+        {users_acc, timers_acc}
       end)
 
     {:noreply, %{state | active_users: active_users, managers: managers, cleanup_timers: cleanup_timers}}
@@ -199,7 +191,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
   end
 
   @doc """
-  Get detailed metrics about active UserStreamManagers.
+  Get detailed metrics about active StreamManagers.
   Returns: %{
     total_managers: integer,
     managers: [%{user_id: string, pid: pid, memory: bytes, process_count: integer}],
@@ -246,7 +238,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
       IO.puts("  Managed users: #{inspect(managed)}")
 
       # Running managers
-      IO.puts("\n⚡ Running UserStreamManagers:")
+      IO.puts("\n⚡ Running StreamManagers:")
 
       if Enum.empty?(managed) do
         IO.puts("  None")
@@ -272,7 +264,7 @@ defmodule Streampai.LivestreamManager.PresenceManager do
     defp print_manager_status(user_id) do
       case Registry.lookup(
              Streampai.LivestreamManager.Registry,
-             {:user_stream_manager, user_id}
+             {:stream_manager, user_id}
            ) do
         [{pid, _}] -> IO.puts("  #{user_id}: #{inspect(pid)} (alive: #{Process.alive?(pid)})")
         [] -> IO.puts("  #{user_id}: NOT FOUND in registry")
@@ -411,33 +403,41 @@ defmodule Streampai.LivestreamManager.PresenceManager do
 
   defp ensure_manager_started(managers, user_id) do
     case Map.get(managers, user_id) do
-      nil ->
-        case start_manager(user_id) do
-          {:ok, pid} ->
-            Process.monitor(pid)
-            Map.put(managers, user_id, pid)
-
-          {:error, {:already_started, pid}} ->
-            Process.monitor(pid)
-            Map.put(managers, user_id, pid)
-
-          {:error, reason} ->
-            require Logger
-
-            Logger.error("Failed to start manager for #{user_id}: #{inspect(reason)}")
-            managers
+      pid when is_pid(pid) and node(pid) == node() ->
+        if Process.alive?(pid) do
+          managers
+        else
+          # Stale pid — remove and restart
+          start_and_track_manager(Map.delete(managers, user_id), user_id)
         end
 
-      _pid ->
-        # Already running
+      _ ->
+        start_and_track_manager(managers, user_id)
+    end
+  end
+
+  defp start_and_track_manager(managers, user_id) do
+    case start_manager(user_id) do
+      {:ok, pid} ->
+        Process.monitor(pid)
+        Map.put(managers, user_id, pid)
+
+      {:error, {:already_started, pid}} ->
+        Process.monitor(pid)
+        Map.put(managers, user_id, pid)
+
+      {:error, reason} ->
+        require Logger
+
+        Logger.error("Failed to start manager for #{user_id}: #{inspect(reason)}")
         managers
     end
   end
 
   defp start_manager(user_id) do
     DynamicSupervisor.start_child(
-      Streampai.LivestreamManager.DynamicSupervisor,
-      {UserStreamManager, user_id}
+      UserSupervisor,
+      {StreamManager, user_id}
     )
   end
 
@@ -447,13 +447,13 @@ defmodule Streampai.LivestreamManager.PresenceManager do
         managers
 
       pid ->
-        DynamicSupervisor.terminate_child(Streampai.LivestreamManager.DynamicSupervisor, pid)
+        DynamicSupervisor.terminate_child(UserSupervisor, pid)
         Map.delete(managers, user_id)
     end
   end
 
   defp count_manager_processes(user_id) do
-    # Count all processes registered under this user's UserStreamManager
+    # Count all processes registered under this user's StreamManager
     registry_entries =
       Registry.select(Streampai.LivestreamManager.Registry, [
         {{{:_, user_id}, :_, :_}, [], [true]}

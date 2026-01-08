@@ -1,5 +1,6 @@
 .crypt.key
 .direnv
+persistent
 tasks
 # The directory Mix will write compiled artifacts to.
 /_build/
@@ -37,6 +38,13 @@ streampai-*.tar
 # Ignore digested assets cache and manifest files
 /priv/static/cache_manifest.json
 
+# Ignore compressed files (gzip) and digested/fingerprinted assets
+*.gz
+/priv/static/*-*.txt
+/priv/static/*-*.js
+/priv/static/*-*.css
+/priv/static/images/*-*.*
+
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
@@ -52,15 +60,18 @@ npm-debug.log
 # Vue build artifacts
 /priv/vue/
 
-# Package lockfiles - typically generated, but some teams track them
-# Uncomment the next line if you don't want to track package-lock.json
-# /assets/package-lock.json
+# Package lockfiles (project uses bun)
+package-lock.json
+bun.lock
 
 # IDE and editor files
 .vscode/
 .idea/
 *.sublime-*
 .atom/
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # OS generated files
 .DS_Store

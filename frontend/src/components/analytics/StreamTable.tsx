@@ -6,7 +6,7 @@ import {
 	CardContent,
 	CardHeader,
 	CardTitle,
-} from "~/components/ui";
+} from "~/design-system";
 import { useTranslation } from "~/i18n";
 
 export interface StreamData {

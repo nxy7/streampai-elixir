@@ -1,6 +1,6 @@
 import { For, Show, createMemo, createSignal } from "solid-js";
 import EventIcon from "~/components/EventIcon";
-import Card from "~/components/ui/Card";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 import { getEventBgColor } from "~/lib/eventMetadata";
 import { formatTimeAgo } from "~/lib/formatters";

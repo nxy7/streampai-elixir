@@ -7,7 +7,7 @@ defmodule StreampaiWeb.CloudflareWebhookController do
   use StreampaiWeb, :controller
 
   alias Streampai.Cloudflare.LiveInput
-  alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.LivestreamManager.StreamManager
   alias Streampai.SystemActor
 
   require Logger
@@ -153,8 +153,12 @@ defmodule StreampaiWeb.CloudflareWebhookController do
     secret = get_webhook_secret()
 
     if is_nil(secret) do
-      # If no secret is configured, skip verification
-      :ok
+      # Fail-closed: reject webhooks if no secret is configured in production
+      if Application.get_env(:streampai, :env) == :prod do
+        {:error, :missing_signature}
+      else
+        :ok
+      end
     else
       # Build the source string: time.body
       source = "#{time}.#{raw_body}"
@@ -196,12 +200,12 @@ defmodule StreampaiWeb.CloudflareWebhookController do
 
     case event_type do
       "stream.live_input.connected" ->
-        Logger.info("Stream connected - notifying CloudflareManager for user #{user_id}")
-        CloudflareManager.handle_webhook_event(user_id, event_type)
+        Logger.info("Stream connected - notifying StreamManager for user #{user_id}")
+        StreamManager.handle_webhook_event(user_id, event_type)
 
       "stream.live_input.disconnected" ->
-        Logger.info("Stream disconnected - notifying CloudflareManager for user #{user_id}")
-        CloudflareManager.handle_webhook_event(user_id, event_type)
+        Logger.info("Stream disconnected - notifying StreamManager for user #{user_id}")
+        StreamManager.handle_webhook_event(user_id, event_type)
 
       _ ->
         Logger.warning("Unknown event type: #{event_type}")

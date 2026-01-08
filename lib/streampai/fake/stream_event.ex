@@ -107,6 +107,7 @@ defmodule Streampai.Fake.StreamEvent do
     %{
       type: :chat_message,
       data: %{
+        type: "chat_message",
         username: username,
         message: message,
         is_moderator: :rand.uniform(10) == 1,
@@ -129,6 +130,7 @@ defmodule Streampai.Fake.StreamEvent do
     %{
       type: :donation,
       data: %{
+        type: "donation",
         donor_name: donor_name,
         amount: amount,
         currency: "USD",
@@ -149,6 +151,7 @@ defmodule Streampai.Fake.StreamEvent do
     %{
       type: :follow,
       data: %{
+        type: "follow",
         username: username,
         display_name: String.capitalize(username)
       },
@@ -169,6 +172,7 @@ defmodule Streampai.Fake.StreamEvent do
     %{
       type: :subscription,
       data: %{
+        type: "subscription",
         username: username,
         tier: tier,
         months: months,
@@ -190,6 +194,7 @@ defmodule Streampai.Fake.StreamEvent do
     %{
       type: :raid,
       data: %{
+        type: "raid",
         raider_name: raider_name,
         viewer_count: viewer_count,
         message: message

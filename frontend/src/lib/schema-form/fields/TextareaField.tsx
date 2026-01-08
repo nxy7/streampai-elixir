@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { Textarea } from "~/components/ui/Input";
+import { Textarea } from "~/design-system/Input";
 import type { IntrospectedField } from "../types";
 
 interface TextareaFieldProps {

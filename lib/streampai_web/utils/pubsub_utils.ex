@@ -19,8 +19,6 @@ defmodule StreampaiWeb.Utils.PubSubUtils do
     "cheers:",
     "alertbox:",
     "alertqueue:",
-    "stream_status:",
-    "cloudflare_input:",
     "users_presence"
   ]
 
@@ -109,19 +107,6 @@ defmodule StreampaiWeb.Utils.PubSubUtils do
       user_id: user_id,
       queue_length: Map.get(queue_data, :queue_length, 0),
       queue_state: Map.get(queue_data, :queue_state, :unknown)
-    })
-  end
-
-  @doc """
-  Broadcasts stream status changes with proper event structure.
-  """
-  def broadcast_stream_status(user_id, status_data) when is_binary(user_id) do
-    topic = "stream_status:#{user_id}"
-    message = {:stream_status_changed, status_data}
-
-    broadcast_with_logging(topic, message, %{
-      user_id: user_id,
-      status: Map.get(status_data, :status, :unknown)
     })
   end
 

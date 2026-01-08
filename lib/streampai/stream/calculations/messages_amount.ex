@@ -6,19 +6,16 @@ defmodule Streampai.Stream.Calculations.MessagesAmount do
 
   @impl true
   def load(_query, _opts, _context) do
-    [:chat_messages]
+    [:stream_events]
   end
 
   @impl true
   def calculate(records, _opts, _context) do
     {:ok,
      Enum.map(records, fn record ->
-       messages = Map.get(record, :chat_messages, []) || []
+       events = Map.get(record, :stream_events, []) || []
 
-       case messages do
-         [] -> 0
-         messages when is_list(messages) -> length(messages)
-       end
+       Enum.count(events, fn event -> event.type == :chat_message end)
      end)}
   end
 end

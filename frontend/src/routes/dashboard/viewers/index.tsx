@@ -1,15 +1,15 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { For, Show, createEffect, createSignal } from "solid-js";
-import { Skeleton } from "~/components/ui";
-import Badge from "~/components/ui/Badge";
-import Button from "~/components/ui/Button";
-import Card from "~/components/ui/Card";
-import Input, { Select } from "~/components/ui/Input";
+import { Skeleton } from "~/design-system";
+import Badge from "~/design-system/Badge";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
+import Input, { Select } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
 type ViewMode = "viewers" | "banned";

@@ -1,5 +1,5 @@
 import { createMemo } from "solid-js";
-import Card from "~/components/ui/Card";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
 interface ViewerEngagementScoreProps {
@@ -51,7 +51,10 @@ export default function ViewerEngagementScore(
 	};
 
 	return (
-		<Card data-testid="engagement-score" padding="sm">
+		<Card
+			class="flex h-full flex-col justify-between"
+			data-testid="engagement-score"
+			padding="sm">
 			<div class="mb-3 flex items-center justify-between">
 				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
 					<svg
@@ -95,6 +98,26 @@ export default function ViewerEngagementScore(
 						<span>50</span>
 						<span>100</span>
 					</div>
+				</div>
+			</div>
+			<div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+				<div class="flex justify-between">
+					<span class="text-gray-400">{t("dashboard.chat")}</span>
+					<span class="font-medium text-gray-600">{props.chatMessages}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">{t("dashboard.followers")}</span>
+					<span class="font-medium text-gray-600">{props.follows}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">{t("dashboard.donations")}</span>
+					<span class="font-medium text-gray-600">{props.donations}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">{t("dashboard.totalValue")}</span>
+					<span class="font-medium text-gray-600">
+						${props.totalDonationAmount.toFixed(0)}
+					</span>
 				</div>
 			</div>
 		</Card>

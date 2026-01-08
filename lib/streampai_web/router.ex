@@ -150,7 +150,6 @@ defmodule StreampaiWeb.Router do
     pipe_through(:electric_sync)
 
     get "/stream_events", SyncController, :stream_events
-    get "/chat_messages", SyncController, :chat_messages
     get "/livestreams", SyncController, :livestreams
     get "/viewers", SyncController, :viewers
     get "/user_preferences/:user_id", SyncController, :user_preferences
@@ -162,11 +161,11 @@ defmodule StreampaiWeb.Router do
 
     # User-scoped data endpoints
     get "/stream_events/:user_id", SyncController, :user_stream_events
-    get "/chat_messages/:user_id", SyncController, :user_chat_messages
     get "/livestreams/:user_id", SyncController, :user_livestreams
     get "/viewers/:user_id", SyncController, :user_viewers
     get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
     get "/highlighted_messages/:user_id", SyncController, :highlighted_messages
+    get "/current_stream_data/:user_id", SyncController, :current_stream_data
   end
 
   scope "/api/shapes", StreampaiWeb do

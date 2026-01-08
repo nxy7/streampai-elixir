@@ -1,0 +1,142 @@
+# Livestream Inspector
+
+## Setup
+
+Make sure you're attached to the `streampai` node runtime in Livebook:
+**Runtime Settings** > **Attached Node** > `streampai@127.0.0.1` with cookie `streampai`
+
+```elixir
+node = Node.self()
+IO.puts("Connected to: #{node}")
+IO.puts("Uptime: #{div(:erlang.statistics(:wall_clock) |> elem(0), 1000)}s")
+```
+
+## Active Streams
+
+Queries the process registry for all running `UserStreamManager` processes and fetches their state.
+
+```elixir
+registry = Streampai.LivestreamManager.Registry
+
+# Find all registered user_stream_manager processes
+user_ids =
+  Registry.select(registry, [
+    {{{:user_stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
+  ])
+
+user_ids
+|> Enum.map(fn user_id ->
+  # Get state directly from StreamStateServer via registry
+  state_server = {:via, Registry, {registry, {:stream_state, user_id}}}
+  
+  state =
+    try do
+      GenServer.call(state_server, :get_state, 5000)
+    rescue
+      _ -> nil
+    catch
+      :exit, _ -> nil
+    end
+
+  %{
+    "User ID" => user_id,
+    "Status" => if(state, do: state.status, else: :no_state_server),
+    "Livestream ID" => if(state, do: state.livestream_id, else: "N/A"),
+    "Started" => if(state && state.started_at,
+      do: Calendar.strftime(state.started_at, "%Y-%m-%d %H:%M:%S UTC"),
+      else: "N/A"),
+    "Platforms" => if(state && state.platforms,
+      do: state.platforms |> Map.keys() |> Enum.map(&to_string/1) |> Enum.join(", "),
+      else: "N/A"),
+    "Cloudflare Input" => if(state && state.cloudflare_input,
+      do: inspect(state.cloudflare_input, pretty: true, limit: 3),
+      else: "N/A")
+  }
+end)
+|> case do
+  [] -> Kino.Markdown.new("**No active streams.** No `UserStreamManager` processes found in registry")
+  rows -> Kino.DataTable.new(rows, name: "Active Streams (from Registry)")
+end
+
+```
+
+```elixir
+Streampai.Accounts.User.get_by_id!(%{ id: "41223e93-abf2-4952-b0fa-6d1baf9a2ef4" }, authorize?: false)
+```
+
+## Select User ID
+
+Copy a User ID from the table above and paste it here.
+
+```elixir
+user_id_input = Kino.Input.text("User ID")
+```
+
+## Processes for User
+
+```elixir
+user_id = Kino.Input.read(user_id_input) |> String.trim()
+
+if user_id == "" do
+  Kino.Markdown.new("**Enter a User ID above and re-evaluate this cell.**")
+else
+  registry = Streampai.LivestreamManager.Registry
+
+  process_keys = [
+    {:user_stream_manager, "UserStreamManager"},
+    {:stream_state, "StreamStateServer"},
+    {:cloudflare_manager, "CloudflareManager"},
+    {:alert_queue, "AlertQueue"},
+    {:timer_manager, "TimerManager"}
+  ]
+
+  platform_keys =
+    [:twitch, :youtube, :facebook, :kick]
+    |> Enum.map(fn p -> {{:platform_manager, p}, "PlatformManager (#{p})"} end)
+
+  lookup = fn key ->
+    case Registry.lookup(registry, key) do
+      [{pid, _}] -> pid
+      [] -> nil
+    end
+  end
+
+  process_info = fn pid ->
+    case Process.info(pid, [:status, :memory, :message_queue_len, :current_function]) do
+      nil -> %{status: :dead, memory: 0, queue: 0, function: "N/A"}
+      info ->
+        %{
+          status: info[:status],
+          memory: info[:memory],
+          queue: info[:message_queue_len],
+          function: inspect(info[:current_function])
+        }
+    end
+  end
+
+  rows =
+    (process_keys
+     |> Enum.map(fn {key, name} -> {lookup.({key, user_id}), name} end)) ++
+    (platform_keys
+     |> Enum.map(fn {{key, platform}, name} -> {lookup.({key, user_id, platform}), name} end))
+
+  rows
+  |> Enum.filter(fn {pid, _} -> pid != nil end)
+  |> Enum.map(fn {pid, name} ->
+    info = process_info.(pid)
+
+    %{
+      "Process" => name,
+      "PID" => inspect(pid),
+      "Status" => info.status,
+      "Memory" => "#{div(info.memory, 1024)} KB",
+      "Queue" => info.queue,
+      "Current Function" => info.function
+    }
+  end)
+  |> case do
+    [] -> Kino.Markdown.new("**No processes found for user `#{user_id}`.**\nIs the stream active?")
+    rows -> Kino.DataTable.new(rows, name: "Processes for #{user_id}")
+  end
+end
+```

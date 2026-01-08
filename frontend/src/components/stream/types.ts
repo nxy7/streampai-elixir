@@ -28,21 +28,6 @@ export const AVAILABLE_PLATFORMS = [
 	"facebook",
 ] as const;
 
-// Platform colors
-export const PLATFORM_COLORS: Record<string, string> = {
-	twitch: "bg-purple-600",
-	youtube: "bg-red-600",
-	kick: "bg-green-600",
-	facebook: "bg-blue-600",
-};
-
-export const PLATFORM_ICONS: Record<string, string> = {
-	twitch: "T",
-	youtube: "Y",
-	kick: "K",
-	facebook: "F",
-};
-
 // All available activity types for filtering
 export const ALL_ACTIVITY_TYPES: ActivityType[] = [
 	"chat",
@@ -90,7 +75,9 @@ export interface StreamMetadata {
 	description: string;
 	category: string;
 	tags: string[];
-	thumbnail?: string;
+	thumbnailFileId?: string;
+	thumbnailUrl?: string;
+	enabledPlatforms?: string[];
 }
 
 // Types for stream key data
@@ -123,6 +110,9 @@ export interface ActivityItem {
 	// Additional fields needed for moderation actions
 	viewerId?: string;
 	viewerPlatformId?: string;
+	// Sent message tracking
+	isSentByStreamer?: boolean;
+	deliveryStatus?: Record<string, string>;
 }
 
 // Moderation action callbacks
@@ -172,7 +162,8 @@ export type LiveViewMode =
 	| "actions"
 	| "poll"
 	| "giveaway"
-	| "timers";
+	| "timers"
+	| "settings";
 
 // Stream Timer Item Interface
 export interface StreamTimer {
@@ -301,12 +292,7 @@ export interface TimerActionCallbacks {
 // =============================================================================
 
 // Available smart filter prefixes
-export const SMART_FILTER_PREFIXES = [
-	"user:",
-	"message:",
-	"platform:",
-] as const;
-export type SmartFilterPrefix = (typeof SMART_FILTER_PREFIXES)[number];
+const _SMART_FILTER_PREFIXES = ["user:", "message:", "platform:"] as const;
 
 // Parsed filter result
 export interface ParsedFilters {

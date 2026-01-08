@@ -1,5 +1,5 @@
 import { type Component, Show } from "solid-js";
-import { text } from "~/styles/design-system";
+import { text } from "~/design-system/design-system";
 import type { IntrospectedField } from "../types";
 
 interface SliderFieldProps {

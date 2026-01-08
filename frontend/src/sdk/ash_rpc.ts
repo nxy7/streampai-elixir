@@ -18,7 +18,7 @@ export type UtcDateTimeUsec = string;
 // Livestream Schema
 export type LivestreamResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "legacyThumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId" | "averageViewers" | "peakViewers" | "messagesAmount" | "durationSeconds" | "platforms" | "thumbnailUrl";
+  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId" | "averageViewers" | "peakViewers" | "messagesAmount" | "durationSeconds" | "platforms";
   id: UUID;
   title: string;
   description: string | null;
@@ -26,7 +26,7 @@ export type LivestreamResourceSchema = {
   subcategory: string | null;
   language: string | null;
   tags: Array<string> | null;
-  legacyThumbnailUrl: string | null;
+  thumbnailUrl: string | null;
   thumbnailFileId: UUID | null;
   startedAt: UtcDateTime;
   endedAt: UtcDateTime | null;
@@ -36,32 +36,9 @@ export type LivestreamResourceSchema = {
   messagesAmount: number | null;
   durationSeconds: number | null;
   platforms: Array<string> | null;
-  thumbnailUrl: string | null;
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
   thumbnailFile: { __type: "Relationship"; __resource: FileResourceSchema | null; };
-  chatMessages: { __type: "Relationship"; __array: true; __resource: ChatMessageResourceSchema; };
   streamEvents: { __type: "Relationship"; __array: true; __resource: StreamEventResourceSchema; };
-};
-
-
-
-// ChatMessage Schema
-export type ChatMessageResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "message" | "platform" | "senderUsername" | "senderChannelId" | "senderIsModerator" | "senderIsPatreon" | "insertedAt" | "viewerId" | "userId" | "livestreamId";
-  id: string;
-  message: string;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  senderUsername: string;
-  senderChannelId: string;
-  senderIsModerator: boolean | null;
-  senderIsPatreon: boolean | null;
-  insertedAt: UtcDateTimeUsec;
-  viewerId: string | null;
-  userId: UUID;
-  livestreamId: UUID;
-  user: { __type: "Relationship"; __resource: UserResourceSchema; };
-  livestream: { __type: "Relationship"; __resource: LivestreamResourceSchema; };
 };
 
 
@@ -69,11 +46,9 @@ export type ChatMessageResourceSchema = {
 // StreamEvent Schema
 export type StreamEventResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "type" | "data" | "dataRaw" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
+  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
   id: UUID;
   type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
-  data: Record<string, any>;
-  dataRaw: Record<string, any>;
   authorId: string;
   livestreamId: UUID;
   userId: UUID;
@@ -81,6 +56,7 @@ export type StreamEventResourceSchema = {
   viewerId: string | null;
   wasDisplayed: boolean | null;
   insertedAt: UtcDateTimeUsec;
+  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
 };
 
 
@@ -127,14 +103,17 @@ export type BannedViewerResourceSchema = {
 
 
 
-// StreamActor Schema
-export type StreamActorResourceSchema = {
+// CurrentStreamData Schema
+export type CurrentStreamDataResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "type" | "data" | "status";
+  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData";
   id: UUID;
-  type: string;
-  data: Record<string, any>;
-  status: "active" | "paused" | "terminated";
+  status: string;
+  streamData: Record<string, any>;
+  cloudflareData: Record<string, any>;
+  youtubeData: Record<string, any>;
+  twitchData: Record<string, any>;
+  kickData: Record<string, any>;
 };
 
 
@@ -171,6 +150,19 @@ export type HighlightedMessageResourceSchema = {
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
 };
 
+
+
+// StreamAction Schema
+export type StreamActionResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
+
+
+
+export type StreamActionInputSchema = {
+
+};
 
 
 // User Schema
@@ -334,6 +326,162 @@ export type FileResourceSchema = {
 
 
 
+// StreampaiStreamEventDataChatMessageData Schema
+export type StreampaiStreamEventDataChatMessageDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "message" | "username" | "senderChannelId" | "isModerator" | "isPatreon" | "isSentByStreamer" | "deliveryStatus" | "emotes";
+  message: string;
+  username: string;
+  senderChannelId: string | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  isSentByStreamer: boolean | null;
+  deliveryStatus: Record<string, any> | null;
+  emotes: Array<Record<string, any>> | null;
+};
+
+
+
+export type StreampaiStreamEventDataChatMessageDataInputSchema = {
+  message: string;
+  username: string;
+  senderChannelId?: string | null;
+  isModerator?: boolean | null;
+  isPatreon?: boolean | null;
+  isSentByStreamer?: boolean | null;
+  deliveryStatus?: Record<string, any> | null;
+  emotes?: Array<Record<string, any>> | null;
+};
+
+
+// StreampaiStreamEventDataDonationData Schema
+export type StreampaiStreamEventDataDonationDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "donorName" | "amount" | "currency" | "message" | "platformDonationId" | "username" | "channelId" | "amountMicros" | "amountCents" | "comment" | "metadata";
+  donorName: string;
+  amount: string;
+  currency: string;
+  message: string | null;
+  platformDonationId: string | null;
+  username: string | null;
+  channelId: string | null;
+  amountMicros: string | null;
+  amountCents: number | null;
+  comment: string | null;
+  metadata: Record<string, any> | null;
+};
+
+
+
+export type StreampaiStreamEventDataDonationDataInputSchema = {
+  donorName: string;
+  amount: string;
+  currency: string;
+  message?: string | null;
+  platformDonationId?: string | null;
+  username?: string | null;
+  channelId?: string | null;
+  amountMicros?: string | null;
+  amountCents?: number | null;
+  comment?: string | null;
+  metadata?: Record<string, any> | null;
+};
+
+
+// StreampaiStreamEventDataFollowData Schema
+export type StreampaiStreamEventDataFollowDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "displayName";
+  username: string;
+  displayName: string | null;
+};
+
+
+
+export type StreampaiStreamEventDataFollowDataInputSchema = {
+  username: string;
+  displayName?: string | null;
+};
+
+
+// StreampaiStreamEventDataSubscriptionData Schema
+export type StreampaiStreamEventDataSubscriptionDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
+  username: string;
+  tier: string;
+  months: string | null;
+  message: string | null;
+  channelId: string | null;
+  metadata: Record<string, any> | null;
+};
+
+
+
+export type StreampaiStreamEventDataSubscriptionDataInputSchema = {
+  username: string;
+  tier: string;
+  months?: string | null;
+  message?: string | null;
+  channelId?: string | null;
+  metadata?: Record<string, any> | null;
+};
+
+
+// StreampaiStreamEventDataRaidData Schema
+export type StreampaiStreamEventDataRaidDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "raiderName" | "viewerCount" | "message";
+  raiderName: string;
+  viewerCount: string;
+  message: string | null;
+};
+
+
+
+export type StreampaiStreamEventDataRaidDataInputSchema = {
+  raiderName: string;
+  viewerCount: string;
+  message?: string | null;
+};
+
+
+// StreampaiStreamEventDataStreamUpdatedData Schema
+export type StreampaiStreamEventDataStreamUpdatedDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "title" | "description" | "thumbnailUrl" | "user";
+  username: string | null;
+  title: string | null;
+  description: string | null;
+  thumbnailUrl: string | null;
+  user: Record<string, any> | null;
+};
+
+
+
+export type StreampaiStreamEventDataStreamUpdatedDataInputSchema = {
+  username?: string | null;
+  title?: string | null;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  user?: Record<string, any> | null;
+};
+
+
+// StreampaiStreamEventDataPlatformEventData Schema
+export type StreampaiStreamEventDataPlatformEventDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "platform";
+  platform: string;
+};
+
+
+
+export type StreampaiStreamEventDataPlatformEventDataInputSchema = {
+  platform: string;
+};
+
+
 
 
 export type LivestreamFilterInput = {
@@ -383,7 +531,7 @@ export type LivestreamFilterInput = {
     in?: Array<Array<string>>;
   };
 
-  legacyThumbnailUrl?: {
+  thumbnailUrl?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
@@ -467,99 +615,12 @@ export type LivestreamFilterInput = {
     in?: Array<Array<string>>;
   };
 
-  thumbnailUrl?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
 
   user?: UserFilterInput;
 
   thumbnailFile?: FileFilterInput;
 
-  chatMessages?: ChatMessageFilterInput;
-
   streamEvents?: StreamEventFilterInput;
-
-};
-export type ChatMessageFilterInput = {
-  and?: Array<ChatMessageFilterInput>;
-  or?: Array<ChatMessageFilterInput>;
-  not?: Array<ChatMessageFilterInput>;
-
-  id?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  message?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  platform?: {
-    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
-  };
-
-  senderUsername?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  senderChannelId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  senderIsModerator?: {
-    eq?: boolean;
-    notEq?: boolean;
-  };
-
-  senderIsPatreon?: {
-    eq?: boolean;
-    notEq?: boolean;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  viewerId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  livestreamId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-
-  user?: UserFilterInput;
-
-  livestream?: LivestreamFilterInput;
 
 };
 export type StreamEventFilterInput = {
@@ -580,15 +641,9 @@ export type StreamEventFilterInput = {
   };
 
   data?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  dataRaw?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
+    eq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
+    notEq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
+    in?: Array<{ __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; }>;
   };
 
   authorId?: {
@@ -834,10 +889,10 @@ export type BannedViewerFilterInput = {
 
 
 };
-export type StreamActorFilterInput = {
-  and?: Array<StreamActorFilterInput>;
-  or?: Array<StreamActorFilterInput>;
-  not?: Array<StreamActorFilterInput>;
+export type CurrentStreamDataFilterInput = {
+  and?: Array<CurrentStreamDataFilterInput>;
+  or?: Array<CurrentStreamDataFilterInput>;
+  not?: Array<CurrentStreamDataFilterInput>;
 
   id?: {
     eq?: UUID;
@@ -845,22 +900,40 @@ export type StreamActorFilterInput = {
     in?: Array<UUID>;
   };
 
-  type?: {
+  status?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
   };
 
-  data?: {
+  streamData?: {
     eq?: Record<string, any>;
     notEq?: Record<string, any>;
     in?: Array<Record<string, any>>;
   };
 
-  status?: {
-    eq?: "active" | "paused" | "terminated";
-    notEq?: "active" | "paused" | "terminated";
-    in?: Array<"active" | "paused" | "terminated">;
+  cloudflareData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  youtubeData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  twitchData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  kickData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
   };
 
 
@@ -1002,6 +1075,15 @@ export type HighlightedMessageFilterInput = {
 
 
   user?: UserFilterInput;
+
+};
+export type StreamActionFilterInput = {
+  and?: Array<StreamActionFilterInput>;
+  or?: Array<StreamActionFilterInput>;
+  not?: Array<StreamActionFilterInput>;
+
+
+
 
 };
 export type UserFilterInput = {
@@ -1504,6 +1586,279 @@ export type FileFilterInput = {
     lessThan?: number;
     lessThanOrEqual?: number;
     in?: Array<number>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataChatMessageDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataChatMessageDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataChatMessageDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataChatMessageDataFilterInput>;
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  username?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderChannelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  isModerator?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isPatreon?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  isSentByStreamer?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  deliveryStatus?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  emotes?: {
+    eq?: Array<Record<string, any>>;
+    notEq?: Array<Record<string, any>>;
+    in?: Array<Array<Record<string, any>>>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataDonationDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataDonationDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataDonationDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataDonationDataFilterInput>;
+
+  donorName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  amount?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  currency?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  platformDonationId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  username?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  channelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  amountMicros?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  amountCents?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  comment?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  metadata?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataFollowDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataFollowDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataFollowDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataFollowDataFilterInput>;
+
+  username?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  displayName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataSubscriptionDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+
+  username?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  tier?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  months?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  channelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  metadata?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataRaidDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataRaidDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataRaidDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataRaidDataFilterInput>;
+
+  raiderName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  viewerCount?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataStreamUpdatedDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataStreamUpdatedDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataStreamUpdatedDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataStreamUpdatedDataFilterInput>;
+
+  username?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  title?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  description?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  thumbnailUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  user?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
+
+};
+export type StreampaiStreamEventDataPlatformEventDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+
+  platform?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
   };
 
 
@@ -2276,242 +2631,6 @@ export async function getLivestreamChannel<Fields extends GetLivestreamFields>(c
 }
 
 
-export type GetLivestreamChatInput = {
-  livestreamId: UUID;
-};
-
-export type GetLivestreamChatFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
-export type InferGetLivestreamChatResult<
-  Fields extends GetLivestreamChatFields,
-> = Array<InferResult<ChatMessageResourceSchema, Fields>>;
-
-export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | { success: true; data: InferGetLivestreamChatResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
-  config: {
-  input: GetLivestreamChatInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetLivestreamChatResult<Fields>> {
-  const payload = {
-    action: "get_livestream_chat",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetLivestreamChatResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function getLivestreamChatChannel<Fields extends GetLivestreamChatFields>(config: {
-  channel: Channel;
-  input: GetLivestreamChatInput;
-  fields: Fields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  resultHandler: (result: GetLivestreamChatResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetLivestreamChatResult<Fields>>(
-    config.channel,
-    {
-    action: "get_livestream_chat",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetChatHistoryInput = {
-  userId: UUID;
-  platform?: string;
-  dateRange?: string;
-  search?: string;
-};
-
-export type GetChatHistoryFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
-
-
-export type InferGetChatHistoryResult<
-  Fields extends GetChatHistoryFields | undefined,
-  Page extends GetChatHistoryConfig["page"] = undefined
-> = ConditionalPaginatedResult<Page, Array<InferResult<ChatMessageResourceSchema, Fields>>, {
-  results: Array<InferResult<ChatMessageResourceSchema, Fields>>;
-  hasMore: boolean;
-  limit: number;
-  after: string | null;
-  before: string | null;
-  previousPage: string;
-  nextPage: string;
-  count?: number | null;
-  type: "keyset";
-}>;
-
-export type GetChatHistoryConfig = {
-  input: GetChatHistoryInput;
-  hookCtx?: ActionHookContext;
-  fields: GetChatHistoryFields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-};
-
-export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page extends GetChatHistoryConfig["page"] = undefined> = | { success: true; data: InferGetChatHistoryResult<Fields, Page>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
-  config: Config & { fields: Fields }
-): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
-  const payload = {
-    action: "get_chat_history",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  };
-
-  return executeActionRpcRequest<GetChatHistoryResult<Fields, Config["page"]>>(
-    payload,
-    config
-  );
-}
-
-
-export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>(config: {
-  channel: Channel;
-  input: GetChatHistoryInput;
-  fields: Fields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  resultHandler: (result: GetChatHistoryResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetChatHistoryResult<Fields>>(
-    config.channel,
-    {
-    action: "get_chat_history",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetViewerChatInput = {
-  viewerId: string;
-  userId: UUID;
-};
-
-export type GetViewerChatFields = UnifiedFieldSelection<ChatMessageResourceSchema>[];
-export type InferGetViewerChatResult<
-  Fields extends GetViewerChatFields,
-> = Array<InferResult<ChatMessageResourceSchema, Fields>>;
-
-export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { success: true; data: InferGetViewerChatResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-export async function getViewerChat<Fields extends GetViewerChatFields>(
-  config: {
-  input: GetViewerChatInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetViewerChatResult<Fields>> {
-  const payload = {
-    action: "get_viewer_chat",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetViewerChatResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-export async function getViewerChatChannel<Fields extends GetViewerChatFields>(config: {
-  channel: Channel;
-  input: GetViewerChatInput;
-  fields: Fields;
-  filter?: ChatMessageFilterInput;
-  sort?: string;
-  resultHandler: (result: GetViewerChatResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetViewerChatResult<Fields>>(
-    config.channel,
-    {
-    action: "get_viewer_chat",
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
 export type GetLivestreamEventsInput = {
   livestreamId: UUID;
 };
@@ -2696,6 +2815,242 @@ export async function markStreamEventDisplayedChannel<Fields extends MarkStreamE
     action: "mark_stream_event_displayed",
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetChatHistoryInput = {
+  userId: UUID;
+  platform?: string;
+  dateRange?: string;
+  search?: string;
+};
+
+export type GetChatHistoryFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+
+
+export type InferGetChatHistoryResult<
+  Fields extends GetChatHistoryFields | undefined,
+  Page extends GetChatHistoryConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<StreamEventResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamEventResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type GetChatHistoryConfig = {
+  input: GetChatHistoryInput;
+  hookCtx?: ActionHookContext;
+  fields: GetChatHistoryFields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page extends GetChatHistoryConfig["page"] = undefined> = | { success: true; data: InferGetChatHistoryResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
+  config: Config & { fields: Fields }
+): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "get_chat_history",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<GetChatHistoryResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>(config: {
+  channel: Channel;
+  input: GetChatHistoryInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  resultHandler: (result: GetChatHistoryResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetChatHistoryResult<Fields>>(
+    config.channel,
+    {
+    action: "get_chat_history",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetLivestreamChatInput = {
+  livestreamId: UUID;
+};
+
+export type GetLivestreamChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetLivestreamChatResult<
+  Fields extends GetLivestreamChatFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | { success: true; data: InferGetLivestreamChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
+  config: {
+  input: GetLivestreamChatInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamChatResult<Fields>> {
+  const payload = {
+    action: "get_livestream_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetLivestreamChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getLivestreamChatChannel<Fields extends GetLivestreamChatFields>(config: {
+  channel: Channel;
+  input: GetLivestreamChatInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetLivestreamChatResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetLivestreamChatResult<Fields>>(
+    config.channel,
+    {
+    action: "get_livestream_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetViewerChatInput = {
+  viewerId: string;
+  userId: UUID;
+};
+
+export type GetViewerChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetViewerChatResult<
+  Fields extends GetViewerChatFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { success: true; data: InferGetViewerChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function getViewerChat<Fields extends GetViewerChatFields>(
+  config: {
+  input: GetViewerChatInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetViewerChatResult<Fields>> {
+  const payload = {
+    action: "get_viewer_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetViewerChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function getViewerChatChannel<Fields extends GetViewerChatFields>(config: {
+  channel: Channel;
+  input: GetViewerChatInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetViewerChatResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetViewerChatResult<Fields>>(
+    config.channel,
+    {
+    action: "get_viewer_chat",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
   },
     config.timeout,
     config
@@ -2937,56 +3292,56 @@ export async function listBannedViewersChannel<Fields extends ListBannedViewersF
 }
 
 
-export type GetStreamActorInput = {
+export type GetCurrentStreamDataInput = {
   userId: UUID;
 };
 
-export type GetStreamActorFields = UnifiedFieldSelection<StreamActorResourceSchema>[];
-export type InferGetStreamActorResult<
-  Fields extends GetStreamActorFields,
-> = InferResult<StreamActorResourceSchema, Fields>;
+export type GetCurrentStreamDataFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
+export type InferGetCurrentStreamDataResult<
+  Fields extends GetCurrentStreamDataFields,
+> = InferResult<CurrentStreamDataResourceSchema, Fields>;
 
-export type GetStreamActorResult<Fields extends GetStreamActorFields> = | { success: true; data: InferGetStreamActorResult<Fields>; }
+export type GetCurrentStreamDataResult<Fields extends GetCurrentStreamDataFields> = | { success: true; data: InferGetCurrentStreamDataResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
-export async function getStreamActor<Fields extends GetStreamActorFields>(
+export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFields>(
   config: {
-  input: GetStreamActorInput;
+  input: GetCurrentStreamDataInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<GetStreamActorResult<Fields>> {
+): Promise<GetCurrentStreamDataResult<Fields>> {
   const payload = {
-    action: "get_stream_actor",
+    action: "get_current_stream_data",
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<GetStreamActorResult<Fields>>(
+  return executeActionRpcRequest<GetCurrentStreamDataResult<Fields>>(
     payload,
     config
   );
 }
 
 
-export async function getStreamActorChannel<Fields extends GetStreamActorFields>(config: {
+export async function getCurrentStreamDataChannel<Fields extends GetCurrentStreamDataFields>(config: {
   channel: Channel;
-  input: GetStreamActorInput;
+  input: GetCurrentStreamDataInput;
   fields: Fields;
-  resultHandler: (result: GetStreamActorResult<Fields>) => void;
+  resultHandler: (result: GetCurrentStreamDataResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<GetStreamActorResult<Fields>>(
+  executeActionChannelPush<GetCurrentStreamDataResult<Fields>>(
     config.channel,
     {
-    action: "get_stream_actor",
+    action: "get_current_stream_data",
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3478,6 +3833,279 @@ export async function getHighlightedMessageChannel<Fields extends GetHighlighted
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GoLiveInput = {
+  userId: UUID;
+  title?: string;
+  description?: string;
+  platforms?: Array<string>;
+  metadata?: Record<string, any>;
+};
+
+export type InferGoLiveResult = Record<string, any>;
+
+export type GoLiveResult = | { success: true; data: InferGoLiveResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function goLive(
+  config: {
+  input: GoLiveInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GoLiveResult> {
+  const payload = {
+    action: "go_live",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<GoLiveResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function goLiveChannel(config: {
+  channel: Channel;
+  input: GoLiveInput;
+  resultHandler: (result: GoLiveResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GoLiveResult>(
+    config.channel,
+    {
+    action: "go_live",
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type StopStreamInput = {
+  userId: UUID;
+};
+
+export type InferStopStreamResult = Record<string, any>;
+
+export type StopStreamResult = | { success: true; data: InferStopStreamResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function stopStream(
+  config: {
+  input: StopStreamInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<StopStreamResult> {
+  const payload = {
+    action: "stop_stream",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<StopStreamResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function stopStreamChannel(config: {
+  channel: Channel;
+  input: StopStreamInput;
+  resultHandler: (result: StopStreamResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<StopStreamResult>(
+    config.channel,
+    {
+    action: "stop_stream",
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateStreamMetadataInput = {
+  userId: UUID;
+  title?: string;
+  description?: string;
+  tags?: Array<string>;
+  thumbnailFileId?: UUID;
+  platforms?: Array<string>;
+};
+
+export type InferUpdateStreamMetadataResult = Record<string, any>;
+
+export type UpdateStreamMetadataResult = | { success: true; data: InferUpdateStreamMetadataResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function updateStreamMetadata(
+  config: {
+  input: UpdateStreamMetadataInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateStreamMetadataResult> {
+  const payload = {
+    action: "update_stream_metadata",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<UpdateStreamMetadataResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function updateStreamMetadataChannel(config: {
+  channel: Channel;
+  input: UpdateStreamMetadataInput;
+  resultHandler: (result: UpdateStreamMetadataResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateStreamMetadataResult>(
+    config.channel,
+    {
+    action: "update_stream_metadata",
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SendStreamMessageInput = {
+  userId: UUID;
+  message: string;
+  platforms?: Array<string>;
+};
+
+export type InferSendStreamMessageResult = Record<string, any>;
+
+export type SendStreamMessageResult = | { success: true; data: InferSendStreamMessageResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function sendStreamMessage(
+  config: {
+  input: SendStreamMessageInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SendStreamMessageResult> {
+  const payload = {
+    action: "send_stream_message",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<SendStreamMessageResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function sendStreamMessageChannel(config: {
+  channel: Channel;
+  input: SendStreamMessageInput;
+  resultHandler: (result: SendStreamMessageResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SendStreamMessageResult>(
+    config.channel,
+    {
+    action: "send_stream_message",
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type TogglePlatformInput = {
+  userId: UUID;
+  platform: string;
+  enabled: boolean;
+};
+
+export type InferTogglePlatformResult = Record<string, any>;
+
+export type TogglePlatformResult = | { success: true; data: InferTogglePlatformResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function togglePlatform(
+  config: {
+  input: TogglePlatformInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<TogglePlatformResult> {
+  const payload = {
+    action: "toggle_platform",
+    input: config.input
+  };
+
+  return executeActionRpcRequest<TogglePlatformResult>(
+    payload,
+    config
+  );
+}
+
+
+export async function togglePlatformChannel(config: {
+  channel: Channel;
+  input: TogglePlatformInput;
+  resultHandler: (result: TogglePlatformResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<TogglePlatformResult>(
+    config.channel,
+    {
+    action: "toggle_platform",
+    input: config.input
   },
     config.timeout,
     config

@@ -11,14 +11,20 @@ defmodule Streampai.Stream.StreamAction do
   use Ash.Resource,
     domain: Streampai.Stream,
     data_layer: :embedded,
+    extensions: [AshTypescript.Resource],
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwner
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwnerOrModerator
   alias Streampai.Stream.StreamEvent
 
   require Logger
+
+  typescript do
+    type_name("StreamAction")
+  end
 
   code_interface do
     define :start_stream
@@ -34,11 +40,21 @@ defmodule Streampai.Stream.StreamAction do
     defaults []
 
     action :start_stream, :map do
-      description "Start streaming on all connected platforms"
+      description "Start streaming on selected (or all) connected platforms"
 
       argument :user_id, :uuid, allow_nil?: false
-      argument :title, :string, allow_nil?: true
-      argument :description, :string, allow_nil?: true
+
+      argument :title, :string do
+        allow_nil? true
+        constraints max_length: 200
+      end
+
+      argument :description, :string do
+        allow_nil? true
+        constraints max_length: 2000
+      end
+
+      argument :platforms, {:array, :atom}, allow_nil?: true
       argument :metadata, :map, default: %{}
 
       run fn input, _context ->
@@ -49,8 +65,9 @@ defmodule Streampai.Stream.StreamAction do
           args.metadata
           |> maybe_put(:title, Map.get(args, :title))
           |> maybe_put(:description, Map.get(args, :description))
+          |> maybe_put(:platforms, Map.get(args, :platforms))
 
-        case UserStreamManager.start_stream(user_id, metadata) do
+        case StreamManager.start_stream(user_id, metadata) do
           {:ok, livestream_id} ->
             {:ok,
              %{
@@ -73,7 +90,7 @@ defmodule Streampai.Stream.StreamAction do
       run fn input, _context ->
         user_id = input.arguments.user_id
 
-        case UserStreamManager.stop_stream(user_id) do
+        case StreamManager.stop_stream(user_id) do
           :ok ->
             {:ok, %{success: true, message: "Stream stopped successfully"}}
 
@@ -87,8 +104,23 @@ defmodule Streampai.Stream.StreamAction do
       description "Update stream title, description, or other metadata"
 
       argument :user_id, :uuid, allow_nil?: false
-      argument :title, :string, allow_nil?: true
-      argument :description, :string, allow_nil?: true
+
+      argument :title, :string do
+        allow_nil? true
+        constraints max_length: 200
+      end
+
+      argument :description, :string do
+        allow_nil? true
+        constraints max_length: 2000
+      end
+
+      argument :tags, {:array, :string} do
+        allow_nil? true
+        constraints max_length: 20, items: [max_length: 50]
+      end
+
+      argument :thumbnail_file_id, :uuid, allow_nil?: true
       argument :platforms, {:array, :atom}, default: [:all]
 
       run fn input, context ->
@@ -101,6 +133,8 @@ defmodule Streampai.Stream.StreamAction do
           %{}
           |> maybe_put(:title, Map.get(args, :title))
           |> maybe_put(:description, Map.get(args, :description))
+          |> maybe_put(:tags, Map.get(args, :tags))
+          |> maybe_put(:thumbnail_file_id, Map.get(args, :thumbnail_file_id))
 
         if map_size(metadata) == 0 do
           {:error, "No metadata provided to update"}
@@ -110,11 +144,35 @@ defmodule Streampai.Stream.StreamAction do
       end
     end
 
+    action :toggle_platform, :map do
+      description "Enable or disable a specific platform mid-stream"
+
+      argument :user_id, :uuid, allow_nil?: false
+      argument :platform, :atom, allow_nil?: false
+      argument :enabled, :boolean, allow_nil?: false
+
+      run fn input, _context ->
+        user_id = input.arguments.user_id
+        platform = input.arguments.platform
+        enabled = input.arguments.enabled
+
+        case StreamManager.toggle_platform(user_id, platform, enabled) do
+          :ok -> {:ok, %{platform: platform, enabled: enabled}}
+          {:error, reason} -> {:error, inspect(reason)}
+        end
+      end
+    end
+
     action :send_message, :map do
       description "Send a chat message to stream platforms"
 
       argument :user_id, :uuid, allow_nil?: false
-      argument :message, :string, allow_nil?: false
+
+      argument :message, :string do
+        allow_nil? false
+        constraints max_length: 500
+      end
+
       argument :platforms, {:array, :atom}, default: [:all]
 
       run fn input, _context ->
@@ -122,16 +180,57 @@ defmodule Streampai.Stream.StreamAction do
         message = input.arguments.message
         platforms = input.arguments.platforms
 
-        case UserStreamManager.send_chat_message(
-               user_id,
-               message,
-               platforms
-             ) do
-          :ok ->
-            {:ok, %{success: true, message: "Message sent successfully"}}
+        if rate_limited?(:send_message, user_id, 10, 10_000) do
+          {:error, "Rate limit exceeded. Please wait before sending more messages."}
+        else
+          user_id_string = to_string(user_id)
 
-          {:error, reason} ->
-            {:error, reason}
+          # Create a StreamEvent for the sent message with pending delivery status
+          sent_event_id =
+            case get_livestream_from_manager(user_id_string) do
+              {:ok, livestream_id} ->
+                target_platforms = resolve_target_platforms(user_id_string, platforms)
+
+                delivery_status =
+                  Map.new(target_platforms, fn p -> {to_string(p), "pending"} end)
+
+                event_attrs = %{
+                  type: :chat_message,
+                  data: %{
+                    "type" => "chat_message",
+                    "message" => message,
+                    "username" => "You",
+                    "is_sent_by_streamer" => true,
+                    "delivery_status" => delivery_status
+                  },
+                  author_id: user_id_string,
+                  platform: nil,
+                  user_id: user_id,
+                  livestream_id: livestream_id,
+                  viewer_id: nil
+                }
+
+                case StreamEvent.create(event_attrs, authorize?: false) do
+                  {:ok, event} -> event.id
+                  _ -> nil
+                end
+
+              _ ->
+                nil
+            end
+
+          case StreamManager.send_chat_message(
+                 user_id_string,
+                 message,
+                 platforms,
+                 sent_event_id
+               ) do
+            :ok ->
+              {:ok, %{success: true, message: "Message sent successfully"}}
+
+            {:error, reason} ->
+              {:error, reason}
+          end
         end
       end
     end
@@ -145,11 +244,11 @@ defmodule Streampai.Stream.StreamAction do
       argument :reason, :string, allow_nil?: true
 
       run fn _input, _context ->
-        # TODO: Implement ban_user in PlatformSupervisor
+        # TODO: Implement ban_user in StreamManager
         # user_id = input.arguments.user_id
         # platform = input.arguments.platform
         # username = input.arguments.target_username
-        {:error, "ban_user not yet implemented in PlatformSupervisor"}
+        {:error, "ban_user not yet implemented"}
       end
     end
 
@@ -161,8 +260,8 @@ defmodule Streampai.Stream.StreamAction do
       argument :platform, :atom, allow_nil?: false
 
       run fn _input, _context ->
-        # TODO: Implement unban_user in PlatformSupervisor
-        {:error, "unban_user not yet implemented in PlatformSupervisor"}
+        # TODO: Implement unban_user in StreamManager
+        {:error, "unban_user not yet implemented"}
       end
     end
 
@@ -175,8 +274,8 @@ defmodule Streampai.Stream.StreamAction do
       argument :duration_seconds, :integer, allow_nil?: false
 
       run fn _input, _context ->
-        # TODO: Implement timeout_user in PlatformSupervisor
-        {:error, "timeout_user not yet implemented in PlatformSupervisor"}
+        # TODO: Implement timeout_user in StreamManager
+        {:error, "timeout_user not yet implemented"}
       end
     end
   end
@@ -194,6 +293,12 @@ defmodule Streampai.Stream.StreamAction do
 
     policy action(:stop_stream) do
       description "Only the stream owner can stop their stream"
+      authorize_if IsStreamOwner
+      access_type :strict
+    end
+
+    policy action(:toggle_platform) do
+      description "Only the stream owner can toggle platforms"
       authorize_if IsStreamOwner
       access_type :strict
     end
@@ -238,18 +343,20 @@ defmodule Streampai.Stream.StreamAction do
     # Step 1: Get current livestream from StreamManager (not DB)
     livestream_id_result = get_livestream_from_manager(user_id_string)
 
-    Logger.info("Livestream ID result for user #{user_id_string}: #{inspect(livestream_id_result)}")
+    Logger.info(
+      "Livestream ID result for user #{user_id_string}: #{inspect(livestream_id_result)}"
+    )
 
     # Step 2: Update platform settings first
-    case UserStreamManager.update_stream_metadata(user_id_string, metadata, platforms) do
+    case StreamManager.update_stream_metadata(user_id_string, metadata, platforms) do
       :ok ->
         Logger.info("Successfully updated platform metadata for user #{user_id_string}")
 
-        # Step 3: Persist event to database (if streaming)
-        persist_metadata_event(livestream_id_result, user_id, metadata, actor)
+        # Step 3: Update CurrentStreamData so frontend sees changes via Electric
+        CurrentStreamData.update_metadata(user_id_string, metadata)
 
-        # Step 4: Broadcast to Phoenix
-        broadcast_metadata_update(user_id_string, metadata, actor)
+        # Step 4: Persist event to database (if streaming)
+        persist_metadata_event(livestream_id_result, user_id, metadata, actor)
 
         {:ok, %{success: true, message: "Metadata updated successfully"}}
 
@@ -263,13 +370,15 @@ defmodule Streampai.Stream.StreamAction do
     user_id_string = to_string(user_id)
 
     try do
-      state = UserStreamManager.get_state(user_id_string)
+      state = StreamManager.get_state(user_id_string)
       Logger.debug("StreamState for user #{user_id_string}: #{inspect(state)}")
 
       if is_nil(state.livestream_id) do
         # Only log in non-test environments to reduce test noise
         if Application.get_env(:streampai, :env) != :test do
-          Logger.warning("No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}")
+          Logger.warning(
+            "No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}"
+          )
         end
 
         {:error, :not_found}
@@ -335,30 +444,6 @@ defmodule Streampai.Stream.StreamAction do
     :ok
   end
 
-  defp broadcast_metadata_update(user_id, metadata, actor) do
-    # Load the current livestream to get the thumbnail_url
-    thumbnail_url = get_current_thumbnail_url(user_id)
-
-    # Include thumbnail_url in the metadata broadcast
-    metadata_with_thumbnail = Map.put(metadata, :thumbnail_url, thumbnail_url)
-
-    event = %{
-      id: Ash.UUID.generate(),
-      type: :stream_updated,
-      username: actor.email,
-      metadata: metadata_with_thumbnail,
-      timestamp: DateTime.utc_now()
-    }
-
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "stream_events:#{user_id}",
-      {:stream_updated, event}
-    )
-
-    Logger.info("Broadcasted stream_updated event via PubSub with thumbnail_url: #{inspect(thumbnail_url)}")
-  end
-
   defp get_current_thumbnail_url(user_id) do
     require Ash.Query
 
@@ -374,6 +459,68 @@ defmodule Streampai.Stream.StreamAction do
 
       _ ->
         nil
+    end
+  end
+
+  # Simple ETS-based rate limiter.
+  # Returns true if rate limited, false if allowed.
+  # max_count requests allowed per window_ms milliseconds.
+  defp rate_limited?(action, user_id, max_count, window_ms) do
+    table = ensure_rate_limit_table()
+    key = {action, user_id}
+    now = System.monotonic_time(:millisecond)
+    cutoff = now - window_ms
+
+    case :ets.lookup(table, key) do
+      [{^key, timestamps}] ->
+        # Prune old entries on every check to prevent unbounded growth
+        recent = Enum.filter(timestamps, &(&1 > cutoff))
+
+        if length(recent) >= max_count do
+          # Still store pruned list to reclaim memory
+          :ets.insert(table, {key, recent})
+          true
+        else
+          :ets.insert(table, {key, [now | recent]})
+          false
+        end
+
+      [] ->
+        :ets.insert(table, {key, [now]})
+        false
+    end
+  end
+
+  defp resolve_target_platforms(user_id, platforms) do
+    case platforms do
+      :all ->
+        get_active_platform_names(user_id)
+
+      [:all] ->
+        get_active_platform_names(user_id)
+
+      platforms when is_list(platforms) ->
+        platforms
+    end
+  end
+
+  defp get_active_platform_names(user_id) do
+    registry = Streampai.LivestreamManager.RegistryHelpers.get_registry_name()
+
+    Registry.select(registry, [
+      {{{:platform_manager, user_id, :"$1"}, :_, :_}, [], [:"$1"]}
+    ])
+  end
+
+  defp ensure_rate_limit_table do
+    table = :stream_action_rate_limits
+
+    case :ets.whereis(table) do
+      :undefined ->
+        :ets.new(table, [:set, :public, :named_table, read_concurrency: true])
+
+      _ref ->
+        table
     end
   end
 end

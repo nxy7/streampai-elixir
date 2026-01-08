@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import { useTranslation } from "~/i18n";
 import type { StreamActionCallbacks } from "./types";
 
 interface StreamActionsPanelProps extends StreamActionCallbacks {
@@ -6,6 +7,8 @@ interface StreamActionsPanelProps extends StreamActionCallbacks {
 }
 
 export function StreamActionsPanel(props: StreamActionsPanelProps) {
+	const { t } = useTranslation();
+
 	const handlePollClick = () => {
 		props.onOpenWidget?.("poll");
 	};
@@ -18,8 +21,8 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 		{
 			id: "poll",
 			icon: "[?]",
-			title: "Start Poll",
-			description: "Create an interactive poll for viewers",
+			title: t("stream.actions.startPoll"),
+			description: t("stream.actions.startPollDescription"),
 			color: "bg-blue-500",
 			hoverColor: "hover:bg-blue-600",
 			onClick: handlePollClick,
@@ -28,8 +31,8 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 		{
 			id: "giveaway",
 			icon: "[*]",
-			title: "Start Giveaway",
-			description: "Launch a giveaway for your audience",
+			title: t("stream.actions.startGiveaway"),
+			description: t("stream.actions.startGiveawayDescription"),
 			color: "bg-green-500",
 			hoverColor: "hover:bg-green-600",
 			onClick: handleGiveawayClick,
@@ -38,8 +41,8 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 		{
 			id: "timers",
 			icon: "[~]",
-			title: "Modify Timers",
-			description: "Adjust stream timers and countdowns",
+			title: t("stream.actions.modifyTimers"),
+			description: t("stream.actions.modifyTimersDescription"),
 			color: "bg-orange-500",
 			hoverColor: "hover:bg-orange-600",
 			onClick: props.onModifyTimers,
@@ -48,8 +51,8 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 		{
 			id: "settings",
 			icon: "[=]",
-			title: "Stream Settings",
-			description: "Change title, category, and tags",
+			title: t("stream.actions.streamSettings"),
+			description: t("stream.actions.streamSettingsDescription"),
 			color: "bg-purple-500",
 			hoverColor: "hover:bg-purple-600",
 			onClick: props.onChangeStreamSettings,
@@ -60,10 +63,10 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 	return (
 		<div class="flex h-full flex-col">
 			<div class="mb-4">
-				<h3 class="font-semibold text-gray-900 text-lg">Stream Actions</h3>
-				<p class="text-gray-500 text-sm">
-					Control your stream with quick actions
-				</p>
+				<h3 class="font-semibold text-gray-900 text-lg">
+					{t("stream.actions.title")}
+				</h3>
+				<p class="text-gray-500 text-sm">{t("stream.actions.subtitle")}</p>
 			</div>
 
 			<div class="grid gap-3">
@@ -95,7 +98,7 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 
 			<div class="mt-auto pt-4">
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-500 text-sm">
-					More actions coming soon
+					{t("stream.actions.moreComingSoon")}
 				</div>
 			</div>
 		</div>

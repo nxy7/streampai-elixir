@@ -7,9 +7,12 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
   use GenServer
 
-  alias Streampai.LivestreamManager.CloudflareManager
+  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.RegistryHelpers
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
+  alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.PlatformStatus
 
   require Logger
 
@@ -23,6 +26,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     :channel_id,
     :channel_slug,
     :livestream_id,
+    :cloudflare_input_id,
     :cloudflare_output_id,
     :rtmp_url,
     :stream_key,
@@ -71,8 +75,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
   @impl true
   def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
-    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
-      :ok -> {:ok, "message_sent"}
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}, 15_000) do
+      {:ok, platform_message_id} -> {:ok, platform_message_id}
       error -> error
     end
   end
@@ -96,7 +100,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   @impl true
-  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil) when is_binary(user_id) do
+  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil)
+      when is_binary(user_id) do
     GenServer.call(
       via_tuple(user_id),
       {:timeout_user, target_user_id, duration_seconds, reason}
@@ -123,12 +128,13 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   @impl true
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id} with metadata: #{inspect(metadata)}")
+    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
 
     with {:get_channel, {:ok, channel_info}} <- {:get_channel, get_channel_info(state)},
          rtmp_url = "rtmps://fa723fc1b171.global-contribute.live-video.net:443/app/",
          stream_key = generate_stream_key(),
          {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(state, rtmp_url, stream_key)},
+           {:create_output, create_cloudflare_output(cloudflare_input_id, rtmp_url, stream_key)},
          {:update_metadata, :ok} <- {:update_metadata, do_update_stream_metadata(metadata, state)} do
       new_state = %{
         state
@@ -137,12 +143,27 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
           channel_id: Map.get(channel_info, "broadcaster_user_id"),
           rtmp_url: rtmp_url,
           stream_key: stream_key,
+          cloudflare_input_id: cloudflare_input_id,
           cloudflare_output_id: output_id
       }
 
-      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Cloudflare Output: #{output_id}")
+      Logger.info(
+        "Stream created successfully - RTMP: #{rtmp_url}, Cloudflare Output: #{output_id}"
+      )
 
       StreamEvents.emit_platform_started(state.user_id, livestream_id, :kick)
+
+      StreamManager.report_platform_status(
+        state.user_id,
+        :kick,
+        PlatformStatus.new(:live,
+          started_at: DateTime.to_iso8601(DateTime.utc_now()),
+          url: if(state.channel_slug, do: "https://kick.com/#{state.channel_slug}")
+        )
+      )
+
+      # Store reconnection data for reattach after restart
+      store_reconnection_data(new_state)
 
       {:reply, {:ok, %{rtmp_url: rtmp_url, stream_key: stream_key}}, new_state}
     else
@@ -160,6 +181,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
     if state.livestream_id do
       StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :kick)
+      StreamManager.report_platform_stopped(state.user_id, :kick)
     end
 
     new_state = %{
@@ -175,8 +197,17 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   @impl true
-  def handle_call({:send_chat_message, message}, _from, state) do
-    do_send_chat_message(message, state)
+  def handle_call({:send_chat_message, message}, from, state) do
+    if state.channel_id == nil do
+      {:reply, {:error, :no_active_channel}, state}
+    else
+      Task.start(fn ->
+        result = do_send_chat_message(message, state)
+        GenServer.reply(from, result)
+      end)
+
+      {:noreply, state}
+    end
   end
 
   @impl true
@@ -216,6 +247,23 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   @impl true
+  def handle_call({:reattach_streaming, livestream_id, reattach_data}, _from, state) do
+    Logger.info("Reattaching to Kick stream #{livestream_id}")
+
+    new_state = %{
+      state
+      | is_active: true,
+        livestream_id: livestream_id,
+        cloudflare_input_id: reattach_data["cloudflare_input_id"],
+        cloudflare_output_id: reattach_data["cloudflare_output_id"],
+        stream_key: reattach_data["stream_key"]
+    }
+
+    Logger.info("Reattached to Kick stream #{livestream_id}")
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
   def handle_call(request, _from, state) do
     Logger.debug("Unhandled call: #{inspect(request)}")
     {:reply, :ok, state}
@@ -239,10 +287,33 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
     if state.cloudflare_output_id do
       Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-      delete_cloudflare_output(state)
+      cleanup_cloudflare_output(state)
     end
 
     :ok
+  end
+
+  # ── Reattach after restart ──
+
+  @doc """
+  Reattaches to a running Kick stream after app restart.
+  Restores state from stored reconnection data without creating new Cloudflare outputs.
+  """
+  def reattach_streaming(user_id, livestream_id, reattach_data) do
+    GenServer.call(
+      via_tuple(user_id),
+      {:reattach_streaming, livestream_id, reattach_data},
+      15_000
+    )
+  end
+
+  defp store_reconnection_data(state) do
+    CurrentStreamData.update_platform_data_for_user(state.user_id, :kick, %{
+      "livestream_id" => state.livestream_id,
+      "cloudflare_input_id" => state.cloudflare_input_id,
+      "cloudflare_output_id" => state.cloudflare_output_id,
+      "stream_key" => state.stream_key
+    })
   end
 
   # Private functions
@@ -266,10 +337,6 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     end
   end
 
-  defp do_send_chat_message(_message, %{channel_id: nil} = state) do
-    {:reply, {:error, :no_active_channel}, state}
-  end
-
   defp do_send_chat_message(message, state) do
     headers = [
       {"Authorization", "Bearer #{state.access_token}"},
@@ -291,17 +358,18 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     |> Req.post()
     |> handle_api_response()
     |> case do
-      {:ok, %{"data" => %{"is_sent" => true}}} ->
-        Logger.info("Chat message sent: #{message}")
-        {:reply, :ok, state}
+      {:ok, %{"data" => %{"is_sent" => true} = data}} ->
+        platform_message_id = data["id"]
+        Logger.info("Chat message sent: #{message}, message_id: #{inspect(platform_message_id)}")
+        {:ok, platform_message_id}
 
       {:ok, _} ->
         Logger.error("Failed to send chat message")
-        {:reply, {:error, :send_failed}, state}
+        {:error, :send_failed}
 
       {:error, reason} ->
         Logger.error("Failed to send chat message: #{inspect(reason)}")
-        {:reply, {:error, reason}, state}
+        {:error, reason}
     end
   end
 
@@ -338,7 +406,9 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
           :ok
 
         {:ok, %{status: status, body: error_body}} ->
-          Logger.error("Failed to update metadata - Status: #{status}, Body: #{inspect(error_body)}")
+          Logger.error(
+            "Failed to update metadata - Status: #{status}, Body: #{inspect(error_body)}"
+          )
 
           {:error, {:http_error, status}}
 
@@ -475,33 +545,38 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     32 |> :crypto.strong_rand_bytes() |> Base.encode64() |> binary_part(0, 32)
   end
 
-  defp create_cloudflare_output(state, rtmp_url, stream_key) do
-    CloudflareManager.create_platform_output(
-      RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-      :kick,
-      rtmp_url,
-      stream_key
-    )
+  defp create_cloudflare_output(nil, _rtmp_url, _stream_key) do
+    Logger.error("Cannot create Cloudflare output: no input ID")
+    {:error, :no_input_id}
   end
 
-  defp delete_cloudflare_output(state) do
-    case CloudflareManager.delete_platform_output(
-           RegistryHelpers.via_tuple(:cloudflare_manager, state.user_id),
-           :kick
-         ) do
-      :ok ->
-        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
+  defp create_cloudflare_output(input_id, rtmp_url, stream_key) do
+    output_config = %{rtmp_url: rtmp_url, stream_key: stream_key, enabled: true}
 
-      {:error, reason} ->
-        Logger.warning("Failed to delete Cloudflare output: #{inspect(reason)}")
+    case APIClient.create_live_output(input_id, output_config) do
+      {:ok, %{"uid" => output_id}} ->
+        Logger.info("Created Cloudflare output for kick: #{output_id}")
+        {:ok, output_id}
+
+      {:error, error_type, message} ->
+        Logger.error("Failed to create Cloudflare output for kick: #{message}")
+        {:error, {error_type, message}}
     end
   end
 
   defp cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
+  defp cleanup_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
 
   defp cleanup_cloudflare_output(state) do
     Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-    delete_cloudflare_output(state)
+
+    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
+      :ok ->
+        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
+
+      {:error, _error_type, message} ->
+        Logger.warning("Failed to delete Cloudflare output: #{message}")
+    end
   end
 
   defp via_tuple(user_id) do

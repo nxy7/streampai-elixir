@@ -61,7 +61,16 @@ config :streampai, :storage,
 
 config :streampai,
   env: :test,
-  test_mode: true
+  test_mode: true,
+  # Use Mox mock for Cloudflare API in tests
+  cloudflare_client: Streampai.Cloudflare.APIClientMock,
+  # Shorter timeouts for testing
+  stream_disconnect_timeout: 100,
+  circuit_breaker_reset_timeout: 100,
+  circuit_breaker_failure_threshold: 3,
+  retry_max_retries: 2,
+  retry_base_delay_ms: 10,
+  retry_max_delay_ms: 100
 
 config :streampai, token_signing_secret: System.get_env("SECRET_KEY")
 

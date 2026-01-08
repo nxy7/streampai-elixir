@@ -33,6 +33,7 @@ defmodule Streampai.Application do
       {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
       {AshAuthentication.Supervisor, [otp_app: :streampai]},
       {Task.Supervisor, name: Streampai.TaskSupervisor},
+      {DynamicSupervisor, strategy: :one_for_one, name: GRPC.Client.Supervisor},
       Streampai.Stream.EventPersister,
       Streampai.YouTube.TokenSupervisor,
       # Discord bot integration

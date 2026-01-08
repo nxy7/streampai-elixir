@@ -3,10 +3,11 @@ import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
-import { Alert } from "~/components/ui";
-import Badge from "~/components/ui/Badge";
-import Button from "~/components/ui/Button";
-import Card from "~/components/ui/Card";
+import { Alert } from "~/design-system";
+import Badge from "~/design-system/Badge";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
@@ -15,7 +16,6 @@ import { SchemaForm } from "~/lib/schema-form/SchemaForm";
 import type { FormMeta } from "~/lib/schema-form/types";
 import { usePresence } from "~/lib/socket";
 import { grantProAccess, revokeProAccess } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 // Schema for Grant PRO form
 const grantProSchema = z.object({

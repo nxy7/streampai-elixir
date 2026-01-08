@@ -1,5 +1,5 @@
 import { For, Show, createMemo } from "solid-js";
-import { Card, Stat, StatGroup } from "~/components/ui";
+import { Card, Stat, StatGroup } from "~/design-system";
 import { useTranslation } from "~/i18n";
 
 export interface ViewerDataPoint {

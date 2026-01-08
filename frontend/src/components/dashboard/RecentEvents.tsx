@@ -1,11 +1,11 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import EventIcon from "~/components/EventIcon";
-import Card from "~/components/ui/Card";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { getEventBgColor } from "~/lib/eventMetadata";
 import { formatTimeAgo } from "~/lib/formatters";
-import { text } from "~/styles/design-system";
 
 interface StreamEvent {
 	id: string;

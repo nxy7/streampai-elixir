@@ -56,7 +56,7 @@ defmodule Streampai.LivestreamManager.Platforms.TrovoManager do
 
   @impl true
   def send_chat_message(user_id, message) when is_binary(user_id) and is_binary(message) do
-    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}) do
+    case GenServer.call(via_tuple(user_id), {:send_chat_message, message}, 15_000) do
       :ok -> {:ok, "message_sent"}
       error -> error
     end
@@ -77,8 +77,11 @@ defmodule Streampai.LivestreamManager.Platforms.TrovoManager do
   end
 
   @impl true
-  def ban_user(user_id, target_user_id, reason \\ nil) when is_binary(user_id) and is_binary(target_user_id) do
-    Logger.info("Ban user not implemented for Trovo: #{target_user_id}, reason: #{inspect(reason)}")
+  def ban_user(user_id, target_user_id, reason \\ nil)
+      when is_binary(user_id) and is_binary(target_user_id) do
+    Logger.info(
+      "Ban user not implemented for Trovo: #{target_user_id}, reason: #{inspect(reason)}"
+    )
 
     {:error, :not_implemented}
   end

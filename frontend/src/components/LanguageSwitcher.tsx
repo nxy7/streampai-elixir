@@ -1,5 +1,5 @@
 import { type Accessor, For, createMemo } from "solid-js";
-import { Select } from "~/components/ui/Input";
+import { Select } from "~/design-system/Input";
 import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES, useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { saveLanguagePreference } from "~/sdk/ash_rpc";

@@ -5,10 +5,10 @@ defmodule Streampai.LivestreamManager.Monitor do
   """
 
   alias Streampai.LivestreamManager.RegistryHelpers
-  alias Streampai.LivestreamManager.UserStreamManager
+  alias Streampai.LivestreamManager.StreamManager
 
   @doc """
-  Lists all active UserStreamManager processes with their user IDs and status.
+  Lists all active StreamManager processes with their user IDs and status.
   Useful for debugging and monitoring in IEx.
 
   ## Examples
@@ -21,7 +21,7 @@ defmodule Streampai.LivestreamManager.Monitor do
 
     registry_name
     |> Registry.select([
-      {{{:user_stream_manager, :"$1"}, :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}
+      {{{:stream_manager, :"$1"}, :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}
     ])
     |> Enum.map(fn {user_id, pid} ->
       status = get_user_status(pid)
@@ -37,18 +37,18 @@ defmodule Streampai.LivestreamManager.Monitor do
   end
 
   @doc """
-  Pretty prints all active UserStreamManager processes in a table format.
+  Pretty prints all active StreamManager processes in a table format.
 
   ## Examples
 
       iex> Streampai.LivestreamManager.Monitor.print_active_users()
-      
-      === Active UserStreamManager Processes ===
+
+      === Active StreamManager Processes ===
       User ID             PID            Stream Status   Alert Queue Uptime
       ----------------------------------------------------------------------
       user123             <0.123.0>      ready           2 events    5m 30s
       user456             <0.456.0>      streaming       0 events    12m 15s
-      
+
       Total: 2 active processes
       :ok
   """
@@ -58,9 +58,9 @@ defmodule Streampai.LivestreamManager.Monitor do
     if Enum.empty?(active_users) do
       require Logger
 
-      Logger.info("No active UserStreamManager processes.")
+      Logger.info("No active StreamManager processes.")
     else
-      IO.puts("\n=== Active UserStreamManager Processes ===")
+      IO.puts("\n=== Active StreamManager Processes ===")
 
       IO.puts(
         String.pad_trailing("User ID", 20) <>
@@ -101,23 +101,22 @@ defmodule Streampai.LivestreamManager.Monitor do
         alert_queue: %{...},
         child_processes: [...]
       }
-      
+
       iex> Streampai.LivestreamManager.Monitor.get_user_details("nonexistent")
       {:error, :not_found}
   """
   def get_user_details(user_id) when is_binary(user_id) do
-    case RegistryHelpers.lookup(:user_stream_manager, user_id) do
+    case RegistryHelpers.lookup(:stream_manager, user_id) do
       {:ok, pid} ->
-        stream_state = UserStreamManager.get_state(pid)
-        queue_status = UserStreamManager.get_alert_queue_status(pid)
+        stream_state = StreamManager.get_state(user_id)
+        queue_status = StreamManager.get_alert_queue_status(user_id)
 
         %{
           user_id: user_id,
           pid: pid,
           uptime: get_process_uptime(pid),
           stream_state: stream_state,
-          alert_queue: queue_status,
-          child_processes: get_child_processes(pid)
+          alert_queue: queue_status
         }
 
       :error ->
@@ -131,52 +130,45 @@ defmodule Streampai.LivestreamManager.Monitor do
   ## Examples
 
       iex> Streampai.LivestreamManager.Monitor.print_user_details("user123")
-      
-      === UserStreamManager Details: user123 ===
+
+      === StreamManager Details: user123 ===
       PID: <0.123.0>
       Uptime: 5m 30s
-      
+
       --- Stream State ---
       Status: ready
       Cloudflare Input: %{...}
       Platforms: ["twitch", "youtube"]
-      
+
       --- Alert Queue ---
       State: playing
       Queue Length: 2
       Recent Events: 5
-      
+
       --- Child Processes ---
-        StreamStateServer: <0.124.0> (alive)
-        CloudflareManager: <0.125.0> (alive)
+        StreamManager: <0.124.0> (alive)
         AlertQueue: <0.126.0> (alive)
       :ok
   """
   def print_user_details(user_id) when is_binary(user_id) do
     case get_user_details(user_id) do
       {:error, :not_found} ->
-        IO.puts("No active UserStreamManager found for user: #{user_id}")
+        IO.puts("No active StreamManager found for user: #{user_id}")
 
       details ->
-        IO.puts("\n=== UserStreamManager Details: #{user_id} ===")
+        IO.puts("\n=== StreamManager Details: #{user_id} ===")
         IO.puts("PID: #{inspect(details.pid)}")
         IO.puts("Uptime: #{format_uptime(details.uptime)}")
 
         IO.puts("\n--- Stream State ---")
-        IO.puts("Status: #{details.stream_state.status}")
-        IO.puts("Cloudflare Input: #{inspect(details.stream_state.cloudflare_input)}")
-        IO.puts("Platforms: #{inspect(Map.keys(details.stream_state.platforms))}")
+        IO.puts("Status: #{details.stream_state[:status]}")
+        IO.puts("Stream Status: #{details.stream_state[:stream_status]}")
+        IO.puts("Livestream ID: #{details.stream_state[:livestream_id]}")
 
         IO.puts("\n--- Alert Queue ---")
-        IO.puts("State: #{details.alert_queue.queue_state}")
-        IO.puts("Queue Length: #{details.alert_queue.queue_length}")
-        IO.puts("Recent Events: #{length(details.alert_queue.recent_history)}")
-
-        IO.puts("\n--- Child Processes ---")
-
-        Enum.each(details.child_processes, fn {name, pid, status} ->
-          IO.puts("  #{name}: #{inspect(pid)} (#{status})")
-        end)
+        IO.puts("State: #{details.alert_queue[:queue_state]}")
+        IO.puts("Queue Length: #{details.alert_queue[:queue_length]}")
+        IO.puts("Recent Events: #{length(details.alert_queue[:recent_history] || [])}")
     end
 
     :ok
@@ -217,14 +209,22 @@ defmodule Streampai.LivestreamManager.Monitor do
   # Private helper functions
 
   defp get_user_status(pid) do
-    stream_state = UserStreamManager.get_state(pid)
-    queue_status = UserStreamManager.get_alert_queue_status(pid)
+    # pid is the StreamManager GenServer — use user_id from registry
+    # We need user_id to call StreamManager functions
+    case Registry.keys(RegistryHelpers.get_registry_name(), pid) do
+      [{:stream_manager, user_id} | _] ->
+        stream_state = StreamManager.get_state(user_id)
+        queue_status = StreamManager.get_alert_queue_status(user_id)
 
-    %{
-      stream_status: stream_state.status,
-      queue_length: queue_status.queue_length,
-      queue_state: queue_status.queue_state
-    }
+        %{
+          stream_status: stream_state.status,
+          queue_length: queue_status.queue_length,
+          queue_state: queue_status.queue_state
+        }
+
+      _ ->
+        %{stream_status: :error, queue_length: 0, queue_state: :error}
+    end
   rescue
     _ -> %{stream_status: :error, queue_length: 0, queue_state: :error}
   end
@@ -242,17 +242,6 @@ defmodule Streampai.LivestreamManager.Monitor do
     end
   rescue
     _ -> 0
-  end
-
-  defp get_child_processes(supervisor_pid) do
-    supervisor_pid
-    |> Supervisor.which_children()
-    |> Enum.map(fn {name, pid, _type, _modules} ->
-      status = if Process.alive?(pid), do: :alive, else: :dead
-      {name, pid, status}
-    end)
-  rescue
-    _ -> []
   end
 
   defp format_uptime(uptime_ms) when is_integer(uptime_ms) do

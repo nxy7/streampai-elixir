@@ -16,8 +16,7 @@ defmodule Streampai.LivestreamManager.Supervisor do
 
     children = [
       {Registry, keys: :unique, name: Streampai.LivestreamManager.Registry},
-      {DynamicSupervisor, strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor},
-      Streampai.LivestreamManager.DynamicSupervisor
+      {DynamicSupervisor, strategy: :one_for_one, name: Streampai.LivestreamManager.UserSupervisor}
     ]
 
     children =

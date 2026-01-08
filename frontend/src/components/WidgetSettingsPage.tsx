@@ -58,14 +58,14 @@ import {
 	createSignal,
 } from "solid-js";
 import type { z } from "zod";
-import Button from "~/components/ui/Button";
-import Card from "~/components/ui/Card";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
 import { useCurrentUser } from "~/lib/auth";
 import type { WidgetType } from "~/lib/electric";
 import { type FormMeta, SchemaForm, getDefaultValues } from "~/lib/schema-form";
 import { useWidgetConfig } from "~/lib/useElectric";
 import { saveWidgetConfig } from "~/sdk/ash_rpc";
-import { text } from "~/styles/design-system";
 
 /**
  * Convert camelCase to snake_case for backend

@@ -1,5 +1,5 @@
 import { type Component, For } from "solid-js";
-import { Select } from "~/components/ui/Input";
+import { Select } from "~/design-system/Input";
 import type { IntrospectedField } from "../types";
 
 interface SelectFieldProps {

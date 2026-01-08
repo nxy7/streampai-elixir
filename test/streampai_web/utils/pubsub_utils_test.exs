@@ -8,7 +8,6 @@ defmodule StreampaiWeb.Utils.PubSubUtilsTest do
       assert PubSubUtils.valid_topic?("donations:user123")
       assert PubSubUtils.valid_topic?("follows:user456")
       assert PubSubUtils.valid_topic?("alertbox:user789")
-      assert PubSubUtils.valid_topic?("stream_status:user101")
       assert PubSubUtils.valid_topic?("users_presence")
     end
 

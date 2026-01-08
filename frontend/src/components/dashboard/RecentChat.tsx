@@ -1,16 +1,25 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
-import Badge from "~/components/ui/Badge";
-import Card from "~/components/ui/Card";
+import Badge from "~/design-system/Badge";
+import Card from "~/design-system/Card";
+import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { formatTimeAgo } from "~/lib/formatters";
-import { text } from "~/styles/design-system";
 
 interface ChatMessage {
 	id: string;
-	sender_username: string;
-	sender_is_moderator: boolean;
-	message: string;
+	type: string;
+	data: {
+		type?: string;
+		message?: string;
+		username?: string;
+		sender_channel_id?: string;
+		is_moderator?: boolean;
+		is_patreon?: boolean;
+		is_sent_by_streamer?: boolean;
+		delivery_status?: Record<string, string>;
+	};
+	platform: string | null;
 	inserted_at: string;
 }
 
@@ -63,22 +72,24 @@ export default function RecentChat(props: RecentChatProps) {
 								<div class="flex items-start gap-3">
 									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-100">
 										<span class="font-medium text-purple-600 text-sm">
-											{msg.sender_username[0].toUpperCase()}
+											{msg.data.username?.[0]?.toUpperCase() ?? "?"}
 										</span>
 									</div>
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2">
 											<span class="font-medium text-gray-900 text-sm">
-												{msg.sender_username}
+												{msg.data.username}
 											</span>
-											<Show when={msg.sender_is_moderator}>
+											<Show when={msg.data.is_moderator}>
 												<Badge variant="info">Mod</Badge>
 											</Show>
 											<span class="text-gray-400 text-xs">
 												{formatTimeAgo(msg.inserted_at)}
 											</span>
 										</div>
-										<p class="truncate text-gray-600 text-sm">{msg.message}</p>
+										<p class="truncate text-gray-600 text-sm">
+											{msg.data.message}
+										</p>
 									</div>
 								</div>
 							</div>

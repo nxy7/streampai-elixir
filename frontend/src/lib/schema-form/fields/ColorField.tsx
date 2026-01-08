@@ -1,6 +1,6 @@
 import type { Component } from "solid-js";
-import Input from "~/components/ui/Input";
-import { text } from "~/styles/design-system";
+import { text } from "~/design-system/design-system";
+import Input from "~/design-system/Input";
 import type { IntrospectedField } from "../types";
 
 interface ColorFieldProps {

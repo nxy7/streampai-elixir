@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import Input from "~/components/ui/Input";
+import Input from "~/design-system/Input";
 import type { IntrospectedField } from "../types";
 
 interface TextFieldProps {

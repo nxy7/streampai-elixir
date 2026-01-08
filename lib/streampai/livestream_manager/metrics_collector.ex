@@ -69,26 +69,14 @@ defmodule Streampai.LivestreamManager.MetricsCollector do
   defp count_active_users do
     Streampai.LivestreamManager.Registry
     |> Registry.select([
-      {{{:user_stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
+      {{{:stream_manager, :"$1"}, :_, :_}, [], [:"$1"]}
     ])
     |> length()
   end
 
   defp get_total_events do
+    # EventBroadcaster not yet implemented
     0
-    # case GenServer.whereis(Streampai.LivestreamManager.EventBroadcaster) do
-    #   nil ->
-    #     0
-
-    #   _pid ->
-    #     case Streampai.LivestreamManager.EventBroadcaster.get_event_stats() do
-    #       stats when is_map(stats) ->
-    #         stats.event_counters |> Map.values() |> Enum.sum()
-
-    #       _ ->
-    #         0
-    #     end
-    # end
   end
 
   defp count_platform_connections do

@@ -13,8 +13,7 @@ defmodule Streampai.LivestreamManager.StreamEvents do
   def emit_platform_started(user_id, livestream_id, platform) do
     create_event(%{
       type: :platform_started,
-      data: %{platform: platform},
-      data_raw: %{},
+      data: %{type: "platform_started", platform: platform},
       author_id: to_string(user_id),
       livestream_id: livestream_id,
       user_id: user_id,
@@ -28,8 +27,7 @@ defmodule Streampai.LivestreamManager.StreamEvents do
   def emit_platform_stopped(user_id, livestream_id, platform) do
     create_event(%{
       type: :platform_stopped,
-      data: %{platform: platform},
-      data_raw: %{},
+      data: %{type: "platform_stopped", platform: platform},
       author_id: to_string(user_id),
       livestream_id: livestream_id,
       user_id: user_id,
@@ -44,7 +42,6 @@ defmodule Streampai.LivestreamManager.StreamEvents do
     create_event(%{
       type: :stream_metadata_changed,
       data: metadata,
-      data_raw: %{},
       author_id: to_string(user_id),
       livestream_id: livestream_id,
       user_id: user_id,
@@ -53,7 +50,7 @@ defmodule Streampai.LivestreamManager.StreamEvents do
   end
 
   defp create_event(attrs) do
-    case StreamEvent.create(attrs, authorize?: false) do
+    case StreamEvent.create(attrs, actor: Streampai.SystemActor.system()) do
       {:ok, event} ->
         Logger.debug("Created stream event: #{event.type}")
         {:ok, event}

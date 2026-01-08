@@ -1,7 +1,8 @@
 import { For, Show, createMemo } from "solid-js";
+import PlatformIcon from "~/components/PlatformIcon";
 import StreamingAccountStats from "~/components/StreamingAccountStats";
-import { Skeleton } from "~/components/ui";
-import Button from "~/components/ui/Button";
+import { Skeleton } from "~/design-system";
+import Button from "~/design-system/Button";
 import { useTranslation } from "~/i18n";
 import { apiRoutes } from "~/lib/constants";
 import {
@@ -44,13 +45,11 @@ const AVAILABLE_PLATFORMS = [
 		name: "YouTube",
 		platform: "google" as const,
 		targetPlatform: "youtube" as const,
-		color: "from-red-600 to-red-700",
 	},
 	{
 		name: "Twitch",
 		platform: "twitch" as const,
 		targetPlatform: "twitch" as const,
-		color: "from-purple-600 to-purple-700",
 	},
 ];
 
@@ -154,12 +153,10 @@ export default function PlatformConnectionsPanel(
 							<Show when={!connectedPlatforms().has(platform.targetPlatform)}>
 								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
 									<div class="flex items-center space-x-3">
-										<div
-											class={`h-10 w-10 bg-linear-to-r ${platform.color} flex items-center justify-center rounded-lg`}>
-											<span class="font-bold text-sm text-white">
-												{platform.name[0]}
-											</span>
-										</div>
+										<PlatformIcon
+											platform={platform.targetPlatform}
+											size="lg"
+										/>
 										<div>
 											<p class="font-medium text-gray-900">{platform.name}</p>
 											<p class="text-gray-500 text-sm">

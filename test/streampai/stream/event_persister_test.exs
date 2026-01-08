@@ -4,9 +4,9 @@ defmodule Streampai.Stream.EventPersisterTest do
   import Streampai.TestHelpers
 
   alias Streampai.Accounts.User
-  alias Streampai.Stream.ChatMessage
   alias Streampai.Stream.EventPersister
   alias Streampai.Stream.Livestream
+  alias Streampai.Stream.StreamEvent
 
   require Ash.Query
 
@@ -26,7 +26,6 @@ defmodule Streampai.Stream.EventPersisterTest do
 
   describe "EventPersister" do
     setup do
-      # Create test user
       user_attrs = factory(:user)
 
       {:ok, user} =
@@ -34,7 +33,6 @@ defmodule Streampai.Stream.EventPersisterTest do
         |> Ash.Changeset.for_create(:register_with_password, user_attrs)
         |> Ash.create()
 
-      # Create test livestream
       {:ok, livestream} =
         Livestream
         |> Ash.Changeset.for_create(:create, %{
@@ -44,11 +42,9 @@ defmodule Streampai.Stream.EventPersisterTest do
         })
         |> Ash.create()
 
-      # Start the persister process for testing
       {:ok, persister_pid} =
         EventPersister.start_link(name: :"TestPersister_#{:rand.uniform(10_000)}")
 
-      # Allow the persister process to access the database connection
       Ecto.Adapters.SQL.Sandbox.allow(Streampai.Repo, self(), persister_pid)
 
       on_exit(fn ->
@@ -94,7 +90,6 @@ defmodule Streampai.Stream.EventPersisterTest do
       livestream: livestream,
       persister: persister
     } do
-      # Add 100 messages to trigger batch flush
       for i <- 1..100 do
         message_attrs = %{
           id: "batch_msg_#{i}",
@@ -113,17 +108,15 @@ defmodule Streampai.Stream.EventPersisterTest do
         GenServer.cast(persister, {:add_message, {message_attrs, author_attrs}})
       end
 
-      # Wait a bit for processing
       Process.sleep(100)
 
-      # Check that messages were flushed
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 0
 
-      # Verify messages were saved to database
-      query = Ash.Query.filter(ChatMessage, livestream_id: livestream.id)
-      {:ok, saved_messages} = Ash.read(query)
-      assert length(saved_messages) == 100
+      query = Ash.Query.filter(StreamEvent, livestream_id: livestream.id, type: :chat_message)
+
+      {:ok, saved_events} = Ash.read(query)
+      assert length(saved_events) == 100
     end
 
     test "manual flush saves pending messages", %{
@@ -131,7 +124,6 @@ defmodule Streampai.Stream.EventPersisterTest do
       livestream: livestream,
       persister: persister
     } do
-      # Add a few messages
       for i <- 1..5 do
         message_attrs = %{
           id: "manual_msg_#{i}",
@@ -150,32 +142,32 @@ defmodule Streampai.Stream.EventPersisterTest do
         GenServer.cast(persister, {:add_message, {message_attrs, author_attrs}})
       end
 
-      # Manually flush
       {:ok, count} = GenServer.call(persister, :flush_now)
       assert count == 5
 
-      # Verify stats
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 0
 
-      # Verify messages in database
-      query = Ash.Query.filter(ChatMessage, livestream_id: livestream.id)
-      {:ok, saved_messages} = Ash.read(query)
-      assert length(saved_messages) == 5
+      query = Ash.Query.filter(StreamEvent, livestream_id: livestream.id, type: :chat_message)
 
-      # Verify message content
-      youtube_messages = Enum.filter(saved_messages, &(&1.platform == :youtube))
-      assert length(youtube_messages) == 5
+      {:ok, saved_events} = Ash.read(query)
+      assert length(saved_events) == 5
 
-      moderator_messages = Enum.filter(saved_messages, &(&1.sender_is_moderator == true))
-      assert length(moderator_messages) == 1
+      youtube_events = Enum.filter(saved_events, &(&1.platform == :youtube))
+      assert length(youtube_events) == 5
 
-      patreon_messages = Enum.filter(saved_messages, &(&1.sender_is_patreon == true))
-      assert length(patreon_messages) == 1
+      moderator_events =
+        Enum.filter(saved_events, fn ev -> ev.data.value.is_moderator == true end)
+
+      assert length(moderator_events) == 1
+
+      patreon_events =
+        Enum.filter(saved_events, fn ev -> ev.data.value.is_patreon == true end)
+
+      assert length(patreon_events) == 1
     end
 
     test "handles timer-based flush", %{user: user, livestream: livestream, persister: persister} do
-      # Add a few messages (less than batch size)
       for i <- 1..3 do
         message_attrs = %{
           id: "timer_msg_#{i}",
@@ -194,24 +186,19 @@ defmodule Streampai.Stream.EventPersisterTest do
         GenServer.cast(persister, {:add_message, {message_attrs, author_attrs}})
       end
 
-      # Messages should be pending
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 3
 
-      # Send flush timer message to trigger timer flush
       send(persister, :flush_timer)
-
-      # Wait for processing
       Process.sleep(100)
 
-      # Check that messages were flushed
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 0
 
-      # Verify in database
-      query = Ash.Query.filter(ChatMessage, livestream_id: livestream.id)
-      {:ok, saved_messages} = Ash.read(query)
-      assert length(saved_messages) == 3
+      query = Ash.Query.filter(StreamEvent, livestream_id: livestream.id, type: :chat_message)
+
+      {:ok, saved_events} = Ash.read(query)
+      assert length(saved_events) == 3
     end
 
     test "preserves message data integrity", %{
@@ -236,18 +223,17 @@ defmodule Streampai.Stream.EventPersisterTest do
       GenServer.cast(persister, {:add_message, {message_attrs, author_attrs}})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
-      # Retrieve and verify
-      query = Ash.Query.filter(ChatMessage, message: message_attrs.message)
-      {:ok, [saved_message]} = Ash.read(query)
+      query = Ash.Query.filter(StreamEvent, livestream_id: livestream.id, type: :chat_message)
 
-      assert saved_message.message == message_attrs.message
-      assert saved_message.sender_username == message_attrs.sender_username
-      assert saved_message.platform == message_attrs.platform
-      assert saved_message.sender_channel_id == message_attrs.sender_channel_id
-      assert saved_message.user_id == message_attrs.user_id
-      assert saved_message.livestream_id == message_attrs.livestream_id
-      assert saved_message.sender_is_moderator == message_attrs.sender_is_moderator
-      assert saved_message.sender_is_patreon == message_attrs.sender_is_patreon
+      {:ok, [saved_event]} = Ash.read(query)
+
+      assert saved_event.data.value.message == message_attrs.message
+      assert saved_event.data.value.username == message_attrs.sender_username
+      assert saved_event.platform == message_attrs.platform
+      assert saved_event.user_id == message_attrs.user_id
+      assert saved_event.livestream_id == message_attrs.livestream_id
+      assert saved_event.data.value.is_moderator == message_attrs.sender_is_moderator
+      assert saved_event.data.value.is_patreon == message_attrs.sender_is_patreon
     end
 
     test "handles empty flush gracefully", %{persister: persister} do
@@ -277,11 +263,9 @@ defmodule Streampai.Stream.EventPersisterTest do
 
       author_attrs = build_author_attrs(user.id, "duplicate_channel", "duplicate_user")
 
-      # Add and flush the first version
       GenServer.cast(persister, {:add_message, {message_attrs_v1, author_attrs}})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
-      # Update the same message (same ID, different content)
       message_attrs_v2 = %{
         message_attrs_v1
         | message: "Updated message",
@@ -291,14 +275,15 @@ defmodule Streampai.Stream.EventPersisterTest do
       GenServer.cast(persister, {:add_message, {message_attrs_v2, author_attrs}})
       {:ok, _count} = GenServer.call(persister, :flush_now)
 
-      # Should only have one message due to upsert by ID
-      query = Ash.Query.filter(ChatMessage, id: message_attrs_v1.id)
-      {:ok, saved_messages} = Ash.read(query)
+      # UUID v5 produces deterministic IDs from the message ID, so upsert deduplicates
+      query = Ash.Query.filter(StreamEvent, livestream_id: livestream.id, type: :chat_message)
 
-      assert length(saved_messages) == 1
-      [saved_message] = saved_messages
-      assert saved_message.message == "Updated message"
-      assert saved_message.sender_is_moderator == true
+      {:ok, saved_events} = Ash.read(query)
+      assert length(saved_events) == 1
+
+      [saved_event] = saved_events
+      assert saved_event.data.value.message == "Updated message"
+      assert saved_event.data.value.is_moderator == true
     end
 
     test "get_stats returns correct information", %{
@@ -306,13 +291,11 @@ defmodule Streampai.Stream.EventPersisterTest do
       livestream: livestream,
       persister: persister
     } do
-      # Initial stats
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 0
       assert is_integer(stats.last_flush)
       assert is_integer(stats.uptime)
 
-      # Add messages
       for i <- 1..3 do
         message_attrs = %{
           id: "stats_msg_#{i}",
@@ -331,7 +314,6 @@ defmodule Streampai.Stream.EventPersisterTest do
         GenServer.cast(persister, {:add_message, {message_attrs, author_attrs}})
       end
 
-      # Check updated stats
       stats = GenServer.call(persister, :get_stats)
       assert stats.pending_messages == 3
     end
@@ -339,8 +321,6 @@ defmodule Streampai.Stream.EventPersisterTest do
 
   describe "EventPersister module functions" do
     test "add_message/1 works with global persister" do
-      # This test would require the global persister to be running
-      # For now, we'll test the function exists and has correct arity
       assert function_exported?(EventPersister, :add_message, 1)
       assert function_exported?(EventPersister, :flush_now, 0)
       assert function_exported?(EventPersister, :get_stats, 0)

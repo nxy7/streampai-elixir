@@ -1,4 +1,8 @@
 import { For, Show, createEffect, createSignal } from "solid-js";
+import { Alert } from "~/design-system";
+import Badge from "~/design-system/Badge";
+import Button from "~/design-system/Button";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 import {
 	acceptRoleInvitation,
@@ -230,7 +234,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 	return (
 		<>
 			{/* Pending Invitations Section */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<h3 class="mb-6 font-medium text-gray-900 text-lg">
 					{t("settings.roleInvitations")}
 				</h3>
@@ -296,22 +300,24 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 											</div>
 										</div>
 										<div class="flex gap-2">
-											<button
-												class="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-sm text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+											<Button
 												disabled={processingRoleId() === invitation.id}
 												onClick={() => handleAcceptInvitation(invitation.id)}
-												type="button">
+												size="sm"
+												type="button"
+												variant="success">
 												{processingRoleId() === invitation.id
 													? "..."
 													: t("settings.accept")}
-											</button>
-											<button
-												class="rounded-lg bg-gray-200 px-3 py-1.5 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
+											</Button>
+											<Button
 												disabled={processingRoleId() === invitation.id}
 												onClick={() => handleDeclineInvitation(invitation.id)}
-												type="button">
+												size="sm"
+												type="button"
+												variant="secondary">
 												{t("settings.decline")}
-											</button>
+											</Button>
 										</div>
 									</div>
 								);
@@ -319,10 +325,10 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 						</For>
 					</div>
 				</Show>
-			</div>
+			</Card>
 
 			{/* My Roles in Other Channels */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<h3 class="mb-6 font-medium text-gray-900 text-lg">
 					{t("settings.myRolesInChannels")}
 				</h3>
@@ -377,9 +383,9 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 													{t("settings.channel")}
 												</p>
 												<p class="text-gray-500 text-sm">
-													<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
+													<Badge size="sm" variant="purple">
 														{formatRoleType(role.role_type)}
-													</span>
+													</Badge>
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
 													{t("settings.since")}{" "}
@@ -393,7 +399,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 						</For>
 					</div>
 				</Show>
-			</div>
+			</Card>
 
 			{/* Divider */}
 			<div class="relative">
@@ -408,7 +414,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			</div>
 
 			{/* Role Management Section */}
-			<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+			<Card>
 				<h3 class="mb-6 font-medium text-gray-900 text-lg">
 					{t("settings.roleManagement")}
 				</h3>
@@ -443,18 +449,15 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 								</select>
 							</div>
 							<div>
-								<button
-									class={`w-full rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors ${
-										isInviting()
-											? "cursor-not-allowed opacity-50"
-											: "hover:bg-purple-700"
-									}`}
+								<Button
 									disabled={isInviting()}
-									type="submit">
+									fullWidth
+									type="submit"
+									variant="primary">
 									{isInviting()
 										? t("settings.sending")
 										: t("settings.sendInvitation")}
-								</button>
+								</Button>
 							</div>
 						</div>
 						<Show when={inviteError()}>
@@ -466,36 +469,21 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							</p>
 						</Show>
 					</form>
-					<div class="mt-3 rounded-lg bg-blue-50 p-3">
-						<div class="flex">
-							<svg
-								aria-hidden="true"
-								class="mr-2 h-5 w-5 shrink-0 text-blue-500"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								/>
-							</svg>
-							<div class="text-blue-800 text-sm">
-								<p class="font-medium">{t("settings.rolePermissions")}</p>
-								<ul class="mt-1 space-y-1 text-blue-700 text-xs">
-									<li>
-										• <strong>{t("settings.moderator")}:</strong>{" "}
-										{t("settings.moderatorDesc")}
-									</li>
-									<li>
-										• <strong>{t("settings.manager")}:</strong>{" "}
-										{t("settings.managerDesc")}
-									</li>
-								</ul>
-							</div>
+					<Alert variant="info">
+						<div>
+							<p class="font-medium">{t("settings.rolePermissions")}</p>
+							<ul class="mt-1 space-y-1 text-xs">
+								<li>
+									• <strong>{t("settings.moderator")}:</strong>{" "}
+									{t("settings.moderatorDesc")}
+								</li>
+								<li>
+									• <strong>{t("settings.manager")}:</strong>{" "}
+									{t("settings.managerDesc")}
+								</li>
+							</ul>
 						</div>
-					</div>
+					</Alert>
 				</div>
 
 				{/* Pending Invitations Sent */}
@@ -531,25 +519,27 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 													{userInfo()?.name || "Loading..."}
 												</p>
 												<p class="text-gray-500 text-sm">
-													<span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 font-medium text-xs text-yellow-800">
+													<Badge size="sm" variant="warning">
 														{formatRoleType(role.role_type)} (
 														{t("settings.pending")})
-													</span>
+													</Badge>
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
 													Invited {formatDate(role.granted_at)}
 												</p>
 											</div>
 										</div>
-										<button
-											class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
+										<Button
+											class="text-red-600 hover:bg-red-50"
 											disabled={processingRoleId() === role.id}
 											onClick={() => handleRevokeRole(role.id)}
-											type="button">
+											size="sm"
+											type="button"
+											variant="ghost">
 											{processingRoleId() === role.id
 												? "..."
 												: t("settings.cancel")}
-										</button>
+										</Button>
 									</div>
 								);
 							}}
@@ -613,9 +603,9 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 													{userInfo()?.name || "Loading..."}
 												</p>
 												<p class="text-gray-500 text-sm">
-													<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs">
+													<Badge size="sm" variant="purple">
 														{formatRoleType(role.role_type)}
-													</span>
+													</Badge>
 												</p>
 												<p class="mt-1 text-gray-400 text-xs">
 													{t("settings.since")}{" "}
@@ -623,22 +613,24 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 												</p>
 											</div>
 										</div>
-										<button
-											class="rounded-lg px-3 py-1.5 font-medium text-red-600 text-sm transition-colors hover:bg-red-50 disabled:opacity-50"
+										<Button
+											class="text-red-600 hover:bg-red-50"
 											disabled={processingRoleId() === role.id}
 											onClick={() => handleRevokeRole(role.id)}
-											type="button">
+											size="sm"
+											type="button"
+											variant="ghost">
 											{processingRoleId() === role.id
 												? "..."
 												: t("settings.revoke")}
-										</button>
+										</Button>
 									</div>
 								);
 							}}
 						</For>
 					</div>
 				</Show>
-			</div>
+			</Card>
 		</>
 	);
 }

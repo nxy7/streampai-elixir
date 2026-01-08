@@ -222,7 +222,7 @@ export default function LoginPage() {
 								<label
 									class="mb-1 block font-medium text-gray-300 text-sm"
 									for="email">
-									Email
+									{t("auth.emailLabel")}
 								</label>
 								<input
 									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
@@ -240,7 +240,7 @@ export default function LoginPage() {
 								<label
 									class="mb-1 block font-medium text-gray-300 text-sm"
 									for="password">
-									Password
+									{t("auth.passwordLabel")}
 								</label>
 								<input
 									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
@@ -260,7 +260,7 @@ export default function LoginPage() {
 									<label
 										class="mb-1 block font-medium text-gray-300 text-sm"
 										for="password_confirmation">
-										Confirm Password
+										{t("auth.confirmPasswordLabel")}
 									</label>
 									<input
 										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"

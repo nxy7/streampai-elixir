@@ -1,5 +1,5 @@
 import { For, createMemo } from "solid-js";
-import { Card, ProgressBar } from "~/components/ui";
+import { Card, ProgressBar } from "~/design-system";
 
 export interface PlatformData {
 	label: string;

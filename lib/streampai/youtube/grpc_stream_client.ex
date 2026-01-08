@@ -478,7 +478,8 @@ defmodule Streampai.YouTube.GrpcStreamClient do
       sender_is_moderator: author_details.is_moderator,
       sender_is_patreon: author_details.is_patreon,
       user_id: state.user_id,
-      livestream_id: state.livestream_id
+      livestream_id: state.livestream_id,
+      is_owner: author_details.is_owner
     }
 
     author_attrs = %{
@@ -510,7 +511,6 @@ defmodule Streampai.YouTube.GrpcStreamClient do
     event_attrs = %{
       type: event_type,
       data: processed_data,
-      data_raw: data,
       author_id: data.channel_id,
       platform: :youtube,
       user_id: state.user_id,
@@ -545,6 +545,10 @@ defmodule Streampai.YouTube.GrpcStreamClient do
 
   defp cleanup_connection(%{channel: channel}) do
     GRPC.Stub.disconnect(channel)
+  catch
+    kind, reason ->
+      Logger.warning("gRPC disconnect failed (#{kind}): #{inspect(reason)}")
+      :ok
   end
 
   defp consume_stream_loop(parent_pid, channel, state) do
