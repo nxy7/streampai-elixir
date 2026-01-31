@@ -404,7 +404,7 @@ function StreamHistoryContent(props: {
 															e.target as HTMLImageElement
 														).nextElementSibling?.classList.remove("hidden");
 													}}
-													src={stream.thumbnail_url!}
+													src={stream.thumbnail_url as string}
 												/>
 											</Show>
 											<div class="min-w-0 flex-1">

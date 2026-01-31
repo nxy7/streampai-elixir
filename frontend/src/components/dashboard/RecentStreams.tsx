@@ -96,7 +96,7 @@ export default function RecentStreams(props: RecentStreamsProps) {
 											<img
 												alt=""
 												class="h-12 w-12 rounded-lg object-cover"
-												src={stream.thumbnail_url!}
+												src={stream.thumbnail_url as string}
 											/>
 										</Show>
 										<div>

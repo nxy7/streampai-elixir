@@ -5,6 +5,7 @@ Project instructions for Claude Code. Consult AGENTS.md for framework-specific u
 ## Overview
 
 **Streampai**: Live streaming management platform
+
 - **Backend**: Elixir/Phoenix + Ash Framework (port 4000)
 - **Frontend**: SolidJS SPA (port 3000+)
 - **Database**: PostgreSQL + Electric SQL (real-time sync)
@@ -23,9 +24,9 @@ cd frontend && bun install && bun dev  # http://localhost:3000
 
 ### Backend
 
-**Ash Domains** (`config/config.exs`): `Accounts`, `Stream`, `Notifications`, `Cloudflare`, `Integrations`, `System`
+**Ash Domains** (`config/config.exs`): `Accounts`, `Stream`, `Notifications`, `Cloudflare`, `Integrations`, `System`, `Storage`
 
-**API Endpoints**: `/rpc/run`, `/rpc/validate`, `/shapes/*`, `/auth/*`, `/admin/ash`, `/admin/oban`
+**API Endpoints**: `/rpc/run`, `/rpc/validate`, `/shapes/*`, `/auth/*`, `/admin/ash`, `/admin/oban`, `/api/health`, `/api/webhooks/cloudflare/stream`, `/api/webhooks/paypal`, `/api/metrics`, `/api/system`, `/api/errors`
 
 **Auth**: Session-based, OAuth (Google, Twitch). Login at frontend, sign in with Google.
 
@@ -33,7 +34,7 @@ cd frontend && bun install && bun dev  # http://localhost:3000
 
 **Stack**: SolidJS Start + Tailwind v4 + TypeScript + Vite
 
-**Structure** (`frontend/src/`): `routes/`, `components/`, `lib/`, `sdk/`, `styles/design-system.ts`
+**Structure** (`frontend/src/`): `routes/`, `components/`, `lib/`, `sdk/`, `design-system/design-system.ts`
 
 **Backend Communication**: Electric Sync, AshTypescript RPC
 
@@ -53,9 +54,17 @@ bun dev | bun run build | bun run typecheck | bun run storybook
 # Justfile (recommended)
 just dev                    # Full environment (Phoenix + Frontend + Caddy)
 just si                     # Interactive shell with server
+just format                 # Format backend + frontend atomically
+just test                   # Run backend tests
+just start                  # Start server
+just storybook              # Start Storybook
 just worktree-setup         # Setup worktree (run in existing worktree)
 just ports                  # Show port configuration
+just kill-ports             # Kill processes on dev ports
 just cleanup-slots          # Clean orphaned Electric replication slots
+just caddy                  # Run Caddy separately
+just livebook               # Start Livebook attached to node
+just prod                   # Run in production mode locally
 ```
 
 ## Testing
@@ -70,18 +79,20 @@ just cleanup-slots          # Clean orphaned Electric replication slots
 
 **Ash**: Pass `actor:` to actions. Prefer Module preparations/changes. Encapsulate logic in actions.
 
-**Frontend**: Use `~/styles/design-system` utilities. Always `credentials: "include"` for auth calls.
+**Frontend**: Use `~/design-system/design-system` utilities. Always `credentials: "include"` for auth calls.
 
 ## Localization (i18n)
 
 **Location**: `frontend/src/i18n/locales/` - one file per language (en.ts, de.ts, pl.ts, es.ts)
 
 **Adding translations**:
+
 1. Add English key to `en.ts` first (source of truth)
 2. Add translations to all other locale files
 3. Use `t("section.key")` in components via `useTranslation()` hook
 
 **Translation quality guidelines**:
+
 - **Natural language over literal translation** - Aim for how a native speaker would say it, not word-for-word translation
 - **Use proper diacritics** - Polish: ą, ć, ę, ł, ń, ó, ś, ź, ż; German: ä, ö, ü, ß; Spanish: á, é, í, ó, ú, ñ, ü
 - **Consistent tone** - Use informal "you" (Polish: "Ty", German: "du", Spanish: "tú")
@@ -89,11 +100,13 @@ just cleanup-slots          # Clean orphaned Electric replication slots
 - **Technical terms** - Some English terms are standard (e.g., "streaming", "widget"); don't force translations
 
 **Common Polish translation pitfalls**:
+
 - "Analityka" → Use "Statystyki" (more natural for dashboards)
 - "Ciasteczka" → Use "Pliki cookie" (standard term)
 - Missing diacritics makes text look unprofessional
 
 **Technical notes**:
+
 - `i18n.flatten()` converts nested objects to dot-notation keys
 - Don't use arrays in translations - they become indexed keys and break iteration
 - Interpolation uses `{{variable}}` syntax
@@ -118,6 +131,7 @@ just worktree-setup         # Setup existing (run in worktree)
 **Requirements**: Main repo at `~/streampai-elixir`, PostgreSQL (postgres:postgres), Caddy, direnv
 
 **Troubleshooting**:
+
 - Port conflict → Run `just worktree-setup` again
 - Electric slot conflict → `just cleanup-slots`
 
@@ -144,14 +158,17 @@ const { data } = useElectric("notifications", { userId: user()?.id });
 ## Playwright Testing with Google Login
 
 Test credentials are stored in `.env`:
+
 - `TEST_GOOGLE_EMAIL` - Google test account email
 - `TEST_GOOGLE_PASSWORD` - Google test account password
 
 **Important**: Google blocks automated logins in headless browsers with "This browser or app may not be secure" error. For testing OAuth flows:
+
 1. Use headed mode (`headless: false`) or let the user log in manually
 2. After Google auth, fix the port in the URL if needed (Google redirects to port 8000, but worktrees use different Caddy ports like 8681)
 
 To manually test in Playwright:
+
 1. Navigate to login page and click "Continue with Google"
 2. Complete Google sign-in manually in the browser window
 3. After redirect back to app, update the port in URL if using a worktree
@@ -172,6 +189,7 @@ Guidelines for AI agents (Claude Code, Cursor, etc.) to minimize conflicts and m
 ### Formatting (Critical for Merge Conflicts)
 
 **Always run `just format` after changes** - this formats both backend and frontend atomically:
+
 ```bash
 just format  # Runs: mix format && cd frontend && bun format && bun lint --write --unsafe
 ```
@@ -179,6 +197,7 @@ just format  # Runs: mix format && cd frontend && bun format && bun lint --write
 Individual formatters can cause conflicts if run separately. The unified command ensures consistent ordering.
 
 **Pre-commit hooks**: Install lefthook for automatic formatting:
+
 ```bash
 brew install lefthook && lefthook install
 ```
@@ -187,12 +206,13 @@ brew install lefthook && lefthook install
 
 These files are auto-generated and changes will be overwritten:
 
-| File | Generated By | Trigger |
-|------|--------------|---------|
+| File                          | Generated By      | Trigger              |
+| ----------------------------- | ----------------- | -------------------- |
 | `frontend/src/sdk/ash_rpc.ts` | `mix ash.codegen` | Ash resource changes |
-| `priv/repo/migrations/*` | `mix ash.codegen` | New Ash resources |
+| `priv/repo/migrations/*`      | `mix ash.codegen` | New Ash resources    |
 
 **Workflow for Ash resource changes**:
+
 ```bash
 # 1. Modify Ash resource in lib/streampai/*/
 # 2. Regenerate SDK and migrations
@@ -206,11 +226,13 @@ just format
 ### Localization (Multi-File Atomicity)
 
 When adding UI text, **update all 4 locale files atomically**:
+
 1. Add to `en.ts` first (source of truth)
 2. Add translations to `de.ts`, `pl.ts`, `es.ts`
 3. Run `cd frontend && bun test` to validate keys match
 
 Missing keys in any language will cause runtime errors. A test validates key consistency:
+
 ```bash
 cd frontend && bun test src/i18n/locales/locales.test.ts
 ```
@@ -218,6 +240,7 @@ cd frontend && bun test src/i18n/locales/locales.test.ts
 ### Database Migrations
 
 **Prefer `mix ash.codegen`** over manual migration creation:
+
 - It handles both migration and TypeScript SDK generation
 - Manual migrations may conflict with Ash-generated ones
 - Migration names include timestamps - coordinate if multiple agents work on schema
@@ -225,6 +248,7 @@ cd frontend && bun test src/i18n/locales/locales.test.ts
 ### Route Structure
 
 SolidJS Start routing rule - never have both:
+
 - `routes/foo.tsx` AND `routes/foo/index.tsx`
 
 Pick one pattern. If you need nested routes, use the directory structure.
@@ -232,6 +256,7 @@ Pick one pattern. If you need nested routes, use the directory structure.
 ### Testing
 
 Before committing:
+
 ```bash
 # Backend
 mix test --max-failures 3
@@ -246,6 +271,7 @@ just format
 ### Parallel Agent Coordination
 
 When multiple AI agents work on the same codebase:
+
 1. **Claim files explicitly** - mention which files you're modifying
 2. **Format after every change** - prevents formatting-only conflicts
 3. **Pull before push** - check for others' changes

@@ -386,6 +386,7 @@ export default function Stream() {
 													<>
 														<span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 font-medium text-gray-700 text-xs">
 															<svg
+																aria-hidden="true"
 																class="h-3.5 w-3.5"
 																fill="none"
 																stroke="currentColor"
@@ -460,6 +461,7 @@ export default function Stream() {
 											<Show
 												fallback={
 													<svg
+														aria-hidden="true"
 														class="h-5 w-5"
 														fill="none"
 														stroke="currentColor"
@@ -474,6 +476,7 @@ export default function Stream() {
 												}
 												when={isFullscreen()}>
 												<svg
+													aria-hidden="true"
 													class="h-5 w-5"
 													fill="none"
 													stroke="currentColor"
@@ -500,6 +503,7 @@ export default function Stream() {
 											onClick={() => setStreamError(null)}
 											type="button">
 											<svg
+												aria-hidden="true"
 												class="h-4 w-4"
 												fill="none"
 												stroke="currentColor"
@@ -642,6 +646,7 @@ export default function Stream() {
 									{/* Platform Selection */}
 									<Show when={streamingAccounts.data().length > 0}>
 										<div class="mb-6">
+											{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 											<label class="block font-medium text-gray-700 text-sm">
 												{t("stream.controls.platforms")}
 											</label>
@@ -705,6 +710,7 @@ export default function Stream() {
 																	}`}>
 																	<Show when={isEnabled()}>
 																		<svg
+																			aria-hidden="true"
 																			class="h-4 w-4 text-white"
 																			fill="none"
 																			stroke="currentColor"
@@ -767,7 +773,8 @@ export default function Stream() {
 
 									{/* Stream Key Display */}
 									<StreamKeyDisplay
-										userId={user()?.id}
+										// biome-ignore lint/style/noNonNullAssertion: inside Show when={user()}
+										userId={user()!.id}
 										visible={showStreamKey()}
 									/>
 								</Show>
@@ -780,7 +787,8 @@ export default function Stream() {
 								isLoading={streamingAccounts.isLoading()}
 								platformStatuses={streamActor.platformStatuses()}
 								streamingAccounts={streamingAccounts.data()}
-								userId={user()?.id}
+								// biome-ignore lint/style/noNonNullAssertion: inside Show when={user()}
+								userId={user()!.id}
 							/>
 						</div>
 					</Show>

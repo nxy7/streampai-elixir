@@ -99,6 +99,7 @@ export function ChatInput(props: ChatInputProps) {
 						<span>{t("stream.chat.sendTo")}</span>
 						<span class="font-medium text-gray-700">{platformSummary()}</span>
 						<svg
+							aria-hidden="true"
 							class={`h-3 w-3 transition-transform ${showPlatformPicker() ? "rotate-180" : ""}`}
 							fill="none"
 							stroke="currentColor"
@@ -173,7 +174,11 @@ export function ChatInput(props: ChatInputProps) {
 					}
 					onClick={handleSendMessage}
 					type="button">
-					<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+					<svg
+						aria-hidden="true"
+						class="h-5 w-5"
+						fill="currentColor"
+						viewBox="0 0 24 24">
 						<path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" />
 					</svg>
 				</button>

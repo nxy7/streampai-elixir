@@ -139,7 +139,7 @@ interface ChatMessageEvent {
 			isModerator?: boolean | null;
 			isPatreon?: boolean | null;
 			isSentByStreamer?: boolean | null;
-			deliveryStatus?: Record<string, any> | null;
+			deliveryStatus?: Record<string, unknown> | null;
 		};
 	};
 	platform: string | null;
@@ -447,6 +447,7 @@ function StreamDetailContent(props: { streamId: string }) {
 		async (livestreamId) => {
 			const result = await getLivestreamChat({
 				input: { livestreamId },
+				// biome-ignore lint/suspicious/noExplicitAny: field type mismatch with generated SDK
 				fields: chatMessageFields as any,
 				fetchOptions: { credentials: "include" },
 			});
@@ -464,6 +465,7 @@ function StreamDetailContent(props: { streamId: string }) {
 		async (livestreamId) => {
 			const result = await getLivestreamEvents({
 				input: { livestreamId },
+				// biome-ignore lint/suspicious/noExplicitAny: field type mismatch with generated SDK
 				fields: streamEventFields as any,
 				fetchOptions: { credentials: "include" },
 			});

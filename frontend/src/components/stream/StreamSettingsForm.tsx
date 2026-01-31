@@ -171,6 +171,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 
 			{/* Tags */}
 			<div>
+				{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 				<label class="block font-medium text-gray-700 text-sm">
 					{t("stream.controls.tags")}
 				</label>
@@ -205,6 +206,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 
 			{/* Thumbnail */}
 			<div>
+				{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 				<label class="block font-medium text-gray-700 text-sm">
 					{t("stream.controls.thumbnail")}
 				</label>
@@ -217,6 +219,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 									<Show
 										fallback={
 											<svg
+												aria-hidden="true"
 												class="mx-auto h-8 w-8 text-gray-400"
 												fill="none"
 												stroke="currentColor"
@@ -263,6 +266,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 								onClick={handleRemoveThumbnail}
 								type="button">
 								<svg
+									aria-hidden="true"
 									class="h-3 w-3"
 									fill="none"
 									stroke="currentColor"

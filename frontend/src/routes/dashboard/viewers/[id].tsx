@@ -130,7 +130,7 @@ interface ChatMessage {
 			isModerator?: boolean | null;
 			isPatreon?: boolean | null;
 			isSentByStreamer?: boolean | null;
-			deliveryStatus?: Record<string, any> | null;
+			deliveryStatus?: Record<string, unknown> | null;
 		} | null;
 	};
 	platform: string | null;
@@ -153,7 +153,7 @@ interface StreamEvent {
 			amountMicros?: string | null;
 			amountCents?: number | null;
 			comment?: string | null;
-			metadata?: Record<string, any> | null;
+			metadata?: Record<string, unknown> | null;
 		} | null;
 		follow?: {
 			username: string;
@@ -165,7 +165,7 @@ interface StreamEvent {
 			months?: string | null;
 			message?: string | null;
 			channelId?: string | null;
-			metadata?: Record<string, any> | null;
+			metadata?: Record<string, unknown> | null;
 		} | null;
 		raid?: {
 			raiderName: string;
@@ -419,11 +419,13 @@ export default function ViewerDetail() {
 			const [messagesResult, eventsResult] = await Promise.all([
 				getViewerChat({
 					input: { viewerId: vId, userId: user.id },
+					// biome-ignore lint/suspicious/noExplicitAny: field type mismatch with generated SDK
 					fields: chatFields as any,
 					fetchOptions: { credentials: "include" },
 				}),
 				getViewerEvents({
 					input: { viewerId: vId, userId: user.id },
+					// biome-ignore lint/suspicious/noExplicitAny: field type mismatch with generated SDK
 					fields: eventFields as any,
 					fetchOptions: { credentials: "include" },
 				}),

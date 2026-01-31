@@ -379,6 +379,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 			<div class="space-y-4">
 				{/* Title */}
 				<div>
+					{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 					<label class={text.label}>
 						Stream Title
 						<Input
@@ -398,6 +399,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 				{/* Description */}
 				<div>
+					{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 					<label class={text.label}>
 						Description
 						<Textarea
@@ -417,6 +419,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 				{/* Category */}
 				<div>
+					{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 					<label class={text.label}>
 						Category
 						<Select
@@ -438,6 +441,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 				{/* Tags */}
 				<div>
+					{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 					<label class={text.label}>
 						Tags
 						<div class="mt-1 flex gap-2">
@@ -1207,6 +1211,7 @@ function TimersPanel(props: TimersPanelProps) {
 					when={showAddForm()}>
 					<div class="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
 						<div>
+							{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Timer Label
 								<Input
@@ -1220,6 +1225,7 @@ function TimersPanel(props: TimersPanelProps) {
 							</label>
 						</div>
 						<div>
+							{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Message Content *
 								<Textarea
@@ -1233,6 +1239,7 @@ function TimersPanel(props: TimersPanelProps) {
 							</label>
 						</div>
 						<div>
+							{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 							<label class="mb-1 block font-medium text-gray-700 text-sm">
 								Interval (minutes)
 								<Input
@@ -2514,6 +2521,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 						{/* Tags section (custom, not part of SchemaForm) */}
 						<div>
+							{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
 							<label class={text.label}>
 								{t("stream.settings.tags")}
 								<div class="mt-1 flex gap-2">

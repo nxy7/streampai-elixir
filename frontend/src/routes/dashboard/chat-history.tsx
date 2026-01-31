@@ -97,7 +97,7 @@ export interface StreamEvent {
 			isModerator?: boolean | null;
 			isPatreon?: boolean | null;
 			isSentByStreamer?: boolean | null;
-			deliveryStatus?: Record<string, any> | null;
+			deliveryStatus?: Record<string, unknown> | null;
 		} | null;
 	};
 	platform: string | null;
@@ -195,6 +195,7 @@ function ChatHistoryContent(props: {
 				dateRange: props.dateRange() || undefined,
 				search: props.search() || undefined,
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: field type mismatch with generated SDK
 			fields: streamEventFields as any,
 			fetchOptions: { credentials: "include" },
 		});

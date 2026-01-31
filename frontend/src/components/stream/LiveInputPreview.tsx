@@ -26,6 +26,7 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 				fallback={
 					<div class="flex h-full flex-col items-center justify-center gap-3 text-gray-400">
 						<svg
+							aria-hidden="true"
 							class="h-12 w-12"
 							fill="none"
 							stroke="currentColor"
@@ -44,7 +45,7 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 				<iframe
 					allow="autoplay; fullscreen"
 					class="h-full w-full"
-					src={iframeSrc()!}
+					src={iframeSrc() as string}
 					style={{ border: "none" }}
 					title="Stream Preview"
 				/>

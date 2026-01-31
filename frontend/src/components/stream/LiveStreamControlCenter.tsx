@@ -356,6 +356,7 @@ function StreamSettingsPanel(props: {
 					onClick={props.onBack}
 					type="button">
 					<svg
+						aria-hidden="true"
 						class="h-5 w-5"
 						fill="none"
 						stroke="currentColor"
