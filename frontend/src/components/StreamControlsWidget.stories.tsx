@@ -45,8 +45,8 @@ const sampleMetadata: StreamMetadata = {
 
 const sampleStreamKeyData = {
 	rtmpsUrl: "rtmps://live.cloudflare.com:443/live",
-	rtmpsStreamKey: "abc123def456ghi789",
-	srtUrl: "srt://live.cloudflare.com:778?streamid=abc123",
+	rtmpsStreamKey: "example-stream-key-for-storybook",
+	srtUrl: "srt://live.cloudflare.com:778?streamid=example",
 };
 
 // Generate many activities to test scrolling and virtualization

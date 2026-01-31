@@ -8,10 +8,10 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   use GenServer
 
   alias Streampai.Cloudflare.APIClient
+  alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.PlatformStatus
 
   require Logger
@@ -305,7 +305,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   defp store_reconnection_data(state) do
-    CurrentStreamData.update_platform_data_for_user(state.user_id, :kick, %{
+    PlatformHelpers.store_reconnection_data(state.user_id, :kick, %{
       "livestream_id" => state.livestream_id,
       "cloudflare_input_id" => state.cloudflare_input_id,
       "cloudflare_output_id" => state.cloudflare_output_id,
@@ -559,20 +559,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     end
   end
 
-  defp cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
-  defp cleanup_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
-
-  defp cleanup_cloudflare_output(state) do
-    Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-
-    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
-      :ok ->
-        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
-
-      {:error, _error_type, message} ->
-        Logger.warning("Failed to delete Cloudflare output: #{message}")
-    end
-  end
+  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   defp via_tuple(user_id) do
     RegistryHelpers.via_tuple(:platform_manager, user_id, :kick)

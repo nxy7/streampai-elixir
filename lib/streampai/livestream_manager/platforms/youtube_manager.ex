@@ -8,11 +8,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   use GenServer
 
   alias Streampai.Cloudflare.APIClient
+  alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.MetadataHelper
   alias Streampai.Stream.PlatformStatus
   alias Streampai.YouTube.ApiClient
@@ -383,15 +383,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   def handle_info({:viewer_count_update, viewer_count}, state) do
     Logger.debug("Metrics update - viewer count: #{viewer_count}")
 
-    # Broadcast viewer count update via PubSub
-    Phoenix.PubSub.broadcast(
-      Streampai.PubSub,
-      "viewer_counts:#{state.user_id}",
-      {:viewer_update, :youtube, viewer_count}
-    )
-
-    # Update viewer count
-    StreamManager.update_stream_actor_viewers(state.user_id, :youtube, viewer_count)
+    PlatformHelpers.broadcast_viewer_update(state.user_id, :youtube, viewer_count)
 
     # Report platform status with viewer count
     StreamManager.report_platform_status(
@@ -504,7 +496,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   defp store_reconnection_data(state) do
-    CurrentStreamData.update_platform_data_for_user(state.user_id, :youtube, %{
+    PlatformHelpers.store_reconnection_data(state.user_id, :youtube, %{
       "livestream_id" => state.livestream_id,
       "broadcast_id" => state.broadcast_id,
       "stream_id" => state.stream_id,
@@ -759,25 +751,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     end
   end
 
-  defp delete_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
-  defp delete_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
+  defp delete_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
-  defp delete_cloudflare_output(state) do
-    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
-      :ok ->
-        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
-
-      {:error, _error_type, message} ->
-        Logger.warning("Failed to delete Cloudflare output: #{message}")
-    end
-  end
-
-  defp cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
-
-  defp cleanup_cloudflare_output(state) do
-    Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-    delete_cloudflare_output(state)
-  end
+  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   defp cleanup_broadcast(%{broadcast_id: nil}), do: :ok
 

@@ -8,10 +8,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   use GenServer
 
   alias Streampai.Cloudflare.APIClient
+  alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.PlatformStatus
   alias Streampai.Twitch.ApiClient
   alias Streampai.Twitch.EventsubClient
@@ -182,22 +182,10 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     {:ok, stream_info} = get_stream_info(state)
 
     if stream_info.viewer_count != state.last_viewer_count do
-      # Broadcast viewer count update via PubSub
-      Phoenix.PubSub.broadcast(
-        Streampai.PubSub,
-        "viewer_counts:#{state.user_id}",
-        {:viewer_update, :twitch, stream_info.viewer_count}
-      )
+      PlatformHelpers.broadcast_viewer_update(state.user_id, :twitch, stream_info.viewer_count)
 
       # Update stream state
       update_platform_status(state, %{viewer_count: stream_info.viewer_count})
-
-      # Update viewer count
-      StreamManager.update_stream_actor_viewers(
-        state.user_id,
-        :twitch,
-        stream_info.viewer_count
-      )
     end
 
     # Report platform status with metadata (title, category, viewer count)
@@ -770,20 +758,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     end
   end
 
-  defp cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
-  defp cleanup_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
-
-  defp cleanup_cloudflare_output(state) do
-    Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-
-    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
-      :ok ->
-        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
-
-      {:error, _error_type, message} ->
-        Logger.warning("Failed to delete Cloudflare output: #{message}")
-    end
-  end
+  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   # ── Reattach after restart ──
 
@@ -804,7 +779,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   defp extract_message_id(_), do: nil
 
   defp store_reconnection_data(state) do
-    CurrentStreamData.update_platform_data_for_user(state.user_id, :twitch, %{
+    PlatformHelpers.store_reconnection_data(state.user_id, :twitch, %{
       "livestream_id" => state.livestream_id,
       "cloudflare_input_id" => state.cloudflare_input_id,
       "cloudflare_output_id" => state.cloudflare_output_id
