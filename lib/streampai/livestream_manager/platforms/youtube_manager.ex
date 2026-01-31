@@ -10,9 +10,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.RegistryHelpers
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.MetadataHelper
   alias Streampai.Stream.PlatformStatus
   alias Streampai.YouTube.ApiClient
@@ -315,7 +315,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     chat_pid =
       if chat_id do
         case start_chat_streaming(state, livestream_id, chat_id) do
-          {:ok, pid} -> pid
+          {:ok, pid} ->
+            pid
+
           {:error, reason} ->
             Logger.warning("Failed to start chat on reattach: #{inspect(reason)}")
             nil
@@ -326,7 +328,9 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     metrics_pid =
       if broadcast_id do
         case start_metrics_collector(state, broadcast_id) do
-          {:ok, pid} -> pid
+          {:ok, pid} ->
+            pid
+
           {:error, reason} ->
             Logger.warning("Failed to start metrics on reattach: #{inspect(reason)}")
             nil
@@ -492,7 +496,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   Restores broadcast/stream/chat IDs and starts chat + metrics without creating new resources.
   """
   def reattach_streaming(user_id, livestream_id, reattach_data) do
-    GenServer.call(via_tuple(user_id), {:reattach_streaming, livestream_id, reattach_data}, 15_000)
+    GenServer.call(
+      via_tuple(user_id),
+      {:reattach_streaming, livestream_id, reattach_data},
+      15_000
+    )
   end
 
   defp store_reconnection_data(state) do

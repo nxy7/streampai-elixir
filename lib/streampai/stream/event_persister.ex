@@ -49,8 +49,7 @@ defmodule Streampai.Stream.EventPersister do
   Registers a platform message ID for a message sent by the streamer
   through Streampai, so the platform echo can be identified and skipped.
   """
-  def register_sent_message_id(user_id, platform_message_id)
-      when is_binary(user_id) and is_binary(platform_message_id) do
+  def register_sent_message_id(user_id, platform_message_id) when is_binary(user_id) and is_binary(platform_message_id) do
     ensure_sent_message_ids_table()
     now = :os.system_time(:millisecond)
     :ets.insert(@sent_message_ids_table, {{user_id, platform_message_id}, now})
@@ -94,9 +93,7 @@ defmodule Streampai.Stream.EventPersister do
   @impl true
   def handle_cast({:add_message, {message_attrs, author_attrs}}, state) do
     if echo_message?(message_attrs) do
-      Logger.debug(
-        "Skipping echo message from #{message_attrs.sender_username} on #{message_attrs.platform}"
-      )
+      Logger.debug("Skipping echo message from #{message_attrs.sender_username} on #{message_attrs.platform}")
 
       {:noreply, state}
     else
@@ -216,9 +213,7 @@ defmodule Streampai.Stream.EventPersister do
   defp handle_flush_results(state, {:ok, msg_count}, {:ok, event_count}, flush_type) do
     total = msg_count + event_count
 
-    Logger.debug(
-      "#{String.capitalize(flush_type)} flush completed: #{msg_count} messages, #{event_count} events"
-    )
+    Logger.debug("#{String.capitalize(flush_type)} flush completed: #{msg_count} messages, #{event_count} events")
 
     new_state = %{
       state
@@ -270,8 +265,7 @@ defmodule Streampai.Stream.EventPersister do
 
   defp handle_bulk_result(%Ash.BulkResult{status: :success}, count), do: {:ok, count}
 
-  defp handle_bulk_result(%Ash.BulkResult{status: :error, errors: errors}, _count),
-    do: {:error, errors}
+  defp handle_bulk_result(%Ash.BulkResult{status: :error, errors: errors}, _count), do: {:error, errors}
 
   defp handle_bulk_result(error, _count), do: {:error, error}
 

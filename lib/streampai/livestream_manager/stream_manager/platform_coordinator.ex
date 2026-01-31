@@ -49,9 +49,7 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
               {platform, {:error, error}}
           catch
             kind, value ->
-              Logger.error(
-                "Caught #{kind} while starting platform #{platform}: #{inspect(value)}"
-              )
+              Logger.error("Caught #{kind} while starting platform #{platform}: #{inspect(value)}")
 
               {platform, {:error, {kind, value}}}
           end
@@ -86,9 +84,7 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
               {platform, {:error, error}}
           catch
             kind, value ->
-              Logger.error(
-                "Caught #{kind} while stopping platform #{platform}: #{inspect(value)}"
-              )
+              Logger.error("Caught #{kind} while stopping platform #{platform}: #{inspect(value)}")
 
               {platform, {:error, {kind, value}}}
           end
@@ -195,11 +191,9 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
   defp start_platform(:facebook, user_id, livestream_id, _metadata),
     do: FacebookManager.start_streaming(user_id, livestream_id)
 
-  defp start_platform(:kick, user_id, livestream_id, _metadata),
-    do: KickManager.start_streaming(user_id, livestream_id)
+  defp start_platform(:kick, user_id, livestream_id, _metadata), do: KickManager.start_streaming(user_id, livestream_id)
 
-  defp start_platform(platform, _user_id, _livestream_id, _metadata),
-    do: Logger.warning("Unknown platform: #{platform}")
+  defp start_platform(platform, _user_id, _livestream_id, _metadata), do: Logger.warning("Unknown platform: #{platform}")
 
   defp stop_platform(:twitch, user_id), do: TwitchManager.stop_streaming(user_id)
   defp stop_platform(:youtube, user_id), do: YouTubeManager.stop_streaming(user_id)

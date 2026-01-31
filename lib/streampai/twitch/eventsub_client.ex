@@ -147,9 +147,7 @@ defmodule Streampai.Twitch.EventsubClient do
   @impl true
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
-      Logger.info(
-        "Reconnecting to Twitch EventSub (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})"
-      )
+      Logger.info("Reconnecting to Twitch EventSub (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
 
       cleanup_connection(state)
       send(self(), :connect)
@@ -310,10 +308,7 @@ defmodule Streampai.Twitch.EventsubClient do
     end
   end
 
-  defp handle_eventsub_message(
-         %{"metadata" => %{"message_type" => "session_welcome"}} = msg,
-         state
-       ) do
+  defp handle_eventsub_message(%{"metadata" => %{"message_type" => "session_welcome"}} = msg, state) do
     session_id = get_in(msg, ["payload", "session", "id"])
     Logger.info("Received EventSub welcome, session_id: #{session_id}")
 
@@ -358,10 +353,7 @@ defmodule Streampai.Twitch.EventsubClient do
     end
   end
 
-  defp handle_eventsub_message(
-         %{"metadata" => %{"message_type" => "session_reconnect"}} = msg,
-         state
-       ) do
+  defp handle_eventsub_message(%{"metadata" => %{"message_type" => "session_reconnect"}} = msg, state) do
     reconnect_url = get_in(msg, ["payload", "session", "reconnect_url"])
     Logger.warning("EventSub requested reconnection to: #{reconnect_url}")
     # TODO: Handle reconnection to new URL

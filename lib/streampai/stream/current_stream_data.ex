@@ -440,8 +440,7 @@ defmodule Streampai.Stream.CurrentStreamData do
   end
 
   @doc "Clears a platform's data (sets its column to empty map)."
-  def remove_platform_status(user_id, platform)
-      when is_binary(user_id) and platform in @platform_atoms do
+  def remove_platform_status(user_id, platform) when is_binary(user_id) and platform in @platform_atoms do
     with {:ok, record} <- get_or_create_for_user(user_id) do
       Ash.update(record, %{platform: platform},
         action: :clear_platform_data,

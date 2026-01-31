@@ -9,9 +9,9 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
   alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.RegistryHelpers
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.PlatformStatus
 
   require Logger
@@ -100,8 +100,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   end
 
   @impl true
-  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil)
-      when is_binary(user_id) do
+  def timeout_user(user_id, target_user_id, duration_seconds, reason \\ nil) when is_binary(user_id) do
     GenServer.call(
       via_tuple(user_id),
       {:timeout_user, target_user_id, duration_seconds, reason}
@@ -147,9 +146,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
           cloudflare_output_id: output_id
       }
 
-      Logger.info(
-        "Stream created successfully - RTMP: #{rtmp_url}, Cloudflare Output: #{output_id}"
-      )
+      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Cloudflare Output: #{output_id}")
 
       StreamEvents.emit_platform_started(state.user_id, livestream_id, :kick)
 
@@ -406,9 +403,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
           :ok
 
         {:ok, %{status: status, body: error_body}} ->
-          Logger.error(
-            "Failed to update metadata - Status: #{status}, Body: #{inspect(error_body)}"
-          )
+          Logger.error("Failed to update metadata - Status: #{status}, Body: #{inspect(error_body)}")
 
           {:error, {:http_error, status}}
 

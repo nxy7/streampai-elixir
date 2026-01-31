@@ -160,9 +160,7 @@ defmodule Streampai.Twitch.IrcClient do
   @impl true
   def handle_info(:reconnect, state) do
     if state.reconnect_attempts < state.max_reconnect_attempts do
-      Logger.info(
-        "Reconnecting to Twitch IRC (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})"
-      )
+      Logger.info("Reconnecting to Twitch IRC (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
 
       cleanup_connection(state)
       send(self(), :connect)

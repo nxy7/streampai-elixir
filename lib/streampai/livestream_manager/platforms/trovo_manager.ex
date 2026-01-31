@@ -77,11 +77,8 @@ defmodule Streampai.LivestreamManager.Platforms.TrovoManager do
   end
 
   @impl true
-  def ban_user(user_id, target_user_id, reason \\ nil)
-      when is_binary(user_id) and is_binary(target_user_id) do
-    Logger.info(
-      "Ban user not implemented for Trovo: #{target_user_id}, reason: #{inspect(reason)}"
-    )
+  def ban_user(user_id, target_user_id, reason \\ nil) when is_binary(user_id) and is_binary(target_user_id) do
+    Logger.info("Ban user not implemented for Trovo: #{target_user_id}, reason: #{inspect(reason)}")
 
     {:error, :not_implemented}
   end

@@ -9,9 +9,9 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.RegistryHelpers
-  alias Streampai.Stream.CurrentStreamData
   alias Streampai.LivestreamManager.StreamEvents
   alias Streampai.LivestreamManager.StreamManager
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.PlatformStatus
   alias Streampai.Twitch.ApiClient
   alias Streampai.Twitch.EventsubClient
@@ -237,8 +237,6 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     {:noreply, state}
   end
 
-
-
   @impl true
   def handle_info({:twitch_eventsub_ended, :missing_scopes}, state) do
     Logger.warning("""
@@ -270,7 +268,9 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           case ApiClient.send_chat_message(access_token, channel_id, channel_id, message) do
             {:ok, response} ->
               platform_message_id = extract_message_id(response)
+
               Logger.debug("Sent chat message to Twitch for user #{user_id}, message_id: #{inspect(platform_message_id)}")
+
               {:ok, platform_message_id}
 
             {:error, reason} ->
@@ -792,7 +792,11 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   Restores state from stored reconnection data without creating new Cloudflare outputs.
   """
   def reattach_streaming(user_id, livestream_id, reattach_data) do
-    GenServer.call(via_tuple(user_id), {:reattach_streaming, livestream_id, reattach_data}, 15_000)
+    GenServer.call(
+      via_tuple(user_id),
+      {:reattach_streaming, livestream_id, reattach_data},
+      15_000
+    )
   end
 
   # Twitch Send Chat Message returns: %{"data" => [%{"message_id" => "...", ...}]}

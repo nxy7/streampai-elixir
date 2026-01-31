@@ -16,9 +16,7 @@ defmodule Streampai.LivestreamManager.StreamServices do
   @initialization_delay 100
 
   def start_link(user_id) when is_binary(user_id) do
-    DynamicSupervisor.start_link(__MODULE__, user_id,
-      name: RegistryHelpers.via_tuple(:stream_services, user_id)
-    )
+    DynamicSupervisor.start_link(__MODULE__, user_id, name: RegistryHelpers.via_tuple(:stream_services, user_id))
   end
 
   @impl true

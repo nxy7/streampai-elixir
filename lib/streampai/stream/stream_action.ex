@@ -343,9 +343,7 @@ defmodule Streampai.Stream.StreamAction do
     # Step 1: Get current livestream from StreamManager (not DB)
     livestream_id_result = get_livestream_from_manager(user_id_string)
 
-    Logger.info(
-      "Livestream ID result for user #{user_id_string}: #{inspect(livestream_id_result)}"
-    )
+    Logger.info("Livestream ID result for user #{user_id_string}: #{inspect(livestream_id_result)}")
 
     # Step 2: Update platform settings first
     case StreamManager.update_stream_metadata(user_id_string, metadata, platforms) do
@@ -376,9 +374,7 @@ defmodule Streampai.Stream.StreamAction do
       if is_nil(state.livestream_id) do
         # Only log in non-test environments to reduce test noise
         if Application.get_env(:streampai, :env) != :test do
-          Logger.warning(
-            "No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}"
-          )
+          Logger.warning("No livestream_id in state for user #{user_id_string}, state: #{inspect(state)}")
         end
 
         {:error, :not_found}
