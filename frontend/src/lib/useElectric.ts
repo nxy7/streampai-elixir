@@ -16,7 +16,6 @@ import {
 	type Viewer,
 	type WidgetConfig,
 	type WidgetType,
-	createActorStatesCollection,
 	createCurrentStreamDataCollection,
 	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
@@ -46,6 +45,33 @@ function createCollectionCache<T>(factory: CollectionFactory<T>) {
 			cache.set(userId, collection);
 		}
 		return collection;
+	};
+}
+
+/**
+ * Creates a user-scoped hook from a collection factory.
+ * Eliminates boilerplate by generating the cache + hook pattern automatically.
+ *
+ * @param createCollection - Factory function that creates a collection for a userId
+ * @returns Hook function that accepts userId accessor and returns live query result with data defaulting to []
+ */
+function createUserScopedHook<TResult extends object>(
+	createCollection: (
+		userId: string,
+	) => Collection<TResult, string | number, object>,
+) {
+	const getCollection = createCollectionCache(createCollection);
+
+	return (userId: () => string | undefined) => {
+		const query = useOptionalLiveQuery(() => {
+			const currentId = userId();
+			return currentId ? getCollection(currentId) : undefined;
+		});
+
+		return {
+			...query,
+			data: createMemo(() => query.data ?? []),
+		};
 	};
 }
 
@@ -122,27 +148,9 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 	};
 }
 
-const getUserScopedEventsCollection = createCollectionCache(
+export const useUserStreamEvents = createUserScopedHook(
 	createUserScopedStreamEventsCollection,
 );
-const getUserScopedLivestreamsCollection = createCollectionCache(
-	createUserScopedLivestreamsCollection,
-);
-const getUserScopedViewersCollection = createCollectionCache(
-	createUserScopedViewersCollection,
-);
-
-export function useUserStreamEvents(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getUserScopedEventsCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
 
 export function useRecentUserStreamEvents(
 	userId: () => string | undefined,
@@ -152,19 +160,9 @@ export function useRecentUserStreamEvents(
 	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
 
-export function useUserLivestreams(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId
-			? getUserScopedLivestreamsCollection(currentId)
-			: undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
+export const useUserLivestreams = createUserScopedHook(
+	createUserScopedLivestreamsCollection,
+);
 
 export function useRecentUserLivestreams(
 	userId: () => string | undefined,
@@ -174,17 +172,9 @@ export function useRecentUserLivestreams(
 	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
 }
 
-export function useUserViewers(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getUserScopedViewersCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
+export const useUserViewers = createUserScopedHook(
+	createUserScopedViewersCollection,
+);
 
 export function useDashboardStats(userId: () => string | undefined) {
 	const eventsQuery = useUserStreamEvents(userId);
@@ -213,21 +203,7 @@ export function useDashboardStats(userId: () => string | undefined) {
 	};
 }
 
-const getWidgetConfigsCollection = createCollectionCache(
-	createWidgetConfigsCollection,
-);
-
-function useWidgetConfigs(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getWidgetConfigsCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
+const useWidgetConfigs = createUserScopedHook(createWidgetConfigsCollection);
 
 export function useWidgetConfig<T = Record<string, unknown>>(
 	userId: () => string | undefined,
@@ -247,36 +223,12 @@ export function useWidgetConfig<T = Record<string, unknown>>(
 	};
 }
 
-const getNotificationsCollection = createCollectionCache(
+export const useNotifications = createUserScopedHook(
 	createNotificationsCollection,
 );
-const getNotificationReadsCollection = createCollectionCache(
+export const useNotificationReads = createUserScopedHook(
 	createNotificationReadsCollection,
 );
-
-export function useNotifications(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getNotificationsCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
-
-export function useNotificationReads(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getNotificationReadsCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
 
 export type NotificationWithReadStatus = {
 	id: string;
@@ -359,19 +311,7 @@ export function useGlobalNotifications() {
 	};
 }
 
-const getUserRolesCollection = createCollectionCache(createUserRolesCollection);
-
-export function useUserRoles(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getUserRolesCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
+export const useUserRoles = createUserScopedHook(createUserRolesCollection);
 
 export type UserRolesData = {
 	pendingInvitations: UserRole[];
@@ -423,27 +363,14 @@ export function useUserRolesData(userId: () => string | undefined): {
 	};
 }
 
-const getStreamingAccountsCollection = createCollectionCache(
+export const useStreamingAccounts = createUserScopedHook(
 	createStreamingAccountsCollection,
 );
 
-export function useStreamingAccounts(userId: () => string | undefined) {
-	const query = useOptionalLiveQuery(() => {
-		const currentId = userId();
-		return currentId ? getStreamingAccountsCollection(currentId) : undefined;
-	});
-
-	return {
-		...query,
-		data: createMemo(() => query.data ?? []),
-	};
-}
-
-const getHighlightedMessagesCollection = createCollectionCache(
-	createHighlightedMessagesCollection,
-);
-
 export function useHighlightedMessage(userId: () => string | undefined) {
+	const getHighlightedMessagesCollection = createCollectionCache(
+		createHighlightedMessagesCollection,
+	);
 	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getHighlightedMessagesCollection(currentId) : undefined;
@@ -460,15 +387,10 @@ export function useHighlightedMessage(userId: () => string | undefined) {
 	};
 }
 
-const _getActorStatesCollection = createCollectionCache(
-	createActorStatesCollection,
-);
-
-const getCurrentStreamDataCollection = createCollectionCache(
-	createCurrentStreamDataCollection,
-);
-
 export function useStreamActor(userId: () => string | undefined) {
+	const getCurrentStreamDataCollection = createCollectionCache(
+		createCurrentStreamDataCollection,
+	);
 	const query = useOptionalLiveQuery(() => {
 		const currentId = userId();
 		return currentId ? getCurrentStreamDataCollection(currentId) : undefined;

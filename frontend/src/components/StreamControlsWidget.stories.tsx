@@ -1,16 +1,16 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import StreamControlsWidget, {
-	type ActivityItem,
-	LiveStreamControlCenter,
-	type ModerationCallbacks,
-	type Platform,
-	PostStreamSummary,
-	PreStreamSettings,
-	type StreamMetadata,
-	type StreamSummary,
-	type StreamTimer,
-} from "./StreamControlsWidget";
+import StreamControlsWidget, { type Platform } from "./StreamControlsWidget";
+import { LiveStreamControlCenter } from "./stream/LiveStreamControlCenter";
+import { PostStreamSummary } from "./stream/PostStreamSummary";
+import { PreStreamSettings } from "./stream/PreStreamSettings";
+import type {
+	ActivityItem,
+	ModerationCallbacks,
+	StreamMetadata,
+	StreamSummary,
+	StreamTimer,
+} from "./stream/types";
 
 const meta = {
 	title: "Components/StreamControlsWidget",
@@ -1541,31 +1541,29 @@ const _postStreamMeta = {
 // Interactive stream settings story with state management
 function InteractiveStreamSettingsWrapper() {
 	const [activities] = createSignal<ActivityItem[]>(generateActivities(10));
-	const [metadata, setMetadata] = createSignal<StreamMetadata>({
-		title: "My Awesome Stream",
-		description: "Playing games and having fun!",
-		category: "Gaming",
-		tags: ["gaming", "fun"],
-	});
 
-	const handleSaveStreamSettings = (newMetadata: StreamMetadata) => {
-		console.log("Save stream settings:", newMetadata);
-		setMetadata(newMetadata);
+	const handleUpdateMetadata = (metadata: {
+		title?: string;
+		description?: string;
+		tags?: string[];
+	}) => {
+		console.log("Update stream metadata:", metadata);
 		alert(
-			`Settings saved!\nTitle: ${newMetadata.title}\nCategory: ${newMetadata.category}\nTags: ${newMetadata.tags.join(", ")}`,
+			`Settings saved!\n${metadata.title ? `Title: ${metadata.title}\n` : ""}${metadata.description ? `Description: ${metadata.description}\n` : ""}${metadata.tags ? `Tags: ${metadata.tags.join(", ")}` : ""}`,
 		);
 	};
 
 	return (
-		<StreamControlsWidget
+		<LiveStreamControlCenter
 			activities={activities()}
 			connectedPlatforms={["twitch", "youtube", "kick"]}
-			metadata={metadata()}
-			onSaveStreamSettings={handleSaveStreamSettings}
+			currentDescription="Playing games and having fun!"
+			currentTags={["gaming", "fun"]}
+			currentTitle="My Awesome Stream"
 			onSendMessage={handleSendMessage}
 			onStartGiveaway={handleStartGiveaway}
 			onStartPoll={handleStartPoll}
-			phase="live"
+			onUpdateMetadata={handleUpdateMetadata}
 			streamDuration={1800}
 			viewerCount={500}
 		/>

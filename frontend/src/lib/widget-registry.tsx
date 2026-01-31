@@ -465,6 +465,30 @@ const viewerCountMeta: FormMeta<typeof viewerCountSchema.shape> = {
 // Preview Wrappers - Custom preview behavior for widgets
 // =============================================================================
 
+/**
+ * Generic widget preview wrapper with consistent styling.
+ * Provides a dark container and optional controls section above the widget.
+ */
+interface WidgetPreviewWrapperProps {
+	height?: string;
+	controls?: JSX.Element;
+	children: JSX.Element;
+	containerClass?: string;
+}
+
+function WidgetPreviewWrapper(props: WidgetPreviewWrapperProps): JSX.Element {
+	return (
+		<div>
+			{props.controls}
+			<div
+				class={props.containerClass || "rounded-lg bg-gray-900 p-8"}
+				style={{ height: props.height || "400px" }}>
+				{props.children}
+			</div>
+		</div>
+	);
+}
+
 // Alertbox preview with demo event cycling
 const ALERTBOX_DEMO_EVENTS = [
 	{
@@ -512,21 +536,21 @@ function AlertboxPreviewWrapper(props: {
 	}
 
 	return (
-		<div>
-			<Button
-				class="mb-4"
-				onClick={cycleDemoEvent}
-				type="button"
-				variant="secondary">
-				Show Next Alert Type
-			</Button>
-			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "400px" }}>
-				<AlertboxWidget
-					config={props.config}
-					event={ALERTBOX_DEMO_EVENTS[demoIndex()]}
-				/>
-			</div>
-		</div>
+		<WidgetPreviewWrapper
+			controls={
+				<Button
+					class="mb-4"
+					onClick={cycleDemoEvent}
+					type="button"
+					variant="secondary">
+					Show Next Alert Type
+				</Button>
+			}>
+			<AlertboxWidget
+				config={props.config}
+				event={ALERTBOX_DEMO_EVENTS[demoIndex()]}
+			/>
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -617,11 +641,9 @@ function ChatPreviewWrapper(props: {
 	});
 
 	return (
-		<div
-			class="overflow-hidden rounded-lg bg-gray-900"
-			style={{ height: "400px" }}>
+		<WidgetPreviewWrapper containerClass="overflow-hidden rounded-lg bg-gray-900">
 			<ChatWidget config={props.config} messages={messages()} />
-		</div>
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -633,29 +655,29 @@ function DonationGoalPreviewWrapper(props: {
 	const [demoAmount, setDemoAmount] = createSignal(350);
 
 	return (
-		<div>
-			<div class="mb-4">
-				<label class="mb-2 block">
-					<span class={text.label}>
-						Test Progress: {demoAmount()}/{props.config.goalAmount}
-					</span>
-					<input
-						class="w-full"
-						max={props.config.goalAmount}
-						min="0"
-						onInput={(e) => setDemoAmount(Number.parseInt(e.target.value, 10))}
-						type="range"
-						value={demoAmount()}
-					/>
-				</label>
-			</div>
-			<div class="rounded-lg bg-gray-900 p-8" style={{ height: "300px" }}>
-				<DonationGoalWidget
-					config={props.config}
-					currentAmount={demoAmount()}
-				/>
-			</div>
-		</div>
+		<WidgetPreviewWrapper
+			controls={
+				<div class="mb-4">
+					<label class="mb-2 block">
+						<span class={text.label}>
+							Test Progress: {demoAmount()}/{props.config.goalAmount}
+						</span>
+						<input
+							class="w-full"
+							max={props.config.goalAmount}
+							min="0"
+							onInput={(e) =>
+								setDemoAmount(Number.parseInt(e.target.value, 10))
+							}
+							type="range"
+							value={demoAmount()}
+						/>
+					</label>
+				</div>
+			}
+			height="300px">
+			<DonationGoalWidget config={props.config} currentAmount={demoAmount()} />
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -749,11 +771,11 @@ function EventListPreviewWrapper(props: {
 	});
 
 	return (
-		<div
-			class="overflow-hidden rounded-lg bg-gray-900"
-			style={{ height: "500px" }}>
+		<WidgetPreviewWrapper
+			containerClass="overflow-hidden rounded-lg bg-gray-900"
+			height="500px">
 			<EventListWidget config={fullConfig()} events={events()} />
-		</div>
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -779,28 +801,26 @@ function GiveawayPreviewWrapper(props: {
 	const [demoMode, setDemoMode] = createSignal<"active" | "winner">("active");
 
 	return (
-		<div>
-			<div class="mb-4">
-				<Select
-					onChange={(e) =>
-						setDemoMode(e.currentTarget.value as "active" | "winner")
-					}
-					value={demoMode()}>
-					<option value="active">Active Giveaway</option>
-					<option value="winner">Winner Announcement</option>
-				</Select>
-			</div>
-			<div class="rounded-lg bg-gray-900 p-8">
-				<GiveawayWidget
-					config={props.config}
-					event={
-						demoMode() === "active"
-							? GIVEAWAY_DEMO_ACTIVE
-							: GIVEAWAY_DEMO_WINNER
-					}
-				/>
-			</div>
-		</div>
+		<WidgetPreviewWrapper
+			controls={
+				<div class="mb-4">
+					<Select
+						onChange={(e) =>
+							setDemoMode(e.currentTarget.value as "active" | "winner")
+						}
+						value={demoMode()}>
+						<option value="active">Active Giveaway</option>
+						<option value="winner">Winner Announcement</option>
+					</Select>
+				</div>
+			}>
+			<GiveawayWidget
+				config={props.config}
+				event={
+					demoMode() === "active" ? GIVEAWAY_DEMO_ACTIVE : GIVEAWAY_DEMO_WINNER
+				}
+			/>
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -841,27 +861,27 @@ function PollPreviewWrapper(props: {
 	const [demoMode, setDemoMode] = createSignal<"active" | "ended">("active");
 
 	return (
-		<div>
-			<div class="mb-4">
-				<Select
-					label="Preview Mode"
-					onChange={(e) =>
-						setDemoMode(e.currentTarget.value as "active" | "ended")
-					}
-					value={demoMode()}>
-					<option value="active">Active Poll</option>
-					<option value="ended">Ended Poll (Results)</option>
-				</Select>
-			</div>
-			<div class="rounded-lg bg-gray-900 p-8">
-				<PollWidget
-					config={props.config}
-					pollStatus={
-						demoMode() === "active" ? POLL_DEMO_ACTIVE : POLL_DEMO_ENDED
-					}
-				/>
-			</div>
-		</div>
+		<WidgetPreviewWrapper
+			controls={
+				<div class="mb-4">
+					<Select
+						label="Preview Mode"
+						onChange={(e) =>
+							setDemoMode(e.currentTarget.value as "active" | "ended")
+						}
+						value={demoMode()}>
+						<option value="active">Active Poll</option>
+						<option value="ended">Ended Poll (Results)</option>
+					</Select>
+				</div>
+			}>
+			<PollWidget
+				config={props.config}
+				pollStatus={
+					demoMode() === "active" ? POLL_DEMO_ACTIVE : POLL_DEMO_ENDED
+				}
+			/>
+		</WidgetPreviewWrapper>
 	);
 }
 
@@ -901,13 +921,13 @@ function ViewerCountPreviewWrapper(props: {
 	});
 
 	return (
-		<div class="relative min-h-64 overflow-hidden rounded border border-gray-200 bg-gray-900 p-4">
+		<WidgetPreviewWrapper containerClass="relative min-h-64 overflow-hidden rounded border border-gray-200 bg-gray-900 p-4">
 			<ViewerCountWidget
 				config={snakeCaseConfig()}
 				data={currentData()}
 				id="preview-viewer-count-widget"
 			/>
-		</div>
+		</WidgetPreviewWrapper>
 	);
 }
 
