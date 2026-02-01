@@ -330,7 +330,7 @@ function StreamDetailSkeleton() {
 
 					{/* Chat skeleton */}
 					<Card class="p-0">
-						<div class="border-gray-200 border-b px-6 py-4">
+						<div class="border-neutral-200 border-b px-6 py-4">
 							<Skeleton class="h-6 w-28" />
 							<Skeleton class="mt-1 h-3 w-40" />
 						</div>
@@ -386,7 +386,7 @@ export default function StreamHistoryDetail() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									Not Authenticated
 								</h2>
-								<p class="mb-6 text-gray-300">
+								<p class="mb-6 text-neutral-300">
 									Please sign in to view stream details.
 								</p>
 								<A href={getLoginUrl()}>
@@ -621,10 +621,10 @@ function StreamDetailContent(props: { streamId: string }) {
 						/>
 					</Show>
 					<div class="flex-1">
-						<h1 class="mb-2 font-bold text-2xl text-gray-900">
+						<h1 class="mb-2 font-bold text-2xl text-neutral-900">
 							{stream()?.title}
 						</h1>
-						<div class="flex flex-wrap items-center gap-y-2 space-x-2 text-gray-600 text-sm">
+						<div class="flex flex-wrap items-center gap-y-2 space-x-2 text-neutral-600 text-sm">
 							<For each={stream()?.platforms || []}>
 								{(platform) => (
 									<Badge variant={getPlatformBadgeVariant(platform)}>
@@ -661,7 +661,7 @@ function StreamDetailContent(props: { streamId: string }) {
 							</Show>
 
 							<Show when={stream()?.subcategory}>
-								<Badge class="rounded-md" variant="purple">
+								<Badge class="rounded-md" variant="info">
 									{formatCategoryLabel(stream()?.subcategory)}
 								</Badge>
 							</Show>
@@ -702,13 +702,13 @@ function StreamDetailContent(props: { streamId: string }) {
 				<div class="space-y-6 lg:col-span-2">
 					{/* Viewer Chart */}
 					<Card>
-						<h3 class="mb-4 font-medium text-gray-900 text-lg">
+						<h3 class="mb-4 font-medium text-lg text-neutral-900">
 							Viewer Count Over Time
 						</h3>
 						<Show
 							fallback={
-								<div class="relative flex h-64 items-center justify-center rounded-lg bg-gray-50">
-									<div class="text-center text-gray-400">
+								<div class="relative flex h-64 items-center justify-center rounded-lg bg-neutral-50">
+									<div class="text-center text-neutral-400">
 										<svg
 											aria-hidden="true"
 											class="mx-auto mb-4 h-16 w-16"
@@ -748,7 +748,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									<polyline
 										fill="none"
 										points={viewerChartPoints()}
-										stroke="#8b5cf6"
+										stroke="rgb(var(--color-primary))"
 										stroke-width="2"
 									/>
 									{/* Y-axis labels */}
@@ -763,7 +763,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									</g>
 								</svg>
 								{/* X-axis time labels */}
-								<div class="mt-2 flex justify-between px-10 text-gray-500 text-xs">
+								<div class="mt-2 flex justify-between px-10 text-neutral-500 text-xs">
 									<span>0:00</span>
 									<span>
 										{formatDuration(
@@ -778,11 +778,11 @@ function StreamDetailContent(props: { streamId: string }) {
 
 					{/* Stream Playback Placeholder */}
 					<Card>
-						<h3 class="mb-4 font-medium text-gray-900 text-lg">
+						<h3 class="mb-4 font-medium text-lg text-neutral-900">
 							Stream Playback
 						</h3>
-						<div class="flex aspect-video items-center justify-center rounded-lg bg-gray-900">
-							<div class="text-center text-gray-400">
+						<div class="flex aspect-video items-center justify-center rounded-lg bg-neutral-900">
+							<div class="text-center text-neutral-400">
 								<svg
 									aria-hidden="true"
 									class="mx-auto mb-4 h-16 w-16"
@@ -804,14 +804,14 @@ function StreamDetailContent(props: { streamId: string }) {
 
 					{/* Timeline with Events */}
 					<Card>
-						<h3 class="mb-4 font-medium text-gray-900 text-lg">
+						<h3 class="mb-4 font-medium text-lg text-neutral-900">
 							Stream Timeline
 						</h3>
 						<div class="relative">
 							{/* Timeline bar */}
-							<div class="relative mb-6 h-3 rounded-full bg-gray-200">
+							<div class="relative mb-6 h-3 rounded-full bg-neutral-200">
 								<div
-									class="absolute h-full rounded-full bg-purple-600"
+									class="absolute h-full rounded-full bg-primary"
 									style={{
 										width: `${currentTimelinePosition()}%`,
 									}}
@@ -821,7 +821,7 @@ function StreamDetailContent(props: { streamId: string }) {
 							{/* Timeline controls */}
 							<div class="flex items-center space-x-4">
 								<input
-									class="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-gray-200"
+									class="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-neutral-200"
 									max="100"
 									min="0"
 									onInput={(e) =>
@@ -832,7 +832,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									type="range"
 									value={currentTimelinePosition()}
 								/>
-								<span class="min-w-15 font-medium text-gray-600 text-sm">
+								<span class="min-w-15 font-medium text-neutral-600 text-sm">
 									<Show fallback="0:00" when={stream()}>
 										{(s) => formatTimelineTime(s(), currentTimelinePosition())}
 									</Show>
@@ -850,7 +850,7 @@ function StreamDetailContent(props: { streamId: string }) {
 									Follows
 								</div>
 								<div class="flex items-center">
-									<div class="mr-1 h-3 w-3 rounded-full bg-purple-500" />
+									<div class="mr-1 h-3 w-3 rounded-full bg-primary-light" />
 									Subscriptions
 								</div>
 								<div class="flex items-center">
@@ -866,17 +866,17 @@ function StreamDetailContent(props: { streamId: string }) {
 				<div class="space-y-6">
 					{/* Stream Insights */}
 					<Card>
-						<h3 class="mb-4 font-medium text-gray-900 text-lg">
+						<h3 class="mb-4 font-medium text-lg text-neutral-900">
 							Stream Insights
 						</h3>
 
 						<div class="space-y-4">
-							<div class="rounded-lg bg-purple-50 p-4">
-								<h4 class="mb-2 font-medium text-purple-900">Peak Moment</h4>
-								<p class="text-purple-700 text-sm">
+							<div class="rounded-lg bg-primary-50 p-4">
+								<h4 class="mb-2 font-medium text-primary-900">Peak Moment</h4>
+								<p class="text-primary-hover text-sm">
 									{insights().peakMoment.description} at{" "}
 									<button
-										class="font-medium text-purple-800 underline hover:text-purple-900"
+										class="font-medium text-primary-800 underline hover:text-primary-900"
 										onClick={() =>
 											setCurrentTimelinePosition(
 												insights().peakMoment.timelinePosition,
@@ -891,7 +891,7 @@ function StreamDetailContent(props: { streamId: string }) {
 										</Show>
 									</button>
 								</p>
-								<p class="mt-1 text-purple-600 text-xs">
+								<p class="mt-1 text-primary text-xs">
 									{insights().peakMoment.viewers} concurrent viewers
 								</p>
 							</div>
@@ -916,9 +916,9 @@ function StreamDetailContent(props: { streamId: string }) {
 
 					{/* Stream Chat */}
 					<Card class="p-0">
-						<div class="border-gray-200 border-b px-6 py-4">
-							<h3 class="font-medium text-gray-900 text-lg">Chat Replay</h3>
-							<p class="mt-1 text-gray-500 text-xs">
+						<div class="border-neutral-200 border-b px-6 py-4">
+							<h3 class="font-medium text-lg text-neutral-900">Chat Replay</h3>
+							<p class="mt-1 text-neutral-500 text-xs">
 								Showing messages up to{" "}
 								<Show fallback="0:00" when={stream()}>
 									{(s) => formatTimelineTime(s(), currentTimelinePosition())}
@@ -927,7 +927,7 @@ function StreamDetailContent(props: { streamId: string }) {
 						</div>
 
 						<div class="h-96 overflow-y-auto">
-							<div class="divide-y divide-gray-100">
+							<div class="divide-y divide-neutral-100">
 								<For each={filteredChatMessages()}>
 									{(message) => (
 										<div class="p-3">
@@ -936,14 +936,14 @@ function StreamDetailContent(props: { streamId: string }) {
 													<div
 														class={`flex h-6 w-6 items-center justify-center rounded-full ${
 															message.data.chatMessage?.isPatreon
-																? "bg-purple-100"
-																: "bg-gray-100"
+																? "bg-primary-100"
+																: "bg-neutral-100"
 														}`}>
 														<span
 															class={`font-medium text-xs ${
 																message.data.chatMessage?.isPatreon
-																	? "text-purple-600"
-																	: "text-gray-600"
+																	? "text-primary"
+																	: "text-neutral-600"
 															}`}>
 															{message.data.chatMessage?.username?.charAt(0) ||
 																"?"}
@@ -956,7 +956,7 @@ function StreamDetailContent(props: { streamId: string }) {
 															class={`font-medium text-xs ${
 																message.data.chatMessage?.isModerator
 																	? "text-green-600"
-																	: "text-gray-900"
+																	: "text-neutral-900"
 															}`}>
 															{message.data.chatMessage?.username}
 														</span>
@@ -975,7 +975,7 @@ function StreamDetailContent(props: { streamId: string }) {
 															<Badge variant="info">SUB</Badge>
 														</Show>
 													</div>
-													<p class="mt-0.5 text-gray-600 text-xs">
+													<p class="mt-0.5 text-neutral-600 text-xs">
 														{message.data.chatMessage?.message}
 													</p>
 												</div>

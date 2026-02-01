@@ -32,7 +32,7 @@ export default function Skeleton(props: SkeletonProps) {
 
 	return (
 		<div
-			class={cn("animate-pulse bg-gray-200", roundedClass, local.class)}
+			class={cn("animate-pulse bg-neutral-200", roundedClass, local.class)}
 			style={{
 				width: local.width,
 				height: local.height,
@@ -155,11 +155,11 @@ export function SkeletonCard(props: SkeletonCardProps) {
 	return (
 		<div
 			class={cn(
-				"rounded-2xl border border-gray-200 bg-white shadow-sm",
+				"rounded-2xl border border-neutral-200 bg-white shadow-sm",
 				props.class,
 			)}>
 			{props.showHeader !== false && (
-				<div class="border-gray-200 border-b px-6 py-4">
+				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-5 w-32" />
 				</div>
 			)}
@@ -207,7 +207,7 @@ export function SkeletonMetricCard(props: SkeletonMetricCardProps) {
 	return (
 		<div
 			class={cn(
-				"rounded-2xl border border-gray-200 bg-white p-4 shadow-sm",
+				"rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm",
 				props.class,
 			)}>
 			{/* Header */}
@@ -250,7 +250,7 @@ export function SkeletonTableRow(props: SkeletonTableRowProps) {
 	const columns = props.columns ?? 5;
 
 	return (
-		<tr class={cn("hover:bg-gray-50", props.class)}>
+		<tr class={cn("hover:bg-neutral-50", props.class)}>
 			<For each={Array(columns).fill(0)}>
 				{(_, i) => (
 					<td class="whitespace-nowrap px-6 py-4">

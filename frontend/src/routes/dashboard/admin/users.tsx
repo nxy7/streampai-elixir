@@ -222,7 +222,7 @@ export default function AdminUsers() {
 			<Show
 				fallback={
 					<div class="flex min-h-screen items-center justify-center">
-						<div class="text-gray-500">Loading...</div>
+						<div class="text-neutral-500">Loading...</div>
 					</div>
 				}
 				when={!authLoading()}>
@@ -241,14 +241,14 @@ export default function AdminUsers() {
 						</Show>
 
 						<Card>
-							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+							<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 								<div>
 									<h3 class={text.h3}>All Users</h3>
 									<p class={text.muted}>Manage user accounts and PRO access</p>
 								</div>
 								<div class="flex items-center space-x-2 text-sm">
 									<div class="h-2 w-2 rounded-full bg-green-500" />
-									<span class="text-gray-600">
+									<span class="text-neutral-600">
 										{onlineUsers().length} online
 									</span>
 								</div>
@@ -256,38 +256,38 @@ export default function AdminUsers() {
 
 							<div class="overflow-x-auto">
 								<table class="w-full">
-									<thead class="bg-gray-50">
+									<thead class="bg-neutral-50">
 										<tr>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												User
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Email
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Status
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Joined
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Actions
 											</th>
 										</tr>
 									</thead>
-									<tbody class="divide-y divide-gray-200 bg-white">
+									<tbody class="divide-y divide-neutral-200 bg-white">
 										<For each={users()}>
 											{(user: AdminUser) => (
 												<tr
 													class={
 														currentUser()?.id === user.id
-															? "bg-purple-50"
-															: "hover:bg-gray-50"
+															? "bg-primary-50"
+															: "hover:bg-neutral-50"
 													}>
 													<td class="whitespace-nowrap px-6 py-4">
 														<div class="flex items-center">
 															<div class="relative">
-																<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-purple-500">
+																<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary-light">
 																	<Show
 																		fallback={
 																			<span class="font-medium text-sm text-white">
@@ -306,7 +306,7 @@ export default function AdminUsers() {
 																	class={`absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-white ${
 																		isUserOnline(user.id)
 																			? "bg-green-500"
-																			: "bg-gray-400"
+																			: "bg-neutral-400"
 																	}`}
 																	title={
 																		isUserOnline(user.id) ? "Online" : "Offline"
@@ -314,18 +314,18 @@ export default function AdminUsers() {
 																/>
 															</div>
 															<div class="ml-3">
-																<div class="flex items-center space-x-2">
-																	<span class="font-medium text-gray-900 text-sm">
-																		{user.name}
-																	</span>
-																	<Show when={currentUser()?.id === user.id}>
+																<Show when={currentUser()?.id === user.id}>
+																	<div class="mb-0.5">
 																		<Badge variant="info">Current User</Badge>
-																	</Show>
-																</div>
+																	</div>
+																</Show>
+																<span class="font-medium text-neutral-900 text-sm">
+																	{user.name}
+																</span>
 															</div>
 														</div>
 													</td>
-													<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+													<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
 														{user.email}
 													</td>
 													<td class="whitespace-nowrap px-6 py-4">
@@ -337,7 +337,7 @@ export default function AdminUsers() {
 															<Badge variant="success">Confirmed</Badge>
 														</Show>
 													</td>
-													<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
+													<td class="whitespace-nowrap px-6 py-4 text-neutral-500 text-sm">
 														{new Date(user.inserted_at).toLocaleDateString()}
 													</td>
 													<td class="px-6 py-4 font-medium text-sm">
@@ -390,7 +390,7 @@ export default function AdminUsers() {
 									<div class="py-12 text-center">
 										<svg
 											aria-hidden="true"
-											class="mx-auto h-12 w-12 text-gray-400"
+											class="mx-auto h-12 w-12 text-neutral-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -401,7 +401,7 @@ export default function AdminUsers() {
 												stroke-width="2"
 											/>
 										</svg>
-										<p class="mt-4 text-gray-500 text-sm">No users found</p>
+										<p class="mt-4 text-neutral-500 text-sm">No users found</p>
 									</div>
 								</Show>
 							</div>
@@ -409,13 +409,13 @@ export default function AdminUsers() {
 					</div>
 
 					<Show when={showGrantModal()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75">
+						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
 							<div class="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-								<div class="border-gray-200 border-b px-6 py-4">
+								<div class="border-neutral-200 border-b px-6 py-4">
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Grant PRO Access</h3>
 										<button
-											class="text-gray-400 hover:text-gray-500"
+											class="text-neutral-400 hover:text-neutral-500"
 											onClick={closeGrantModal}
 											type="button">
 											<svg
@@ -456,7 +456,7 @@ export default function AdminUsers() {
 									/>
 								</div>
 
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
+								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
 									<Button onClick={closeGrantModal} variant="secondary">
 										Cancel
 									</Button>
@@ -473,13 +473,13 @@ export default function AdminUsers() {
 					</Show>
 
 					<Show when={showRevokeConfirm()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75">
+						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
 							<div class="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-								<div class="border-gray-200 border-b px-6 py-4">
+								<div class="border-neutral-200 border-b px-6 py-4">
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Revoke PRO Access</h3>
 										<button
-											class="text-gray-400 hover:text-gray-500"
+											class="text-neutral-400 hover:text-neutral-500"
 											onClick={closeRevokeConfirm}
 											type="button">
 											<svg
@@ -507,7 +507,7 @@ export default function AdminUsers() {
 									<p class={text.muted}>This action cannot be undone.</p>
 								</div>
 
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
+								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
 									<Button onClick={closeRevokeConfirm} variant="secondary">
 										Cancel
 									</Button>

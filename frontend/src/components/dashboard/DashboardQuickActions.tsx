@@ -7,10 +7,10 @@ export default function DashboardQuickActions() {
 	return (
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			<A
-				class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+				class="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:border-primary-200 hover:shadow-md"
 				href="/dashboard/widgets">
 				<div class="flex items-center gap-4">
-					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 transition-transform group-hover:scale-105">
+					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-primary-light transition-transform group-hover:scale-105">
 						<svg
 							aria-hidden="true"
 							class="h-6 w-6 text-white"
@@ -26,10 +26,10 @@ export default function DashboardQuickActions() {
 						</svg>
 					</div>
 					<div>
-						<h3 class="font-semibold text-gray-900">
+						<h3 class="font-semibold text-neutral-900">
 							{t("dashboard.widgets")}
 						</h3>
-						<p class="text-gray-500 text-sm">
+						<p class="text-neutral-500 text-sm">
 							{t("dashboard.customizeOverlays")}
 						</p>
 					</div>
@@ -37,7 +37,7 @@ export default function DashboardQuickActions() {
 			</A>
 
 			<A
-				class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+				class="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:border-primary-200 hover:shadow-md"
 				href="/dashboard/analytics">
 				<div class="flex items-center gap-4">
 					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105">
@@ -56,16 +56,16 @@ export default function DashboardQuickActions() {
 						</svg>
 					</div>
 					<div>
-						<h3 class="font-semibold text-gray-900">
+						<h3 class="font-semibold text-neutral-900">
 							{t("dashboardNav.analytics")}
 						</h3>
-						<p class="text-gray-500 text-sm">{t("dashboard.viewStats")}</p>
+						<p class="text-neutral-500 text-sm">{t("dashboard.viewStats")}</p>
 					</div>
 				</div>
 			</A>
 
 			<A
-				class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+				class="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:border-primary-200 hover:shadow-md"
 				href="/dashboard/settings">
 				<div class="flex items-center gap-4">
 					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-pink-500 to-rose-500 transition-transform group-hover:scale-105">
@@ -90,10 +90,10 @@ export default function DashboardQuickActions() {
 						</svg>
 					</div>
 					<div>
-						<h3 class="font-semibold text-gray-900">
+						<h3 class="font-semibold text-neutral-900">
 							{t("dashboardNav.settings")}
 						</h3>
-						<p class="text-gray-500 text-sm">
+						<p class="text-neutral-500 text-sm">
 							{t("dashboard.configureAccount")}
 						</p>
 					</div>

@@ -23,12 +23,12 @@ export default function Support() {
 							<h2 class="mb-4 font-bold text-3xl text-white">
 								{t("support.heading")}
 							</h2>
-							<p class="text-gray-300 text-lg">{t("support.subheading")}</p>
+							<p class="text-lg text-neutral-300">{t("support.subheading")}</p>
 						</div>
 
 						<div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
-								<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-purple-500 to-pink-500">
+								<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 									<svg
 										aria-hidden="true"
 										class="h-6 w-6 text-white"
@@ -46,10 +46,12 @@ export default function Support() {
 								<h3 class="mb-2 font-semibold text-white text-xl">
 									{t("support.documentation")}
 								</h3>
-								<p class="mb-4 text-gray-300">
+								<p class="mb-4 text-neutral-300">
 									{t("support.documentationDescription")}
 								</p>
-								<span class="text-purple-400">{t("support.comingSoon")}</span>
+								<span class="text-primary-light">
+									{t("support.comingSoon")}
+								</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -71,8 +73,12 @@ export default function Support() {
 								<h3 class="mb-2 font-semibold text-white text-xl">
 									{t("support.faq")}
 								</h3>
-								<p class="mb-4 text-gray-300">{t("support.faqDescription")}</p>
-								<span class="text-purple-400">{t("support.comingSoon")}</span>
+								<p class="mb-4 text-neutral-300">
+									{t("support.faqDescription")}
+								</p>
+								<span class="text-primary-light">
+									{t("support.comingSoon")}
+								</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -94,10 +100,12 @@ export default function Support() {
 								<h3 class="mb-2 font-semibold text-white text-xl">
 									{t("support.discord")}
 								</h3>
-								<p class="mb-4 text-gray-300">
+								<p class="mb-4 text-neutral-300">
 									{t("support.discordDescription")}
 								</p>
-								<span class="text-purple-400">{t("support.comingSoon")}</span>
+								<span class="text-primary-light">
+									{t("support.comingSoon")}
+								</span>
 							</div>
 
 							<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg transition-all hover:bg-white/10">
@@ -119,11 +127,11 @@ export default function Support() {
 								<h3 class="mb-2 font-semibold text-white text-xl">
 									{t("support.emailSupport")}
 								</h3>
-								<p class="mb-4 text-gray-300">
+								<p class="mb-4 text-neutral-300">
 									{t("support.emailSupportDescription")}
 								</p>
 								<A
-									class="text-purple-400 transition-colors hover:text-purple-300"
+									class="text-primary-light transition-colors hover:text-primary-200"
 									href="/contact">
 									{t("support.contactUs")}
 								</A>
@@ -140,24 +148,24 @@ export default function Support() {
 									<h4 class="mb-2 font-medium text-lg text-white">
 										{t("support.faqQ1")}
 									</h4>
-									<p class="text-gray-300">{t("support.faqA1")}</p>
+									<p class="text-neutral-300">{t("support.faqA1")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
 										{t("support.faqQ2")}
 									</h4>
-									<p class="text-gray-300">{t("support.faqA2")}</p>
+									<p class="text-neutral-300">{t("support.faqA2")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
 										{t("support.faqQ3")}
 									</h4>
-									<p class="text-gray-300">
+									<p class="text-neutral-300">
 										{t("support.faqA3")}{" "}
 										<A
-											class="text-purple-400 hover:text-purple-300"
+											class="text-primary-light hover:text-primary-200"
 											href="/privacy">
 											{t("support.privacyPolicy")}
 										</A>{" "}
@@ -169,14 +177,14 @@ export default function Support() {
 									<h4 class="mb-2 font-medium text-lg text-white">
 										{t("support.faqQ4")}
 									</h4>
-									<p class="text-gray-300">{t("support.faqA4")}</p>
+									<p class="text-neutral-300">{t("support.faqA4")}</p>
 								</div>
 
 								<div>
 									<h4 class="mb-2 font-medium text-lg text-white">
 										{t("support.faqQ5")}
 									</h4>
-									<p class="text-gray-300">
+									<p class="text-neutral-300">
 										{t("support.faqA5").replace(
 											"contact us",
 											t("support.contactUs"),

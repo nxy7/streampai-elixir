@@ -21,28 +21,28 @@ export default function Terms() {
 					<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 						<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 							<div class="prose prose-invert max-w-none">
-								<p class="mb-6 text-gray-300">{t("terms.lastUpdated")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.lastUpdated")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section1Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section1Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section1Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section2Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section2Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section2Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section3Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section3Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section3Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section4Title")}
 								</h2>
-								<p class="mb-4 text-gray-300">{t("terms.section4Intro")}</p>
-								<ul class="mb-6 list-disc space-y-2 pl-6 text-gray-300">
+								<p class="mb-4 text-neutral-300">{t("terms.section4Intro")}</p>
+								<ul class="mb-6 list-disc space-y-2 pl-6 text-neutral-300">
 									<li>{t("terms.section4Item1")}</li>
 									<li>{t("terms.section4Item2")}</li>
 									<li>{t("terms.section4Item3")}</li>
@@ -53,35 +53,35 @@ export default function Terms() {
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section5Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section5Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section5Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section6Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section6Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section6Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section7Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section7Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section7Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section8Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section8Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section8Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section9Title")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("terms.section9Text")}</p>
+								<p class="mb-6 text-neutral-300">{t("terms.section9Text")}</p>
 
 								<h2 class="mb-4 font-semibold text-2xl text-white">
 									{t("terms.section10Title")}
 								</h2>
-								<p class="text-gray-300">
+								<p class="text-neutral-300">
 									{t("terms.section10Text")}{" "}
 									<A
-										class="text-purple-400 hover:text-purple-300"
+										class="text-primary-light hover:text-primary-200"
 										href="/contact">
 										{t("terms.contactUs")}
 									</A>

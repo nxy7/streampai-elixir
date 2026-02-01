@@ -1,10 +1,10 @@
 import { useParams } from "@solidjs/router";
-import { Show, createSignal, onCleanup, onMount } from "solid-js";
+import { Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import MessageHighlightWidget, {
 	type HighlightedMessageData,
 	type MessageHighlightConfig,
 } from "~/components/widgets/MessageHighlightWidget";
-import { useHighlightedMessage } from "~/lib/useElectric";
+import { useStreamActor } from "~/lib/useElectric";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
 const DEFAULT_CONFIG: MessageHighlightConfig = {
@@ -22,25 +22,28 @@ export default function MessageHighlightWidgetDisplay() {
 	const params = useParams<{ userId: string }>();
 	const [config, setConfig] = createSignal<MessageHighlightConfig | null>(null);
 
-	// Use Electric SQL for real-time sync of highlighted message
-	const highlightedMessageQuery = useHighlightedMessage(() => params.userId);
+	// Electric sync for highlighted_message from CurrentStreamData
+	const streamActor = useStreamActor(() => params.userId);
 
-	// Transform Electric data to widget format
-	const highlightedMessage = (): HighlightedMessageData | null => {
-		const data = highlightedMessageQuery.data();
+	// Transform CurrentStreamData highlighted_message to widget format
+	const highlightedMessage = createMemo((): HighlightedMessageData | null => {
+		const data = streamActor.data();
 		if (!data) return null;
+		const msg = data.highlighted_message;
+		if (!msg || typeof msg !== "object") return null;
 
+		const m = msg as Record<string, unknown>;
 		return {
-			id: data.id,
-			chatMessageId: data.chat_message_id,
-			message: data.message,
-			senderUsername: data.sender_username,
-			senderChannelId: data.sender_channel_id,
-			platform: data.platform,
-			viewerId: data.viewer_id ?? undefined,
-			highlightedAt: data.highlighted_at,
+			id: (m.chat_message_id as string) ?? "",
+			chatMessageId: (m.chat_message_id as string) ?? "",
+			message: (m.message as string) ?? "",
+			senderUsername: (m.sender_username as string) ?? "",
+			senderChannelId: (m.sender_channel_id as string) ?? undefined,
+			platform: (m.platform as string) ?? "",
+			viewerId: (m.viewer_id as string) ?? undefined,
+			highlightedAt: (m.highlighted_at as string) ?? "",
 		};
-	};
+	});
 
 	async function loadConfig() {
 		const userId = params.userId;
@@ -74,7 +77,6 @@ export default function MessageHighlightWidgetDisplay() {
 
 	onMount(() => {
 		loadConfig();
-		// Poll for config changes (less frequently than data since config rarely changes)
 		const interval = setInterval(loadConfig, 10000);
 		onCleanup(() => clearInterval(interval));
 	});

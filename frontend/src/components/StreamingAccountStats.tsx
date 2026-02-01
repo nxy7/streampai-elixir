@@ -39,11 +39,11 @@ const platformConfig = {
 	},
 	twitch: {
 		name: "Twitch",
-		color: "from-purple-600 to-purple-700",
-		bgColor: "bg-purple-50",
-		hoverBgColor: "hover:bg-purple-100",
-		textColor: "text-purple-700",
-		borderColor: "border-purple-200",
+		color: "from-primary to-primary-hover",
+		bgColor: "bg-primary-50",
+		hoverBgColor: "hover:bg-primary-100",
+		textColor: "text-primary-hover",
+		borderColor: "border-primary-200",
 		badgeVariant: "purple" as BadgeVariant,
 	},
 	facebook: {
@@ -66,11 +66,11 @@ const platformConfig = {
 	},
 	tiktok: {
 		name: "TikTok",
-		color: "from-gray-800 to-black",
-		bgColor: "bg-gray-50",
-		hoverBgColor: "hover:bg-gray-100",
-		textColor: "text-gray-700",
-		borderColor: "border-gray-200",
+		color: "from-neutral-800 to-black",
+		bgColor: "bg-neutral-50",
+		hoverBgColor: "hover:bg-neutral-100",
+		textColor: "text-neutral-700",
+		borderColor: "border-neutral-200",
 		badgeVariant: "neutral" as BadgeVariant,
 	},
 	trovo: {
@@ -84,7 +84,7 @@ const platformConfig = {
 	},
 	instagram: {
 		name: "Instagram",
-		color: "from-pink-500 to-purple-600",
+		color: "from-secondary to-primary",
 		bgColor: "bg-pink-50",
 		hoverBgColor: "hover:bg-pink-100",
 		textColor: "text-pink-700",
@@ -184,14 +184,14 @@ export default function StreamingAccountStats(
 					</div>
 					<div>
 						<div class="flex items-center gap-2">
-							<span class="font-semibold text-gray-900">
+							<span class="font-semibold text-neutral-900">
 								{props.data.accountName}
 							</span>
 							<Badge size="sm" variant={config().badgeVariant}>
 								{config().name}
 							</Badge>
 						</div>
-						<div class="text-gray-500 text-sm">Connected</div>
+						<div class="text-neutral-500 text-sm">Connected</div>
 					</div>
 				</div>
 
@@ -200,7 +200,7 @@ export default function StreamingAccountStats(
 						aria-label="Refresh stats"
 						class={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
 							isRefreshing()
-								? "cursor-not-allowed bg-gray-100 text-gray-400"
+								? "cursor-not-allowed bg-neutral-100 text-neutral-400"
 								: `${config().bgColor} ${config().textColor} ${config().hoverBgColor}`
 						}`}
 						disabled={isRefreshing()}
@@ -227,7 +227,7 @@ export default function StreamingAccountStats(
 						aria-label="Disconnect account"
 						class={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
 							isDisconnecting()
-								? "cursor-not-allowed bg-gray-100 text-gray-400"
+								? "cursor-not-allowed bg-neutral-100 text-neutral-400"
 								: "bg-red-50 text-red-600 hover:bg-red-100"
 						}`}
 						disabled={isDisconnecting()}
@@ -255,32 +255,32 @@ export default function StreamingAccountStats(
 
 			<div class="mt-4 grid grid-cols-3 gap-3">
 				<Card class="rounded-lg" padding="sm">
-					<div class="text-gray-500 text-xs uppercase">Views (30d)</div>
-					<div class="mt-1 font-bold text-gray-900 text-xl">
+					<div class="text-neutral-500 text-xs uppercase">Views (30d)</div>
+					<div class="mt-1 font-bold text-neutral-900 text-xl">
 						{formatNumber(props.data.viewsLast30d)}
 					</div>
 				</Card>
 				<Card class="rounded-lg" padding="sm">
-					<div class="text-gray-500 text-xs uppercase">Sponsors</div>
-					<div class="mt-1 font-bold text-gray-900 text-xl">
+					<div class="text-neutral-500 text-xs uppercase">Sponsors</div>
+					<div class="mt-1 font-bold text-neutral-900 text-xl">
 						{formatNumber(props.data.sponsorCount)}
 					</div>
 				</Card>
 				<Card class="rounded-lg" padding="sm">
-					<div class="text-gray-500 text-xs uppercase">Followers</div>
-					<div class="mt-1 font-bold text-gray-900 text-xl">
+					<div class="text-neutral-500 text-xs uppercase">Followers</div>
+					<div class="mt-1 font-bold text-neutral-900 text-xl">
 						{formatNumber(props.data.followerCount)}
 					</div>
 				</Card>
 			</div>
 
-			<div class="mt-3 flex items-center justify-between text-gray-500 text-xs">
+			<div class="mt-3 flex items-center justify-between text-neutral-500 text-xs">
 				<span>
 					Last updated: {formatRelativeTime(props.data.statsLastRefreshedAt)}
 				</span>
 				<Show when={props.data.statsLastRefreshedAt}>
 					{(timestamp) => (
-						<span class="text-gray-400">
+						<span class="text-neutral-400">
 							{new Date(timestamp()).toLocaleString()}
 						</span>
 					)}

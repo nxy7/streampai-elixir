@@ -125,6 +125,10 @@ defmodule Streampai.LivestreamManager.StreamManager do
     AlertQueue.enqueue_event(RegistryHelpers.via_tuple(:alert_queue, user_id), event)
   end
 
+  def replay_alert(user_id, event) when is_binary(user_id) do
+    AlertQueue.replay_event(RegistryHelpers.via_tuple(:alert_queue, user_id), event)
+  end
+
   def pause_alerts(user_id), do: AlertQueue.pause_queue(RegistryHelpers.via_tuple(:alert_queue, user_id))
 
   def resume_alerts(user_id), do: AlertQueue.resume_queue(RegistryHelpers.via_tuple(:alert_queue, user_id))
@@ -228,6 +232,11 @@ defmodule Streampai.LivestreamManager.StreamManager do
               # Reattach platform managers (non-blocking)
               maybe_reattach_platforms(data)
 
+              # Restart timer server with the original stream start time
+              if data.started_at do
+                StreamServices.start_stream_timer_server(data.user_id, data.started_at)
+              end
+
               :streaming
 
             encoder_live ->
@@ -283,6 +292,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
   def handle_event(:state_timeout, :auto_stop, :disconnected, data) do
     Logger.warning("[StreamManager] AUTO-STOP: encoder disconnected for 10+ seconds")
+    StreamServices.stop_stream_timer_server(data.user_id)
     write_stream_actor_error(data.user_id, "Stream disconnected for 10+ seconds - auto-stopped")
     {:ok, data} = StopStream.execute(data)
     CurrentStreamData.clear_all_platforms(data.user_id)
@@ -328,6 +338,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
     case StartStream.execute(data, metadata) do
       {:ok, livestream_id, data} ->
+        StreamServices.start_stream_timer_server(data.user_id, data.started_at)
         {:next_state, :streaming, data, [{:reply, from, {:ok, livestream_id}}]}
 
       {:error, reason} ->
@@ -354,6 +365,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
   # ══════════════════════════════════════════════════════════════════
 
   def handle_event({:call, from}, :stop_stream, state, data) when state in [:streaming, :disconnected] do
+    StreamServices.stop_stream_timer_server(data.user_id)
     {:ok, data} = StopStream.execute(data)
     CurrentStreamData.clear_all_platforms(data.user_id)
     next_state = stopped_target_state(data)
@@ -667,7 +679,22 @@ defmodule Streampai.LivestreamManager.StreamManager do
           {"streaming", lid} when is_binary(lid) ->
             Logger.info("[StreamManager] restoring streaming state from DB: livestream_id=#{lid}")
 
-            %{data | livestream_id: lid, started_at: sd["started_at"]}
+            started_at =
+              case sd["started_at"] do
+                nil ->
+                  nil
+
+                dt when is_binary(dt) ->
+                  case DateTime.from_iso8601(dt) do
+                    {:ok, parsed, _} -> parsed
+                    _ -> nil
+                  end
+
+                dt ->
+                  dt
+              end
+
+            %{data | livestream_id: lid, started_at: started_at}
 
           _ ->
             data

@@ -50,7 +50,7 @@ export default function StreamHealthMonitor() {
 
 	const qualityColor = () => {
 		const q = connectionQuality();
-		if (q === "offline") return "text-gray-400";
+		if (q === "offline") return "text-neutral-400";
 		if (q === "excellent") return "text-green-500";
 		if (q === "good") return "text-blue-500";
 		if (q === "fair") return "text-yellow-500";
@@ -59,7 +59,7 @@ export default function StreamHealthMonitor() {
 
 	const qualityBg = () => {
 		const q = connectionQuality();
-		if (q === "offline") return "bg-gray-400";
+		if (q === "offline") return "bg-neutral-400";
 		if (q === "excellent") return "bg-green-500";
 		if (q === "good") return "bg-blue-500";
 		if (q === "fair") return "bg-yellow-500";
@@ -68,7 +68,7 @@ export default function StreamHealthMonitor() {
 
 	const qualityBgLight = () => {
 		const q = connectionQuality();
-		if (q === "offline") return "bg-gray-100";
+		if (q === "offline") return "bg-neutral-100";
 		if (q === "excellent") return "bg-green-500/10";
 		if (q === "good") return "bg-blue-500/10";
 		if (q === "fair") return "bg-yellow-500/10";
@@ -90,10 +90,10 @@ export default function StreamHealthMonitor() {
 			data-testid="stream-health-monitor"
 			padding="sm">
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+				<h3 class="flex items-center gap-2 font-semibold text-neutral-900">
 					<svg
 						aria-hidden="true"
-						class="h-5 w-5 text-purple-600"
+						class="h-5 w-5 text-primary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24">
@@ -120,25 +120,27 @@ export default function StreamHealthMonitor() {
 				</div>
 			</div>
 			<div class="grid grid-cols-3 gap-3">
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">
+				<div class="rounded-lg bg-neutral-50 p-2 text-center">
+					<p class="font-bold text-lg text-neutral-900">
 						{isLive() ? totalViewers() : "—"}
 					</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.viewers")}</p>
+					<p class="text-neutral-500 text-xs">{t("dashboard.viewers")}</p>
 				</div>
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">
+				<div class="rounded-lg bg-neutral-50 p-2 text-center">
+					<p class="font-bold text-lg text-neutral-900">
 						{isLive() ? formatDurationShort(uptime()) : "—"}
 					</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.uptime")}</p>
+					<p class="text-neutral-500 text-xs">{t("dashboard.uptime")}</p>
 				</div>
-				<div class="rounded-lg bg-gray-50 p-2 text-center">
-					<p class="font-bold text-gray-900 text-lg">{isLive() ? "—" : "—"}</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.bitrate")}</p>
+				<div class="rounded-lg bg-neutral-50 p-2 text-center">
+					<p class="font-bold text-lg text-neutral-900">
+						{isLive() ? "—" : "—"}
+					</p>
+					<p class="text-neutral-500 text-xs">{t("dashboard.bitrate")}</p>
 				</div>
 			</div>
 			<Show when={!isLive()}>
-				<p class="mt-3 text-center text-gray-400 text-xs">
+				<p class="mt-3 text-center text-neutral-400 text-xs">
 					{t("dashboard.streamHealthHint")}
 				</p>
 			</Show>

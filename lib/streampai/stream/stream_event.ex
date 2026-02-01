@@ -308,6 +308,25 @@ defmodule Streampai.Stream.StreamEvent do
       accept []
       change set_attribute(:was_displayed, true)
     end
+
+    update :replay_alert do
+      description "Replays this event on the alertbox by enqueueing it at the front of the alert queue."
+      require_atomic? false
+      accept []
+
+      change fn changeset, _context ->
+        Ash.Changeset.after_action(changeset, fn _changeset, record ->
+          alert_event = build_alert_event(record)
+
+          Streampai.LivestreamManager.StreamManager.replay_alert(
+            record.user_id,
+            alert_event
+          )
+
+          {:ok, record}
+        end)
+      end
+    end
   end
 
   attributes do
@@ -395,7 +414,7 @@ defmodule Streampai.Stream.StreamEvent do
     attribute :was_displayed, :boolean do
       description "Whether this event has been displayed in an overlay/widget"
       public? true
-      default true
+      default false
     end
 
     create_timestamp :inserted_at, public?: true
@@ -416,4 +435,42 @@ defmodule Streampai.Stream.StreamEvent do
   identities do
     identity :primary_key, [:id]
   end
+
+  @doc false
+  def build_alert_event(record) do
+    data = extract_data(record.data)
+
+    %{
+      stream_event_id: record.id,
+      type: record.type,
+      username: data[:username] || data[:donor_name] || data[:raider_name] || "Unknown",
+      donor_name: data[:donor_name],
+      message: data[:message],
+      amount: parse_number(data[:amount]),
+      currency: data[:currency],
+      platform: record.platform,
+      tts_url: data[:tts_url],
+      viewer_count: parse_number(data[:viewer_count])
+    }
+  end
+
+  defp extract_data(%Ash.Union{value: value}) when is_struct(value) do
+    Map.from_struct(value)
+  end
+
+  defp extract_data(%Ash.Union{value: value}) when is_map(value), do: value
+  defp extract_data(data) when is_map(data), do: data
+  defp extract_data(_), do: %{}
+
+  defp parse_number(nil), do: nil
+  defp parse_number(n) when is_number(n), do: n
+
+  defp parse_number(s) when is_binary(s) do
+    case Float.parse(s) do
+      {f, _} -> f
+      :error -> nil
+    end
+  end
+
+  defp parse_number(_), do: nil
 end

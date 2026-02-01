@@ -140,10 +140,10 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 						<div class="mt-2 flex flex-wrap gap-2">
 							<For each={props.metadata.tags}>
 								{(tag) => (
-									<span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-purple-800 text-sm">
+									<span class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2.5 py-0.5 text-primary-800 text-sm">
 										{tag}
 										<button
-											class="hover:text-purple-600"
+											class="hover:text-primary"
 											onClick={() => removeTag(tag)}
 											type="button">
 											x
@@ -158,8 +158,8 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 				{/* Thumbnail placeholder */}
 				<div>
 					<span class={text.label}>Thumbnail</span>
-					<div class="mt-1 flex h-32 items-center justify-center rounded-lg border-2 border-gray-300 border-dashed bg-gray-50">
-						<div class="text-center text-gray-500">
+					<div class="mt-1 flex h-32 items-center justify-center rounded-lg border-2 border-neutral-300 border-dashed bg-neutral-50">
+						<div class="text-center text-neutral-500">
 							<div class="mb-1 text-2xl">[img]</div>
 							<div class="text-sm">Click to upload thumbnail</div>
 						</div>
@@ -191,7 +191,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 
 			{/* Stream Key Display */}
 			<Show when={props.showStreamKey}>
-				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+				<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
 					<Show
 						fallback={
 							<div class="space-y-3">
@@ -203,7 +203,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 						when={!props.isLoadingStreamKey}>
 						<Show
 							fallback={
-								<div class="text-center text-gray-500">
+								<div class="text-center text-neutral-500">
 									No stream key available
 								</div>
 							}
@@ -211,7 +211,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 							{(data) => (
 								<>
 									<div class="mb-3 flex items-center justify-between">
-										<span class="font-medium text-gray-700 text-sm">
+										<span class="font-medium text-neutral-700 text-sm">
 											Stream Key
 										</span>
 										<button
@@ -222,27 +222,27 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 										</button>
 									</div>
 									<div class="mb-2">
-										<span class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-neutral-500 text-xs">
 											RTMP URL
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-900 text-sm">
+										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-900 text-sm">
 											{data().rtmpsUrl}
 										</code>
 									</div>
 									<div class="mb-3">
-										<span class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-neutral-500 text-xs">
 											Stream Key
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-sm">
+										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-sm">
 											{data().rtmpsStreamKey}
 										</code>
 									</div>
 									<Show when={data().srtUrl}>
-										<div class="mb-2 border-gray-200 border-t pt-2">
-											<span class="mb-1 block text-gray-500 text-xs">
+										<div class="mb-2 border-neutral-200 border-t pt-2">
+											<span class="mb-1 block text-neutral-500 text-xs">
 												SRT URL (Alternative)
 											</span>
-											<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-xs">
+											<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-xs">
 												{data().srtUrl}
 											</code>
 										</div>

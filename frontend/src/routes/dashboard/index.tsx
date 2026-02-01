@@ -62,11 +62,11 @@ export default function Dashboard() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									{t("dashboard.notAuthenticated")}
 								</h2>
-								<p class="mb-6 text-gray-300">
+								<p class="mb-6 text-neutral-300">
 									{t("dashboard.signInToAccess")}
 								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getLoginUrl()}>
 									{t("nav.signIn")}
 								</a>
@@ -76,13 +76,13 @@ export default function Dashboard() {
 					when={user()}>
 					<div class="space-y-6">
 						{/* Header with greeting */}
-						<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+						<div class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
 							<div>
-								<h1 class="mb-2 font-bold text-3xl text-gray-900">
+								<h1 class="mb-2 font-bold text-3xl text-neutral-900">
 									{t(greetingKey)},{" "}
 									{prefs.data()?.name || user()?.name || "Streamer"}!
 								</h1>
-								<p class="text-gray-600">{t("dashboard.welcomeMessage")}</p>
+								<p class="text-neutral-600">{t("dashboard.welcomeMessage")}</p>
 							</div>
 						</div>
 
@@ -132,7 +132,7 @@ export default function Dashboard() {
 					{/* Test Alert Notification */}
 					<Show when={showTestAlert()}>
 						<div
-							class="fixed top-4 right-4 z-50 animate-slide-in rounded-xl bg-linear-to-r from-purple-600 to-pink-600 px-6 py-4 text-white shadow-2xl"
+							class="fixed top-4 right-4 z-50 animate-slide-in rounded-xl bg-linear-to-r from-primary to-secondary-hover px-6 py-4 text-white shadow-2xl"
 							data-testid="test-alert">
 							<div class="flex items-center gap-3">
 								<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">

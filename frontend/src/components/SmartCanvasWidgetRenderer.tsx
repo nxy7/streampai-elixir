@@ -24,7 +24,7 @@ export default function SmartCanvasWidgetRenderer(props: WidgetRendererProps) {
 
 		// Fallback for unknown widget types
 		return (
-			<div class="flex h-full w-full items-center justify-center rounded-lg border-2 border-white/20 bg-linear-to-br from-gray-500 to-gray-700 p-4 text-white shadow-lg">
+			<div class="flex h-full w-full items-center justify-center rounded-lg border-2 border-white/20 bg-linear-to-br from-neutral-500 to-neutral-700 p-4 text-white shadow-lg">
 				<div class="text-center">
 					<div class="mb-2 text-4xl">&#x2753;</div>
 					<div class="font-semibold">Unknown Widget</div>

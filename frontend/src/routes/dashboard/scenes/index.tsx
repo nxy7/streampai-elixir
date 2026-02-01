@@ -127,7 +127,7 @@ function PaletteWidgetItem(props: {
 
 	return (
 		<button
-			class="flex cursor-pointer items-center gap-3 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 p-3 text-white transition-shadow hover:shadow-lg"
+			class="flex cursor-pointer items-center gap-3 rounded-lg bg-linear-to-r from-primary-light to-secondary p-3 text-white transition-shadow hover:shadow-lg"
 			onClick={handleAddWidget}
 			type="button">
 			<span class="text-2xl">{props.widgetDef.icon}</span>
@@ -215,7 +215,7 @@ function CanvasWidgetComponent(props: {
 			}}
 			type="button">
 			<div
-				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-purple-500 to-pink-500 p-4 shadow-lg"
+				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-primary-light to-secondary p-4 shadow-lg"
 				classList={{
 					"ring-2 ring-yellow-400": props.selectedWidgetId === props.widget.id,
 				}}
@@ -519,11 +519,11 @@ export default function SmartCanvas() {
 
 	return (
 		<>
-			<Title>Smart Canvas - Streampai</Title>
+			<Title>Scenes - Streampai</Title>
 			<Show when={user()}>
 				<div class="space-y-6">
 					<Card>
-						<h1 class={text.h1}>Smart Canvas</h1>
+						<h1 class={text.h1}>Scenes</h1>
 						<p class={`${text.muted} mt-2`}>
 							Compose your stream overlay with interactive widgets. Click
 							widgets from the palette to add them to the canvas.
@@ -534,16 +534,16 @@ export default function SmartCanvas() {
 						<div class="flex items-start gap-3">
 							<div class="shrink-0 text-blue-600">ℹ️</div>
 							<div class="flex-1">
-								<h3 class="mb-1 font-semibold text-gray-900">
+								<h3 class="mb-1 font-semibold text-neutral-900">
 									OBS Browser Source URL
 								</h3>
-								<p class="mb-2 text-gray-600 text-sm">
+								<p class="mb-2 text-neutral-600 text-sm">
 									Copy this URL and add it as a Browser Source in OBS (set to
 									1920x1080):
 								</p>
 								<div class="flex gap-2">
 									<input
-										class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-sm"
+										class="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-sm"
 										readonly
 										type="text"
 										value={obsUrl()}
@@ -576,7 +576,7 @@ export default function SmartCanvas() {
 									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
 								</Button>
 							</div>
-							<div class="text-gray-600 text-sm">
+							<div class="text-neutral-600 text-sm">
 								Widgets: {widgets().length}
 							</div>
 						</div>
@@ -586,7 +586,7 @@ export default function SmartCanvas() {
 						<div class="lg:col-span-1">
 							<Card class="max-h-[700px] overflow-y-auto">
 								<h3 class={`${text.h3} mb-4`}>Widget Palette</h3>
-								<p class="mb-4 text-gray-600 text-sm">
+								<p class="mb-4 text-neutral-600 text-sm">
 									Click a widget to add it to the canvas
 								</p>
 								<div class="space-y-2">
@@ -599,13 +599,13 @@ export default function SmartCanvas() {
 
 						<div class="lg:col-span-3">
 							<Card
-								class="bg-gray-900 p-4"
+								class="bg-neutral-900 p-4"
 								classList={{
 									"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
 								}}>
 								<Show when={canvasMaximized()}>
 									<button
-										class="absolute top-4 right-4 z-50 rounded-lg bg-gray-800 p-2 text-white hover:bg-gray-700"
+										class="absolute top-4 right-4 z-50 rounded-lg bg-neutral-800 p-2 text-white hover:bg-neutral-700"
 										onClick={() => setCanvasMaximized(false)}
 										type="button">
 										✕
@@ -613,7 +613,7 @@ export default function SmartCanvas() {
 								</Show>
 
 								<div
-									class="mb-2 text-gray-400 text-sm"
+									class="mb-2 text-neutral-400 text-sm"
 									classList={{ hidden: canvasMaximized() }}>
 									Canvas: 1920x1080 (16:9)
 								</div>
@@ -626,7 +626,7 @@ export default function SmartCanvas() {
 									}}>
 									<div class="relative h-full w-full">
 										<div
-											class="absolute overflow-hidden rounded-lg border-2 border-gray-700 bg-gray-950"
+											class="absolute overflow-hidden rounded-lg border-2 border-neutral-700 bg-neutral-950"
 											onClick={() => setSelectedWidgetId(null)}
 											onKeyDown={(e) => {
 												if (e.key === "Escape") {
@@ -660,7 +660,7 @@ export default function SmartCanvas() {
 											</For>
 
 											<Show when={widgets().length === 0}>
-												<div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+												<div class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400">
 													<div class="mb-4 text-6xl">🎨</div>
 													<h3 class="mb-2 font-semibold text-xl">
 														No Widgets Yet

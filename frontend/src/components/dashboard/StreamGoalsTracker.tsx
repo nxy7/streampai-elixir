@@ -61,20 +61,20 @@ export default function StreamGoalsTracker(props: StreamGoalsTrackerProps) {
 				};
 			default:
 				return {
-					bg: "bg-gray-500",
-					light: "bg-gray-100",
-					text: "text-gray-600",
+					bg: "bg-neutral-500",
+					light: "bg-neutral-100",
+					text: "text-neutral-600",
 				};
 		}
 	};
 
 	return (
 		<Card data-testid="stream-goals" padding="none">
-			<div class="border-gray-100 border-b px-4 py-3">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+			<div class="border-neutral-100 border-b px-4 py-3">
+				<h3 class="flex items-center gap-2 font-semibold text-neutral-900">
 					<svg
 						aria-hidden="true"
-						class="h-5 w-5 text-purple-600"
+						class="h-5 w-5 text-primary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ export default function StreamGoalsTracker(props: StreamGoalsTrackerProps) {
 						return (
 							<div class="space-y-2">
 								<div class="flex items-center justify-between">
-									<span class="font-medium text-gray-700 text-sm">
+									<span class="font-medium text-neutral-700 text-sm">
 										{goal.label}
 									</span>
 									<span class={`font-bold text-sm ${colors.text}`}>

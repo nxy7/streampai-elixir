@@ -48,6 +48,7 @@ defmodule Streampai.Donations.Pipeline do
   """
 
   alias Phoenix.PubSub
+  alias Streampai.LivestreamManager.StreamManager
   alias Streampai.Storage.S3
   alias Streampai.TTS.Generator
 
@@ -162,6 +163,9 @@ defmodule Streampai.Donations.Pipeline do
         {:donation_completed, event}
       )
     end)
+
+    # Also enqueue into AlertQueue for alertbox display
+    StreamManager.enqueue_alert(user_id, event)
 
     Logger.info("Donation event broadcasted", %{
       user_id: user_id,

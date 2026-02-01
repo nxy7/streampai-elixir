@@ -19,7 +19,7 @@ function ViewersPageSkeleton() {
 	return (
 		<div class="mx-auto max-w-6xl space-y-6">
 			{/* View Mode Tabs skeleton */}
-			<div class="flex gap-2 border-gray-200 border-b">
+			<div class="flex gap-2 border-neutral-200 border-b">
 				<Skeleton class="h-10 w-20" />
 				<Skeleton class="h-10 w-32" />
 			</div>
@@ -45,7 +45,7 @@ function ViewersPageSkeleton() {
 				<div class="space-y-3">
 					<For each={[1, 2, 3, 4, 5, 6]}>
 						{() => (
-							<div class="rounded-lg border border-gray-200 p-4">
+							<div class="rounded-lg border border-neutral-200 p-4">
 								<div class="flex items-start gap-3">
 									<Skeleton circle class="h-12 w-12 shrink-0" />
 									<div class="min-w-0 flex-1">
@@ -72,7 +72,7 @@ function ViewersListSkeleton() {
 		<div class="space-y-3">
 			<For each={[1, 2, 3, 4, 5, 6]}>
 				{() => (
-					<div class="rounded-lg border border-gray-200 p-4">
+					<div class="rounded-lg border border-neutral-200 p-4">
 						<div class="flex items-start gap-3">
 							<Skeleton circle class="h-12 w-12 shrink-0" />
 							<div class="min-w-0 flex-1">
@@ -139,7 +139,7 @@ export default function Viewers() {
 	const [searchInput, setSearchInput] = createSignal("");
 
 	const _platformColors = {
-		twitch: "from-purple-600 to-purple-700",
+		twitch: "from-primary to-primary-hover",
 		youtube: "from-red-600 to-red-700",
 		facebook: "from-blue-600 to-blue-700",
 		kick: "from-green-600 to-green-700",
@@ -349,11 +349,11 @@ export default function Viewers() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									Not Authenticated
 								</h2>
-								<p class="mb-6 text-gray-300">
+								<p class="mb-6 text-neutral-300">
 									Please sign in to view your viewers.
 								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getLoginUrl()}>
 									Sign In
 								</a>
@@ -363,12 +363,12 @@ export default function Viewers() {
 					when={user()}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						{/* View Mode Tabs */}
-						<div class="flex gap-2 border-gray-200 border-b">
+						<div class="flex gap-2 border-neutral-200 border-b">
 							<button
 								class={`px-4 py-2 font-medium transition-colors ${
 									viewMode() === "viewers"
-										? "border-purple-600 border-b-2 text-purple-600"
-										: "text-gray-600 hover:text-gray-900"
+										? "border-primary border-b-2 text-primary"
+										: "text-neutral-600 hover:text-neutral-900"
 								}`}
 								onClick={() => setViewMode("viewers")}
 								type="button">
@@ -377,8 +377,8 @@ export default function Viewers() {
 							<button
 								class={`px-4 py-2 font-medium transition-colors ${
 									viewMode() === "banned"
-										? "border-purple-600 border-b-2 text-purple-600"
-										: "text-gray-600 hover:text-gray-900"
+										? "border-primary border-b-2 text-primary"
+										: "text-neutral-600 hover:text-neutral-900"
 								}`}
 								onClick={() => setViewMode("banned")}
 								type="button">
@@ -396,7 +396,7 @@ export default function Viewers() {
 									{/* Platform Filter */}
 									<div>
 										<label
-											class="block font-medium text-gray-700 text-sm"
+											class="block font-medium text-neutral-700 text-sm"
 											for="platform-filter">
 											Platform
 										</label>
@@ -419,7 +419,7 @@ export default function Viewers() {
 									{/* Search */}
 									<div>
 										<label
-											class="block font-medium text-gray-700 text-sm"
+											class="block font-medium text-neutral-700 text-sm"
 											for="search-viewers">
 											Search
 										</label>
@@ -438,7 +438,7 @@ export default function Viewers() {
 
 								{/* Active Filters Summary */}
 								<Show when={platform() || search()}>
-									<div class="mt-4 flex items-center gap-2 text-gray-600 text-sm">
+									<div class="mt-4 flex items-center gap-2 text-neutral-600 text-sm">
 										<span class="font-medium">Active filters:</span>
 										<Show when={platform()}>
 											<Badge variant="info">{platform()}</Badge>
@@ -447,7 +447,7 @@ export default function Viewers() {
 											<Badge variant="info">"{search()}"</Badge>
 										</Show>
 										<button
-											class="ml-2 font-medium text-purple-600 text-sm hover:text-purple-700"
+											class="ml-2 font-medium text-primary text-sm hover:text-primary-hover"
 											onClick={() => {
 												setPlatform("");
 												setSearch("");
@@ -477,10 +477,10 @@ export default function Viewers() {
 									when={!isLoadingViewers() || viewers().length > 0}>
 									<Show
 										fallback={
-											<div class="py-12 text-center text-gray-500">
+											<div class="py-12 text-center text-neutral-500">
 												<svg
 													aria-hidden="true"
-													class="mx-auto mb-4 h-16 w-16 text-gray-400"
+													class="mx-auto mb-4 h-16 w-16 text-neutral-400"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24">
@@ -491,10 +491,10 @@ export default function Viewers() {
 														stroke-width="2"
 													/>
 												</svg>
-												<p class="font-medium text-gray-700 text-lg">
+												<p class="font-medium text-lg text-neutral-700">
 													No viewers found
 												</p>
-												<p class="mt-2 text-gray-500 text-sm">
+												<p class="mt-2 text-neutral-500 text-sm">
 													{platform() || search()
 														? "Try adjusting your filters or search criteria"
 														: "Your viewers will appear here once you start streaming"}
@@ -506,7 +506,7 @@ export default function Viewers() {
 											<For each={viewers()}>
 												{(viewer) => (
 													<button
-														class="w-full cursor-pointer rounded-lg border border-gray-200 p-4 text-left transition-colors hover:bg-gray-50"
+														class="w-full cursor-pointer rounded-lg border border-neutral-200 p-4 text-left transition-colors hover:bg-neutral-50"
 														onClick={() =>
 															navigate(
 																`/dashboard/viewers/${viewer.viewerId}:${viewer.userId}`,
@@ -516,8 +516,8 @@ export default function Viewers() {
 														<div class="flex items-start gap-3">
 															<Show
 																fallback={
-																	<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-200">
-																		<span class="font-semibold text-gray-500 text-lg">
+																	<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-200">
+																		<span class="font-semibold text-lg text-neutral-500">
 																			{viewer.displayName[0].toUpperCase()}
 																		</span>
 																	</div>
@@ -533,7 +533,7 @@ export default function Viewers() {
 															<div class="min-w-0 flex-1">
 																{/* Viewer Name and All Badges */}
 																<div class="mb-2 flex flex-wrap items-center gap-2">
-																	<h4 class="font-semibold text-gray-900">
+																	<h4 class="font-semibold text-neutral-900">
 																		{viewer.displayName}
 																	</h4>
 																	<Badge
@@ -565,7 +565,7 @@ export default function Viewers() {
 
 																{/* Notes */}
 																<Show when={viewer.notes}>
-																	<p class="mt-2 text-gray-600 text-sm italic">
+																	<p class="mt-2 text-neutral-600 text-sm italic">
 																		{viewer.notes}
 																	</p>
 																</Show>
@@ -609,10 +609,10 @@ export default function Viewers() {
 									when={!isLoadingViewers() || bannedViewers().length > 0}>
 									<Show
 										fallback={
-											<div class="py-12 text-center text-gray-500">
+											<div class="py-12 text-center text-neutral-500">
 												<svg
 													aria-hidden="true"
-													class="mx-auto mb-4 h-16 w-16 text-gray-400"
+													class="mx-auto mb-4 h-16 w-16 text-neutral-400"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24">
@@ -623,10 +623,10 @@ export default function Viewers() {
 														stroke-width="2"
 													/>
 												</svg>
-												<p class="font-medium text-gray-700 text-lg">
+												<p class="font-medium text-lg text-neutral-700">
 													No banned viewers
 												</p>
-												<p class="mt-2 text-gray-500 text-sm">
+												<p class="mt-2 text-neutral-500 text-sm">
 													Banned viewers will appear here
 												</p>
 											</div>
@@ -635,12 +635,12 @@ export default function Viewers() {
 										<div class="space-y-3">
 											<For each={bannedViewers()}>
 												{(banned) => (
-													<div class="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50">
+													<div class="rounded-lg border border-neutral-200 p-4 transition-colors hover:bg-neutral-50">
 														<div class="flex items-start justify-between gap-3">
 															<div class="flex-1">
 																{/* Viewer Info */}
 																<div class="mb-2 flex flex-wrap items-center gap-2">
-																	<span class="font-semibold text-gray-900">
+																	<span class="font-semibold text-neutral-900">
 																		{banned.viewerUsername}
 																	</span>
 																	<Badge
@@ -668,14 +668,14 @@ export default function Viewers() {
 
 																{/* Ban Reason */}
 																<Show when={banned.reason}>
-																	<p class="mb-2 text-gray-600 text-sm">
+																	<p class="mb-2 text-neutral-600 text-sm">
 																		<span class="font-medium">Reason:</span>{" "}
 																		{banned.reason}
 																	</p>
 																</Show>
 
 																{/* Ban Info */}
-																<div class="text-gray-500 text-sm">
+																<div class="text-neutral-500 text-sm">
 																	<p>Banned: {formatDate(banned.insertedAt)}</p>
 																	<Show when={banned.expiresAt}>
 																		<p>

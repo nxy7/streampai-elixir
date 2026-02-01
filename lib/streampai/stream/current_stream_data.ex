@@ -52,6 +52,11 @@ defmodule Streampai.Stream.CurrentStreamData do
     define :set_stopped
     define :clear_all_platform_data
     define :set_error, args: [:error_message]
+    define :set_active_alert
+    define :clear_active_alert, args: [:alert_id]
+    define :highlight_message
+    define :clear_highlight
+    define :update_alertbox_state
   end
 
   actions do
@@ -241,6 +246,45 @@ defmodule Streampai.Stream.CurrentStreamData do
         |> Ash.Changeset.change_attribute(:stream_data, stream_data)
       end
     end
+
+    update :set_active_alert do
+      require_atomic? false
+      argument :active_alert, :map, allow_nil?: false
+      change set_attribute(:active_alert, arg(:active_alert))
+    end
+
+    update :clear_active_alert do
+      require_atomic? false
+      argument :alert_id, :string, allow_nil?: false
+
+      change fn changeset, _context ->
+        alert_id = Ash.Changeset.get_argument(changeset, :alert_id)
+        current = Ash.Changeset.get_data(changeset, :active_alert)
+
+        if is_map(current) && Map.get(current, "id") == alert_id do
+          Ash.Changeset.change_attribute(changeset, :active_alert, nil)
+        else
+          changeset
+        end
+      end
+    end
+
+    update :highlight_message do
+      require_atomic? false
+      argument :highlighted_message, :map, allow_nil?: false
+      change set_attribute(:highlighted_message, arg(:highlighted_message))
+    end
+
+    update :clear_highlight do
+      require_atomic? false
+      change set_attribute(:highlighted_message, nil)
+    end
+
+    update :update_alertbox_state do
+      require_atomic? false
+      argument :alertbox_state, :map, allow_nil?: false
+      change set_attribute(:alertbox_state, arg(:alertbox_state))
+    end
   end
 
   policies do
@@ -270,7 +314,12 @@ defmodule Streampai.Stream.CurrentStreamData do
              :set_stopped,
              :clear_all_platform_data,
              :set_error,
-             :upsert_for_user
+             :upsert_for_user,
+             :set_active_alert,
+             :clear_active_alert,
+             :highlight_message,
+             :clear_highlight,
+             :update_alertbox_state
            ]) do
       authorize_if always()
     end
@@ -316,6 +365,27 @@ defmodule Streampai.Stream.CurrentStreamData do
 
     attribute :kick_data, :map do
       description "Kick platform status"
+      allow_nil? false
+      default %{}
+      public? true
+    end
+
+    attribute :active_alert, :map do
+      description "Currently displayed alert event (donation, follow, subscription, raid)"
+      allow_nil? true
+      default nil
+      public? true
+    end
+
+    attribute :highlighted_message, :map do
+      description "Currently highlighted chat message for display on stream"
+      allow_nil? true
+      default nil
+      public? true
+    end
+
+    attribute :alertbox_state, :map do
+      description "Alertbox metadata: paused status, queue size"
       allow_nil? false
       default %{}
       public? true
@@ -499,6 +569,56 @@ defmodule Streampai.Stream.CurrentStreamData do
   @doc "Gets the stream_data from a record (for reading livestream_id etc.)"
   def get_stream_data(%{stream_data: data}) when is_map(data), do: data
   def get_stream_data(_), do: %{}
+
+  @doc "Sets the active alert for a user."
+  def set_active_alert_for_user(user_id, alert_data) when is_binary(user_id) and is_map(alert_data) do
+    with {:ok, record} <- get_or_create_for_user(user_id) do
+      Ash.update(record, %{active_alert: alert_data},
+        action: :set_active_alert,
+        actor: Streampai.SystemActor.system()
+      )
+    end
+  end
+
+  @doc "Clears the active alert for a user, only if the alert_id matches."
+  def clear_active_alert_for_user(user_id, alert_id) when is_binary(user_id) do
+    with {:ok, record} <- get_or_create_for_user(user_id) do
+      Ash.update(record, %{alert_id: alert_id},
+        action: :clear_active_alert,
+        actor: Streampai.SystemActor.system()
+      )
+    end
+  end
+
+  @doc "Highlights a chat message for a user."
+  def highlight_message_for_user(user_id, message_data) when is_binary(user_id) and is_map(message_data) do
+    with {:ok, record} <- get_or_create_for_user(user_id) do
+      Ash.update(record, %{highlighted_message: message_data},
+        action: :highlight_message,
+        actor: Streampai.SystemActor.system()
+      )
+    end
+  end
+
+  @doc "Clears the highlighted message for a user."
+  def clear_highlight_for_user(user_id) when is_binary(user_id) do
+    with {:ok, record} <- get_or_create_for_user(user_id) do
+      Ash.update(record, %{},
+        action: :clear_highlight,
+        actor: Streampai.SystemActor.system()
+      )
+    end
+  end
+
+  @doc "Updates the alertbox state (paused, queue_size) for a user."
+  def update_alertbox_state_for_user(user_id, state_data) when is_binary(user_id) and is_map(state_data) do
+    with {:ok, record} <- get_or_create_for_user(user_id) do
+      Ash.update(record, %{alertbox_state: state_data},
+        action: :update_alertbox_state,
+        actor: Streampai.SystemActor.system()
+      )
+    end
+  end
 
   # --- Private helpers ---
 

@@ -15,12 +15,12 @@ export const CheckboxField: Component<CheckboxFieldProps> = (props) => {
 			<label class="flex cursor-pointer items-center gap-2">
 				<input
 					checked={props.value ?? false}
-					class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
+					class="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary-light disabled:cursor-not-allowed disabled:opacity-50"
 					disabled={props.disabled}
 					onChange={(e) => props.onChange(e.currentTarget.checked)}
 					type="checkbox"
 				/>
-				<span class="font-medium text-gray-700 text-sm">
+				<span class="font-medium text-neutral-700 text-sm">
 					{props.field.label}
 				</span>
 			</label>

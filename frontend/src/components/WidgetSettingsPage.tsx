@@ -266,7 +266,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								props.previewWrapper({
 									config: config(),
 									children: (
-										<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-gray-900 p-8">
+										<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-neutral-900 p-8">
 											<props.PreviewComponent
 												config={config()}
 												{...(props.previewProps as P)}
@@ -275,7 +275,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 									),
 								})
 							) : (
-								<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-gray-900 p-8">
+								<div class="flex min-h-[200px] items-center justify-center rounded-lg bg-neutral-900 p-8">
 									<props.PreviewComponent
 										config={config()}
 										{...(props.previewProps as P)}
@@ -288,7 +288,7 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								<p class={text.helper}>
 									Add this URL to OBS as a Browser Source:
 								</p>
-								<div class="break-all rounded bg-gray-100 p-3 font-mono text-sm">
+								<div class="break-all rounded bg-neutral-100 p-3 font-mono text-sm">
 									{window.location.origin}/w/{props.widgetUrlPath}/{userId()}
 								</div>
 								<p class={text.helper}>Recommended Browser Source settings:</p>

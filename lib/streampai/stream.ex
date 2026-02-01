@@ -29,6 +29,7 @@ defmodule Streampai.Stream do
       rpc_action(:get_chat_history, :get_chat_for_user)
       rpc_action(:get_livestream_chat, :get_chat_for_livestream)
       rpc_action(:get_viewer_chat, :get_chat_for_viewer)
+      rpc_action(:replay_alert, :replay_alert)
     end
 
     resource StreamViewer do
@@ -42,13 +43,16 @@ defmodule Streampai.Stream do
 
     resource CurrentStreamData do
       rpc_action(:get_current_stream_data, :get_by_user)
+      rpc_action(:highlight_stream_message, :highlight_message)
+      rpc_action(:clear_stream_highlight, :clear_highlight)
     end
 
     resource StreamTimer do
       rpc_action(:get_stream_timers, :get_for_user)
       rpc_action(:create_stream_timer, :create_timer)
-      rpc_action(:start_stream_timer, :start_timer)
-      rpc_action(:stop_stream_timer, :stop_timer)
+      rpc_action(:update_stream_timer, :update)
+      rpc_action(:enable_stream_timer, :enable_timer)
+      rpc_action(:disable_stream_timer, :disable_timer)
       rpc_action(:delete_stream_timer, :destroy)
     end
 

@@ -45,10 +45,10 @@ export default function ProgressBar(props: ProgressBarProps) {
 			<Show when={local.label || local.showValue}>
 				<div class="mb-1 flex justify-between text-sm">
 					<Show when={local.label}>
-						<span class="text-gray-600">{local.label}</span>
+						<span class="text-neutral-600">{local.label}</span>
 					</Show>
 					<Show when={local.showValue}>
-						<span class="font-medium text-gray-900">
+						<span class="font-medium text-neutral-900">
 							{local.value}
 							{max !== 100 && `/${max}`}
 						</span>
@@ -57,7 +57,7 @@ export default function ProgressBar(props: ProgressBarProps) {
 			</Show>
 			<div
 				class={cn(
-					"w-full overflow-hidden rounded-full bg-gray-200",
+					"w-full overflow-hidden rounded-full bg-neutral-200",
 					sizeClasses[local.size ?? "md"],
 				)}>
 				<div

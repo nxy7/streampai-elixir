@@ -27,11 +27,11 @@ export function QuickStatsSkeleton() {
 export function RecentChatSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-28" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-neutral-100">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="px-6 py-3">
@@ -48,11 +48,11 @@ export function RecentChatSkeleton() {
 export function RecentEventsSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-neutral-100">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="px-6 py-3">
@@ -69,7 +69,7 @@ export function RecentEventsSkeleton() {
 export function ActivityFeedSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="border-gray-100 border-b px-4 py-3">
+			<div class="border-neutral-100 border-b px-4 py-3">
 				<div class="mb-3 flex items-center justify-between">
 					<Skeleton class="h-5 w-28" />
 					<Skeleton class="h-4 w-16" />
@@ -80,7 +80,7 @@ export function ActivityFeedSkeleton() {
 					</For>
 				</div>
 			</div>
-			<div class="divide-y divide-gray-50">
+			<div class="divide-y divide-neutral-50">
 				<For each={[1, 2, 3, 4, 5]}>
 					{() => (
 						<div class="flex items-center gap-3 px-4 py-2.5">
@@ -104,11 +104,11 @@ export function ActivityFeedSkeleton() {
 export function RecentStreamsSkeleton() {
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<Skeleton class="h-5 w-32" />
 				<Skeleton class="h-4 w-16" />
 			</div>
-			<div class="divide-y divide-gray-100">
+			<div class="divide-y divide-neutral-100">
 				<For each={[1, 2, 3]}>{() => <SkeletonStreamCard />}</For>
 			</div>
 		</Card>
@@ -120,7 +120,7 @@ export function DashboardLoadingSkeleton() {
 	return (
 		<div class="space-y-6">
 			{/* Header skeleton */}
-			<div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+			<div class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
 				<Skeleton class="mb-2 h-9 w-64" />
 				<Skeleton class="h-5 w-48" />
 			</div>

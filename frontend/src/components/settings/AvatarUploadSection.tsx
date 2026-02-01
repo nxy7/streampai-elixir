@@ -122,13 +122,13 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 	return (
 		<div>
 			<label
-				class="mb-2 block font-medium text-gray-700 text-sm"
+				class="mb-2 block font-medium text-neutral-700 text-sm"
 				for="avatar-upload">
 				{t("settings.profileAvatar")}
 			</label>
 			<div class="flex items-center space-x-4">
 				<div class="relative h-20 w-20">
-					<div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+					<div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 						<Show
 							fallback={
 								<span class="font-bold text-2xl text-white">
@@ -167,7 +167,9 @@ export default function AvatarUploadSection(props: AvatarUploadSectionProps) {
 							? t("settings.uploading")
 							: t("settings.uploadNewAvatar")}
 					</Button>
-					<p class="mt-1 text-gray-500 text-xs">{t("settings.avatarHelp")}</p>
+					<p class="mt-1 text-neutral-500 text-xs">
+						{t("settings.avatarHelp")}
+					</p>
 					<Show when={uploadError()}>
 						<p class="mt-1 text-red-600 text-xs">{uploadError()}</p>
 					</Show>

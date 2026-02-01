@@ -35,10 +35,10 @@ export default function RecentStreams(props: RecentStreamsProps) {
 
 	return (
 		<Card padding="none">
-			<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<h3 class={text.h3}>{t("dashboard.recentStreams")}</h3>
 				<A
-					class="text-purple-600 text-sm hover:text-purple-700"
+					class="text-primary text-sm hover:text-primary-hover"
 					href="/dashboard/stream-history">
 					{t("dashboard.viewAll")}
 				</A>
@@ -48,7 +48,7 @@ export default function RecentStreams(props: RecentStreamsProps) {
 					<div class="px-6 py-8 text-center">
 						<svg
 							aria-hidden="true"
-							class="mx-auto mb-3 h-12 w-12 text-gray-300"
+							class="mx-auto mb-3 h-12 w-12 text-neutral-300"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24">
@@ -59,27 +59,29 @@ export default function RecentStreams(props: RecentStreamsProps) {
 								stroke-width="2"
 							/>
 						</svg>
-						<p class="text-gray-500 text-sm">{t("dashboard.noStreamsYet")}</p>
-						<p class="mt-1 text-gray-400 text-xs">
+						<p class="text-neutral-500 text-sm">
+							{t("dashboard.noStreamsYet")}
+						</p>
+						<p class="mt-1 text-neutral-400 text-xs">
 							{t("dashboard.streamsWillAppear")}
 						</p>
 					</div>
 				}
 				when={props.streams.length > 0}>
-				<div class="divide-y divide-gray-100">
+				<div class="divide-y divide-neutral-100">
 					<For each={props.streams}>
 						{(stream) => (
 							<A
-								class="block px-6 py-4 hover:bg-gray-50"
+								class="block px-6 py-4 hover:bg-neutral-50"
 								href={`/dashboard/stream-history/${stream.id}`}>
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-4">
 										<Show
 											fallback={
-												<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+												<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100">
 													<svg
 														aria-hidden="true"
-														class="h-6 w-6 text-purple-600"
+														class="h-6 w-6 text-primary"
 														fill="none"
 														stroke="currentColor"
 														viewBox="0 0 24 24">
@@ -100,10 +102,10 @@ export default function RecentStreams(props: RecentStreamsProps) {
 											/>
 										</Show>
 										<div>
-											<h4 class="font-medium text-gray-900">
+											<h4 class="font-medium text-neutral-900">
 												{stream.title || t("dashboard.untitledStream")}
 											</h4>
-											<p class="text-gray-500 text-sm">
+											<p class="text-neutral-500 text-sm">
 												{stream.started_at
 													? new Date(stream.started_at).toLocaleDateString()
 													: t("dashboard.notStarted")}

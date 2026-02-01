@@ -114,9 +114,9 @@ export function ViewerChart(props: ViewerChartProps) {
 	return (
 		<Card>
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="font-medium text-gray-900 text-lg">{props.title}</h3>
+				<h3 class="font-medium text-lg text-neutral-900">{props.title}</h3>
 				<Show when={hasAnyData()}>
-					<div class="flex items-center gap-4 text-gray-500 text-xs">
+					<div class="flex items-center gap-4 text-neutral-500 text-xs">
 						<div class="flex items-center gap-1">
 							<div class="h-3 w-3 rounded-full bg-indigo-500" />
 							<span>{t("analytics.peakViewers")}</span>
@@ -131,11 +131,11 @@ export function ViewerChart(props: ViewerChartProps) {
 
 			<Show
 				fallback={
-					<div class="flex h-64 items-center justify-center rounded-lg bg-gray-50">
+					<div class="flex h-64 items-center justify-center rounded-lg bg-neutral-50">
 						<div class="text-center">
 							<svg
 								aria-hidden="true"
-								class="mx-auto h-12 w-12 text-gray-400"
+								class="mx-auto h-12 w-12 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -146,10 +146,10 @@ export function ViewerChart(props: ViewerChartProps) {
 									stroke-width="2"
 								/>
 							</svg>
-							<p class="mt-2 font-medium text-gray-900 text-sm">
+							<p class="mt-2 font-medium text-neutral-900 text-sm">
 								{t("analytics.noStreamingData")}
 							</p>
-							<p class="mt-1 text-gray-500 text-xs">
+							<p class="mt-1 text-neutral-500 text-xs">
 								{t("analytics.streamToSee")}
 							</p>
 						</div>
@@ -241,7 +241,7 @@ export function ViewerChart(props: ViewerChartProps) {
 					</svg>
 
 					{/* Y-axis labels */}
-					<div class="absolute top-0 left-0 flex h-full flex-col justify-between pr-2 text-gray-500 text-xs">
+					<div class="absolute top-0 left-0 flex h-full flex-col justify-between pr-2 text-neutral-500 text-xs">
 						<For each={[4, 3, 2, 1, 0]}>
 							{(i) => (
 								<span class="pr-2 text-right">
@@ -252,7 +252,7 @@ export function ViewerChart(props: ViewerChartProps) {
 					</div>
 
 					{/* X-axis labels */}
-					<div class="absolute right-0 bottom-0 left-12 flex translate-y-5 transform justify-between text-gray-500 text-xs">
+					<div class="absolute right-0 bottom-0 left-12 flex translate-y-5 transform justify-between text-neutral-500 text-xs">
 						<For each={labelIndices()}>
 							{(idx) => (
 								<span>

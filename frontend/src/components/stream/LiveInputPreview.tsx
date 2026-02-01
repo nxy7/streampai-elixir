@@ -21,10 +21,10 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 	};
 
 	return (
-		<div class="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
+		<div class="relative aspect-video w-full overflow-hidden rounded-lg bg-neutral-900">
 			<Show
 				fallback={
-					<div class="flex h-full flex-col items-center justify-center gap-3 text-gray-400">
+					<div class="flex h-full flex-col items-center justify-center gap-3 text-neutral-400">
 						<svg
 							aria-hidden="true"
 							class="h-12 w-12"

@@ -30,7 +30,7 @@ export default function PublicFooter(props: PublicFooterProps) {
 					{/* Right section - nav links on top, copyright and language picker at bottom */}
 					<div class="flex flex-1 flex-col gap-4">
 						{/* Navigation links */}
-						<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-gray-300 text-sm md:justify-end">
+						<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-neutral-300 text-sm md:justify-end">
 							<A class="transition-colors hover:text-white" href="/privacy">
 								{t("footer.privacy")}
 							</A>
@@ -46,7 +46,7 @@ export default function PublicFooter(props: PublicFooterProps) {
 						</div>
 
 						{/* Bottom row - copyright and language picker */}
-						<div class="flex flex-col items-center gap-3 text-gray-400 text-sm md:flex-row md:justify-end">
+						<div class="flex flex-col items-center gap-3 text-neutral-400 text-sm md:flex-row md:justify-end">
 							<p>
 								&copy; {currentYear} {t("footer.copyright")}
 								{props.showTagline && (

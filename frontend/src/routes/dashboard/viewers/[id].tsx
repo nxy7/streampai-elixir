@@ -310,11 +310,11 @@ function ViewerDetailSkeleton() {
 			</div>
 
 			{/* Recent Messages skeleton */}
-			<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-				<div class="border-gray-200 border-b px-6 py-4">
+			<div class="rounded-lg border border-neutral-200 bg-white shadow-sm">
+				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-6 w-40" />
 				</div>
-				<div class="divide-y divide-gray-200">
+				<div class="divide-y divide-neutral-200">
 					<For each={[1, 2, 3, 4, 5]}>
 						{() => (
 							<div class="p-6">
@@ -331,11 +331,11 @@ function ViewerDetailSkeleton() {
 			</div>
 
 			{/* Recent Events skeleton */}
-			<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-				<div class="border-gray-200 border-b px-6 py-4">
+			<div class="rounded-lg border border-neutral-200 bg-white shadow-sm">
+				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-6 w-32" />
 				</div>
-				<div class="divide-y divide-gray-200">
+				<div class="divide-y divide-neutral-200">
 					<For each={[1, 2, 3]}>
 						{() => (
 							<div class="p-6">
@@ -477,8 +477,8 @@ export default function ViewerDetail() {
 							<div class="flex items-center">
 								<Show
 									fallback={
-										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
-											<span class="font-medium text-gray-600 text-xl">
+										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-300">
+											<span class="font-medium text-neutral-600 text-xl">
 												{viewer()?.displayName.charAt(0).toUpperCase()}
 											</span>
 										</div>
@@ -491,7 +491,7 @@ export default function ViewerDetail() {
 									/>
 								</Show>
 								<div class="ml-4">
-									<h1 class="font-bold text-2xl text-gray-900">
+									<h1 class="font-bold text-2xl text-neutral-900">
 										{viewer()?.displayName}
 									</h1>
 									<Show when={viewer()?.channelUrl}>
@@ -526,21 +526,23 @@ export default function ViewerDetail() {
 						<h3 class={`${text.h3} mb-4`}>Activity Info</h3>
 						<dl class="space-y-3">
 							<div>
-								<dt class="font-medium text-gray-500 text-sm">First Seen</dt>
-								<dd class="mt-1 text-gray-900 text-sm">
+								<dt class="font-medium text-neutral-500 text-sm">First Seen</dt>
+								<dd class="mt-1 text-neutral-900 text-sm">
 									{formatFullDate(viewer()?.firstSeenAt || "")}
 								</dd>
 							</div>
 							<div>
-								<dt class="font-medium text-gray-500 text-sm">Last Seen</dt>
-								<dd class="mt-1 text-gray-900 text-sm">
+								<dt class="font-medium text-neutral-500 text-sm">Last Seen</dt>
+								<dd class="mt-1 text-neutral-900 text-sm">
 									{formatFullDate(viewer()?.lastSeenAt || "")}
 								</dd>
 							</div>
 							<Show when={viewer()?.notes}>
 								<div>
-									<dt class="font-medium text-gray-500 text-sm">Notes</dt>
-									<dd class="mt-1 text-gray-900 text-sm">{viewer()?.notes}</dd>
+									<dt class="font-medium text-neutral-500 text-sm">Notes</dt>
+									<dd class="mt-1 text-neutral-900 text-sm">
+										{viewer()?.notes}
+									</dd>
 								</div>
 							</Show>
 						</dl>
@@ -548,7 +550,7 @@ export default function ViewerDetail() {
 
 					{/* Recent Messages */}
 					<Card>
-						<div class="border-gray-200 border-b px-6 py-4">
+						<div class="border-neutral-200 border-b px-6 py-4">
 							<h3 class={text.h3}>
 								Recent Messages
 								<span class={`${text.muted} ml-2 text-sm`}>
@@ -561,7 +563,7 @@ export default function ViewerDetail() {
 								<div class="p-12 text-center">
 									<svg
 										aria-hidden="true"
-										class="mx-auto h-12 w-12 text-gray-400"
+										class="mx-auto h-12 w-12 text-neutral-400"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24">
@@ -572,14 +574,14 @@ export default function ViewerDetail() {
 											stroke-width="2"
 										/>
 									</svg>
-									<p class="mt-4 text-gray-500">No messages yet</p>
-									<p class="mt-1 text-gray-400 text-sm">
+									<p class="mt-4 text-neutral-500">No messages yet</p>
+									<p class="mt-1 text-neutral-400 text-sm">
 										Messages will appear here once this viewer chats
 									</p>
 								</div>
 							}
 							when={messages().length > 0}>
-							<div class="divide-y divide-gray-200">
+							<div class="divide-y divide-neutral-200">
 								<For each={messages()}>
 									{(message) => (
 										<div class="p-6">
@@ -608,12 +610,12 @@ export default function ViewerDetail() {
 													</button>
 												</Show>
 												<Show when={!message.livestreamId}>
-													<span class="text-gray-500 text-xs">
+													<span class="text-neutral-500 text-xs">
 														{formatDateTime(message.insertedAt)}
 													</span>
 												</Show>
 											</div>
-											<p class="text-gray-600 text-sm">
+											<p class="text-neutral-600 text-sm">
 												{message.data.chatMessage?.message}
 											</p>
 										</div>
@@ -625,7 +627,7 @@ export default function ViewerDetail() {
 
 					{/* Recent Events */}
 					<Card>
-						<div class="border-gray-200 border-b px-6 py-4">
+						<div class="border-neutral-200 border-b px-6 py-4">
 							<h3 class={text.h3}>
 								Recent Events
 								<span class={`${text.muted} ml-2 text-sm`}>
@@ -638,7 +640,7 @@ export default function ViewerDetail() {
 								<div class="p-12 text-center">
 									<svg
 										aria-hidden="true"
-										class="mx-auto h-12 w-12 text-gray-400"
+										class="mx-auto h-12 w-12 text-neutral-400"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24">
@@ -649,14 +651,14 @@ export default function ViewerDetail() {
 											stroke-width="2"
 										/>
 									</svg>
-									<p class="mt-4 text-gray-500">No events yet</p>
-									<p class="mt-1 text-gray-400 text-sm">
+									<p class="mt-4 text-neutral-500">No events yet</p>
+									<p class="mt-1 text-neutral-400 text-sm">
 										Events like donations and subscriptions will appear here
 									</p>
 								</div>
 							}
 							when={events().length > 0}>
-							<div class="divide-y divide-gray-200">
+							<div class="divide-y divide-neutral-200">
 								<For each={events()}>
 									{(event) => (
 										<div class="p-6">
@@ -683,12 +685,12 @@ export default function ViewerDetail() {
 													</button>
 												</Show>
 												<Show when={!event.livestreamId}>
-													<span class="text-gray-500 text-xs">
+													<span class="text-neutral-500 text-xs">
 														{formatDateTime(event.insertedAt)}
 													</span>
 												</Show>
 											</div>
-											<p class="text-gray-600 text-sm">
+											<p class="text-neutral-600 text-sm">
 												{formatEventData(event)}
 											</p>
 										</div>

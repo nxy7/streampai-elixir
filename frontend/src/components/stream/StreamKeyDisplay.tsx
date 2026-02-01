@@ -121,7 +121,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 
 	return (
 		<Show when={props.visible}>
-			<div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<div class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
 				<Show
 					fallback={
 						<div class="space-y-3">
@@ -146,7 +146,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 						}
 						when={!streamKeyError()}>
 						<div class="mb-3 flex items-center justify-between">
-							<span class="font-medium text-gray-700 text-sm">
+							<span class="font-medium text-neutral-700 text-sm">
 								{t("stream.key.label")}
 							</span>
 							<div class="flex items-center space-x-2">
@@ -170,34 +170,34 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 							{(data) => (
 								<>
 									<div class="mb-2">
-										<span class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-neutral-500 text-xs">
 											{t("stream.key.rtmpUrl")}
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-900 text-sm">
+										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-900 text-sm">
 											{data().rtmpsUrl}
 										</code>
 									</div>
 									<div class="mb-3">
-										<span class="mb-1 block text-gray-500 text-xs">
+										<span class="mb-1 block text-neutral-500 text-xs">
 											{t("stream.key.label")}
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-sm">
+										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-sm">
 											{data().rtmpsStreamKey}
 										</code>
 									</div>
 
 									<Show when={data().srtUrl}>
-										<div class="mb-2 border-gray-200 border-t pt-2">
-											<span class="mb-1 block text-gray-500 text-xs">
+										<div class="mb-2 border-neutral-200 border-t pt-2">
+											<span class="mb-1 block text-neutral-500 text-xs">
 												{t("stream.key.srtUrl")}
 											</span>
-											<code class="block rounded bg-white px-2 py-1 font-mono text-gray-600 text-xs">
+											<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-xs">
 												{data().srtUrl}
 											</code>
 										</div>
 									</Show>
 
-									<p class="mt-3 text-gray-500 text-xs">
+									<p class="mt-3 text-neutral-500 text-xs">
 										{t("stream.key.instructions")}
 									</p>
 								</>

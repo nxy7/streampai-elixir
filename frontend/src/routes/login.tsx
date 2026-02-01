@@ -147,9 +147,9 @@ export default function LoginPage() {
 							<h2 class="mb-4 font-bold text-2xl text-white">
 								{t("auth.alreadySignedIn")}
 							</h2>
-							<p class="mb-6 text-gray-300">{t("auth.alreadyLoggedIn")}</p>
+							<p class="mb-6 text-neutral-300">{t("auth.alreadyLoggedIn")}</p>
 							<A
-								class="inline-block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+								class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 								href={getDashboardUrl()}>
 								{t("auth.goToDashboard")}
 							</A>
@@ -169,13 +169,13 @@ export default function LoginPage() {
 							<h1 class="mb-2 font-bold text-3xl text-white">
 								{t("auth.welcomeBack")}
 							</h1>
-							<p class="text-gray-300">{t("auth.signInToContinue")}</p>
+							<p class="text-neutral-300">{t("auth.signInToContinue")}</p>
 						</div>
 
 						{/* OAuth Buttons */}
 						<div class="space-y-4">
 							<a
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-gray-800 transition-all hover:bg-gray-100"
+								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-neutral-800 transition-all hover:bg-neutral-100"
 								href={`${getApiBase()}${API_PATH}/auth/user/google`}
 								rel="external">
 								<GoogleIcon />
@@ -196,7 +196,7 @@ export default function LoginPage() {
 								<div class="w-full border-white/20 border-t" />
 							</div>
 							<div class="relative flex justify-center text-sm">
-								<span class="bg-transparent px-4 text-gray-400">
+								<span class="bg-transparent px-4 text-neutral-400">
 									{t("auth.orContinueWithEmail")}
 								</span>
 							</div>
@@ -220,12 +220,12 @@ export default function LoginPage() {
 						<form class="space-y-4" onSubmit={handleSubmit}>
 							<div>
 								<label
-									class="mb-1 block font-medium text-gray-300 text-sm"
+									class="mb-1 block font-medium text-neutral-300 text-sm"
 									for="email">
 									{t("auth.emailLabel")}
 								</label>
 								<input
-									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 									id="email"
 									name="email"
 									onInput={(e) => setEmail(e.currentTarget.value)}
@@ -238,12 +238,12 @@ export default function LoginPage() {
 
 							<div>
 								<label
-									class="mb-1 block font-medium text-gray-300 text-sm"
+									class="mb-1 block font-medium text-neutral-300 text-sm"
 									for="password">
 									{t("auth.passwordLabel")}
 								</label>
 								<input
-									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 									id="password"
 									minLength={8}
 									name="password"
@@ -258,12 +258,12 @@ export default function LoginPage() {
 							<Show when={mode() === "register"}>
 								<div>
 									<label
-										class="mb-1 block font-medium text-gray-300 text-sm"
+										class="mb-1 block font-medium text-neutral-300 text-sm"
 										for="password_confirmation">
 										{t("auth.confirmPasswordLabel")}
 									</label>
 									<input
-										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 										id="password_confirmation"
 										minLength={8}
 										name="password_confirmation"
@@ -279,7 +279,7 @@ export default function LoginPage() {
 							</Show>
 
 							<button
-								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
 								disabled={isSubmitting()}
 								type="submit">
 								<EmailIcon />
@@ -291,23 +291,23 @@ export default function LoginPage() {
 							</button>
 						</form>
 
-						<p class="mt-8 text-center text-gray-400 text-sm">
+						<p class="mt-8 text-center text-neutral-400 text-sm">
 							{t("auth.noAccount")}{" "}
 							<a
-								class="text-purple-400 hover:text-purple-300"
+								class="text-primary-light hover:text-primary-200"
 								href={`${getApiBase()}${API_PATH}/auth/register`}
 								rel="external">
 								{t("auth.createOne")}
 							</a>
 						</p>
 
-						<p class="mt-4 text-center text-gray-500 text-xs">
+						<p class="mt-4 text-center text-neutral-500 text-xs">
 							{t("auth.agreeToTerms")}{" "}
-							<A class="text-gray-400 hover:text-white" href="/terms">
+							<A class="text-neutral-400 hover:text-white" href="/terms">
 								{t("auth.termsOfService")}
 							</A>{" "}
 							{t("auth.and")}{" "}
-							<A class="text-gray-400 hover:text-white" href="/privacy">
+							<A class="text-neutral-400 hover:text-white" href="/privacy">
 								{t("auth.privacyPolicy")}
 							</A>
 						</p>

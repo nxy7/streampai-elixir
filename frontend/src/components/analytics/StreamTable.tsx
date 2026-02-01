@@ -66,7 +66,7 @@ export function StreamTable(props: StreamTableProps) {
 						<div class="py-12 text-center">
 							<svg
 								aria-hidden="true"
-								class="mx-auto h-12 w-12 text-gray-400"
+								class="mx-auto h-12 w-12 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -77,51 +77,51 @@ export function StreamTable(props: StreamTableProps) {
 									stroke-width="2"
 								/>
 							</svg>
-							<h3 class="mt-2 font-medium text-gray-900 text-sm">
+							<h3 class="mt-2 font-medium text-neutral-900 text-sm">
 								{t("analytics.noStreamsYet")}
 							</h3>
-							<p class="mt-1 text-gray-500 text-sm">
+							<p class="mt-1 text-neutral-500 text-sm">
 								{t("analytics.startStreaming")}
 							</p>
 						</div>
 					}
 					when={props.streams.length > 0}>
 					<div class="-mx-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-neutral-200">
+							<thead class="bg-neutral-50">
 								<tr>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.stream")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.platform")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.duration")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.peakViewers")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.avgViewers")}
 									</th>
-									<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs tracking-wider">
+									<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs tracking-wider">
 										{t("analytics.chatMessages")}
 									</th>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-gray-200 bg-white">
+							<tbody class="divide-y divide-neutral-200 bg-white">
 								<For each={props.streams}>
 									{(stream) => (
-										<tr class="hover:bg-gray-50">
+										<tr class="hover:bg-neutral-50">
 											<td class="whitespace-nowrap px-6 py-4">
 												<A
-													class="block hover:text-purple-600"
+													class="block hover:text-primary"
 													href={`/dashboard/stream-history/${stream.id}`}>
-													<div class="font-medium text-gray-900 text-sm">
+													<div class="font-medium text-neutral-900 text-sm">
 														{stream.title}
 													</div>
-													<div class="text-gray-500 text-xs">
+													<div class="text-neutral-500 text-xs">
 														{formatDate(stream.startTime)}
 													</div>
 												</A>
@@ -132,16 +132,16 @@ export function StreamTable(props: StreamTableProps) {
 													{stream.platform}
 												</Badge>
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
 												{stream.duration}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
 												{formatNumber(stream.viewers.peak)}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
 												{formatNumber(stream.viewers.average)}
 											</td>
-											<td class="whitespace-nowrap px-6 py-4 text-gray-900 text-sm">
+											<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
 												{formatNumber(stream.engagement.chatMessages)}
 											</td>
 										</tr>

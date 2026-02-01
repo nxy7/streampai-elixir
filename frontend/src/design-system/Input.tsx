@@ -25,7 +25,7 @@ export default function Input(props: InputProps) {
 		<div class="w-full">
 			<Show when={local.label}>
 				<label
-					class="mb-1 block font-medium text-gray-700 text-sm"
+					class="mb-1 block font-medium text-neutral-700 text-sm"
 					for={inputId}>
 					{local.label}
 				</label>
@@ -35,8 +35,8 @@ export default function Input(props: InputProps) {
 					baseClasses,
 					local.error
 						? "border-red-300 focus:ring-red-500"
-						: "border-gray-300 focus:ring-purple-500",
-					"disabled:cursor-not-allowed disabled:bg-gray-50",
+						: "border-neutral-300 focus:ring-primary-light",
+					"disabled:cursor-not-allowed disabled:bg-neutral-50",
 					local.class,
 				)}
 				id={inputId}
@@ -46,7 +46,7 @@ export default function Input(props: InputProps) {
 				<p class="mt-1 text-red-600 text-sm">{local.error}</p>
 			</Show>
 			<Show when={local.helperText && !local.error}>
-				<p class="mt-1 text-gray-500 text-xs">{local.helperText}</p>
+				<p class="mt-1 text-neutral-500 text-xs">{local.helperText}</p>
 			</Show>
 		</div>
 	);
@@ -74,7 +74,7 @@ export function Textarea(props: TextareaProps) {
 		<div class="w-full">
 			<Show when={local.label}>
 				<label
-					class="mb-1 block font-medium text-gray-700 text-sm"
+					class="mb-1 block font-medium text-neutral-700 text-sm"
 					for={inputId}>
 					{local.label}
 				</label>
@@ -85,8 +85,8 @@ export function Textarea(props: TextareaProps) {
 					"resize-none",
 					local.error
 						? "border-red-300 focus:ring-red-500"
-						: "border-gray-300 focus:ring-purple-500",
-					"disabled:cursor-not-allowed disabled:bg-gray-50",
+						: "border-neutral-300 focus:ring-primary-light",
+					"disabled:cursor-not-allowed disabled:bg-neutral-50",
 					local.class,
 				)}
 				id={inputId}
@@ -96,7 +96,7 @@ export function Textarea(props: TextareaProps) {
 				<p class="mt-1 text-red-600 text-sm">{local.error}</p>
 			</Show>
 			<Show when={local.helperText && !local.error}>
-				<p class="mt-1 text-gray-500 text-xs">{local.helperText}</p>
+				<p class="mt-1 text-neutral-500 text-xs">{local.helperText}</p>
 			</Show>
 		</div>
 	);
@@ -141,7 +141,7 @@ export function Select(props: SelectProps) {
 		<div class={local.wrapperClass ?? "w-full"}>
 			<Show when={local.label}>
 				<label
-					class="mb-1 block font-medium text-gray-700 text-sm"
+					class="mb-1 block font-medium text-neutral-700 text-sm"
 					for={inputId}>
 					{local.label}
 				</label>
@@ -152,8 +152,8 @@ export function Select(props: SelectProps) {
 					"bg-white",
 					local.error
 						? "border-red-300 focus:ring-red-500"
-						: "border-gray-300 focus:ring-purple-500",
-					"disabled:cursor-not-allowed disabled:bg-gray-50",
+						: "border-neutral-300 focus:ring-primary-light",
+					"disabled:cursor-not-allowed disabled:bg-neutral-50",
 					local.class,
 				)}
 				id={inputId}
@@ -165,7 +165,7 @@ export function Select(props: SelectProps) {
 				<p class="mt-1 text-red-600 text-sm">{local.error}</p>
 			</Show>
 			<Show when={local.helperText && !local.error}>
-				<p class="mt-1 text-gray-500 text-xs">{local.helperText}</p>
+				<p class="mt-1 text-neutral-500 text-xs">{local.helperText}</p>
 			</Show>
 		</div>
 	);

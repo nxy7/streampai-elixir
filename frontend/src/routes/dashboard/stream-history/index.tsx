@@ -66,7 +66,7 @@ function StreamHistorySkeleton() {
 					<Skeleton class="h-6 w-32" />
 				</CardHeader>
 				<CardContent>
-					<div class="-mx-6 divide-y divide-gray-200">
+					<div class="-mx-6 divide-y divide-neutral-200">
 						<For each={[1, 2, 3, 4, 5]}>
 							{() => (
 								<div class="flex items-center space-x-4 p-6">
@@ -128,11 +128,11 @@ export default function StreamHistory() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									Not Authenticated
 								</h2>
-								<p class="mb-6 text-gray-300">
+								<p class="mb-6 text-neutral-300">
 									Please sign in to view stream history.
 								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getLoginUrl()}>
 									Sign In
 								</a>
@@ -256,13 +256,15 @@ function StreamHistoryContent(props: {
 		<div class="mx-auto max-w-7xl space-y-6">
 			{/* Filters */}
 			<Card>
-				<h3 class="mb-4 font-semibold text-gray-900 text-lg">Filter Streams</h3>
+				<h3 class="mb-4 font-semibold text-lg text-neutral-900">
+					Filter Streams
+				</h3>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label class="block font-medium text-neutral-700 text-sm">
 							Date Range
 							<select
-								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
+								class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
 								onChange={(e) =>
 									props.setDateRange(e.currentTarget.value as DateRange)
 								}
@@ -274,10 +276,10 @@ function StreamHistoryContent(props: {
 						</label>
 					</div>
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label class="block font-medium text-neutral-700 text-sm">
 							Sort By
 							<select
-								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
+								class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
 								onChange={(e) =>
 									props.setSortBy(e.currentTarget.value as SortBy)
 								}
@@ -297,7 +299,7 @@ function StreamHistoryContent(props: {
 						icon={
 							<svg
 								aria-hidden="true"
-								class="h-8 w-8 text-purple-500"
+								class="h-8 w-8 text-primary-light"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -348,7 +350,7 @@ function StreamHistoryContent(props: {
 							<div class="py-12 text-center">
 								<svg
 									aria-hidden="true"
-									class="mx-auto h-12 w-12 text-gray-400"
+									class="mx-auto h-12 w-12 text-neutral-400"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24">
@@ -359,28 +361,28 @@ function StreamHistoryContent(props: {
 										stroke-width="2"
 									/>
 								</svg>
-								<h3 class="mt-2 font-medium text-gray-900 text-sm">
+								<h3 class="mt-2 font-medium text-neutral-900 text-sm">
 									No streams found
 								</h3>
-								<p class="mt-1 text-gray-500 text-sm">
+								<p class="mt-1 text-neutral-500 text-sm">
 									No streams match your current filters.
 								</p>
 							</div>
 						}
 						when={filteredAndSortedStreams().length > 0}>
-						<div class="-mx-6 divide-y divide-gray-200">
+						<div class="-mx-6 divide-y divide-neutral-200">
 							<For each={filteredAndSortedStreams()}>
 								{(stream) => (
 									<A
-										class="block p-6 transition-colors hover:bg-gray-50"
+										class="block p-6 transition-colors hover:bg-neutral-50"
 										href={`/dashboard/stream-history/${stream.id}`}>
 										<div class="flex items-center space-x-4">
 											<Show
 												fallback={
-													<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+													<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-100">
 														<svg
 															aria-hidden="true"
-															class="h-6 w-6 text-purple-600"
+															class="h-6 w-6 text-primary"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24">
@@ -410,19 +412,19 @@ function StreamHistoryContent(props: {
 											<div class="min-w-0 flex-1">
 												<div class="flex items-start justify-between">
 													<div>
-														<h4 class="truncate font-medium text-gray-900 text-sm">
+														<h4 class="truncate font-medium text-neutral-900 text-sm">
 															{stream.title || "Untitled Stream"}
 														</h4>
 														<div class="mt-1 flex flex-wrap items-center gap-1 space-x-2">
 															<Badge variant="neutral">{stream.status}</Badge>
 															<Show when={stream.started_at}>
 																{(startedAt) => (
-																	<span class="text-gray-500 text-xs">
+																	<span class="text-neutral-500 text-xs">
 																		{formatDate(startedAt())}
 																	</span>
 																)}
 															</Show>
-															<span class="text-gray-500 text-xs">
+															<span class="text-neutral-500 text-xs">
 																{formatDurationShort(
 																	computeDurationSeconds(
 																		stream.started_at,
@@ -437,7 +439,7 @@ function StreamHistoryContent(props: {
 											<div class="shrink-0">
 												<svg
 													aria-hidden="true"
-													class="h-5 w-5 text-gray-400"
+													class="h-5 w-5 text-neutral-400"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24">

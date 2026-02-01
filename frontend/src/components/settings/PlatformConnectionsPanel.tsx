@@ -97,7 +97,7 @@ export default function PlatformConnectionsPanel(
 
 	return (
 		<div>
-			<p class="mb-2 block font-medium text-gray-700 text-sm">
+			<p class="mb-2 block font-medium text-neutral-700 text-sm">
 				{t("settings.streamingPlatforms")}
 			</p>
 
@@ -106,7 +106,7 @@ export default function PlatformConnectionsPanel(
 					<div class="space-y-2">
 						<For each={[1, 2]}>
 							{() => (
-								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-3">
 									<div class="flex items-center space-x-3">
 										<Skeleton class="h-10 w-10 rounded-lg" />
 										<div class="space-y-1">
@@ -151,15 +151,17 @@ export default function PlatformConnectionsPanel(
 					<For each={AVAILABLE_PLATFORMS}>
 						{(platform) => (
 							<Show when={!connectedPlatforms().has(platform.targetPlatform)}>
-								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-3">
 									<div class="flex items-center space-x-3">
 										<PlatformIcon
 											platform={platform.targetPlatform}
 											size="lg"
 										/>
 										<div>
-											<p class="font-medium text-gray-900">{platform.name}</p>
-											<p class="text-gray-500 text-sm">
+											<p class="font-medium text-neutral-900">
+												{platform.name}
+											</p>
+											<p class="text-neutral-500 text-sm">
 												{t("settings.notConnected")}
 											</p>
 										</div>

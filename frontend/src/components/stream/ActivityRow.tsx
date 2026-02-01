@@ -36,6 +36,14 @@ export function ActivityRow(props: ActivityRowProps) {
 	const isHighlighted = () =>
 		props.moderationCallbacks?.highlightedMessageId === props.item.id;
 
+	// Check if this event is currently playing on the alertbox
+	const isCurrentlyPlaying = () =>
+		props.moderationCallbacks?.currentAlertEventId === props.item.id;
+
+	// Check if this event is pending (not yet shown on alertbox)
+	const isPending = () =>
+		isImportantEvent(props.item.type) && props.item.wasDisplayed === false;
+
 	// Determine if this row should show moderation actions
 	const showModerationActions = () => {
 		if (!props.moderationCallbacks) return false;
@@ -107,16 +115,20 @@ export function ActivityRow(props: ActivityRowProps) {
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
-			class={`group relative flex items-start gap-2 rounded px-2 py-2 transition-colors hover:bg-gray-50 ${
+			class={`group relative flex items-start gap-2 rounded px-2 py-2 transition-colors hover:bg-neutral-50 ${
 				isHighlighted()
-					? "sticky z-20 border-purple-400 border-l-4 bg-purple-50 shadow-md ring-1 ring-purple-200"
-					: props.isSticky
-						? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
-						: props.item.isSentByStreamer
-							? "border-purple-200 border-l-2 bg-purple-50/40"
-							: isImportantEvent(props.item.type)
-								? "bg-gray-50/50"
-								: ""
+					? "sticky z-20 border-primary border-l-4 bg-primary-50 shadow-md ring-1 ring-primary-200"
+					: isCurrentlyPlaying()
+						? "border-green-400 border-l-4 bg-green-50 ring-1 ring-green-200"
+						: props.isSticky
+							? "sticky z-10 border-amber-200 border-b bg-amber-50 shadow-sm"
+							: isPending()
+								? "border-blue-300 border-l-2 bg-blue-50/40"
+								: props.item.isSentByStreamer
+									? "border-primary-200 border-l-2 bg-primary-50/40"
+									: isImportantEvent(props.item.type)
+										? "bg-neutral-50/50"
+										: ""
 			}`}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => {
@@ -138,25 +150,25 @@ export function ActivityRow(props: ActivityRowProps) {
 						</span>
 					</Show>
 					<Show when={props.item.isSentByStreamer}>
-						<span class="text-purple-500 text-xs" title="Sent by you">
+						<span class="text-primary-light text-xs" title="Sent by you">
 							&#x2191;
 						</span>
 					</Show>
 					<Show
 						fallback={
-							<span class="font-medium text-purple-700 text-sm">You</span>
+							<span class="font-medium text-primary-hover text-sm">You</span>
 						}
 						when={!props.item.isSentByStreamer}>
 						<Show
 							fallback={
 								<span
-									class={`font-medium text-sm ${props.item.type === "chat" ? "text-gray-800" : getEventColor(props.item.type)}`}>
+									class={`font-medium text-sm ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}>
 									{props.item.username}
 								</span>
 							}
 							when={props.item.viewerId}>
 							<A
-								class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-gray-800" : getEventColor(props.item.type)}`}
+								class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
 								href={`/dashboard/viewers/${props.item.viewerId}`}>
 								{props.item.username}
 							</A>
@@ -178,7 +190,7 @@ export function ActivityRow(props: ActivityRowProps) {
 												? "bg-green-100 text-green-600"
 												: status === "failed"
 													? "bg-red-100 text-red-500"
-													: "bg-gray-100 text-gray-400"
+													: "bg-neutral-100 text-neutral-400"
 										}`}
 										title={`${platform}: ${status}`}>
 										<PlatformIcon platform={platform} size="sm" />
@@ -192,12 +204,23 @@ export function ActivityRow(props: ActivityRowProps) {
 							</For>
 						</div>
 					</Show>
-					<span class="ml-auto text-gray-400 text-xs">
+					<Show when={isCurrentlyPlaying()}>
+						<span class="ml-auto rounded bg-green-100 px-1 py-0.5 text-[10px] text-green-700">
+							&#9654; Playing
+						</span>
+					</Show>
+					<Show when={isPending() && !isCurrentlyPlaying()}>
+						<span class="ml-auto rounded bg-blue-100 px-1 py-0.5 text-[10px] text-blue-600">
+							Queued
+						</span>
+					</Show>
+					<span
+						class={`${!isCurrentlyPlaying() && !isPending() ? "ml-auto" : "ml-1"} text-neutral-400 text-xs`}>
 						{formatTimestamp(props.item.timestamp)}
 					</span>
 				</div>
 				<Show when={props.item.message}>
-					<div class="mt-0.5 whitespace-pre-wrap text-gray-700 text-sm">
+					<div class="mt-0.5 whitespace-pre-wrap text-neutral-700 text-sm">
 						{props.item.message}
 					</div>
 				</Show>
@@ -205,7 +228,7 @@ export function ActivityRow(props: ActivityRowProps) {
 
 			{/* Hover Actions - Icon-only buttons with tooltips */}
 			<Show when={isHovered() && showModerationActions()}>
-				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-gray-200">
+				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-neutral-200">
 					{/* Replay button for important events */}
 					<Show
 						when={
@@ -213,7 +236,7 @@ export function ActivityRow(props: ActivityRowProps) {
 							props.moderationCallbacks?.onReplayEvent
 						}>
 						<button
-							class="flex h-5 w-5 items-center justify-center rounded text-purple-600 transition-colors hover:bg-purple-50"
+							class="flex h-5 w-5 items-center justify-center rounded text-primary transition-colors hover:bg-primary-50"
 							data-testid="replay-button"
 							onClick={handleReplay}
 							title="Replay alert"
@@ -229,8 +252,8 @@ export function ActivityRow(props: ActivityRowProps) {
 							<button
 								class={`flex h-5 w-5 items-center justify-center rounded transition-colors ${
 									isHighlighted()
-										? "bg-purple-600 text-white hover:bg-purple-700"
-										: "text-purple-500 hover:bg-purple-50 hover:text-purple-600"
+										? "bg-primary text-white hover:bg-primary-hover"
+										: "text-primary-light hover:bg-primary-50 hover:text-primary"
 								}`}
 								data-testid="highlight-button"
 								onClick={handleHighlight}
@@ -245,7 +268,7 @@ export function ActivityRow(props: ActivityRowProps) {
 						{/* Delete message button */}
 						<Show when={props.moderationCallbacks?.onDeleteMessage}>
 							<button
-								class="flex h-5 w-5 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+								class="flex h-5 w-5 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
 								data-testid="delete-button"
 								onClick={handleDelete}
 								title="Delete message"
@@ -294,7 +317,7 @@ export function ActivityRow(props: ActivityRowProps) {
 										<Show when={showTimeoutMenu()}>
 											<Portal>
 												<div
-													class="fixed z-[9999] min-w-[60px] rounded border border-gray-200 bg-white py-0.5 shadow-lg"
+													class="fixed z-[9999] min-w-[60px] rounded border border-neutral-200 bg-white py-0.5 shadow-lg"
 													onMouseLeave={() => {
 														setShowTimeoutMenu(false);
 														setIsHovered(false);
@@ -307,7 +330,7 @@ export function ActivityRow(props: ActivityRowProps) {
 													<For each={TIMEOUT_PRESETS}>
 														{(preset) => (
 															<button
-																class="block w-full px-2 py-0.5 text-left text-gray-700 text-xs transition-colors hover:bg-amber-50"
+																class="block w-full px-2 py-0.5 text-left text-neutral-700 text-xs transition-colors hover:bg-amber-50"
 																data-testid={`timeout-${preset.label}`}
 																onClick={(e) =>
 																	handleTimeout(e, preset.seconds)

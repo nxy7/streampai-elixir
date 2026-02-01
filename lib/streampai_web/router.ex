@@ -93,7 +93,7 @@ defmodule StreampaiWeb.Router do
     scope "/dev" do
       pipe_through(:browser)
 
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 
@@ -149,29 +149,30 @@ defmodule StreampaiWeb.Router do
   scope "/api/shapes", StreampaiWeb do
     pipe_through(:electric_sync)
 
-    get "/stream_events", SyncController, :stream_events
-    get "/livestreams", SyncController, :livestreams
-    get "/viewers", SyncController, :viewers
-    get "/user_preferences/:user_id", SyncController, :user_preferences
-    get "/widget_configs/:user_id", SyncController, :widget_configs
-    get "/notifications/:user_id", SyncController, :notifications
-    get "/notification_reads/:user_id", SyncController, :notification_reads
-    get "/global_notifications", SyncController, :global_notifications
-    get "/user_roles/:user_id", SyncController, :user_roles
+    get("/stream_events", SyncController, :stream_events)
+    get("/livestreams", SyncController, :livestreams)
+    get("/viewers", SyncController, :viewers)
+    get("/user_preferences/:user_id", SyncController, :user_preferences)
+    get("/widget_configs/:user_id", SyncController, :widget_configs)
+    get("/notifications/:user_id", SyncController, :notifications)
+    get("/notification_reads/:user_id", SyncController, :notification_reads)
+    get("/global_notifications", SyncController, :global_notifications)
+    get("/user_roles/:user_id", SyncController, :user_roles)
 
     # User-scoped data endpoints
-    get "/stream_events/:user_id", SyncController, :user_stream_events
-    get "/livestreams/:user_id", SyncController, :user_livestreams
-    get "/viewers/:user_id", SyncController, :user_viewers
-    get "/streaming_accounts/:user_id", SyncController, :streaming_accounts
-    get "/highlighted_messages/:user_id", SyncController, :highlighted_messages
-    get "/current_stream_data/:user_id", SyncController, :current_stream_data
+    get("/stream_events/:user_id", SyncController, :user_stream_events)
+    get("/livestreams/:user_id", SyncController, :user_livestreams)
+    get("/viewers/:user_id", SyncController, :user_viewers)
+    get("/streaming_accounts/:user_id", SyncController, :streaming_accounts)
+    get("/highlighted_messages/:user_id", SyncController, :highlighted_messages)
+    get("/current_stream_data/:user_id", SyncController, :current_stream_data)
+    get("/stream_timers/:user_id", SyncController, :stream_timers)
   end
 
   scope "/api/shapes", StreampaiWeb do
     pipe_through(:admin_electric_sync)
 
-    get "/admin_users", SyncController, :admin_users
+    get("/admin_users", SyncController, :admin_users)
   end
 
   scope "/api/rpc", StreampaiWeb do

@@ -92,7 +92,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<For each={[1, 2, 3, 4]}>
 							{() => (
-								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 									<div class="flex items-center space-x-3">
 										<Skeleton class="h-10 w-10 rounded-lg" />
 										<div>
@@ -117,7 +117,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 							const platformStatus = () =>
 								props.platformStatuses[account.platform];
 							return (
-								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 									<div class="flex items-center space-x-3">
 										<div class="relative">
 											<PlatformIcon platform={account.platform} size="lg" />
@@ -136,11 +136,11 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 										</div>
 										<div>
 											<div class="flex items-center gap-2">
-												<span class="font-medium text-gray-900">
+												<span class="font-medium text-neutral-900">
 													{platformConfig?.name ?? account.platform}
 												</span>
 												<Show when={platformStatus()?.viewer_count != null}>
-													<span class="text-gray-500 text-xs">
+													<span class="text-neutral-500 text-xs">
 														{platformStatus()?.viewer_count === 1
 															? `1 ${t("stream.viewer")}`
 															: `${platformStatus()?.viewer_count} ${t("stream.viewers")}`}
@@ -173,17 +173,17 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 						{(platform) => (
 							<Show
 								when={!props.connectedPlatforms.has(platform.targetPlatform)}>
-								<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 									<div class="flex items-center space-x-3">
 										<PlatformIcon
 											platform={platform.targetPlatform}
 											size="lg"
 										/>
 										<div>
-											<div class="font-medium text-gray-900">
+											<div class="font-medium text-neutral-900">
 												{platform.name}
 											</div>
-											<span class="text-gray-500 text-xs">
+											<span class="text-neutral-500 text-xs">
 												{t("stream.platforms.notConnected")}
 											</span>
 										</div>

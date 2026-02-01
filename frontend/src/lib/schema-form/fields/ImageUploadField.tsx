@@ -130,10 +130,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
 			<div class="flex items-start gap-4">
 				{/* Preview area */}
-				<div class="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+				<div class="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
 					<Show
 						fallback={
-							<div class="flex h-full w-full items-center justify-center text-gray-400">
+							<div class="flex h-full w-full items-center justify-center text-neutral-400">
 								<svg
 									aria-label="Image placeholder"
 									class="h-8 w-8"
@@ -182,8 +182,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 						<button
 							class={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
 								props.disabled || isUploading()
-									? "cursor-not-allowed bg-gray-100 text-gray-400"
-									: "bg-purple-600 text-white hover:bg-purple-700"
+									? "cursor-not-allowed bg-neutral-100 text-neutral-400"
+									: "bg-primary text-white hover:bg-primary-hover"
 							}`}
 							disabled={props.disabled || isUploading()}
 							onClick={() => fileInputRef?.click()}
@@ -197,7 +197,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
 						<Show when={previewUrl() && !isUploading()}>
 							<button
-								class="rounded-lg border border-gray-300 px-3 py-1.5 text-gray-700 text-sm transition-colors hover:bg-gray-50"
+								class="rounded-lg border border-neutral-300 px-3 py-1.5 text-neutral-700 text-sm transition-colors hover:bg-neutral-50"
 								disabled={props.disabled}
 								onClick={handleClear}
 								type="button">
@@ -207,7 +207,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 					</div>
 
 					<Show when={props.field.meta.description}>
-						<p class="text-gray-500 text-xs">{props.field.meta.description}</p>
+						<p class="text-neutral-500 text-xs">
+							{props.field.meta.description}
+						</p>
 					</Show>
 
 					<Show when={error()}>

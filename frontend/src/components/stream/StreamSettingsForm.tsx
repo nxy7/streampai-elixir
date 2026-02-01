@@ -143,7 +143,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 		<div class="space-y-4">
 			{/* Title */}
 			<div>
-				<label class="block font-medium text-gray-700 text-sm">
+				<label class="block font-medium text-neutral-700 text-sm">
 					{t("stream.controls.streamTitle")}
 					<input
 						class={`${input.text} mt-1 w-full`}
@@ -157,7 +157,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 
 			{/* Description */}
 			<div>
-				<label class="block font-medium text-gray-700 text-sm">
+				<label class="block font-medium text-neutral-700 text-sm">
 					{t("stream.controls.description")}
 					<textarea
 						class={`${input.text} mt-1 w-full resize-none`}
@@ -172,16 +172,16 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 			{/* Tags */}
 			<div>
 				{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
-				<label class="block font-medium text-gray-700 text-sm">
+				<label class="block font-medium text-neutral-700 text-sm">
 					{t("stream.controls.tags")}
 				</label>
 				<div class="mt-1 flex flex-wrap gap-2">
 					<For each={tags()}>
 						{(tag, i) => (
-							<span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 font-medium text-purple-700 text-xs">
+							<span class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2.5 py-0.5 font-medium text-primary-hover text-xs">
 								{tag}
 								<button
-									class="ml-0.5 text-purple-500 hover:text-purple-800"
+									class="ml-0.5 text-primary-light hover:text-primary-800"
 									onClick={() => handleRemoveTag(i())}
 									type="button">
 									&times;
@@ -207,20 +207,20 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 			{/* Thumbnail */}
 			<div>
 				{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
-				<label class="block font-medium text-gray-700 text-sm">
+				<label class="block font-medium text-neutral-700 text-sm">
 					{t("stream.controls.thumbnail")}
 				</label>
 				<div class="mt-1">
 					<Show
 						fallback={
 							<label
-								class={`flex cursor-pointer items-center justify-center rounded-lg border-2 border-gray-300 border-dashed p-4 transition-colors ${isUploadingThumbnail() ? "pointer-events-none opacity-50" : "hover:border-purple-400 hover:bg-purple-50"}`}>
+								class={`flex cursor-pointer items-center justify-center rounded-lg border-2 border-neutral-300 border-dashed p-4 transition-colors ${isUploadingThumbnail() ? "pointer-events-none opacity-50" : "hover:border-primary hover:bg-primary-50"}`}>
 								<div class="text-center">
 									<Show
 										fallback={
 											<svg
 												aria-hidden="true"
-												class="mx-auto h-8 w-8 text-gray-400"
+												class="mx-auto h-8 w-8 text-neutral-400"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24">
@@ -233,9 +233,9 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 											</svg>
 										}
 										when={isUploadingThumbnail()}>
-										<div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+										<div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary-light border-t-transparent" />
 									</Show>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-neutral-500 text-xs">
 										{isUploadingThumbnail()
 											? t("stream.upload.uploading")
 											: t("stream.upload.clickToUpload")}
@@ -291,7 +291,7 @@ export function StreamSettingsForm(props: StreamSettingsFormProps) {
 			<Show when={props.showSave}>
 				<div class="flex justify-end">
 					<button
-						class="rounded-lg bg-purple-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-purple-700"
+						class="rounded-lg bg-primary px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-primary-hover"
 						onClick={handleSave}
 						type="button">
 						{props.saveLabel ?? t("stream.settings.save")}

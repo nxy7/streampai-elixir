@@ -31,7 +31,7 @@ export default function ViewerEngagementScore(
 		if (score >= 80) return "text-green-600";
 		if (score >= 60) return "text-blue-600";
 		if (score >= 40) return "text-yellow-600";
-		return "text-gray-600";
+		return "text-neutral-600";
 	};
 
 	const scoreGradient = () => {
@@ -39,7 +39,7 @@ export default function ViewerEngagementScore(
 		if (score >= 80) return "from-green-500 to-emerald-500";
 		if (score >= 60) return "from-blue-500 to-cyan-500";
 		if (score >= 40) return "from-yellow-500 to-orange-500";
-		return "from-gray-400 to-gray-500";
+		return "from-neutral-400 to-neutral-500";
 	};
 
 	const scoreLabel = () => {
@@ -56,10 +56,10 @@ export default function ViewerEngagementScore(
 			data-testid="engagement-score"
 			padding="sm">
 			<div class="mb-3 flex items-center justify-between">
-				<h3 class="flex items-center gap-2 font-semibold text-gray-900">
+				<h3 class="flex items-center gap-2 font-semibold text-neutral-900">
 					<svg
 						aria-hidden="true"
-						class="h-5 w-5 text-purple-600"
+						class="h-5 w-5 text-primary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ export default function ViewerEngagementScore(
 					{t("dashboard.engagementScore")}
 				</h3>
 				<span
-					class={`rounded-full bg-gray-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}>
+					class={`rounded-full bg-neutral-100 px-2 py-1 font-medium text-xs ${scoreColor()}`}>
 					{scoreLabel()}
 				</span>
 			</div>
@@ -87,13 +87,13 @@ export default function ViewerEngagementScore(
 					</div>
 				</div>
 				<div class="flex-1">
-					<div class="h-2 overflow-hidden rounded-full bg-gray-200">
+					<div class="h-2 overflow-hidden rounded-full bg-neutral-200">
 						<div
 							class={`h-full bg-linear-to-r ${scoreGradient()} transition-all duration-500`}
 							style={{ width: `${engagementScore()}%` }}
 						/>
 					</div>
-					<div class="mt-2 flex justify-between text-gray-500 text-xs">
+					<div class="mt-2 flex justify-between text-neutral-500 text-xs">
 						<span>0</span>
 						<span>50</span>
 						<span>100</span>
@@ -102,20 +102,20 @@ export default function ViewerEngagementScore(
 			</div>
 			<div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
 				<div class="flex justify-between">
-					<span class="text-gray-400">{t("dashboard.chat")}</span>
-					<span class="font-medium text-gray-600">{props.chatMessages}</span>
+					<span class="text-neutral-400">{t("dashboard.chat")}</span>
+					<span class="font-medium text-neutral-600">{props.chatMessages}</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-gray-400">{t("dashboard.followers")}</span>
-					<span class="font-medium text-gray-600">{props.follows}</span>
+					<span class="text-neutral-400">{t("dashboard.followers")}</span>
+					<span class="font-medium text-neutral-600">{props.follows}</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-gray-400">{t("dashboard.donations")}</span>
-					<span class="font-medium text-gray-600">{props.donations}</span>
+					<span class="text-neutral-400">{t("dashboard.donations")}</span>
+					<span class="font-medium text-neutral-600">{props.donations}</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-gray-400">{t("dashboard.totalValue")}</span>
-					<span class="font-medium text-gray-600">
+					<span class="text-neutral-400">{t("dashboard.totalValue")}</span>
+					<span class="font-medium text-neutral-600">
 						${props.totalDonationAmount.toFixed(0)}
 					</span>
 				</div>

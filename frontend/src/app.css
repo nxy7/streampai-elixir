@@ -5,6 +5,11 @@
     --color-primary: #9333ea; /* purple-600 */
     --color-primary-hover: #7e22ce; /* purple-700 */
     --color-primary-light: #a855f7; /* purple-500 */
+    --color-primary-50: #faf5ff; /* purple-50 - subtle bg tint */
+    --color-primary-100: #f3e8ff; /* purple-100 - light bg */
+    --color-primary-200: #e9d5ff; /* purple-200 - borders/rings */
+    --color-primary-800: #6b21a8; /* purple-800 - text on light bg */
+    --color-primary-900: #581c87; /* purple-900 - dark backgrounds */
     --color-secondary: #ec4899; /* pink-500 */
     --color-secondary-hover: #db2777; /* pink-600 */
 
@@ -26,23 +31,32 @@
     --color-error: #ef4444; /* red-500 */
     --color-info: #3b82f6; /* blue-500 */
 
-    /* Neutral Colors - Light theme */
+    /* Neutral Scale - the full gray palette for theming */
+    --color-neutral-50: #f9fafb;
+    --color-neutral-100: #f3f4f6;
+    --color-neutral-200: #e5e7eb;
+    --color-neutral-300: #d1d5db;
+    --color-neutral-400: #9ca3af;
+    --color-neutral-500: #6b7280;
+    --color-neutral-600: #4b5563;
+    --color-neutral-700: #374151;
+    --color-neutral-800: #1f2937;
+    --color-neutral-900: #111827;
+
+    /* Semantic aliases - shorthand for common uses */
     --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f9fafb; /* gray-50 */
-    --color-bg-tertiary: #f3f4f6; /* gray-100 */
+    --color-bg-secondary: var(--color-neutral-50);
+    --color-bg-tertiary: var(--color-neutral-100);
 
-    --color-text-primary: #111827; /* gray-900 */
-    --color-text-secondary: #6b7280; /* gray-500 */
-    --color-text-tertiary: #9ca3af; /* gray-400 */
-
-    --color-border: #e5e7eb; /* gray-200 */
-    --color-border-hover: #d1d5db; /* gray-300 */
+    --color-text-primary: var(--color-neutral-900);
+    --color-text-secondary: var(--color-neutral-500);
+    --color-text-tertiary: var(--color-neutral-400);
 
     /* Sidebar Colors */
-    --color-sidebar-bg: #111827; /* gray-900 */
-    --color-sidebar-text: #d1d5db; /* gray-300 */
+    --color-sidebar-bg: var(--color-neutral-900);
+    --color-sidebar-text: var(--color-neutral-300);
     --color-sidebar-text-hover: #ffffff;
-    --color-sidebar-border: #374151; /* gray-700 */
+    --color-sidebar-border: var(--color-neutral-700);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

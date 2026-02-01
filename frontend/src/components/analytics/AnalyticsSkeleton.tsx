@@ -49,8 +49,8 @@ export function AnalyticsSkeleton() {
 				</CardHeader>
 				<CardContent>
 					<div class="-mx-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-neutral-200">
+							<thead class="bg-neutral-50">
 								<tr>
 									<For each={[1, 2, 3, 4, 5, 6]}>
 										{() => (
@@ -61,7 +61,7 @@ export function AnalyticsSkeleton() {
 									</For>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-gray-200 bg-white">
+							<tbody class="divide-y divide-neutral-200 bg-white">
 								<For each={[1, 2, 3, 4, 5]}>
 									{() => <SkeletonTableRow columns={6} />}
 								</For>

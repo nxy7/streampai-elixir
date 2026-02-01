@@ -2,656 +2,378 @@ defmodule Streampai.LivestreamManager.AlertQueue do
   @moduledoc """
   GenServer that manages a priority queue of alert events for a user's alertbox.
 
-  Handles event queuing, prioritization, and cross-device synchronization.
-  Supports control commands like pause, skip, and clear.
+  Uses a simple sorted list in process memory with a single bouncing `send_after`
+  timer. Events are received via direct `enqueue_event/2` casts (no PubSub).
+
+  The current alert is written to `CurrentStreamData.active_alert` (synced to
+  frontend via Electric SQL). Queue metadata (paused, queue_size, current_event_id)
+  is written to `CurrentStreamData.alertbox_state`.
   """
   use GenServer
 
   alias Streampai.LivestreamManager.RegistryHelpers
-  alias StreampaiWeb.Utils.PubSubUtils
+  alias Streampai.Stream.CurrentStreamData
+  alias Streampai.Stream.StreamEvent
 
   require Logger
 
   defstruct [
     :user_id,
-    # Priority queue of events (lower number = higher priority)
-    :event_queue,
-    # :playing, :paused, :clearing
-    :queue_state,
-    # Timer for automatic event processing
-    :processing_timer,
-    # Processing interval in milliseconds
-    :processing_interval,
-    # Maximum queue size before dropping low-priority events
-    :max_queue_size,
-    # Event history for debugging/recovery
-    :event_history,
-    # Last time an event was processed (for minimum spacing)
-    :last_processed_at,
-    # Display time of the last processed event (for dynamic timing)
-    :last_event_display_time
+    # Sorted list of %{id, priority, event, timestamp}, head = next to display
+    alerts: [],
+    # %{id, stream_event_id, expires_at} | nil — what's currently showing
+    current_alert: nil,
+    # Whether alert processing is paused
+    paused: false,
+    # Single timer ref for the bouncing tick
+    tick_timer: nil
   ]
 
   # Event priorities (lower number = higher priority)
-  @control_priority 0
-  # donations, raids, big follows
+  @replay_priority 0
   @high_priority 1
-  # follows, subs, cheers
   @medium_priority 2
-  # chat messages
   @low_priority 3
 
-  # Public API
+  # --- Public API ---
 
   def start_link(user_id) when is_binary(user_id) do
     GenServer.start_link(__MODULE__, user_id, name: via_tuple(user_id))
   end
 
-  @doc """
-  Enqueues an alert event with automatic priority assignment.
-  """
+  @doc "Enqueues an alert event for display."
   def enqueue_event(server, event) do
     GenServer.cast(server, {:enqueue_event, event})
   end
 
-  @doc """
-  Enqueues a control command (pause, skip, clear).
-  """
-  def enqueue_control(server, command) do
-    GenServer.cast(server, {:enqueue_control, command})
+  @doc "Replays an event at the front of the queue (after current alert)."
+  def replay_event(server, event) do
+    GenServer.cast(server, {:replay_event, event})
   end
 
-  @doc """
-  Gets the current queue state and next few events.
-  """
-  def get_queue_status(server) do
-    GenServer.call(server, :get_queue_status)
-  end
+  @doc "Pauses the alertbox (clears current alert, stops processing)."
+  def pause_queue(server), do: GenServer.cast(server, :pause)
 
-  @doc """
-  Manually triggers processing the next event.
-  """
-  def process_next_event(server) do
-    GenServer.call(server, :process_next_event)
-  end
+  @doc "Resumes the alertbox."
+  def resume_queue(server), do: GenServer.cast(server, :resume)
 
-  @doc """
-  Pauses the queue processing.
-  """
-  def pause_queue(server) do
-    enqueue_control(server, :pause)
-  end
+  @doc "Skips the current alert and moves to the next one."
+  def skip_event(server), do: GenServer.cast(server, :skip)
 
-  @doc """
-  Resumes the queue processing.
-  """
-  def resume_queue(server) do
-    enqueue_control(server, :resume)
-  end
+  @doc "Clears all queued alerts and the current alert."
+  def clear_queue(server), do: GenServer.cast(server, :clear)
 
-  @doc """
-  Skips the current/next event.
-  """
-  def skip_event(server) do
-    enqueue_control(server, :skip)
-  end
+  @doc "Gets the current queue status."
+  def get_queue_status(server), do: GenServer.call(server, :get_queue_status)
 
-  @doc """
-  Clears all non-control events from the queue.
-  """
-  def clear_queue(server) do
-    enqueue_control(server, :clear)
-  end
+  # Keep old API for compatibility
+  def enqueue_control(server, command), do: GenServer.cast(server, command)
+  def process_next_event(server), do: GenServer.call(server, :get_queue_status)
 
-  # Server callbacks
+  # --- Server callbacks ---
 
   @impl true
   def init(user_id) do
-    config = load_config()
-
-    state = %__MODULE__{
-      user_id: user_id,
-      event_queue: :queue.new(),
-      queue_state: :playing,
-      processing_timer: nil,
-      processing_interval: config.processing_interval,
-      max_queue_size: config.max_queue_size,
-      event_history: [],
-      last_processed_at: nil,
-      last_event_display_time: nil
-    }
-
-    # Subscribe to donation and other alert events for this user
-    Logger.info("AlertQueue subscribing to PubSub channels for user #{user_id}")
-
-    subscription_results = PubSubUtils.subscribe_to_user_alerts(user_id)
-
-    failed_subscriptions =
-      Enum.filter(subscription_results, fn {_topic, result} -> result != :ok end)
-
-    if failed_subscriptions != [] do
-      Logger.warning("Some AlertQueue PubSub subscriptions failed", %{
-        user_id: user_id,
-        failed: failed_subscriptions
-      })
-    end
-
-    Logger.info("AlertQueue PubSub subscription completed", %{
-      user_id: user_id,
-      total_subscriptions: length(subscription_results),
-      failed_subscriptions: length(failed_subscriptions)
-    })
-
-    # Start processing timer
-    state = schedule_next_processing(state)
-
-    Logger.info("AlertQueue started for user #{user_id} - subscribed to alert channels")
+    state = %__MODULE__{user_id: user_id}
+    sync_alertbox_state(state)
+    Logger.info("AlertQueue started for user #{user_id}")
     {:ok, state}
   end
 
   @impl true
   def handle_cast({:enqueue_event, event}, state) do
-    priority = determine_event_priority(event)
+    priority = determine_priority(event)
 
-    prioritized_event = %{
-      id: generate_event_id(),
+    alert = %{
+      id: generate_id(),
       priority: priority,
       event: event,
-      timestamp: DateTime.utc_now(),
-      type: :event
+      timestamp: DateTime.utc_now()
     }
 
-    state = add_to_queue(state, prioritized_event)
-    broadcast_queue_update(state)
+    alerts = insert_sorted(state.alerts, alert)
+    state = %{state | alerts: alerts}
+
+    sync_alertbox_state(state)
+
+    # Kick the loop if nothing is currently displaying
+    state =
+      if is_nil(state.current_alert) and not state.paused do
+        schedule_tick(state, 0)
+      else
+        state
+      end
 
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast({:enqueue_control, command}, state) do
-    control_event = %{
-      id: generate_event_id(),
-      priority: @control_priority,
-      command: command,
-      timestamp: DateTime.utc_now(),
-      type: :control
+  def handle_cast({:replay_event, event}, state) do
+    stream_event_id = Map.get(event, :stream_event_id)
+
+    # Remove any existing entry with same stream_event_id
+    alerts =
+      if stream_event_id do
+        Enum.reject(state.alerts, fn a ->
+          Map.get(a.event, :stream_event_id) == stream_event_id
+        end)
+      else
+        state.alerts
+      end
+
+    alert = %{
+      id: generate_id(),
+      priority: @replay_priority,
+      event: event,
+      timestamp: DateTime.utc_now()
     }
 
-    state = add_to_queue(state, control_event)
-    broadcast_queue_update(state)
+    # Prepend (priority 0 sorts before everything)
+    alerts = [alert | alerts]
+    state = %{state | alerts: alerts}
 
-    # Process control commands immediately
-    {_result, state} = process_next_event_internal(state)
+    sync_alertbox_state(state)
 
+    state =
+      if is_nil(state.current_alert) and not state.paused do
+        schedule_tick(state, 0)
+      else
+        state
+      end
+
+    Logger.info("AlertQueue replaying event",
+      user_id: state.user_id,
+      stream_event_id: stream_event_id
+    )
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(:pause, state) do
+    state = cancel_timer(state)
+    state = clear_current_alert(state)
+    state = %{state | paused: true}
+    sync_alertbox_state(state)
+    Logger.info("AlertQueue paused", user_id: state.user_id)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(:resume, state) do
+    state = %{state | paused: false}
+    sync_alertbox_state(state)
+    state = schedule_tick(state, 0)
+    Logger.info("AlertQueue resumed", user_id: state.user_id)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(:skip, state) do
+    state = clear_current_alert(state)
+    state = schedule_tick(state, 0)
+    sync_alertbox_state(state)
+    Logger.info("AlertQueue skipped", user_id: state.user_id)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(:clear, state) do
+    state = cancel_timer(state)
+    state = clear_current_alert(state)
+    state = %{state | alerts: []}
+    sync_alertbox_state(state)
+    Logger.info("AlertQueue cleared", user_id: state.user_id)
     {:noreply, state}
   end
 
   @impl true
   def handle_call(:get_queue_status, _from, state) do
-    queue_list = :queue.to_list(state.event_queue)
-
     status = %{
-      queue_state: state.queue_state,
-      queue_length: length(queue_list),
-      next_events: Enum.take(queue_list, 5),
-      recent_history: Enum.take(state.event_history, 10)
+      paused: state.paused,
+      queue_size: length(state.alerts),
+      current_alert: state.current_alert,
+      next_events: Enum.take(state.alerts, 5)
     }
 
     {:reply, status, state}
   end
 
   @impl true
-  def handle_call(:process_next_event, _from, state) do
-    {result, new_state} = process_next_event_internal(state)
-    {:reply, result, new_state}
-  end
-
-  @impl true
-  def handle_info(:process_next_event, state) do
-    Logger.debug("AlertQueue timer triggered", %{
-      user_id: state.user_id,
-      queue_length: :queue.len(state.event_queue),
-      queue_state: state.queue_state
-    })
-
-    {_result, state} = process_next_event_internal(state)
-    state = schedule_next_processing(state)
+  def handle_info(:tick, state) do
+    state = process_tick(state)
     {:noreply, state}
   end
 
-  # Handle donation events from PubSub
+  # Catch-all
   @impl true
-  def handle_info({:new_donation, donation_data}, state) do
-    Logger.info("AlertQueue received donation PubSub message", %{
-      user_id: state.user_id,
-      donation_data: donation_data
-    })
+  def handle_info(_msg, state), do: {:noreply, state}
 
-    # Transform donation data to AlertQueue event format
-    event = %{
-      type: :donation,
-      username: donation_data.donor_name || "Anonymous",
-      message: donation_data.message,
-      amount: donation_data.amount,
-      currency: donation_data.currency,
-      # Donations from web interface
-      platform: :web,
-      timestamp: donation_data.timestamp
-    }
+  # --- Tick loop ---
 
-    Logger.info("AlertQueue transformed donation event", %{
-      user_id: state.user_id,
-      event: event
-    })
+  defp process_tick(%{paused: true} = state), do: state
 
-    # Add to queue
-    state = add_event_to_queue(state, event)
-    broadcast_queue_update(state)
+  defp process_tick(%{current_alert: %{expires_at: expires_at}} = state) do
+    now = System.monotonic_time(:millisecond)
 
-    Logger.info("AlertQueue queued donation event", %{
-      user_id: state.user_id,
-      queue_length: :queue.len(state.event_queue)
-    })
-
-    {:noreply, state}
-  end
-
-  # Handle other event types
-  @impl true
-  def handle_info({:new_follow, follow_data}, state) do
-    event = %{
-      type: :follow,
-      username: get_field(follow_data, :username, "Anonymous"),
-      platform: get_field(follow_data, :platform, :twitch),
-      timestamp: get_field(follow_data, :timestamp) || DateTime.utc_now()
-    }
-
-    state = add_event_to_queue(state, event)
-    broadcast_queue_update(state)
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_info({:new_subscription, sub_data}, state) do
-    event = %{
-      type: :subscription,
-      username: get_field(sub_data, :username, "Anonymous"),
-      tier: get_field(sub_data, :tier, "1"),
-      months: get_field(sub_data, :months, 1),
-      message: get_field(sub_data, :message),
-      platform: get_field(sub_data, :platform, :twitch),
-      timestamp: get_field(sub_data, :timestamp) || DateTime.utc_now()
-    }
-
-    state = add_event_to_queue(state, event)
-    broadcast_queue_update(state)
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_info({:new_raid, raid_data}, state) do
-    event = %{
-      type: :raid,
-      username: get_field(raid_data, :username, "Anonymous"),
-      viewer_count: get_field(raid_data, :viewer_count, 0),
-      platform: get_field(raid_data, :platform, :twitch),
-      timestamp: get_field(raid_data, :timestamp) || DateTime.utc_now()
-    }
-
-    state = add_event_to_queue(state, event)
-    broadcast_queue_update(state)
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_info({:new_cheer, cheer_data}, state) do
-    event = %{
-      type: :cheer,
-      username: get_field(cheer_data, :username, "Anonymous"),
-      bits: get_field(cheer_data, :bits, 0),
-      message: get_field(cheer_data, :message),
-      platform: get_field(cheer_data, :platform, :twitch),
-      timestamp: get_field(cheer_data, :timestamp) || DateTime.utc_now()
-    }
-
-    state = add_event_to_queue(state, event)
-    broadcast_queue_update(state)
-    {:noreply, state}
-  end
-
-  # Catch-all for other messages
-  @impl true
-  def handle_info(_msg, state) do
-    {:noreply, state}
-  end
-
-  # Helper functions
-
-  defp via_tuple(user_id) do
-    RegistryHelpers.via_tuple(:alert_queue, user_id)
-  end
-
-  # Safely extract a field from event data, supporting both maps and structs with atom or string keys
-  defp get_field(data, key, default \\ nil)
-  defp get_field(nil, _key, default), do: default
-
-  defp get_field(data, key, default) when is_map(data) and is_atom(key) do
-    Map.get(data, key) || Map.get(data, to_string(key)) || default
-  end
-
-  defp load_config do
-    %{
-      processing_interval: Application.get_env(:streampai, :alert_processing_interval, 5000),
-      max_queue_size: Application.get_env(:streampai, :max_alert_queue_size, 50)
-    }
-  end
-
-  defp determine_event_priority(event) do
-    case event.type do
-      :donation -> donation_priority(event)
-      :raid -> raid_priority(event)
-      :follow -> follow_priority(event)
-      :subscription -> @medium_priority
-      :cheer -> cheer_priority(event)
-      :chat_message -> @low_priority
-      _ -> @medium_priority
+    if now >= expires_at do
+      # Current alert expired — clear it, then fall through to show next
+      state = clear_current_alert(state)
+      process_tick(state)
+    else
+      # Not expired yet — reschedule at expiry
+      remaining = expires_at - now
+      schedule_tick(state, remaining)
     end
   end
 
-  defp donation_priority(%{amount: amount}) when amount >= 10.00, do: @high_priority
-  defp donation_priority(_), do: @medium_priority
+  defp process_tick(%{current_alert: nil, alerts: []} = state), do: state
 
-  defp raid_priority(%{viewer_count: viewer_count}) when viewer_count >= 10, do: @high_priority
-  defp raid_priority(_), do: @medium_priority
+  defp process_tick(%{current_alert: nil, alerts: [next | rest]} = state) do
+    display_time = Map.get(next.event, :display_time, 10)
+    display_ms = display_time * 1000
+    now = System.monotonic_time(:millisecond)
 
-  defp follow_priority(%{is_verified: true}), do: @high_priority
-  defp follow_priority(%{follower_count: count}) when count >= 1000, do: @high_priority
-  defp follow_priority(_), do: @medium_priority
+    stream_event_id = Map.get(next.event, :stream_event_id)
+    alert_data = build_alert_data(next, display_ms)
 
-  defp cheer_priority(%{bits: bits}) when bits >= 100, do: @medium_priority
-  defp cheer_priority(_), do: @low_priority
+    case CurrentStreamData.set_active_alert_for_user(state.user_id, alert_data) do
+      {:ok, _} ->
+        Logger.info("AlertQueue displaying alert",
+          user_id: state.user_id,
+          alert_id: next.id,
+          type: next.event.type,
+          display_time: display_time
+        )
 
-  defp add_to_queue(state, item) do
-    # Check if queue is at capacity
-    queue_size = :queue.len(state.event_queue)
+        # Mark stream event as displayed (fire-and-forget)
+        maybe_mark_displayed(stream_event_id)
 
-    state =
-      if queue_size >= state.max_queue_size do
-        # Remove lowest priority items to make room
-        drop_low_priority_events(state)
-      else
-        state
-      end
+      {:error, reason} ->
+        Logger.warning("Failed to write active alert: #{inspect(reason)}")
+    end
 
-    # Insert item in priority order
-    new_queue = insert_by_priority(state.event_queue, item)
+    current = %{id: next.id, stream_event_id: stream_event_id, expires_at: now + display_ms}
+    state = %{state | alerts: rest, current_alert: current}
 
-    %{state | event_queue: new_queue}
+    sync_alertbox_state(state)
+    schedule_tick(state, display_ms)
   end
 
-  defp insert_by_priority(queue, new_item) do
-    queue_list = :queue.to_list(queue)
+  # --- Helpers ---
 
-    # Find insertion point (sort by priority, then by timestamp)
-    {before, remaining} =
-      Enum.split_while(queue_list, fn item ->
-        item.priority < new_item.priority or
-          (item.priority == new_item.priority and
-             DateTime.compare(item.timestamp, new_item.timestamp) != :gt)
-      end)
+  defp clear_current_alert(%{current_alert: nil} = state), do: state
 
-    # Rebuild queue with new item inserted
-    Enum.reduce(before ++ [new_item] ++ remaining, :queue.new(), fn item, acc ->
-      :queue.in(item, acc)
+  defp clear_current_alert(state) do
+    CurrentStreamData.clear_active_alert_for_user(state.user_id, state.current_alert.id)
+    %{state | current_alert: nil}
+  end
+
+  defp maybe_mark_displayed(nil), do: :ok
+
+  defp maybe_mark_displayed(stream_event_id) do
+    Task.start(fn ->
+      case Ash.get(StreamEvent, stream_event_id) do
+        {:ok, event} ->
+          Ash.update(event, %{},
+            action: :mark_as_displayed,
+            actor: Streampai.SystemActor.system()
+          )
+
+        {:error, _} ->
+          :ok
+      end
     end)
   end
 
-  defp drop_low_priority_events(state) do
-    queue_list = :queue.to_list(state.event_queue)
+  defp schedule_tick(state, delay_ms) do
+    state = cancel_timer(state)
+    timer = Process.send_after(self(), :tick, max(trunc(delay_ms), 0))
+    %{state | tick_timer: timer}
+  end
 
-    # Keep control and high-priority events, drop some low-priority ones
-    kept_events =
-      queue_list
-      |> Enum.sort_by(fn item -> {item.priority, item.timestamp} end)
-      # Leave room for new event
-      |> Enum.take(state.max_queue_size - 1)
+  defp cancel_timer(%{tick_timer: nil} = state), do: state
 
-    new_queue =
-      Enum.reduce(kept_events, :queue.new(), fn item, acc ->
-        :queue.in(item, acc)
+  defp cancel_timer(%{tick_timer: timer} = state) do
+    Process.cancel_timer(timer)
+    %{state | tick_timer: nil}
+  end
+
+  defp build_alert_data(alert, duration_ms) do
+    event = alert.event
+
+    %{
+      "id" => alert.id,
+      "type" => to_string(event.type),
+      "username" => Map.get(event, :username) || Map.get(event, :donor_name, "Unknown"),
+      "message" => Map.get(event, :message),
+      "amount" => Map.get(event, :amount),
+      "currency" => Map.get(event, :currency),
+      "platform" => to_string(Map.get(event, :platform, "unknown")),
+      "started_at" => DateTime.to_iso8601(DateTime.utc_now()),
+      "duration" => duration_ms,
+      "tts_url" => Map.get(event, :tts_url),
+      "stream_event_id" => Map.get(event, :stream_event_id)
+    }
+  end
+
+  defp insert_sorted(alerts, new_alert) do
+    {before, after_} =
+      Enum.split_while(alerts, fn a ->
+        a.priority < new_alert.priority or
+          (a.priority == new_alert.priority and
+             DateTime.compare(a.timestamp, new_alert.timestamp) != :gt)
       end)
 
-    dropped_count = length(queue_list) - length(kept_events)
-
-    if dropped_count > 0 do
-      Logger.info("Dropped #{dropped_count} low-priority events for user #{state.user_id}")
-    end
-
-    %{state | event_queue: new_queue}
+    before ++ [new_alert] ++ after_
   end
 
-  defp process_next_event_internal(state) do
-    case :queue.out(state.event_queue) do
-      {{:value, item}, new_queue} ->
-        state = %{state | event_queue: new_queue}
-        handle_queue_item(state, item)
+  defp determine_priority(event) do
+    case event.type do
+      :donation ->
+        if (Map.get(event, :amount) || 0) >= 10.0, do: @high_priority, else: @medium_priority
 
-      {:empty, _} ->
-        {:empty_queue, state}
-    end
-  end
+      :raid ->
+        if (Map.get(event, :viewer_count) || 0) >= 10, do: @high_priority, else: @medium_priority
 
-  defp handle_queue_item(state, %{type: :control, command: command}) do
-    handle_control_command(state, command)
-  end
+      :subscription ->
+        @medium_priority
 
-  defp handle_queue_item(state, %{type: :event} = item) do
-    if state.queue_state == :playing do
-      process_event(state, item)
-    else
-      # Queue is paused, put event back
-      new_queue = :queue.in_r(item, state.event_queue)
-      state = %{state | event_queue: new_queue}
-      {:paused, state}
+      :cheer ->
+        if (Map.get(event, :bits) || 0) >= 100, do: @medium_priority, else: @low_priority
+
+      :follow ->
+        @medium_priority
+
+      _ ->
+        @medium_priority
     end
   end
 
-  defp handle_control_command(state, command) do
-    case command do
-      :pause ->
-        state = %{state | queue_state: :paused}
+  defp sync_alertbox_state(state) do
+    current_event_id =
+      case state.current_alert do
+        %{stream_event_id: id} -> id
+        _ -> nil
+      end
 
-        Logger.info("AlertQueue control: PAUSE", %{
-          user_id: state.user_id,
-          queue_length: :queue.len(state.event_queue)
-        })
-
-        broadcast_queue_update(state)
-        {:paused, state}
-
-      :resume ->
-        state = %{state | queue_state: :playing}
-
-        Logger.info("AlertQueue control: RESUME", %{
-          user_id: state.user_id,
-          queue_length: :queue.len(state.event_queue)
-        })
-
-        broadcast_queue_update(state)
-        {:resumed, state}
-
-      :skip ->
-        # Skip the next event (if any)
-        case :queue.out(state.event_queue) do
-          {{:value, skipped_item}, new_queue} ->
-            state = %{state | event_queue: new_queue}
-            add_to_history(state, skipped_item, :skipped)
-
-            Logger.info("AlertQueue control: SKIP", %{
-              user_id: state.user_id,
-              skipped_event_id: skipped_item.id,
-              skipped_event_type: skipped_item.event.type,
-              queue_length_after: :queue.len(new_queue)
-            })
-
-            broadcast_queue_update(state)
-            {:skipped, state}
-
-          {:empty, _} ->
-            Logger.info("AlertQueue control: SKIP (nothing to skip)", %{
-              user_id: state.user_id
-            })
-
-            {:nothing_to_skip, state}
-        end
-
-      :clear ->
-        # Remove all non-control events
-        queue_list = :queue.to_list(state.event_queue)
-        control_events = Enum.filter(queue_list, fn item -> item.type == :control end)
-
-        new_queue =
-          Enum.reduce(control_events, :queue.new(), fn item, acc ->
-            :queue.in(item, acc)
-          end)
-
-        cleared_count = length(queue_list) - length(control_events)
-        state = %{state | event_queue: new_queue}
-
-        Logger.info("AlertQueue control: CLEAR", %{
-          user_id: state.user_id,
-          cleared_count: cleared_count,
-          remaining_count: length(control_events)
-        })
-
-        broadcast_queue_update(state)
-        {:cleared, state}
-    end
-  end
-
-  defp process_event(state, item) do
-    # Log the event processing with details
-    Logger.info("AlertQueue processing event for user #{state.user_id}", %{
-      event_id: item.id,
-      event_type: item.event.type,
-      priority: item.priority,
-      username: Map.get(item.event, :username, "unknown"),
-      queue_length_after: :queue.len(state.event_queue)
-    })
-
-    # Broadcast the event to alertbox subscribers
-    PubSubUtils.broadcast_alert_event(state.user_id, item.event)
-
-    # Get display time for this event (use event's display_time or default to 8)
-    display_time = Map.get(item.event, :display_time, 10)
-
-    # Add to history and update last processed time + display time
-    state =
-      state
-      |> add_to_history(item, :processed)
-      |> Map.put(:last_processed_at, DateTime.utc_now())
-      |> Map.put(:last_event_display_time, display_time)
-
-    # Log successful processing
-    Logger.debug("Successfully processed alert event", %{
-      user_id: state.user_id,
-      event_id: item.id,
-      event_type: item.event.type
-    })
-
-    broadcast_queue_update(state)
-
-    {:processed, state}
-  end
-
-  defp add_to_history(state, item, status) do
-    history_entry = %{
-      id: item.id,
-      event: item.event,
-      status: status,
-      processed_at: DateTime.utc_now()
+    data = %{
+      "paused" => state.paused,
+      "queue_size" => length(state.alerts),
+      "current_event_id" => current_event_id
     }
 
-    # Keep last 50 entries
-    new_history = Enum.take([history_entry | state.event_history], 50)
-
-    %{state | event_history: new_history}
-  end
-
-  defp schedule_next_processing(state) do
-    if state.processing_timer do
-      Process.cancel_timer(state.processing_timer)
-    end
-
-    # Calculate delay based on last processed time to ensure minimum spacing
-    delay = calculate_processing_delay(state)
-
-    Logger.debug("AlertQueue scheduling next processing", %{
-      user_id: state.user_id,
-      delay: delay,
-      queue_length: :queue.len(state.event_queue),
-      last_processed_at: state.last_processed_at,
-      last_event_display_time: state.last_event_display_time
-    })
-
-    timer = Process.send_after(self(), :process_next_event, delay)
-    %{state | processing_timer: timer}
-  end
-
-  defp calculate_processing_delay(state) do
-    case state.last_processed_at do
-      nil ->
-        # No previous event, process immediately if queue has items
-        if :queue.len(state.event_queue) > 0, do: 100, else: state.processing_interval
-
-      last_processed ->
-        # Use the last processed event's display_time to determine when next event can start
-        # Default to 8 seconds if not specified
-        last_display_time = state.last_event_display_time || 8
-        # Add 3 second buffer to prevent overlap, convert to milliseconds
-        required_delay = (last_display_time + 3) * 1000
-
-        time_since_last = DateTime.diff(DateTime.utc_now(), last_processed, :millisecond)
-
-        if time_since_last >= required_delay do
-          # Enough time has passed based on last event's display time, process soon
-          100
-        else
-          # Not enough time, wait for the remaining delay
-          remaining_delay = required_delay - time_since_last
-          # Ensure minimum 100ms delay for system responsiveness
-          max(remaining_delay, 100)
-        end
+    case CurrentStreamData.update_alertbox_state_for_user(state.user_id, data) do
+      {:ok, _} -> :ok
+      {:error, reason} -> Logger.debug("Failed to sync alertbox_state: #{inspect(reason)}")
     end
   end
 
-  defp broadcast_queue_update(state) do
-    queue_length = :queue.len(state.event_queue)
-
-    queue_data = %{
-      queue_state: state.queue_state,
-      queue_length: queue_length,
-      timestamp: DateTime.utc_now()
-    }
-
-    PubSubUtils.broadcast_queue_update(state.user_id, queue_data)
-  end
-
-  defp add_event_to_queue(state, event) do
-    priority = determine_event_priority(event)
-
-    prioritized_event = %{
-      id: generate_event_id(),
-      priority: priority,
-      event: event,
-      timestamp: DateTime.utc_now(),
-      type: :event
-    }
-
-    add_to_queue(state, prioritized_event)
-  end
-
-  defp generate_event_id do
+  defp generate_id do
     "alert_#{8 |> :crypto.strong_rand_bytes() |> Base.encode64() |> String.slice(0, 12)}"
+  end
+
+  defp via_tuple(user_id) do
+    RegistryHelpers.via_tuple(:alert_queue, user_id)
   end
 end

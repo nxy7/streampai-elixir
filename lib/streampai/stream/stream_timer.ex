@@ -2,18 +2,19 @@ defmodule Streampai.Stream.StreamTimer do
   @moduledoc """
   Represents a recurring timer that sends messages at intervals during a stream.
 
-  Timers are used by streamers to:
-  - Send periodic messages to chat (e.g., reminders, promotions, social links)
-  - Automate recurring announcements at set intervals
+  Timers are purely configurational — they store the message content and interval.
+  Fire times are computed at runtime from the stream's `started_at` timestamp:
 
-  ## How it works
-  - `interval_seconds` defines how often the message should be sent
-  - `next_fire_at` tracks when the next message will be sent
-  - `is_active` controls whether the timer is currently running
+    next_fire = stream_started_at + ceil(elapsed / interval_seconds) * interval_seconds
 
-  The Elixir actor process (StreamTimerActor) periodically checks active timers
-  and sends messages when `next_fire_at` is reached, then updates it to the next interval.
-  This approach prevents time drift and avoids constant DB updates for remaining time.
+  The `StreamTimerServer` GenServer runs only during active livestreams,
+  computes fire times, and sends chat messages via `StreamManager.send_chat_message/2`.
+
+  ## Fields
+  - `label` — display name
+  - `content` — message to send when timer fires
+  - `interval_seconds` — how often to send (30s–3h)
+  - `disabled_at` — when set, the timer is disabled and won't fire
   """
   use Ash.Resource,
     otp_app: :streampai,
@@ -30,8 +31,7 @@ defmodule Streampai.Stream.StreamTimer do
 
     custom_indexes do
       index [:user_id], name: "idx_stream_timers_user_id"
-      index [:user_id, :is_active], name: "idx_stream_timers_user_active"
-      index [:is_active, :next_fire_at], name: "idx_stream_timers_active_next_fire"
+      index [:user_id, :disabled_at], name: "idx_stream_timers_user_disabled"
     end
   end
 
@@ -45,15 +45,24 @@ defmodule Streampai.Stream.StreamTimer do
     define :update
     define :destroy
     define :create_timer, args: [:label, :content, :interval_seconds]
-    define :start_timer, args: [:id]
-    define :stop_timer, args: [:id]
+    define :enable_timer, args: [:id]
+    define :disable_timer, args: [:id]
     define :get_for_user, args: [:user_id]
-    define :get_active_timers
-    define :mark_fired, args: [:id]
+    define :get_enabled_for_user, args: [:user_id]
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
+
+    destroy :destroy do
+      primary? true
+      require_atomic? false
+
+      change after_action(fn _changeset, record, _context ->
+               broadcast_change(record.user_id)
+               {:ok, record}
+             end)
+    end
 
     create :create do
       primary? true
@@ -82,52 +91,51 @@ defmodule Streampai.Stream.StreamTimer do
       change set_attribute(:label, arg(:label))
       change set_attribute(:content, arg(:content))
       change set_attribute(:interval_seconds, arg(:interval_seconds))
-      change set_attribute(:is_active, false)
+
+      change after_action(fn _changeset, record, _context ->
+               broadcast_change(record.user_id)
+               {:ok, record}
+             end)
     end
 
     update :update do
       primary? true
+      require_atomic? false
       accept [:label, :content, :interval_seconds]
+
+      change after_action(fn _changeset, record, _context ->
+               broadcast_change(record.user_id)
+               {:ok, record}
+             end)
     end
 
-    update :start_timer do
-      description "Start the timer - sets next_fire_at to now + interval"
+    update :enable_timer do
+      description "Enable the timer (clear disabled_at)"
+      argument :id, :uuid, allow_nil?: false
+
+      require_atomic? false
+      change set_attribute(:disabled_at, nil)
+
+      change after_action(fn _changeset, record, _context ->
+               broadcast_change(record.user_id)
+               {:ok, record}
+             end)
+    end
+
+    update :disable_timer do
+      description "Disable the timer (set disabled_at to now)"
       require_atomic? false
 
       argument :id, :uuid, allow_nil?: false
 
       change fn changeset, _context ->
-        timer = changeset.data
-        next_fire = DateTime.add(DateTime.utc_now(), timer.interval_seconds, :second)
-
-        changeset
-        |> Ash.Changeset.change_attribute(:is_active, true)
-        |> Ash.Changeset.change_attribute(:next_fire_at, next_fire)
+        Ash.Changeset.change_attribute(changeset, :disabled_at, DateTime.utc_now())
       end
-    end
 
-    update :stop_timer do
-      description "Stop the timer"
-      require_atomic? false
-
-      argument :id, :uuid, allow_nil?: false
-
-      change set_attribute(:is_active, false)
-      change set_attribute(:next_fire_at, nil)
-    end
-
-    update :mark_fired do
-      description "Called by actor after sending message - updates next_fire_at"
-      require_atomic? false
-
-      argument :id, :uuid, allow_nil?: false
-
-      change fn changeset, _context ->
-        timer = changeset.data
-        next_fire = DateTime.add(DateTime.utc_now(), timer.interval_seconds, :second)
-
-        Ash.Changeset.change_attribute(changeset, :next_fire_at, next_fire)
-      end
+      change after_action(fn _changeset, record, _context ->
+               broadcast_change(record.user_id)
+               {:ok, record}
+             end)
     end
 
     read :get_for_user do
@@ -139,11 +147,13 @@ defmodule Streampai.Stream.StreamTimer do
       prepare build(sort: [inserted_at: :desc])
     end
 
-    read :get_active_timers do
-      description "Get all active timers that need to fire (for the actor)"
+    read :get_enabled_for_user do
+      description "Get all enabled timers for a user"
 
-      filter expr(is_active == true and next_fire_at <= ^DateTime.utc_now())
-      prepare build(sort: [next_fire_at: :asc])
+      argument :user_id, :uuid, allow_nil?: false
+
+      filter expr(user_id == ^arg(:user_id) and is_nil(disabled_at))
+      prepare build(sort: [inserted_at: :desc])
     end
   end
 
@@ -157,12 +167,7 @@ defmodule Streampai.Stream.StreamTimer do
       authorize_if expr(user_id == ^actor(:id))
     end
 
-    # Allow the system to read active timers without actor
-    policy action(:get_active_timers) do
-      authorize_if always()
-    end
-
-    policy action(:mark_fired) do
+    policy action(:get_enabled_for_user) do
       authorize_if always()
     end
 
@@ -203,17 +208,11 @@ defmodule Streampai.Stream.StreamTimer do
       description "Interval between messages in seconds (min 30s, max 3 hours)"
     end
 
-    attribute :is_active, :boolean do
-      allow_nil? false
-      public? true
-      default false
-      description "Whether the timer is currently active"
-    end
-
-    attribute :next_fire_at, :utc_datetime_usec do
+    attribute :disabled_at, :utc_datetime_usec do
       allow_nil? true
       public? true
-      description "When the next message should be sent"
+      default nil
+      description "When set, the timer is disabled and won't fire during streams"
     end
 
     timestamps(public?: true)
@@ -225,5 +224,14 @@ defmodule Streampai.Stream.StreamTimer do
       attribute_writable? true
       description "The user who owns this timer"
     end
+  end
+
+  # Broadcast timer config changes so StreamTimerServer can react
+  defp broadcast_change(user_id) do
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "stream_timers:#{user_id}",
+      :timers_changed
+    )
   end
 end

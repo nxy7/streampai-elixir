@@ -254,7 +254,7 @@ export function SchemaForm<T extends z.ZodRawShape>(
 			<For each={Object.entries(introspected().groups)}>
 				{([groupName, fields]) => (
 					<div class="space-y-4">
-						<h3 class="border-gray-200 border-b pb-2 font-medium text-gray-900 text-sm">
+						<h3 class="border-neutral-200 border-b pb-2 font-medium text-neutral-900 text-sm">
 							{resolveGroupName(groupName, fields, props.t)}
 						</h3>
 						<div class="space-y-4">

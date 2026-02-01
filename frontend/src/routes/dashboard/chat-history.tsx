@@ -45,7 +45,7 @@ function ChatHistorySkeleton() {
 				<div class="space-y-3">
 					<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
 						{() => (
-							<div class="rounded-lg border border-gray-200 p-4">
+							<div class="rounded-lg border border-neutral-200 p-4">
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<Skeleton class="h-5 w-24" />
 									<Skeleton class="h-5 w-16 rounded-full" />
@@ -130,11 +130,11 @@ export default function ChatHistory() {
 							<h2 class="mb-4 font-bold text-2xl text-white">
 								{t("chatHistory.empty.notAuthenticated")}
 							</h2>
-							<p class="mb-6 text-gray-300">
+							<p class="mb-6 text-neutral-300">
 								{t("chatHistory.empty.signInToView")}
 							</p>
 							<a
-								class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 								href={getLoginUrl()}>
 								{t("chatHistory.empty.signIn")}
 							</a>
@@ -247,7 +247,7 @@ function ChatHistoryContent(props: {
 					{/* Platform Filter */}
 					<div>
 						<label
-							class="block font-medium text-gray-700 text-sm"
+							class="block font-medium text-neutral-700 text-sm"
 							for="chat-platform-filter">
 							{t("chatHistory.filters.platform")}
 						</label>
@@ -269,7 +269,7 @@ function ChatHistoryContent(props: {
 					{/* Date Range Filter */}
 					<div>
 						<label
-							class="block font-medium text-gray-700 text-sm"
+							class="block font-medium text-neutral-700 text-sm"
 							for="chat-date-range">
 							{t("chatHistory.filters.dateRange")}
 						</label>
@@ -296,7 +296,7 @@ function ChatHistoryContent(props: {
 					{/* Search */}
 					<div>
 						<label
-							class="block font-medium text-gray-700 text-sm"
+							class="block font-medium text-neutral-700 text-sm"
 							for="chat-search">
 							{t("chatHistory.filters.search")}
 						</label>
@@ -315,7 +315,7 @@ function ChatHistoryContent(props: {
 
 				{/* Active Filters Summary */}
 				<Show when={props.platform() || props.dateRange() || props.search()}>
-					<div class="flex items-center gap-2 text-gray-600 text-sm">
+					<div class="flex items-center gap-2 text-neutral-600 text-sm">
 						<span class="font-medium">
 							{t("chatHistory.filters.activeFilters")}
 						</span>
@@ -336,7 +336,7 @@ function ChatHistoryContent(props: {
 							<Badge variant="info">"{props.search()}"</Badge>
 						</Show>
 						<button
-							class="ml-2 font-medium text-purple-600 text-sm hover:text-purple-700"
+							class="ml-2 font-medium text-primary text-sm hover:text-primary-hover"
 							onClick={() => {
 								props.setPlatform("");
 								props.setDateRange("");
@@ -355,10 +355,10 @@ function ChatHistoryContent(props: {
 
 				<Show
 					fallback={
-						<div class="py-12 text-center text-gray-500">
+						<div class="py-12 text-center text-neutral-500">
 							<svg
 								aria-hidden="true"
-								class="mx-auto mb-4 h-16 w-16 text-gray-400"
+								class="mx-auto mb-4 h-16 w-16 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -369,10 +369,10 @@ function ChatHistoryContent(props: {
 									stroke-width="2"
 								/>
 							</svg>
-							<p class="font-medium text-gray-700 text-lg">
+							<p class="font-medium text-lg text-neutral-700">
 								{t("chatHistory.messages.noMessages")}
 							</p>
-							<p class="mt-2 text-gray-500 text-sm">
+							<p class="mt-2 text-neutral-500 text-sm">
 								{props.platform() || props.dateRange() || props.search()
 									? t("chatHistory.messages.adjustFilters")
 									: t("chatHistory.messages.connectAccounts")}
@@ -383,20 +383,20 @@ function ChatHistoryContent(props: {
 					<div class="space-y-3">
 						<For each={messages()}>
 							{(msg) => (
-								<div class="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50">
+								<div class="rounded-lg border border-neutral-200 p-4 transition-colors hover:bg-neutral-50">
 									<div class="flex items-start justify-between gap-3">
 										<div class="min-w-0 flex-1">
 											{/* Message Header */}
 											<div class="mb-2 flex flex-wrap items-center gap-2">
 												<Show
 													fallback={
-														<span class="font-semibold text-gray-900">
+														<span class="font-semibold text-neutral-900">
 															{msg.data.chatMessage?.username}
 														</span>
 													}
 													when={msg.viewerId && msg.userId}>
 													<A
-														class="font-semibold text-purple-600 hover:text-purple-800 hover:underline"
+														class="font-semibold text-primary hover:text-primary-800 hover:underline"
 														href={`/dashboard/viewers/${msg.viewerId}`}>
 														{msg.data.chatMessage?.username}
 													</A>
@@ -417,7 +417,7 @@ function ChatHistoryContent(props: {
 											</div>
 
 											{/* Message Content */}
-											<p class="wrap-break-word text-gray-700">
+											<p class="wrap-break-word text-neutral-700">
 												{msg.data.chatMessage?.message}
 											</p>
 										</div>

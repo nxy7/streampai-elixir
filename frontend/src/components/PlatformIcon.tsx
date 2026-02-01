@@ -90,7 +90,7 @@ export default function PlatformIcon(props: PlatformIconProps) {
 
 	return (
 		<div
-			class={`flex items-center justify-center rounded ${sizeClasses().container} ${config()?.color ?? "bg-gray-500"} ${props.class ?? ""}`}>
+			class={`flex items-center justify-center rounded ${sizeClasses().container} ${config()?.color ?? "bg-neutral-500"} ${props.class ?? ""}`}>
 			{config() ? (
 				config().icon({ class: `${sizeClasses().icon} ${textColor()}` })
 			) : (
@@ -103,5 +103,5 @@ export default function PlatformIcon(props: PlatformIconProps) {
 }
 
 export function getPlatformColor(platform: string): string {
-	return PLATFORMS[platform]?.color ?? "bg-gray-500";
+	return PLATFORMS[platform]?.color ?? "bg-neutral-500";
 }

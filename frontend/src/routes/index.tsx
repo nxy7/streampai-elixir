@@ -34,7 +34,7 @@ function LandingNavigation() {
 					<div class="hidden items-center space-x-8 md:flex">
 						{navItems.map((item) => (
 							<a
-								class="text-gray-300 transition-colors hover:text-white"
+								class="text-neutral-300 transition-colors hover:text-white"
 								href={item.url}>
 								{t(item.labelKey)}
 							</a>
@@ -43,14 +43,14 @@ function LandingNavigation() {
 							<Show
 								fallback={
 									<a
-										class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600"
+										class="rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-2 text-white transition-all hover:from-primary hover:to-secondary-hover"
 										href={getLoginUrl()}>
 										{t("landing.getStarted")}
 									</a>
 								}
 								when={user()}>
 								<A
-									class="rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-2 text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getDashboardUrl()}>
 									{t("nav.dashboard")}
 								</A>
@@ -60,7 +60,7 @@ function LandingNavigation() {
 
 					<div class="md:hidden">
 						<button
-							class="text-gray-300 hover:text-white"
+							class="text-neutral-300 hover:text-white"
 							onClick={() => setMobileMenuOpen(!mobileMenuOpen())}
 							type="button">
 							<svg
@@ -85,7 +85,7 @@ function LandingNavigation() {
 						<div class="mx-4 mt-2 space-y-4 rounded-lg bg-white/10 px-4 py-4 backdrop-blur-md">
 							{navItems.map((item) => (
 								<a
-									class="block py-2 text-gray-300 hover:text-white"
+									class="block py-2 text-neutral-300 hover:text-white"
 									href={item.url}>
 									{t(item.labelKey)}
 								</a>
@@ -95,14 +95,14 @@ function LandingNavigation() {
 									<Show
 										fallback={
 											<a
-												class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600"
+												class="block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-2 text-center text-white transition-all hover:from-primary hover:to-secondary-hover"
 												href={getLoginUrl()}>
 												{t("landing.getStarted")}
 											</a>
 										}
 										when={user()}>
 										<A
-											class="block w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-2 text-center text-white transition-all hover:from-purple-600 hover:to-pink-600"
+											class="block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-2 text-center text-white transition-all hover:from-primary hover:to-secondary-hover"
 											href={getDashboardUrl()}>
 											{t("nav.dashboard")}
 										</A>
@@ -141,12 +141,12 @@ function LandingHero() {
 
 	return (
 		<section class="relative flex min-h-screen items-center justify-center overflow-hidden">
-			<div class="absolute inset-0 bg-linear-to-r from-purple-800/20 to-pink-800/20"></div>
+			<div class="absolute inset-0 bg-linear-to-r from-primary-800/20 to-secondary-800/20"></div>
 			<div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
 				<div class="text-center">
 					<h1 class="mb-8 font-bold text-5xl text-white md:text-7xl">
 						{t("landing.heroTitle1")}{" "}
-						<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+						<span class="bg-linear-to-r from-primary-light to-secondary bg-clip-text text-transparent">
 							{t("landing.heroTitle2")}
 						</span>
 						<br />
@@ -180,7 +180,7 @@ function LandingHero() {
 							class="mx-auto flex max-w-md flex-col gap-3 sm:flex-row"
 							onSubmit={handleNewsletterSignup}>
 							<input
-								class="flex-1 rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+								class="flex-1 rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-neutral-300 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
 								onInput={(e) => setEmail(e.currentTarget.value)}
 								placeholder={t("landing.emailPlaceholder")}
 								required
@@ -188,7 +188,7 @@ function LandingHero() {
 								value={email()}
 							/>
 							<button
-								class="transform rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-xl transition-all hover:scale-105 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
+								class="transform rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white shadow-xl transition-all hover:scale-105 hover:from-primary hover:to-secondary-hover disabled:opacity-50"
 								disabled={loading()}
 								type="submit">
 								{loading() ? t("landing.submitting") : t("landing.notifyMe")}
@@ -208,7 +208,7 @@ function LandingHero() {
 						)}
 					</div>
 
-					<p class="mx-auto mb-12 max-w-3xl text-gray-300 text-xl leading-relaxed">
+					<p class="mx-auto mb-12 max-w-3xl text-neutral-300 text-xl leading-relaxed">
 						{t("landing.heroDescription")}
 					</p>
 
@@ -230,7 +230,7 @@ function LandingHero() {
 							<span class="font-medium text-white">Facebook</span>
 						</div>
 						<div class="flex items-center space-x-3">
-							<div class="flex h-8 w-8 items-center justify-center rounded bg-linear-to-r from-purple-500 to-pink-500">
+							<div class="flex h-8 w-8 items-center justify-center rounded bg-linear-to-r from-primary-light to-secondary">
 								<svg
 									aria-hidden="true"
 									class="h-4 w-4 text-white"
@@ -251,9 +251,9 @@ function LandingHero() {
 				</div>
 			</div>
 
-			<div class="absolute top-20 left-10 h-20 w-20 animate-pulse rounded-full bg-purple-500/20 blur-xl"></div>
+			<div class="absolute top-20 left-10 h-20 w-20 animate-pulse rounded-full bg-primary-light/20 blur-xl"></div>
 			<div
-				class="absolute top-40 right-20 h-32 w-32 animate-pulse rounded-full bg-pink-500/20 blur-xl"
+				class="absolute top-40 right-20 h-32 w-32 animate-pulse rounded-full bg-secondary/20 blur-xl"
 				style="animation-delay: 1000ms"></div>
 			<div
 				class="absolute bottom-20 left-1/4 h-16 w-16 animate-pulse rounded-full bg-blue-500/20 blur-xl"
@@ -272,11 +272,11 @@ function LandingFeatures() {
 					<div class="mb-20 text-center">
 						<h2 class="mb-6 font-bold text-4xl text-white md:text-5xl">
 							{t("landing.featuresTitle1")}{" "}
-							<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span class="bg-linear-to-r from-primary-light to-secondary bg-clip-text text-transparent">
 								{t("landing.featuresTitle2")}
 							</span>
 						</h2>
-						<p class="mx-auto max-w-3xl text-gray-300 text-xl">
+						<p class="mx-auto max-w-3xl text-neutral-300 text-xl">
 							{t("landing.featuresSubtitle")}
 						</p>
 					</div>
@@ -284,7 +284,7 @@ function LandingFeatures() {
 					<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
 						<div class="group rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg transition-all hover:bg-white/10">
 							<div class="mb-4 flex items-start space-x-4">
-								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-purple-500 to-pink-500">
+								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 									<svg
 										aria-hidden="true"
 										class="h-6 w-6 text-white"
@@ -303,7 +303,7 @@ function LandingFeatures() {
 									{t("landing.multiPlatformTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.multiPlatformDescription")}
 							</p>
 						</div>
@@ -329,7 +329,7 @@ function LandingFeatures() {
 									{t("landing.unifiedChatTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.unifiedChatDescription")}
 							</p>
 						</div>
@@ -355,7 +355,7 @@ function LandingFeatures() {
 									{t("landing.analyticsTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.analyticsDescription")}
 							</p>
 						</div>
@@ -381,14 +381,14 @@ function LandingFeatures() {
 									{t("landing.moderationTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.moderationDescription")}
 							</p>
 						</div>
 
 						<div class="group rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg transition-all hover:bg-white/10">
 							<div class="mb-4 flex items-start space-x-4">
-								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-purple-500">
+								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-primary-light">
 									<svg
 										aria-hidden="true"
 										class="h-6 w-6 text-white"
@@ -407,7 +407,7 @@ function LandingFeatures() {
 									{t("landing.widgetsTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.widgetsDescription")}
 							</p>
 						</div>
@@ -433,7 +433,7 @@ function LandingFeatures() {
 									{t("landing.teamTitle")}
 								</h3>
 							</div>
-							<p class="text-gray-300 leading-relaxed">
+							<p class="text-neutral-300 leading-relaxed">
 								{t("landing.teamDescription")}
 							</p>
 						</div>
@@ -447,11 +447,11 @@ function LandingFeatures() {
 						<div>
 							<h2 class="mb-8 font-bold text-4xl text-white md:text-5xl">
 								{t("landing.aboutTitle1")}{" "}
-								<span class="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+								<span class="bg-linear-to-r from-primary-light to-secondary bg-clip-text text-transparent">
 									{t("landing.aboutTitle2")}
 								</span>
 							</h2>
-							<div class="space-y-6 text-gray-300 text-lg">
+							<div class="space-y-6 text-lg text-neutral-300">
 								<p>{t("landing.aboutParagraph1")}</p>
 								<p>{t("landing.aboutParagraph2")}</p>
 								<p>{t("landing.aboutParagraph3")}</p>
@@ -459,20 +459,24 @@ function LandingFeatures() {
 
 							<div class="mt-12 grid grid-cols-2 gap-8">
 								<div class="text-center">
-									<div class="mb-2 font-bold text-3xl text-purple-400">5+</div>
-									<div class="text-gray-300">
+									<div class="mb-2 font-bold text-3xl text-primary-light">
+										5+
+									</div>
+									<div class="text-neutral-300">
 										{t("landing.platformIntegrations")}
 									</div>
 								</div>
 								<div class="text-center">
-									<div class="mb-2 font-bold text-3xl text-pink-400">99.9%</div>
-									<div class="text-gray-300">{t("landing.uptime")}</div>
+									<div class="mb-2 font-bold text-3xl text-secondary">
+										99.9%
+									</div>
+									<div class="text-neutral-300">{t("landing.uptime")}</div>
 								</div>
 							</div>
 						</div>
 
 						<div class="relative">
-							<div class="rounded-2xl border border-white/10 bg-linear-to-br from-purple-500/20 to-pink-500/20 p-8 backdrop-blur-lg">
+							<div class="rounded-2xl border border-white/10 bg-linear-to-br from-primary-light/20 to-secondary/20 p-8 backdrop-blur-lg">
 								<div class="space-y-6">
 									<div class="flex items-center space-x-4">
 										<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500">
@@ -494,7 +498,7 @@ function LandingFeatures() {
 											<h4 class="font-semibold text-white">
 												{t("landing.realTimeSync")}
 											</h4>
-											<p class="text-gray-300">
+											<p class="text-neutral-300">
 												{t("landing.realTimeSyncDescription")}
 											</p>
 										</div>
@@ -520,14 +524,14 @@ function LandingFeatures() {
 											<h4 class="font-semibold text-white">
 												{t("landing.advancedAnalytics")}
 											</h4>
-											<p class="text-gray-300">
+											<p class="text-neutral-300">
 												{t("landing.advancedAnalyticsDescription")}
 											</p>
 										</div>
 									</div>
 
 									<div class="flex items-center space-x-4">
-										<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-purple-500 to-pink-500">
+										<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 											<svg
 												aria-hidden="true"
 												class="h-6 w-6 text-white"
@@ -546,7 +550,7 @@ function LandingFeatures() {
 											<h4 class="font-semibold text-white">
 												{t("landing.aiPoweredGrowth")}
 											</h4>
-											<p class="text-gray-300">
+											<p class="text-neutral-300">
 												{t("landing.aiPoweredGrowthDescription")}
 											</p>
 										</div>
@@ -554,7 +558,7 @@ function LandingFeatures() {
 								</div>
 							</div>
 
-							<div class="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-linear-to-r from-purple-500/30 to-pink-500/30 blur-2xl"></div>
+							<div class="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-linear-to-r from-primary-light/30 to-secondary/30 blur-2xl"></div>
 						</div>
 					</div>
 				</div>
@@ -567,12 +571,12 @@ function LandingCTA() {
 	const { t } = useTranslation();
 
 	return (
-		<section class="bg-linear-to-r from-purple-600/20 to-pink-600/20 py-24">
+		<section class="bg-linear-to-r from-primary/20 to-secondary/20 py-24">
 			<div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
 				<h2 class="mb-6 font-bold text-4xl text-white md:text-5xl">
 					{t("landing.ctaTitle")}
 				</h2>
-				<p class="text-gray-300 text-xl">{t("landing.ctaSubtitle")}</p>
+				<p class="text-neutral-300 text-xl">{t("landing.ctaSubtitle")}</p>
 			</div>
 		</section>
 	);

@@ -77,7 +77,7 @@ function SettingsPageSkeleton() {
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<For each={[1, 2, 3, 4]}>
 						{() => (
-							<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+							<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 								<div class="flex items-center space-x-3">
 									<Skeleton class="h-10 w-10 rounded-lg" />
 									<Skeleton class="h-5 w-20" />
@@ -190,11 +190,11 @@ export default function Settings() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									{t("dashboard.notAuthenticated")}
 								</h2>
-								<p class="mb-6 text-gray-300">
+								<p class="mb-6 text-neutral-300">
 									{t("dashboard.signInToAccess")}
 								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getLoginUrl()}>
 									{t("nav.signIn")}
 								</a>
@@ -204,16 +204,16 @@ export default function Settings() {
 					when={user()}>
 					<div class="mx-auto max-w-6xl space-y-6">
 						{/* Plan Banner */}
-						<div class="rounded-lg bg-linear-to-r from-purple-600 to-pink-600 p-6 text-white shadow-sm">
+						<div class="rounded-lg bg-linear-to-r from-primary to-secondary-hover p-6 text-white shadow-sm">
 							<div class="flex items-center justify-between">
 								<div>
 									<h3 class="mb-2 font-bold text-xl">
 										{t("dashboard.freePlan")}
 									</h3>
-									<p class="text-purple-100">{t("settings.getStarted")}</p>
+									<p class="text-primary-100">{t("settings.getStarted")}</p>
 								</div>
 								<Button
-									class="bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-purple-50"
+									class="bg-white px-6 py-2 font-semibold text-primary transition-colors hover:bg-primary-50"
 									variant="secondary">
 									{t("settings.upgradeToPro")}
 								</Button>
@@ -222,33 +222,33 @@ export default function Settings() {
 
 						{/* Account Settings */}
 						<Card>
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+							<h3 class="mb-6 font-medium text-lg text-neutral-900">
 								{t("settings.accountSettings")}
 							</h3>
 							<div class="space-y-6">
 								{/* Email (read-only) */}
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-neutral-700 text-sm">
 										{t("settings.email")}
 										<input
-											class="mt-2 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
+											class="mt-2 w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2"
 											readonly
 											type="email"
 											value={user()?.email || ""}
 										/>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-neutral-500 text-xs">
 										{t("settings.emailCannotChange")}
 									</p>
 								</div>
 
 								{/* Display Name */}
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-neutral-700 text-sm">
 										{t("settings.displayName")}
 										<div class="relative mt-2">
 											<input
-												class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10"
+												class="w-full rounded-lg border border-neutral-300 px-3 py-2 pr-10"
 												onInput={(e) => setDisplayName(e.currentTarget.value)}
 												placeholder={t("settings.displayNamePlaceholder")}
 												type="text"
@@ -256,7 +256,7 @@ export default function Settings() {
 											/>
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-neutral-500 text-xs">
 										{t("settings.displayNameHelp")}
 									</p>
 									<div class="mt-3 flex items-center gap-3">
@@ -298,12 +298,12 @@ export default function Settings() {
 
 						{/* Language Settings */}
 						<Card>
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+							<h3 class="mb-6 font-medium text-lg text-neutral-900">
 								{t("settings.language")}
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<span class="block font-medium text-gray-700 text-sm">
+									<span class="block font-medium text-neutral-700 text-sm">
 										{t("settings.language")}
 									</span>
 									<div class="mt-2">
@@ -318,7 +318,7 @@ export default function Settings() {
 											/>
 										</Show>
 									</div>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-neutral-500 text-xs">
 										{t("settings.languageDescription")}
 									</p>
 								</div>
@@ -327,16 +327,16 @@ export default function Settings() {
 
 						{/* Donation Page */}
 						<Card>
-							<h3 class="mb-6 font-medium text-gray-900 text-lg">
+							<h3 class="mb-6 font-medium text-lg text-neutral-900">
 								{t("settings.donationPage")}
 							</h3>
 							<div class="space-y-4">
 								<div>
-									<label class="block font-medium text-gray-700 text-sm">
+									<label class="block font-medium text-neutral-700 text-sm">
 										{t("settings.publicDonationUrl")}
 										<div class="mt-2 flex items-center space-x-3">
 											<input
-												class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2"
+												class="flex-1 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2"
 												readonly
 												type="text"
 												value={`${window.location.origin}/u/${
@@ -357,14 +357,14 @@ export default function Settings() {
 											</Button>
 										</div>
 									</label>
-									<p class="mt-1 text-gray-500 text-xs">
+									<p class="mt-1 text-neutral-500 text-xs">
 										{t("settings.donationUrlHelp")}
 									</p>
 								</div>
 
-								<div class="flex items-center justify-between rounded-lg border bg-gray-50 p-3">
+								<div class="flex items-center justify-between rounded-lg border bg-neutral-50 p-3">
 									<div class="flex items-center space-x-3">
-										<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+										<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 											<Show
 												fallback={
 													<span class="font-bold text-white">
@@ -380,16 +380,16 @@ export default function Settings() {
 											</Show>
 										</div>
 										<div>
-											<h4 class="font-medium text-gray-900">
+											<h4 class="font-medium text-neutral-900">
 												{t("settings.support")} {prefs.data()?.name}
 											</h4>
-											<p class="text-gray-600 text-sm">
+											<p class="text-neutral-600 text-sm">
 												{t("settings.publicDonationPage")}
 											</p>
 										</div>
 									</div>
 									<a
-										class="font-medium text-purple-600 text-sm hover:text-purple-700"
+										class="font-medium text-primary text-sm hover:text-primary-hover"
 										href={`/u/${prefs.data()?.name || ""}`}
 										rel="noreferrer"
 										target="_blank">
@@ -421,24 +421,24 @@ export default function Settings() {
 						{/* Notification Preferences */}
 						<Show when={user()}>
 							<Card>
-								<h3 class="mb-6 font-medium text-gray-900 text-lg">
+								<h3 class="mb-6 font-medium text-lg text-neutral-900">
 									{t("settings.notificationPreferences")}
 								</h3>
 								<div class="space-y-4">
-									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+									<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-3">
 										<div>
-											<p class="font-medium text-gray-900">
+											<p class="font-medium text-neutral-900">
 												{t("settings.emailNotifications")}
 											</p>
-											<p class="text-gray-600 text-sm">
+											<p class="text-neutral-600 text-sm">
 												{t("settings.emailNotificationsDesc")}
 											</p>
 										</div>
 										<button
 											class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 												prefs.data()?.email_notifications
-													? "bg-purple-600"
-													: "bg-gray-300"
+													? "bg-primary"
+													: "bg-neutral-300"
 											} ${
 												isTogglingNotifications()
 													? "cursor-not-allowed opacity-50"

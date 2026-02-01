@@ -66,20 +66,20 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 
 	return (
 		<Card padding="lg">
-			<h3 class="mb-6 font-medium text-gray-900 text-lg">
+			<h3 class="mb-6 font-medium text-lg text-neutral-900">
 				{t("settings.donationSettings")}
 			</h3>
 			<form class="space-y-4" onSubmit={handleSaveDonationSettings}>
 				<div class="grid gap-4 md:grid-cols-3">
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label class="block font-medium text-neutral-700 text-sm">
 							{t("settings.minimumAmount")}
 							<div class="relative mt-2">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<span class="text-gray-500 text-sm">{currency()}</span>
+									<span class="text-neutral-500 text-sm">{currency()}</span>
 								</div>
 								<input
-									class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+									class="w-full rounded-lg border border-neutral-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-light"
 									onInput={(e) => {
 										const val = e.currentTarget.value;
 										setMinAmount(val ? Number.parseInt(val, 10) : null);
@@ -90,20 +90,20 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 								/>
 							</div>
 						</label>
-						<p class="mt-1 text-gray-500 text-xs">
+						<p class="mt-1 text-neutral-500 text-xs">
 							{t("settings.leaveEmptyNoMin")}
 						</p>
 					</div>
 
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label class="block font-medium text-neutral-700 text-sm">
 							{t("settings.maximumAmount")}
 							<div class="relative mt-2">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<span class="text-gray-500 text-sm">{currency()}</span>
+									<span class="text-neutral-500 text-sm">{currency()}</span>
 								</div>
 								<input
-									class="w-full rounded-lg border border-gray-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+									class="w-full rounded-lg border border-neutral-300 py-2 pr-3 pl-12 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-light"
 									onInput={(e) => {
 										const val = e.currentTarget.value;
 										setMaxAmount(val ? Number.parseInt(val, 10) : null);
@@ -114,16 +114,16 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 								/>
 							</div>
 						</label>
-						<p class="mt-1 text-gray-500 text-xs">
+						<p class="mt-1 text-neutral-500 text-xs">
 							{t("settings.leaveEmptyNoMax")}
 						</p>
 					</div>
 
 					<div>
-						<label class="block font-medium text-gray-700 text-sm">
+						<label class="block font-medium text-neutral-700 text-sm">
 							{t("settings.currency")}
 							<select
-								class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+								class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-light"
 								onChange={(e) => setCurrency(e.currentTarget.value)}
 								value={currency()}>
 								<For each={CURRENCIES}>
@@ -135,10 +135,10 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 				</div>
 
 				<div>
-					<label class="block font-medium text-gray-700 text-sm">
+					<label class="block font-medium text-neutral-700 text-sm">
 						{t("settings.defaultTtsVoice")}
 						<select
-							class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+							class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-light"
 							onChange={(e) => setDefaultVoice(e.currentTarget.value)}
 							value={defaultVoice()}>
 							<option value="random">{t("settings.randomVoice")}</option>
@@ -150,7 +150,7 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 							</option>
 						</select>
 					</label>
-					<p class="mt-1 text-gray-500 text-xs">{t("settings.voiceHelp")}</p>
+					<p class="mt-1 text-neutral-500 text-xs">{t("settings.voiceHelp")}</p>
 				</div>
 
 				<Alert title={t("settings.donationLimitsInfo")} variant="info">

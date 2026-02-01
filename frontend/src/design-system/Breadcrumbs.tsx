@@ -35,12 +35,12 @@ export default function Breadcrumbs(props: BreadcrumbsProps): JSX.Element {
 						</Show>
 						<Show
 							fallback={
-								<span class="font-medium text-gray-900">{item.label}</span>
+								<span class="font-medium text-neutral-900">{item.label}</span>
 							}
 							when={item.href}>
 							{(href) => (
 								<A
-									class="text-gray-500 transition-colors hover:text-purple-600"
+									class="text-neutral-500 transition-colors hover:text-primary"
 									href={href()}>
 									{item.label}
 								</A>
@@ -57,7 +57,7 @@ function ChevronIcon() {
 	return (
 		<svg
 			aria-hidden="true"
-			class="h-4 w-4 shrink-0 text-gray-400"
+			class="h-4 w-4 shrink-0 text-neutral-400"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24">

@@ -201,7 +201,7 @@ export default function AdminNotifications() {
 			<Show
 				fallback={
 					<div class="flex min-h-screen items-center justify-center">
-						<div class="text-gray-500">Loading...</div>
+						<div class="text-neutral-500">Loading...</div>
 					</div>
 				}
 				when={!authLoading()}>
@@ -288,7 +288,7 @@ export default function AdminNotifications() {
 						</Show>
 
 						<Card>
-							<div class="flex items-center justify-between border-gray-200 border-b px-6 py-4">
+							<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 								<div>
 									<h3 class={text.h3}>Notifications</h3>
 									<p class={text.muted}>
@@ -300,39 +300,39 @@ export default function AdminNotifications() {
 
 							<div class="overflow-x-auto">
 								<table class="w-full">
-									<thead class="bg-gray-50">
+									<thead class="bg-neutral-50">
 										<tr>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Content
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Type
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Created
 											</th>
-											<th class="px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">
+											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
 												Actions
 											</th>
 										</tr>
 									</thead>
-									<tbody class="divide-y divide-gray-200 bg-white">
+									<tbody class="divide-y divide-neutral-200 bg-white">
 										<Show
 											fallback={
 												<For each={[1, 2, 3]}>
 													{() => (
 														<tr class="animate-pulse">
 															<td class="px-6 py-4">
-																<div class="h-4 w-3/4 rounded bg-gray-200" />
+																<div class="h-4 w-3/4 rounded bg-neutral-200" />
 															</td>
 															<td class="px-6 py-4">
-																<div class="h-5 w-16 rounded bg-gray-200" />
+																<div class="h-5 w-16 rounded bg-neutral-200" />
 															</td>
 															<td class="px-6 py-4">
-																<div class="h-4 w-32 rounded bg-gray-200" />
+																<div class="h-4 w-32 rounded bg-neutral-200" />
 															</td>
 															<td class="px-6 py-4">
-																<div class="h-4 w-12 rounded bg-gray-200" />
+																<div class="h-4 w-12 rounded bg-neutral-200" />
 															</td>
 														</tr>
 													)}
@@ -341,9 +341,9 @@ export default function AdminNotifications() {
 											when={!notificationsLoading()}>
 											<For each={notifications()}>
 												{(notification) => (
-													<tr class="hover:bg-gray-50">
+													<tr class="hover:bg-neutral-50">
 														<td class="px-6 py-4">
-															<p class="max-w-md truncate text-gray-900 text-sm">
+															<p class="max-w-md truncate text-neutral-900 text-sm">
 																{notification.content}
 															</p>
 														</td>
@@ -354,7 +354,7 @@ export default function AdminNotifications() {
 																<Badge variant="warning">User-specific</Badge>
 															</Show>
 														</td>
-														<td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">
+														<td class="whitespace-nowrap px-6 py-4 text-neutral-500 text-sm">
 															{new Date(
 																notification.inserted_at,
 															).toLocaleString()}
@@ -381,7 +381,7 @@ export default function AdminNotifications() {
 									<div class="py-12 text-center">
 										<svg
 											aria-hidden="true"
-											class="mx-auto h-12 w-12 text-gray-400"
+											class="mx-auto h-12 w-12 text-neutral-400"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -392,7 +392,7 @@ export default function AdminNotifications() {
 												stroke-width="2"
 											/>
 										</svg>
-										<p class="mt-4 text-gray-500 text-sm">
+										<p class="mt-4 text-neutral-500 text-sm">
 											No notifications yet
 										</p>
 										<Button class="mt-4" onClick={openCreateModal}>
@@ -406,13 +406,13 @@ export default function AdminNotifications() {
 
 					{/* Create Modal */}
 					<Show when={showCreateModal()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75">
+						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
 							<div class="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-								<div class="border-gray-200 border-b px-6 py-4">
+								<div class="border-neutral-200 border-b px-6 py-4">
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Create Notification</h3>
 										<button
-											class="text-gray-400 hover:text-gray-500"
+											class="text-neutral-400 hover:text-neutral-500"
 											onClick={closeCreateModal}
 											type="button">
 											<svg
@@ -435,7 +435,7 @@ export default function AdminNotifications() {
 								<div class="space-y-4 px-6 py-4">
 									<div>
 										<label
-											class="mb-2 block font-medium text-gray-700 text-sm"
+											class="mb-2 block font-medium text-neutral-700 text-sm"
 											for="notification-type">
 											Notification Type
 										</label>
@@ -460,7 +460,7 @@ export default function AdminNotifications() {
 									<Show when={notificationType() === "user"}>
 										<div>
 											<label
-												class="mb-2 block font-medium text-gray-700 text-sm"
+												class="mb-2 block font-medium text-neutral-700 text-sm"
 												for="target-user-id">
 												User ID <span class="text-red-500">*</span>
 											</label>
@@ -476,7 +476,7 @@ export default function AdminNotifications() {
 
 									<div>
 										<label
-											class="mb-2 block font-medium text-gray-700 text-sm"
+											class="mb-2 block font-medium text-neutral-700 text-sm"
 											for="notification-content">
 											Content (English - Default){" "}
 											<span class="text-red-500">*</span>
@@ -493,17 +493,17 @@ export default function AdminNotifications() {
 									</div>
 
 									{/* Localizations Section */}
-									<div class="border-gray-200 border-t pt-4">
+									<div class="border-neutral-200 border-t pt-4">
 										<button
 											class="flex w-full items-center justify-between text-left"
 											onClick={() => setShowLocalizations(!showLocalizations())}
 											type="button">
-											<span class="font-medium text-gray-700 text-sm">
+											<span class="font-medium text-neutral-700 text-sm">
 												Translations (Optional)
 											</span>
 											<svg
 												aria-hidden="true"
-												class={`h-5 w-5 text-gray-500 transition-transform ${showLocalizations() ? "rotate-180" : ""}`}
+												class={`h-5 w-5 text-neutral-500 transition-transform ${showLocalizations() ? "rotate-180" : ""}`}
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24">
@@ -525,9 +525,9 @@ export default function AdminNotifications() {
 												{/* Existing localizations */}
 												<Index each={localizations()}>
 													{(loc, _index) => (
-														<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+														<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
 															<div class="mb-2 flex items-center justify-between">
-																<span class="font-medium text-gray-700 text-sm">
+																<span class="font-medium text-neutral-700 text-sm">
 																	{LOCALE_NAMES[loc().locale]}
 																</span>
 																<button
@@ -591,7 +591,7 @@ export default function AdminNotifications() {
 												</Show>
 
 												<Show when={availableLocales().length === 0}>
-													<p class="text-center text-gray-500 text-sm">
+													<p class="text-center text-neutral-500 text-sm">
 														All available languages have been added
 													</p>
 												</Show>
@@ -600,7 +600,7 @@ export default function AdminNotifications() {
 									</div>
 								</div>
 
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
+								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
 									<Button onClick={closeCreateModal} variant="secondary">
 										Cancel
 									</Button>
@@ -618,13 +618,13 @@ export default function AdminNotifications() {
 
 					{/* Delete Confirm Modal */}
 					<Show when={showDeleteConfirm()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75">
+						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
 							<div class="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-								<div class="border-gray-200 border-b px-6 py-4">
+								<div class="border-neutral-200 border-b px-6 py-4">
 									<div class="flex items-center justify-between">
 										<h3 class={text.h3}>Delete Notification</h3>
 										<button
-											class="text-gray-400 hover:text-gray-500"
+											class="text-neutral-400 hover:text-neutral-500"
 											onClick={closeDeleteConfirm}
 											type="button">
 											<svg
@@ -648,15 +648,15 @@ export default function AdminNotifications() {
 									<p class={text.body}>
 										Are you sure you want to delete this notification?
 									</p>
-									<div class="rounded-lg bg-gray-50 p-3">
-										<p class="text-gray-700 text-sm">
+									<div class="rounded-lg bg-neutral-50 p-3">
+										<p class="text-neutral-700 text-sm">
 											{notificationToDelete()?.content}
 										</p>
 									</div>
 									<p class={text.muted}>This action cannot be undone.</p>
 								</div>
 
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-gray-50 px-6 py-4">
+								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
 									<Button onClick={closeDeleteConfirm} variant="secondary">
 										Cancel
 									</Button>

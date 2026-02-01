@@ -72,13 +72,13 @@ export default function NotificationBell() {
 	return (
 		<div class="relative">
 			<button
-				class="relative rounded-lg p-2 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+				class="relative rounded-lg p-2 transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-light"
 				onClick={() => setIsOpen(!isOpen())}
 				title="Notifications"
 				type="button">
 				<svg
 					aria-hidden="true"
-					class="h-6 w-6 text-gray-600"
+					class="h-6 w-6 text-neutral-600"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24">
@@ -108,13 +108,13 @@ export default function NotificationBell() {
 				/>
 
 				{/* Dropdown */}
-				<div class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-					<div class="border-gray-200 border-b px-4 py-3">
+				<div class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+					<div class="border-neutral-200 border-b px-4 py-3">
 						<div class="flex items-center justify-between">
-							<h3 class="font-semibold text-gray-900">Notifications</h3>
+							<h3 class="font-semibold text-neutral-900">Notifications</h3>
 							<Show when={unreadCount() || undefined}>
 								<button
-									class="font-medium text-purple-600 text-xs hover:text-purple-700"
+									class="font-medium text-primary text-xs hover:text-primary-hover"
 									onClick={handleMarkAllAsRead}
 									type="button">
 									Mark all as read
@@ -124,11 +124,11 @@ export default function NotificationBell() {
 						<label class="mt-2 flex cursor-pointer items-center gap-2">
 							<input
 								checked={showUnreadOnly()}
-								class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+								class="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary-light"
 								onChange={(e) => setShowUnreadOnly(e.currentTarget.checked)}
 								type="checkbox"
 							/>
-							<span class="text-gray-600 text-xs">Hide read</span>
+							<span class="text-neutral-600 text-xs">Hide read</span>
 						</label>
 					</div>
 
@@ -152,10 +152,10 @@ export default function NotificationBell() {
 							when={!isLoading()}>
 							<Show
 								fallback={
-									<div class="px-4 py-8 text-center text-gray-500">
+									<div class="px-4 py-8 text-center text-neutral-500">
 										<svg
 											aria-hidden="true"
-											class="mx-auto h-12 w-12 text-gray-300"
+											class="mx-auto h-12 w-12 text-neutral-300"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
@@ -177,30 +177,30 @@ export default function NotificationBell() {
 								<For each={notifications()}>
 									{(notification) => (
 										<div
-											class={`border-gray-100 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 ${
+											class={`border-neutral-100 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-neutral-50 ${
 												notification.wasSeen ? "opacity-60" : ""
 											}`}>
 											<div class="flex items-start gap-3">
 												<div class="mt-1 shrink-0">
 													<Show
 														fallback={
-															<div class="h-2 w-2 rounded-full bg-gray-300" />
+															<div class="h-2 w-2 rounded-full bg-neutral-300" />
 														}
 														when={!notification.wasSeen}>
-														<div class="h-2 w-2 rounded-full bg-purple-500" />
+														<div class="h-2 w-2 rounded-full bg-primary-light" />
 													</Show>
 												</div>
 												<div class="min-w-0 flex-1">
 													<p
-														class={`text-sm ${notification.wasSeen ? "text-gray-500" : "text-gray-900"}`}>
+														class={`text-sm ${notification.wasSeen ? "text-neutral-500" : "text-neutral-900"}`}>
 														{notification.localizedContent}
 													</p>
-													<p class="mt-1 text-gray-400 text-xs">
+													<p class="mt-1 text-neutral-400 text-xs">
 														{formatTimeAgo(notification.inserted_at)}
 													</p>
 												</div>
 												<button
-													class="shrink-0 rounded p-1 transition-colors hover:bg-gray-200"
+													class="shrink-0 rounded p-1 transition-colors hover:bg-neutral-200"
 													disabled={markingRead() === notification.id}
 													onClick={(e) => {
 														e.stopPropagation();
@@ -220,7 +220,7 @@ export default function NotificationBell() {
 														fallback={
 															<svg
 																aria-hidden="true"
-																class="h-4 w-4 animate-spin text-gray-400"
+																class="h-4 w-4 animate-spin text-neutral-400"
 																fill="none"
 																viewBox="0 0 24 24">
 																<circle
@@ -243,7 +243,7 @@ export default function NotificationBell() {
 															fallback={
 																<svg
 																	aria-hidden="true"
-																	class="h-4 w-4 text-gray-400"
+																	class="h-4 w-4 text-neutral-400"
 																	fill="none"
 																	stroke="currentColor"
 																	viewBox="0 0 24 24">
@@ -258,7 +258,7 @@ export default function NotificationBell() {
 															when={!notification.wasSeen}>
 															<svg
 																aria-hidden="true"
-																class="h-4 w-4 text-gray-400"
+																class="h-4 w-4 text-neutral-400"
 																fill="none"
 																stroke="currentColor"
 																viewBox="0 0 24 24">

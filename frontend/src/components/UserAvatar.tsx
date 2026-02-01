@@ -21,7 +21,7 @@ export default function UserAvatar(props: UserAvatarProps) {
 	return (
 		<div
 			class={cn(
-				"flex items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500",
+				"flex items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary",
 				sizeClasses[size()],
 				props.class,
 			)}>

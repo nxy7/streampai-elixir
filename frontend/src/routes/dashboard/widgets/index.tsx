@@ -1,13 +1,11 @@
 import { Title } from "@solidjs/meta";
+import { A } from "@solidjs/router";
 import { For, Show, createSignal } from "solid-js";
 import Badge from "~/design-system/Badge";
-import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
-import { text } from "~/design-system/design-system";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { getWidgetCatalog, getWidgetCategories } from "~/lib/widget-registry";
 
-// Get widgets and categories from the central registry
 const widgets = getWidgetCatalog();
 const categories = [
 	{ name: "All", value: "all" },
@@ -28,23 +26,21 @@ export default function Widgets() {
 			<Title>Widgets - Streampai</Title>
 			<Show
 				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="text-white text-xl">Loading...</div>
+					<div class="flex min-h-screen items-center justify-center">
+						<div class="text-xl">Loading...</div>
 					</div>
 				}
 				when={!isLoading()}>
 				<Show
 					fallback={
-						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
+						<div class="flex min-h-screen items-center justify-center">
 							<div class="py-12 text-center">
-								<h2 class="mb-4 font-bold text-2xl text-white">
-									Not Authenticated
-								</h2>
-								<p class="mb-6 text-gray-300">
+								<h2 class="mb-4 font-bold text-2xl">Not Authenticated</h2>
+								<p class="mb-6 text-neutral-500">
 									Please sign in to access widgets.
 								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-primary px-6 py-2 font-medium text-white transition-colors hover:bg-primary-hover"
 									href={getLoginUrl()}>
 									Sign In
 								</a>
@@ -52,95 +48,69 @@ export default function Widgets() {
 						</div>
 					}
 					when={user()}>
-					<div class="mx-auto max-w-7xl space-y-6">
-						{/* Header */}
-						<Card>
-							<h1 class={text.h1}>Stream Widgets</h1>
-							<p class={`${text.muted} mt-2`}>
-								Customize your stream with beautiful, interactive widgets for
-								OBS
-							</p>
-						</Card>
-
+					<div class="mx-auto max-w-4xl space-y-6">
 						{/* Category Filter */}
-						<Card>
-							<div class="flex flex-wrap gap-2">
-								<For each={categories}>
-									{(category) => (
-										<Button
-											onClick={() => setSelectedCategory(category.value)}
-											type="button"
-											variant={
-												selectedCategory() === category.value
-													? "primary"
-													: "secondary"
-											}>
-											{category.name}
-										</Button>
-									)}
-								</For>
-							</div>
-						</Card>
+						<div class="flex flex-wrap gap-1.5">
+							<For each={categories}>
+								{(category) => (
+									<button
+										class={`rounded-full px-3 py-1 text-sm transition-colors ${
+											selectedCategory() === category.value
+												? "bg-primary text-white"
+												: "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+										}`}
+										onClick={() => setSelectedCategory(category.value)}
+										type="button">
+										{category.name}
+									</button>
+								)}
+							</For>
+						</div>
 
-						{/* Widgets Grid */}
-						<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-							<For each={filteredWidgets()}>
-								{(widget) => (
-									<Card
-										class="overflow-hidden transition-shadow hover:shadow-lg"
-										padding="none">
-										{/* Widget Icon Header */}
-										<div class="bg-linear-to-r from-purple-500 to-pink-500 p-6 text-center">
-											<div class="mb-2 text-6xl">{widget.icon}</div>
-											<h3 class="font-semibold text-lg text-white">
-												{widget.name}
-											</h3>
-										</div>
-
-										{/* Widget Content */}
-										<div class="p-6">
-											<div class="mb-3 flex items-center gap-2">
-												<Badge variant="info">{widget.category}</Badge>
-												<Show when={widget.status === "coming-soon"}>
-													<Badge variant="warning">Coming Soon</Badge>
-												</Show>
-												<Show when={widget.priority === "high"}>
-													<Badge variant="success">Popular</Badge>
-												</Show>
+						{/* Widgets List */}
+						<Card padding="none">
+							<div class="divide-y divide-neutral-100">
+								<For each={filteredWidgets()}>
+									{(widget) => (
+										<div
+											class={`flex items-center gap-4 px-4 py-3 ${
+												widget.status === "coming-soon"
+													? "opacity-50"
+													: "hover:bg-neutral-50"
+											}`}>
+											<span class="text-2xl">{widget.icon}</span>
+											<div class="min-w-0 flex-1">
+												<div class="font-medium text-neutral-900 text-sm">
+													{widget.name}
+												</div>
+												<div class="truncate text-neutral-500 text-xs">
+													{widget.description}
+												</div>
 											</div>
-
-											<p class="mb-4 text-gray-700 text-sm">
-												{widget.description}
-											</p>
-
-											<div class="flex gap-2">
-												<Show
-													fallback={
-														<Button disabled type="button" variant="secondary">
-															Configure
-														</Button>
-													}
-													when={widget.status === "available"}>
-													<Button
-														as="link"
-														class="flex-1 text-center"
+											<Badge size="sm" variant="neutral">
+												{widget.category}
+											</Badge>
+											<Show
+												fallback={
+													<Badge size="sm" variant="warning">
+														Coming Soon
+													</Badge>
+												}
+												when={widget.status === "available"}>
+												<div class="flex items-center gap-1">
+													<A
+														class="rounded-md px-3 py-1 text-primary text-sm transition-colors hover:bg-primary-50"
 														href={widget.settingsRoute}>
 														Configure
-													</Button>
-												</Show>
-												<Show when={widget.status === "available"}>
-													<Button
-														as="a"
+													</A>
+													<a
+														class="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
 														href={`${widget.displayRoute}/${user()?.id}`}
 														rel="noopener noreferrer"
 														target="_blank"
-														variant="ghost">
-														<span class="sr-only">
-															Open widget display in new tab
-														</span>
+														title="Open widget preview">
 														<svg
-															aria-hidden="true"
-															class="h-5 w-5"
+															class="h-4 w-4"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24">
@@ -151,58 +121,64 @@ export default function Widgets() {
 																stroke-width="2"
 															/>
 														</svg>
-													</Button>
-												</Show>
+													</a>
+												</div>
+											</Show>
+										</div>
+									)}
+								</For>
+							</div>
+						</Card>
+
+						{/* Stream Tools */}
+						<div>
+							<h2 class="mb-2 font-medium text-neutral-500 text-xs uppercase tracking-wider">
+								Stream Tools
+							</h2>
+							<Card padding="none">
+								<div class="divide-y divide-neutral-100">
+									<A
+										class="flex items-center gap-4 px-4 py-3 hover:bg-neutral-50"
+										href="/dashboard/widgets/timer">
+										<span class="text-2xl">⏱️</span>
+										<div class="min-w-0 flex-1">
+											<div class="font-medium text-neutral-900 text-sm">
+												Timers
+											</div>
+											<div class="text-neutral-500 text-xs">
+												Configure countdown timers for your stream
 											</div>
 										</div>
-									</Card>
-								)}
-							</For>
-						</div>
-
-						{/* Help Section */}
-						<div class="rounded-2xl border border-purple-200 bg-linear-to-r from-purple-50 to-pink-50 p-8">
-							<h2 class={`${text.h2} mb-4`}>How to Use Widgets</h2>
-							<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-								<div class="flex items-start space-x-3">
-									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500 font-bold text-white">
-										1
-									</div>
-									<div>
-										<h3 class="mb-1 font-semibold text-gray-900">
-											Configure Widget
-										</h3>
-										<p class="text-gray-700 text-sm">
-											Click "Configure" on any widget to customize its
-											appearance and settings.
-										</p>
-									</div>
-								</div>
-								<div class="flex items-start space-x-3">
-									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500 font-bold text-white">
-										2
-									</div>
-									<div>
-										<h3 class="mb-1 font-semibold text-gray-900">
-											Copy Widget URL
-										</h3>
-										<p class="text-gray-700 text-sm">
-											Get the widget's display URL from the settings page.
-										</p>
+										<svg
+											class="h-4 w-4 text-neutral-400"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24">
+											<path
+												d="M9 5l7 7-7 7"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+											/>
+										</svg>
+									</A>
+									<div class="flex items-center gap-4 px-4 py-3 opacity-50">
+										<span class="text-2xl">🔗</span>
+										<div class="min-w-0 flex-1">
+											<div class="font-medium text-neutral-900 text-sm">
+												Hooks
+											</div>
+											<div class="text-neutral-500 text-xs">
+												Automate actions before/after stream (e.g. post to
+												Discord, Twitter)
+											</div>
+										</div>
+										<Badge size="sm" variant="warning">
+											Coming Soon
+										</Badge>
 									</div>
 								</div>
-								<div class="flex items-start space-x-3">
-									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500 font-bold text-white">
-										3
-									</div>
-									<div>
-										<h3 class="mb-1 font-semibold text-gray-900">Add to OBS</h3>
-										<p class="text-gray-700 text-sm">
-											Add a Browser Source in OBS and paste the widget URL.
-										</p>
-									</div>
-								</div>
-							</div>
+							</Card>
 						</div>
 					</div>
 				</Show>

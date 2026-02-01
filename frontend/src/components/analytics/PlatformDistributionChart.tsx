@@ -20,7 +20,7 @@ export function PlatformDistributionChart(
 
 	return (
 		<Card>
-			<h3 class="mb-4 font-medium text-gray-900 text-lg">{props.title}</h3>
+			<h3 class="mb-4 font-medium text-lg text-neutral-900">{props.title}</h3>
 			<div class="space-y-3">
 				<For each={props.data}>
 					{(item) => (

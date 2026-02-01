@@ -4,11 +4,11 @@ import { cn } from "~/design-system/design-system";
 export type CardVariant = "default" | "interactive" | "gradient" | "outline";
 
 const variantClasses: Record<CardVariant, string> = {
-	default: "bg-white border border-gray-200 shadow-sm",
+	default: "bg-white border border-neutral-200 shadow-sm",
 	interactive:
-		"bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer",
-	gradient: "bg-linear-to-r from-purple-600 to-pink-600 shadow-sm text-white",
-	outline: "bg-transparent border border-gray-200",
+		"bg-white border border-neutral-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer",
+	gradient: "bg-linear-to-r from-primary to-secondary shadow-sm text-white",
+	outline: "bg-transparent border border-neutral-200",
 };
 
 export interface CardProps extends JSX.HTMLAttributes<HTMLDivElement> {
@@ -55,7 +55,7 @@ export function CardHeader(props: CardHeaderProps) {
 
 	return (
 		<div
-			class={cn("border-gray-200 border-b px-6 py-4", local.class)}
+			class={cn("border-neutral-200 border-b px-6 py-4", local.class)}
 			{...rest}>
 			{local.children}
 		</div>
@@ -70,7 +70,9 @@ export function CardTitle(props: CardTitleProps) {
 	const [local, rest] = splitProps(props, ["children", "class"]);
 
 	return (
-		<h3 class={cn("font-medium text-gray-900 text-lg", local.class)} {...rest}>
+		<h3
+			class={cn("font-medium text-lg text-neutral-900", local.class)}
+			{...rest}>
 			{local.children}
 		</h3>
 	);

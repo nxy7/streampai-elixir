@@ -31,20 +31,20 @@ export default function QuickStats(props: QuickStatsProps) {
 						</svg>
 					</div>
 					<div>
-						<p class="font-bold text-2xl text-gray-900">
+						<p class="font-bold text-2xl text-neutral-900">
 							{props.totalMessages}
 						</p>
-						<p class="text-gray-500 text-sm">{t("dashboard.messages")}</p>
+						<p class="text-neutral-500 text-sm">{t("dashboard.messages")}</p>
 					</div>
 				</div>
 			</Card>
 
 			<Card class="p-4" padding="sm">
 				<div class="flex items-center gap-3">
-					<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+					<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100">
 						<svg
 							aria-hidden="true"
-							class="h-5 w-5 text-purple-600"
+							class="h-5 w-5 text-primary"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24">
@@ -63,10 +63,10 @@ export default function QuickStats(props: QuickStatsProps) {
 						</svg>
 					</div>
 					<div>
-						<p class="font-bold text-2xl text-gray-900">
+						<p class="font-bold text-2xl text-neutral-900">
 							{props.uniqueViewers}
 						</p>
-						<p class="text-gray-500 text-sm">{t("dashboard.viewers")}</p>
+						<p class="text-neutral-500 text-sm">{t("dashboard.viewers")}</p>
 					</div>
 				</div>
 			</Card>
@@ -89,8 +89,10 @@ export default function QuickStats(props: QuickStatsProps) {
 						</svg>
 					</div>
 					<div>
-						<p class="font-bold text-2xl text-gray-900">{props.followCount}</p>
-						<p class="text-gray-500 text-sm">{t("dashboard.followers")}</p>
+						<p class="font-bold text-2xl text-neutral-900">
+							{props.followCount}
+						</p>
+						<p class="text-neutral-500 text-sm">{t("dashboard.followers")}</p>
 					</div>
 				</div>
 			</Card>
@@ -113,10 +115,10 @@ export default function QuickStats(props: QuickStatsProps) {
 						</svg>
 					</div>
 					<div>
-						<p class="font-bold text-2xl text-gray-900">
+						<p class="font-bold text-2xl text-neutral-900">
 							${props.totalDonations.toFixed(2)}
 						</p>
-						<p class="text-gray-500 text-sm">{t("dashboard.donations")}</p>
+						<p class="text-neutral-500 text-sm">{t("dashboard.donations")}</p>
 					</div>
 				</div>
 			</Card>

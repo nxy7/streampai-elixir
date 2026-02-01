@@ -288,15 +288,15 @@ export function ActivityFeed(props: ActivityFeedProps) {
 		<>
 			{/* Filter Bar */}
 			<div
-				class="relative shrink-0 border-gray-200 border-b py-2"
+				class="relative shrink-0 border-neutral-200 border-b py-2"
 				ref={filterContainerRef}>
 				<div class="flex items-center gap-2">
 					<div class="flex flex-1 items-center gap-2">
 						<button
 							class={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
 								hasActiveFilters()
-									? "bg-purple-100 text-purple-700"
-									: "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+									? "bg-primary-100 text-primary-hover"
+									: "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
 							}`}
 							data-testid="filter-toggle"
 							onClick={() => setShowFilters(!showFilters())}
@@ -316,7 +316,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 							</svg>
 							<span>{t("stream.activityFeed.filter")}</span>
 							<Show when={hasActiveFilters()}>
-								<span class="ml-0.5 rounded-full bg-purple-600 px-1.5 text-[10px] text-white">
+								<span class="ml-0.5 rounded-full bg-primary px-1.5 text-[10px] text-white">
 									{ALL_ACTIVITY_TYPES.length -
 										selectedTypeFilters().size +
 										(searchText().trim() ? 1 : 0)}
@@ -339,7 +339,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 						<div class="relative flex-1">
 							<input
-								class="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 pr-6 text-xs placeholder:text-gray-400 focus:border-purple-300 focus:bg-white focus:outline-none"
+								class="w-full rounded border border-neutral-200 bg-neutral-50 px-2 py-1 pr-6 text-xs placeholder:text-neutral-400 focus:border-primary-200 focus:bg-white focus:outline-none"
 								data-testid="search-input"
 								onInput={(e) => setSearchText(e.currentTarget.value)}
 								placeholder={t("stream.searchByNameOrMessage")}
@@ -349,7 +349,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 							<Show when={searchText()}>
 								<button
 									aria-label={t("stream.activityFeed.clear")}
-									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-gray-400 text-xs hover:text-gray-600"
+									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-neutral-400 text-xs hover:text-neutral-600"
 									data-testid="clear-search"
 									onClick={() => setSearchText("")}
 									type="button">
@@ -363,14 +363,14 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 				{/* Expandable filter panel */}
 				<Show when={showFilters()}>
-					<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+					<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg">
 						<div class="mb-1.5 flex items-center justify-between">
-							<span class="font-medium text-gray-600 text-xs">
+							<span class="font-medium text-neutral-600 text-xs">
 								{t("stream.activityFeed.eventTypes")}
 							</span>
 							<div class="flex gap-2">
 								<button
-									class="text-purple-600 text-xs hover:text-purple-700"
+									class="text-primary text-xs hover:text-primary-hover"
 									data-testid="select-all-types"
 									onClick={selectAllTypes}
 									type="button">
@@ -378,7 +378,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 								</button>
 								<Show when={hasActiveFilters()}>
 									<button
-										class="text-gray-500 text-xs hover:text-gray-700"
+										class="text-neutral-500 text-xs hover:text-neutral-700"
 										data-testid="clear-filters"
 										onClick={clearFilters}
 										type="button">
@@ -393,8 +393,8 @@ export function ActivityFeed(props: ActivityFeedProps) {
 									<button
 										class={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all ${
 											selectedTypeFilters().has(type)
-												? `${getEventColor(type)} bg-gray-800`
-												: "bg-gray-200 text-gray-500 hover:bg-gray-300"
+												? `${getEventColor(type)} bg-neutral-800`
+												: "bg-neutral-200 text-neutral-500 hover:bg-neutral-300"
 										}`}
 										data-testid={`filter-type-${type}`}
 										onClick={() => toggleTypeFilter(type)}
@@ -410,10 +410,10 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 				{/* Active filter indicator */}
 				<Show when={hasActiveFilters() && !showFilters()}>
-					<div class="mt-1.5 flex flex-wrap items-center gap-1 text-gray-500 text-xs">
+					<div class="mt-1.5 flex flex-wrap items-center gap-1 text-neutral-500 text-xs">
 						<span>{t("stream.activityFeed.showing")}</span>
 						<Show when={selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length}>
-							<span class="font-medium text-gray-700">
+							<span class="font-medium text-neutral-700">
 								{[...selectedTypeFilters()]
 									.map((type) => ACTIVITY_TYPE_LABELS[type])
 									.join(", ")}
@@ -422,13 +422,13 @@ export function ActivityFeed(props: ActivityFeedProps) {
 						<Show when={searchText().trim()}>
 							<Show
 								when={selectedTypeFilters().size < ALL_ACTIVITY_TYPES.length}>
-								<span class="text-gray-400">&bull;</span>
+								<span class="text-neutral-400">&bull;</span>
 							</Show>
-							<span class="font-medium text-gray-700">
+							<span class="font-medium text-neutral-700">
 								{formatActiveFilters()}
 							</span>
 						</Show>
-						<span class="text-gray-400">
+						<span class="text-neutral-400">
 							({sortedActivities().length} events)
 						</span>
 					</div>
@@ -442,14 +442,14 @@ export function ActivityFeed(props: ActivityFeedProps) {
 				ref={scrollContainerRef}>
 				<Show
 					fallback={
-						<div class="flex h-full items-center justify-center text-gray-400">
+						<div class="flex h-full items-center justify-center text-neutral-400">
 							<div class="text-center">
 								<Show
 									fallback={
 										<>
 											<svg
 												aria-hidden="true"
-												class="mx-auto mb-3 h-10 w-10 text-gray-300"
+												class="mx-auto mb-3 h-10 w-10 text-neutral-300"
 												fill="none"
 												stroke="currentColor"
 												stroke-width="1.5"
@@ -466,7 +466,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 									when={hasActiveFilters()}>
 									<svg
 										aria-hidden="true"
-										class="mx-auto mb-3 h-10 w-10 text-gray-300"
+										class="mx-auto mb-3 h-10 w-10 text-neutral-300"
 										fill="none"
 										stroke="currentColor"
 										stroke-width="1.5"
@@ -479,7 +479,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 									</svg>
 									<div>{t("stream.activityFeed.noEventsMatch")}</div>
 									<button
-										class="mt-2 text-purple-600 text-sm hover:text-purple-700"
+										class="mt-2 text-primary text-sm hover:text-primary-hover"
 										data-testid="clear-filters-empty"
 										onClick={clearFilters}
 										type="button">

@@ -24,20 +24,20 @@ export const SliderField: Component<SliderFieldProps> = (props) => {
 					<span class={text.label}>
 						{props.field.label}
 						<Show when={unit()}>
-							<span class="ml-1 text-gray-400">({unit()})</span>
+							<span class="ml-1 text-neutral-400">({unit()})</span>
 						</Show>
 					</span>
-					<span class="font-medium text-gray-900 text-sm">
+					<span class="font-medium text-neutral-900 text-sm">
 						{props.value ?? min()}
 						<Show when={unit()}>
-							<span class="text-gray-400">{unit()}</span>
+							<span class="text-neutral-400">{unit()}</span>
 						</Show>
 					</span>
 				</div>
 				<div class="mt-2 flex items-center gap-3">
-					<span class="text-gray-400 text-xs">{min()}</span>
+					<span class="text-neutral-400 text-xs">{min()}</span>
 					<input
-						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-neutral-200 accent-primary disabled:cursor-not-allowed disabled:opacity-50"
 						disabled={props.disabled}
 						max={max()}
 						min={min()}
@@ -49,7 +49,7 @@ export const SliderField: Component<SliderFieldProps> = (props) => {
 						type="range"
 						value={props.value ?? min()}
 					/>
-					<span class="text-gray-400 text-xs">{max()}</span>
+					<span class="text-neutral-400 text-xs">{max()}</span>
 				</div>
 			</label>
 			{props.field.meta.description && (

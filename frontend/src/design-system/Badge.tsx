@@ -16,8 +16,8 @@ const variantClasses: Record<BadgeVariant, string> = {
 	warning: "bg-yellow-100 text-yellow-800",
 	error: "bg-red-100 text-red-800",
 	info: "bg-blue-100 text-blue-800",
-	neutral: "bg-gray-100 text-gray-800",
-	purple: "bg-purple-100 text-purple-800",
+	neutral: "bg-neutral-100 text-neutral-800",
+	purple: "bg-primary-100 text-primary-800",
 	pink: "bg-pink-100 text-pink-800",
 };
 

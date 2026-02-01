@@ -13,9 +13,9 @@ export default function NotFound() {
 			<Title>{t("notFound.code")} - Streampai</Title>
 			<main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
 				{/* Animated background blobs */}
-				<div class="absolute top-20 left-10 h-32 w-32 animate-pulse rounded-full bg-purple-500/20 blur-xl" />
+				<div class="absolute top-20 left-10 h-32 w-32 animate-pulse rounded-full bg-primary-light/20 blur-xl" />
 				<div
-					class="absolute top-40 right-20 h-48 w-48 animate-pulse rounded-full bg-pink-500/20 blur-xl"
+					class="absolute top-40 right-20 h-48 w-48 animate-pulse rounded-full bg-secondary/20 blur-xl"
 					style="animation-delay: 1000ms"
 				/>
 				<div
@@ -41,15 +41,15 @@ export default function NotFound() {
 					{/* Cute TV/Monitor illustration with static */}
 					<div class="relative mx-auto mb-8 h-48 w-64">
 						{/* Monitor body */}
-						<div class="absolute inset-0 rounded-2xl border-4 border-white/20 bg-linear-to-br from-gray-800 to-gray-900 shadow-2xl">
+						<div class="absolute inset-0 rounded-2xl border-4 border-white/20 bg-linear-to-br from-neutral-800 to-neutral-900 shadow-2xl">
 							{/* Screen with static effect */}
-							<div class="relative m-3 h-32 overflow-hidden rounded-lg bg-linear-to-br from-gray-900 to-gray-800">
+							<div class="relative m-3 h-32 overflow-hidden rounded-lg bg-linear-to-br from-neutral-900 to-neutral-800">
 								{/* Static noise animation - CSS pattern */}
 								<div class="absolute inset-0 animate-pulse bg-[length:4px_4px] bg-[linear-gradient(45deg,rgba(255,255,255,0.03)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.03)_50%,rgba(255,255,255,0.03)_75%,transparent_75%,transparent)]" />
 
 								{/* 404 on screen */}
 								<div class="absolute inset-0 flex items-center justify-center">
-									<span class="font-bold text-5xl text-purple-400/80">
+									<span class="font-bold text-5xl text-primary-light/80">
 										{t("notFound.code")}
 									</span>
 								</div>
@@ -60,28 +60,28 @@ export default function NotFound() {
 						</div>
 
 						{/* Monitor stand */}
-						<div class="absolute bottom-0 left-1/2 h-4 w-16 -translate-x-1/2 translate-y-full rounded-b-lg bg-linear-to-b from-gray-700 to-gray-800" />
-						<div class="absolute bottom-0 left-1/2 h-2 w-24 -translate-x-1/2 translate-y-[calc(100%+16px)] rounded-b-lg bg-linear-to-b from-gray-700 to-gray-800" />
+						<div class="absolute bottom-0 left-1/2 h-4 w-16 -translate-x-1/2 translate-y-full rounded-b-lg bg-linear-to-b from-neutral-700 to-neutral-800" />
+						<div class="absolute bottom-0 left-1/2 h-2 w-24 -translate-x-1/2 translate-y-[calc(100%+16px)] rounded-b-lg bg-linear-to-b from-neutral-700 to-neutral-800" />
 
 						{/* Cute face on monitor - sad expression */}
 						<div class="absolute top-16 left-1/2 flex -translate-x-1/2 items-center justify-center space-x-8">
 							{/* Left eye - X shape */}
 							<div class="relative h-4 w-4">
-								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 rotate-45 bg-pink-400" />
-								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 -rotate-45 bg-pink-400" />
+								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 rotate-45 bg-secondary" />
+								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 -rotate-45 bg-secondary" />
 							</div>
 							{/* Right eye - X shape */}
 							<div class="relative h-4 w-4">
-								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 rotate-45 bg-pink-400" />
-								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 -rotate-45 bg-pink-400" />
+								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 rotate-45 bg-secondary" />
+								<div class="absolute top-1/2 left-0 h-0.5 w-4 -translate-y-1/2 -rotate-45 bg-secondary" />
 							</div>
 						</div>
 						{/* Sad mouth */}
-						<div class="absolute top-24 left-1/2 h-3 w-8 -translate-x-1/2 rounded-t-full border-pink-400 border-t-2" />
+						<div class="absolute top-24 left-1/2 h-3 w-8 -translate-x-1/2 rounded-t-full border-secondary border-t-2" />
 
 						{/* Decorative antenna */}
 						<div class="absolute top-0 left-1/2 h-6 w-1 -translate-x-1/2 -translate-y-full bg-white/30" />
-						<div class="absolute top-0 left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-[calc(100%+20px)] rounded-full bg-pink-400 shadow-[0_0_10px_rgba(236,72,153,0.5)]" />
+						<div class="absolute top-0 left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-[calc(100%+20px)] rounded-full bg-secondary shadow-[0_0_10px_rgba(236,72,153,0.5)]" />
 					</div>
 
 					{/* Error message */}
@@ -89,16 +89,16 @@ export default function NotFound() {
 						{t("notFound.title")}
 					</h1>
 
-					<p class="mb-2 text-lg text-purple-200">
+					<p class="mb-2 text-lg text-primary-200">
 						{t("notFound.description")}
 					</p>
 
-					<p class="mb-8 text-gray-400">{t("notFound.suggestion")}</p>
+					<p class="mb-8 text-neutral-400">{t("notFound.suggestion")}</p>
 
 					{/* Action buttons */}
 					<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
 						<A
-							class="inline-flex items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
+							class="inline-flex items-center justify-center rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:from-primary hover:to-secondary-hover hover:shadow-xl"
 							href="/">
 							<svg
 								aria-hidden="true"
@@ -139,7 +139,9 @@ export default function NotFound() {
 					</div>
 
 					{/* Footer hint */}
-					<p class="mt-12 text-gray-500 text-sm">{t("notFound.searchHint")}</p>
+					<p class="mt-12 text-neutral-500 text-sm">
+						{t("notFound.searchHint")}
+					</p>
 				</div>
 			</main>
 		</>

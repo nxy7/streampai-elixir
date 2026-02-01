@@ -47,13 +47,13 @@ export default function Contact() {
 							<h2 class="mb-4 font-bold text-3xl text-white">
 								{t("contact.heading")}
 							</h2>
-							<p class="text-gray-300 text-lg">{t("contact.subheading")}</p>
+							<p class="text-lg text-neutral-300">{t("contact.subheading")}</p>
 						</div>
 
 						<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 							<div class="space-y-6 lg:col-span-1">
 								<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
-									<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-purple-500 to-pink-500">
+									<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 										<svg
 											aria-hidden="true"
 											class="h-6 w-6 text-white"
@@ -71,7 +71,7 @@ export default function Contact() {
 									<h3 class="mb-2 font-semibold text-lg text-white">
 										{t("contact.emailTitle")}
 									</h3>
-									<p class="text-gray-300">support@streampai.com</p>
+									<p class="text-neutral-300">support@streampai.com</p>
 								</div>
 
 								<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
@@ -93,8 +93,10 @@ export default function Contact() {
 									<h3 class="mb-2 font-semibold text-lg text-white">
 										{t("contact.discordTitle")}
 									</h3>
-									<p class="text-gray-300">{t("contact.discordDescription")}</p>
-									<span class="text-purple-400 text-sm">
+									<p class="text-neutral-300">
+										{t("contact.discordDescription")}
+									</p>
+									<span class="text-primary-light text-sm">
 										{t("contact.comingSoon")}
 									</span>
 								</div>
@@ -112,8 +114,10 @@ export default function Contact() {
 									<h3 class="mb-2 font-semibold text-lg text-white">
 										{t("contact.githubTitle")}
 									</h3>
-									<p class="text-gray-300">{t("contact.githubDescription")}</p>
-									<span class="text-purple-400 text-sm">
+									<p class="text-neutral-300">
+										{t("contact.githubDescription")}
+									</p>
+									<span class="text-primary-light text-sm">
 										{t("contact.comingSoon")}
 									</span>
 								</div>
@@ -134,7 +138,7 @@ export default function Contact() {
 													{t("contact.nameLabel")}
 												</label>
 												<input
-													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-neutral-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
 													id="name"
 													onInput={(e) => setName(e.currentTarget.value)}
 													placeholder={t("contact.namePlaceholder")}
@@ -150,7 +154,7 @@ export default function Contact() {
 													{t("contact.emailLabel")}
 												</label>
 												<input
-													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+													class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-neutral-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
 													id="email"
 													onInput={(e) => setEmail(e.currentTarget.value)}
 													placeholder={t("contact.emailPlaceholder")}
@@ -168,30 +172,30 @@ export default function Contact() {
 												{t("contact.subjectLabel")}
 											</label>
 											<select
-												class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+												class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
 												id="subject"
 												onChange={(e) => setSubject(e.currentTarget.value)}
 												required
 												value={subject()}>
-												<option class="bg-gray-800" value="">
+												<option class="bg-neutral-800" value="">
 													{t("contact.subjectPlaceholder")}
 												</option>
-												<option class="bg-gray-800" value="general">
+												<option class="bg-neutral-800" value="general">
 													{t("contact.subjectGeneral")}
 												</option>
-												<option class="bg-gray-800" value="support">
+												<option class="bg-neutral-800" value="support">
 													{t("contact.subjectSupport")}
 												</option>
-												<option class="bg-gray-800" value="billing">
+												<option class="bg-neutral-800" value="billing">
 													{t("contact.subjectBilling")}
 												</option>
-												<option class="bg-gray-800" value="feature">
+												<option class="bg-neutral-800" value="feature">
 													{t("contact.subjectFeature")}
 												</option>
-												<option class="bg-gray-800" value="bug">
+												<option class="bg-neutral-800" value="bug">
 													{t("contact.subjectBug")}
 												</option>
-												<option class="bg-gray-800" value="partnership">
+												<option class="bg-neutral-800" value="partnership">
 													{t("contact.subjectPartnership")}
 												</option>
 											</select>
@@ -204,7 +208,7 @@ export default function Contact() {
 												{t("contact.messageLabel")}
 											</label>
 											<textarea
-												class="w-full resize-none rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+												class="w-full resize-none rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-neutral-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
 												id="message"
 												onInput={(e) => setMessage(e.currentTarget.value)}
 												placeholder={t("contact.messagePlaceholder")}
@@ -215,7 +219,7 @@ export default function Contact() {
 										</div>
 
 										<button
-											class="w-full rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
+											class="w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover disabled:opacity-50"
 											disabled={status() === "loading"}
 											type="submit">
 											{status() === "loading"

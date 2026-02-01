@@ -43,11 +43,11 @@ export default function Stat(props: StatProps) {
 			<p
 				class={cn(
 					valueClasses[size],
-					local.highlight ? "text-indigo-600" : "text-gray-900",
+					local.highlight ? "text-indigo-600" : "text-neutral-900",
 				)}>
 				{local.value}
 			</p>
-			<p class={cn(size === "sm" ? "text-xs" : "text-sm", "text-gray-500")}>
+			<p class={cn(size === "sm" ? "text-xs" : "text-sm", "text-neutral-500")}>
 				{local.label}
 			</p>
 			<Show when={local.trend}>
@@ -88,7 +88,7 @@ export default function Stat(props: StatProps) {
 						{local.trend?.value}%
 					</span>
 					<Show when={local.trend?.label}>
-						<span class="ml-1 text-gray-400">{local.trend?.label}</span>
+						<span class="ml-1 text-neutral-400">{local.trend?.label}</span>
 					</Show>
 				</div>
 			</Show>

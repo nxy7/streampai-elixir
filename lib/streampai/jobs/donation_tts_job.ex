@@ -13,7 +13,7 @@ defmodule Streampai.Jobs.DonationTtsJob do
     tags: ["tts", "donation"],
     unique: [period: 60, keys: [:user_id, :donation_event]]
 
-  alias Phoenix.PubSub
+  alias Streampai.LivestreamManager.StreamManager
   alias Streampai.TtsService
 
   require Logger
@@ -106,14 +106,9 @@ defmodule Streampai.Jobs.DonationTtsJob do
   end
 
   defp broadcast_alert_event(user_id, alert_event) do
-    # Broadcast to the alertbox widget
-    PubSub.broadcast(
-      Streampai.PubSub,
-      "alertbox:#{user_id}",
-      {:new_donation, alert_event}
-    )
+    StreamManager.enqueue_alert(user_id, alert_event)
 
-    Logger.info("Broadcasted alert event",
+    Logger.info("Enqueued alert event",
       user_id: user_id,
       event_type: alert_event.type,
       has_tts: !is_nil(alert_event.tts_path)

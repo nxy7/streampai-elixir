@@ -1,12 +1,5 @@
 import { Title } from "@solidjs/meta";
-import {
-	For,
-	Show,
-	createEffect,
-	createMemo,
-	createSignal,
-	onCleanup,
-} from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 import {
 	AnalyticsSkeleton,
 	type PlatformData,
@@ -95,19 +88,7 @@ export default function Analytics() {
 		}
 	};
 
-	createEffect(() => {
-		if (user()?.id) {
-			loadStreams();
-
-			const updateInterval = setInterval(() => {
-				loadStreams();
-			}, 5000);
-
-			onCleanup(() => {
-				clearInterval(updateInterval);
-			});
-		}
-	});
+	loadStreams();
 
 	const daysForTimeframe = (tf: Timeframe): number => {
 		switch (tf) {
@@ -259,9 +240,11 @@ export default function Analytics() {
 								<h2 class="mb-4 font-bold text-2xl text-white">
 									{t("dashboard.notAuthenticated")}
 								</h2>
-								<p class="mb-6 text-gray-300">{t("analytics.signInToView")}</p>
+								<p class="mb-6 text-neutral-300">
+									{t("analytics.signInToView")}
+								</p>
 								<a
-									class="inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 									href={getLoginUrl()}>
 									{t("nav.signIn")}
 								</a>
@@ -272,16 +255,16 @@ export default function Analytics() {
 					<div class="space-y-6">
 						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 							<div>
-								<h1 class="font-bold text-2xl text-gray-900">
+								<h1 class="font-bold text-2xl text-neutral-900">
 									{t("analytics.title")}
 								</h1>
-								<p class="mt-1 text-gray-500 text-sm">
+								<p class="mt-1 text-neutral-500 text-sm">
 									{t("analytics.subtitle")}
 								</p>
 							</div>
 
 							<select
-								class="rounded-md border-gray-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-600"
+								class="rounded-md border-neutral-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
 								onChange={(e) =>
 									setTimeframe(e.currentTarget.value as Timeframe)
 								}
@@ -349,8 +332,8 @@ function LoadingState() {
 				</CardHeader>
 				<CardContent>
 					<div class="-mx-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-neutral-200">
+							<thead class="bg-neutral-50">
 								<tr>
 									<For each={[1, 2, 3, 4, 5, 6]}>
 										{() => (
@@ -361,7 +344,7 @@ function LoadingState() {
 									</For>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-gray-200 bg-white">
+							<tbody class="divide-y divide-neutral-200 bg-white">
 								<For each={[1, 2, 3, 4, 5]}>
 									{() => <SkeletonTableRow columns={6} />}
 								</For>

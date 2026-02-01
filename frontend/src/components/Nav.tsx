@@ -20,7 +20,7 @@ export default function Nav() {
 
 	return (
 		<nav class="bg-sky-800">
-			<div class="container flex items-center justify-between p-3 text-gray-200">
+			<div class="container flex items-center justify-between p-3 text-neutral-200">
 				<ul class="flex items-center">
 					<li class={`border-b-2 ${active("/")} mx-1.5 sm:mx-6`}>
 						<A href="/">{t("nav.home")}</A>
@@ -36,12 +36,12 @@ export default function Nav() {
 							fallback={
 								<div class="flex gap-2">
 									<a
-										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
+										class="rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover"
 										href={getLoginUrl()}>
 										{t("nav.signIn")}
 									</a>
 									<a
-										class="flex items-center gap-2 rounded bg-white px-4 py-2 text-gray-900 transition-colors hover:bg-gray-100"
+										class="flex items-center gap-2 rounded bg-white px-4 py-2 text-neutral-900 transition-colors hover:bg-neutral-100"
 										href={getLoginUrl("google")}>
 										<svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24">
 											<path
@@ -64,7 +64,7 @@ export default function Nav() {
 										{t("nav.google")}
 									</a>
 									<a
-										class="flex items-center gap-2 rounded bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600"
+										class="flex items-center gap-2 rounded bg-primary-light px-4 py-2 text-white transition-colors hover:bg-primary"
 										href={getLoginUrl("twitch")}>
 										<svg
 											aria-hidden="true"
@@ -86,7 +86,7 @@ export default function Nav() {
 										})}
 									</span>
 									<A
-										class="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
+										class="rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover"
 										href={getDashboardUrl()}>
 										{t("nav.dashboard")}
 									</A>

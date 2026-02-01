@@ -196,12 +196,12 @@ export default function DonationPage() {
 									<h1 class="mb-2 font-bold text-2xl text-white">
 										User Not Found
 									</h1>
-									<p class="text-gray-300">
+									<p class="text-neutral-300">
 										The user "{params.username}" doesn't exist or has been
 										removed.
 									</p>
 									<a
-										class="mt-6 inline-block rounded-lg bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
+										class="mt-6 inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 										href="/">
 										Go Home
 									</a>
@@ -212,7 +212,7 @@ export default function DonationPage() {
 						<div class="mx-auto max-w-2xl px-4 py-12">
 							{/* User Header */}
 							<div class="mb-8 text-center">
-								<div class="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+								<div class="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 									<Show
 										fallback={
 											<span class="font-bold text-3xl text-white">
@@ -230,7 +230,7 @@ export default function DonationPage() {
 								<h1 class="mb-2 font-bold text-3xl text-white">
 									Support {userName()}
 								</h1>
-								<p class="text-gray-300">
+								<p class="text-neutral-300">
 									Send a donation to show your appreciation!
 								</p>
 							</div>
@@ -248,7 +248,7 @@ export default function DonationPage() {
 												<button
 													class={`rounded-lg px-4 py-3 font-semibold transition-all ${
 														currentStreamerPrefs().selectedAmount === amount
-															? "bg-linear-to-r from-purple-500 to-pink-500 text-white"
+															? "bg-linear-to-r from-primary-light to-secondary text-white"
 															: "bg-white/20 text-white hover:bg-white/30"
 													}`}
 													onClick={() => {
@@ -267,11 +267,11 @@ export default function DonationPage() {
 
 									{/* Custom Amount */}
 									<div class="relative">
-										<span class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400">
+										<span class="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400">
 											{getCurrencySymbol(currency())}
 										</span>
 										<input
-											class="w-full rounded-lg border border-white/30 bg-white/20 py-3 pr-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											class="w-full rounded-lg border border-white/30 bg-white/20 py-3 pr-4 pl-10 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
 											inputMode="decimal"
 											onBeforeInput={(e) => {
 												// Block non-numeric input except decimal point
@@ -312,7 +312,7 @@ export default function DonationPage() {
 											prefs()?.min_donation_amount ||
 											prefs()?.max_donation_amount
 										}>
-										<p class="mt-2 text-gray-400 text-sm">
+										<p class="mt-2 text-neutral-400 text-sm">
 											<Show when={prefs()?.min_donation_amount}>
 												Min: {getCurrencySymbol(currency())}
 												{prefs()?.min_donation_amount}
@@ -348,7 +348,7 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Your Name (optional)
 										<input
-											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
 											onInput={(e) =>
 												setDonorInfo("name", e.currentTarget.value)
 											}
@@ -364,7 +364,7 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Your Email (for receipt)
 										<input
-											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
 											onInput={(e) =>
 												setDonorInfo("email", e.currentTarget.value)
 											}
@@ -380,7 +380,7 @@ export default function DonationPage() {
 									<label class="block font-medium text-white">
 										Message (optional)
 										<textarea
-											class="mt-2 w-full resize-none rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+											class="mt-2 w-full resize-none rounded-lg border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
 											onInput={(e) =>
 												updateStreamerPrefs({ message: e.currentTarget.value })
 											}
@@ -395,8 +395,8 @@ export default function DonationPage() {
 								<button
 									class={`w-full rounded-lg py-4 font-bold text-lg transition-all ${
 										isValidAmount()
-											? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
-											: "cursor-not-allowed bg-gray-600 text-gray-400"
+											? "bg-linear-to-r from-primary-light to-secondary text-white shadow-lg hover:from-primary hover:to-secondary-hover hover:shadow-xl"
+											: "cursor-not-allowed bg-neutral-600 text-neutral-400"
 									}`}
 									disabled={!isValidAmount()}
 									onClick={handleDonate}
@@ -407,7 +407,7 @@ export default function DonationPage() {
 									</Show>
 								</button>
 
-								<p class="mt-4 text-center text-gray-400 text-sm">
+								<p class="mt-4 text-center text-neutral-400 text-sm">
 									Powered by Streampai
 								</p>
 							</div>

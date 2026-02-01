@@ -235,15 +235,15 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 		<>
 			{/* Pending Invitations Section */}
 			<Card>
-				<h3 class="mb-6 font-medium text-gray-900 text-lg">
+				<h3 class="mb-6 font-medium text-lg text-neutral-900">
 					{t("settings.roleInvitations")}
 				</h3>
 				<Show
 					fallback={
-						<div class="py-8 text-center text-gray-500">
+						<div class="py-8 text-center text-neutral-500">
 							<svg
 								aria-hidden="true"
-								class="mx-auto mb-3 h-12 w-12 text-gray-400"
+								class="mx-auto mb-3 h-12 w-12 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -255,7 +255,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 								/>
 							</svg>
 							<p class="text-sm">{t("settings.noPendingInvitations")}</p>
-							<p class="mt-1 text-gray-400 text-xs">
+							<p class="mt-1 text-neutral-400 text-xs">
 								{t("settings.invitationsHelp")}
 							</p>
 						</div>
@@ -267,9 +267,9 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 								const granterInfo = () =>
 									getUserInfoCached(invitation.granter_id);
 								return (
-									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+									<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 										<div class="flex items-center gap-3">
-											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 												<Show
 													fallback={
 														<span class="font-bold text-white">
@@ -285,16 +285,16 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 												</Show>
 											</div>
 											<div>
-												<p class="font-medium text-gray-900">
+												<p class="font-medium text-neutral-900">
 													{granterInfo()?.name || "Loading..."}
 												</p>
-												<p class="text-gray-500 text-sm">
+												<p class="text-neutral-500 text-sm">
 													{t("settings.invitedYouAs")}{" "}
-													<span class="font-medium text-purple-600">
+													<span class="font-medium text-primary">
 														{formatRoleType(invitation.role_type)}
 													</span>
 												</p>
-												<p class="text-gray-400 text-xs">
+												<p class="text-neutral-400 text-xs">
 													{formatDate(invitation.granted_at)}
 												</p>
 											</div>
@@ -329,15 +329,15 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 
 			{/* My Roles in Other Channels */}
 			<Card>
-				<h3 class="mb-6 font-medium text-gray-900 text-lg">
+				<h3 class="mb-6 font-medium text-lg text-neutral-900">
 					{t("settings.myRolesInChannels")}
 				</h3>
 				<Show
 					fallback={
-						<div class="py-8 text-center text-gray-500">
+						<div class="py-8 text-center text-neutral-500">
 							<svg
 								aria-hidden="true"
-								class="mx-auto mb-3 h-12 w-12 text-gray-400"
+								class="mx-auto mb-3 h-12 w-12 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -349,7 +349,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 								/>
 							</svg>
 							<p class="text-sm">{t("settings.noRolesInChannels")}</p>
-							<p class="mt-1 text-gray-400 text-xs">
+							<p class="mt-1 text-neutral-400 text-xs">
 								{t("settings.rolesGrantedHelp")}
 							</p>
 						</div>
@@ -360,9 +360,9 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							{(role) => {
 								const granterInfo = () => getUserInfoCached(role.granter_id);
 								return (
-									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+									<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 										<div class="flex items-center gap-3">
-											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 												<Show
 													fallback={
 														<span class="font-bold text-white">
@@ -378,16 +378,16 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 												</Show>
 											</div>
 											<div>
-												<p class="font-medium text-gray-900">
+												<p class="font-medium text-neutral-900">
 													{granterInfo()?.name || "Loading..."}
 													{t("settings.channel")}
 												</p>
-												<p class="text-gray-500 text-sm">
+												<p class="text-neutral-500 text-sm">
 													<Badge size="sm" variant="purple">
 														{formatRoleType(role.role_type)}
 													</Badge>
 												</p>
-												<p class="mt-1 text-gray-400 text-xs">
+												<p class="mt-1 text-neutral-400 text-xs">
 													{t("settings.since")}{" "}
 													{formatDate(role.accepted_at || role.granted_at)}
 												</p>
@@ -404,10 +404,10 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 			{/* Divider */}
 			<div class="relative">
 				<div class="absolute inset-0 flex items-center">
-					<div class="w-full border-gray-300 border-t" />
+					<div class="w-full border-neutral-300 border-t" />
 				</div>
 				<div class="relative flex justify-center text-sm">
-					<span class="bg-gray-50 px-2 text-gray-500">
+					<span class="bg-neutral-50 px-2 text-neutral-500">
 						{t("settings.channelManagement")}
 					</span>
 				</div>
@@ -415,20 +415,20 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 
 			{/* Role Management Section */}
 			<Card>
-				<h3 class="mb-6 font-medium text-gray-900 text-lg">
+				<h3 class="mb-6 font-medium text-lg text-neutral-900">
 					{t("settings.roleManagement")}
 				</h3>
 
 				{/* Invite User Form */}
-				<div class="mb-6 rounded-lg bg-gray-50 p-4">
-					<h4 class="mb-3 font-medium text-gray-900">
+				<div class="mb-6 rounded-lg bg-neutral-50 p-4">
+					<h4 class="mb-3 font-medium text-neutral-900">
 						{t("settings.inviteUser")}
 					</h4>
 					<form class="space-y-3" onSubmit={handleInviteUser}>
 						<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 							<div>
 								<input
-									class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+									class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
 									onInput={(e) => setInviteUsername(e.currentTarget.value)}
 									placeholder={t("settings.enterUsername")}
 									type="text"
@@ -437,7 +437,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							</div>
 							<div>
 								<select
-									class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+									class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
 									onChange={(e) =>
 										setInviteRoleType(
 											e.currentTarget.value as "moderator" | "manager",
@@ -490,7 +490,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 				<Show
 					when={!props.isLoading && props.pendingInvitationsSent.length > 0}>
 					<div class="mb-6 space-y-3">
-						<h4 class="font-medium text-gray-700 text-sm">
+						<h4 class="font-medium text-neutral-700 text-sm">
 							{t("settings.pendingInvitations")}
 						</h4>
 						<For each={props.pendingInvitationsSent}>
@@ -515,16 +515,16 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 												</Show>
 											</div>
 											<div>
-												<p class="font-medium text-gray-900">
+												<p class="font-medium text-neutral-900">
 													{userInfo()?.name || "Loading..."}
 												</p>
-												<p class="text-gray-500 text-sm">
+												<p class="text-neutral-500 text-sm">
 													<Badge size="sm" variant="warning">
 														{formatRoleType(role.role_type)} (
 														{t("settings.pending")})
 													</Badge>
 												</p>
-												<p class="mt-1 text-gray-400 text-xs">
+												<p class="mt-1 text-neutral-400 text-xs">
 													Invited {formatDate(role.granted_at)}
 												</p>
 											</div>
@@ -551,10 +551,10 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 				<Show
 					fallback={
 						<Show when={props.pendingInvitationsSent.length === 0}>
-							<div class="py-8 text-center text-gray-500">
+							<div class="py-8 text-center text-neutral-500">
 								<svg
 									aria-hidden="true"
-									class="mx-auto mb-3 h-12 w-12 text-gray-400"
+									class="mx-auto mb-3 h-12 w-12 text-neutral-400"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24">
@@ -566,7 +566,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 									/>
 								</svg>
 								<p class="text-sm">{t("settings.noRolesGranted")}</p>
-								<p class="mt-1 text-gray-400 text-xs">
+								<p class="mt-1 text-neutral-400 text-xs">
 									{t("settings.rolesGrantedToHelp")}
 								</p>
 							</div>
@@ -574,16 +574,16 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 					}
 					when={!props.isLoading && props.rolesIGranted.length > 0}>
 					<div class="space-y-3">
-						<h4 class="font-medium text-gray-700 text-sm">
+						<h4 class="font-medium text-neutral-700 text-sm">
 							{t("settings.yourTeam")}
 						</h4>
 						<For each={props.rolesIGranted}>
 							{(role) => {
 								const userInfo = () => getUserInfoCached(role.user_id);
 								return (
-									<div class="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+									<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
 										<div class="flex items-center gap-3">
-											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+											<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-r from-primary-light to-secondary">
 												<Show
 													fallback={
 														<span class="font-bold text-white">
@@ -599,15 +599,15 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 												</Show>
 											</div>
 											<div>
-												<p class="font-medium text-gray-900">
+												<p class="font-medium text-neutral-900">
 													{userInfo()?.name || "Loading..."}
 												</p>
-												<p class="text-gray-500 text-sm">
+												<p class="text-neutral-500 text-sm">
 													<Badge size="sm" variant="purple">
 														{formatRoleType(role.role_type)}
 													</Badge>
 												</p>
-												<p class="mt-1 text-gray-400 text-xs">
+												<p class="mt-1 text-neutral-400 text-xs">
 													{t("settings.since")}{" "}
 													{formatDate(role.accepted_at || role.granted_at)}
 												</p>

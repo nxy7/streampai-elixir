@@ -13,16 +13,16 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
 	primary:
-		"bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed",
+		"bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed",
 	secondary:
-		"bg-gray-200 text-gray-900 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed",
+		"bg-neutral-200 text-neutral-900 hover:bg-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed",
 	danger:
 		"bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed",
 	success:
 		"bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed",
-	ghost: "text-gray-700 hover:bg-gray-100",
+	ghost: "text-neutral-700 hover:bg-neutral-100",
 	gradient:
-		"bg-linear-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 shadow-md",
+		"bg-linear-to-r from-primary to-secondary text-white hover:from-primary-hover hover:to-secondary-hover shadow-md",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

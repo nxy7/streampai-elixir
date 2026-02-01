@@ -20,6 +20,7 @@ defmodule StreampaiWeb.SyncController do
   alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.StreamTimer
   alias Streampai.Stream.StreamViewer
 
   # Safe columns to sync from users table (excludes sensitive data like hashed_password)
@@ -203,6 +204,17 @@ defmodule StreampaiWeb.SyncController do
     case Ecto.UUID.cast(user_id) do
       {:ok, uuid} ->
         query = from(hm in HighlightedMessage, where: hm.user_id == ^uuid)
+        sync_render(conn, params, query)
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
+  end
+
+  def stream_timers(conn, %{"user_id" => user_id} = params) do
+    case Ecto.UUID.cast(user_id) do
+      {:ok, uuid} ->
+        query = from(t in StreamTimer, where: t.user_id == ^uuid)
         sync_render(conn, params, query)
 
       :error ->

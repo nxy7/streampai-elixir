@@ -53,8 +53,8 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 			icon: "[=]",
 			title: t("stream.actions.streamSettings"),
 			description: t("stream.actions.streamSettingsDescription"),
-			color: "bg-purple-500",
-			hoverColor: "hover:bg-purple-600",
+			color: "bg-primary-light",
+			hoverColor: "hover:bg-primary",
 			onClick: props.onChangeStreamSettings,
 			enabled: !!props.onChangeStreamSettings,
 		},
@@ -63,17 +63,17 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 	return (
 		<div class="flex h-full flex-col">
 			<div class="mb-4">
-				<h3 class="font-semibold text-gray-900 text-lg">
+				<h3 class="font-semibold text-lg text-neutral-900">
 					{t("stream.actions.title")}
 				</h3>
-				<p class="text-gray-500 text-sm">{t("stream.actions.subtitle")}</p>
+				<p class="text-neutral-500 text-sm">{t("stream.actions.subtitle")}</p>
 			</div>
 
 			<div class="grid gap-3">
 				<For each={actions}>
 					{(action) => (
 						<button
-							class={`flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md ${
+							class={`flex items-center gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:border-neutral-300 hover:shadow-md ${
 								action.enabled
 									? "cursor-pointer"
 									: "cursor-not-allowed opacity-60"
@@ -87,17 +87,17 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 								{action.icon}
 							</div>
 							<div class="min-w-0 flex-1">
-								<div class="font-medium text-gray-900">{action.title}</div>
-								<div class="text-gray-500 text-sm">{action.description}</div>
+								<div class="font-medium text-neutral-900">{action.title}</div>
+								<div class="text-neutral-500 text-sm">{action.description}</div>
 							</div>
-							<div class="shrink-0 text-gray-400">&gt;</div>
+							<div class="shrink-0 text-neutral-400">&gt;</div>
 						</button>
 					)}
 				</For>
 			</div>
 
 			<div class="mt-auto pt-4">
-				<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-500 text-sm">
+				<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-center text-neutral-500 text-sm">
 					{t("stream.actions.moreComingSoon")}
 				</div>
 			</div>

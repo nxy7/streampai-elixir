@@ -13,10 +13,10 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 	return (
 		<div class="fixed right-6 bottom-6 z-50" data-testid="quick-actions-panel">
 			<Show when={isExpanded()}>
-				<div class="absolute right-0 bottom-16 min-w-[200px] animate-fade-in rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+				<div class="absolute right-0 bottom-16 min-w-[200px] animate-fade-in rounded-xl border border-neutral-200 bg-white p-3 shadow-xl">
 					<div class="space-y-2">
 						<button
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-primary-50 hover:text-primary-hover"
 							onClick={props.onTestAlert}
 							type="button">
 							<svg
@@ -37,7 +37,7 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 							</span>
 						</button>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-purple-50 hover:text-purple-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-primary-50 hover:text-primary-hover"
 							href="/dashboard/widgets">
 							<svg
 								aria-hidden="true"
@@ -55,7 +55,7 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 							<span class="font-medium text-sm">{t("dashboard.widgets")}</span>
 						</A>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-green-50 hover:text-green-700"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-green-50 hover:text-green-700"
 							href="/dashboard/stream">
 							<svg
 								aria-hidden="true"
@@ -73,7 +73,7 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 							<span class="font-medium text-sm">{t("dashboard.goLive")}</span>
 						</A>
 						<A
-							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-neutral-100"
 							href="/dashboard/settings">
 							<svg
 								aria-hidden="true"
@@ -104,8 +104,8 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 			<button
 				class={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
 					isExpanded()
-						? "rotate-45 bg-gray-700"
-						: "bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+						? "rotate-45 bg-neutral-700"
+						: "bg-linear-to-r from-primary to-secondary hover:from-primary-hover hover:to-secondary-hover"
 				}`}
 				onClick={() => setIsExpanded(!isExpanded())}
 				type="button">

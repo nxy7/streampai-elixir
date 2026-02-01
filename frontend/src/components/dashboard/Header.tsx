@@ -29,10 +29,10 @@ interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
 	return (
-		<header class="sticky top-0 z-30 flex h-16 items-center justify-between border-gray-200 border-b bg-white px-4 shadow-sm md:px-6">
+		<header class="sticky top-0 z-30 flex h-16 items-center justify-between border-neutral-200 border-b bg-white px-4 shadow-sm md:px-6">
 			{/* Mobile menu button */}
 			<button
-				class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+				class="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 md:hidden"
 				onClick={props.onOpenMobileSidebar}
 				type="button">
 				<MenuIcon />
@@ -41,7 +41,7 @@ export default function Header(props: HeaderProps) {
 			{/* Page title or breadcrumbs */}
 			<Show
 				fallback={
-					<h1 class="hidden font-semibold text-gray-900 text-xl md:block">
+					<h1 class="hidden font-semibold text-neutral-900 text-xl md:block">
 						{props.pageTitle()}
 					</h1>
 				}
@@ -77,7 +77,7 @@ function UserSection(props: UserSectionProps) {
 			when={!props.prefs.isLoading() || props.prefs.data()}>
 			<div class="flex items-center space-x-3">
 				<A
-					class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-purple-500 transition-colors hover:bg-purple-600"
+					class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary-light transition-colors hover:bg-primary"
 					href="/dashboard/settings"
 					title={t("dashboard.goToSettings")}>
 					<Show
@@ -97,10 +97,10 @@ function UserSection(props: UserSectionProps) {
 					</Show>
 				</A>
 				<div class="hidden md:block">
-					<p class="font-medium text-gray-900 text-sm">
+					<p class="font-medium text-neutral-900 text-sm">
 						{props.prefs.data()?.name || props.user.email || ""}
 					</p>
-					<p class="text-gray-500 text-xs">{t("dashboard.freePlan")}</p>
+					<p class="text-neutral-500 text-xs">{t("dashboard.freePlan")}</p>
 				</div>
 			</div>
 		</Show>

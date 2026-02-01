@@ -9,6 +9,7 @@ defmodule Streampai.LivestreamManager.StreamServices do
   alias Streampai.LivestreamManager.AlertQueue
   alias Streampai.LivestreamManager.Platforms
   alias Streampai.LivestreamManager.RegistryHelpers
+  alias Streampai.LivestreamManager.StreamTimerServer
   alias Streampai.Stream.EventPersister
 
   require Logger
@@ -162,6 +163,43 @@ defmodule Streampai.LivestreamManager.StreamServices do
       {:ok, _pid} -> :ok
       {:error, {:already_started, _pid}} -> :ok
       error -> Logger.error("Failed to start AlertQueue: #{inspect(error)}")
+    end
+  end
+
+  @doc """
+  Starts the StreamTimerServer for a user's active stream.
+  """
+  def start_stream_timer_server(user_id, stream_started_at) do
+    supervisor = RegistryHelpers.via_tuple(:stream_services, user_id)
+
+    case DynamicSupervisor.start_child(
+           supervisor,
+           {StreamTimerServer, {user_id, stream_started_at}}
+         ) do
+      {:ok, _pid} ->
+        Logger.info("[StreamServices] StreamTimerServer started for user #{user_id}")
+        :ok
+
+      {:error, {:already_started, _pid}} ->
+        :ok
+
+      error ->
+        Logger.error("[StreamServices] Failed to start StreamTimerServer: #{inspect(error)}")
+        error
+    end
+  end
+
+  @doc """
+  Stops the StreamTimerServer for a user.
+  """
+  def stop_stream_timer_server(user_id) do
+    case RegistryHelpers.lookup(:stream_timer_server, user_id) do
+      {:ok, pid} ->
+        supervisor = RegistryHelpers.via_tuple(:stream_services, user_id)
+        DynamicSupervisor.terminate_child(supervisor, pid)
+
+      :error ->
+        :ok
     end
   end
 
