@@ -73,7 +73,7 @@ export function StreamActionsPanel(props: StreamActionsPanelProps) {
 				<For each={actions}>
 					{(action) => (
 						<button
-							class={`flex items-center gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:border-neutral-300 hover:shadow-md ${
+							class={`flex items-center gap-4 rounded-lg border border-neutral-200 bg-surface p-4 text-left transition-all hover:border-neutral-300 hover:shadow-md ${
 								action.enabled
 									? "cursor-pointer"
 									: "cursor-not-allowed opacity-60"

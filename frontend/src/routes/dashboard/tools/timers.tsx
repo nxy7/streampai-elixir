@@ -4,7 +4,7 @@ import Card from "~/design-system/Card";
 import { button, input } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
-import { createStreamTimersCollection } from "~/lib/electric";
+import { useStreamTimers } from "~/lib/useElectric";
 import {
   createStreamTimer,
   deleteStreamTimer,
@@ -22,20 +22,13 @@ export default function TimersConfigPage() {
   const [content, setContent] = createSignal("");
   const [intervalMinutes, setIntervalMinutes] = createSignal(5);
 
-  const timersCollection = () => {
-    const u = user();
-    if (!u) return null;
-    return createStreamTimersCollection(u.id);
-  };
+  const streamTimers = useStreamTimers(() => user()?.id);
 
-  const timers = () => {
-    const col = timersCollection();
-    if (!col) return [];
-    return [...(col as any).data.values()].sort(
+  const timers = () =>
+    [...streamTimers.data()].sort(
       (a, b) =>
         new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
     );
-  };
 
   const formatInterval = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

@@ -54,6 +54,7 @@ export const dict: Dictionary = {
     settings: "Einstellungen",
     users: "Benutzer",
     notifications: "Benachrichtigungen",
+    support: "Support",
     moderate: "Moderieren",
     timers: "Timer",
     hooks: "Hooks",
@@ -61,6 +62,11 @@ export const dict: Dictionary = {
     streamClips: "Stream-Clips",
     schedule: "Zeitplan",
     comingSoon: "Demnächst",
+  },
+
+  // Header
+  header: {
+    toggleTheme: "Design wechseln",
   },
 
   // Timers
@@ -795,6 +801,9 @@ export const dict: Dictionary = {
     enterUserUuid: "Benutzer-UUID eingeben",
     enterNotificationMessage: "Benachrichtigungstext eingeben...",
     impersonate: "Identität annehmen",
+    supportChat: "Support-Chat",
+    supportChatDescription: "Support-Gespräche mit Nutzern verwalten",
+    noSupportConversations: "Noch keine Support-Gespräche",
   },
 
   // Impersonation

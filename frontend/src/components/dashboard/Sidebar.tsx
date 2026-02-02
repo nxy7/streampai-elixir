@@ -2,6 +2,7 @@ import { A } from "@solidjs/router";
 import { type Accessor, For, Show } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { getLogoutUrl } from "~/lib/auth";
+import { useTheme } from "~/lib/theme";
 import {
   LogoutIcon,
   ModerateIcon,
@@ -11,8 +12,6 @@ import {
 } from "./navConfig";
 
 interface SidebarProps {
-  collapsed: Accessor<boolean>;
-  onToggleCollapse: () => void;
   currentPage: Accessor<string>;
   isAdmin: boolean;
   isModerator: boolean;
@@ -20,134 +19,75 @@ interface SidebarProps {
 
 export default function Sidebar(props: SidebarProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const navSections = getNavSections();
   const adminSections = getAdminSections();
+  const logoSrc = () =>
+    theme() === "dark" ? "/images/logo-white.png" : "/images/logo-black.png";
 
   return (
-    <div
-      class={`sidebar fixed inset-y-0 left-0 z-50 flex flex-col overflow-y-auto bg-neutral-900 text-white transition-all duration-300 ease-in-out ${
-        props.collapsed() ? "w-20" : "w-72"
-      } -translate-x-full md:translate-x-0`}
-      style={{
-        "scrollbar-width": "none",
-        "-ms-overflow-style": "none",
-      }}
-    >
-      {/* Sidebar Header */}
-      <div class="sticky top-0 z-10 relative flex items-center justify-center border-neutral-700 border-b bg-neutral-900 p-4">
+    <div class="sidebar fixed top-0 bottom-0 left-0 z-40 flex w-72 flex-col bg-surface-inset text-surface-inset-text -translate-x-full md:translate-x-0">
+      {/* Header */}
+      <div class="flex h-16 shrink-0 items-center px-4">
         <A
           class="flex items-center space-x-2 transition-opacity hover:opacity-80"
           href="/"
         >
-          <img
-            alt="Streampai Logo"
-            class="h-8 w-8"
-            src="/images/logo-white.png"
-          />
-          <span
-            class={`font-bold text-white text-xl transition-opacity ${
-              props.collapsed()
-                ? "w-0 overflow-hidden opacity-0"
-                : "opacity-100"
-            }`}
-          >
-            Streampai
-          </span>
+          <img alt="Streampai Logo" class="h-8 w-8 shrink-0" src={logoSrc()} />
+          <span class="font-bold text-neutral-900 text-xl">Streampai</span>
         </A>
-        <button
-          class="absolute right-2 hidden rounded-lg p-1.5 transition-colors hover:bg-neutral-700 md:block"
-          onClick={props.onToggleCollapse}
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            class="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              class={props.collapsed() ? "block" : "hidden"}
-              d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-            />
-            <path
-              class={props.collapsed() ? "hidden" : "block"}
-              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-            />
-          </svg>
-        </button>
       </div>
 
-      {/* Main Navigation */}
-      <nav class="mt-6 flex-1">
-        <For each={navSections}>
-          {(section) => (
-            <NavSectionGroup
-              collapsed={props.collapsed}
-              currentPage={props.currentPage}
-              section={section}
-            />
-          )}
-        </For>
-
-        <Show when={props.isAdmin}>
-          <For each={adminSections}>
+      {/* Scrollable nav */}
+      <div
+        class="flex-1 overflow-y-auto"
+        style={{
+          "scrollbar-width": "none",
+          "-ms-overflow-style": "none",
+        }}
+      >
+        <nav class="mt-2">
+          <For each={navSections}>
             {(section) => (
               <NavSectionGroup
-                collapsed={props.collapsed}
                 currentPage={props.currentPage}
                 section={section}
               />
             )}
           </For>
-        </Show>
-      </nav>
 
-      {/* Bottom Logout Section */}
-      <div class="space-y-2 border-neutral-700 border-t p-4">
+          <Show when={props.isAdmin}>
+            <For each={adminSections}>
+              {(section) => (
+                <NavSectionGroup
+                  currentPage={props.currentPage}
+                  section={section}
+                />
+              )}
+            </For>
+          </Show>
+        </nav>
+      </div>
+
+      {/* Bottom section */}
+      <div class="space-y-2 p-4">
         <Show when={props.isModerator}>
           <A
-            class={`nav-item flex w-full items-center rounded-lg p-3 text-neutral-300 transition-colors hover:bg-blue-600 hover:text-white ${
-              props.collapsed() ? "justify-center" : ""
-            }`}
+            class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-blue-600 hover:text-white"
             href="/dashboard/moderate"
           >
             <ModerateIcon />
-            <span
-              class={`ml-3 transition-opacity ${
-                props.collapsed()
-                  ? "w-0 overflow-hidden opacity-0"
-                  : "opacity-100"
-              }`}
-            >
-              {t("dashboardNav.moderate")}
-            </span>
+            <span class="ml-3">{t("dashboardNav.moderate")}</span>
           </A>
         </Show>
 
         <a
-          class={`nav-item flex w-full items-center rounded-lg p-3 text-neutral-300 transition-colors hover:bg-red-600 hover:text-white ${
-            props.collapsed() ? "justify-center" : ""
-          }`}
+          class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-red-600 hover:text-white"
           href={getLogoutUrl()}
           rel="external"
         >
           <LogoutIcon />
-          <span
-            class={`ml-3 transition-opacity ${
-              props.collapsed()
-                ? "w-0 overflow-hidden opacity-0"
-                : "opacity-100"
-            }`}
-          >
-            {t("nav.signOut")}
-          </span>
+          <span class="ml-3">{t("nav.signOut")}</span>
         </a>
       </div>
     </div>
@@ -156,7 +96,6 @@ export default function Sidebar(props: SidebarProps) {
 
 interface NavSectionGroupProps {
   section: NavSection;
-  collapsed: Accessor<boolean>;
   currentPage: Accessor<string>;
 }
 
@@ -164,15 +103,11 @@ function NavSectionGroup(props: NavSectionGroupProps) {
   const { t } = useTranslation();
 
   return (
-    <div class="mb-8 px-4">
-      <h3
-        class={`mb-3 font-semibold text-neutral-400 text-xs uppercase tracking-wider transition-opacity ${
-          props.collapsed() ? "h-0 overflow-hidden opacity-0" : "opacity-100"
-        }`}
-      >
+    <div class="mb-4 px-4">
+      <h3 class="mb-3 font-semibold text-xs uppercase tracking-wider opacity-60">
         {t(props.section.titleKey)}
       </h3>
-      <div class="space-y-2">
+      <div class="space-y-1">
         <For each={props.section.items}>
           {(item) => {
             const label = () => t(item.labelKey);
@@ -182,28 +117,12 @@ function NavSectionGroup(props: NavSectionGroupProps) {
             if (item.comingSoon) {
               return (
                 <div
-                  class={`nav-item relative flex items-center rounded-lg p-3 opacity-40 ${
-                    props.collapsed() ? "justify-center" : ""
-                  }`}
+                  class="relative flex items-center rounded-lg p-3 opacity-40"
                   title={label()}
                 >
                   {item.icon}
-                  <span
-                    class={`ml-3 transition-opacity ${
-                      props.collapsed()
-                        ? "w-0 overflow-hidden opacity-0"
-                        : "opacity-100"
-                    }`}
-                  >
-                    {label()}
-                  </span>
-                  <span
-                    class={`absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-neutral-700 px-1.5 py-0.5 text-[10px] text-neutral-400 transition-opacity ${
-                      props.collapsed()
-                        ? "w-0 overflow-hidden opacity-0"
-                        : "opacity-100"
-                    }`}
-                  >
+                  <span class="ml-3 whitespace-nowrap">{label()}</span>
+                  <span class="absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-white/10 px-1.5 py-0.5 text-[10px] opacity-60">
                     {t("dashboardNav.comingSoon")}
                   </span>
                 </div>
@@ -212,24 +131,16 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 
             return (
               <A
-                class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
+                class={`flex items-center rounded-lg p-3 transition-colors ${
                   isActive()
                     ? "bg-primary text-white"
-                    : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                } ${props.collapsed() ? "justify-center" : ""}`}
+                    : "text-surface-inset-text hover:bg-neutral-200 hover:text-neutral-900"
+                }`}
                 href={item.url}
                 title={label()}
               >
                 {item.icon}
-                <span
-                  class={`ml-3 transition-opacity ${
-                    props.collapsed()
-                      ? "w-0 overflow-hidden opacity-0"
-                      : "opacity-100"
-                  }`}
-                >
-                  {label()}
-                </span>
+                <span class="ml-3 whitespace-nowrap">{label()}</span>
               </A>
             );
           }}
@@ -247,12 +158,15 @@ interface MobileSidebarProps extends SidebarProps {
 
 export function MobileSidebar(props: MobileSidebarProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const navSections = getNavSections();
   const adminSections = getAdminSections();
+  const logoSrc = () =>
+    theme() === "dark" ? "/images/logo-white.png" : "/images/logo-black.png";
 
   return (
     <div
-      class={`sidebar fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto bg-neutral-900 text-white transition-all duration-300 ease-in-out ${
+      class={`sidebar fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto bg-surface-inset text-surface-inset-text transition-all duration-300 ease-in-out ${
         props.open() ? "translate-x-0" : "-translate-x-full"
       } md:hidden`}
       style={{
@@ -261,17 +175,13 @@ export function MobileSidebar(props: MobileSidebarProps) {
       }}
     >
       {/* Sidebar Header */}
-      <div class="relative flex items-center justify-center border-neutral-700 border-b p-4">
+      <div class="relative flex items-center justify-center p-4">
         <A
           class="flex items-center space-x-2 transition-opacity hover:opacity-80"
           href="/"
         >
-          <img
-            alt="Streampai Logo"
-            class="h-8 w-8"
-            src="/images/logo-white.png"
-          />
-          <span class="font-bold text-white text-xl">Streampai</span>
+          <img alt="Streampai Logo" class="h-8 w-8" src={logoSrc()} />
+          <span class="font-bold text-neutral-900 text-xl">Streampai</span>
         </A>
       </div>
 
@@ -279,7 +189,7 @@ export function MobileSidebar(props: MobileSidebarProps) {
       <nav class="mt-6 flex-1">
         <For each={navSections}>
           {(section) => (
-            <MobileNavSectionGroup
+            <NavSectionGroup
               currentPage={props.currentPage}
               section={section}
             />
@@ -289,7 +199,7 @@ export function MobileSidebar(props: MobileSidebarProps) {
         <Show when={props.isAdmin}>
           <For each={adminSections}>
             {(section) => (
-              <MobileNavSectionGroup
+              <NavSectionGroup
                 currentPage={props.currentPage}
                 section={section}
               />
@@ -299,10 +209,10 @@ export function MobileSidebar(props: MobileSidebarProps) {
       </nav>
 
       {/* Bottom Logout Section */}
-      <div class="space-y-2 border-neutral-700 border-t p-4">
+      <div class="space-y-2 p-4">
         <Show when={props.isModerator}>
           <A
-            class="nav-item flex w-full items-center rounded-lg p-3 text-neutral-300 transition-colors hover:bg-blue-600 hover:text-white"
+            class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-blue-600 hover:text-white"
             href="/dashboard/moderate"
           >
             <ModerateIcon />
@@ -311,69 +221,13 @@ export function MobileSidebar(props: MobileSidebarProps) {
         </Show>
 
         <a
-          class="nav-item flex w-full items-center rounded-lg p-3 text-neutral-300 transition-colors hover:bg-red-600 hover:text-white"
+          class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-red-600 hover:text-white"
           href={getLogoutUrl()}
           rel="external"
         >
           <LogoutIcon />
           <span class="ml-3">{t("nav.signOut")}</span>
         </a>
-      </div>
-    </div>
-  );
-}
-
-interface MobileNavSectionGroupProps {
-  section: NavSection;
-  currentPage: Accessor<string>;
-}
-
-function MobileNavSectionGroup(props: MobileNavSectionGroupProps) {
-  const { t } = useTranslation();
-
-  return (
-    <div class="mb-8 px-4">
-      <h3 class="mb-3 font-semibold text-neutral-400 text-xs uppercase tracking-wider">
-        {t(props.section.titleKey)}
-      </h3>
-      <div class="space-y-2">
-        <For each={props.section.items}>
-          {(item) => {
-            const label = () => t(item.labelKey);
-            const isActive = () =>
-              props.currentPage() === item.url.split("/").pop();
-
-            if (item.comingSoon) {
-              return (
-                <div
-                  class="nav-item relative flex items-center rounded-lg p-3 opacity-40"
-                  title={label()}
-                >
-                  {item.icon}
-                  <span class="ml-3">{label()}</span>
-                  <span class="absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-neutral-700 px-1.5 py-0.5 text-[10px] text-neutral-400">
-                    {t("dashboardNav.comingSoon")}
-                  </span>
-                </div>
-              );
-            }
-
-            return (
-              <A
-                class={`nav-item flex items-center rounded-lg p-3 transition-colors ${
-                  isActive()
-                    ? "bg-primary text-white"
-                    : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                }`}
-                href={item.url}
-                title={label()}
-              >
-                {item.icon}
-                <span class="ml-3">{label()}</span>
-              </A>
-            );
-          }}
-        </For>
       </div>
     </div>
   );

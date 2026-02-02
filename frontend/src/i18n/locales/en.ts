@@ -52,6 +52,7 @@ export const dict = {
     settings: "Settings",
     users: "Users",
     notifications: "Notifications",
+    support: "Support",
     moderate: "Moderate",
     timers: "Timers",
     hooks: "Hooks",
@@ -59,6 +60,11 @@ export const dict = {
     streamClips: "Stream Clips",
     schedule: "Schedule",
     comingSoon: "Coming soon",
+  },
+
+  // Header
+  header: {
+    toggleTheme: "Toggle theme",
   },
 
   // Timers
@@ -809,6 +815,9 @@ export const dict = {
     enterUserUuid: "Enter user UUID",
     enterNotificationMessage: "Enter notification message...",
     impersonate: "Impersonate",
+    supportChat: "Support Chat",
+    supportChatDescription: "Manage user support conversations",
+    noSupportConversations: "No support conversations yet",
   },
 
   // Impersonation

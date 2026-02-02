@@ -117,7 +117,7 @@ export function ChatInput(props: ChatInputProps) {
 
 					{/* Platform Selection Dropdown */}
 					<Show when={showPlatformPicker()}>
-						<div class="absolute bottom-full left-0 z-10 mb-1 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg">
+						<div class="absolute bottom-full left-0 z-10 mb-1 rounded-lg border border-neutral-200 bg-surface p-2 shadow-lg">
 							<div class="mb-2 flex items-center justify-between gap-3">
 								<span class="font-medium text-neutral-700 text-xs">
 									{t("stream.chat.selectPlatforms")}

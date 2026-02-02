@@ -155,7 +155,7 @@ export function SkeletonCard(props: SkeletonCardProps) {
 	return (
 		<div
 			class={cn(
-				"rounded-2xl border border-neutral-200 bg-white shadow-sm",
+				"rounded-2xl border border-neutral-200 bg-surface shadow-sm",
 				props.class,
 			)}>
 			{props.showHeader !== false && (
@@ -207,7 +207,7 @@ export function SkeletonMetricCard(props: SkeletonMetricCardProps) {
 	return (
 		<div
 			class={cn(
-				"rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm",
+				"rounded-2xl border border-neutral-200 bg-surface p-4 shadow-sm",
 				props.class,
 			)}>
 			{/* Header */}

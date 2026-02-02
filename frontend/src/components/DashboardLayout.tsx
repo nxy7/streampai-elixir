@@ -33,16 +33,16 @@ function SupportChatButton() {
   const [open, setOpen] = createSignal(false);
 
   return (
-    <div class="fixed right-4 bottom-4 z-50">
-      {/* Panel - positioned above button, always in DOM for transitions */}
+    <>
+      {/* Panel */}
       <div
-        class={`absolute right-0 bottom-12 w-72 origin-bottom-right rounded-xl border border-neutral-200 bg-white shadow-lg transition-all duration-200 ease-out ${
+        class={`absolute right-0 bottom-14 w-72 origin-bottom-right rounded-xl border border-neutral-200 bg-surface shadow-xl transition-all duration-200 ease-out ${
           open()
             ? "scale-100 opacity-100"
             : "pointer-events-none scale-95 opacity-0"
         }`}
       >
-        <div class="flex items-center justify-between border-neutral-100 border-b px-4 py-3">
+        <div class="flex items-center justify-between border-neutral-200 border-b px-4 py-3">
           <span class="font-medium text-neutral-900 text-sm">
             Chat with Streampai
           </span>
@@ -71,12 +71,12 @@ function SupportChatButton() {
         </div>
       </div>
 
-      {/* Button - always stays in place */}
+      {/* Button */}
       <button
-        class={`flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-all duration-200 ${
+        class={`flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
           open()
-            ? "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
-            : "bg-primary text-white hover:bg-primary-hover"
+            ? "bg-neutral-300 text-neutral-700"
+            : "bg-surface-secondary text-neutral-500 hover:text-neutral-700 hover:bg-neutral-200"
         }`}
         onClick={() => setOpen(!open())}
         title="Support chat"
@@ -108,7 +108,7 @@ function SupportChatButton() {
           </Show>
         </svg>
       </button>
-    </div>
+    </>
   );
 }
 
@@ -117,7 +117,6 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
   const { user, isLoading } = useCurrentUser();
   const location = useLocation();
   const navigate = useNavigate();
-  const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
   const { items: breadcrumbItems } = useBreadcrumbContext();
 
@@ -170,31 +169,22 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 
         {/* Desktop Sidebar */}
         <Sidebar
-          collapsed={sidebarCollapsed}
           currentPage={currentPage}
           isAdmin={user()?.role === "admin"}
           isModerator={user()?.isModerator ?? false}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed())}
         />
 
         {/* Mobile Sidebar */}
         <MobileSidebar
-          collapsed={sidebarCollapsed}
           currentPage={currentPage}
           isAdmin={user()?.role === "admin"}
           isModerator={user()?.isModerator ?? false}
           onClose={() => setMobileSidebarOpen(false)}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed())}
           open={mobileSidebarOpen}
         />
 
-        {/* Main Content Wrapper */}
-        <div
-          class={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${
-            sidebarCollapsed() ? "md:ml-20" : "md:ml-72"
-          }`}
-        >
-          {/* Top Header */}
+        {/* Main area — header + content, shifted right by sidebar */}
+        <div class="flex flex-1 flex-col overflow-hidden md:ml-72">
           <Header
             breadcrumbItems={breadcrumbItems}
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -203,13 +193,15 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
             user={user()}
           />
 
-          {/* Main Content Area */}
-          <main class="flex-1 overflow-y-auto overflow-x-hidden bg-neutral-50 p-6">
+          <main class="flex-1 overflow-y-auto overflow-x-hidden bg-neutral-50 px-4 py-6">
             {props.children}
           </main>
         </div>
 
-        <SupportChatButton />
+        {/* FAB container — bottom right */}
+        <div class="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3">
+          <SupportChatButton />
+        </div>
       </div>
     </Show>
   );

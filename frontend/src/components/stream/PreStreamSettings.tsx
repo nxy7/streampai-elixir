@@ -225,7 +225,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 										<span class="mb-1 block text-neutral-500 text-xs">
 											RTMP URL
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-900 text-sm">
+										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-900 text-sm">
 											{data().rtmpsUrl}
 										</code>
 									</div>
@@ -233,7 +233,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 										<span class="mb-1 block text-neutral-500 text-xs">
 											Stream Key
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-sm">
+										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-600 text-sm">
 											{data().rtmpsStreamKey}
 										</code>
 									</div>
@@ -242,7 +242,7 @@ export function PreStreamSettings(props: PreStreamSettingsProps) {
 											<span class="mb-1 block text-neutral-500 text-xs">
 												SRT URL (Alternative)
 											</span>
-											<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-xs">
+											<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-600 text-xs">
 												{data().srtUrl}
 											</code>
 										</div>

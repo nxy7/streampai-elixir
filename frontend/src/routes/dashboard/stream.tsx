@@ -27,10 +27,10 @@ import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
-import { createStreamTimersCollection } from "~/lib/electric";
 import { formatDuration } from "~/lib/formatters";
 import {
   useStreamActor,
+  useStreamTimers,
   useStreamingAccounts,
   useUserStreamEvents,
 } from "~/lib/useElectric";
@@ -136,22 +136,15 @@ export default function Stream() {
   const streamingAccounts = useStreamingAccounts(() => user()?.id);
   const streamActor = useStreamActor(() => user()?.id);
   const streamEvents = useUserStreamEvents(() => user()?.id);
-  const streamTimersCollection = createMemo(() => {
-    const u = user();
-    if (!u) return undefined;
-    return createStreamTimersCollection(u.id);
-  });
-  const streamTimers = () => {
-    const col = streamTimersCollection();
-    if (!col) return [];
-    return [...(col as any).data.values()].map((row: any) => ({
+  const streamTimersQuery = useStreamTimers(() => user()?.id);
+  const streamTimers = () =>
+    streamTimersQuery.data().map((row) => ({
       id: row.id,
       label: row.label,
       content: row.content,
       intervalSeconds: row.interval_seconds,
       disabledAt: row.disabled_at ?? null,
     }));
-  };
   const encoderConnected = () => streamActor.encoderConnected();
   const [isStarting, setIsStarting] = createSignal(false);
   const [isStopping, setIsStopping] = createSignal(false);
@@ -362,7 +355,7 @@ export default function Stream() {
               <Card
                 class={
                   isFullscreen()
-                    ? "!m-0 !p-4 fixed inset-0 z-[60] flex flex-col overflow-hidden rounded-none"
+                    ? "!m-0 !p-4 fixed inset-0 z-[60] flex flex-col overflow-auto rounded-none"
                     : ""
                 }
               >
@@ -729,10 +722,10 @@ export default function Stream() {
                             };
                             return (
                               <button
-                                class={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                                class={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                                   isEnabled()
-                                    ? "border-neutral-300 bg-white text-neutral-700"
-                                    : "border-neutral-200 bg-neutral-50 text-neutral-400 opacity-60"
+                                    ? "bg-surface-inset text-surface-inset-text"
+                                    : "bg-surface-inset text-surface-inset-text opacity-40"
                                 }`}
                                 onClick={toggle}
                                 type="button"
@@ -748,7 +741,7 @@ export default function Stream() {
                                   class={`h-4 w-4 rounded border transition-colors ${
                                     isEnabled()
                                       ? "border-primary bg-primary"
-                                      : "border-neutral-300 bg-white"
+                                      : "border-neutral-300 bg-surface"
                                   }`}
                                 >
                                   <Show when={isEnabled()}>

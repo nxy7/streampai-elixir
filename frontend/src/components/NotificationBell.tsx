@@ -108,7 +108,7 @@ export default function NotificationBell() {
 				/>
 
 				{/* Dropdown */}
-				<div class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+				<div class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-neutral-200 bg-surface shadow-lg">
 					<div class="border-neutral-200 border-b px-4 py-3">
 						<div class="flex items-center justify-between">
 							<h3 class="font-semibold text-neutral-900">Notifications</h3>

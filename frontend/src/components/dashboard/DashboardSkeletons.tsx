@@ -120,7 +120,7 @@ export function DashboardLoadingSkeleton() {
 	return (
 		<div class="space-y-6">
 			{/* Header skeleton */}
-			<div class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+			<div class="rounded-2xl border border-neutral-200 bg-surface p-8 shadow-sm">
 				<Skeleton class="mb-2 h-9 w-64" />
 				<Skeleton class="h-5 w-48" />
 			</div>

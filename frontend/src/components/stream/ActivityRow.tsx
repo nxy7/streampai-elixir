@@ -228,7 +228,7 @@ export function ActivityRow(props: ActivityRowProps) {
 
 			{/* Hover Actions - Icon-only buttons with tooltips */}
 			<Show when={isHovered() && showModerationActions()}>
-				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded bg-white/95 px-1 py-0.5 shadow-sm ring-1 ring-neutral-200">
+				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded bg-surface/95 px-1 py-0.5 shadow-sm ring-1 ring-neutral-200">
 					{/* Replay button for important events */}
 					<Show
 						when={
@@ -317,7 +317,7 @@ export function ActivityRow(props: ActivityRowProps) {
 										<Show when={showTimeoutMenu()}>
 											<Portal>
 												<div
-													class="fixed z-[9999] min-w-[60px] rounded border border-neutral-200 bg-white py-0.5 shadow-lg"
+													class="fixed z-[9999] min-w-[60px] rounded border border-neutral-200 bg-surface py-0.5 shadow-lg"
 													onMouseLeave={() => {
 														setShowTimeoutMenu(false);
 														setIsHovered(false);

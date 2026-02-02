@@ -339,7 +339,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 						<div class="relative flex-1">
 							<input
-								class="w-full rounded border border-neutral-200 bg-neutral-50 px-2 py-1 pr-6 text-xs placeholder:text-neutral-400 focus:border-primary-200 focus:bg-white focus:outline-none"
+								class="w-full rounded border border-neutral-200 bg-neutral-50 px-2 py-1 pr-6 text-xs placeholder:text-neutral-400 focus:border-primary-200 focus:bg-surface focus:outline-none"
 								data-testid="search-input"
 								onInput={(e) => setSearchText(e.currentTarget.value)}
 								placeholder={t("stream.searchByNameOrMessage")}
@@ -363,7 +363,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 				{/* Expandable filter panel */}
 				<Show when={showFilters()}>
-					<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg">
+					<div class="absolute top-full right-0 left-0 z-20 mt-1 rounded-lg border border-neutral-200 bg-surface p-2 shadow-lg">
 						<div class="mb-1.5 flex items-center justify-between">
 							<span class="font-medium text-neutral-600 text-xs">
 								{t("stream.activityFeed.eventTypes")}

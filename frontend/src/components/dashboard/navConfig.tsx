@@ -16,7 +16,7 @@ export interface NavSection {
 export const DashboardIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -39,7 +39,7 @@ export const DashboardIcon = () => (
 export const AnalyticsIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ export const AnalyticsIcon = () => (
 export const StreamIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -73,7 +73,7 @@ export const StreamIcon = () => (
 export const ChatHistoryIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -90,7 +90,7 @@ export const ChatHistoryIcon = () => (
 export const ViewersIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -113,7 +113,7 @@ export const ViewersIcon = () => (
 export const StreamHistoryIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -130,7 +130,7 @@ export const StreamHistoryIcon = () => (
 export const WidgetsIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -147,7 +147,7 @@ export const WidgetsIcon = () => (
 export const SmartCanvasIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -164,7 +164,7 @@ export const SmartCanvasIcon = () => (
 export const SettingsIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -187,7 +187,7 @@ export const SettingsIcon = () => (
 export const UsersIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -201,10 +201,27 @@ export const UsersIcon = () => (
   </svg>
 );
 
+export const SupportIcon = () => (
+  <svg
+    aria-hidden="true"
+    class="sidebar-icon h-6 w-6 shrink-0"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+);
+
 export const NotificationsIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -221,7 +238,7 @@ export const NotificationsIcon = () => (
 export const ModerateIcon = () => (
   <svg
     aria-hidden="true"
-    class="h-5 w-5"
+    class="h-5 w-5 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -238,7 +255,7 @@ export const ModerateIcon = () => (
 export const LogoutIcon = () => (
   <svg
     aria-hidden="true"
-    class="h-5 w-5"
+    class="h-5 w-5 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -255,7 +272,7 @@ export const LogoutIcon = () => (
 export const TimerIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -272,7 +289,7 @@ export const TimerIcon = () => (
 export const HooksIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -289,7 +306,7 @@ export const HooksIcon = () => (
 export const ChatBotIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -306,7 +323,7 @@ export const ChatBotIcon = () => (
 export const ClipsIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -329,7 +346,7 @@ export const ClipsIcon = () => (
 export const ScheduleIcon = () => (
   <svg
     aria-hidden="true"
-    class="sidebar-icon h-6 w-6"
+    class="sidebar-icon h-6 w-6 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -477,6 +494,11 @@ export const getAdminSections = (): NavSection[] => [
         labelKey: "dashboardNav.notifications",
         icon: <NotificationsIcon />,
       },
+      {
+        url: "/dashboard/admin/support",
+        labelKey: "dashboardNav.support",
+        icon: <SupportIcon />,
+      },
     ],
   },
 ];
@@ -497,6 +519,7 @@ export const getCurrentPage = (pathname: string): string => {
   if (pathname.startsWith("/dashboard/admin/users")) return "users";
   if (pathname.startsWith("/dashboard/admin/notifications"))
     return "notifications";
+  if (pathname.startsWith("/dashboard/admin/support")) return "support";
   return "";
 };
 
@@ -515,4 +538,5 @@ export const pageTitleKeyMap: Record<string, string> = {
   settings: "dashboardNav.settings",
   users: "dashboardNav.users",
   notifications: "dashboardNav.notifications",
+  support: "dashboardNav.support",
 };

@@ -295,7 +295,7 @@ function ViewerDetailSkeleton() {
 			</div>
 
 			{/* Activity Info skeleton */}
-			<div class="rounded-lg bg-white p-6 shadow">
+			<div class="rounded-lg bg-surface p-6 shadow">
 				<Skeleton class="mb-4 h-6 w-28" />
 				<div class="space-y-3">
 					<For each={[1, 2]}>
@@ -310,7 +310,7 @@ function ViewerDetailSkeleton() {
 			</div>
 
 			{/* Recent Messages skeleton */}
-			<div class="rounded-lg border border-neutral-200 bg-white shadow-sm">
+			<div class="rounded-lg border border-neutral-200 bg-surface shadow-sm">
 				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-6 w-40" />
 				</div>
@@ -331,7 +331,7 @@ function ViewerDetailSkeleton() {
 			</div>
 
 			{/* Recent Events skeleton */}
-			<div class="rounded-lg border border-neutral-200 bg-white shadow-sm">
+			<div class="rounded-lg border border-neutral-200 bg-surface shadow-sm">
 				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-6 w-32" />
 				</div>

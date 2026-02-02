@@ -130,7 +130,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
       <button
         class={`rounded-md px-3 py-1 text-xs transition-all ${
           viewMode() === "events"
-            ? "bg-white font-medium text-neutral-900 shadow-sm"
+            ? "bg-surface font-medium text-neutral-900 shadow-sm"
             : "text-neutral-500 hover:text-neutral-700"
         }`}
         data-testid="view-mode-events"
@@ -142,7 +142,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
       <button
         class={`rounded-md px-3 py-1 text-xs transition-all ${
           viewMode() === "actions"
-            ? "bg-white font-medium text-neutral-900 shadow-sm"
+            ? "bg-surface font-medium text-neutral-900 shadow-sm"
             : "text-neutral-500 hover:text-neutral-700"
         }`}
         data-testid="view-mode-actions"

@@ -61,7 +61,7 @@ export function AnalyticsSkeleton() {
 									</For>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-neutral-200 bg-white">
+							<tbody class="divide-y divide-neutral-200 bg-surface">
 								<For each={[1, 2, 3, 4, 5]}>
 									{() => <SkeletonTableRow columns={6} />}
 								</For>

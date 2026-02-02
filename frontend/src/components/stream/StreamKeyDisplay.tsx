@@ -173,7 +173,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 										<span class="mb-1 block text-neutral-500 text-xs">
 											{t("stream.key.rtmpUrl")}
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-900 text-sm">
+										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-900 text-sm">
 											{data().rtmpsUrl}
 										</code>
 									</div>
@@ -181,7 +181,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 										<span class="mb-1 block text-neutral-500 text-xs">
 											{t("stream.key.label")}
 										</span>
-										<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-sm">
+										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-600 text-sm">
 											{data().rtmpsStreamKey}
 										</code>
 									</div>
@@ -191,7 +191,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 											<span class="mb-1 block text-neutral-500 text-xs">
 												{t("stream.key.srtUrl")}
 											</span>
-											<code class="block rounded bg-white px-2 py-1 font-mono text-neutral-600 text-xs">
+											<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-600 text-xs">
 												{data().srtUrl}
 											</code>
 										</div>

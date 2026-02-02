@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
     /* Brand Colors - Update these to change the entire app's color scheme */
     --color-primary: #9333ea; /* purple-600 */
@@ -52,11 +54,14 @@
     --color-text-secondary: var(--color-neutral-500);
     --color-text-tertiary: var(--color-neutral-400);
 
-    /* Sidebar Colors */
-    --color-sidebar-bg: var(--color-neutral-900);
-    --color-sidebar-text: var(--color-neutral-300);
-    --color-sidebar-text-hover: #ffffff;
-    --color-sidebar-border: var(--color-neutral-700);
+    /* Surface colors */
+    --color-surface: #ffffff;
+    --color-surface-secondary: var(--color-neutral-50);
+    --color-surface-inset: var(
+        --color-neutral-50
+    ); /* sidebar, panels — slightly off from main surface */
+    --color-surface-inset-text: var(--color-neutral-600);
+    --color-surface-inset-border: var(--color-neutral-200);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -302,9 +307,66 @@
     --app-text: var(--color-text-primary);
 }
 
+/* Dark mode overrides */
+.dark {
+    /* Surface colors for dark mode */
+    --color-surface: #1f2937;
+    --color-surface-secondary: #374151;
+    --color-surface-inset: #111827;
+    --color-surface-inset-text: #9ca3af;
+    --color-surface-inset-border: #1f2937;
+
+    /* Invert the neutral scale so all neutral-* utilities auto-flip */
+    --color-neutral-50: #111827;
+    --color-neutral-100: #1f2937;
+    --color-neutral-200: #374151;
+    --color-neutral-300: #4b5563;
+    --color-neutral-400: #6b7280;
+    --color-neutral-500: #9ca3af;
+    --color-neutral-600: #d1d5db;
+    --color-neutral-700: #e5e7eb;
+    --color-neutral-800: #f3f4f6;
+    --color-neutral-900: #f9fafb;
+
+    /* Semantic overrides */
+    --color-bg-primary: #111827;
+    --color-bg-secondary: #1f2937;
+    --color-bg-tertiary: #374151;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #9ca3af;
+    --color-text-tertiary: #6b7280;
+
+    --app-bg: #111827;
+    --app-text: var(--color-text-primary);
+
+    /* Primary tints for dark mode */
+    --color-primary-50: #2e1065;
+    --color-primary-100: #3b0764;
+    --color-primary-200: #581c87;
+
+    color-scheme: dark;
+}
+
 body {
     color: var(--app-text);
     background: var(--app-bg);
+}
+
+/* View Transition: diagonal wipe for theme toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+    z-index: 1;
+}
+
+::view-transition-new(root) {
+    z-index: 9999;
+    /* Hide new view by default to prevent flash before JS animation starts */
+    clip-path: polygon(0 0, 0 0, 0 0, 0 0);
 }
 
 button,

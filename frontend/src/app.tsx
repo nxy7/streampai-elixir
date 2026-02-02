@@ -8,24 +8,28 @@ import { LocaleSync } from "./components/LocaleSync";
 import { I18nProvider } from "./i18n";
 import { AuthProvider } from "./lib/auth";
 import { ImpersonationProvider } from "./lib/impersonation";
+import { ThemeProvider } from "./lib/theme";
 
 export default function App() {
-	return (
-		<I18nProvider>
-			<AuthProvider>
-				<ImpersonationProvider>
-					<LocaleSync />
-					<ImpersonationBanner />
-					<Router
-						root={(props) => (
-							<MetaProvider>
-								<Suspense>{props.children}</Suspense>
-							</MetaProvider>
-						)}>
-						<FileRoutes />
-					</Router>
-				</ImpersonationProvider>
-			</AuthProvider>
-		</I18nProvider>
-	);
+  return (
+    <ThemeProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <ImpersonationProvider>
+            <LocaleSync />
+            <ImpersonationBanner />
+            <Router
+              root={(props) => (
+                <MetaProvider>
+                  <Suspense>{props.children}</Suspense>
+                </MetaProvider>
+              )}
+            >
+              <FileRoutes />
+            </Router>
+          </ImpersonationProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </ThemeProvider>
+  );
 }
