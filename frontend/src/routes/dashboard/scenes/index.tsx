@@ -203,16 +203,25 @@ function CanvasWidgetComponent(props: {
 	};
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: Complex drag-and-drop interaction requires div
 		<div
 			class="group absolute text-left"
 			onClick={handleSelect}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					handleSelect(e as unknown as MouseEvent);
+				}
+			}}
+			role="button"
 			style={{
 				left: `${props.widget.x}px`,
 				top: `${props.widget.y}px`,
 				width: `${props.widget.width}px`,
 				height: `${props.widget.height}px`,
 				"z-index": props.selectedWidgetId === props.widget.id ? 20 : 10,
-			}}>
+			}}
+			tabIndex={0}>
 			<div
 				class="h-full w-full cursor-move rounded-lg border-2 border-white/20 bg-linear-to-br from-primary-light to-secondary p-4 shadow-lg"
 				classList={{

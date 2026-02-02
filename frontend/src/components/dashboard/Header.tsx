@@ -81,6 +81,7 @@ function ThemeToggleButton() {
 			<Show
 				fallback={
 					<svg
+						aria-hidden="true"
 						class="h-5 w-5"
 						fill="none"
 						stroke="currentColor"
@@ -95,6 +96,7 @@ function ThemeToggleButton() {
 				}
 				when={theme() === "dark"}>
 				<svg
+					aria-hidden="true"
 					class="h-5 w-5"
 					fill="none"
 					stroke="currentColor"

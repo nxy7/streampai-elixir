@@ -103,13 +103,16 @@ export default function Widgets() {
 														href={widget.settingsRoute}>
 														Configure
 													</A>
+													{/* biome-ignore lint/a11y/useAnchorContent: aria-label provides accessible content */}
 													<a
+														aria-label="Open widget preview"
 														class="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
 														href={`${widget.displayRoute}/${user()?.id}`}
 														rel="noopener noreferrer"
 														target="_blank"
 														title="Open widget preview">
 														<svg
+															aria-hidden="true"
 															class="h-4 w-4"
 															fill="none"
 															stroke="currentColor"
@@ -150,6 +153,7 @@ export default function Widgets() {
 											</div>
 										</div>
 										<svg
+											aria-hidden="true"
 											class="h-4 w-4 text-neutral-400"
 											fill="none"
 											stroke="currentColor"

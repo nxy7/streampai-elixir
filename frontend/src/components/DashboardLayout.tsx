@@ -188,6 +188,7 @@ function SupportChatButton() {
 							onClick={() => setView("menu")}
 							type="button">
 							<svg
+								aria-hidden="true"
 								class="h-4 w-4"
 								fill="none"
 								stroke="currentColor"
@@ -210,6 +211,7 @@ function SupportChatButton() {
 						}}
 						type="button">
 						<svg
+							aria-hidden="true"
 							class="h-4 w-4"
 							fill="none"
 							stroke="currentColor"
@@ -232,6 +234,7 @@ function SupportChatButton() {
 							onClick={() => openNewTicket("support")}
 							type="button">
 							<svg
+								aria-hidden="true"
 								class="h-5 w-5 shrink-0 text-blue-500"
 								fill="none"
 								stroke="currentColor"
@@ -250,6 +253,7 @@ function SupportChatButton() {
 							onClick={() => openNewTicket("feature_request")}
 							type="button">
 							<svg
+								aria-hidden="true"
 								class="h-5 w-5 shrink-0 text-primary"
 								fill="none"
 								stroke="currentColor"
@@ -268,6 +272,7 @@ function SupportChatButton() {
 							onClick={() => openNewTicket("bug_report")}
 							type="button">
 							<svg
+								aria-hidden="true"
 								class="h-5 w-5 shrink-0 text-red-500"
 								fill="none"
 								stroke="currentColor"
@@ -289,6 +294,7 @@ function SupportChatButton() {
 									onClick={() => setView("ticket-list")}
 									type="button">
 									<svg
+										aria-hidden="true"
 										class="h-5 w-5 shrink-0 text-neutral-400"
 										fill="none"
 										stroke="currentColor"
@@ -367,9 +373,18 @@ function SupportChatButton() {
 								{(ticket) => {
 									const isChat = ticket.ticket_type === "support";
 									return (
+										// biome-ignore lint/a11y/noStaticElementInteractions: Conditional interactivity based on ticket type
 										<div
 											class={`w-full border-current/5 border-b px-4 py-3 text-left ${isChat ? "cursor-pointer transition-colors hover:bg-surface-inset/50" : ""}`}
-											onClick={() => isChat && openChat(ticket.id)}>
+											onClick={() => isChat && openChat(ticket.id)}
+											onKeyDown={(e) => {
+												if (isChat && (e.key === "Enter" || e.key === " ")) {
+													e.preventDefault();
+													openChat(ticket.id);
+												}
+											}}
+											role={isChat ? "button" : undefined}
+											tabIndex={isChat ? 0 : undefined}>
 											<div class="flex items-center justify-between gap-2">
 												<span class="line-clamp-1 font-medium text-sm">
 													{ticket.subject}
@@ -409,6 +424,7 @@ function SupportChatButton() {
 				<Show when={view() === "submitted"}>
 					<div class="flex flex-col items-center gap-3 px-4 py-10 text-center">
 						<svg
+							aria-hidden="true"
 							class="h-10 w-10 text-green-500"
 							fill="none"
 							stroke="currentColor"
@@ -492,6 +508,7 @@ function SupportChatButton() {
 
 			{/* FAB Button */}
 			<button
+				aria-label={t("support.title")}
 				class={`flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
 					open()
 						? "bg-neutral-300 text-neutral-700"
@@ -501,6 +518,7 @@ function SupportChatButton() {
 				title={t("support.title")}
 				type="button">
 				<svg
+					aria-hidden="true"
 					class={`h-5 w-5 transition-transform duration-200 ${open() ? "rotate-90" : ""}`}
 					fill="none"
 					stroke="currentColor"

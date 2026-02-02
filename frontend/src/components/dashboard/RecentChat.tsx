@@ -85,7 +85,7 @@ export default function RecentChat(props: RecentChatProps) {
 										<img
 											alt={msg.data.username ?? "Streamer"}
 											class="h-8 w-8 shrink-0 rounded-full object-cover"
-											src={props.streamerAvatarUrl!}
+											src={props.streamerAvatarUrl ?? ""}
 										/>
 									</Show>
 									<div class="min-w-0 flex-1">
