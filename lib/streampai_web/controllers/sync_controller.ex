@@ -22,6 +22,8 @@ defmodule StreampaiWeb.SyncController do
   alias Streampai.Stream.StreamEvent
   alias Streampai.Stream.StreamTimer
   alias Streampai.Stream.StreamViewer
+  alias Streampai.Support.Message, as: SupportMessage
+  alias Streampai.Support.Ticket, as: SupportTicket
 
   # Safe columns to sync from users table (excludes sensitive data like hashed_password)
   @user_sync_columns [
@@ -231,6 +233,38 @@ defmodule StreampaiWeb.SyncController do
       :error ->
         invalid_user_id_response(conn)
     end
+  end
+
+  def support_tickets(conn, %{"user_id" => user_id} = params) do
+    case Ecto.UUID.cast(user_id) do
+      {:ok, uuid} ->
+        query = from(t in SupportTicket, where: t.user_id == ^uuid)
+        sync_render(conn, params, query)
+
+      :error ->
+        invalid_user_id_response(conn)
+    end
+  end
+
+  def support_messages(conn, %{"ticket_id" => ticket_id} = params) do
+    case Ecto.UUID.cast(ticket_id) do
+      {:ok, uuid} ->
+        query = from(m in SupportMessage, where: m.ticket_id == ^uuid)
+        sync_render(conn, params, query)
+
+      :error ->
+        conn
+        |> put_status(400)
+        |> json(%{error: "Invalid ticket_id format"})
+    end
+  end
+
+  def admin_support_tickets(conn, params) do
+    sync_render(conn, params, SupportTicket)
+  end
+
+  def admin_support_messages(conn, params) do
+    sync_render(conn, params, SupportMessage)
   end
 
   defp invalid_user_id_response(conn) do

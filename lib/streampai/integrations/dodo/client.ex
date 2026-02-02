@@ -59,7 +59,8 @@ defmodule Streampai.Integrations.Dodo.Client do
 
     req_opts = if body, do: Keyword.put(req_opts, :json, body), else: req_opts
 
-    Req.request(req_opts)
+    req_opts
+    |> Req.request()
     |> handle_http_response("Dodo")
   end
 

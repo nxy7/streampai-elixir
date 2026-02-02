@@ -244,9 +244,16 @@ defmodule Streampai.Stream.EventPersister do
   end
 
   defp upsert_viewers_from_author_details(author_details) do
-    author_details
-    |> Map.values()
-    |> Ash.bulk_create(StreamViewer, :upsert)
+    result =
+      author_details
+      |> Map.values()
+      |> Ash.bulk_create(StreamViewer, :upsert, return_errors?: true)
+
+    if result.status == :error do
+      Logger.error("Failed to upsert viewers: #{inspect(result.errors)}")
+    end
+
+    result
   end
 
   defp flush_stream_events(events) do

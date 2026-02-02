@@ -485,6 +485,7 @@ defmodule Streampai.YouTube.GrpcStreamClient do
     author_attrs = %{
       viewer_id: author_details.channel_id,
       user_id: state.user_id,
+      platform: "youtube",
       display_name: author_details.display_name,
       avatar_url: author_details.avatar_url,
       channel_url: author_details.channel_url,

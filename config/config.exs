@@ -16,6 +16,7 @@ config :ash,
   policies: [no_filter_static_forbidden_reads?: false],
   custom_types: [
     ticket_status: Streampai.Support.Ticket.Types.Status,
+    ticket_type: Streampai.Support.Ticket.Types.TicketType,
     event_type: Streampai.Stream.StreamEvent.Type,
     money: Money
   ],
@@ -177,7 +178,8 @@ config :streampai,
     Streampai.System,
     Streampai.Integrations,
     Streampai.Notifications,
-    Streampai.Storage
+    Streampai.Storage,
+    Streampai.Support
   ],
   generators: [timestamp_type: :utc_datetime],
   env: Mix.env(),

@@ -495,6 +495,7 @@ defmodule Streampai.Twitch.IrcClient do
     author_attrs = %{
       viewer_id: message_data.user_id || message_data.username,
       user_id: state.user_id,
+      platform: "twitch",
       display_name: message_data.username,
       avatar_url: nil,
       channel_url: "https://www.twitch.tv/#{String.downcase(message_data.username)}",

@@ -11,25 +11,24 @@ import { ImpersonationProvider } from "./lib/impersonation";
 import { ThemeProvider } from "./lib/theme";
 
 export default function App() {
-  return (
-    <ThemeProvider>
-      <I18nProvider>
-        <AuthProvider>
-          <ImpersonationProvider>
-            <LocaleSync />
-            <ImpersonationBanner />
-            <Router
-              root={(props) => (
-                <MetaProvider>
-                  <Suspense>{props.children}</Suspense>
-                </MetaProvider>
-              )}
-            >
-              <FileRoutes />
-            </Router>
-          </ImpersonationProvider>
-        </AuthProvider>
-      </I18nProvider>
-    </ThemeProvider>
-  );
+	return (
+		<ThemeProvider>
+			<I18nProvider>
+				<AuthProvider>
+					<ImpersonationProvider>
+						<LocaleSync />
+						<ImpersonationBanner />
+						<Router
+							root={(props) => (
+								<MetaProvider>
+									<Suspense>{props.children}</Suspense>
+								</MetaProvider>
+							)}>
+							<FileRoutes />
+						</Router>
+					</ImpersonationProvider>
+				</AuthProvider>
+			</I18nProvider>
+		</ThemeProvider>
+	);
 }

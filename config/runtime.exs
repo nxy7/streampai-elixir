@@ -110,6 +110,12 @@ config :nostrum,
 # Store whether Discord is enabled for application startup decisions
 config :streampai, :discord_enabled, discord_token != nil
 
+# Dodo Payments configuration
+config :streampai, :dodo,
+  api_key: System.get_env("DODO_PAYMENTS_API_KEY"),
+  webhook_secret: System.get_env("DODO_PAYMENTS_WEBHOOK_KEY"),
+  environment: if(System.get_env("DODO_PAYMENTS_ENVIRONMENT") == "live", do: :live, else: :test)
+
 config :streampai, :strategies,
   google: [
     client_id: System.get_env("GOOGLE_CLIENT_ID"),
@@ -130,12 +136,6 @@ config :streampai,
   cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
   openai_api_key: System.get_env("OPENAI_API_KEY"),
   elevenlabs_api_key: System.get_env("ELEVENLABS_API_KEY")
-
-# Dodo Payments configuration
-config :streampai, :dodo,
-  api_key: System.get_env("DODO_PAYMENTS_API_KEY"),
-  webhook_secret: System.get_env("DODO_PAYMENTS_WEBHOOK_KEY"),
-  environment: if(System.get_env("DODO_PAYMENTS_ENVIRONMENT") == "live", do: :live, else: :test)
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),

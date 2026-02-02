@@ -54,7 +54,8 @@ defmodule Streampai.Integrations.Dodo.Webhooks do
       signed_payload = "#{webhook_id}.#{timestamp}.#{raw_body}"
 
       expected =
-        :crypto.mac(:hmac, :sha256, secret, signed_payload)
+        :hmac
+        |> :crypto.mac(:sha256, secret, signed_payload)
         |> Base.encode64()
 
       # webhook-signature header may contain multiple signatures: "v1,<sig1> v1,<sig2>"

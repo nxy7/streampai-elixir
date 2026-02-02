@@ -167,12 +167,16 @@ defmodule StreampaiWeb.Router do
     get("/highlighted_messages/:user_id", SyncController, :highlighted_messages)
     get("/current_stream_data/:user_id", SyncController, :current_stream_data)
     get("/stream_timers/:user_id", SyncController, :stream_timers)
+    get("/support_tickets/:user_id", SyncController, :support_tickets)
+    get("/support_messages/:ticket_id", SyncController, :support_messages)
   end
 
   scope "/api/shapes", StreampaiWeb do
     pipe_through(:admin_electric_sync)
 
     get("/admin_users", SyncController, :admin_users)
+    get("/admin_support_tickets", SyncController, :admin_support_tickets)
+    get("/admin_support_messages", SyncController, :admin_support_messages)
   end
 
   scope "/api/rpc", StreampaiWeb do

@@ -94,9 +94,24 @@ export default function RecentChat(props: RecentChatProps) {
                   </Show>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                      <span class="font-medium text-neutral-900 text-sm">
-                        {msg.data.username}
-                      </span>
+                      <Show
+                        fallback={
+                          <span class="font-medium text-neutral-900 text-sm">
+                            {msg.data.username}
+                          </span>
+                        }
+                        when={
+                          msg.data.sender_channel_id &&
+                          !msg.data.is_sent_by_streamer
+                        }
+                      >
+                        <A
+                          class="font-medium text-neutral-900 text-sm hover:text-primary hover:underline"
+                          href={`/dashboard/viewers/${msg.data.sender_channel_id}`}
+                        >
+                          {msg.data.username}
+                        </A>
+                      </Show>
                       <Show when={msg.data.is_moderator}>
                         <Badge variant="info">Mod</Badge>
                       </Show>

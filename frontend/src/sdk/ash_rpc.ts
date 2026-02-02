@@ -328,6 +328,38 @@ export type FileResourceSchema = {
 
 
 
+// SupportTicket Schema
+export type SupportTicketResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  id: UUID;
+  subject: string;
+  status: "open" | "resolved";
+  ticketType: "support" | "feature_request" | "bug_report";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  userId: UUID;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  messages: { __type: "Relationship"; __array: true; __resource: SupportMessageResourceSchema; };
+};
+
+
+
+// SupportMessage Schema
+export type SupportMessageResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  id: UUID;
+  content: string;
+  insertedAt: UtcDateTimeUsec;
+  ticketId: UUID;
+  userId: UUID;
+  ticket: { __type: "Relationship"; __resource: SupportTicketResourceSchema; };
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
 // StreampaiStreamEventDataChatMessageData Schema
 export type StreampaiStreamEventDataChatMessageDataResourceSchema = {
   __type: "Resource";
@@ -1604,6 +1636,112 @@ export type FileFilterInput = {
   };
 
 
+
+};
+export type SupportTicketFilterInput = {
+  and?: Array<SupportTicketFilterInput>;
+  or?: Array<SupportTicketFilterInput>;
+  not?: Array<SupportTicketFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  subject?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  status?: {
+    eq?: "open" | "resolved";
+    notEq?: "open" | "resolved";
+    in?: Array<"open" | "resolved">;
+  };
+
+  ticketType?: {
+    eq?: "support" | "feature_request" | "bug_report";
+    notEq?: "support" | "feature_request" | "bug_report";
+    in?: Array<"support" | "feature_request" | "bug_report">;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  user?: UserFilterInput;
+
+  messages?: SupportMessageFilterInput;
+
+};
+export type SupportMessageFilterInput = {
+  and?: Array<SupportMessageFilterInput>;
+  or?: Array<SupportMessageFilterInput>;
+  not?: Array<SupportMessageFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  content?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  ticketId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  ticket?: SupportTicketFilterInput;
+
+  user?: UserFilterInput;
 
 };
 export type StreampaiStreamEventDataChatMessageDataFilterInput = {
@@ -6375,6 +6513,186 @@ export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadF
     {
     action: "confirm_file_upload",
     identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type CreateSupportTicketInput = {
+  subject: string;
+  userId: UUID;
+  ticketType?: "support" | "feature_request" | "bug_report";
+};
+
+export type CreateSupportTicketFields = UnifiedFieldSelection<SupportTicketResourceSchema>[];
+
+export type InferCreateSupportTicketResult<
+  Fields extends CreateSupportTicketFields | undefined,
+> = InferResult<SupportTicketResourceSchema, Fields>;
+
+export type CreateSupportTicketResult<Fields extends CreateSupportTicketFields | undefined = undefined> = | { success: true; data: InferCreateSupportTicketResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function createSupportTicket<Fields extends CreateSupportTicketFields | undefined = undefined>(
+  config: {
+  input: CreateSupportTicketInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateSupportTicketResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_support_ticket",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateSupportTicketResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function createSupportTicketChannel<Fields extends CreateSupportTicketFields | undefined = undefined>(config: {
+  channel: Channel;
+  input: CreateSupportTicketInput;
+  fields?: Fields;
+  resultHandler: (result: CreateSupportTicketResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<CreateSupportTicketResult<Fields>>(
+    config.channel,
+    {
+    action: "create_support_ticket",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ResolveSupportTicketFields = UnifiedFieldSelection<SupportTicketResourceSchema>[];
+
+export type InferResolveSupportTicketResult<
+  Fields extends ResolveSupportTicketFields | undefined,
+> = InferResult<SupportTicketResourceSchema, Fields>;
+
+export type ResolveSupportTicketResult<Fields extends ResolveSupportTicketFields | undefined = undefined> = | { success: true; data: InferResolveSupportTicketResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function resolveSupportTicket<Fields extends ResolveSupportTicketFields | undefined = undefined>(
+  config: {
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ResolveSupportTicketResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "resolve_support_ticket",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ResolveSupportTicketResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function resolveSupportTicketChannel<Fields extends ResolveSupportTicketFields | undefined = undefined>(config: {
+  channel: Channel;
+  identity: UUID;
+  fields?: Fields;
+  resultHandler: (result: ResolveSupportTicketResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ResolveSupportTicketResult<Fields>>(
+    config.channel,
+    {
+    action: "resolve_support_ticket",
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SendSupportMessageInput = {
+  content: string;
+  ticketId: UUID;
+  userId: UUID;
+};
+
+export type SendSupportMessageFields = UnifiedFieldSelection<SupportMessageResourceSchema>[];
+
+export type InferSendSupportMessageResult<
+  Fields extends SendSupportMessageFields | undefined,
+> = InferResult<SupportMessageResourceSchema, Fields>;
+
+export type SendSupportMessageResult<Fields extends SendSupportMessageFields | undefined = undefined> = | { success: true; data: InferSendSupportMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+export async function sendSupportMessage<Fields extends SendSupportMessageFields | undefined = undefined>(
+  config: {
+  input: SendSupportMessageInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SendSupportMessageResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "send_support_message",
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SendSupportMessageResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+export async function sendSupportMessageChannel<Fields extends SendSupportMessageFields | undefined = undefined>(config: {
+  channel: Channel;
+  input: SendSupportMessageInput;
+  fields?: Fields;
+  resultHandler: (result: SendSupportMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SendSupportMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "send_support_message",
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
