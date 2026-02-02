@@ -29,6 +29,8 @@ interface ActivityFeedProps {
 	activities: ActivityItem[];
 	stickyDuration?: number;
 	moderationCallbacks?: ModerationCallbacks;
+	/** Whether to show user avatars or platform icons */
+	showAvatars?: boolean;
 	/** Optional element to render at the end of the filter bar (e.g. view mode toggle) */
 	toolbarEnd?: import("solid-js").JSX.Element;
 }
@@ -243,6 +245,14 @@ export function ActivityFeed(props: ActivityFeedProps) {
 		return result;
 	});
 
+	const latestStreamerMessageId = createMemo(() => {
+		const items = groupedActivities();
+		for (let i = items.length - 1; i >= 0; i--) {
+			if (items[i].isSentByStreamer) return items[i].id;
+		}
+		return null;
+	});
+
 	const stickyIndexMap = createMemo(() => {
 		const ids = stickyItemIds();
 		if (ids.size === 0) return new Map<string, number>();
@@ -288,7 +298,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 		<>
 			{/* Filter Bar */}
 			<div
-				class="relative shrink-0 border-neutral-200 border-b py-2"
+				class="relative shrink-0 border-neutral-200 border-b px-6 py-2"
 				ref={filterContainerRef}>
 				<div class="flex items-center gap-2">
 					<div class="flex flex-1 items-center gap-2">
@@ -339,7 +349,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 
 						<div class="relative flex-1">
 							<input
-								class="w-full rounded border border-neutral-200 bg-neutral-50 px-2 py-1 pr-6 text-xs placeholder:text-neutral-400 focus:border-primary-200 focus:bg-surface focus:outline-none"
+								class="w-full rounded-lg border border-surface-inset-border bg-surface-inset px-2 py-1 pr-6 text-foreground text-xs placeholder:text-surface-inset-text focus:outline-none focus:ring-1 focus:ring-primary"
 								data-testid="search-input"
 								onInput={(e) => setSearchText(e.currentTarget.value)}
 								placeholder={t("stream.searchByNameOrMessage")}
@@ -349,7 +359,7 @@ export function ActivityFeed(props: ActivityFeedProps) {
 							<Show when={searchText()}>
 								<button
 									aria-label={t("stream.activityFeed.clear")}
-									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-neutral-400 text-xs hover:text-neutral-600"
+									class="absolute top-1/2 right-1.5 -translate-y-1/2 text-surface-inset-text text-xs hover:text-foreground"
 									data-testid="clear-search"
 									onClick={() => setSearchText("")}
 									type="button">
@@ -497,9 +507,13 @@ export function ActivityFeed(props: ActivityFeedProps) {
 								isSticky() ? stickyIndexMap().get(item.id) : undefined;
 							return (
 								<ActivityRow
+									isLatestStreamerMessage={
+										latestStreamerMessageId() === item.id
+									}
 									isSticky={isSticky()}
 									item={item}
 									moderationCallbacks={props.moderationCallbacks}
+									showAvatars={props.showAvatars}
 									stickyIndex={stickyIndex()}
 								/>
 							);

@@ -41,19 +41,19 @@ export const badge = {
 export const button = {
 	base: "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
 	primary:
-		"bg-primary text-white hover:bg-primary-hover focus:ring-primary-light px-4 py-2",
+		"inline-flex items-center justify-center rounded-lg font-medium transition-colors bg-primary text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2",
 	secondary:
-		"bg-neutral-100 text-neutral-700 hover:bg-neutral-200 focus:ring-neutral-500 px-4 py-2",
+		"inline-flex items-center justify-center rounded-lg font-medium transition-colors bg-neutral-100 text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2",
 	ghost:
-		"text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:ring-neutral-500 px-2 py-1",
+		"inline-flex items-center justify-center rounded-lg font-medium transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-1",
 	gradient:
-		"bg-gradient-to-r from-primary to-indigo-600 text-white hover:from-primary-hover hover:to-indigo-700 focus:ring-primary-light px-4 py-2",
+		"inline-flex items-center justify-center rounded-lg font-medium transition-colors bg-gradient-to-r from-primary to-indigo-600 text-white hover:from-primary-hover hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2",
 };
 
 export const card = {
-	base: "bg-white rounded-2xl",
-	default: "bg-white rounded-2xl shadow-sm p-6",
-	hover: "bg-white rounded-2xl shadow-sm hover:shadow-md transition-all",
+	base: "bg-white rounded-xl",
+	default: "bg-white rounded-xl shadow-sm p-6",
+	hover: "bg-white rounded-xl shadow-sm hover:shadow-md transition-all",
 };
 
 export const input = {

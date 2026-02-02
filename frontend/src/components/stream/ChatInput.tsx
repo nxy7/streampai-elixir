@@ -7,7 +7,6 @@ import {
 	onMount,
 } from "solid-js";
 import PlatformIcon from "~/components/PlatformIcon";
-import { input } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import type { Platform } from "./types";
 
@@ -88,7 +87,7 @@ export function ChatInput(props: ChatInputProps) {
 	});
 
 	return (
-		<div class="shrink-0 border-neutral-200 border-t pt-3">
+		<div class="shrink-0 border-neutral-200 border-t bg-surface-inset/50 px-2 pt-2 pb-2">
 			{/* Platform Picker */}
 			<Show when={props.availablePlatforms.length > 0}>
 				<div class="relative mb-2" ref={pickerRef}>
@@ -156,7 +155,7 @@ export function ChatInput(props: ChatInputProps) {
 			{/* Message Input */}
 			<div class="flex items-stretch">
 				<input
-					class={`${input.text} flex-1`}
+					class="flex-1 rounded-r-none rounded-l-lg border border-surface-inset-border border-r-0 bg-surface-inset px-3 py-2 text-foreground text-sm placeholder-surface-inset-text transition-colors focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
 					disabled={props.availablePlatforms.length === 0}
 					onInput={(e) => setChatMessage(e.currentTarget.value)}
 					onKeyDown={handleKeyDown}
@@ -170,7 +169,7 @@ export function ChatInput(props: ChatInputProps) {
 				/>
 				<button
 					aria-label={t("stream.sendMessageToChat")}
-					class="send-btn shrink-0 rounded-r-lg bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+					class="send-btn shrink-0 rounded-r-lg bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
 					disabled={
 						!chatMessage().trim() || props.availablePlatforms.length === 0
 					}

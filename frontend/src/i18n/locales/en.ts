@@ -29,6 +29,41 @@ export const dict = {
 		welcome: "Welcome, {{name}}!",
 	},
 
+	// Hooks
+	hooks: {
+		title: "Hooks",
+		description:
+			"Automate your stream by connecting events to actions. When something happens, trigger a reaction automatically.",
+		howItWorks: "How it works",
+		step1Title: "Event triggers",
+		step1Description: "Something happens on your stream",
+		step2Title: "Hook processes",
+		step2Description: "Your rule checks conditions",
+		step3Title: "Action fires",
+		step3Description: "An automated response runs",
+		triggers: "Triggers",
+		triggersDescription: "Events that can start a hook",
+		triggerDonation: "Donation received",
+		triggerFollow: "New follower",
+		triggerRaid: "Incoming raid",
+		triggerSubscription: "New subscription",
+		triggerStreamStart: "Stream started",
+		triggerStreamEnd: "Stream ended",
+		triggerChatMessage: "Chat message",
+		actions: "Actions",
+		actionsDescription: "Responses that hooks can trigger",
+		actionDiscordMessage: "Send Discord message",
+		actionChatMessage: "Send chat message",
+		actionWebhook: "Call webhook",
+		actionObsScene: "Switch OBS scene",
+		actionPlaySound: "Play sound alert",
+		actionEmail: "Send email notification",
+		comingSoonBadge: "Coming soon",
+		comingSoonDescription:
+			"Hooks are under active development. You'll be able to create custom automations here soon.",
+		createHook: "Create Hook",
+	},
+
 	// Dashboard sidebar sections
 	sidebar: {
 		overview: "Overview",
@@ -91,6 +126,101 @@ export const dict = {
 		every: "Every",
 		streamPanelDescription:
 			"Timers send messages automatically during your stream",
+	},
+
+	// Chat Bot
+	chatbot: {
+		description: "Configure your automated chat bot for streams",
+		enabled: "Chat Bot Enabled",
+		enabledDescription:
+			"Master toggle — when off the bot does nothing during streams",
+		greeting: "Stream Greeting",
+		greetingDescription:
+			"Automatically post a welcome message when your stream starts",
+		greetingMessage: "Greeting Message",
+		greetingMessagePlaceholder: "Hello everyone! Welcome to the stream!",
+		commandPrefix: "Command Prefix",
+		commandPrefixDescription:
+			"Character(s) that prefix bot commands (e.g. /hi)",
+		experimental: "Experimental",
+		aiChat: "AI Chat Participation",
+		aiChatDescription: "Let the bot participate in chat conversations using AI",
+		aiPersonality: "Bot Personality",
+		aiPersonalityDescription:
+			"Describe how the bot should behave and talk in chat",
+		aiPersonalityPlaceholder:
+			"A friendly and entertaining bot that keeps the energy positive, cracks jokes, and engages naturally with viewers...",
+		autoShoutout: "Auto Shoutout",
+		autoShoutoutDescription:
+			"Automatically shout out raiders when they raid your channel",
+		linkProtection: "Link Protection",
+		linkProtectionDescription:
+			"Delete messages containing links from non-moderators",
+		slowModeOnRaid: "Slow Mode on Raid",
+		slowModeOnRaidDescription:
+			"Temporarily enable slow mode when a raid is detected",
+		commands: "Commands",
+		commandsDescription: "Built-in commands that viewers can use in chat",
+		commandHiDescription: "Bot replies with a random greeting",
+		commandUptimeDescription: "Shows how long the stream has been live",
+		commandFollowageDescription: "Shows how long the viewer has been following",
+		commandSocialsDescription: "Displays the streamer's social media links",
+		commandLurkDescription: "Announces the viewer is lurking",
+		commandDiceDescription: "Rolls a random number from 1 to 6",
+		commandQuoteDescription: "Shows a random saved quote",
+		commandCommandsDescription: "Lists all available commands",
+		saving: "Saving...",
+		saved: "Settings saved",
+		comingSoon: "Coming soon",
+	},
+
+	// Clips
+	clips: {
+		title: "Stream Clips",
+		description:
+			"Capture, manage, and share the best moments from your streams",
+		// Tabs
+		viewerClips: "Viewer Clips",
+		aiClips: "AI Clips",
+		proOnly: "Pro",
+		// Viewer clips
+		viewerClipsDescription:
+			"Clips created by your viewers on connected platforms",
+		noViewerClips: "No viewer clips yet",
+		noViewerClipsHint: "When viewers clip your stream, they'll appear here",
+		// AI clips
+		aiClipsDescription: "Automatically generated highlights from your streams",
+		noAiClips: "No AI clips yet",
+		noAiClipsHint: "AI will automatically create clips from your best moments",
+		aiClipsProTitle: "AI Clips is a Pro Feature",
+		aiClipsProDescription:
+			"Upgrade to Pro to unlock AI-powered clip generation that automatically captures your stream highlights.",
+		upgradeNow: "Upgrade to Pro",
+		// Common
+		createClip: "Create Clip",
+		totalClips: "Total clips",
+		totalViews: "Total views",
+		avgDuration: "Avg. duration",
+		searchPlaceholder: "Search clips...",
+		views: "views",
+		share: "Share",
+		empty: "No clips yet",
+		emptyHint: "Clips from your streams will appear here",
+		comingSoonBadge: "Coming soon",
+		comingSoonDescription:
+			"Clip creation and management is under active development. You'll be able to capture and share highlights soon.",
+		// Detail page
+		backToClips: "Back to clips",
+		clipNotFound: "Clip not found",
+		likes: "likes",
+		duration: "Duration",
+		created: "Created",
+		aiScore: "AI Score",
+		createdBy: "Created by",
+		createdOn: "Created on",
+		platform: "Platform",
+		download: "Download",
+		delete: "Delete",
 	},
 
 	// Dashboard
@@ -262,6 +392,13 @@ export const dict = {
 			events: "Events",
 			actions: "Actions",
 		},
+		// Control settings
+		controlSettings: {
+			title: "Settings",
+			showAvatars: "Show avatars",
+			showAvatarsDescription:
+				"Display user avatars next to messages instead of platform icons",
+		},
 		// Actions panel
 		actions: {
 			title: "Stream Actions",
@@ -377,7 +514,28 @@ export const dict = {
 
 	// Viewers page
 	viewers: {
+		title: "Viewers",
 		searchPlaceholder: "Search by display name...",
+		platform: "Platform",
+		allPlatforms: "All Platforms",
+		search: "Search",
+		activeFilters: "Active filters:",
+		clearAll: "Clear all",
+		noViewers: "No viewers found",
+		adjustFilters: "Try adjusting your filters or search criteria",
+		viewersWillAppear: "Viewers will appear here when they chat in your stream",
+	},
+
+	// Scenes page
+	scenes: {
+		layoutSaved: "Layout Saved",
+		saveLayout: "Save Layout",
+		clearAll: "Clear All",
+		fullscreen: "Fullscreen",
+		exitFullscreen: "Exit Fullscreen",
+		widgetCount: "Widgets: {{count}}",
+		widgetPalette: "Widget Palette",
+		clickToAdd: "Click a widget to add it to the canvas",
 	},
 
 	// Analytics page
@@ -442,6 +600,14 @@ export const dict = {
 		// Plan
 		getStarted: "Get started with basic features",
 		upgradeToPro: "Upgrade to Pro",
+		redirecting: "Redirecting...",
+		paymentSuccess: "Payment successful! Your Pro subscription is now active.",
+		paymentPending:
+			"Payment is being processed. Your Pro access will be activated shortly.",
+		monthlyPlan: "Monthly",
+		monthlyPrice: "$24.99/month",
+		yearlyPlan: "Yearly",
+		yearlyPrice: "$239.99/year — 20% off",
 		// Donation Page
 		donationPage: "Donation Page",
 		publicDonationUrl: "Public Donation URL",
@@ -538,6 +704,7 @@ export const dict = {
 		signInWithEmail: "Sign in with Email",
 		signUpWithEmail: "Sign up with Email",
 		noAccount: "Don't have an account?",
+		haveAccount: "Already have an account?",
 		createOne: "Create one",
 		agreeToTerms: "By signing in, you agree to our",
 		termsOfService: "Terms of Service",
@@ -566,6 +733,9 @@ export const dict = {
 		notFound: "Page not found",
 		unauthorized: "You are not authorized to view this page",
 		networkError: "Network error. Please check your connection.",
+		invalidUsername: "Invalid username",
+		userNotFound: "User not found",
+		failedToLoadUser: "Failed to load user",
 	},
 
 	// 404 Page
@@ -646,6 +816,34 @@ export const dict = {
 		aiPoweredGrowth: "AI-Powered Growth",
 		aiPoweredGrowthDescription:
 			"Smart recommendations to optimize your content strategy",
+
+		// Pricing section
+		pricing: "Pricing",
+		pricingTitle1: "Simple, Transparent",
+		pricingTitle2: "Pricing",
+		pricingSubtitle:
+			"Start free and upgrade when you need more power. No hidden fees.",
+		monthly: "Monthly",
+		yearly: "Yearly",
+		saveTwoMonths: "Save 2+ months",
+		mostPopular: "Most Popular",
+		perMonth: "month",
+		perYear: "year",
+		freePlan: "Free",
+		freePrice: "$0",
+		freePlanFeature1: "1 streaming platform",
+		freePlanFeature2: "Basic chat management",
+		freePlanFeature3: "Standard analytics",
+		freePlanFeature4: "Community support",
+		proPlan: "Pro",
+		proPlanFeature1: "Unlimited platforms",
+		proPlanFeature2: "Unified chat across all platforms",
+		proPlanFeature3: "Advanced analytics & insights",
+		proPlanFeature4: "AI-powered moderation",
+		proPlanFeature5: "Custom stream widgets",
+		proPlanFeature6: "Priority support",
+		getStartedFree: "Get Started Free",
+		upgradeNow: "Upgrade Now",
 
 		// CTA section
 		ctaTitle: "Ready to Level Up Your Stream?",
@@ -729,7 +927,7 @@ export const dict = {
 	// Terms page
 	terms: {
 		title: "Terms of Service",
-		lastUpdated: "Last updated: December 2024",
+		lastUpdated: "Last updated: February 2026",
 		section1Title: "1. Acceptance of Terms",
 		section1Text:
 			"By accessing or using Streampai's services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.",
@@ -758,14 +956,17 @@ export const dict = {
 		section7Title: "7. Limitation of Liability",
 		section7Text:
 			"Streampai shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.",
-		section8Title: "8. Modifications to Terms",
+		section8Title: "8. Refunds and Cancellations",
 		section8Text:
-			"We reserve the right to modify these terms at any time. We will notify users of any material changes via email or through the service. Continued use of the service after such changes constitutes acceptance of the new terms.",
-		section9Title: "9. Termination",
+			"You may request a full refund within 14 days of your initial paid subscription purchase. To request a refund, contact our support team. After the 14-day period, refunds are not available, but you may cancel your subscription at any time. Upon cancellation, you will retain access to paid features until the end of your current billing period. No partial or pro-rated refunds are provided for unused time.",
+		section9Title: "9. Modifications to Terms",
 		section9Text:
-			"We may terminate or suspend your account and access to the service immediately, without prior notice, for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties.",
-		section10Title: "10. Contact Information",
+			"We reserve the right to modify these terms at any time. We will notify users of any material changes via email or through the service. Continued use of the service after such changes constitutes acceptance of the new terms.",
+		section10Title: "10. Termination",
 		section10Text:
+			"We may terminate or suspend your account and access to the service immediately, without prior notice, for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties.",
+		section11Title: "11. Contact Information",
+		section11Text:
 			"If you have any questions about these Terms of Service, please",
 		contactUs: "contact us",
 	},

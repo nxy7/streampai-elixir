@@ -31,6 +31,41 @@ export const dict: Dictionary = {
 		welcome: "Hallo, {{name}}!",
 	},
 
+	// Hooks
+	hooks: {
+		title: "Hooks",
+		description:
+			"Automatisiere deinen Stream, indem du Ereignisse mit Aktionen verknüpfst. Wenn etwas passiert, wird automatisch eine Reaktion ausgelöst.",
+		howItWorks: "So funktioniert's",
+		step1Title: "Ereignis tritt ein",
+		step1Description: "Etwas passiert in deinem Stream",
+		step2Title: "Hook verarbeitet",
+		step2Description: "Deine Regel prüft Bedingungen",
+		step3Title: "Aktion wird ausgeführt",
+		step3Description: "Eine automatische Reaktion startet",
+		triggers: "Auslöser",
+		triggersDescription: "Ereignisse, die einen Hook starten können",
+		triggerDonation: "Spende erhalten",
+		triggerFollow: "Neuer Follower",
+		triggerRaid: "Eingehender Raid",
+		triggerSubscription: "Neues Abonnement",
+		triggerStreamStart: "Stream gestartet",
+		triggerStreamEnd: "Stream beendet",
+		triggerChatMessage: "Chat-Nachricht",
+		actions: "Aktionen",
+		actionsDescription: "Reaktionen, die Hooks auslösen können",
+		actionDiscordMessage: "Discord-Nachricht senden",
+		actionChatMessage: "Chat-Nachricht senden",
+		actionWebhook: "Webhook aufrufen",
+		actionObsScene: "OBS-Szene wechseln",
+		actionPlaySound: "Soundalarm abspielen",
+		actionEmail: "E-Mail-Benachrichtigung senden",
+		comingSoonBadge: "Demnächst",
+		comingSoonDescription:
+			"Hooks werden aktiv entwickelt. Du kannst hier bald eigene Automatisierungen erstellen.",
+		createHook: "Hook erstellen",
+	},
+
 	// Dashboard sidebar sections
 	sidebar: {
 		overview: "Übersicht",
@@ -95,6 +130,103 @@ export const dict: Dictionary = {
 		every: "Alle",
 		streamPanelDescription:
 			"Timer senden automatisch Nachrichten während deines Streams",
+	},
+
+	// Chat Bot
+	chatbot: {
+		description: "Konfiguriere deinen automatischen Chat-Bot für Streams",
+		enabled: "Chat-Bot aktiviert",
+		enabledDescription:
+			"Hauptschalter — wenn aus, macht der Bot während Streams nichts",
+		greeting: "Stream-Begrüßung",
+		greetingDescription:
+			"Automatisch eine Willkommensnachricht posten, wenn dein Stream startet",
+		greetingMessage: "Begrüßungsnachricht",
+		greetingMessagePlaceholder: "Hallo zusammen! Willkommen beim Stream!",
+		commandPrefix: "Befehlspräfix",
+		commandPrefixDescription: "Zeichen vor Bot-Befehlen (z.B. /hi)",
+		experimental: "Experimentell",
+		aiChat: "KI-Chat-Teilnahme",
+		aiChatDescription:
+			"Den Bot mithilfe von KI an Chat-Unterhaltungen teilnehmen lassen",
+		aiPersonality: "Bot-Persönlichkeit",
+		aiPersonalityDescription:
+			"Beschreibe, wie sich der Bot im Chat verhalten und sprechen soll",
+		aiPersonalityPlaceholder:
+			"Ein freundlicher und unterhaltsamer Bot, der für gute Stimmung sorgt, Witze macht und sich natürlich mit Zuschauern unterhält...",
+		autoShoutout: "Auto-Shoutout",
+		autoShoutoutDescription:
+			"Raider automatisch erwähnen, wenn sie deinen Kanal raiden",
+		linkProtection: "Link-Schutz",
+		linkProtectionDescription:
+			"Nachrichten mit Links von Nicht-Moderatoren löschen",
+		slowModeOnRaid: "Langsamer Modus bei Raid",
+		slowModeOnRaidDescription:
+			"Vorübergehend den langsamen Modus aktivieren, wenn ein Raid erkannt wird",
+		commands: "Befehle",
+		commandsDescription:
+			"Eingebaute Befehle, die Zuschauer im Chat verwenden können",
+		commandHiDescription: "Bot antwortet mit einer zufälligen Begrüßung",
+		commandUptimeDescription: "Zeigt, wie lange der Stream schon läuft",
+		commandFollowageDescription: "Zeigt, wie lange der Zuschauer schon folgt",
+		commandSocialsDescription: "Zeigt die Social-Media-Links des Streamers",
+		commandLurkDescription: "Kündigt an, dass der Zuschauer lurkt",
+		commandDiceDescription: "Würfelt eine Zahl von 1 bis 6",
+		commandQuoteDescription: "Zeigt ein zufälliges gespeichertes Zitat",
+		commandCommandsDescription: "Listet alle verfügbaren Befehle auf",
+		saving: "Speichern...",
+		saved: "Einstellungen gespeichert",
+		comingSoon: "Demnächst",
+	},
+
+	// Clips
+	clips: {
+		title: "Stream Clips",
+		description:
+			"Erfasse, verwalte und teile die besten Momente deiner Streams",
+		// Tabs
+		viewerClips: "Zuschauer-Clips",
+		aiClips: "KI-Clips",
+		proOnly: "Pro",
+		// Viewer clips
+		viewerClipsDescription:
+			"Clips, die von Zuschauern auf verbundenen Plattformen erstellt wurden",
+		noViewerClips: "Noch keine Zuschauer-Clips",
+		noViewerClipsHint:
+			"Wenn Zuschauer Clips von deinem Stream erstellen, erscheinen sie hier",
+		// AI clips
+		aiClipsDescription: "Automatisch generierte Highlights aus deinen Streams",
+		noAiClips: "Noch keine KI-Clips",
+		noAiClipsHint: "KI erstellt automatisch Clips von deinen besten Momenten",
+		aiClipsProTitle: "KI-Clips ist eine Pro-Funktion",
+		aiClipsProDescription:
+			"Upgrade auf Pro, um die KI-gestützte Clip-Generierung freizuschalten, die automatisch deine Stream-Highlights erfasst.",
+		upgradeNow: "Auf Pro upgraden",
+		// Common
+		createClip: "Clip erstellen",
+		totalClips: "Clips gesamt",
+		totalViews: "Aufrufe gesamt",
+		avgDuration: "Durchschn. Dauer",
+		searchPlaceholder: "Clips suchen...",
+		views: "Aufrufe",
+		share: "Teilen",
+		empty: "Noch keine Clips",
+		emptyHint: "Clips aus deinen Streams erscheinen hier",
+		comingSoonBadge: "Demnächst",
+		comingSoonDescription:
+			"Clip-Erstellung und -Verwaltung wird aktiv entwickelt. Du kannst bald Highlights aufnehmen und teilen.",
+		// Detail page
+		backToClips: "Zurück zu Clips",
+		clipNotFound: "Clip nicht gefunden",
+		likes: "Likes",
+		duration: "Dauer",
+		created: "Erstellt",
+		aiScore: "KI-Bewertung",
+		createdBy: "Erstellt von",
+		createdOn: "Erstellt am",
+		platform: "Plattform",
+		download: "Herunterladen",
+		delete: "Löschen",
 	},
 
 	// Dashboard
@@ -265,6 +397,13 @@ export const dict: Dictionary = {
 			events: "Ereignisse",
 			actions: "Aktionen",
 		},
+		// Control settings
+		controlSettings: {
+			title: "Einstellungen",
+			showAvatars: "Avatare anzeigen",
+			showAvatarsDescription:
+				"Benutzer-Avatare statt Plattform-Icons neben Nachrichten anzeigen",
+		},
 		// Actions panel
 		actions: {
 			title: "Stream-Aktionen",
@@ -378,7 +517,29 @@ export const dict: Dictionary = {
 
 	// Viewers page
 	viewers: {
+		title: "Zuschauer",
 		searchPlaceholder: "Nach Anzeigename suchen...",
+		platform: "Plattform",
+		allPlatforms: "Alle Plattformen",
+		search: "Suche",
+		activeFilters: "Aktive Filter:",
+		clearAll: "Alle löschen",
+		noViewers: "Keine Zuschauer gefunden",
+		adjustFilters: "Passe deine Filter oder Suchkriterien an",
+		viewersWillAppear:
+			"Zuschauer erscheinen hier, wenn sie in deinem Stream chatten",
+	},
+
+	// Scenes page
+	scenes: {
+		layoutSaved: "Layout gespeichert",
+		saveLayout: "Layout speichern",
+		clearAll: "Alle löschen",
+		fullscreen: "Vollbild",
+		exitFullscreen: "Vollbild beenden",
+		widgetCount: "Widgets: {{count}}",
+		widgetPalette: "Widget-Palette",
+		clickToAdd: "Klicke auf ein Widget, um es zur Leinwand hinzuzufügen",
 	},
 
 	// Analytics page
@@ -443,6 +604,14 @@ export const dict: Dictionary = {
 		// Plan
 		getStarted: "Starte mit den Basisfunktionen",
 		upgradeToPro: "Auf Pro upgraden",
+		redirecting: "Weiterleitung...",
+		paymentSuccess: "Zahlung erfolgreich! Dein Pro-Abo ist jetzt aktiv.",
+		paymentPending:
+			"Zahlung wird verarbeitet. Dein Pro-Zugang wird in Kürze aktiviert.",
+		monthlyPlan: "Monatlich",
+		monthlyPrice: "$24.99/Monat",
+		yearlyPlan: "Jährlich",
+		yearlyPrice: "$239.99/Jahr — 20% Rabatt",
 		// Donation Page
 		donationPage: "Spendenseite",
 		publicDonationUrl: "Öffentliche Spenden-URL",
@@ -539,6 +708,7 @@ export const dict: Dictionary = {
 		signInWithEmail: "Mit E-Mail anmelden",
 		signUpWithEmail: "Mit E-Mail registrieren",
 		noAccount: "Noch kein Konto?",
+		haveAccount: "Bereits ein Konto?",
 		createOne: "Jetzt erstellen",
 		agreeToTerms: "Mit der Anmeldung stimmst du unseren",
 		termsOfService: "Nutzungsbedingungen",
@@ -565,6 +735,9 @@ export const dict: Dictionary = {
 		notFound: "Seite nicht gefunden",
 		unauthorized: "Du hast keine Berechtigung für diese Seite",
 		networkError: "Netzwerkfehler. Bitte überprüfe deine Verbindung.",
+		invalidUsername: "Ungültiger Benutzername",
+		userNotFound: "Benutzer nicht gefunden",
+		failedToLoadUser: "Benutzer konnte nicht geladen werden",
 	},
 
 	// 404 Page
@@ -638,6 +811,32 @@ export const dict: Dictionary = {
 		aiPoweredGrowth: "KI-gesteuertes Wachstum",
 		aiPoweredGrowthDescription:
 			"Smarte Empfehlungen zur Optimierung deiner Content-Strategie",
+		pricing: "Preise",
+		pricingTitle1: "Einfache, transparente",
+		pricingTitle2: "Preise",
+		pricingSubtitle:
+			"Starte kostenlos und upgrade, wenn du mehr Power brauchst. Keine versteckten Gebühren.",
+		monthly: "Monatlich",
+		yearly: "Jährlich",
+		saveTwoMonths: "2+ Monate sparen",
+		mostPopular: "Beliebteste",
+		perMonth: "Monat",
+		perYear: "Jahr",
+		freePlan: "Free",
+		freePrice: "0 €",
+		freePlanFeature1: "1 Streaming-Plattform",
+		freePlanFeature2: "Basis-Chat-Verwaltung",
+		freePlanFeature3: "Standard-Statistiken",
+		freePlanFeature4: "Community-Support",
+		proPlan: "Pro",
+		proPlanFeature1: "Unbegrenzte Plattformen",
+		proPlanFeature2: "Einheitlicher Chat über alle Plattformen",
+		proPlanFeature3: "Erweiterte Statistiken & Einblicke",
+		proPlanFeature4: "KI-gesteuerte Moderation",
+		proPlanFeature5: "Individuelle Stream-Widgets",
+		proPlanFeature6: "Prioritäts-Support",
+		getStartedFree: "Kostenlos starten",
+		upgradeNow: "Jetzt upgraden",
 		ctaTitle: "Bereit, deinen Stream aufs nächste Level zu bringen?",
 		ctaSubtitle:
 			"Schließ dich Streamern an, die ihr Publikum bereits mit Streampai vergrößern",
@@ -718,7 +917,7 @@ export const dict: Dictionary = {
 	// Terms page
 	terms: {
 		title: "Nutzungsbedingungen",
-		lastUpdated: "Zuletzt aktualisiert: Dezember 2024",
+		lastUpdated: "Zuletzt aktualisiert: Februar 2026",
 		section1Title: "1. Annahme der Bedingungen",
 		section1Text:
 			"Mit der Nutzung von Streampai stimmst du diesen Nutzungsbedingungen zu. Wenn du nicht einverstanden bist, nutze unsere Dienste bitte nicht.",
@@ -746,14 +945,17 @@ export const dict: Dictionary = {
 		section7Title: "7. Haftungsbeschränkung",
 		section7Text:
 			"Streampai haftet nicht für indirekte, zufällige, besondere, Folge- oder Strafschäden, die sich aus der Nutzung oder Nichtnutzung des Dienstes ergeben.",
-		section8Title: "8. Änderungen der Bedingungen",
+		section8Title: "8. Erstattungen und Kündigungen",
 		section8Text:
-			"Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Über wesentliche Änderungen informieren wir per E-Mail oder über den Dienst. Die weitere Nutzung gilt als Zustimmung.",
-		section9Title: "9. Kündigung",
+			"Du kannst innerhalb von 14 Tagen nach dem ersten kostenpflichtigen Abo-Kauf eine vollständige Erstattung beantragen. Kontaktiere dazu unser Support-Team. Nach Ablauf der 14-Tage-Frist sind keine Erstattungen möglich, aber du kannst dein Abo jederzeit kündigen. Nach der Kündigung behältst du den Zugang zu kostenpflichtigen Funktionen bis zum Ende des aktuellen Abrechnungszeitraums. Anteilige Erstattungen für nicht genutzte Zeit werden nicht gewährt.",
+		section9Title: "9. Änderungen der Bedingungen",
 		section9Text:
+			"Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Über wesentliche Änderungen informieren wir per E-Mail oder über den Dienst. Die weitere Nutzung gilt als Zustimmung.",
+		section10Title: "10. Kündigung",
+		section10Text:
 			"Wir können dein Konto und deinen Zugang sofort, ohne Vorankündigung, für Verhalten kündigen oder sperren, das wir als Verstoß gegen diese Bedingungen oder als schädlich für andere ansehen.",
-		section10Title: "10. Kontakt",
-		section10Text: "Bei Fragen zu diesen Nutzungsbedingungen kannst du uns",
+		section11Title: "11. Kontakt",
+		section11Text: "Bei Fragen zu diesen Nutzungsbedingungen kannst du uns",
 		contactUs: "kontaktieren",
 	},
 

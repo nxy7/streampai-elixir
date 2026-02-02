@@ -177,7 +177,7 @@ export default function NotificationBell() {
 								<For each={notifications()}>
 									{(notification) => (
 										<div
-											class={`border-neutral-100 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-neutral-50 ${
+											class={`border-neutral-100 border-b px-4 py-3 transition-colors last:border-b-0 ${
 												notification.wasSeen ? "opacity-60" : ""
 											}`}>
 											<div class="flex items-start gap-3">

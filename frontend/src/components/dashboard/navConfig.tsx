@@ -426,19 +426,16 @@ export const getNavSections = (): NavSection[] => [
 				url: "/dashboard/tools/hooks",
 				labelKey: "dashboardNav.hooks",
 				icon: <HooksIcon />,
-				comingSoon: true,
 			},
 			{
 				url: "/dashboard/tools/chatbot",
 				labelKey: "dashboardNav.chatBot",
 				icon: <ChatBotIcon />,
-				comingSoon: true,
 			},
 			{
 				url: "/dashboard/tools/clips",
 				labelKey: "dashboardNav.streamClips",
 				icon: <ClipsIcon />,
-				comingSoon: true,
 			},
 			{
 				url: "/dashboard/tools/schedule",
@@ -494,6 +491,7 @@ export const getCurrentPage = (pathname: string): string => {
 	if (pathname.startsWith("/dashboard/widgets")) return "widgets";
 	if (pathname.startsWith("/dashboard/scenes")) return "scenes";
 	if (pathname.startsWith("/dashboard/tools/timers")) return "timers";
+	if (pathname.startsWith("/dashboard/tools/chatbot")) return "chatbot";
 	if (pathname.startsWith("/dashboard/tools")) return "tools";
 	if (pathname.startsWith("/dashboard/settings")) return "settings";
 	if (pathname.startsWith("/dashboard/admin/users")) return "users";
@@ -514,6 +512,7 @@ export const pageTitleKeyMap: Record<string, string> = {
 	widgets: "dashboardNav.widgets",
 	scenes: "dashboardNav.scenes",
 	timers: "dashboardNav.timers",
+	chatbot: "dashboardNav.chatBot",
 	tools: "sidebar.tools",
 	settings: "dashboardNav.settings",
 	users: "dashboardNav.users",

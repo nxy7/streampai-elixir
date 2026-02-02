@@ -250,7 +250,7 @@ export function SkeletonTableRow(props: SkeletonTableRowProps) {
 	const columns = props.columns ?? 5;
 
 	return (
-		<tr class={cn("hover:bg-neutral-50", props.class)}>
+		<tr class={cn("", props.class)}>
 			<For each={Array(columns).fill(0)}>
 				{(_, i) => (
 					<td class="whitespace-nowrap px-6 py-4">

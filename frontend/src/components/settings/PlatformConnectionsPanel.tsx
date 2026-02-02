@@ -59,7 +59,7 @@ export default function PlatformConnectionsPanel(
 	const { t } = useTranslation();
 
 	const connectedPlatforms = createMemo(() => {
-		return new Set(props.accounts.map((a) => a.platform));
+		return new Set((props.accounts ?? []).map((a) => a.platform));
 	});
 
 	const handleRefreshStats = async (platform: Platform) => {
@@ -121,7 +121,7 @@ export default function PlatformConnectionsPanel(
 					</div>
 				}
 				when={!props.isLoading}>
-				<Show when={props.accounts.length > 0}>
+				<Show when={props.accounts?.length > 0}>
 					<div class="mb-4 space-y-3">
 						<For each={props.accounts}>
 							{(account) => (
@@ -150,7 +150,7 @@ export default function PlatformConnectionsPanel(
 				<div class="space-y-2">
 					<For each={AVAILABLE_PLATFORMS}>
 						{(platform) => (
-							<Show when={!connectedPlatforms().has(platform.targetPlatform)}>
+							<Show when={!connectedPlatforms()?.has(platform.targetPlatform)}>
 								<div class="flex items-center justify-between rounded-lg border border-neutral-200 p-3">
 									<div class="flex items-center space-x-3">
 										<PlatformIcon

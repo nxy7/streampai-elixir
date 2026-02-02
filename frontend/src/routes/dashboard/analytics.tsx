@@ -1,4 +1,4 @@
-import { Title } from "@solidjs/meta";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import {
 	AnalyticsSkeleton,
@@ -20,6 +20,7 @@ import {
 } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { formatDurationShort } from "~/lib/formatters";
 import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
@@ -51,9 +52,21 @@ type Livestream = SuccessDataFunc<
 	typeof getStreamHistory<typeof analyticsFields>
 >[number];
 
-export default function Analytics() {
+export const Route = createFileRoute("/dashboard/analytics")({
+	component: Analytics,
+	head: () => ({
+		meta: [{ title: "Analytics - Streampai" }],
+	}),
+});
+
+function Analytics() {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.overview"), href: "/dashboard" },
+		{ label: t("dashboardNav.analytics") },
+	]);
 
 	const [timeframe, setTimeframe] = createSignal<Timeframe>("week");
 	const [streams, setStreams] = createSignal<Livestream[]>([]);
@@ -230,77 +243,70 @@ export default function Analytics() {
 	});
 
 	return (
-		<>
-			<Title>Analytics - Streampai</Title>
-			<Show fallback={<AnalyticsSkeleton />} when={!isLoading()}>
-				<Show
-					fallback={
-						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-							<div class="py-12 text-center">
-								<h2 class="mb-4 font-bold text-2xl text-white">
-									{t("dashboard.notAuthenticated")}
-								</h2>
-								<p class="mb-6 text-neutral-300">
-									{t("analytics.signInToView")}
-								</p>
-								<a
-									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-									href={getLoginUrl()}>
-									{t("nav.signIn")}
-								</a>
-							</div>
+		<Show fallback={<AnalyticsSkeleton />} when={!isLoading()}>
+			<Show
+				fallback={
+					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
+						<div class="py-12 text-center">
+							<h2 class="mb-4 font-bold text-2xl text-white">
+								{t("dashboard.notAuthenticated")}
+							</h2>
+							<p class="mb-6 text-neutral-300">{t("analytics.signInToView")}</p>
+							<Link
+								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
+								to={getLoginUrl()}>
+								{t("nav.signIn")}
+							</Link>
 						</div>
-					}
-					when={user()}>
-					<div class="space-y-6">
-						<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-							<div>
-								<h1 class="font-bold text-2xl text-neutral-900">
-									{t("analytics.title")}
-								</h1>
-								<p class="mt-1 text-neutral-500 text-sm">
-									{t("analytics.subtitle")}
-								</p>
-							</div>
-
-							<select
-								class="rounded-md border-neutral-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
-								onChange={(e) =>
-									setTimeframe(e.currentTarget.value as Timeframe)
-								}
-								value={timeframe()}>
-								<option value="day">{t("analytics.last24Hours")}</option>
-								<option value="week">{t("analytics.last7Days")}</option>
-								<option value="month">{t("analytics.last30Days")}</option>
-								<option value="year">{t("analytics.lastYear")}</option>
-							</select>
-						</div>
-
-						<Show when={error()}>
-							<Alert variant="error">{error()}</Alert>
-						</Show>
-
-						<Show fallback={<LoadingState />} when={!isLoadingStreams()}>
-							<div class="grid grid-cols-1 gap-6">
-								<ViewerChart
-									data={viewerData()}
-									title={t("analytics.viewerTrends")}
-								/>
-							</div>
-
-							<div class="grid grid-cols-1 gap-6">
-								<PlatformDistributionChart
-									data={platformBreakdown()}
-									title={t("analytics.platformDistribution")}
-								/>
-							</div>
-
-							<StreamTable streams={recentStreams()} />
-						</Show>
 					</div>
-				</Show>
+				}
+				when={user()}>
+				<div class="space-y-6">
+					<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+						<div>
+							<h1 class="font-bold text-2xl text-neutral-900">
+								{t("analytics.title")}
+							</h1>
+							<p class="mt-1 text-neutral-500 text-sm">
+								{t("analytics.subtitle")}
+							</p>
+						</div>
+
+						<select
+							class="rounded-md border-neutral-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
+							onChange={(e) => setTimeframe(e.currentTarget.value as Timeframe)}
+							value={timeframe()}>
+							<option value="day">{t("analytics.last24Hours")}</option>
+							<option value="week">{t("analytics.last7Days")}</option>
+							<option value="month">{t("analytics.last30Days")}</option>
+							<option value="year">{t("analytics.lastYear")}</option>
+						</select>
+					</div>
+
+					<Show when={error()}>
+						<Alert variant="error">{error()}</Alert>
+					</Show>
+
+					<Show fallback={<LoadingState />} when={!isLoadingStreams()}>
+						<div class="grid grid-cols-1 gap-6">
+							<ViewerChart
+								data={viewerData()}
+								title={t("analytics.viewerTrends")}
+							/>
+						</div>
+
+						<div class="grid grid-cols-1 gap-6">
+							<PlatformDistributionChart
+								data={platformBreakdown()}
+								title={t("analytics.platformDistribution")}
+							/>
+						</div>
+
+						<StreamTable streams={recentStreams()} />
+					</Show>
+				</div>
 			</Show>
-		</>
+		</Show>
 	);
 }
 

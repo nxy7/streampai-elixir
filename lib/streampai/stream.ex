@@ -4,6 +4,7 @@ defmodule Streampai.Stream do
     extensions: [AshAdmin.Domain, AshTypescript.Rpc]
 
   alias Streampai.Stream.BannedViewer
+  alias Streampai.Stream.ChatBotConfig
   alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
@@ -62,6 +63,12 @@ defmodule Streampai.Stream do
       rpc_action(:get_highlighted_message, :get_for_user)
     end
 
+    resource ChatBotConfig do
+      rpc_action(:get_chat_bot_config, :get_for_user)
+      rpc_action(:upsert_chat_bot_config, :upsert)
+      rpc_action(:update_chat_bot_config, :update)
+    end
+
     resource StreamAction do
       rpc_action(:go_live, :start_stream)
       rpc_action(:stop_stream, :stop_stream)
@@ -73,6 +80,7 @@ defmodule Streampai.Stream do
 
   resources do
     resource BannedViewer
+    resource ChatBotConfig
     resource HighlightedMessage
     resource Livestream
     resource Streampai.Stream.LivestreamMetric

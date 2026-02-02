@@ -1,29 +1,27 @@
-import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { createFileRoute, useSearch } from "@tanstack/solid-router";
 import {
-	createUserScopedStreamEventsCollection,
-	streamEventsCollection,
-} from "~/lib/electric";
+	type Accessor,
+	Show,
+	createEffect,
+	createMemo,
+	createSignal,
+} from "solid-js";
+import { streamEventsCollection } from "~/lib/electric";
+import { getEventsCollection } from "~/lib/useEventsCollection";
 
-// Cache for user-scoped event collections
-const eventCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-function getEventsCollection(userId: string) {
-	let collection = eventCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		eventCollections.set(userId, collection);
-	}
-	return collection;
-}
+export const Route = createFileRoute("/widgets/viewer-count/obs")({
+	component: ViewerCountOBS,
+});
 
-export default function ViewerCountOBS() {
-	const [params] = useSearchParams();
-	const userId = () =>
-		Array.isArray(params.userId) ? params.userId[0] : params.userId;
+function ViewerCountOBS() {
+	const params = useSearch({ strict: false }) as Accessor<
+		Record<string, string | string[] | undefined>
+	>;
+	const userId = () => {
+		const raw = params().userId;
+		return Array.isArray(raw) ? raw[0] : raw;
+	};
 
 	const [viewerCount, setViewerCount] = createSignal(0);
 	const [isAnimating, setIsAnimating] = createSignal(false);

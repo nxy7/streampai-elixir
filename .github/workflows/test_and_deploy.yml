@@ -246,6 +246,11 @@ jobs:
             export SECRET_KEY="${{ secrets.SECRET_KEY }}"
             export SECRET_KEY_BASE="${{ secrets.SECRET_KEY_BASE }}"
             export TOKEN_SIGNING_SECRET="${{ secrets.TOKEN_SIGNING_SECRET }}"
+            export PADDLE_API_KEY="${{ secrets.PADDLE_API_KEY }}"
+            export PADDLE_WEBHOOK_SECRET="${{ secrets.PADDLE_WEBHOOK_SECRET }}"
+            export PADDLE_ENVIRONMENT="${{ vars.PADDLE_ENVIRONMENT }}"
+            export PADDLE_PRICE_PRO_MONTHLY="${{ vars.PADDLE_PRICE_PRO_MONTHLY }}"
+            export PADDLE_PRICE_PRO_YEARLY="${{ vars.PADDLE_PRICE_PRO_YEARLY }}"
             export PHX_HOST="api.streampai.com"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -287,5 +292,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy frontend/.output/public --project-name=streampai --commit-dirty=true
+          command: pages deploy frontend/dist/client --project-name=streampai --commit-dirty=true
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

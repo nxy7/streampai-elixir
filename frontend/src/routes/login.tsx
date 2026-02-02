@@ -1,6 +1,7 @@
-import { Title } from "@solidjs/meta";
-import { A, useNavigate } from "@solidjs/router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { Show, createSignal } from "solid-js";
+import Logo from "~/components/Logo";
+import { Button } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH, getApiBase } from "~/lib/constants";
@@ -66,7 +67,12 @@ function EmailIcon() {
 	);
 }
 
-export default function LoginPage() {
+export const Route = createFileRoute("/login")({
+	component: LoginPage,
+	head: () => ({ meta: [{ title: "Sign In - Streampai" }] }),
+});
+
+function LoginPage() {
 	const { user, refresh } = useCurrentUser();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -78,6 +84,7 @@ export default function LoginPage() {
 	const [error, setError] = createSignal<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
 	const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
+	const [honeypot, setHoneypot] = createSignal("");
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -93,6 +100,7 @@ export default function LoginPage() {
 				email: email(),
 				password: password(),
 				...(isRegister && { password_confirmation: passwordConfirmation() }),
+				...(isRegister && honeypot() && { website: honeypot() }),
 			};
 
 			const response = await fetch(endpoint, {
@@ -119,7 +127,7 @@ export default function LoginPage() {
 				} else {
 					// Refresh the user context and navigate to dashboard
 					await refresh();
-					navigate(getDashboardUrl());
+					navigate({ to: getDashboardUrl() });
 				}
 			} else {
 				setError(
@@ -138,181 +146,205 @@ export default function LoginPage() {
 	}
 
 	return (
-		<>
-			<Title>{t("auth.pageTitle")}</Title>
-			<div class="flex min-h-screen items-center justify-center bg-surface px-4">
-				<Show
-					fallback={
-						<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center">
-							<h2 class="mb-4 font-bold text-2xl text-neutral-900">
-								{t("auth.alreadySignedIn")}
-							</h2>
-							<p class="mb-6 text-neutral-600">{t("auth.alreadyLoggedIn")}</p>
-							<A
-								class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-								href={getDashboardUrl()}>
-								{t("auth.goToDashboard")}
-							</A>
+		<div class="flex min-h-screen items-center justify-center bg-surface px-4">
+			<Show
+				fallback={
+					<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center">
+						<h2 class="mb-4 font-bold text-2xl text-neutral-900">
+							{t("auth.alreadySignedIn")}
+						</h2>
+						<p class="mb-6 text-neutral-600">{t("auth.alreadyLoggedIn")}</p>
+						<Link
+							class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
+							to={getDashboardUrl()}>
+							{t("auth.goToDashboard")}
+						</Link>
+					</div>
+				}
+				when={!user()}>
+				<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
+					<div class="mb-8 text-center">
+						<Link class="mb-6 inline-flex justify-center" to="/">
+							<Logo showText size="lg" />
+						</Link>
+						<h1 class="mb-2 font-bold text-3xl text-neutral-900">
+							{t("auth.welcomeBack")}
+						</h1>
+						<p class="text-neutral-600">{t("auth.signInToContinue")}</p>
+					</div>
+
+					{/* OAuth Buttons */}
+					<div class="space-y-4">
+						<Button
+							as="a"
+							fullWidth
+							href={`${getApiBase()}${API_PATH}/auth/user/google`}
+							size="lg"
+							variant="secondary">
+							<GoogleIcon />
+							{t("auth.continueWithGoogle")}
+						</Button>
+
+						<Button
+							as="a"
+							fullWidth
+							href={`${getApiBase()}${API_PATH}/auth/user/twitch`}
+							size="lg"
+							variant="secondary">
+							<TwitchIcon />
+							{t("auth.continueWithTwitch")}
+						</Button>
+					</div>
+
+					<div class="my-8 flex items-center gap-4 text-neutral-500 text-sm">
+						<div class="h-px flex-1 bg-neutral-200" />
+						<span class="shrink-0">{t("auth.orContinueWithEmail")}</span>
+						<div class="h-px flex-1 bg-neutral-200" />
+					</div>
+
+					{/* Success Message */}
+					<Show when={successMessage()}>
+						<div class="mb-4 rounded-lg bg-green-500/20 p-3 text-center text-green-300 text-sm">
+							{successMessage()}
 						</div>
-					}
-					when={!user()}>
-					<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
-						<div class="mb-8 text-center">
-							<A class="mb-6 inline-flex items-center space-x-2" href="/">
-								<img
-									alt="Streampai Logo"
-									class="h-10 w-10"
-									src="/images/logo-white.png"
-								/>
-								<span class="font-bold text-2xl text-neutral-900">
-									Streampai
-								</span>
-							</A>
-							<h1 class="mb-2 font-bold text-3xl text-neutral-900">
-								{t("auth.welcomeBack")}
-							</h1>
-							<p class="text-neutral-600">{t("auth.signInToContinue")}</p>
+					</Show>
+
+					{/* Error Message */}
+					<Show when={error()}>
+						<div class="mb-4 rounded-lg bg-red-500/20 p-3 text-center text-red-300 text-sm">
+							{error()}
+						</div>
+					</Show>
+
+					{/* Email/Password Form */}
+					<form class="space-y-4" onSubmit={handleSubmit}>
+						{/* Honeypot field - hidden from real users, bots will fill it */}
+						<div
+							aria-hidden="true"
+							class="absolute left-[-9999px]"
+							tabIndex={-1}>
+							<label for="website">Website</label>
+							<input
+								autocomplete="off"
+								id="website"
+								name="website"
+								onChange={(e) => setHoneypot(e.currentTarget.value)}
+								tabIndex={-1}
+								type="text"
+								value={honeypot()}
+							/>
+						</div>
+						<div>
+							<label
+								class="mb-1 block font-medium text-neutral-900 text-sm"
+								for="email">
+								{t("auth.emailLabel")}
+							</label>
+							<input
+								class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
+								id="email"
+								name="email"
+								onInput={(e) => setEmail(e.currentTarget.value)}
+								placeholder={t("auth.emailPlaceholder")}
+								required
+								type="email"
+								value={email()}
+							/>
 						</div>
 
-						{/* OAuth Buttons */}
-						<div class="space-y-4">
-							<a
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-neutral-800 transition-all hover:bg-neutral-100"
-								href={`${getApiBase()}${API_PATH}/auth/user/google`}
-								rel="external">
-								<GoogleIcon />
-								{t("auth.continueWithGoogle")}
-							</a>
-
-							<a
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
-								href={`${getApiBase()}${API_PATH}/auth/user/twitch`}
-								rel="external">
-								<TwitchIcon />
-								{t("auth.continueWithTwitch")}
-							</a>
+						<div>
+							<label
+								class="mb-1 block font-medium text-neutral-900 text-sm"
+								for="password">
+								{t("auth.passwordLabel")}
+							</label>
+							<input
+								class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
+								id="password"
+								minLength={8}
+								name="password"
+								onInput={(e) => setPassword(e.currentTarget.value)}
+								placeholder={t("auth.passwordPlaceholder")}
+								required
+								type="password"
+								value={password()}
+							/>
 						</div>
 
-						<div class="my-8 flex items-center gap-4 text-neutral-500 text-sm">
-							<div class="h-px flex-1 bg-neutral-200" />
-							<span class="shrink-0">{t("auth.orContinueWithEmail")}</span>
-							<div class="h-px flex-1 bg-neutral-200" />
-						</div>
-
-						{/* Success Message */}
-						<Show when={successMessage()}>
-							<div class="mb-4 rounded-lg bg-green-500/20 p-3 text-center text-green-300 text-sm">
-								{successMessage()}
-							</div>
-						</Show>
-
-						{/* Error Message */}
-						<Show when={error()}>
-							<div class="mb-4 rounded-lg bg-red-500/20 p-3 text-center text-red-300 text-sm">
-								{error()}
-							</div>
-						</Show>
-
-						{/* Email/Password Form */}
-						<form class="space-y-4" onSubmit={handleSubmit}>
+						<Show when={mode() === "register"}>
 							<div>
 								<label
 									class="mb-1 block font-medium text-neutral-900 text-sm"
-									for="email">
-									{t("auth.emailLabel")}
+									for="password_confirmation">
+									{t("auth.confirmPasswordLabel")}
 								</label>
 								<input
 									class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-									id="email"
-									name="email"
-									onInput={(e) => setEmail(e.currentTarget.value)}
-									placeholder={t("auth.emailPlaceholder")}
-									required
-									type="email"
-									value={email()}
-								/>
-							</div>
-
-							<div>
-								<label
-									class="mb-1 block font-medium text-neutral-900 text-sm"
-									for="password">
-									{t("auth.passwordLabel")}
-								</label>
-								<input
-									class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-									id="password"
+									id="password_confirmation"
 									minLength={8}
-									name="password"
-									onInput={(e) => setPassword(e.currentTarget.value)}
-									placeholder={t("auth.passwordPlaceholder")}
+									name="password_confirmation"
+									onInput={(e) =>
+										setPasswordConfirmation(e.currentTarget.value)
+									}
+									placeholder={t("auth.confirmPasswordPlaceholder")}
 									required
 									type="password"
-									value={password()}
+									value={passwordConfirmation()}
 								/>
 							</div>
+						</Show>
 
-							<Show when={mode() === "register"}>
-								<div>
-									<label
-										class="mb-1 block font-medium text-neutral-900 text-sm"
-										for="password_confirmation">
-										{t("auth.confirmPasswordLabel")}
-									</label>
-									<input
-										class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-										id="password_confirmation"
-										minLength={8}
-										name="password_confirmation"
-										onInput={(e) =>
-											setPasswordConfirmation(e.currentTarget.value)
-										}
-										placeholder={t("auth.confirmPasswordPlaceholder")}
-										required
-										type="password"
-										value={passwordConfirmation()}
-									/>
-								</div>
-							</Show>
+						<Button
+							disabled={isSubmitting()}
+							fullWidth
+							size="lg"
+							type="submit"
+							variant="gradient">
+							<EmailIcon />
+							{isSubmitting()
+								? t("common.pleaseWait")
+								: mode() === "signin"
+									? t("auth.signInWithEmail")
+									: t("auth.signUpWithEmail")}
+						</Button>
+					</form>
 
+					<p class="mt-8 text-center text-neutral-600 text-sm">
+						<Show
+							fallback={
+								<>
+									{t("auth.noAccount")}{" "}
+									<button
+										class="text-primary-light hover:text-primary-200"
+										onClick={() => setMode("register")}
+										type="button">
+										{t("auth.createOne")}
+									</button>
+								</>
+							}
+							when={mode() === "register"}>
+							{t("auth.haveAccount")}{" "}
 							<button
-								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
-								disabled={isSubmitting()}
-								type="submit">
-								<EmailIcon />
-								{isSubmitting()
-									? t("common.pleaseWait")
-									: mode() === "signin"
-										? t("auth.signInWithEmail")
-										: t("auth.signUpWithEmail")}
-							</button>
-						</form>
-
-						<p class="mt-8 text-center text-neutral-600 text-sm">
-							{t("auth.noAccount")}{" "}
-							<a
 								class="text-primary-light hover:text-primary-200"
-								href={`${getApiBase()}${API_PATH}/auth/register`}
-								rel="external">
-								{t("auth.createOne")}
-							</a>
-						</p>
+								onClick={() => setMode("signin")}
+								type="button">
+								{t("auth.signIn")}
+							</button>
+						</Show>
+					</p>
 
-						<p class="mt-4 text-center text-neutral-400 text-xs">
-							{t("auth.agreeToTerms")}{" "}
-							<A class="text-neutral-500 hover:text-neutral-900" href="/terms">
-								{t("auth.termsOfService")}
-							</A>{" "}
-							{t("auth.and")}{" "}
-							<A
-								class="text-neutral-500 hover:text-neutral-900"
-								href="/privacy">
-								{t("auth.privacyPolicy")}
-							</A>
-						</p>
-					</div>
-				</Show>
-			</div>
-		</>
+					<p class="mt-4 text-center text-neutral-400 text-xs">
+						{t("auth.agreeToTerms")}{" "}
+						<Link class="text-neutral-500 hover:text-neutral-900" to="/terms">
+							{t("auth.termsOfService")}
+						</Link>{" "}
+						{t("auth.and")}{" "}
+						<Link class="text-neutral-500 hover:text-neutral-900" to="/privacy">
+							{t("auth.privacyPolicy")}
+						</Link>
+					</p>
+				</div>
+			</Show>
+		</div>
 	);
 }

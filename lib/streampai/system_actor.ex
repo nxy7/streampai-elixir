@@ -8,7 +8,7 @@ defmodule Streampai.SystemActor do
 
   ## Actor Types
 
-  - `:webhook` - For external webhook handlers (PayPal, Cloudflare, etc.)
+  - `:webhook` - For external webhook handlers (Paddle, PayPal, Cloudflare, etc.)
   - `:background_job` - For Oban background jobs (Discord notifications, IFTTT, etc.)
 
   ## Usage
@@ -47,6 +47,14 @@ defmodule Streampai.SystemActor do
   @spec paypal() :: t()
   def paypal do
     %__MODULE__{id: "paypal", type: :webhook}
+  end
+
+  @doc """
+  Creates a system actor for Paddle webhook operations.
+  """
+  @spec paddle() :: t()
+  def paddle do
+    %__MODULE__{id: "paddle", type: :webhook}
   end
 
   @doc """

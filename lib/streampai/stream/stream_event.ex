@@ -12,6 +12,7 @@ defmodule Streampai.Stream.StreamEvent do
     extensions: [AshTypescript.Resource]
 
   alias Streampai.Stream.EventData.PlatformEventData
+  alias Streampai.Types.CoercibleString
 
   postgres do
     table "stream_events"
@@ -234,7 +235,8 @@ defmodule Streampai.Stream.StreamEvent do
         :livestream_id,
         :user_id,
         :platform,
-        :viewer_id
+        :viewer_id,
+        :inserted_at
       ]
 
       argument :id, :uuid do
@@ -311,6 +313,7 @@ defmodule Streampai.Stream.StreamEvent do
 
     update :replay_alert do
       description "Replays this event on the alertbox by enqueueing it at the front of the alert queue."
+
       require_atomic? false
       accept []
 
@@ -339,6 +342,7 @@ defmodule Streampai.Stream.StreamEvent do
 
     attribute :data, :union do
       description "Typed event data. Shape depends on event type (union with :map_with_tag storage)."
+
       public? true
       allow_nil? false
 
@@ -387,7 +391,7 @@ defmodule Streampai.Stream.StreamEvent do
                   ]
     end
 
-    attribute :author_id, :string do
+    attribute :author_id, CoercibleString do
       public? true
       allow_nil? false
     end
@@ -407,17 +411,21 @@ defmodule Streampai.Stream.StreamEvent do
       allow_nil? true
     end
 
-    attribute :viewer_id, :string do
+    attribute :viewer_id, CoercibleString do
       public? true
     end
 
-    attribute :was_displayed, :boolean do
+    attribute :was_displayed, Streampai.Types.CoercibleBoolean do
       description "Whether this event has been displayed in an overlay/widget"
       public? true
       default false
     end
 
-    create_timestamp :inserted_at, public?: true
+    attribute :inserted_at, :utc_datetime_usec do
+      public? true
+      allow_nil? false
+      default &DateTime.utc_now/0
+    end
   end
 
   relationships do

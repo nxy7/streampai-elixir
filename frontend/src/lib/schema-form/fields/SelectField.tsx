@@ -1,5 +1,5 @@
-import { type Component, For } from "solid-js";
-import { Select } from "~/design-system/Input";
+import type { Component } from "solid-js";
+import { Select } from "~/design-system";
 import type { IntrospectedField } from "../types";
 
 interface SelectFieldProps {
@@ -37,20 +37,20 @@ function getOptionLabel(
 }
 
 export const SelectField: Component<SelectFieldProps> = (props) => {
+	const options = () =>
+		(props.field.enumValues ?? []).map((option) => ({
+			value: option,
+			label: getOptionLabel(option, props.field.meta.options),
+		}));
+
 	return (
 		<Select
 			disabled={props.disabled}
 			helperText={props.field.meta.description}
 			label={props.field.label}
-			onChange={(e) => props.onChange(e.currentTarget.value)}
-			value={props.value ?? ""}>
-			<For each={props.field.enumValues ?? []}>
-				{(option) => (
-					<option selected={props.value === option} value={option}>
-						{getOptionLabel(option, props.field.meta.options)}
-					</option>
-				)}
-			</For>
-		</Select>
+			onChange={(value) => props.onChange(value)}
+			options={options()}
+			value={props.value ?? ""}
+		/>
 	);
 };

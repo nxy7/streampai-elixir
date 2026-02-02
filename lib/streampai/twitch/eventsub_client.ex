@@ -44,6 +44,8 @@ defmodule Streampai.Twitch.EventsubClient do
     :callback_pid,
     :reconnect_attempts,
     :subscription_pending,
+    :subscription_timeout_ref,
+    :reconnect_timer_ref,
     max_reconnect_attempts: @max_reconnect_attempts
   ]
 
@@ -139,6 +141,12 @@ defmodule Streampai.Twitch.EventsubClient do
   end
 
   @impl true
+  def handle_info(:subscription_timeout, %{subscription_timeout_ref: nil} = state) do
+    # Timeout was already cancelled, ignore
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info(:subscription_timeout, state) do
     Logger.error("EventSub subscription timed out - no welcome message received")
     handle_reconnect(state, :subscription_timeout)
@@ -146,6 +154,9 @@ defmodule Streampai.Twitch.EventsubClient do
 
   @impl true
   def handle_info(:reconnect, state) do
+    # Clear the timer ref since we're handling the reconnect now
+    state = %{state | reconnect_timer_ref: nil}
+
     if state.reconnect_attempts < state.max_reconnect_attempts do
       Logger.info("Reconnecting to Twitch EventSub (#{state.reconnect_attempts + 1}/#{state.max_reconnect_attempts})")
 
@@ -157,6 +168,7 @@ defmodule Streampai.Twitch.EventsubClient do
          state
          | websocket_pid: nil,
            stream_ref: nil,
+           subscription_timeout_ref: nil,
            reconnect_attempts: state.reconnect_attempts + 1
        }}
     else
@@ -174,13 +186,28 @@ defmodule Streampai.Twitch.EventsubClient do
   @impl true
   def handle_info({:gun_ws, _conn_pid, _stream_ref, {:close, code, reason}}, state) do
     Logger.warning("WebSocket closed with code #{code}: #{reason}")
-    handle_reconnect(state, {:closed, code, reason})
+
+    # Code 4003 = "connection unused" - Twitch closes if no subscription made in time
+    # If we already have a reconnect pending (e.g., from 401 error), don't schedule another
+    if code == 4003 and state.reconnect_timer_ref do
+      Logger.debug("Connection closed as unused, but reconnect already pending - ignoring")
+      {:noreply, state}
+    else
+      handle_reconnect(state, {:closed, code, reason})
+    end
   end
 
   @impl true
   def handle_info({:gun_down, _conn_pid, _protocol, reason, _}, state) do
     Logger.error("WebSocket connection down: #{inspect(reason)}")
-    handle_reconnect(state, {:gun_down, reason})
+
+    # If we already have a reconnect pending, don't schedule another
+    if state.reconnect_timer_ref do
+      Logger.debug("Connection down, but reconnect already pending - ignoring")
+      {:noreply, state}
+    else
+      handle_reconnect(state, {:gun_down, reason})
+    end
   end
 
   @impl true
@@ -192,9 +219,10 @@ defmodule Streampai.Twitch.EventsubClient do
   @impl true
   def handle_info({:gun_upgrade, _conn_pid, _stream_ref, ["websocket"], _headers}, state) do
     Logger.debug("WebSocket upgrade successful")
-    # Start timeout for receiving welcome message
-    Process.send_after(self(), :subscription_timeout, @subscription_timeout)
-    {:noreply, state}
+    # Start timeout for receiving welcome message (cancel any previous one first)
+    if state.subscription_timeout_ref, do: Process.cancel_timer(state.subscription_timeout_ref)
+    timeout_ref = Process.send_after(self(), :subscription_timeout, @subscription_timeout)
+    {:noreply, %{state | subscription_timeout_ref: timeout_ref}}
   end
 
   @impl true
@@ -220,12 +248,15 @@ defmodule Streampai.Twitch.EventsubClient do
     new_state = %{state | access_token: new_token}
 
     # If we're in a reconnect loop (likely due to 401), trigger immediate reconnect with fresh token
-    if state.reconnect_attempts > 0 do
+    # Cancel the pending timer to avoid double reconnects
+    if state.reconnect_attempts > 0 and state.reconnect_timer_ref do
+      Process.cancel_timer(state.reconnect_timer_ref)
       Logger.info("Triggering immediate reconnect with fresh token")
       send(self(), :reconnect)
+      {:noreply, %{new_state | reconnect_timer_ref: nil}}
+    else
+      {:noreply, new_state}
     end
-
-    {:noreply, new_state}
   end
 
   @impl true
@@ -312,10 +343,20 @@ defmodule Streampai.Twitch.EventsubClient do
     session_id = get_in(msg, ["payload", "session", "id"])
     Logger.info("Received EventSub welcome, session_id: #{session_id}")
 
+    # Cancel the subscription timeout since we got the welcome message
+    if state.subscription_timeout_ref, do: Process.cancel_timer(state.subscription_timeout_ref)
+
     # Subscribe to chat messages
     case subscribe_to_chat_messages(state, session_id) do
       :ok ->
-        new_state = %{state | session_id: session_id, subscription_pending: false}
+        new_state = %{
+          state
+          | session_id: session_id,
+            subscription_pending: false,
+            subscription_timeout_ref: nil,
+            reconnect_attempts: 0
+        }
+
         {:noreply, new_state}
 
       {:error, {:missing_scopes, _}} ->
@@ -501,7 +542,8 @@ defmodule Streampai.Twitch.EventsubClient do
       sender_is_patreon: message_data.is_subscriber,
       user_id: state.user_id,
       livestream_id: state.livestream_id,
-      is_owner: is_owner
+      is_owner: is_owner,
+      platform_timestamp: message_data.timestamp
     }
 
     author_attrs = %{
@@ -521,8 +563,22 @@ defmodule Streampai.Twitch.EventsubClient do
   end
 
   defp handle_reconnect(state, _reason) do
-    Process.send_after(self(), :reconnect, @reconnect_delay)
-    {:noreply, %{state | websocket_pid: nil, stream_ref: nil, session_id: nil}}
+    # Cancel any existing reconnect timer to avoid duplicates
+    if state.reconnect_timer_ref, do: Process.cancel_timer(state.reconnect_timer_ref)
+    # Cancel subscription timeout as we're reconnecting
+    if state.subscription_timeout_ref, do: Process.cancel_timer(state.subscription_timeout_ref)
+
+    timer_ref = Process.send_after(self(), :reconnect, @reconnect_delay)
+
+    {:noreply,
+     %{
+       state
+       | websocket_pid: nil,
+         stream_ref: nil,
+         session_id: nil,
+         reconnect_timer_ref: timer_ref,
+         subscription_timeout_ref: nil
+     }}
   end
 
   defp cleanup_connection(%{websocket_pid: nil}), do: :ok

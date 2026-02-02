@@ -1,6 +1,7 @@
-import type { JSX } from "solid-js";
+import { type JSX, createSignal } from "solid-js";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import Input, { Select, Textarea } from "./Input";
+import Input, { Textarea } from "./Input";
+import Select from "./Select";
 
 const meta = {
 	title: "Design System/Input",
@@ -118,56 +119,92 @@ export const TextareaWithError: StoryObj<typeof Textarea> = {
 
 // Select stories
 export const SelectDefault: StoryObj<typeof Select> = {
-	render: () => (
-		<Select label="Country">
-			<option value="">Select a country</option>
-			<option value="us">United States</option>
-			<option value="uk">United Kingdom</option>
-			<option value="ca">Canada</option>
-			<option value="au">Australia</option>
-		</Select>
-	),
+	render: () => {
+		const [value, setValue] = createSignal("");
+		return (
+			<Select
+				label="Country"
+				onChange={setValue}
+				options={[
+					{ value: "", label: "Select a country" },
+					{ value: "us", label: "United States" },
+					{ value: "uk", label: "United Kingdom" },
+					{ value: "ca", label: "Canada" },
+					{ value: "au", label: "Australia" },
+				]}
+				value={value()}
+			/>
+		);
+	},
 	name: "Select - Default",
 };
 
 export const SelectWithHelper: StoryObj<typeof Select> = {
-	render: () => (
-		<Select
-			helperText="This affects when notifications are sent"
-			label="Timezone">
-			<option value="">Select your timezone</option>
-			<option value="pst">Pacific Time (PST)</option>
-			<option value="mst">Mountain Time (MST)</option>
-			<option value="cst">Central Time (CST)</option>
-			<option value="est">Eastern Time (EST)</option>
-		</Select>
-	),
+	render: () => {
+		const [value, setValue] = createSignal("");
+		return (
+			<Select
+				helperText="This affects when notifications are sent"
+				label="Timezone"
+				onChange={setValue}
+				options={[
+					{ value: "", label: "Select your timezone" },
+					{ value: "pst", label: "Pacific Time (PST)" },
+					{ value: "mst", label: "Mountain Time (MST)" },
+					{ value: "cst", label: "Central Time (CST)" },
+					{ value: "est", label: "Eastern Time (EST)" },
+				]}
+				value={value()}
+			/>
+		);
+	},
 	name: "Select - With Helper",
 };
 
 export const SelectWithError: StoryObj<typeof Select> = {
-	render: () => (
-		<Select error="Please select a plan to continue" label="Plan">
-			<option value="">Select a plan</option>
-			<option value="free">Free</option>
-			<option value="pro">Pro</option>
-			<option value="enterprise">Enterprise</option>
-		</Select>
-	),
+	render: () => {
+		const [value, setValue] = createSignal("");
+		return (
+			<Select
+				error="Please select a plan to continue"
+				label="Plan"
+				onChange={setValue}
+				options={[
+					{ value: "", label: "Select a plan" },
+					{ value: "free", label: "Free" },
+					{ value: "pro", label: "Pro" },
+					{ value: "enterprise", label: "Enterprise" },
+				]}
+				value={value()}
+			/>
+		);
+	},
 	name: "Select - With Error",
 };
 
 export const AllInputTypes: StoryObj = {
-	render: () => (
-		<div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
-			<Input label="Text Input" placeholder="Enter text..." />
-			<Textarea label="Textarea" placeholder="Enter description..." rows={3} />
-			<Select label="Select">
-				<option value="">Choose an option</option>
-				<option value="1">Option 1</option>
-				<option value="2">Option 2</option>
-			</Select>
-		</div>
-	),
+	render: () => {
+		const [selectValue, setSelectValue] = createSignal("");
+		return (
+			<div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
+				<Input label="Text Input" placeholder="Enter text..." />
+				<Textarea
+					label="Textarea"
+					placeholder="Enter description..."
+					rows={3}
+				/>
+				<Select
+					label="Select"
+					onChange={setSelectValue}
+					options={[
+						{ value: "", label: "Choose an option" },
+						{ value: "1", label: "Option 1" },
+						{ value: "2", label: "Option 2" },
+					]}
+					value={selectValue()}
+				/>
+			</div>
+		);
+	},
 	name: "All Input Types",
 };

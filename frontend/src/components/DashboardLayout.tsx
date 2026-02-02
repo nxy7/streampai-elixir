@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate, useSearch } from "@tanstack/solid-router";
 import {
 	For,
 	type JSX,
@@ -17,6 +17,7 @@ import {
 } from "~/lib/BreadcrumbContext";
 import type { SupportMessage, SupportTicket } from "~/lib/electric";
 import {
+	useStreamActor,
 	useTicketMessages,
 	useUserPreferencesForUser,
 	useUserSupportTickets,
@@ -65,7 +66,7 @@ function SupportChatButton() {
 	);
 
 	const tickets = createMemo(() => {
-		const data = ticketsQuery.data() as SupportTicket[];
+		const data = (ticketsQuery.data() ?? []) as SupportTicket[];
 		return [...data].sort(
 			(a, b) =>
 				new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
@@ -73,7 +74,7 @@ function SupportChatButton() {
 	});
 
 	const chatMessages = createMemo(() => {
-		const data = messagesQuery.data() as SupportMessage[];
+		const data = (messagesQuery.data() ?? []) as SupportMessage[];
 		return [...data].sort(
 			(a, b) =>
 				new Date(a.inserted_at).getTime() - new Date(b.inserted_at).getTime(),
@@ -551,21 +552,30 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const searchParams = useSearch({ strict: false }) as () => Record<
+		string,
+		unknown
+	>;
+	const isFullscreen = () => searchParams()?.fullscreen === "true";
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
 	const { items: breadcrumbItems } = useBreadcrumbContext();
 
 	// Redirect to login if user is not authenticated
 	createEffect(() => {
 		if (!isLoading() && !user()) {
-			navigate("/login", { replace: true });
+			navigate({ to: "/login", replace: true });
 		}
 	});
 
 	// Use Electric-synced preferences for real-time avatar/name updates
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 
+	// Stream status for sidebar LIVE badge
+	const streamActor = useStreamActor(() => user()?.id);
+	const isLive = () => streamActor.streamStatus() === "streaming";
+
 	// Auto-detect current page from URL
-	const currentPage = createMemo(() => getCurrentPage(location.pathname));
+	const currentPage = createMemo(() => getCurrentPage(location().pathname));
 
 	// Extract page title from current page (translated)
 	const pageTitle = createMemo(() => {
@@ -594,7 +604,7 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 				<Show when={mobileSidebarOpen()}>
 					<button
 						aria-label={t("dashboard.closeSidebar")}
-						class="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+						class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm md:hidden"
 						onClick={() => setMobileSidebarOpen(false)}
 						type="button"
 					/>
@@ -602,22 +612,22 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 
 				{/* Desktop Sidebar */}
 				<Sidebar
-					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
+					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}
 				/>
 
 				{/* Mobile Sidebar */}
 				<MobileSidebar
-					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
+					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}
 					onClose={() => setMobileSidebarOpen(false)}
 					open={mobileSidebarOpen}
 				/>
 
 				{/* Main area — header + content, shifted right by sidebar */}
-				<div class="flex flex-1 flex-col overflow-hidden md:ml-72">
+				<div class="flex flex-1 flex-col md:ml-72">
 					<Header
 						breadcrumbItems={breadcrumbItems}
 						onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -626,7 +636,8 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 						user={user()}
 					/>
 
-					<main class="flex-1 overflow-y-auto overflow-x-hidden bg-neutral-50 px-4 py-6">
+					<main
+						class={`flex-1 bg-neutral-50 px-4 py-6 ${isFullscreen() ? "" : "overflow-y-auto overflow-x-hidden"}`}>
 						{props.children}
 					</main>
 				</div>

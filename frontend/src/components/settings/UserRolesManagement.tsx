@@ -260,7 +260,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							</p>
 						</div>
 					}
-					when={!props.isLoading && props.pendingInvitations.length > 0}>
+					when={!props.isLoading && props.pendingInvitations?.length > 0}>
 					<div class="space-y-3">
 						<For each={props.pendingInvitations}>
 							{(invitation) => {
@@ -354,7 +354,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							</p>
 						</div>
 					}
-					when={!props.isLoading && props.myRoles.length > 0}>
+					when={!props.isLoading && props.myRoles?.length > 0}>
 					<div class="space-y-3">
 						<For each={props.myRoles}>
 							{(role) => {
@@ -488,7 +488,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 
 				{/* Pending Invitations Sent */}
 				<Show
-					when={!props.isLoading && props.pendingInvitationsSent.length > 0}>
+					when={!props.isLoading && props.pendingInvitationsSent?.length > 0}>
 					<div class="mb-6 space-y-3">
 						<h4 class="font-medium text-neutral-700 text-sm">
 							{t("settings.pendingInvitations")}
@@ -550,7 +550,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 				{/* Team Members (Roles I Granted) */}
 				<Show
 					fallback={
-						<Show when={props.pendingInvitationsSent.length === 0}>
+						<Show when={props.pendingInvitationsSent?.length === 0}>
 							<div class="py-8 text-center text-neutral-500">
 								<svg
 									aria-hidden="true"
@@ -572,7 +572,7 @@ export default function UserRolesManagement(props: UserRolesManagementProps) {
 							</div>
 						</Show>
 					}
-					when={!props.isLoading && props.rolesIGranted.length > 0}>
+					when={!props.isLoading && props.rolesIGranted?.length > 0}>
 					<div class="space-y-3">
 						<h4 class="font-medium text-neutral-700 text-sm">
 							{t("settings.yourTeam")}

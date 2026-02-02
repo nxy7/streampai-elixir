@@ -479,7 +479,8 @@ defmodule Streampai.YouTube.GrpcStreamClient do
       sender_is_patreon: author_details.is_patreon,
       user_id: state.user_id,
       livestream_id: state.livestream_id,
-      is_owner: author_details.is_owner
+      is_owner: author_details.is_owner,
+      platform_timestamp: message_data.timestamp
     }
 
     author_attrs = %{

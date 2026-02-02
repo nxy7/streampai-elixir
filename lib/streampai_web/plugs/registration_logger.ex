@@ -3,6 +3,7 @@ defmodule StreampaiWeb.Plugs.RegistrationLogger do
   Logs user registration attempts for monitoring and security analysis.
   """
   import Plug.Conn
+  import StreampaiWeb.Plugs.ConnHelpers, only: [get_client_ip: 1]
 
   require Logger
 
@@ -44,16 +45,6 @@ defmodule StreampaiWeb.Plugs.RegistrationLogger do
     })
 
     conn
-  end
-
-  defp get_client_ip(conn) do
-    case get_req_header(conn, "x-forwarded-for") do
-      [forwarded | _] ->
-        forwarded |> String.split(",") |> List.first() |> String.trim()
-
-      [] ->
-        conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
   end
 
   defp get_email_from_params(params) do

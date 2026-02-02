@@ -1,5 +1,5 @@
-import { type Accessor, For, createMemo } from "solid-js";
-import { Select } from "~/design-system/Input";
+import { type Accessor, createMemo } from "solid-js";
+import { Select } from "~/design-system";
 import { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES, useI18n } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { saveLanguagePreference } from "~/sdk/ash_rpc";
@@ -53,19 +53,18 @@ export default function LanguageSwitcher(props: LanguageSwitcherProps) {
 		}
 	};
 
+	const languageOptions = SUPPORTED_LOCALES.map((localeCode) => ({
+		value: localeCode,
+		label: LOCALE_NAMES[localeCode],
+	}));
+
 	return (
 		<Select
-			aria-label="Select language"
 			class={props.class}
-			data-testid="language-switcher"
-			onChange={(e) => handleLanguageChange(e.currentTarget.value as Locale)}
+			onChange={(value) => handleLanguageChange(value as Locale)}
+			options={languageOptions}
 			value={displayedValue()}
-			wrapperClass={props.wrapperClass}>
-			<For each={[...SUPPORTED_LOCALES]}>
-				{(localeCode) => (
-					<option value={localeCode}>{LOCALE_NAMES[localeCode]}</option>
-				)}
-			</For>
-		</Select>
+			wrapperClass={props.wrapperClass}
+		/>
 	);
 }

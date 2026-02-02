@@ -1,6 +1,5 @@
-import { Title } from "@solidjs/meta";
-import { useNavigate } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
+import { createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
 import { Alert } from "~/design-system";
@@ -10,6 +9,7 @@ import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
 import { startImpersonation } from "~/lib/impersonation";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
@@ -49,11 +49,23 @@ const grantProMeta: FormMeta<typeof grantProSchema.shape> = {
 
 type GrantProFormValues = z.infer<typeof grantProSchema>;
 
-export default function AdminUsers() {
+export const Route = createFileRoute("/dashboard/admin/users")({
+	component: AdminUsers,
+	head: () => ({
+		meta: [{ title: "Users - Admin - Streampai" }],
+	}),
+});
+
+function AdminUsers() {
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { users: onlineUsers } = usePresence();
 	const { t } = useTranslation();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.admin"), href: "/dashboard/admin/users" },
+		{ label: t("dashboardNav.users") },
+	]);
 
 	// Check if user is admin
 	const isAdmin = createMemo(() => currentUser()?.role === "admin");
@@ -113,7 +125,7 @@ export default function AdminUsers() {
 	createEffect(() => {
 		const user = currentUser();
 		if (!authLoading() && (!user || user.role !== "admin")) {
-			navigate("/dashboard");
+			navigate({ to: "/dashboard" });
 		}
 	});
 
@@ -217,309 +229,307 @@ export default function AdminUsers() {
 	};
 
 	return (
-		<>
-			<Title>Users - Admin - Streampai</Title>
-			<Show
-				fallback={
-					<div class="flex min-h-screen items-center justify-center">
-						<div class="text-neutral-500">Loading...</div>
-					</div>
-				}
-				when={!authLoading()}>
-				<Show when={currentUser()?.role === "admin"}>
-					<div class="mx-auto max-w-6xl space-y-6 overflow-x-hidden">
-						<Show when={successMessage()}>
-							<Alert onClose={() => setSuccessMessage(null)} variant="success">
-								{successMessage()}
-							</Alert>
-						</Show>
+		<Show
+			fallback={
+				<div class="flex min-h-screen items-center justify-center">
+					<div class="text-neutral-500">Loading...</div>
+				</div>
+			}
+			when={!authLoading()}>
+			<Show when={currentUser()?.role === "admin"}>
+				<div class="mx-auto max-w-6xl space-y-6 overflow-x-hidden">
+					<Show when={successMessage()}>
+						<Alert onClose={() => setSuccessMessage(null)} variant="success">
+							{successMessage()}
+						</Alert>
+					</Show>
 
-						<Show when={error()}>
-							<Alert onClose={() => setError(null)} variant="error">
-								{error()}
-							</Alert>
-						</Show>
+					<Show when={error()}>
+						<Alert onClose={() => setError(null)} variant="error">
+							{error()}
+						</Alert>
+					</Show>
 
-						<Card variant="ghost">
-							<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
-								<div>
-									<h3 class={text.h3}>All Users</h3>
-									<p class={text.muted}>Manage user accounts and PRO access</p>
-								</div>
-								<div class="flex items-center space-x-2 text-sm">
+					<Card variant="ghost">
+						<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
+							<div>
+								<h3 class={text.h3}>All Users</h3>
+								<p class={text.muted}>Manage user accounts and PRO access</p>
+							</div>
+							<div class="flex items-center space-x-4 text-sm">
+								<div class="flex items-center space-x-2">
 									<div class="h-2 w-2 rounded-full bg-green-500" />
 									<span class="text-neutral-600">
 										{onlineUsers().length} online
 									</span>
 								</div>
+								<span class="text-neutral-600">{users().length} total</span>
 							</div>
+						</div>
 
-							<div class="overflow-x-auto">
-								<table class="w-full">
-									<thead class="bg-neutral-50">
-										<tr>
-											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
-												User
-											</th>
-											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
-												Email
-											</th>
-											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
-												Status
-											</th>
-											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
-												Joined
-											</th>
-											<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
-												Actions
-											</th>
-										</tr>
-									</thead>
-									<tbody class="divide-y divide-neutral-200 bg-surface">
-										<For each={users()}>
-											{(user: AdminUser) => (
-												<tr class="bg-surface-inset hover:bg-surface">
-													<td class="whitespace-nowrap px-6 py-4">
-														<div class="flex items-center">
-															<div class="relative">
-																<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary-light">
-																	<Show
-																		fallback={
-																			<span class="font-medium text-sm text-white">
-																				{user.email[0].toUpperCase()}
-																			</span>
-																		}
-																		when={user.avatar_url}>
-																		<img
-																			alt={user.name}
-																			class="h-10 w-10 rounded-full object-cover"
-																			src={user.avatar_url ?? ""}
-																		/>
-																	</Show>
-																</div>
-																<div
-																	class={`absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-surface ${
-																		isUserOnline(user.id)
-																			? "bg-green-500"
-																			: "bg-neutral-400"
-																	}`}
-																	title={
-																		isUserOnline(user.id) ? "Online" : "Offline"
+						<div class="overflow-x-auto">
+							<table class="w-full">
+								<thead class="bg-neutral-50">
+									<tr>
+										<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
+											User
+										</th>
+										<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
+											Email
+										</th>
+										<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
+											Status
+										</th>
+										<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
+											Joined
+										</th>
+										<th class="px-6 py-3 text-left font-medium text-neutral-500 text-xs uppercase tracking-wider">
+											Actions
+										</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-neutral-200 bg-surface">
+									<For each={users()}>
+										{(user: AdminUser) => (
+											<tr class="bg-surface-inset transition-colors hover:bg-surface">
+												<td class="whitespace-nowrap px-6 py-4">
+													<div class="flex items-center">
+														<div class="relative">
+															<div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary-light">
+																<Show
+																	fallback={
+																		<span class="font-medium text-sm text-white">
+																			{user.email[0].toUpperCase()}
+																		</span>
 																	}
-																/>
-															</div>
-															<div class="ml-3">
-																<Show when={currentUser()?.id === user.id}>
-																	<div class="mb-0.5">
-																		<Badge variant="info">Current User</Badge>
-																	</div>
+																	when={user.avatar_url}>
+																	<img
+																		alt={user.name}
+																		class="h-10 w-10 rounded-full object-cover"
+																		src={user.avatar_url ?? ""}
+																	/>
 																</Show>
-																<span class="font-medium text-neutral-900 text-sm">
-																	{user.name}
-																</span>
 															</div>
+															<div
+																class={`absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-surface ${
+																	isUserOnline(user.id)
+																		? "bg-green-500"
+																		: "bg-neutral-400"
+																}`}
+																title={
+																	isUserOnline(user.id) ? "Online" : "Offline"
+																}
+															/>
 														</div>
-													</td>
-													<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
-														{user.email}
-													</td>
-													<td class="whitespace-nowrap px-6 py-4">
-														<Show
-															fallback={
-																<Badge variant="warning">Pending</Badge>
-															}
-															when={user.confirmed_at}>
-															<Badge variant="success">Confirmed</Badge>
-														</Show>
-													</td>
-													<td class="whitespace-nowrap px-6 py-4 text-neutral-500 text-sm">
-														{new Date(user.inserted_at).toLocaleDateString()}
-													</td>
-													<td class="px-6 py-4 font-medium text-sm">
-														<div class="flex items-center gap-2">
-															<button
-																class="shrink-0 text-green-600 hover:text-green-900 hover:underline"
-																onClick={() => openGrantModal(user)}
-																type="button">
-																PRO
-															</button>
-															<Show
-																when={
-																	currentUser()?.id !== user.id &&
-																	user.role !== "admin"
-																}>
-																<button
-																	class="shrink-0 text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-																	disabled={impersonatingUserId() !== null}
-																	onClick={() => handleImpersonate(user.id)}
-																	title={t("admin.impersonate")}
-																	type="button">
-																	{impersonatingUserId() === user.id ? (
-																		"..."
-																	) : (
-																		<svg
-																			aria-hidden="true"
-																			class="h-4 w-4"
-																			fill="none"
-																			stroke="currentColor"
-																			viewBox="0 0 24 24">
-																			<path
-																				d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-																				stroke-linecap="round"
-																				stroke-linejoin="round"
-																				stroke-width="2"
-																			/>
-																		</svg>
-																	)}
-																</button>
+														<div class="ml-3">
+															<Show when={currentUser()?.id === user.id}>
+																<div class="mb-0.5">
+																	<Badge variant="info">Current User</Badge>
+																</div>
 															</Show>
+															<span class="font-medium text-neutral-900 text-sm">
+																{user.name}
+															</span>
 														</div>
-													</td>
-												</tr>
-											)}
-										</For>
-									</tbody>
-								</table>
+													</div>
+												</td>
+												<td class="whitespace-nowrap px-6 py-4 text-neutral-900 text-sm">
+													{user.email}
+												</td>
+												<td class="whitespace-nowrap px-6 py-4">
+													<Show
+														fallback={<Badge variant="warning">Pending</Badge>}
+														when={user.confirmed_at}>
+														<Badge variant="success">Confirmed</Badge>
+													</Show>
+												</td>
+												<td class="whitespace-nowrap px-6 py-4 text-neutral-500 text-sm">
+													{new Date(user.inserted_at).toLocaleDateString()}
+												</td>
+												<td class="px-6 py-4 font-medium text-sm">
+													<div class="flex items-center gap-2">
+														<button
+															class="shrink-0 text-green-600 hover:text-green-900 hover:underline"
+															onClick={() => openGrantModal(user)}
+															type="button">
+															PRO
+														</button>
+														<Show
+															when={
+																currentUser()?.id !== user.id &&
+																user.role !== "admin"
+															}>
+															<button
+																class="shrink-0 text-amber-600 hover:text-amber-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+																disabled={impersonatingUserId() !== null}
+																onClick={() => handleImpersonate(user.id)}
+																title={t("admin.impersonate")}
+																type="button">
+																{impersonatingUserId() === user.id ? (
+																	"..."
+																) : (
+																	<svg
+																		aria-hidden="true"
+																		class="h-4 w-4"
+																		fill="none"
+																		stroke="currentColor"
+																		viewBox="0 0 24 24">
+																		<path
+																			d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			stroke-width="2"
+																		/>
+																	</svg>
+																)}
+															</button>
+														</Show>
+													</div>
+												</td>
+											</tr>
+										)}
+									</For>
+								</tbody>
+							</table>
 
-								<Show when={users().length === 0}>
-									<div class="py-12 text-center">
+							<Show when={users().length === 0}>
+								<div class="py-12 text-center">
+									<svg
+										aria-hidden="true"
+										class="mx-auto h-12 w-12 text-neutral-400"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									<p class="mt-4 text-neutral-500 text-sm">No users found</p>
+								</div>
+							</Show>
+						</div>
+					</Card>
+				</div>
+
+				<Show when={showGrantModal()}>
+					<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
+						<div class="mx-4 w-full max-w-md rounded-lg bg-surface shadow-xl">
+							<div class="border-neutral-200 border-b px-6 py-4">
+								<div class="flex items-center justify-between">
+									<h3 class={text.h3}>Grant PRO Access</h3>
+									<button
+										class="text-neutral-400 hover:text-neutral-500"
+										onClick={closeGrantModal}
+										type="button">
 										<svg
 											aria-hidden="true"
-											class="mx-auto h-12 w-12 text-neutral-400"
+											class="h-6 w-6"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24">
 											<path
-												d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0A9 9 0 1110.5 3.5a9 9 0 018.999 8.499z"
+												d="M6 18L18 6M6 6l12 12"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
 											/>
 										</svg>
-										<p class="mt-4 text-neutral-500 text-sm">No users found</p>
-									</div>
-								</Show>
-							</div>
-						</Card>
-					</div>
-
-					<Show when={showGrantModal()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
-							<div class="mx-4 w-full max-w-md rounded-lg bg-surface shadow-xl">
-								<div class="border-neutral-200 border-b px-6 py-4">
-									<div class="flex items-center justify-between">
-										<h3 class={text.h3}>Grant PRO Access</h3>
-										<button
-											class="text-neutral-400 hover:text-neutral-500"
-											onClick={closeGrantModal}
-											type="button">
-											<svg
-												aria-hidden="true"
-												class="h-6 w-6"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24">
-												<path
-													d="M6 18L18 6M6 6l12 12"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-												/>
-											</svg>
-										</button>
-									</div>
-								</div>
-
-								<div class="space-y-4 px-6 py-4">
-									<div>
-										<p class={text.body}>
-											Grant PRO access to{" "}
-											<span class="font-semibold">{selectedUser()?.email}</span>
-										</p>
-									</div>
-
-									<SchemaForm
-										meta={grantProMeta}
-										onChange={(field, value) => {
-											setGrantFormValues((prev) => ({
-												...prev,
-												[field]: value,
-											}));
-										}}
-										schema={grantProSchema}
-										values={grantFormValues()}
-									/>
-								</div>
-
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
-									<Button onClick={closeGrantModal} variant="secondary">
-										Cancel
-									</Button>
-									<Button
-										disabled={grantingPro() || !grantFormValues().reason.trim()}
-										onClick={handleGrantPro}>
-										<Show fallback="Grant PRO Access" when={grantingPro()}>
-											Granting...
-										</Show>
-									</Button>
+									</button>
 								</div>
 							</div>
-						</div>
-					</Show>
 
-					<Show when={showRevokeConfirm()}>
-						<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
-							<div class="mx-4 w-full max-w-md rounded-lg bg-surface shadow-xl">
-								<div class="border-neutral-200 border-b px-6 py-4">
-									<div class="flex items-center justify-between">
-										<h3 class={text.h3}>Revoke PRO Access</h3>
-										<button
-											class="text-neutral-400 hover:text-neutral-500"
-											onClick={closeRevokeConfirm}
-											type="button">
-											<svg
-												aria-hidden="true"
-												class="h-6 w-6"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24">
-												<path
-													d="M6 18L18 6M6 6l12 12"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-												/>
-											</svg>
-										</button>
-									</div>
-								</div>
-
-								<div class="space-y-4 px-6 py-4">
+							<div class="space-y-4 px-6 py-4">
+								<div>
 									<p class={text.body}>
-										Are you sure you want to revoke PRO access for{" "}
-										<span class="font-semibold">{userToRevoke()?.email}</span>?
+										Grant PRO access to{" "}
+										<span class="font-semibold">{selectedUser()?.email}</span>
 									</p>
-									<p class={text.muted}>This action cannot be undone.</p>
 								</div>
 
-								<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
-									<Button onClick={closeRevokeConfirm} variant="secondary">
-										Cancel
-									</Button>
-									<Button
-										disabled={revokingPro()}
-										onClick={handleRevokePro}
-										variant="danger">
-										<Show fallback="Revoke PRO" when={revokingPro()}>
-											Revoking...
-										</Show>
-									</Button>
-								</div>
+								<SchemaForm
+									meta={grantProMeta}
+									onChange={(field, value) => {
+										setGrantFormValues((prev) => ({
+											...prev,
+											[field]: value,
+										}));
+									}}
+									schema={grantProSchema}
+									values={grantFormValues()}
+								/>
+							</div>
+
+							<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
+								<Button onClick={closeGrantModal} variant="secondary">
+									Cancel
+								</Button>
+								<Button
+									disabled={grantingPro() || !grantFormValues().reason.trim()}
+									onClick={handleGrantPro}>
+									<Show fallback="Grant PRO Access" when={grantingPro()}>
+										Granting...
+									</Show>
+								</Button>
 							</div>
 						</div>
-					</Show>
+					</div>
+				</Show>
+
+				<Show when={showRevokeConfirm()}>
+					<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-500 bg-opacity-75">
+						<div class="mx-4 w-full max-w-md rounded-lg bg-surface shadow-xl">
+							<div class="border-neutral-200 border-b px-6 py-4">
+								<div class="flex items-center justify-between">
+									<h3 class={text.h3}>Revoke PRO Access</h3>
+									<button
+										class="text-neutral-400 hover:text-neutral-500"
+										onClick={closeRevokeConfirm}
+										type="button">
+										<svg
+											aria-hidden="true"
+											class="h-6 w-6"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24">
+											<path
+												d="M6 18L18 6M6 6l12 12"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+											/>
+										</svg>
+									</button>
+								</div>
+							</div>
+
+							<div class="space-y-4 px-6 py-4">
+								<p class={text.body}>
+									Are you sure you want to revoke PRO access for{" "}
+									<span class="font-semibold">{userToRevoke()?.email}</span>?
+								</p>
+								<p class={text.muted}>This action cannot be undone.</p>
+							</div>
+
+							<div class="flex justify-end space-x-3 rounded-b-lg bg-neutral-50 px-6 py-4">
+								<Button onClick={closeRevokeConfirm} variant="secondary">
+									Cancel
+								</Button>
+								<Button
+									disabled={revokingPro()}
+									onClick={handleRevokePro}
+									variant="danger">
+									<Show fallback="Revoke PRO" when={revokingPro()}>
+										Revoking...
+									</Show>
+								</Button>
+							</div>
+						</div>
+					</div>
 				</Show>
 			</Show>
-		</>
+		</Show>
 	);
 }

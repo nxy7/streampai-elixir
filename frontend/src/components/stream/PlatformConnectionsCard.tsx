@@ -117,7 +117,10 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 							const platformStatus = () =>
 								props.platformStatuses[account.platform];
 							return (
-								<div class="flex items-center justify-between rounded-lg bg-surface p-4">
+								<Card
+									class="flex items-center justify-between p-4"
+									glow
+									variant="ghost">
 									<div class="flex items-center space-x-3">
 										<div class="relative">
 											<PlatformIcon platform={account.platform} size="lg" />
@@ -163,7 +166,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 											? "..."
 											: t("stream.platforms.disconnect")}
 									</Button>
-								</div>
+								</Card>
 							);
 						}}
 					</For>
@@ -172,8 +175,11 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 					<For each={props.availablePlatforms}>
 						{(platform) => (
 							<Show
-								when={!props.connectedPlatforms.has(platform.targetPlatform)}>
-								<div class="flex items-center justify-between rounded-lg bg-surface p-4">
+								when={!props.connectedPlatforms?.has(platform.targetPlatform)}>
+								<Card
+									class="flex items-center justify-between p-4"
+									glow
+									variant="ghost">
 									<div class="flex items-center space-x-3">
 										<PlatformIcon
 											platform={platform.targetPlatform}
@@ -194,7 +200,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 										size="sm">
 										{t("stream.platforms.connect")}
 									</Button>
-								</div>
+								</Card>
 							</Show>
 						)}
 					</For>

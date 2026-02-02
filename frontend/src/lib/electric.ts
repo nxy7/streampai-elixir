@@ -204,7 +204,7 @@ export const viewersCollection = createCollection(
 		shapeOptions: {
 			url: `${SHAPES_URL}/viewers`,
 		},
-		getKey: (item) => item.viewer_id,
+		getKey: (item) => item.viewer_id?.toString(),
 	}),
 );
 
@@ -251,7 +251,7 @@ export function createUserScopedViewersCollection(userId: string) {
 			shapeOptions: {
 				url: `${SHAPES_URL}/viewers/${userId}`,
 			},
-			getKey: (item) => item.viewer_id,
+			getKey: (item) => item.viewer_id?.toString(),
 		}),
 	);
 }
@@ -423,6 +423,36 @@ export function createStreamTimersCollection(userId: string) {
 			id: `stream_timers_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/stream_timers/${userId}`,
+			},
+			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export type ChatBotConfigRow = Row & {
+	id: string;
+	user_id: string;
+	enabled: boolean;
+	greeting_enabled: boolean;
+	greeting_message: string;
+	command_prefix: string;
+	ai_chat_enabled: boolean;
+	ai_personality: string | null;
+	ai_bot_name: string;
+	ai_provider: string;
+	auto_shoutout_enabled: boolean;
+	link_protection_enabled: boolean;
+	slow_mode_on_raid_enabled: boolean;
+	inserted_at: string;
+	updated_at: string;
+};
+
+export function createChatBotConfigsCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<ChatBotConfigRow>({
+			id: `chat_bot_configs_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/chat_bot_configs/${userId}`,
 			},
 			getKey: (item) => item.id,
 		}),

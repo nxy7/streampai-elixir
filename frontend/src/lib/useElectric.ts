@@ -1,9 +1,9 @@
-import type { Collection, CollectionStatus } from "@tanstack/db";
+import type { Collection } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/solid-db";
-import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ActorState,
+	type ChatBotConfigRow,
 	type CurrentStreamData,
 	type HighlightedMessage,
 	type Livestream,
@@ -18,6 +18,7 @@ import {
 	type Viewer,
 	type WidgetConfig,
 	type WidgetType,
+	createChatBotConfigsCollection,
 	createCurrentStreamDataCollection,
 	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
@@ -63,7 +64,7 @@ function createCollectionCache<T>(factory: CollectionFactory<T>) {
 function createUserScopedHook<TResult extends object>(
 	createCollection: (
 		userId: string,
-	) => Collection<TResult, string | number, object>,
+	) => Collection<TResult, string | number, Record<string, unknown>>,
 ) {
 	const getCollection = createCollectionCache(createCollection);
 
@@ -74,40 +75,28 @@ function createUserScopedHook<TResult extends object>(
 		});
 
 		return {
-			...query,
 			data: createMemo(() => query.data ?? []),
+			isLoading: createMemo(() => query.isLoading),
+			status: createMemo(() => query.status),
+			state: query.state,
+			collection: query.collection,
 		};
 	};
 }
 
 /**
- * Return type for useOptionalLiveQuery - matches useLiveQuery but with optional collection.
- * Derived from useLiveQuery's return type but adds 'disabled' status and nullable collection.
- */
-type OptionalLiveQueryResult<TResult extends object> = Omit<
-	ReturnType<typeof useLiveQuery<TResult, string | number, object>>,
-	"status" | "collection"
-> & {
-	status: Accessor<CollectionStatus | "disabled">;
-	collection: Accessor<Collection<TResult, string | number, object> | null>;
-};
-
-/**
  * Wrapper for useLiveQuery that supports returning undefined from the accessor.
- * The useLiveQuery runtime handles undefined (sets status to 'disabled', returns empty data,
- * makes no network requests), but TypeScript types don't expose this for collection accessors.
- *
- * This wrapper:
- * 1. Accepts accessors that may return undefined
- * 2. Returns properly typed result with 'disabled' status possibility
- * 3. Localizes the type assertion to a single place
+ * In @tanstack/solid-db@0.2.x, useLiveQuery natively handles null/undefined collections
+ * (sets status to 'disabled', returns empty data, makes no network requests).
  */
-function useOptionalLiveQuery<TResult extends object>(
-	accessor: () => Collection<TResult, string | number, object> | undefined,
-): OptionalLiveQueryResult<TResult> {
-	return useLiveQuery(
-		accessor as () => Collection<TResult, string | number, object>,
-	);
+function useOptionalLiveQuery<
+	TResult extends object,
+	TKey extends string | number = string | number,
+	TUtils extends Record<string, unknown> = Record<string, unknown>,
+>(accessor: () => Collection<TResult, TKey, TUtils> | undefined) {
+	// Cast to non-nullable to match the useLiveQuery overload.
+	// At runtime, useLiveQuery handles undefined (returns empty data, status='disabled').
+	return useLiveQuery(accessor as () => Collection<TResult, TKey, TUtils>);
 }
 
 function useStreamEvents() {
@@ -144,12 +133,15 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 	});
 
 	return {
-		...query,
 		data: createMemo(() => {
 			const id = userId();
 			if (!id) return null;
 			return (query.data ?? []).find((p) => p.id === id) ?? null;
 		}),
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
+		state: query.state,
+		collection: query.collection,
 	};
 }
 
@@ -162,7 +154,7 @@ export function useRecentUserStreamEvents(
 	limit = 10,
 ) {
 	const query = useUserStreamEvents(userId);
-	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
+	return createMemo(() => sortByInsertedAt(query.data() ?? []).slice(0, limit));
 }
 
 export const useUserLivestreams = createUserScopedHook(
@@ -174,7 +166,7 @@ export function useRecentUserLivestreams(
 	limit = 5,
 ) {
 	const query = useUserLivestreams(userId);
-	return createMemo(() => sortByInsertedAt(query.data()).slice(0, limit));
+	return createMemo(() => sortByInsertedAt(query.data() ?? []).slice(0, limit));
 }
 
 export const useUserViewers = createUserScopedHook(
@@ -187,23 +179,32 @@ export function useDashboardStats(userId: () => string | undefined) {
 	const streamsQuery = useUserLivestreams(userId);
 
 	return {
+		isLoading: createMemo(
+			() =>
+				eventsQuery.isLoading() ||
+				viewersQuery.isLoading() ||
+				streamsQuery.isLoading(),
+		),
 		totalMessages: createMemo(() => {
-			return eventsQuery.data().filter((e) => e.type === "chat_message").length;
+			return (eventsQuery.data() ?? []).filter((e) => e.type === "chat_message")
+				.length;
 		}),
-		totalEvents: createMemo(() => eventsQuery.data().length),
-		uniqueViewers: createMemo(() => viewersQuery.data().length),
-		totalStreams: createMemo(() => streamsQuery.data().length),
+		totalEvents: createMemo(() => (eventsQuery.data() ?? []).length),
+		uniqueViewers: createMemo(() => (viewersQuery.data() ?? []).length),
+		totalStreams: createMemo(() => (streamsQuery.data() ?? []).length),
 		totalDonations: createMemo(() => {
-			const events = eventsQuery.data();
+			const events = eventsQuery.data() ?? [];
 			return events
 				.filter((e) => e.type === "donation")
 				.reduce((sum, e) => sum + (Number(e.data?.amount) || 0), 0);
 		}),
 		donationCount: createMemo(() => {
-			return eventsQuery.data().filter((e) => e.type === "donation").length;
+			return (eventsQuery.data() ?? []).filter((e) => e.type === "donation")
+				.length;
 		}),
 		followCount: createMemo(() => {
-			return eventsQuery.data().filter((e) => e.type === "follow").length;
+			return (eventsQuery.data() ?? []).filter((e) => e.type === "follow")
+				.length;
 		}),
 	};
 }
@@ -217,7 +218,6 @@ export function useWidgetConfig<T = Record<string, unknown>>(
 	const query = useWidgetConfigs(userId);
 
 	return {
-		...query,
 		data: createMemo(() => {
 			if (!userId()) return null;
 			const type = widgetType();
@@ -225,6 +225,8 @@ export function useWidgetConfig<T = Record<string, unknown>>(
 			const config = configs.find((c) => c.type === type);
 			return config ? { ...config, config: config.config as T } : null;
 		}),
+		isLoading: query.isLoading,
+		status: query.status,
 	};
 }
 
@@ -268,8 +270,8 @@ export function useNotificationsWithReadStatus(
 
 	return {
 		data: createMemo((): NotificationWithReadStatus[] => {
-			const notifications = notificationsQuery.data();
-			const reads = readsQuery.data();
+			const notifications = notificationsQuery.data() ?? [];
+			const reads = readsQuery.data() ?? [];
 			const currentLocale = locale?.() || "en";
 
 			const readMap = new Map(reads.map((r) => [r.notification_id, r.seen_at]));
@@ -299,8 +301,8 @@ export function useNotificationsWithReadStatus(
 		unreadCount: createMemo(() => {
 			// Return null while either shape is still loading to prevent blinking
 			if (isLoading()) return null;
-			const notifications = notificationsQuery.data();
-			const reads = readsQuery.data();
+			const notifications = notificationsQuery.data() ?? [];
+			const reads = readsQuery.data() ?? [];
 			const readIds = new Set(reads.map((r) => r.notification_id));
 			return notifications.filter((n) => !readIds.has(n.id)).length;
 		}),
@@ -311,8 +313,11 @@ export function useNotificationsWithReadStatus(
 export function useGlobalNotifications() {
 	const query = useLiveQuery(() => globalNotificationsCollection);
 	return {
-		...query,
 		data: createMemo(() => sortByInsertedAt(query.data ?? [])),
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
+		state: query.state,
+		collection: query.collection,
 	};
 }
 
@@ -333,7 +338,7 @@ export function useUserRolesData(userId: () => string | undefined): {
 
 	return {
 		data: createMemo((): UserRolesData => {
-			const roles = rolesQuery.data();
+			const roles = rolesQuery.data() ?? [];
 			const currentUserId = userId();
 
 			if (!currentUserId) {
@@ -364,7 +369,7 @@ export function useUserRolesData(userId: () => string | undefined): {
 				),
 			};
 		}),
-		isLoading: () => !rolesQuery.data,
+		isLoading: rolesQuery.isLoading,
 	};
 }
 
@@ -376,6 +381,24 @@ export const useStreamTimers = createUserScopedHook(
 	createStreamTimersCollection,
 );
 
+export function useChatBotConfig(userId: () => string | undefined) {
+	const getCollection = createCollectionCache(createChatBotConfigsCollection);
+	const query = useOptionalLiveQuery(() => {
+		const currentId = userId();
+		return currentId ? getCollection(currentId) : undefined;
+	});
+
+	return {
+		data: createMemo(() => {
+			if (!userId()) return null;
+			const configs = (query.data ?? []) as ChatBotConfigRow[];
+			return configs.length > 0 ? configs[0] : null;
+		}),
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
+	};
+}
+
 export function useHighlightedMessage(userId: () => string | undefined) {
 	const getHighlightedMessagesCollection = createCollectionCache(
 		createHighlightedMessagesCollection,
@@ -386,13 +409,14 @@ export function useHighlightedMessage(userId: () => string | undefined) {
 	});
 
 	return {
-		...query,
 		data: createMemo(() => {
 			if (!userId()) return null;
 			const messages = (query.data ?? []) as HighlightedMessage[];
 			// Return the first (and should be only) highlighted message, or null
 			return messages.length > 0 ? messages[0] : null;
 		}),
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
 	};
 }
 
@@ -411,8 +435,11 @@ export function useStreamActor(userId: () => string | undefined) {
 	});
 
 	return {
-		...query,
 		data: streamData,
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
+		state: query.state,
+		collection: query.collection,
 		encoderConnected: () =>
 			streamData()?.cloudflare_data?.input_streaming === true,
 		streamStatus: () => streamData()?.status ?? "idle",
@@ -463,13 +490,15 @@ export function useTicketMessages(ticketId: () => string | undefined) {
 	});
 
 	return {
-		...query,
 		data: createMemo(() => query.data ?? []),
+		isLoading: createMemo(() => query.isLoading),
+		status: createMemo(() => query.status),
 	};
 }
 
 export type {
 	ActorState,
+	ChatBotConfigRow,
 	CurrentStreamData,
 	StreamEvent,
 	HighlightedMessage,

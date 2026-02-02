@@ -20,7 +20,7 @@ services:
       -c wal_buffers=16MB
       -c default_statistics_target=100
       -c wal_level=logical
-      -c max_worker_processes=16
+      -c max_worker_processes=32
       -c max_parallel_workers=8
     volumes:
       - timescaledb_data:/var/lib/postgresql/data

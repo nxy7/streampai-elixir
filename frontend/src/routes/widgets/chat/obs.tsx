@@ -1,10 +1,8 @@
-import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { For, Show, createMemo } from "solid-js";
-import {
-	createUserScopedStreamEventsCollection,
-	streamEventsCollection,
-} from "~/lib/electric";
+import { createFileRoute, useSearch } from "@tanstack/solid-router";
+import { type Accessor, For, Show, createMemo } from "solid-js";
+import { streamEventsCollection } from "~/lib/electric";
+import { getEventsCollection } from "~/lib/useEventsCollection";
 
 type ChatMessage = {
 	id: string;
@@ -16,36 +14,26 @@ type ChatMessage = {
 	isSubscriber?: boolean;
 };
 
-// Cache for user-scoped event collections
-const eventCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-function getEventCollection(userId: string) {
-	let collection = eventCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		eventCollections.set(userId, collection);
-	}
-	return collection;
-}
+export const Route = createFileRoute("/widgets/chat/obs")({
+	component: ChatOBS,
+});
 
-export default function ChatOBS() {
-	const [params] = useSearchParams();
-	const rawUserId = params.userId;
+function ChatOBS() {
+	const params = useSearch({ strict: false }) as Accessor<
+		Record<string, string | string[] | undefined>
+	>;
+	const rawUserId = params().userId;
 	const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
-	const maxMessages = () =>
-		parseInt(
-			(Array.isArray(params.maxMessages)
-				? params.maxMessages[0]
-				: params.maxMessages) || "10",
-			10,
-		);
+	const maxMessages = () => {
+		const raw = params().maxMessages;
+		const value = Array.isArray(raw) ? raw[0] : raw;
+		return parseInt(value || "10", 10);
+	};
 
 	const eventsQuery = useLiveQuery(() => {
 		const id = userId();
 		if (!id) return streamEventsCollection;
-		return getEventCollection(id);
+		return getEventsCollection(id);
 	});
 
 	const messages = createMemo(() => {

@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { For, Show } from "solid-js";
 import Badge from "~/design-system/Badge";
 import Card from "~/design-system/Card";
@@ -37,11 +37,11 @@ export default function RecentStreams(props: RecentStreamsProps) {
 		<Card padding="none">
 			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<h3 class={text.h3}>{t("dashboard.recentStreams")}</h3>
-				<A
+				<Link
 					class="text-primary text-sm hover:text-primary-hover"
-					href="/dashboard/stream-history">
+					to="/dashboard/stream-history">
 					{t("dashboard.viewAll")}
-				</A>
+				</Link>
 			</div>
 			<Show
 				fallback={
@@ -67,13 +67,14 @@ export default function RecentStreams(props: RecentStreamsProps) {
 						</p>
 					</div>
 				}
-				when={props.streams.length > 0}>
+				when={props.streams?.length > 0}>
 				<div class="divide-y divide-neutral-100">
 					<For each={props.streams}>
 						{(stream) => (
-							<A
-								class="block px-6 py-4 hover:bg-neutral-50"
-								href={`/dashboard/stream-history/${stream.id}`}>
+							<Link
+								class="block px-6 py-4"
+								params={{ id: stream.id }}
+								to="/dashboard/stream-history/$id">
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-4">
 										<Show
@@ -116,7 +117,7 @@ export default function RecentStreams(props: RecentStreamsProps) {
 										{stream.status}
 									</Badge>
 								</div>
-							</A>
+							</Link>
 						)}
 					</For>
 				</div>

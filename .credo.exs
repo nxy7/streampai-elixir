@@ -33,12 +33,17 @@ alias Credo.Check.Readability.ModuleDoc
                :user_id,
                :path,
                :duration,
+               :method,
+               :remote_ip,
                # Stream management
                :livestream_id,
                :stream_id,
                :component,
                :chat_id,
                :input_status,
+               :alert_id,
+               :stream_event_id,
+               :display_time,
                # API response handling
                :status,
                :body,
@@ -62,6 +67,9 @@ alias Credo.Check.Readability.ModuleDoc
                # Donation processing
                :donor_name,
                :amount,
+               # Email/job processing
+               :type,
+               :opts,
                # File operations
                :size
              ]

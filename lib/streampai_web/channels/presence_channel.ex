@@ -34,8 +34,8 @@ defmodule StreampaiWeb.PresenceChannel do
 
       # Start LivestreamManager process tree for this user
       case LivestreamManager.start_user_stream(user.id) do
-        {:ok, _pid} ->
-          Logger.info("Started LivestreamManager for user #{user.id}")
+        {:ok, pid} ->
+          Logger.info("Started LivestreamManager for user #{user.id} #{inspect(pid)}")
 
         {:error, reason} ->
           Logger.error("Failed to start LivestreamManager for user #{user.id}: #{inspect(reason)}")
@@ -66,31 +66,7 @@ defmodule StreampaiWeb.PresenceChannel do
     {:reply, {:ok, Presence.list(socket)}, socket}
   end
 
-  @impl true
-  def terminate(reason, socket) do
-    if user = socket.assigns[:current_user] do
-      # Check if user has any other presence (other tabs/windows)
-      presences = Presence.list(socket)
-
-      user_presences =
-        case Map.get(presences, user.id) do
-          nil -> 0
-          %{metas: metas} -> length(metas)
-        end
-
-      Logger.info("[PresenceChannel] terminate: user=#{user.id}, reason=#{inspect(reason)}, presences=#{user_presences}")
-
-      # Don't tear down the process tree on disconnect — it's lightweight
-      # and the user may be refreshing. The process tree stays alive so
-      # active streams survive page refreshes.
-      Logger.info("[PresenceChannel] User #{user.id} disconnected, keeping process tree alive")
-    end
-
-    :ok
-  end
-
   # Private helpers
-
   defp user_or_anonymous(nil, socket_id), do: {socket_id, "Anonymous", nil}
   defp user_or_anonymous(user, _socket_id), do: {user.id, user.name, user.avatar_url}
 

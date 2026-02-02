@@ -246,7 +246,7 @@ defmodule Streampai.Stream.StreamActionTest do
         password_confirmation: "password123456"
       })
 
-    user
+    Ash.load!(user, [:role])
   end
 
   defp grant_moderator_role(owner, moderator) do

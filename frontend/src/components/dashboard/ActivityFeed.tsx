@@ -23,9 +23,10 @@ export default function ActivityFeed(props: ActivityFeedProps) {
 	const [filter, setFilter] = createSignal<EventFilter>("all");
 
 	const filteredEvents = createMemo(() => {
+		const events = props.events ?? [];
 		const f = filter();
-		if (f === "all") return props.events.slice(0, 10);
-		return props.events.filter((e) => e.type === f).slice(0, 10);
+		if (f === "all") return events.slice(0, 10);
+		return events.filter((e) => e.type === f).slice(0, 10);
 	});
 
 	const filterButtons = createMemo<{ value: EventFilter; label: string }[]>(
@@ -106,7 +107,7 @@ export default function ActivityFeed(props: ActivityFeedProps) {
 					<div class="divide-y divide-neutral-50">
 						<For each={filteredEvents()}>
 							{(event) => (
-								<div class="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50">
+								<div class="flex items-center gap-3 px-4 py-2.5">
 									<div
 										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>
 										<EventIcon type={event.type} />

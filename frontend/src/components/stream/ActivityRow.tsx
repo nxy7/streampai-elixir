@@ -1,7 +1,8 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { Portal } from "solid-js/web";
 import PlatformIcon from "~/components/PlatformIcon";
+import UserAvatar from "~/components/UserAvatar";
 import { formatAmount, formatTimestamp } from "~/lib/formatters";
 import {
 	ACTIVITY_ROW_HEIGHT,
@@ -16,12 +17,16 @@ import {
 interface ActivityRowProps {
 	item: ActivityItem;
 	isSticky?: boolean;
+	isLatestStreamerMessage?: boolean;
 	moderationCallbacks?: ModerationCallbacks;
+	showAvatars?: boolean;
 	stickyIndex?: number;
 }
 
 export function ActivityRow(props: ActivityRowProps) {
 	const [isHovered, setIsHovered] = createSignal(false);
+	const [isHoveredDelayed, setIsHoveredDelayed] = createSignal(false);
+	let hoverDelayTimeout: ReturnType<typeof setTimeout> | undefined;
 	const [showTimeoutMenu, setShowTimeoutMenu] = createSignal(false);
 
 	// Calculate sticky top offset based on index (for stacking multiple sticky items)
@@ -115,7 +120,7 @@ export function ActivityRow(props: ActivityRowProps) {
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: Hover effect for moderation UI
 		<div
-			class={`group relative flex items-start gap-2 rounded px-2 py-2 transition-colors hover:bg-neutral-50 ${
+			class={`group relative flex items-start gap-2 px-2 py-2 transition-colors ${
 				isHighlighted()
 					? "sticky z-20 border-primary border-l-4 bg-primary-50 shadow-md ring-1 ring-primary-200"
 					: isCurrentlyPlaying()
@@ -125,21 +130,35 @@ export function ActivityRow(props: ActivityRowProps) {
 							: isPending()
 								? "border-blue-300 border-l-2 bg-blue-50/40"
 								: props.item.isSentByStreamer
-									? "border-primary-200 border-l-2 bg-primary-50/40"
+									? "border-primary border-l-2"
 									: isImportantEvent(props.item.type)
 										? "bg-neutral-50/50"
 										: ""
 			}`}
-			onMouseEnter={() => setIsHovered(true)}
+			onMouseEnter={() => {
+				setIsHovered(true);
+				clearTimeout(hoverDelayTimeout);
+				hoverDelayTimeout = setTimeout(() => setIsHoveredDelayed(true), 300);
+			}}
 			onMouseLeave={() => {
 				// Don't close hover state if timeout menu is open (user might be selecting duration)
 				if (!showTimeoutMenu()) {
 					setIsHovered(false);
 				}
+				clearTimeout(hoverDelayTimeout);
+				setIsHoveredDelayed(false);
 			}}
 			style={stickyStyle()}>
-			{/* Platform icon */}
-			<PlatformIcon platform={props.item.platform} size="sm" />
+			{/* User avatar or platform icon */}
+			<Show
+				fallback={<PlatformIcon platform={props.item.platform} size="sm" />}
+				when={(props.showAvatars ?? true) && props.item.avatarUrl}>
+				<UserAvatar
+					avatarUrl={props.item.avatarUrl}
+					class="!h-6 !w-6 !text-xs"
+					name={props.item.isSentByStreamer ? "You" : props.item.username}
+				/>
+			</Show>
 
 			{/* Content */}
 			<div class="min-w-0 flex-1">
@@ -167,11 +186,14 @@ export function ActivityRow(props: ActivityRowProps) {
 								</span>
 							}
 							when={props.item.viewerId}>
-							<A
-								class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
-								href={`/dashboard/viewers/${props.item.viewerId}`}>
-								{props.item.username}
-							</A>
+							{(viewerId) => (
+								<Link
+									class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
+									params={{ id: viewerId() }}
+									to="/dashboard/viewers/$id">
+									{props.item.username}
+								</Link>
+							)}
 						</Show>
 					</Show>
 					<Show when={props.item.amount}>
@@ -179,26 +201,28 @@ export function ActivityRow(props: ActivityRowProps) {
 							{formatAmount(props.item.amount, props.item.currency)}
 						</span>
 					</Show>
-					{/* Delivery status indicators for sent messages */}
+					{/* Delivery status indicators for sent messages — visible on hover or for latest */}
 					<Show when={props.item.isSentByStreamer && props.item.deliveryStatus}>
-						<div class="ml-1 flex items-center gap-0.5">
+						<div
+							class="ml-1 flex items-center gap-1 transition-opacity duration-200"
+							style={{
+								opacity:
+									isHoveredDelayed() || props.isLatestStreamerMessage
+										? "1"
+										: "0",
+							}}>
 							<For each={Object.entries(props.item.deliveryStatus ?? {})}>
 								{([platform, status]) => (
 									<span
-										class={`inline-flex items-center gap-0.5 rounded px-1 text-[10px] ${
+										class={`inline-flex items-center ${
 											status === "delivered"
-												? "bg-green-100 text-green-600"
+												? ""
 												: status === "failed"
-													? "bg-red-100 text-red-500"
-													: "bg-neutral-100 text-neutral-400"
+													? "[filter:saturate(0)_brightness(0.6)_sepia(1)_hue-rotate(-30deg)_saturate(5)]"
+													: "animate-pulse grayscale"
 										}`}
 										title={`${platform}: ${status}`}>
 										<PlatformIcon platform={platform} size="sm" />
-										{status === "delivered"
-											? "✓"
-											: status === "failed"
-												? "✗"
-												: "…"}
 									</span>
 								)}
 							</For>

@@ -1,36 +1,25 @@
-import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { Show, createMemo } from "solid-js";
-import {
-	createUserScopedStreamEventsCollection,
-	streamEventsCollection,
-} from "~/lib/electric";
+import { createFileRoute, useSearch } from "@tanstack/solid-router";
+import { type Accessor, Show, createMemo } from "solid-js";
+import { streamEventsCollection } from "~/lib/electric";
+import { getEventsCollection } from "~/lib/useEventsCollection";
 
-// Cache for user-scoped event collections
-const eventCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-function getEventsCollection(userId: string) {
-	let collection = eventCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		eventCollections.set(userId, collection);
-	}
-	return collection;
-}
+export const Route = createFileRoute("/widgets/donation-goal/obs")({
+	component: DonationGoalOBS,
+});
 
-export default function DonationGoalOBS() {
-	const [params] = useSearchParams();
-	const rawUserId = params.userId;
+function DonationGoalOBS() {
+	const params = useSearch({ strict: false }) as Accessor<
+		Record<string, string | string[] | undefined>
+	>;
+	const rawUserId = params().userId;
 	const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
-	const _goalId = () => params.goalId;
-	const rawTargetAmount = params.targetAmount;
-	const targetAmount = () =>
-		parseFloat(
-			(Array.isArray(rawTargetAmount) ? rawTargetAmount[0] : rawTargetAmount) ||
-				"100",
-		);
+	const _goalId = () => params().goalId;
+	const targetAmount = () => {
+		const raw = params().targetAmount;
+		const value = Array.isArray(raw) ? raw[0] : raw;
+		return parseFloat(value || "100");
+	};
 
 	const eventsQuery = useLiveQuery(() => {
 		const id = userId();

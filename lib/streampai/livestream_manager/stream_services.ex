@@ -7,6 +7,7 @@ defmodule Streampai.LivestreamManager.StreamServices do
 
   alias Streampai.Accounts.StreamingAccount
   alias Streampai.LivestreamManager.AlertQueue
+  alias Streampai.LivestreamManager.ChatBotServer
   alias Streampai.LivestreamManager.Platforms
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamTimerServer
@@ -194,6 +195,43 @@ defmodule Streampai.LivestreamManager.StreamServices do
   """
   def stop_stream_timer_server(user_id) do
     case RegistryHelpers.lookup(:stream_timer_server, user_id) do
+      {:ok, pid} ->
+        supervisor = RegistryHelpers.via_tuple(:stream_services, user_id)
+        DynamicSupervisor.terminate_child(supervisor, pid)
+
+      :error ->
+        :ok
+    end
+  end
+
+  @doc """
+  Starts the ChatBotServer for a user's active stream.
+  """
+  def start_chat_bot_server(user_id, stream_started_at) do
+    supervisor = RegistryHelpers.via_tuple(:stream_services, user_id)
+
+    case DynamicSupervisor.start_child(
+           supervisor,
+           {ChatBotServer, {user_id, stream_started_at}}
+         ) do
+      {:ok, _pid} ->
+        Logger.info("[StreamServices] ChatBotServer started for user #{user_id}")
+        :ok
+
+      {:error, {:already_started, _pid}} ->
+        :ok
+
+      error ->
+        Logger.error("[StreamServices] Failed to start ChatBotServer: #{inspect(error)}")
+        error
+    end
+  end
+
+  @doc """
+  Stops the ChatBotServer for a user.
+  """
+  def stop_chat_bot_server(user_id) do
+    case RegistryHelpers.lookup(:chat_bot_server, user_id) do
       {:ok, pid} ->
         supervisor = RegistryHelpers.via_tuple(:stream_services, user_id)
         DynamicSupervisor.terminate_child(supervisor, pid)

@@ -1,7 +1,11 @@
-import { A } from "@solidjs/router";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 import Counter from "~/components/Counter";
 
-export default function About() {
+export const Route = createFileRoute("/about")({
+	component: About,
+});
+
+function About() {
 	return (
 		<main class="mx-auto p-4 text-center text-neutral-900">
 			<h1 class="max-6-xs my-16 font-thin text-6xl text-sky-700 uppercase">
@@ -20,9 +24,9 @@ export default function About() {
 				to learn how to build Solid apps.
 			</p>
 			<p class="my-4">
-				<A class="text-sky-600 hover:underline" href="/">
+				<Link class="text-sky-600 hover:underline" to="/">
 					Home
-				</A>
+				</Link>
 				{" - "}
 				<span>About Page</span>
 			</p>

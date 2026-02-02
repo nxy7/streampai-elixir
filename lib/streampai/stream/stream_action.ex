@@ -14,6 +14,8 @@ defmodule Streampai.Stream.StreamAction do
     extensions: [AshTypescript.Resource],
     authorizers: [Ash.Policy.Authorizer]
 
+  import Streampai.MapUtils, only: [maybe_put: 3]
+
   alias Streampai.LivestreamManager.StreamManager
   alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.StreamAction.Checks.IsStreamOwner
@@ -333,9 +335,6 @@ defmodule Streampai.Stream.StreamAction do
       access_type :strict
     end
   end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp handle_metadata_update(user_id, metadata, platforms, actor) do
     user_id_string = to_string(user_id)

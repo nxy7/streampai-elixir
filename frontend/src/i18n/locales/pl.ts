@@ -31,6 +31,41 @@ export const dict: Dictionary = {
 		welcome: "Cześć, {{name}}!",
 	},
 
+	// Hooks
+	hooks: {
+		title: "Hooki",
+		description:
+			"Automatyzuj swój stream, łącząc zdarzenia z akcjami. Gdy coś się wydarzy, automatycznie uruchom reakcję.",
+		howItWorks: "Jak to działa",
+		step1Title: "Zdarzenie następuje",
+		step1Description: "Coś dzieje się na Twoim streamie",
+		step2Title: "Hook przetwarza",
+		step2Description: "Twoja reguła sprawdza warunki",
+		step3Title: "Akcja się uruchamia",
+		step3Description: "Automatyczna reakcja zostaje wykonana",
+		triggers: "Wyzwalacze",
+		triggersDescription: "Zdarzenia, które mogą uruchomić hook",
+		triggerDonation: "Otrzymano donację",
+		triggerFollow: "Nowy obserwujący",
+		triggerRaid: "Przychodzący raid",
+		triggerSubscription: "Nowa subskrypcja",
+		triggerStreamStart: "Stream rozpoczęty",
+		triggerStreamEnd: "Stream zakończony",
+		triggerChatMessage: "Wiadomość na czacie",
+		actions: "Akcje",
+		actionsDescription: "Reakcje, które hooki mogą uruchomić",
+		actionDiscordMessage: "Wyślij wiadomość na Discord",
+		actionChatMessage: "Wyślij wiadomość na czacie",
+		actionWebhook: "Wywołaj webhook",
+		actionObsScene: "Przełącz scenę OBS",
+		actionPlaySound: "Odtwórz alert dźwiękowy",
+		actionEmail: "Wyślij powiadomienie e-mail",
+		comingSoonBadge: "Wkrótce",
+		comingSoonDescription:
+			"Hooki są aktywnie rozwijane. Wkrótce będziesz mógł tworzyć własne automatyzacje.",
+		createHook: "Utwórz hook",
+	},
+
 	// Dashboard sidebar sections
 	sidebar: {
 		overview: "Przegląd",
@@ -94,6 +129,102 @@ export const dict: Dictionary = {
 		every: "Co",
 		streamPanelDescription:
 			"Timery automatycznie wysyłają wiadomości podczas streama",
+	},
+
+	// Chat Bot
+	chatbot: {
+		description: "Skonfiguruj automatycznego bota czatu dla streamów",
+		enabled: "Chat Bot włączony",
+		enabledDescription:
+			"Główny przełącznik — gdy wyłączony, bot nic nie robi podczas streamów",
+		greeting: "Powitanie na streamie",
+		greetingDescription:
+			"Automatycznie wyślij wiadomość powitalną po rozpoczęciu streama",
+		greetingMessage: "Wiadomość powitalna",
+		greetingMessagePlaceholder: "Cześć wszystkim! Witajcie na streamie!",
+		commandPrefix: "Prefiks komend",
+		commandPrefixDescription: "Znak(i) poprzedzające komendy bota (np. /hi)",
+		experimental: "Eksperymentalne",
+		aiChat: "Udział AI w czacie",
+		aiChatDescription:
+			"Pozwól botowi uczestniczyć w rozmowach na czacie za pomocą AI",
+		aiPersonality: "Osobowość bota",
+		aiPersonalityDescription:
+			"Opisz, jak bot powinien się zachowywać i rozmawiać na czacie",
+		aiPersonalityPlaceholder:
+			"Przyjazny i zabawny bot, który utrzymuje pozytywną energię, żartuje i naturalnie rozmawia z widzami...",
+		autoShoutout: "Auto shoutout",
+		autoShoutoutDescription:
+			"Automatycznie podziękuj raiderom, gdy zrobią raid na Twój kanał",
+		linkProtection: "Ochrona przed linkami",
+		linkProtectionDescription:
+			"Usuwaj wiadomości z linkami od osób niebędących moderatorami",
+		slowModeOnRaid: "Tryb wolny przy raidzie",
+		slowModeOnRaidDescription: "Tymczasowo włącz tryb wolny po wykryciu raidu",
+		commands: "Komendy",
+		commandsDescription:
+			"Wbudowane komendy, których widzowie mogą używać na czacie",
+		commandHiDescription: "Bot odpowiada losowym powitaniem",
+		commandUptimeDescription: "Pokazuje jak długo trwa stream",
+		commandFollowageDescription: "Pokazuje jak długo widz obserwuje kanał",
+		commandSocialsDescription: "Wyświetla linki do social mediów streamera",
+		commandLurkDescription: "Ogłasza, że widz lurkuje",
+		commandDiceDescription: "Losuje liczbę od 1 do 6",
+		commandQuoteDescription: "Wyświetla losowy zapisany cytat",
+		commandCommandsDescription: "Wyświetla listę dostępnych komend",
+		saving: "Zapisywanie...",
+		saved: "Ustawienia zapisane",
+		comingSoon: "Wkrótce",
+	},
+
+	// Clips
+	clips: {
+		title: "Klipy ze streama",
+		description:
+			"Zapisuj, zarządzaj i udostępniaj najlepsze momenty ze streamów",
+		// Tabs
+		viewerClips: "Klipy widzów",
+		aiClips: "Klipy AI",
+		proOnly: "Pro",
+		// Viewer clips
+		viewerClipsDescription:
+			"Klipy stworzone przez widzów na połączonych platformach",
+		noViewerClips: "Brak klipów od widzów",
+		noViewerClipsHint:
+			"Gdy widzowie stworzą klipy z Twojego streama, pojawią się tutaj",
+		// AI clips
+		aiClipsDescription: "Automatycznie generowane momenty z Twoich streamów",
+		noAiClips: "Brak klipów AI",
+		noAiClipsHint: "AI automatycznie stworzy klipy z najlepszych momentów",
+		aiClipsProTitle: "Klipy AI to funkcja Pro",
+		aiClipsProDescription:
+			"Ulepsz do Pro, aby odblokować automatyczne generowanie klipów przez AI z najlepszych momentów streama.",
+		upgradeNow: "Ulepsz do Pro",
+		// Common
+		createClip: "Utwórz klip",
+		totalClips: "Wszystkie klipy",
+		totalViews: "Łączne wyświetlenia",
+		avgDuration: "Śr. czas trwania",
+		searchPlaceholder: "Szukaj klipów...",
+		views: "wyświetleń",
+		share: "Udostępnij",
+		empty: "Brak klipów",
+		emptyHint: "Klipy z Twoich streamów pojawią się tutaj",
+		comingSoonBadge: "Wkrótce",
+		comingSoonDescription:
+			"Tworzenie i zarządzanie klipami jest w trakcie rozwoju. Wkrótce będziesz mógł zapisywać i udostępniać najlepsze momenty.",
+		// Detail page
+		backToClips: "Powrót do klipów",
+		clipNotFound: "Nie znaleziono klipu",
+		likes: "polubień",
+		duration: "Czas trwania",
+		created: "Utworzono",
+		aiScore: "Ocena AI",
+		createdBy: "Utworzony przez",
+		createdOn: "Data utworzenia",
+		platform: "Platforma",
+		download: "Pobierz",
+		delete: "Usuń",
 	},
 
 	// Dashboard
@@ -264,6 +395,13 @@ export const dict: Dictionary = {
 			events: "Zdarzenia",
 			actions: "Akcje",
 		},
+		// Control settings
+		controlSettings: {
+			title: "Ustawienia",
+			showAvatars: "Pokaż awatary",
+			showAvatarsDescription:
+				"Wyświetlaj awatary użytkowników zamiast ikon platform",
+		},
 		// Actions panel
 		actions: {
 			title: "Akcje streama",
@@ -376,7 +514,28 @@ export const dict: Dictionary = {
 
 	// Viewers page
 	viewers: {
+		title: "Widzowie",
 		searchPlaceholder: "Szukaj po nazwie wyświetlanej...",
+		platform: "Platforma",
+		allPlatforms: "Wszystkie platformy",
+		search: "Szukaj",
+		activeFilters: "Aktywne filtry:",
+		clearAll: "Wyczyść wszystko",
+		noViewers: "Nie znaleziono widzów",
+		adjustFilters: "Spróbuj zmienić filtry lub kryteria wyszukiwania",
+		viewersWillAppear: "Widzowie pojawią się tutaj, gdy napiszą na czacie",
+	},
+
+	// Scenes page
+	scenes: {
+		layoutSaved: "Układ zapisany",
+		saveLayout: "Zapisz układ",
+		clearAll: "Wyczyść wszystko",
+		fullscreen: "Pełny ekran",
+		exitFullscreen: "Zamknij pełny ekran",
+		widgetCount: "Widgety: {{count}}",
+		widgetPalette: "Paleta widgetów",
+		clickToAdd: "Kliknij widget, aby dodać go na płótno",
 	},
 
 	// Analytics page
@@ -441,6 +600,14 @@ export const dict: Dictionary = {
 		// Plan
 		getStarted: "Zacznij z podstawowymi funkcjami",
 		upgradeToPro: "Ulepsz do Pro",
+		redirecting: "Przekierowywanie...",
+		paymentSuccess: "Płatność zakończona! Twoja subskrypcja Pro jest aktywna.",
+		paymentPending:
+			"Płatność jest przetwarzana. Twój dostęp Pro zostanie aktywowany wkrótce.",
+		monthlyPlan: "Miesięcznie",
+		monthlyPrice: "$24.99/miesiąc",
+		yearlyPlan: "Rocznie",
+		yearlyPrice: "$239.99/rok — 20% taniej",
 		// Donation Page
 		donationPage: "Strona donacji",
 		publicDonationUrl: "Publiczny URL donacji",
@@ -537,6 +704,7 @@ export const dict: Dictionary = {
 		signInWithEmail: "Zaloguj przez e-mail",
 		signUpWithEmail: "Zarejestruj przez e-mail",
 		noAccount: "Nie masz konta?",
+		haveAccount: "Masz już konto?",
 		createOne: "Utwórz je",
 		agreeToTerms: "Logując się, akceptujesz nasz",
 		termsOfService: "Regulamin",
@@ -563,6 +731,9 @@ export const dict: Dictionary = {
 		notFound: "Nie znaleziono strony",
 		unauthorized: "Nie masz dostępu do tej strony",
 		networkError: "Błąd połączenia. Sprawdź internet.",
+		invalidUsername: "Nieprawidłowa nazwa użytkownika",
+		userNotFound: "Nie znaleziono użytkownika",
+		failedToLoadUser: "Nie udało się załadować użytkownika",
 	},
 
 	// 404 Page
@@ -637,6 +808,32 @@ export const dict: Dictionary = {
 		aiPoweredGrowth: "Wzrost napędzany AI",
 		aiPoweredGrowthDescription:
 			"Inteligentne rekomendacje do optymalizacji Twojej strategii treści",
+		pricing: "Cennik",
+		pricingTitle1: "Prosty, przejrzysty",
+		pricingTitle2: "Cennik",
+		pricingSubtitle:
+			"Zacznij za darmo i przejdź na wyższy plan, gdy potrzebujesz więcej. Bez ukrytych opłat.",
+		monthly: "Miesięcznie",
+		yearly: "Rocznie",
+		saveTwoMonths: "Oszczędź 2+ miesiące",
+		mostPopular: "Najpopularniejszy",
+		perMonth: "miesiąc",
+		perYear: "rok",
+		freePlan: "Free",
+		freePrice: "0 zł",
+		freePlanFeature1: "1 platforma streamingowa",
+		freePlanFeature2: "Podstawowe zarządzanie czatem",
+		freePlanFeature3: "Standardowe statystyki",
+		freePlanFeature4: "Wsparcie społeczności",
+		proPlan: "Pro",
+		proPlanFeature1: "Nieograniczona liczba platform",
+		proPlanFeature2: "Jednolity czat ze wszystkich platform",
+		proPlanFeature3: "Zaawansowane statystyki i analizy",
+		proPlanFeature4: "Moderacja napędzana AI",
+		proPlanFeature5: "Własne widgety streamowe",
+		proPlanFeature6: "Priorytetowe wsparcie",
+		getStartedFree: "Zacznij za darmo",
+		upgradeNow: "Przejdź na Pro",
 		ctaTitle: "Gotowy, by podnieść swój stream na wyższy poziom?",
 		ctaSubtitle:
 			"Dołącz do streamerów, którzy już rozwijają widownię dzięki Streampai",
@@ -714,7 +911,7 @@ export const dict: Dictionary = {
 	// Terms page
 	terms: {
 		title: "Regulamin",
-		lastUpdated: "Ostatnia aktualizacja: grudzień 2024",
+		lastUpdated: "Ostatnia aktualizacja: luty 2026",
 		section1Title: "1. Akceptacja warunków",
 		section1Text:
 			"Korzystając z usług Streampai, zgadzasz się przestrzegać niniejszego Regulaminu. Jeśli nie akceptujesz tych warunków, nie korzystaj z naszych usług.",
@@ -741,14 +938,17 @@ export const dict: Dictionary = {
 		section7Title: "7. Ograniczenie odpowiedzialności",
 		section7Text:
 			"Streampai nie ponosi odpowiedzialności za jakiekolwiek pośrednie, przypadkowe, specjalne, wtórne lub karne szkody wynikające z korzystania lub niemożności korzystania z usługi.",
-		section8Title: "8. Zmiany warunków",
+		section8Title: "8. Zwroty i anulowanie",
 		section8Text:
-			"Zastrzegamy sobie prawo do zmiany tych warunków w dowolnym momencie. O istotnych zmianach powiadomimy e-mailem lub przez usługę. Dalsze korzystanie z usługi po zmianach oznacza ich akceptację.",
-		section9Title: "9. Wypowiedzenie",
+			"Możesz poprosić o pełny zwrot w ciągu 14 dni od pierwszego zakupu płatnej subskrypcji. Aby poprosić o zwrot, skontaktuj się z naszym zespołem wsparcia. Po upływie 14 dni zwroty nie są dostępne, ale możesz anulować subskrypcję w dowolnym momencie. Po anulowaniu zachowasz dostęp do płatnych funkcji do końca bieżącego okresu rozliczeniowego. Proporcjonalne zwroty za niewykorzystany czas nie są udzielane.",
+		section9Title: "9. Zmiany warunków",
 		section9Text:
-			"Możemy wypowiedzieć lub zawiesić Twoje konto i dostęp do usługi natychmiast, bez wcześniejszego powiadomienia, za zachowanie naruszające niniejszy Regulamin lub szkodliwe dla innych użytkowników, nas lub osób trzecich.",
-		section10Title: "10. Kontakt",
+			"Zastrzegamy sobie prawo do zmiany tych warunków w dowolnym momencie. O istotnych zmianach powiadomimy e-mailem lub przez usługę. Dalsze korzystanie z usługi po zmianach oznacza ich akceptację.",
+		section10Title: "10. Wypowiedzenie",
 		section10Text:
+			"Możemy wypowiedzieć lub zawiesić Twoje konto i dostęp do usługi natychmiast, bez wcześniejszego powiadomienia, za zachowanie naruszające niniejszy Regulamin lub szkodliwe dla innych użytkowników, nas lub osób trzecich.",
+		section11Title: "11. Kontakt",
+		section11Text:
 			"Jeśli masz pytania dotyczące niniejszego Regulaminu, prosimy o",
 		contactUs: "kontakt",
 	},

@@ -18,6 +18,8 @@ defmodule Streampai.Accounts.UserTest do
         })
         |> Ash.create()
 
+      admin_user = Ash.load!(admin_user, [:role])
+
       {:ok, regular_user} =
         User
         |> Ash.Changeset.for_create(:register_with_password, %{
@@ -26,6 +28,8 @@ defmodule Streampai.Accounts.UserTest do
           password_confirmation: "password123"
         })
         |> Ash.create()
+
+      regular_user = Ash.load!(regular_user, [:role])
 
       %{admin_user: admin_user, regular_user: regular_user}
     end
@@ -96,6 +100,7 @@ defmodule Streampai.Accounts.UserTest do
       }
 
       {:ok, user} = User.register_with_password(user_params)
+      user = Ash.load!(user, [:role])
 
       {:ok, _grant} =
         Streampai.Accounts.UserPremiumGrant.create_grant(
@@ -129,7 +134,7 @@ defmodule Streampai.Accounts.UserTest do
       }
 
       {:ok, user} = User.register_with_password(user_params)
-      user = Ash.load!(user, [:connected_platforms])
+      user = Ash.load!(user, [:role, :connected_platforms])
 
       initial_count = user.connected_platforms
       auto_assert 0 <- initial_count

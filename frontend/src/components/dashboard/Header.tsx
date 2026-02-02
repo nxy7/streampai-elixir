@@ -1,10 +1,9 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { type Accessor, Show } from "solid-js";
-import { Breadcrumbs, Skeleton } from "~/design-system";
+import { Breadcrumbs, Skeleton, ThemeToggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 import type { UserPreferences } from "~/lib/electric";
-import { useTheme } from "~/lib/theme";
 import NotificationBell from "../NotificationBell";
 import { MenuIcon } from "./navConfig";
 
@@ -56,7 +55,7 @@ export default function Header(props: HeaderProps) {
 				</Show>
 
 				<div class="flex items-center space-x-4">
-					<ThemeToggleButton />
+					<ThemeToggle />
 					<NotificationBell />
 					<Show when={props.user}>
 						{(user) => <UserSection prefs={props.prefs} user={user()} />}
@@ -64,53 +63,6 @@ export default function Header(props: HeaderProps) {
 				</div>
 			</div>
 		</header>
-	);
-}
-
-function ThemeToggleButton() {
-	const { theme, toggleTheme } = useTheme();
-	const { t } = useTranslation();
-
-	return (
-		<button
-			aria-label={t("header.toggleTheme")}
-			class="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-			onClick={(e) => toggleTheme(e)}
-			title={t("header.toggleTheme")}
-			type="button">
-			<Show
-				fallback={
-					<svg
-						aria-hidden="true"
-						class="h-5 w-5"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						viewBox="0 0 24 24">
-						<path
-							d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-				}
-				when={theme() === "dark"}>
-				<svg
-					aria-hidden="true"
-					class="h-5 w-5"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					viewBox="0 0 24 24">
-					<circle cx="12" cy="12" r="5" />
-					<path
-						d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-			</Show>
-		</button>
 	);
 }
 
@@ -127,10 +79,10 @@ function UserSection(props: UserSectionProps) {
 			fallback={<UserSectionSkeleton />}
 			when={!props.prefs.isLoading() || props.prefs.data()}>
 			<div class="flex items-center space-x-3">
-				<A
+				<Link
 					class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary-light transition-colors hover:bg-primary"
-					href="/dashboard/settings"
-					title={t("dashboard.goToSettings")}>
+					title={t("dashboard.goToSettings")}
+					to="/dashboard/settings">
 					<Show
 						fallback={
 							<span class="font-medium text-sm text-white">
@@ -146,7 +98,7 @@ function UserSection(props: UserSectionProps) {
 							src={props.prefs.data()?.avatar_url ?? ""}
 						/>
 					</Show>
-				</A>
+				</Link>
 				<div class="hidden md:block">
 					<p class="font-medium text-neutral-900 text-sm">
 						{props.prefs.data()?.name || props.user.email || ""}

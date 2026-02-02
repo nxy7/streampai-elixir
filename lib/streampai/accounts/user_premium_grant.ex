@@ -22,6 +22,10 @@ defmodule Streampai.Accounts.UserPremiumGrant do
     define :create_grant,
       action: :create_grant,
       args: [:user_id, :granted_by_user_id, :expires_at, :granted_at, :grant_reason]
+
+    define :create_paddle_grant,
+      action: :create_paddle_grant,
+      args: [:user_id, :paddle_subscription_id, :expires_at, :metadata]
   end
 
   actions do
@@ -63,6 +67,24 @@ defmodule Streampai.Accounts.UserPremiumGrant do
         :grant_reason,
         :metadata,
         :type
+      ]
+    end
+
+    create :create_paddle_grant do
+      accept [:user_id, :paddle_subscription_id, :expires_at, :metadata]
+
+      change set_attribute(:type, :purchase)
+      change set_attribute(:granted_at, &DateTime.utc_now/0)
+      change set_attribute(:granted_by_user_id, "paddle")
+      change set_attribute(:grant_reason, "Paddle subscription")
+
+      upsert? true
+      upsert_identity :unique_paddle_subscription
+
+      upsert_fields [
+        :expires_at,
+        :granted_at,
+        :metadata
       ]
     end
 
@@ -108,6 +130,10 @@ defmodule Streampai.Accounts.UserPremiumGrant do
       allow_nil? true
     end
 
+    attribute :paddle_subscription_id, :string do
+      allow_nil? true
+    end
+
     attribute :granted_by_user_id, :string do
       allow_nil? false
     end
@@ -137,5 +163,6 @@ defmodule Streampai.Accounts.UserPremiumGrant do
 
   identities do
     identity :unique_stripe_subscription, [:stripe_subscription_id]
+    identity :unique_paddle_subscription, [:paddle_subscription_id]
   end
 end

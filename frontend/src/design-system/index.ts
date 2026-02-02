@@ -23,8 +23,6 @@ export {
 } from "./Card";
 export {
 	type InputProps,
-	Select,
-	type SelectProps,
 	Textarea,
 	type TextareaProps,
 	default as Input,
@@ -35,6 +33,11 @@ export {
 	type ProgressBarVariant,
 	default as ProgressBar,
 } from "./ProgressBar";
+export {
+	type SelectOption,
+	type SelectProps,
+	default as Select,
+} from "./Select";
 export {
 	SkeletonCard,
 	type SkeletonCardProps,
@@ -64,3 +67,13 @@ export {
 	type StatSize,
 	default as Stat,
 } from "./Stat";
+export {
+	type TextHighlightProps,
+	default as TextHighlight,
+} from "./TextHighlight";
+export { default as ThemeToggle } from "./ThemeToggle";
+export {
+	type ToggleProps,
+	type ToggleSize,
+	default as Toggle,
+} from "./Toggle";

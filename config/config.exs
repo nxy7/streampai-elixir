@@ -51,8 +51,7 @@ config :ash_typescript,
 
 config :ex_cldr, default_backend: Streampai.Cldr
 
-config :logger, :console,
-  level: :info,
+config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [
     # Request tracking
@@ -61,12 +60,17 @@ config :logger, :console,
     :user_id,
     :path,
     :duration,
+    :method,
+    :remote_ip,
     # Stream management
     :livestream_id,
     :stream_id,
     :component,
     :chat_id,
     :input_status,
+    :alert_id,
+    :stream_event_id,
+    :display_time,
     # API response handling
     :status,
     :body,
@@ -90,6 +94,9 @@ config :logger, :console,
     # Donation processing
     :donor_name,
     :amount,
+    # Email/job processing
+    :type,
+    :opts,
     # File operations
     :size
   ]

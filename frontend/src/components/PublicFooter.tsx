@@ -1,4 +1,5 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
+import Logo from "~/components/Logo";
 import { useTranslation } from "~/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -16,44 +17,36 @@ export default function PublicFooter(props: PublicFooterProps) {
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="flex flex-col gap-6 md:flex-row md:gap-8">
 					{/* Logo - spans full height on desktop */}
-					<A
-						class="flex shrink-0 items-center justify-center space-x-2 md:justify-start"
-						href="/">
-						<img
-							alt="Streampai Logo"
-							class="hidden h-8 w-8 dark:block"
-							src="/images/logo-white.png"
-						/>
-						<img
-							alt="Streampai Logo"
-							class="block h-8 w-8 dark:hidden"
-							src="/images/logo-black.png"
-						/>
-						<span class="font-bold text-lg text-neutral-900">Streampai</span>
-					</A>
+					<Link
+						class="flex shrink-0 items-center justify-center md:justify-start"
+						to="/">
+						<Logo showText size="md" />
+					</Link>
 
 					{/* Right section - nav links on top, copyright and language picker at bottom */}
 					<div class="flex flex-1 flex-col gap-4">
 						{/* Navigation links */}
 						<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-neutral-600 text-sm md:justify-end">
-							<A
+							<Link
 								class="transition-colors hover:text-neutral-900"
-								href="/privacy">
+								to="/privacy">
 								{t("footer.privacy")}
-							</A>
-							<A class="transition-colors hover:text-neutral-900" href="/terms">
+							</Link>
+							<Link
+								class="transition-colors hover:text-neutral-900"
+								to="/terms">
 								{t("footer.terms")}
-							</A>
-							<A
+							</Link>
+							<Link
 								class="transition-colors hover:text-neutral-900"
-								href="/support">
+								to="/support">
 								{t("footer.support")}
-							</A>
-							<A
+							</Link>
+							<Link
 								class="transition-colors hover:text-neutral-900"
-								href="/contact">
+								to="/contact">
 								{t("footer.contact")}
-							</A>
+							</Link>
 						</div>
 
 						{/* Bottom row - copyright and language picker */}

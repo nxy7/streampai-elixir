@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { For, Show } from "solid-js";
 import Badge from "~/design-system/Badge";
 import Card from "~/design-system/Card";
@@ -35,11 +35,11 @@ export default function RecentChat(props: RecentChatProps) {
 		<Card padding="none">
 			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<h3 class={text.h3}>{t("dashboard.recentChat")}</h3>
-				<A
+				<Link
 					class="text-primary text-sm hover:text-primary-hover"
-					href="/dashboard/chat-history">
+					to="/dashboard/chat-history">
 					{t("dashboard.viewAll")}
-				</A>
+				</Link>
 			</div>
 			<div class="divide-y divide-neutral-100">
 				<Show
@@ -66,10 +66,10 @@ export default function RecentChat(props: RecentChatProps) {
 							</p>
 						</div>
 					}
-					when={props.messages.length > 0}>
+					when={props.messages?.length > 0}>
 					<For each={props.messages}>
 						{(msg) => (
-							<div class="px-6 py-3 hover:bg-neutral-50">
+							<div class="px-6 py-3">
 								<div class="flex items-start gap-3">
 									<Show
 										fallback={
@@ -100,11 +100,12 @@ export default function RecentChat(props: RecentChatProps) {
 													msg.data.sender_channel_id &&
 													!msg.data.is_sent_by_streamer
 												}>
-												<A
+												<Link
 													class="font-medium text-neutral-900 text-sm hover:text-primary hover:underline"
-													href={`/dashboard/viewers/${msg.data.sender_channel_id}`}>
+													params={{ id: msg.data.sender_channel_id as string }}
+													to="/dashboard/viewers/$id">
 													{msg.data.username}
-												</A>
+												</Link>
 											</Show>
 											<Show when={msg.data.is_moderator}>
 												<Badge variant="info">Mod</Badge>
