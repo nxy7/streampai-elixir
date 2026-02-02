@@ -10,6 +10,7 @@ import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { type AdminUser, getAdminUsersCollection } from "~/lib/electric";
 import { startImpersonation } from "~/lib/impersonation";
 import { SchemaForm } from "~/lib/schema-form/SchemaForm";
@@ -54,6 +55,11 @@ export default function AdminUsers() {
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { users: onlineUsers } = usePresence();
 	const { t } = useTranslation();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.admin"), href: "/dashboard/admin/users" },
+		{ label: t("dashboardNav.users") },
+	]);
 
 	// Check if user is admin
 	const isAdmin = createMemo(() => currentUser()?.role === "admin");
@@ -246,11 +252,14 @@ export default function AdminUsers() {
 									<h3 class={text.h3}>All Users</h3>
 									<p class={text.muted}>Manage user accounts and PRO access</p>
 								</div>
-								<div class="flex items-center space-x-2 text-sm">
-									<div class="h-2 w-2 rounded-full bg-green-500" />
-									<span class="text-neutral-600">
-										{onlineUsers().length} online
-									</span>
+								<div class="flex items-center space-x-4 text-sm">
+									<div class="flex items-center space-x-2">
+										<div class="h-2 w-2 rounded-full bg-green-500" />
+										<span class="text-neutral-600">
+											{onlineUsers().length} online
+										</span>
+									</div>
+									<span class="text-neutral-600">{users().length} total</span>
 								</div>
 							</div>
 
@@ -278,7 +287,7 @@ export default function AdminUsers() {
 									<tbody class="divide-y divide-neutral-200 bg-surface">
 										<For each={users()}>
 											{(user: AdminUser) => (
-												<tr class="bg-surface-inset hover:bg-surface">
+												<tr class="bg-surface-inset transition-colors hover:bg-surface">
 													<td class="whitespace-nowrap px-6 py-4">
 														<div class="flex items-center">
 															<div class="relative">

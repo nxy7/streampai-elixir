@@ -3,7 +3,9 @@ import { A } from "@solidjs/router";
 import { For, Show, createSignal } from "solid-js";
 import Badge from "~/design-system/Badge";
 import Card from "~/design-system/Card";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getWidgetCatalog, getWidgetCategories } from "~/lib/widget-registry";
 
 const widgets = getWidgetCatalog();
@@ -13,8 +15,14 @@ const categories = [
 ];
 
 export default function Widgets() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const [selectedCategory, setSelectedCategory] = createSignal("all");
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.widgets"), href: "/dashboard/widgets" },
+		{ label: t("dashboardNav.widgets") },
+	]);
 
 	const filteredWidgets = () => {
 		if (selectedCategory() === "all") return widgets;
@@ -74,9 +82,7 @@ export default function Widgets() {
 									{(widget) => (
 										<div
 											class={`flex items-center gap-4 px-4 py-3 ${
-												widget.status === "coming-soon"
-													? "opacity-50"
-													: "hover:bg-neutral-50"
+												widget.status === "coming-soon" ? "opacity-50" : ""
 											}`}>
 											<span class="text-2xl">{widget.icon}</span>
 											<div class="min-w-0 flex-1">
@@ -141,7 +147,7 @@ export default function Widgets() {
 							<Card padding="none">
 								<div class="divide-y divide-neutral-100">
 									<A
-										class="flex items-center gap-4 px-4 py-3 hover:bg-neutral-50"
+										class="flex items-center gap-4 px-4 py-3"
 										href="/dashboard/widgets/timer">
 										<span class="text-2xl">⏱️</span>
 										<div class="min-w-0 flex-1">

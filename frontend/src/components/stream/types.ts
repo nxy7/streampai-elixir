@@ -112,6 +112,7 @@ export interface ActivityItem {
 	viewerPlatformId?: string;
 	// Sent message tracking
 	isSentByStreamer?: boolean;
+	avatarUrl?: string;
 	deliveryStatus?: Record<string, string>;
 	// Alertbox display tracking
 	wasDisplayed?: boolean;
@@ -166,7 +167,12 @@ export type LiveViewMode =
 	| "poll"
 	| "giveaway"
 	| "timers"
-	| "settings";
+	| "settings"
+	| "controlSettings";
+
+export interface StreamControlsSettings {
+	showAvatars: boolean;
+}
 
 // Stream Timer Item Interface
 export interface StreamTimer {

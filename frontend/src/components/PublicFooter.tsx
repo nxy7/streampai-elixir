@@ -1,4 +1,5 @@
 import { A } from "@solidjs/router";
+import Logo from "~/components/Logo";
 import { useTranslation } from "~/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -17,19 +18,9 @@ export default function PublicFooter(props: PublicFooterProps) {
 				<div class="flex flex-col gap-6 md:flex-row md:gap-8">
 					{/* Logo - spans full height on desktop */}
 					<A
-						class="flex shrink-0 items-center justify-center space-x-2 md:justify-start"
+						class="flex shrink-0 items-center justify-center md:justify-start"
 						href="/">
-						<img
-							alt="Streampai Logo"
-							class="hidden h-8 w-8 dark:block"
-							src="/images/logo-white.png"
-						/>
-						<img
-							alt="Streampai Logo"
-							class="block h-8 w-8 dark:hidden"
-							src="/images/logo-black.png"
-						/>
-						<span class="font-bold text-lg text-neutral-900">Streampai</span>
+						<Logo showText size="md" />
 					</A>
 
 					{/* Right section - nav links on top, copyright and language picker at bottom */}

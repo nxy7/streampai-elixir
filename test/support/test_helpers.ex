@@ -473,6 +473,8 @@ defmodule Streampai.TestHelpers do
       |> Ash.Changeset.for_create(:register_with_password, user_attrs)
       |> Ash.create()
 
+    user = Ash.load!(user, [:role])
+
     if tier in [:pro, :enterprise] do
       duration_days = if tier == :pro, do: 30, else: 365
       grant_type = "test_#{tier}_grant"

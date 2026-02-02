@@ -4,6 +4,7 @@ import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
 	type ActorState,
+	type ChatBotConfigRow,
 	type CurrentStreamData,
 	type HighlightedMessage,
 	type Livestream,
@@ -18,6 +19,7 @@ import {
 	type Viewer,
 	type WidgetConfig,
 	type WidgetType,
+	createChatBotConfigsCollection,
 	createCurrentStreamDataCollection,
 	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
@@ -187,6 +189,12 @@ export function useDashboardStats(userId: () => string | undefined) {
 	const streamsQuery = useUserLivestreams(userId);
 
 	return {
+		isLoading: createMemo(
+			() =>
+				eventsQuery.isLoading() ||
+				viewersQuery.isLoading() ||
+				streamsQuery.isLoading(),
+		),
 		totalMessages: createMemo(() => {
 			return eventsQuery.data().filter((e) => e.type === "chat_message").length;
 		}),
@@ -376,6 +384,23 @@ export const useStreamTimers = createUserScopedHook(
 	createStreamTimersCollection,
 );
 
+export function useChatBotConfig(userId: () => string | undefined) {
+	const getCollection = createCollectionCache(createChatBotConfigsCollection);
+	const query = useOptionalLiveQuery(() => {
+		const currentId = userId();
+		return currentId ? getCollection(currentId) : undefined;
+	});
+
+	return {
+		...query,
+		data: createMemo(() => {
+			if (!userId()) return null;
+			const configs = (query.data ?? []) as ChatBotConfigRow[];
+			return configs.length > 0 ? configs[0] : null;
+		}),
+	};
+}
+
 export function useHighlightedMessage(userId: () => string | undefined) {
 	const getHighlightedMessagesCollection = createCollectionCache(
 		createHighlightedMessagesCollection,
@@ -470,6 +495,7 @@ export function useTicketMessages(ticketId: () => string | undefined) {
 
 export type {
 	ActorState,
+	ChatBotConfigRow,
 	CurrentStreamData,
 	StreamEvent,
 	HighlightedMessage,

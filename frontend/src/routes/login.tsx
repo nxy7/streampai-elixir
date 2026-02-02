@@ -1,6 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
+import Logo from "~/components/Logo";
+import { Button } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH, getApiBase } from "~/lib/constants";
@@ -78,6 +80,7 @@ export default function LoginPage() {
 	const [error, setError] = createSignal<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
 	const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
+	const [honeypot, setHoneypot] = createSignal("");
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -93,6 +96,7 @@ export default function LoginPage() {
 				email: email(),
 				password: password(),
 				...(isRegister && { password_confirmation: passwordConfirmation() }),
+				...(isRegister && honeypot() && { website: honeypot() }),
 			};
 
 			const response = await fetch(endpoint, {
@@ -158,15 +162,8 @@ export default function LoginPage() {
 					when={!user()}>
 					<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
 						<div class="mb-8 text-center">
-							<A class="mb-6 inline-flex items-center space-x-2" href="/">
-								<img
-									alt="Streampai Logo"
-									class="h-10 w-10"
-									src="/images/logo-white.png"
-								/>
-								<span class="font-bold text-2xl text-neutral-900">
-									Streampai
-								</span>
+							<A class="mb-6 inline-flex justify-center" href="/">
+								<Logo showText size="lg" />
 							</A>
 							<h1 class="mb-2 font-bold text-3xl text-neutral-900">
 								{t("auth.welcomeBack")}
@@ -176,21 +173,25 @@ export default function LoginPage() {
 
 						{/* OAuth Buttons */}
 						<div class="space-y-4">
-							<a
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 font-semibold text-neutral-800 transition-all hover:bg-neutral-100"
+							<Button
+								as="a"
+								fullWidth
 								href={`${getApiBase()}${API_PATH}/auth/user/google`}
-								rel="external">
+								size="lg"
+								variant="secondary">
 								<GoogleIcon />
 								{t("auth.continueWithGoogle")}
-							</a>
+							</Button>
 
-							<a
-								class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#9146FF] px-4 py-3 font-semibold text-white transition-all hover:bg-[#7c3aed]"
+							<Button
+								as="a"
+								fullWidth
 								href={`${getApiBase()}${API_PATH}/auth/user/twitch`}
-								rel="external">
+								size="lg"
+								variant="secondary">
 								<TwitchIcon />
 								{t("auth.continueWithTwitch")}
-							</a>
+							</Button>
 						</div>
 
 						<div class="my-8 flex items-center gap-4 text-neutral-500 text-sm">
@@ -215,6 +216,22 @@ export default function LoginPage() {
 
 						{/* Email/Password Form */}
 						<form class="space-y-4" onSubmit={handleSubmit}>
+							{/* Honeypot field - hidden from real users, bots will fill it */}
+							<div
+								aria-hidden="true"
+								class="absolute left-[-9999px]"
+								tabIndex={-1}>
+								<label for="website">Website</label>
+								<input
+									autocomplete="off"
+									id="website"
+									name="website"
+									onChange={(e) => setHoneypot(e.currentTarget.value)}
+									tabIndex={-1}
+									type="text"
+									value={honeypot()}
+								/>
+							</div>
 							<div>
 								<label
 									class="mb-1 block font-medium text-neutral-900 text-sm"
@@ -275,27 +292,43 @@ export default function LoginPage() {
 								</div>
 							</Show>
 
-							<button
-								class="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
+							<Button
 								disabled={isSubmitting()}
-								type="submit">
+								fullWidth
+								size="lg"
+								type="submit"
+								variant="gradient">
 								<EmailIcon />
 								{isSubmitting()
 									? t("common.pleaseWait")
 									: mode() === "signin"
 										? t("auth.signInWithEmail")
 										: t("auth.signUpWithEmail")}
-							</button>
+							</Button>
 						</form>
 
 						<p class="mt-8 text-center text-neutral-600 text-sm">
-							{t("auth.noAccount")}{" "}
-							<a
-								class="text-primary-light hover:text-primary-200"
-								href={`${getApiBase()}${API_PATH}/auth/register`}
-								rel="external">
-								{t("auth.createOne")}
-							</a>
+							<Show
+								fallback={
+									<>
+										{t("auth.noAccount")}{" "}
+										<button
+											class="text-primary-light hover:text-primary-200"
+											onClick={() => setMode("register")}
+											type="button">
+											{t("auth.createOne")}
+										</button>
+									</>
+								}
+								when={mode() === "register"}>
+								{t("auth.haveAccount")}{" "}
+								<button
+									class="text-primary-light hover:text-primary-200"
+									onClick={() => setMode("signin")}
+									type="button">
+									{t("auth.signIn")}
+								</button>
+							</Show>
 						</p>
 
 						<p class="mt-4 text-center text-neutral-400 text-xs">

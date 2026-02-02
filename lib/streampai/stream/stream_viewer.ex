@@ -12,6 +12,8 @@ defmodule Streampai.Stream.StreamViewer do
     data_layer: AshPostgres.DataLayer,
     extensions: [AshTypescript.Resource]
 
+  alias Streampai.Types.CoercibleBoolean
+
   require Ash.Query
 
   postgres do
@@ -127,7 +129,7 @@ defmodule Streampai.Stream.StreamViewer do
   end
 
   attributes do
-    attribute :viewer_id, :string do
+    attribute :viewer_id, Streampai.Types.CoercibleString do
       description "Reference to the global viewer"
       allow_nil? false
       primary_key? true
@@ -167,25 +169,25 @@ defmodule Streampai.Stream.StreamViewer do
       constraints max_length: 500
     end
 
-    attribute :is_verified, :boolean do
+    attribute :is_verified, CoercibleBoolean do
       description "Whether the viewer has a verified badge on the platform"
       default false
       public? true
     end
 
-    attribute :is_owner, :boolean do
+    attribute :is_owner, CoercibleBoolean do
       description "Whether the viewer is the channel owner"
       default false
       public? true
     end
 
-    attribute :is_moderator, :boolean do
+    attribute :is_moderator, CoercibleBoolean do
       description "Whether the viewer is a moderator"
       default false
       public? true
     end
 
-    attribute :is_patreon, :boolean do
+    attribute :is_patreon, CoercibleBoolean do
       description "Whether the viewer is a patron/subscriber"
       default false
       public? true

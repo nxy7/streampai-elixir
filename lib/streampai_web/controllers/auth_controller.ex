@@ -36,6 +36,8 @@ defmodule StreampaiWeb.AuthController do
   end
 
   def sign_out(conn, _params) do
+    frontend_url = Application.get_env(:streampai, :frontend_url, "http://localhost:3000")
+
     # Get the origin from referer header to redirect back to the frontend
     redirect_url =
       case get_req_header(conn, "referer") do
@@ -46,11 +48,11 @@ defmodule StreampaiWeb.AuthController do
               "#{scheme}://#{host}#{port_part}/"
 
             _ ->
-              "/"
+              frontend_url
           end
 
         [] ->
-          "/"
+          frontend_url
       end
 
     conn

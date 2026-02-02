@@ -10,6 +10,7 @@ defmodule Streampai.Twitch.ApiClient do
   """
 
   import Streampai.HTTP.ResponseHandler, only: [handle_http_response: 2]
+  import Streampai.MapUtils, only: [maybe_put: 3]
 
   require Logger
 
@@ -479,7 +480,4 @@ defmodule Streampai.Twitch.ApiClient do
   defp extract_first_ban({:ok, %{"data" => [ban | _]}}), do: {:ok, ban}
   defp extract_first_ban({:ok, %{"data" => []}}), do: {:error, :ban_not_created}
   defp extract_first_ban(error), do: error
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

@@ -3,8 +3,8 @@ defmodule Streampai.Pricing do
   Centralized pricing configuration for Streampai subscription plans.
   """
 
-  @monthly_price_usd 49.99
-  @yearly_price_usd Float.round(@monthly_price_usd * 10) - 0.01
+  @monthly_price_usd 24.99
+  @yearly_price_usd 299.99
 
   @doc """
   Returns the monthly subscription price in USD.

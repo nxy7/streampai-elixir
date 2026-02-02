@@ -81,18 +81,18 @@ defmodule Streampai.MixProject do
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.26"},
+      {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
       {:grpc, "~> 0.10"},
       {:protobuf, "~> 0.12"},
-      {:protobuf_generate, "~> 0.1.0"},
+      {:protobuf_generate, "~> 0.2.0"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
       {:hackney, "~> 1.18"},
       {:sweet_xml, "~> 0.7"},
       {:electric, "~> 1.0"},
-      {:phoenix_sync, "== 0.6.0"},
+      {:phoenix_sync, "~> 0.6.1"},
       # Discord bot integration for full bot functionality (join servers, list channels, send messages)
       # runtime: false prevents auto-start; we start it manually when DISCORD_BOT_TOKEN is configured
       {:nostrum, "~> 0.10", runtime: false}

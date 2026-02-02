@@ -17,6 +17,7 @@ import {
 	type Platform,
 	type PollCreationValues,
 	type StreamActionCallbacks,
+	type StreamControlsSettings,
 	type StreamTimer,
 	giveawayCreationMeta,
 	giveawayCreationSchema,
@@ -49,6 +50,11 @@ interface LiveStreamControlCenterProps extends StreamActionCallbacks {
 	allConnectedPlatforms?: Platform[];
 	platformStatuses?: Record<string, unknown>;
 	onTogglePlatform?: (platform: Platform, enabled: boolean) => void;
+	controlSettings?: StreamControlsSettings;
+	onControlSettingsChange?: (
+		field: keyof StreamControlsSettings,
+		value: boolean,
+	) => void;
 }
 
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
@@ -126,28 +132,63 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 	);
 
 	const viewModeToggle = () => (
-		<div class="flex rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
+		<div class="flex items-center gap-1">
+			<div class="flex rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
+				<button
+					class={`rounded-md px-3 py-1 text-xs transition-all ${
+						viewMode() === "events"
+							? "bg-surface font-medium text-neutral-900 shadow-sm"
+							: "text-neutral-500 hover:text-neutral-700"
+					}`}
+					data-testid="view-mode-events"
+					onClick={() => setViewMode("events")}
+					type="button">
+					{t("stream.viewMode.events")}
+				</button>
+				<button
+					class={`rounded-md px-3 py-1 text-xs transition-all ${
+						viewMode() === "actions"
+							? "bg-surface font-medium text-neutral-900 shadow-sm"
+							: "text-neutral-500 hover:text-neutral-700"
+					}`}
+					data-testid="view-mode-actions"
+					onClick={() => setViewMode("actions")}
+					type="button">
+					{t("stream.viewMode.actions")}
+				</button>
+			</div>
 			<button
-				class={`rounded-md px-3 py-1 text-xs transition-all ${
-					viewMode() === "events"
-						? "bg-surface font-medium text-neutral-900 shadow-sm"
-						: "text-neutral-500 hover:text-neutral-700"
+				class={`rounded-md p-1 transition-colors ${
+					viewMode() === "controlSettings"
+						? "bg-neutral-200 text-neutral-900"
+						: "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
 				}`}
-				data-testid="view-mode-events"
-				onClick={() => setViewMode("events")}
+				data-testid="view-mode-control-settings"
+				onClick={() =>
+					setViewMode(
+						viewMode() === "controlSettings" ? "events" : "controlSettings",
+					)
+				}
+				title={t("stream.controlSettings.title")}
 				type="button">
-				{t("stream.viewMode.events")}
-			</button>
-			<button
-				class={`rounded-md px-3 py-1 text-xs transition-all ${
-					viewMode() === "actions"
-						? "bg-surface font-medium text-neutral-900 shadow-sm"
-						: "text-neutral-500 hover:text-neutral-700"
-				}`}
-				data-testid="view-mode-actions"
-				onClick={() => setViewMode("actions")}
-				type="button">
-				{t("stream.viewMode.actions")}
+				<svg
+					aria-hidden="true"
+					class="h-4 w-4"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24">
+					<path
+						d="M12 15a3 3 0 100-6 3 3 0 000 6z"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+					<path
+						d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
 			</button>
 		</div>
 	);
@@ -156,7 +197,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 		<div class="flex h-full flex-col">
 			{/* Actions View Toolbar */}
 			<Show when={viewMode() === "actions"}>
-				<div class="flex shrink-0 items-center gap-2 border-neutral-200 border-b py-2">
+				<div class="flex shrink-0 items-center gap-2 border-neutral-200 border-b px-6 py-2">
 					<div class="flex-1" />
 					{viewModeToggle()}
 				</div>
@@ -167,6 +208,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				<ActivityFeed
 					activities={props.activities}
 					moderationCallbacks={props.moderationCallbacks}
+					showAvatars={props.controlSettings?.showAvatars ?? true}
 					stickyDuration={props.stickyDuration}
 					toolbarEnd={viewModeToggle()}
 				/>
@@ -178,7 +220,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 			{/* Actions View */}
 			<Show when={viewMode() === "actions"}>
-				<div class="min-h-0 flex-1 overflow-y-auto py-4">
+				<div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
 					<StreamActionsPanel
 						onChangeStreamSettings={() => setViewMode("settings")}
 						onModifyTimers={() => setViewMode("timers")}
@@ -191,7 +233,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 			{/* Poll Creation View */}
 			<Show when={viewMode() === "poll"}>
-				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-4">
 					<div class="mb-4 flex items-center gap-2">
 						<button
 							class="flex items-center gap-1 rounded-lg px-2 py-1 text-neutral-500 text-sm transition-colors hover:bg-neutral-100 hover:text-neutral-700"
@@ -240,7 +282,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 			{/* Giveaway Creation View */}
 			<Show when={viewMode() === "giveaway"}>
-				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+				<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-4">
 					<div class="mb-4 flex items-center gap-2">
 						<button
 							class="flex items-center gap-1 rounded-lg px-2 py-1 text-neutral-500 text-sm transition-colors hover:bg-neutral-100 hover:text-neutral-700"
@@ -291,7 +333,7 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 
 			{/* Timers View */}
 			<Show when={viewMode() === "timers"}>
-				<div class="min-h-0 flex-1 overflow-y-auto py-4">
+				<div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
 					<TimersPanel
 						onBack={() => setViewMode("events")}
 						streamStartedAt={props.streamStartedAt ?? null}
@@ -316,6 +358,54 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 					onTogglePlatform={props.onTogglePlatform}
 					platformStatuses={props.platformStatuses}
 				/>
+			</Show>
+
+			{/* Control Settings View */}
+			<Show when={viewMode() === "controlSettings"}>
+				<div class="flex shrink-0 items-center gap-2 border-neutral-200 border-b px-6 py-2">
+					<div class="flex-1" />
+					{viewModeToggle()}
+				</div>
+				<div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+					<h3 class="mb-4 font-semibold text-lg text-neutral-900">
+						{t("stream.controlSettings.title")}
+					</h3>
+
+					{/* Show Avatars toggle */}
+					<label class="flex items-center justify-between rounded-lg border border-neutral-200 px-4 py-3">
+						<div>
+							<div class="font-medium text-neutral-800 text-sm">
+								{t("stream.controlSettings.showAvatars")}
+							</div>
+							<div class="text-neutral-500 text-xs">
+								{t("stream.controlSettings.showAvatarsDescription")}
+							</div>
+						</div>
+						<button
+							aria-checked={props.controlSettings?.showAvatars ?? true}
+							class={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+								(props.controlSettings?.showAvatars ?? true)
+									? "bg-primary"
+									: "bg-neutral-300"
+							}`}
+							onClick={() =>
+								props.onControlSettingsChange?.(
+									"showAvatars",
+									!(props.controlSettings?.showAvatars ?? true),
+								)
+							}
+							role="switch"
+							type="button">
+							<span
+								class={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+									(props.controlSettings?.showAvatars ?? true)
+										? "translate-x-4"
+										: "translate-x-0.5"
+								} mt-0.5`}
+							/>
+						</button>
+					</label>
+				</div>
 			</Show>
 		</div>
 	);
@@ -345,7 +435,7 @@ function StreamSettingsPanel(props: {
 	};
 
 	return (
-		<div class="min-h-0 flex-1 overflow-y-auto py-4">
+		<div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
 			<div class="mb-4 flex items-center gap-2">
 				<button
 					aria-label={t("common.back")}

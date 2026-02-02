@@ -1,8 +1,10 @@
 import { A } from "@solidjs/router";
 import { type Accessor, For, Show } from "solid-js";
+import LiveBadge from "~/components/LiveBadge";
+import Logo from "~/components/Logo";
+import { Button } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLogoutUrl } from "~/lib/auth";
-import { useTheme } from "~/lib/theme";
 import {
 	LogoutIcon,
 	ModerateIcon,
@@ -14,26 +16,21 @@ import {
 interface SidebarProps {
 	currentPage: Accessor<string>;
 	isAdmin: boolean;
+	isLive: Accessor<boolean>;
 	isModerator: boolean;
 }
 
 export default function Sidebar(props: SidebarProps) {
 	const { t } = useTranslation();
-	const { theme } = useTheme();
 	const navSections = getNavSections();
 	const adminSections = getAdminSections();
-	const logoSrc = () =>
-		theme() === "dark" ? "/images/logo-white.png" : "/images/logo-black.png";
 
 	return (
 		<div class="sidebar fixed top-0 bottom-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-surface-inset text-surface-inset-text md:translate-x-0">
 			{/* Header */}
 			<div class="flex h-16 shrink-0 items-center px-4">
-				<A
-					class="flex items-center space-x-2 transition-opacity hover:opacity-80"
-					href="/">
-					<img alt="Streampai Logo" class="h-8 w-8 shrink-0" src={logoSrc()} />
-					<span class="font-bold text-neutral-900 text-xl">Streampai</span>
+				<A class="transition-opacity hover:opacity-80" href="/">
+					<Logo showText size="md" />
 				</A>
 			</div>
 
@@ -49,6 +46,7 @@ export default function Sidebar(props: SidebarProps) {
 						{(section) => (
 							<NavSectionGroup
 								currentPage={props.currentPage}
+								isLive={props.isLive}
 								section={section}
 							/>
 						)}
@@ -59,6 +57,7 @@ export default function Sidebar(props: SidebarProps) {
 							{(section) => (
 								<NavSectionGroup
 									currentPage={props.currentPage}
+									isLive={props.isLive}
 									section={section}
 								/>
 							)}
@@ -70,21 +69,26 @@ export default function Sidebar(props: SidebarProps) {
 			{/* Bottom section */}
 			<div class="space-y-2 p-4">
 				<Show when={props.isModerator}>
-					<A
-						class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-blue-600 hover:text-white"
-						href="/dashboard/moderate">
+					<Button
+						as="link"
+						class="justify-start p-3 text-surface-inset-text"
+						fullWidth
+						href="/dashboard/moderate"
+						variant="ghost">
 						<ModerateIcon />
 						<span class="ml-3">{t("dashboardNav.moderate")}</span>
-					</A>
+					</Button>
 				</Show>
 
-				<a
-					class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-red-600 hover:text-white"
+				<Button
+					as="a"
+					class="justify-start p-3 text-surface-inset-text"
+					fullWidth
 					href={getLogoutUrl()}
-					rel="external">
+					variant="ghost">
 					<LogoutIcon />
 					<span class="ml-3">{t("nav.signOut")}</span>
-				</a>
+				</Button>
 			</div>
 		</div>
 	);
@@ -93,6 +97,7 @@ export default function Sidebar(props: SidebarProps) {
 interface NavSectionGroupProps {
 	section: NavSection;
 	currentPage: Accessor<string>;
+	isLive?: Accessor<boolean>;
 }
 
 function NavSectionGroup(props: NavSectionGroupProps) {
@@ -124,18 +129,27 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 							);
 						}
 
+						const showLiveBadge = () =>
+							item.url === "/dashboard/stream" && props.isLive?.();
+
 						return (
-							<A
-								class={`flex items-center rounded-lg p-3 transition-colors ${
+							<Button
+								as="link"
+								class={`justify-start p-3 ${
 									isActive()
 										? "bg-primary text-white"
-										: "text-surface-inset-text hover:bg-neutral-200 hover:text-neutral-900"
+										: "text-surface-inset-text"
 								}`}
+								fullWidth
 								href={item.url}
-								title={label()}>
+								title={label()}
+								variant={isActive() ? "primary" : "ghost"}>
 								{item.icon}
 								<span class="ml-3 whitespace-nowrap">{label()}</span>
-							</A>
+								<Show when={showLiveBadge()}>
+									<LiveBadge class="ml-auto" size="sm" />
+								</Show>
+							</Button>
 						);
 					}}
 				</For>
@@ -152,11 +166,8 @@ interface MobileSidebarProps extends SidebarProps {
 
 export function MobileSidebar(props: MobileSidebarProps) {
 	const { t } = useTranslation();
-	const { theme } = useTheme();
 	const navSections = getNavSections();
 	const adminSections = getAdminSections();
-	const logoSrc = () =>
-		theme() === "dark" ? "/images/logo-white.png" : "/images/logo-black.png";
 
 	return (
 		<div
@@ -169,11 +180,8 @@ export function MobileSidebar(props: MobileSidebarProps) {
 			}}>
 			{/* Sidebar Header */}
 			<div class="relative flex items-center justify-center p-4">
-				<A
-					class="flex items-center space-x-2 transition-opacity hover:opacity-80"
-					href="/">
-					<img alt="Streampai Logo" class="h-8 w-8" src={logoSrc()} />
-					<span class="font-bold text-neutral-900 text-xl">Streampai</span>
+				<A class="transition-opacity hover:opacity-80" href="/">
+					<Logo showText size="md" />
 				</A>
 			</div>
 
@@ -183,6 +191,7 @@ export function MobileSidebar(props: MobileSidebarProps) {
 					{(section) => (
 						<NavSectionGroup
 							currentPage={props.currentPage}
+							isLive={props.isLive}
 							section={section}
 						/>
 					)}
@@ -193,6 +202,7 @@ export function MobileSidebar(props: MobileSidebarProps) {
 						{(section) => (
 							<NavSectionGroup
 								currentPage={props.currentPage}
+								isLive={props.isLive}
 								section={section}
 							/>
 						)}
@@ -203,21 +213,26 @@ export function MobileSidebar(props: MobileSidebarProps) {
 			{/* Bottom Logout Section */}
 			<div class="space-y-2 p-4">
 				<Show when={props.isModerator}>
-					<A
-						class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-blue-600 hover:text-white"
-						href="/dashboard/moderate">
+					<Button
+						as="link"
+						class="justify-start p-3 text-surface-inset-text"
+						fullWidth
+						href="/dashboard/moderate"
+						variant="ghost">
 						<ModerateIcon />
 						<span class="ml-3">{t("dashboardNav.moderate")}</span>
-					</A>
+					</Button>
 				</Show>
 
-				<a
-					class="flex w-full items-center rounded-lg p-3 text-surface-inset-text transition-colors hover:bg-red-600 hover:text-white"
+				<Button
+					as="a"
+					class="justify-start p-3 text-surface-inset-text"
+					fullWidth
 					href={getLogoutUrl()}
-					rel="external">
+					variant="ghost">
 					<LogoutIcon />
 					<span class="ml-3">{t("nav.signOut")}</span>
-				</a>
+				</Button>
 			</div>
 		</div>
 	);

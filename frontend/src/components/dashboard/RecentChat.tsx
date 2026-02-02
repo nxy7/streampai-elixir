@@ -69,7 +69,7 @@ export default function RecentChat(props: RecentChatProps) {
 					when={props.messages.length > 0}>
 					<For each={props.messages}>
 						{(msg) => (
-							<div class="px-6 py-3 hover:bg-neutral-50">
+							<div class="px-6 py-3">
 								<div class="flex items-start gap-3">
 									<Show
 										fallback={

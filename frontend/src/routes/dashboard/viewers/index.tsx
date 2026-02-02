@@ -1,14 +1,15 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { For, Show, createEffect, createSignal } from "solid-js";
-import { Skeleton } from "~/design-system";
+import { Select, Skeleton } from "~/design-system";
 import Badge from "~/design-system/Badge";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
-import Input, { Select } from "~/design-system/Input";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { listBannedViewers, listViewers, searchViewers } from "~/sdk/ash_rpc";
 
 type Platform = "twitch" | "youtube" | "facebook" | "kick" | "";
@@ -125,6 +126,11 @@ export default function Viewers() {
 	const { user, isLoading } = useCurrentUser();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.streaming"), href: "/dashboard/stream" },
+		{ label: t("dashboardNav.viewers") },
+	]);
 
 	const [viewMode, setViewMode] = createSignal<ViewMode>("viewers");
 	const [viewers, setViewers] = createSignal<Viewer[]>([]);
@@ -390,56 +396,46 @@ export default function Viewers() {
 						<Show when={viewMode() === "viewers"}>
 							{/* Filters Section */}
 							<Card variant="ghost">
-								<h3 class={`${text.h3} mb-4`}>Filters</h3>
+								<h3 class={`${text.h3} mb-4`}>
+									{t("chatHistory.filters.title")}
+								</h3>
 
 								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 									{/* Platform Filter */}
-									<div>
-										<label
-											class="block font-medium text-neutral-700 text-sm"
-											for="platform-filter">
-											Platform
-										</label>
-										<Select
-											class="mt-2"
-											id="platform-filter"
-											onChange={(e) => {
-												setPlatform(e.currentTarget.value as Platform);
-												handleFilterChange();
-											}}
-											value={platform()}>
-											<option value="">All Platforms</option>
-											<option value="twitch">Twitch</option>
-											<option value="youtube">YouTube</option>
-											<option value="facebook">Facebook</option>
-											<option value="kick">Kick</option>
-										</Select>
-									</div>
+									<Select
+										label={t("viewers.platform")}
+										onChange={(value) => {
+											setPlatform(value as Platform);
+											handleFilterChange();
+										}}
+										options={[
+											{ value: "", label: t("viewers.allPlatforms") },
+											{ value: "twitch", label: "Twitch" },
+											{ value: "youtube", label: "YouTube" },
+											{ value: "facebook", label: "Facebook" },
+											{ value: "kick", label: "Kick" },
+										]}
+										value={platform()}
+									/>
 
 									{/* Search */}
-									<div>
-										<label
-											class="block font-medium text-neutral-700 text-sm"
-											for="search-viewers">
-											Search
-										</label>
-										<form onSubmit={handleSearch}>
-											<Input
-												class="mt-2"
-												id="search-viewers"
-												onInput={(e) => setSearchInput(e.currentTarget.value)}
-												placeholder={t("viewers.searchPlaceholder")}
-												type="text"
-												value={searchInput()}
-											/>
-										</form>
-									</div>
+									<form onSubmit={handleSearch}>
+										<Input
+											label={t("viewers.search")}
+											onInput={(e) => setSearchInput(e.currentTarget.value)}
+											placeholder={t("viewers.searchPlaceholder")}
+											type="text"
+											value={searchInput()}
+										/>
+									</form>
 								</div>
 
 								{/* Active Filters Summary */}
 								<Show when={platform() || search()}>
 									<div class="mt-4 flex items-center gap-2 text-neutral-600 text-sm">
-										<span class="font-medium">Active filters:</span>
+										<span class="font-medium">
+											{t("viewers.activeFilters")}
+										</span>
 										<Show when={platform()}>
 											<Badge variant="info">{platform()}</Badge>
 										</Show>
@@ -455,7 +451,7 @@ export default function Viewers() {
 												handleFilterChange();
 											}}
 											type="button">
-											Clear all
+											{t("viewers.clearAll")}
 										</button>
 									</div>
 								</Show>
@@ -470,7 +466,7 @@ export default function Viewers() {
 
 							{/* Viewers List */}
 							<Card>
-								<h3 class={`${text.h3} mb-4`}>Viewers</h3>
+								<h3 class={`${text.h3} mb-4`}>{t("viewers.title")}</h3>
 
 								<Show
 									fallback={<ViewersListSkeleton />}
@@ -492,12 +488,12 @@ export default function Viewers() {
 													/>
 												</svg>
 												<p class="font-medium text-lg text-neutral-700">
-													No viewers found
+													{t("viewers.noViewers")}
 												</p>
 												<p class="mt-2 text-neutral-500 text-sm">
 													{platform() || search()
-														? "Try adjusting your filters or search criteria"
-														: "Your viewers will appear here once you start streaming"}
+														? t("viewers.adjustFilters")
+														: t("viewers.viewersWillAppear")}
 												</p>
 											</div>
 										}
@@ -506,11 +502,9 @@ export default function Viewers() {
 											<For each={viewers()}>
 												{(viewer) => (
 													<button
-														class="w-full cursor-pointer rounded-lg border border-neutral-200 p-4 text-left transition-colors hover:bg-neutral-50"
+														class="w-full cursor-pointer rounded-lg border border-neutral-200 p-4 text-left transition-colors"
 														onClick={() =>
-															navigate(
-																`/dashboard/viewers/${viewer.viewerId}:${viewer.userId}`,
-															)
+															navigate(`/dashboard/viewers/${viewer.viewerId}`)
 														}
 														type="button">
 														<div class="flex items-start gap-3">
@@ -635,7 +629,7 @@ export default function Viewers() {
 										<div class="space-y-3">
 											<For each={bannedViewers()}>
 												{(banned) => (
-													<div class="rounded-lg border border-neutral-200 p-4 transition-colors hover:bg-neutral-50">
+													<div class="rounded-lg border border-neutral-200 p-4 transition-colors">
 														<div class="flex items-start justify-between gap-3">
 															<div class="flex-1">
 																{/* Viewer Info */}

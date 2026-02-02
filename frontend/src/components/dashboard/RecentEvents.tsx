@@ -59,7 +59,7 @@ export default function RecentEvents(props: RecentEventsProps) {
 					when={props.events.length > 0}>
 					<For each={props.events}>
 						{(event) => (
-							<div class="px-6 py-3 hover:bg-neutral-50">
+							<div class="px-6 py-3">
 								<div class="flex items-center gap-3">
 									<div
 										class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${getEventBgColor(event.type)}`}>

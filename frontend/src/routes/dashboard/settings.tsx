@@ -1,5 +1,6 @@
 import { Title } from "@solidjs/meta";
-import { For, Show, createMemo, createSignal } from "solid-js";
+import { useSearchParams } from "@solidjs/router";
+import { For, Show, createMemo, createSignal, onMount } from "solid-js";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import {
 	AvatarUploadSection,
@@ -7,9 +8,11 @@ import {
 	PlatformConnectionsPanel,
 	UserRolesManagement,
 } from "~/components/settings";
-import { Button, Card, Skeleton } from "~/design-system";
+import { Button, Card, Skeleton, Toggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
+import { getCsrfHeaders } from "~/lib/csrf";
 import {
 	useStreamingAccounts,
 	useUserPreferencesForUser,
@@ -96,6 +99,11 @@ export default function Settings() {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.account"), href: "/dashboard/settings" },
+		{ label: t("dashboardNav.settings") },
+	]);
 	const rolesData = useUserRolesData(() => user()?.id);
 	const streamingAccounts = useStreamingAccounts(() => user()?.id);
 
@@ -105,6 +113,45 @@ export default function Settings() {
 	const [nameSuccess, setNameSuccess] = createSignal(false);
 	const [isTogglingNotifications, setIsTogglingNotifications] =
 		createSignal(false);
+	const [isCheckingOut, setIsCheckingOut] = createSignal(false);
+	const [showPlanSelection, setShowPlanSelection] = createSignal(false);
+	const [paymentSuccess, setPaymentSuccess] = createSignal(false);
+	const [paymentPending, setPaymentPending] = createSignal(false);
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	onMount(() => {
+		if (searchParams.payment === "success") {
+			setPaymentSuccess(true);
+			setSearchParams({ payment: undefined });
+			setTimeout(() => setPaymentSuccess(false), 5000);
+		} else if (searchParams.payment === "pending") {
+			setPaymentPending(true);
+			setSearchParams({ payment: undefined });
+			setTimeout(() => setPaymentPending(false), 8000);
+		}
+	});
+
+	const handleUpgrade = async (plan: "monthly" | "yearly") => {
+		setIsCheckingOut(true);
+		try {
+			const res = await fetch("/api/rpc/paddle/checkout", {
+				method: "POST",
+				credentials: "include",
+				headers: { ...getCsrfHeaders(), "Content-Type": "application/json" },
+				body: JSON.stringify({ plan }),
+			});
+			if (res.ok) {
+				const { checkout_url } = await res.json();
+				window.location.href = checkout_url;
+			} else {
+				console.error("Failed to create checkout:", await res.text());
+				setIsCheckingOut(false);
+			}
+		} catch (e) {
+			console.error("Failed to create checkout:", e);
+			setIsCheckingOut(false);
+		}
+	};
 
 	const pendingInvitations = createMemo(
 		() => rolesData.data().pendingInvitations,
@@ -203,8 +250,23 @@ export default function Settings() {
 					}
 					when={user()}>
 					<div class="mx-auto max-w-6xl space-y-6">
+						{/* Payment Success Banner */}
+						<Show when={paymentSuccess()}>
+							<div class="rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
+								<p class="font-medium">{t("settings.paymentSuccess")}</p>
+							</div>
+						</Show>
+						<Show when={paymentPending()}>
+							<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800">
+								<p class="font-medium">{t("settings.paymentPending")}</p>
+							</div>
+						</Show>
+
 						{/* Plan Banner */}
-						<div class="rounded-lg bg-linear-to-r from-primary to-secondary-hover p-6 text-white shadow-sm">
+						<Card
+							class="bg-linear-to-r from-primary to-secondary-hover text-white shadow-sm"
+							glow
+							variant="ghost">
 							<div class="flex items-center justify-between">
 								<div>
 									<h3 class="mb-2 font-bold text-xl">
@@ -213,12 +275,40 @@ export default function Settings() {
 									<p class="text-white/80">{t("settings.getStarted")}</p>
 								</div>
 								<Button
-									class="!bg-white !text-primary hover:!bg-white/90 px-6 py-2 font-semibold transition-colors"
+									class="!bg-white !text-primary px-6 py-2 font-semibold"
+									disabled={isCheckingOut()}
+									onClick={() => setShowPlanSelection(!showPlanSelection())}
 									variant="secondary">
-									{t("settings.upgradeToPro")}
+									{isCheckingOut()
+										? t("settings.redirecting")
+										: t("settings.upgradeToPro")}
 								</Button>
 							</div>
-						</div>
+							<Show when={showPlanSelection()}>
+								<div class="mt-4 flex gap-3">
+									<button
+										class="flex-1 rounded-lg bg-white/20 p-3 text-left transition-colors hover:bg-white/30"
+										disabled={isCheckingOut()}
+										onClick={() => handleUpgrade("monthly")}
+										type="button">
+										<p class="font-semibold">{t("settings.monthlyPlan")}</p>
+										<p class="text-sm text-white/80">
+											{t("settings.monthlyPrice")}
+										</p>
+									</button>
+									<button
+										class="flex-1 rounded-lg bg-white/20 p-3 text-left transition-colors hover:bg-white/30"
+										disabled={isCheckingOut()}
+										onClick={() => handleUpgrade("yearly")}
+										type="button">
+										<p class="font-semibold">{t("settings.yearlyPlan")}</p>
+										<p class="text-sm text-white/80">
+											{t("settings.yearlyPrice")}
+										</p>
+									</button>
+								</div>
+							</Show>
+						</Card>
 
 						{/* Account Settings */}
 						<Card variant="ghost">
@@ -405,27 +495,12 @@ export default function Settings() {
 												{t("settings.emailNotificationsDesc")}
 											</p>
 										</div>
-										<button
-											class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-												prefs.data()?.email_notifications
-													? "bg-primary"
-													: "bg-neutral-300"
-											} ${
-												isTogglingNotifications()
-													? "cursor-not-allowed opacity-50"
-													: "cursor-pointer"
-											}`}
+										<Toggle
+											aria-label={t("settings.emailNotifications")}
+											checked={prefs.data()?.email_notifications ?? false}
 											disabled={isTogglingNotifications()}
-											onClick={handleToggleEmailNotifications}
-											type="button">
-											<span
-												class={`inline-block h-4 w-4 transform rounded-full bg-surface transition ${
-													prefs.data()?.email_notifications
-														? "translate-x-6"
-														: "translate-x-1"
-												}`}
-											/>
-										</button>
+											onChange={handleToggleEmailNotifications}
+										/>
 									</div>
 								</div>
 							</Card>

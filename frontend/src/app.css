@@ -69,11 +69,11 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
     /* Border Radius */
-    --radius-sm: 0.375rem; /* 6px */
-    --radius-md: 0.5rem; /* 8px */
-    --radius-lg: 0.75rem; /* 12px */
-    --radius-xl: 1rem; /* 16px */
-    --radius-2xl: 1.5rem; /* 24px */
+    --radius-sm: 0.25rem; /* 4px */
+    --radius-md: 0.375rem; /* 6px */
+    --radius-lg: 0.5rem; /* 8px */
+    --radius-xl: 0.75rem; /* 12px */
+    --radius-2xl: 1rem; /* 16px */
 }
 
 /* Widget Animations for OBS */

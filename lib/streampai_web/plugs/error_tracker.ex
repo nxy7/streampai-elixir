@@ -4,6 +4,8 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   """
   @behaviour Plug
 
+  import StreampaiWeb.Plugs.ConnHelpers, only: [get_client_ip: 1, get_header: 2]
+
   require Logger
 
   def init(opts), do: opts
@@ -118,13 +120,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
     8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
 
-  defp get_header(conn, header_name) do
-    case Plug.Conn.get_req_header(conn, header_name) do
-      [value | _] -> value
-      [] -> nil
-    end
-  end
-
   defp get_current_user_id(conn) do
     case Map.get(conn.assigns, :current_user) do
       %{id: id} -> id
@@ -135,16 +130,6 @@ defmodule StreampaiWeb.Plugs.ErrorTracker do
   defp get_session_id(conn) do
     Plug.Conn.get_session(conn, "_csrf_token") ||
       conn |> Plug.Conn.get_session("phoenix_flash") |> inspect() |> String.slice(0, 16)
-  end
-
-  defp get_client_ip(conn) do
-    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] ->
-        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-
-      [] ->
-        conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
   end
 
   defp get_response_body_sample(_conn) do

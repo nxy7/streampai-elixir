@@ -12,6 +12,19 @@ defmodule StreampaiWeb.ApiAuthController do
   @doc """
   Register a new user with email and password.
   """
+  def register(conn, %{"website" => website}) when website != "" do
+    # Honeypot field filled — silently reject as if successful
+    Logger.warning("Honeypot triggered during registration")
+
+    conn
+    |> put_status(:created)
+    |> json(%{
+      success: true,
+      message: "Account created. Please check your email to confirm your account.",
+      user: %{id: Ash.UUID.generate(), email: "hidden"}
+    })
+  end
+
   def register(conn, %{"email" => email, "password" => password} = params) do
     password_confirmation = params["password_confirmation"] || password
 

@@ -34,9 +34,9 @@ import SliderWidget from "~/components/widgets/SliderWidget";
 import TimerWidget from "~/components/widgets/TimerWidget";
 import TopDonorsWidget from "~/components/widgets/TopDonorsWidget";
 import ViewerCountWidget from "~/components/widgets/ViewerCountWidget";
+import { Select } from "~/design-system";
 import Button from "~/design-system/Button";
 import { text } from "~/design-system/design-system";
-import { Select } from "~/design-system/Input";
 import type { WidgetType } from "~/lib/electric";
 import {
 	type ViewerData,
@@ -805,13 +805,13 @@ function GiveawayPreviewWrapper(props: {
 			controls={
 				<div class="mb-4">
 					<Select
-						onChange={(e) =>
-							setDemoMode(e.currentTarget.value as "active" | "winner")
-						}
-						value={demoMode()}>
-						<option value="active">Active Giveaway</option>
-						<option value="winner">Winner Announcement</option>
-					</Select>
+						onChange={(value) => setDemoMode(value as "active" | "winner")}
+						options={[
+							{ value: "active", label: "Active Giveaway" },
+							{ value: "winner", label: "Winner Announcement" },
+						]}
+						value={demoMode()}
+					/>
 				</div>
 			}>
 			<GiveawayWidget
@@ -866,13 +866,13 @@ function PollPreviewWrapper(props: {
 				<div class="mb-4">
 					<Select
 						label="Preview Mode"
-						onChange={(e) =>
-							setDemoMode(e.currentTarget.value as "active" | "ended")
-						}
-						value={demoMode()}>
-						<option value="active">Active Poll</option>
-						<option value="ended">Ended Poll (Results)</option>
-					</Select>
+						onChange={(value) => setDemoMode(value as "active" | "ended")}
+						options={[
+							{ value: "active", label: "Active Poll" },
+							{ value: "ended", label: "Ended Poll (Results)" },
+						]}
+						value={demoMode()}
+					/>
 				</div>
 			}>
 			<PollWidget

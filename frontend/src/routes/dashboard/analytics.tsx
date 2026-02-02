@@ -20,6 +20,7 @@ import {
 } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { formatDurationShort } from "~/lib/formatters";
 import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
 
@@ -54,6 +55,11 @@ type Livestream = SuccessDataFunc<
 export default function Analytics() {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.overview"), href: "/dashboard" },
+		{ label: t("dashboardNav.analytics") },
+	]);
 
 	const [timeframe, setTimeframe] = createSignal<Timeframe>("week");
 	const [streams, setStreams] = createSignal<Livestream[]>([]);

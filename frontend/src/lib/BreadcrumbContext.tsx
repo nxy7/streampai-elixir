@@ -34,25 +34,30 @@ const BreadcrumbContext = createContext<BreadcrumbContextValue>();
  * Provider component that manages the breadcrumb registry.
  * Should wrap the dashboard layout to provide breadcrumb context to all pages.
  *
- * Uses a registry pattern where pages register accessor functions rather than
- * static values. This ensures breadcrumbs update reactively when async data loads.
+ * Only one page's breadcrumbs are shown at a time - registering new breadcrumbs
+ * replaces any existing ones to handle SolidJS routing where components may not
+ * properly unmount on navigation.
  */
 export function BreadcrumbProvider(props: { children: JSX.Element }) {
-	const [entries, setEntries] = createSignal<BreadcrumbEntry[]>([]);
+	const [currentEntry, setCurrentEntry] = createSignal<BreadcrumbEntry | null>(
+		null,
+	);
 
-	// Derived signal that flattens all registered breadcrumb items
-	// This is reactive - when any registered accessor updates, this recomputes
+	// Derived signal that returns the current breadcrumb items
 	const items = createMemo(() => {
-		return entries().flatMap((entry) => entry.getItems());
+		const entry = currentEntry();
+		return entry ? entry.getItems() : [];
 	});
 
 	const register = (getItems: Accessor<BreadcrumbItem[]>): (() => void) => {
 		const id = createUniqueId();
-		setEntries((prev) => [...prev, { id, getItems }]);
+		// Replace any existing breadcrumbs with the new ones
+		setCurrentEntry({ id, getItems });
 
-		// Return cleanup function that removes this registration
+		// Return cleanup function
 		return () => {
-			setEntries((prev) => prev.filter((entry) => entry.id !== id));
+			// Only clear if this registration is still the current one
+			setCurrentEntry((prev) => (prev?.id === id ? null : prev));
 		};
 	};
 

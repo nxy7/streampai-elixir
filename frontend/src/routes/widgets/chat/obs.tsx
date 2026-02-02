@@ -1,10 +1,8 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createMemo } from "solid-js";
-import {
-	createUserScopedStreamEventsCollection,
-	streamEventsCollection,
-} from "~/lib/electric";
+import { streamEventsCollection } from "~/lib/electric";
+import { getEventsCollection } from "~/lib/useEventsCollection";
 
 type ChatMessage = {
 	id: string;
@@ -15,20 +13,6 @@ type ChatMessage = {
 	isModerator?: boolean;
 	isSubscriber?: boolean;
 };
-
-// Cache for user-scoped event collections
-const eventCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-function getEventCollection(userId: string) {
-	let collection = eventCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		eventCollections.set(userId, collection);
-	}
-	return collection;
-}
 
 export default function ChatOBS() {
 	const [params] = useSearchParams();
@@ -45,7 +29,7 @@ export default function ChatOBS() {
 	const eventsQuery = useLiveQuery(() => {
 		const id = userId();
 		if (!id) return streamEventsCollection;
-		return getEventCollection(id);
+		return getEventsCollection(id);
 	});
 
 	const messages = createMemo(() => {

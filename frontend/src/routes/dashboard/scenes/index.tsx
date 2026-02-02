@@ -3,7 +3,9 @@ import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
+import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
 
 interface CanvasWidget {
@@ -292,7 +294,14 @@ function CanvasWidgetComponent(props: {
 }
 
 export default function SmartCanvas() {
+	const { t } = useTranslation();
 	const { user } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.widgets"), href: "/dashboard/widgets" },
+		{ label: t("dashboardNav.scenes") },
+	]);
+
 	const [widgets, setWidgets] = createSignal<CanvasWidget[]>([]);
 	const [_layoutId, setLayoutId] = createSignal<string | null>(null);
 	const [layoutSaved, setLayoutSaved] = createSignal(true);
@@ -530,13 +539,10 @@ export default function SmartCanvas() {
 			<Title>Scenes - Streampai</Title>
 			<Show when={user()}>
 				<div class="space-y-6">
-					<Card variant="ghost">
-						<h1 class={text.h1}>Scenes</h1>
-						<p class={`${text.muted} mt-2`}>
-							Compose your stream overlay with interactive widgets. Click
-							widgets from the palette to add them to the canvas.
-						</p>
-					</Card>
+					<p class={text.muted}>
+						Compose your stream overlay with interactive widgets. Click widgets
+						from the palette to add them to the canvas.
+					</p>
 
 					<Card class="border-blue-500/20 bg-blue-500/10" variant="ghost">
 						<div class="flex items-start gap-3">
@@ -571,19 +577,23 @@ export default function SmartCanvas() {
 								<Button
 									onClick={saveLayout}
 									variant={layoutSaved() ? "success" : "primary"}>
-									{layoutSaved() ? "Layout Saved" : "Save Layout"}
+									{layoutSaved()
+										? t("scenes.layoutSaved")
+										: t("scenes.saveLayout")}
 								</Button>
 								<Button onClick={clearWidgets} variant="secondary">
-									Clear All
+									{t("scenes.clearAll")}
 								</Button>
 								<Button
 									onClick={() => setCanvasMaximized(!canvasMaximized())}
 									variant="ghost">
-									{canvasMaximized() ? "Exit Fullscreen" : "Fullscreen"}
+									{canvasMaximized()
+										? t("scenes.exitFullscreen")
+										: t("scenes.fullscreen")}
 								</Button>
 							</div>
 							<div class="text-neutral-600 text-sm">
-								Widgets: {widgets().length}
+								{t("scenes.widgetCount", { count: widgets().length })}
 							</div>
 						</div>
 					</Card>
@@ -591,9 +601,9 @@ export default function SmartCanvas() {
 					<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 						<div class="lg:col-span-1">
 							<Card class="max-h-[700px] overflow-y-auto">
-								<h3 class={`${text.h3} mb-4`}>Widget Palette</h3>
+								<h3 class={`${text.h3} mb-4`}>{t("scenes.widgetPalette")}</h3>
 								<p class="mb-4 text-neutral-600 text-sm">
-									Click a widget to add it to the canvas
+									{t("scenes.clickToAdd")}
 								</p>
 								<div class="space-y-2">
 									<For each={AVAILABLE_WIDGETS}>

@@ -685,7 +685,7 @@ defmodule Streampai.Accounts.User do
       description "Timestamp when the user confirmed their account"
     end
 
-    attribute :email_notifications, :boolean do
+    attribute :email_notifications, Streampai.Types.CoercibleBoolean do
       public? true
       allow_nil? false
       default true

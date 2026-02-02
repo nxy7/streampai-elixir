@@ -1,10 +1,8 @@
 import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
 import { For, Show, createMemo } from "solid-js";
-import {
-	createUserScopedStreamEventsCollection,
-	streamEventsCollection,
-} from "~/lib/electric";
+import { streamEventsCollection } from "~/lib/electric";
+import { getEventsCollection } from "~/lib/useEventsCollection";
 
 type StreamEventType =
 	| "donation"
@@ -22,20 +20,6 @@ type Event = {
 	color: string;
 	timestamp: Date;
 };
-
-// Cache for user-scoped event collections
-const eventCollections = new Map<
-	string,
-	ReturnType<typeof createUserScopedStreamEventsCollection>
->();
-function getEventsCollection(userId: string) {
-	let collection = eventCollections.get(userId);
-	if (!collection) {
-		collection = createUserScopedStreamEventsCollection(userId);
-		eventCollections.set(userId, collection);
-	}
-	return collection;
-}
 
 export default function EventListOBS() {
 	const [params] = useSearchParams();

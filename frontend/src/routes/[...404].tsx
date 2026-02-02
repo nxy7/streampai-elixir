@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
+import Logo from "~/components/Logo";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 
@@ -14,13 +15,8 @@ export default function NotFound() {
 			<main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
 				<div class="relative z-10 mx-auto max-w-2xl px-4 text-center">
 					{/* Logo */}
-					<div class="mb-8 flex items-center justify-center space-x-3">
-						<img
-							alt="Streampai Logo"
-							class="h-12 w-12"
-							src="/images/logo-white.png"
-						/>
-						<span class="font-bold text-2xl text-neutral-900">Streampai</span>
+					<div class="mb-8 flex justify-center">
+						<Logo showText size="xl" />
 					</div>
 
 					{/* Cute TV/Monitor illustration with static */}

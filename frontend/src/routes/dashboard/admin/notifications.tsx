@@ -1,11 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { For, Index, Show, createEffect, createSignal } from "solid-js";
+import { Select } from "~/design-system";
 import Badge from "~/design-system/Badge";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
-import Input, { Select, Textarea } from "~/design-system/Input";
+import Input, { Textarea } from "~/design-system/Input";
 import {
 	LOCALE_NAMES,
 	type Locale,
@@ -13,6 +14,7 @@ import {
 	useTranslation,
 } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { type Notification, useGlobalNotifications } from "~/lib/useElectric";
 import { createNotification, deleteNotification } from "~/sdk/ash_rpc";
 
@@ -27,6 +29,11 @@ export default function AdminNotifications() {
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
 	const { data: notifications, isLoading: notificationsLoading } =
 		useGlobalNotifications();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.admin"), href: "/dashboard/admin/users" },
+		{ label: t("dashboardNav.notifications") },
+	]);
 
 	const [error, setError] = createSignal<string | null>(null);
 	const [successMessage, setSuccessMessage] = createSignal<string | null>(null);
@@ -440,16 +447,15 @@ export default function AdminNotifications() {
 											Notification Type
 										</label>
 										<Select
-											id="notification-type"
-											onInput={(e) =>
-												setNotificationType(
-													e.currentTarget.value as "global" | "user",
-												)
+											onChange={(value) =>
+												setNotificationType(value as "global" | "user")
 											}
-											value={notificationType()}>
-											<option value="global">Global (All Users)</option>
-											<option value="user">User-specific</option>
-										</Select>
+											options={[
+												{ value: "global", label: "Global (All Users)" },
+												{ value: "user", label: "User-specific" },
+											]}
+											value={notificationType()}
+										/>
 										<p class={text.helper}>
 											{notificationType() === "global"
 												? "This notification will be shown to all users"
@@ -571,22 +577,22 @@ export default function AdminNotifications() {
 												<Show when={availableLocales().length > 0}>
 													<div class="flex items-center gap-2">
 														<Select
-															onChange={(e) => {
-																const locale = e.currentTarget.value as Locale;
+															onChange={(value) => {
+																const locale = value as Locale;
 																if (locale) {
 																	addLocalization(locale);
-																	e.currentTarget.value = "";
 																}
-															}}>
-															<option value="">Add translation...</option>
-															<For each={availableLocales()}>
-																{(locale) => (
-																	<option value={locale}>
-																		{LOCALE_NAMES[locale]}
-																	</option>
-																)}
-															</For>
-														</Select>
+															}}
+															options={[
+																{ value: "", label: "Add translation..." },
+																...availableLocales().map((locale) => ({
+																	value: locale,
+																	label: LOCALE_NAMES[locale],
+																})),
+															]}
+															placeholder="Add translation..."
+															value=""
+														/>
 													</div>
 												</Show>
 

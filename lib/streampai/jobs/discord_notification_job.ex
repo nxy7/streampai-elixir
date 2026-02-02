@@ -14,6 +14,8 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
     tags: ["discord", "notification"],
     unique: [period: 30, keys: [:webhook_id, :event_type, :event_id]]
 
+  import Streampai.MapUtils, only: [deep_stringify_keys: 1]
+
   alias Ash.Error.Query.NotFound
   alias Streampai.Integrations.Discord.Client
   alias Streampai.Integrations.DiscordWebhook
@@ -165,7 +167,7 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
     %{
       webhook_id: webhook_id,
       event_type: to_string(event_type),
-      data: stringify_keys(data),
+      data: deep_stringify_keys(data),
       event_id: event_id
     }
     |> new()
@@ -206,16 +208,6 @@ defmodule Streampai.Jobs.DiscordNotificationJob do
   defp generate_event_id do
     8 |> :crypto.strong_rand_bytes() |> Base.encode16() |> String.downcase()
   end
-
-  defp stringify_keys(map) when is_map(map) do
-    Map.new(map, fn {k, v} ->
-      key = if is_atom(k), do: Atom.to_string(k), else: k
-      {key, stringify_keys(v)}
-    end)
-  end
-
-  defp stringify_keys(list) when is_list(list), do: Enum.map(list, &stringify_keys/1)
-  defp stringify_keys(value), do: value
 
   defp atomize_keys(map) when is_map(map) do
     Map.new(map, fn {k, v} ->

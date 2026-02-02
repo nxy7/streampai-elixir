@@ -43,6 +43,24 @@ export type LivestreamResourceSchema = {
 
 
 
+export type LivestreamAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId";
+  id: UUID;
+  title: string;
+  description: string | null;
+  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
+  subcategory: string | null;
+  language: string | null;
+  tags: Array<string> | null;
+  thumbnailUrl: string | null;
+  thumbnailFileId: UUID | null;
+  startedAt: UtcDateTime;
+  endedAt: UtcDateTime | null;
+  userId: UUID;
+};
+
+
 // StreamEvent Schema
 export type StreamEventResourceSchema = {
   __type: "Resource";
@@ -59,6 +77,22 @@ export type StreamEventResourceSchema = {
   data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
 };
 
+
+
+export type StreamEventAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
+  id: UUID;
+  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+  authorId: string;
+  livestreamId: UUID;
+  userId: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
+  viewerId: string | null;
+  wasDisplayed: boolean | null;
+  insertedAt: UtcDateTimeUsec;
+  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataAttributesOnlySchema; donation?: StreampaiStreamEventDataDonationDataAttributesOnlySchema; follow?: StreampaiStreamEventDataFollowDataAttributesOnlySchema; subscription?: StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema; raid?: StreampaiStreamEventDataRaidDataAttributesOnlySchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataAttributesOnlySchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; };
+};
 
 
 // StreamViewer Schema
@@ -83,6 +117,26 @@ export type StreamViewerResourceSchema = {
 
 
 
+export type StreamViewerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
+  viewerId: string;
+  userId: UUID;
+  platform: "twitch" | "youtube" | "facebook" | "kick";
+  displayName: string;
+  avatarUrl: string | null;
+  channelUrl: string | null;
+  isVerified: boolean | null;
+  isOwner: boolean | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  notes: string | null;
+  aiSummary: string | null;
+  firstSeenAt: UtcDateTimeUsec;
+  lastSeenAt: UtcDateTimeUsec;
+};
+
+
 // BannedViewer Schema
 export type BannedViewerResourceSchema = {
   __type: "Resource";
@@ -103,6 +157,24 @@ export type BannedViewerResourceSchema = {
 
 
 
+export type BannedViewerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerUsername: string;
+  viewerPlatformId: string;
+  reason: string | null;
+  durationSeconds: number | null;
+  expiresAt: UtcDateTimeUsec | null;
+  isActive: boolean;
+  platformBanId: string | null;
+  unbannedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
 // CurrentStreamData Schema
 export type CurrentStreamDataResourceSchema = {
   __type: "Resource";
@@ -121,6 +193,22 @@ export type CurrentStreamDataResourceSchema = {
 
 
 
+export type CurrentStreamDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData" | "activeAlert" | "highlightedMessage" | "alertboxState";
+  id: UUID;
+  status: string;
+  streamData: Record<string, any>;
+  cloudflareData: Record<string, any>;
+  youtubeData: Record<string, any>;
+  twitchData: Record<string, any>;
+  kickData: Record<string, any>;
+  activeAlert: Record<string, any> | null;
+  highlightedMessage: Record<string, any> | null;
+  alertboxState: Record<string, any>;
+};
+
+
 // StreamTimer Schema
 export type StreamTimerResourceSchema = {
   __type: "Resource";
@@ -134,6 +222,19 @@ export type StreamTimerResourceSchema = {
   updatedAt: UtcDateTimeUsec;
 };
 
+
+
+export type StreamTimerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "disabledAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  label: string;
+  content: string;
+  intervalSeconds: number;
+  disabledAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
 
 
 // HighlightedMessage Schema
@@ -154,12 +255,75 @@ export type HighlightedMessageResourceSchema = {
 
 
 
+export type HighlightedMessageAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
+  id: UUID;
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId: string | null;
+  highlightedAt: UtcDateTimeUsec;
+  userId: UUID;
+};
+
+
+// ChatBotConfig Schema
+export type ChatBotConfigResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
+  id: UUID;
+  enabled: boolean;
+  greetingEnabled: boolean;
+  greetingMessage: string;
+  commandPrefix: string;
+  aiChatEnabled: boolean;
+  aiPersonality: string | null;
+  aiBotName: string;
+  aiProvider: string;
+  autoShoutoutEnabled: boolean;
+  linkProtectionEnabled: boolean;
+  slowModeOnRaidEnabled: boolean;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
+export type ChatBotConfigAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
+  id: UUID;
+  enabled: boolean;
+  greetingEnabled: boolean;
+  greetingMessage: string;
+  commandPrefix: string;
+  aiChatEnabled: boolean;
+  aiPersonality: string | null;
+  aiBotName: string;
+  aiProvider: string;
+  autoShoutoutEnabled: boolean;
+  linkProtectionEnabled: boolean;
+  slowModeOnRaidEnabled: boolean;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
 // StreamAction Schema
 export type StreamActionResourceSchema = {
   __type: "Resource";
   __primitiveFields: never;
 };
 
+
+
+export type StreamActionAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
 
 
 export type StreamActionInputSchema = {
@@ -195,6 +359,25 @@ export type UserResourceSchema = {
 
 
 
+export type UserAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email" | "name" | "extraData" | "confirmedAt" | "emailNotifications" | "minDonationAmount" | "maxDonationAmount" | "donationCurrency" | "defaultVoice" | "avatarUrl" | "languagePreference" | "avatarFileId";
+  id: UUID;
+  email: string;
+  name: string;
+  extraData: Record<string, any> | null;
+  confirmedAt: UtcDateTimeUsec | null;
+  emailNotifications: boolean;
+  minDonationAmount: number | null;
+  maxDonationAmount: number | null;
+  donationCurrency: string;
+  defaultVoice: string | null;
+  avatarUrl: string | null;
+  languagePreference: string | null;
+  avatarFileId: UUID | null;
+};
+
+
 // UserRole Schema
 export type UserRoleResourceSchema = {
   __type: "Resource";
@@ -211,6 +394,20 @@ export type UserRoleResourceSchema = {
 
 
 
+export type UserRoleAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "granterId" | "roleType" | "roleStatus" | "grantedAt" | "acceptedAt" | "revokedAt";
+  id: UUID;
+  userId: UUID;
+  granterId: UUID;
+  roleType: "moderator" | "manager";
+  roleStatus: "pending" | "accepted" | "declined";
+  grantedAt: UtcDateTimeUsec;
+  acceptedAt: UtcDateTimeUsec | null;
+  revokedAt: UtcDateTimeUsec | null;
+};
+
+
 // WidgetConfig Schema
 export type WidgetConfigResourceSchema = {
   __type: "Resource";
@@ -224,12 +421,28 @@ export type WidgetConfigResourceSchema = {
 
 
 
+export type WidgetConfigAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "type" | "config";
+  id: UUID;
+  userId: UUID;
+  type: string;
+  config: Record<string, any>;
+};
+
+
 // StreamingAccount Schema
 export type StreamingAccountResourceSchema = {
   __type: "Resource";
   __primitiveFields: never;
 };
 
+
+
+export type StreamingAccountAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
 
 
 // SmartCanvasLayout Schema
@@ -244,6 +457,15 @@ export type SmartCanvasLayoutResourceSchema = {
 
 
 
+export type SmartCanvasLayoutAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "widgets";
+  id: UUID;
+  userId: UUID;
+  widgets: Array<Record<string, any>>;
+};
+
+
 // LiveInput Schema
 export type LiveInputResourceSchema = {
   __type: "Resource";
@@ -255,6 +477,15 @@ export type LiveInputResourceSchema = {
 
 
 
+export type LiveInputAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "userId" | "orientation" | "data";
+  userId: UUID;
+  orientation: "horizontal" | "vertical";
+  data: Record<string, any>;
+};
+
+
 // DiscordWebhook Schema
 export type DiscordWebhookResourceSchema = {
   __type: "Resource";
@@ -262,6 +493,13 @@ export type DiscordWebhookResourceSchema = {
   id: UUID;
 };
 
+
+
+export type DiscordWebhookAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
+};
 
 
 // DiscordActor Schema
@@ -276,6 +514,16 @@ export type DiscordActorResourceSchema = {
 
 
 
+export type DiscordActorAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "data" | "status";
+  id: UUID;
+  type: string;
+  data: Record<string, any>;
+  status: "active" | "paused" | "terminated";
+};
+
+
 // IFTTTWebhook Schema
 export type IFTTTWebhookResourceSchema = {
   __type: "Resource";
@@ -283,6 +531,13 @@ export type IFTTTWebhookResourceSchema = {
   id: UUID;
 };
 
+
+
+export type IFTTTWebhookAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
+};
 
 
 // Notification Schema
@@ -302,6 +557,19 @@ export type NotificationResourceSchema = {
 
 
 
+export type NotificationAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "userId" | "content" | "contentDe" | "contentPl" | "contentEs" | "insertedAt";
+  id: UUID;
+  userId: UUID | null;
+  content: string;
+  contentDe: string | null;
+  contentPl: string | null;
+  contentEs: string | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
 // NotificationRead Schema
 export type NotificationReadResourceSchema = {
   __type: "Resource";
@@ -315,6 +583,15 @@ export type NotificationReadResourceSchema = {
 
 
 
+export type NotificationReadAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "userId" | "notificationId" | "seenAt";
+  userId: UUID;
+  notificationId: UUID;
+  seenAt: UtcDateTimeUsec;
+};
+
+
 // File Schema
 export type FileResourceSchema = {
   __type: "Resource";
@@ -326,6 +603,13 @@ export type FileResourceSchema = {
   maxSize: number | null;
 };
 
+
+
+export type FileAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
+};
 
 
 // SupportTicket Schema
@@ -345,6 +629,19 @@ export type SupportTicketResourceSchema = {
 
 
 
+export type SupportTicketAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  id: UUID;
+  subject: string;
+  status: "open" | "resolved";
+  ticketType: "support" | "feature_request" | "bug_report";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  userId: UUID;
+};
+
+
 // SupportMessage Schema
 export type SupportMessageResourceSchema = {
   __type: "Resource";
@@ -358,6 +655,17 @@ export type SupportMessageResourceSchema = {
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
 };
 
+
+
+export type SupportMessageAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  id: UUID;
+  content: string;
+  insertedAt: UtcDateTimeUsec;
+  ticketId: UUID;
+  userId: UUID;
+};
 
 
 // StreampaiStreamEventDataChatMessageData Schema
@@ -374,6 +682,20 @@ export type StreampaiStreamEventDataChatMessageDataResourceSchema = {
   emotes: Array<Record<string, any>> | null;
 };
 
+
+
+export type StreampaiStreamEventDataChatMessageDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "message" | "username" | "senderChannelId" | "isModerator" | "isPatreon" | "isSentByStreamer" | "deliveryStatus" | "emotes";
+  message: string;
+  username: string;
+  senderChannelId: string | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  isSentByStreamer: boolean | null;
+  deliveryStatus: Record<string, any> | null;
+  emotes: Array<Record<string, any>> | null;
+};
 
 
 export type StreampaiStreamEventDataChatMessageDataInputSchema = {
@@ -407,6 +729,23 @@ export type StreampaiStreamEventDataDonationDataResourceSchema = {
 
 
 
+export type StreampaiStreamEventDataDonationDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "donorName" | "amount" | "currency" | "message" | "platformDonationId" | "username" | "channelId" | "amountMicros" | "amountCents" | "comment" | "metadata";
+  donorName: string;
+  amount: string;
+  currency: string;
+  message: string | null;
+  platformDonationId: string | null;
+  username: string | null;
+  channelId: string | null;
+  amountMicros: string | null;
+  amountCents: number | null;
+  comment: string | null;
+  metadata: Record<string, any> | null;
+};
+
+
 export type StreampaiStreamEventDataDonationDataInputSchema = {
   donorName: string;
   amount: string;
@@ -432,6 +771,14 @@ export type StreampaiStreamEventDataFollowDataResourceSchema = {
 
 
 
+export type StreampaiStreamEventDataFollowDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "displayName";
+  username: string;
+  displayName: string | null;
+};
+
+
 export type StreampaiStreamEventDataFollowDataInputSchema = {
   username: string;
   displayName?: string | null;
@@ -450,6 +797,18 @@ export type StreampaiStreamEventDataSubscriptionDataResourceSchema = {
   metadata: Record<string, any> | null;
 };
 
+
+
+export type StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
+  username: string;
+  tier: string;
+  months: string | null;
+  message: string | null;
+  channelId: string | null;
+  metadata: Record<string, any> | null;
+};
 
 
 export type StreampaiStreamEventDataSubscriptionDataInputSchema = {
@@ -473,6 +832,15 @@ export type StreampaiStreamEventDataRaidDataResourceSchema = {
 
 
 
+export type StreampaiStreamEventDataRaidDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "raiderName" | "viewerCount" | "message";
+  raiderName: string;
+  viewerCount: string;
+  message: string | null;
+};
+
+
 export type StreampaiStreamEventDataRaidDataInputSchema = {
   raiderName: string;
   viewerCount: string;
@@ -493,6 +861,17 @@ export type StreampaiStreamEventDataStreamUpdatedDataResourceSchema = {
 
 
 
+export type StreampaiStreamEventDataStreamUpdatedDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "username" | "title" | "description" | "thumbnailUrl" | "user";
+  username: string | null;
+  title: string | null;
+  description: string | null;
+  thumbnailUrl: string | null;
+  user: Record<string, any> | null;
+};
+
+
 export type StreampaiStreamEventDataStreamUpdatedDataInputSchema = {
   username?: string | null;
   title?: string | null;
@@ -509,6 +888,13 @@ export type StreampaiStreamEventDataPlatformEventDataResourceSchema = {
   platform: string;
 };
 
+
+
+export type StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "platform";
+  platform: string;
+};
 
 
 export type StreampaiStreamEventDataPlatformEventDataInputSchema = {
@@ -713,6 +1099,7 @@ export type StreamEventFilterInput = {
   wasDisplayed?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   insertedAt?: {
@@ -772,21 +1159,25 @@ export type StreamViewerFilterInput = {
   isVerified?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   isOwner?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   isModerator?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   isPatreon?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   notes?: {
@@ -1124,6 +1515,106 @@ export type HighlightedMessageFilterInput = {
   user?: UserFilterInput;
 
 };
+export type ChatBotConfigFilterInput = {
+  and?: Array<ChatBotConfigFilterInput>;
+  or?: Array<ChatBotConfigFilterInput>;
+  not?: Array<ChatBotConfigFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  enabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  greetingEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  greetingMessage?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  commandPrefix?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiChatEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  aiPersonality?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiBotName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiProvider?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  autoShoutoutEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  linkProtectionEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  slowModeOnRaidEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
 export type StreamActionFilterInput = {
   and?: Array<StreamActionFilterInput>;
   or?: Array<StreamActionFilterInput>;
@@ -1175,6 +1666,7 @@ export type UserFilterInput = {
   emailNotifications?: {
     eq?: boolean;
     notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   minDonationAmount?: {
@@ -2022,20 +2514,20 @@ export type StreampaiStreamEventDataPlatformEventDataFilterInput = {
 // Utility Types
 
 // Resource schema constraint
-type TypedSchema = {
+export type TypedSchema = {
   __type: "Resource" | "TypedMap" | "Union";
   __primitiveFields: string;
 };
 
 // Utility type to convert union to intersection
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
 ) => void
   ? I
   : never;
 
 // Helper type to infer union field values, avoiding duplication between array and non-array unions
-type InferUnionFieldValue<
+export type InferUnionFieldValue<
   UnionSchema extends { __type: "Union"; __primitiveFields: any },
   FieldSelection extends any[],
 > = UnionToIntersection<
@@ -2047,34 +2539,34 @@ type InferUnionFieldValue<
       : FieldSelection[FieldIndex] extends Record<string, any>
         ? {
             [UnionKey in keyof FieldSelection[FieldIndex]]: UnionKey extends keyof UnionSchema
-              ? UnionSchema[UnionKey] extends { __array: true; __type: "TypedMap"; __primitiveFields: infer TypedMapFields }
+              ? NonNullable<UnionSchema[UnionKey]> extends { __array: true; __type: "TypedMap"; __primitiveFields: infer TypedMapFields }
                 ? FieldSelection[FieldIndex][UnionKey] extends any[]
                   ? Array<
                       UnionToIntersection<
                         {
                           [FieldIdx in keyof FieldSelection[FieldIndex][UnionKey]]: FieldSelection[FieldIndex][UnionKey][FieldIdx] extends TypedMapFields
-                            ? FieldSelection[FieldIndex][UnionKey][FieldIdx] extends keyof UnionSchema[UnionKey]
-                              ? { [P in FieldSelection[FieldIndex][UnionKey][FieldIdx]]: UnionSchema[UnionKey][P] }
+                            ? FieldSelection[FieldIndex][UnionKey][FieldIdx] extends keyof NonNullable<UnionSchema[UnionKey]>
+                              ? { [P in FieldSelection[FieldIndex][UnionKey][FieldIdx]]: NonNullable<UnionSchema[UnionKey]>[P] }
                               : never
                             : never;
                         }[number]
                       >
                     > | null
                   : never
-                : UnionSchema[UnionKey] extends { __type: "TypedMap"; __primitiveFields: infer TypedMapFields }
+                : NonNullable<UnionSchema[UnionKey]> extends { __type: "TypedMap"; __primitiveFields: infer TypedMapFields }
                   ? FieldSelection[FieldIndex][UnionKey] extends any[]
                     ? UnionToIntersection<
                         {
                           [FieldIdx in keyof FieldSelection[FieldIndex][UnionKey]]: FieldSelection[FieldIndex][UnionKey][FieldIdx] extends TypedMapFields
-                            ? FieldSelection[FieldIndex][UnionKey][FieldIdx] extends keyof UnionSchema[UnionKey]
-                              ? { [P in FieldSelection[FieldIndex][UnionKey][FieldIdx]]: UnionSchema[UnionKey][P] }
+                            ? FieldSelection[FieldIndex][UnionKey][FieldIdx] extends keyof NonNullable<UnionSchema[UnionKey]>
+                              ? { [P in FieldSelection[FieldIndex][UnionKey][FieldIdx]]: NonNullable<UnionSchema[UnionKey]>[P] }
                               : never
                             : never;
                         }[number]
                       > | null
                     : never
-                  : UnionSchema[UnionKey] extends TypedSchema
-                    ? InferResult<UnionSchema[UnionKey], FieldSelection[FieldIndex][UnionKey]>
+                  : NonNullable<UnionSchema[UnionKey]> extends TypedSchema
+                    ? InferResult<NonNullable<UnionSchema[UnionKey]>, FieldSelection[FieldIndex][UnionKey]>
                     : never
               : never;
           }
@@ -2082,21 +2574,21 @@ type InferUnionFieldValue<
   }[number]
 >;
 
-type HasComplexFields<T extends TypedSchema> = keyof Omit<
+export type HasComplexFields<T extends TypedSchema> = keyof Omit<
   T,
   "__primitiveFields" | "__type" | T["__primitiveFields"]
 > extends never
   ? false
   : true;
 
-type ComplexFieldKeys<T extends TypedSchema> = keyof Omit<
+export type ComplexFieldKeys<T extends TypedSchema> = keyof Omit<
   T,
   "__primitiveFields" | "__type" | T["__primitiveFields"]
 >;
 
-type LeafFieldSelection<T extends TypedSchema> = T["__primitiveFields"];
+export type LeafFieldSelection<T extends TypedSchema> = T["__primitiveFields"];
 
-type ComplexFieldSelection<T extends TypedSchema> = {
+export type ComplexFieldSelection<T extends TypedSchema> = {
   [K in ComplexFieldKeys<T>]?: T[K] extends {
     __type: "Relationship";
     __resource: infer Resource;
@@ -2125,17 +2617,17 @@ type ComplexFieldSelection<T extends TypedSchema> = {
         : T[K] extends { __type: "Union"; __primitiveFields: infer PrimitiveFields }
           ? T[K] extends { __array: true }
             ? (PrimitiveFields | {
-                [UnionKey in keyof Omit<T[K], "__type" | "__primitiveFields" | "__array">]?: T[K][UnionKey] extends { __type: "TypedMap"; __primitiveFields: any }
-                  ? T[K][UnionKey]["__primitiveFields"][]
-                  : T[K][UnionKey] extends TypedSchema
-                    ? UnifiedFieldSelection<T[K][UnionKey]>[]
+                [UnionKey in keyof Omit<T[K], "__type" | "__primitiveFields" | "__array">]?: NonNullable<T[K][UnionKey]> extends { __type: "TypedMap"; __primitiveFields: any }
+                  ? NonNullable<T[K][UnionKey]>["__primitiveFields"][]
+                  : NonNullable<T[K][UnionKey]> extends TypedSchema
+                    ? UnifiedFieldSelection<NonNullable<T[K][UnionKey]>>[]
                     : never;
               })[]
             : (PrimitiveFields | {
-                [UnionKey in keyof Omit<T[K], "__type" | "__primitiveFields">]?: T[K][UnionKey] extends { __type: "TypedMap"; __primitiveFields: any }
-                  ? T[K][UnionKey]["__primitiveFields"][]
-                  : T[K][UnionKey] extends TypedSchema
-                    ? UnifiedFieldSelection<T[K][UnionKey]>[]
+                [UnionKey in keyof Omit<T[K], "__type" | "__primitiveFields">]?: NonNullable<T[K][UnionKey]> extends { __type: "TypedMap"; __primitiveFields: any }
+                  ? NonNullable<T[K][UnionKey]>["__primitiveFields"][]
+                  : NonNullable<T[K][UnionKey]> extends TypedSchema
+                    ? UnifiedFieldSelection<NonNullable<T[K][UnionKey]>>[]
                     : never;
               })[]
             : NonNullable<T[K]> extends TypedSchema
@@ -2144,12 +2636,12 @@ type ComplexFieldSelection<T extends TypedSchema> = {
 };
 
 // Main type: Use explicit base case detection to prevent infinite recursion
-type UnifiedFieldSelection<T extends TypedSchema> =
+export type UnifiedFieldSelection<T extends TypedSchema> =
   HasComplexFields<T> extends false
     ? LeafFieldSelection<T> // Base case: only primitives, no recursion
     : LeafFieldSelection<T> | ComplexFieldSelection<T>; // Recursive case
 
-type InferFieldValue<
+export type InferFieldValue<
   T extends TypedSchema,
   Field,
 > = Field extends T["__primitiveFields"]
@@ -2285,20 +2777,16 @@ type InferFieldValue<
                   : never
               : T[K] extends { __type: "Union"; __primitiveFields: any }
                 ? T[K] extends { __array: true }
-                  ? {
-                      [CurrentK in K]: T[CurrentK] extends { __type: "Union"; __primitiveFields: any }
-                        ? Field[CurrentK] extends any[]
-                          ? Array<InferUnionFieldValue<T[CurrentK], Field[CurrentK]>> | null
-                          : never
-                        : never
-                    }
-                  : {
-                      [CurrentK in K]: T[CurrentK] extends { __type: "Union"; __primitiveFields: any }
-                        ? Field[CurrentK] extends any[]
-                          ? InferUnionFieldValue<T[CurrentK], Field[CurrentK]> | null
-                          : never
-                        : never
-                    }
+                  ? Field[K] extends any[]
+                    ? null extends T[K]
+                      ? Array<InferUnionFieldValue<T[K], Field[K]>> | null
+                      : Array<InferUnionFieldValue<T[K], Field[K]>>
+                    : never
+                  : Field[K] extends any[]
+                    ? null extends T[K]
+                      ? InferUnionFieldValue<T[K], Field[K]> | null
+                      : InferUnionFieldValue<T[K], Field[K]>
+                    : never
                   : NonNullable<T[K]> extends TypedSchema
                     ? null extends T[K]
                       ? InferResult<NonNullable<T[K]>, Field[K]> | null
@@ -2308,7 +2796,7 @@ type InferFieldValue<
       }
     : never;
 
-type InferResult<
+export type InferResult<
   T extends TypedSchema,
   SelectedFields extends UnifiedFieldSelection<T>[] | undefined,
 > = SelectedFields extends undefined
@@ -2325,14 +2813,14 @@ type InferResult<
 
 // Pagination conditional types
 // Checks if a page configuration object has any pagination parameters
-type HasPaginationParams<Page> =
+export type HasPaginationParams<Page> =
   Page extends { offset: any } ? true :
   Page extends { after: any } ? true :
   Page extends { before: any } ? true :
   false;
 
 // Infer which pagination type is being used from the page config
-type InferPaginationType<Page> =
+export type InferPaginationType<Page> =
   Page extends { offset: any } ? "offset" :
   Page extends { after: any } | { before: any } ? "keyset" :
   never;
@@ -2341,7 +2829,7 @@ type InferPaginationType<Page> =
 // For single pagination type support (offset-only or keyset-only)
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ConditionalPaginatedResult<
+export type ConditionalPaginatedResult<
   Page,
   RecordType,
   PaginatedType
@@ -2353,7 +2841,7 @@ type ConditionalPaginatedResult<
 
 // For actions supporting both offset and keyset pagination
 // Infers the specific pagination type based on which params were passed
-type ConditionalPaginatedResultMixed<
+export type ConditionalPaginatedResultMixed<
   Page,
   RecordType,
   OffsetType,
@@ -2559,7 +3047,7 @@ export function buildCSRFHeaders(headers: Record<string, string> = {}): Record<s
  * Handles hooks, request configuration, fetch execution, and error handling
  * @param config Configuration matching ActionConfig
  */
-async function executeActionRpcRequest<T>(
+export async function executeActionRpcRequest<T>(
   payload: Record<string, any>,
   config: ActionConfig
 ): Promise<T> {
@@ -2570,14 +3058,14 @@ async function executeActionRpcRequest<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...config.headers,
     ...processedConfig.headers,
+    ...config.headers,
   };
 
   const fetchFunction = config.customFetch || processedConfig.customFetch || fetch;
   const fetchOptions: RequestInit = {
-    ...config.fetchOptions,
     ...processedConfig.fetchOptions,
+    ...config.fetchOptions,
     method: "POST",
     headers,
     body: JSON.stringify(payload),
@@ -2615,7 +3103,7 @@ async function executeActionRpcRequest<T>(
  * Handles hooks and channel push with receive handlers
  * @param config Configuration matching ActionChannelConfig
  */
-async function executeActionChannelPush<T>(
+export async function executeActionChannelPush<T>(
   channel: any,
   payload: Record<string, any>,
   timeout: number | undefined,
@@ -2672,8 +3160,14 @@ export type GetStreamHistoryResult<Fields extends GetStreamHistoryFields> = | { 
 
 ;
 
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
   config: {
+  tenant?: string;
   input: GetStreamHistoryInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -2686,6 +3180,7 @@ export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
 ): Promise<GetStreamHistoryResult<Fields>> {
   const payload = {
     action: "get_stream_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2699,8 +3194,14 @@ export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
 }
 
 
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamHistoryChannel<Fields extends GetStreamHistoryFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetStreamHistoryInput;
   fields: Fields;
   filter?: LivestreamFilterInput;
@@ -2714,6 +3215,7 @@ export async function getStreamHistoryChannel<Fields extends GetStreamHistoryFie
     config.channel,
     {
     action: "get_stream_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2735,8 +3237,14 @@ export type GetLivestreamResult<Fields extends GetLivestreamFields> = | { succes
 
 ;
 
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestream<Fields extends GetLivestreamFields>(
   config: {
+  tenant?: string;
   hookCtx?: ActionHookContext;
   getBy: {
     id: UUID;
@@ -2749,6 +3257,7 @@ export async function getLivestream<Fields extends GetLivestreamFields>(
 ): Promise<GetLivestreamResult<Fields>> {
   const payload = {
     action: "get_livestream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     getBy: config.getBy,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -2760,8 +3269,14 @@ export async function getLivestream<Fields extends GetLivestreamFields>(
 }
 
 
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestreamChannel<Fields extends GetLivestreamFields>(config: {
   channel: Channel;
+  tenant?: string;
   getBy: {
     id: UUID;
   };
@@ -2775,6 +3290,7 @@ export async function getLivestreamChannel<Fields extends GetLivestreamFields>(c
     config.channel,
     {
     action: "get_livestream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     getBy: config.getBy,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -2798,8 +3314,14 @@ export type GetLivestreamEventsResult<Fields extends GetLivestreamEventsFields> 
 
 ;
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestreamEvents<Fields extends GetLivestreamEventsFields>(
   config: {
+  tenant?: string;
   input: GetLivestreamEventsInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -2812,6 +3334,7 @@ export async function getLivestreamEvents<Fields extends GetLivestreamEventsFiel
 ): Promise<GetLivestreamEventsResult<Fields>> {
   const payload = {
     action: "get_livestream_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2825,8 +3348,14 @@ export async function getLivestreamEvents<Fields extends GetLivestreamEventsFiel
 }
 
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestreamEventsChannel<Fields extends GetLivestreamEventsFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetLivestreamEventsInput;
   fields: Fields;
   filter?: StreamEventFilterInput;
@@ -2840,6 +3369,7 @@ export async function getLivestreamEventsChannel<Fields extends GetLivestreamEve
     config.channel,
     {
     action: "get_livestream_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2866,8 +3396,14 @@ export type GetViewerEventsResult<Fields extends GetViewerEventsFields> = | { su
 
 ;
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getViewerEvents<Fields extends GetViewerEventsFields>(
   config: {
+  tenant?: string;
   input: GetViewerEventsInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -2880,6 +3416,7 @@ export async function getViewerEvents<Fields extends GetViewerEventsFields>(
 ): Promise<GetViewerEventsResult<Fields>> {
   const payload = {
     action: "get_viewer_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2893,8 +3430,14 @@ export async function getViewerEvents<Fields extends GetViewerEventsFields>(
 }
 
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getViewerEventsChannel<Fields extends GetViewerEventsFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetViewerEventsInput;
   fields: Fields;
   filter?: StreamEventFilterInput;
@@ -2908,6 +3451,7 @@ export async function getViewerEventsChannel<Fields extends GetViewerEventsField
     config.channel,
     {
     action: "get_viewer_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -2930,8 +3474,14 @@ export type MarkStreamEventDisplayedResult<Fields extends MarkStreamEventDisplay
 
 ;
 
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
 export async function markStreamEventDisplayed<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -2942,6 +3492,7 @@ export async function markStreamEventDisplayed<Fields extends MarkStreamEventDis
 ): Promise<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "mark_stream_event_displayed",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -2953,8 +3504,14 @@ export async function markStreamEventDisplayed<Fields extends MarkStreamEventDis
 }
 
 
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
 export async function markStreamEventDisplayedChannel<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: MarkStreamEventDisplayedResult<Fields>) => void;
@@ -2966,6 +3523,7 @@ export async function markStreamEventDisplayedChannel<Fields extends MarkStreamE
     config.channel,
     {
     action: "mark_stream_event_displayed",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3001,6 +3559,7 @@ export type InferGetChatHistoryResult<
 }>;
 
 export type GetChatHistoryConfig = {
+  tenant?: string;
   input: GetChatHistoryInput;
   hookCtx?: ActionHookContext;
   fields: GetChatHistoryFields;
@@ -3023,11 +3582,17 @@ export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page exten
 
 ;
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
   config: Config & { fields: Fields }
 ): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
   const payload = {
     action: "get_chat_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3042,8 +3607,14 @@ export async function getChatHistory<Fields extends GetChatHistoryFields, Config
 }
 
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetChatHistoryInput;
   fields: Fields;
   filter?: StreamEventFilterInput;
@@ -3064,6 +3635,7 @@ export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>
     config.channel,
     {
     action: "get_chat_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3090,8 +3662,14 @@ export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | 
 
 ;
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
   config: {
+  tenant?: string;
   input: GetLivestreamChatInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3104,6 +3682,7 @@ export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
 ): Promise<GetLivestreamChatResult<Fields>> {
   const payload = {
     action: "get_livestream_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3117,8 +3696,14 @@ export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
 }
 
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getLivestreamChatChannel<Fields extends GetLivestreamChatFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetLivestreamChatInput;
   fields: Fields;
   filter?: StreamEventFilterInput;
@@ -3132,6 +3717,7 @@ export async function getLivestreamChatChannel<Fields extends GetLivestreamChatF
     config.channel,
     {
     action: "get_livestream_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3158,8 +3744,14 @@ export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { succes
 
 ;
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getViewerChat<Fields extends GetViewerChatFields>(
   config: {
+  tenant?: string;
   input: GetViewerChatInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3172,6 +3764,7 @@ export async function getViewerChat<Fields extends GetViewerChatFields>(
 ): Promise<GetViewerChatResult<Fields>> {
   const payload = {
     action: "get_viewer_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3185,8 +3778,14 @@ export async function getViewerChat<Fields extends GetViewerChatFields>(
 }
 
 
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
 export async function getViewerChatChannel<Fields extends GetViewerChatFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetViewerChatInput;
   fields: Fields;
   filter?: StreamEventFilterInput;
@@ -3200,6 +3799,7 @@ export async function getViewerChatChannel<Fields extends GetViewerChatFields>(c
     config.channel,
     {
     action: "get_viewer_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3222,8 +3822,14 @@ export type ReplayAlertResult<Fields extends ReplayAlertFields | undefined = und
 
 ;
 
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
 export async function replayAlert<Fields extends ReplayAlertFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -3234,6 +3840,7 @@ export async function replayAlert<Fields extends ReplayAlertFields | undefined =
 ): Promise<ReplayAlertResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "replay_alert",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -3245,8 +3852,14 @@ export async function replayAlert<Fields extends ReplayAlertFields | undefined =
 }
 
 
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
 export async function replayAlertChannel<Fields extends ReplayAlertFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: ReplayAlertResult<Fields>) => void;
@@ -3258,6 +3871,7 @@ export async function replayAlertChannel<Fields extends ReplayAlertFields | unde
     config.channel,
     {
     action: "replay_alert",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3290,6 +3904,7 @@ export type InferListViewersResult<
 }>;
 
 export type ListViewersConfig = {
+  tenant?: string;
   input: ListViewersInput;
   hookCtx?: ActionHookContext;
   fields: ListViewersFields;
@@ -3312,11 +3927,17 @@ export type ListViewersResult<Fields extends ListViewersFields, Page extends Lis
 
 ;
 
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
 export async function listViewers<Fields extends ListViewersFields, Config extends ListViewersConfig = ListViewersConfig>(
   config: Config & { fields: Fields }
 ): Promise<ListViewersResult<Fields, Config["page"]>> {
   const payload = {
     action: "list_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3331,8 +3952,14 @@ export async function listViewers<Fields extends ListViewersFields, Config exten
 }
 
 
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
 export async function listViewersChannel<Fields extends ListViewersFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: ListViewersInput;
   fields: Fields;
   filter?: StreamViewerFilterInput;
@@ -3353,6 +3980,7 @@ export async function listViewersChannel<Fields extends ListViewersFields>(confi
     config.channel,
     {
     action: "list_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3381,8 +4009,14 @@ export type SearchViewersResult<Fields extends SearchViewersFields> = | { succes
 
 ;
 
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
 export async function searchViewers<Fields extends SearchViewersFields>(
   config: {
+  tenant?: string;
   input: SearchViewersInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3395,6 +4029,7 @@ export async function searchViewers<Fields extends SearchViewersFields>(
 ): Promise<SearchViewersResult<Fields>> {
   const payload = {
     action: "search_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3408,8 +4043,14 @@ export async function searchViewers<Fields extends SearchViewersFields>(
 }
 
 
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
 export async function searchViewersChannel<Fields extends SearchViewersFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: SearchViewersInput;
   fields: Fields;
   filter?: StreamViewerFilterInput;
@@ -3423,6 +4064,7 @@ export async function searchViewersChannel<Fields extends SearchViewersFields>(c
     config.channel,
     {
     action: "search_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3448,8 +4090,14 @@ export type ListBannedViewersResult<Fields extends ListBannedViewersFields> = | 
 
 ;
 
+/**
+ * Read BannedViewer records
+ *
+ * @ashActionType :read
+ */
 export async function listBannedViewers<Fields extends ListBannedViewersFields>(
   config: {
+  tenant?: string;
   input: ListBannedViewersInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3462,6 +4110,7 @@ export async function listBannedViewers<Fields extends ListBannedViewersFields>(
 ): Promise<ListBannedViewersResult<Fields>> {
   const payload = {
     action: "list_banned_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3475,8 +4124,14 @@ export async function listBannedViewers<Fields extends ListBannedViewersFields>(
 }
 
 
+/**
+ * Read BannedViewer records
+ *
+ * @ashActionType :read
+ */
 export async function listBannedViewersChannel<Fields extends ListBannedViewersFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: ListBannedViewersInput;
   fields: Fields;
   filter?: BannedViewerFilterInput;
@@ -3490,6 +4145,7 @@ export async function listBannedViewersChannel<Fields extends ListBannedViewersF
     config.channel,
     {
     action: "list_banned_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3515,8 +4171,14 @@ export type GetCurrentStreamDataResult<Fields extends GetCurrentStreamDataFields
 
 ;
 
+/**
+ * Read CurrentStreamData records
+ *
+ * @ashActionType :read
+ */
 export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFields>(
   config: {
+  tenant?: string;
   input: GetCurrentStreamDataInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3527,6 +4189,7 @@ export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFi
 ): Promise<GetCurrentStreamDataResult<Fields>> {
   const payload = {
     action: "get_current_stream_data",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -3538,8 +4201,14 @@ export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFi
 }
 
 
+/**
+ * Read CurrentStreamData records
+ *
+ * @ashActionType :read
+ */
 export async function getCurrentStreamDataChannel<Fields extends GetCurrentStreamDataFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetCurrentStreamDataInput;
   fields: Fields;
   resultHandler: (result: GetCurrentStreamDataResult<Fields>) => void;
@@ -3551,6 +4220,7 @@ export async function getCurrentStreamDataChannel<Fields extends GetCurrentStrea
     config.channel,
     {
     action: "get_current_stream_data",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3575,8 +4245,14 @@ export type HighlightStreamMessageResult<Fields extends HighlightStreamMessageFi
 
 ;
 
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
 export async function highlightStreamMessage<Fields extends HighlightStreamMessageFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: HighlightStreamMessageInput;
   hookCtx?: ActionHookContext;
@@ -3588,6 +4264,7 @@ export async function highlightStreamMessage<Fields extends HighlightStreamMessa
 ): Promise<HighlightStreamMessageResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "highlight_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3600,8 +4277,14 @@ export async function highlightStreamMessage<Fields extends HighlightStreamMessa
 }
 
 
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
 export async function highlightStreamMessageChannel<Fields extends HighlightStreamMessageFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: HighlightStreamMessageInput;
   fields?: Fields;
@@ -3614,6 +4297,7 @@ export async function highlightStreamMessageChannel<Fields extends HighlightStre
     config.channel,
     {
     action: "highlight_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3635,8 +4319,14 @@ export type ClearStreamHighlightResult<Fields extends ClearStreamHighlightFields
 
 ;
 
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
 export async function clearStreamHighlight<Fields extends ClearStreamHighlightFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -3647,6 +4337,7 @@ export async function clearStreamHighlight<Fields extends ClearStreamHighlightFi
 ): Promise<ClearStreamHighlightResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "clear_stream_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -3658,8 +4349,14 @@ export async function clearStreamHighlight<Fields extends ClearStreamHighlightFi
 }
 
 
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
 export async function clearStreamHighlightChannel<Fields extends ClearStreamHighlightFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: ClearStreamHighlightResult<Fields>) => void;
@@ -3671,6 +4368,7 @@ export async function clearStreamHighlightChannel<Fields extends ClearStreamHigh
     config.channel,
     {
     action: "clear_stream_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3694,8 +4392,14 @@ export type GetStreamTimersResult<Fields extends GetStreamTimersFields> = | { su
 
 ;
 
+/**
+ * Read StreamTimer records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamTimers<Fields extends GetStreamTimersFields>(
   config: {
+  tenant?: string;
   input: GetStreamTimersInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -3708,6 +4412,7 @@ export async function getStreamTimers<Fields extends GetStreamTimersFields>(
 ): Promise<GetStreamTimersResult<Fields>> {
   const payload = {
     action: "get_stream_timers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3721,8 +4426,14 @@ export async function getStreamTimers<Fields extends GetStreamTimersFields>(
 }
 
 
+/**
+ * Read StreamTimer records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamTimersChannel<Fields extends GetStreamTimersFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetStreamTimersInput;
   fields: Fields;
   filter?: StreamTimerFilterInput;
@@ -3736,6 +4447,7 @@ export async function getStreamTimersChannel<Fields extends GetStreamTimersField
     config.channel,
     {
     action: "get_stream_timers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -3764,8 +4476,14 @@ export type CreateStreamTimerResult<Fields extends CreateStreamTimerFields | und
 
 ;
 
+/**
+ * Create a new StreamTimer
+ *
+ * @ashActionType :create
+ */
 export async function createStreamTimer<Fields extends CreateStreamTimerFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: CreateStreamTimerInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -3776,6 +4494,7 @@ export async function createStreamTimer<Fields extends CreateStreamTimerFields |
 ): Promise<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "create_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -3787,8 +4506,14 @@ export async function createStreamTimer<Fields extends CreateStreamTimerFields |
 }
 
 
+/**
+ * Create a new StreamTimer
+ *
+ * @ashActionType :create
+ */
 export async function createStreamTimerChannel<Fields extends CreateStreamTimerFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: CreateStreamTimerInput;
   fields?: Fields;
   resultHandler: (result: CreateStreamTimerResult<Fields>) => void;
@@ -3800,6 +4525,7 @@ export async function createStreamTimerChannel<Fields extends CreateStreamTimerF
     config.channel,
     {
     action: "create_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -3826,8 +4552,14 @@ export type UpdateStreamTimerResult<Fields extends UpdateStreamTimerFields | und
 
 ;
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function updateStreamTimer<Fields extends UpdateStreamTimerFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: UpdateStreamTimerInput;
   hookCtx?: ActionHookContext;
@@ -3839,6 +4571,7 @@ export async function updateStreamTimer<Fields extends UpdateStreamTimerFields |
 ): Promise<UpdateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "update_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3851,8 +4584,14 @@ export async function updateStreamTimer<Fields extends UpdateStreamTimerFields |
 }
 
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function updateStreamTimerChannel<Fields extends UpdateStreamTimerFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: UpdateStreamTimerInput;
   fields?: Fields;
@@ -3865,6 +4604,7 @@ export async function updateStreamTimerChannel<Fields extends UpdateStreamTimerF
     config.channel,
     {
     action: "update_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3890,8 +4630,14 @@ export type EnableStreamTimerResult<Fields extends EnableStreamTimerFields | und
 
 ;
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function enableStreamTimer<Fields extends EnableStreamTimerFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: EnableStreamTimerInput;
   hookCtx?: ActionHookContext;
@@ -3903,6 +4649,7 @@ export async function enableStreamTimer<Fields extends EnableStreamTimerFields |
 ): Promise<EnableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "enable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3915,8 +4662,14 @@ export async function enableStreamTimer<Fields extends EnableStreamTimerFields |
 }
 
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function enableStreamTimerChannel<Fields extends EnableStreamTimerFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: EnableStreamTimerInput;
   fields?: Fields;
@@ -3929,6 +4682,7 @@ export async function enableStreamTimerChannel<Fields extends EnableStreamTimerF
     config.channel,
     {
     action: "enable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3954,8 +4708,14 @@ export type DisableStreamTimerResult<Fields extends DisableStreamTimerFields | u
 
 ;
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function disableStreamTimer<Fields extends DisableStreamTimerFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: DisableStreamTimerInput;
   hookCtx?: ActionHookContext;
@@ -3967,6 +4727,7 @@ export async function disableStreamTimer<Fields extends DisableStreamTimerFields
 ): Promise<DisableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "disable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -3979,8 +4740,14 @@ export async function disableStreamTimer<Fields extends DisableStreamTimerFields
 }
 
 
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
 export async function disableStreamTimerChannel<Fields extends DisableStreamTimerFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: DisableStreamTimerInput;
   fields?: Fields;
@@ -3993,6 +4760,7 @@ export async function disableStreamTimerChannel<Fields extends DisableStreamTime
     config.channel,
     {
     action: "disable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4009,8 +4777,14 @@ export type DeleteStreamTimerResult = | { success: true; data: {}; }
 
 ;
 
+/**
+ * Delete a StreamTimer
+ *
+ * @ashActionType :destroy
+ */
 export async function deleteStreamTimer(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4020,6 +4794,7 @@ export async function deleteStreamTimer(
 ): Promise<DeleteStreamTimerResult> {
   const payload = {
     action: "delete_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   };
 
@@ -4030,8 +4805,14 @@ export async function deleteStreamTimer(
 }
 
 
+/**
+ * Delete a StreamTimer
+ *
+ * @ashActionType :destroy
+ */
 export async function deleteStreamTimerChannel(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   resultHandler: (result: DeleteStreamTimerResult) => void;
   errorHandler?: (error: any) => void;
@@ -4042,6 +4823,7 @@ export async function deleteStreamTimerChannel(config: {
     config.channel,
     {
     action: "delete_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   },
     config.timeout,
@@ -4071,8 +4853,14 @@ export type HighlightMessageResult<Fields extends HighlightMessageFields | undef
 
 ;
 
+/**
+ * Create a new HighlightedMessage
+ *
+ * @ashActionType :create
+ */
 export async function highlightMessage<Fields extends HighlightMessageFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: HighlightMessageInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -4083,6 +4871,7 @@ export async function highlightMessage<Fields extends HighlightMessageFields | u
 ): Promise<HighlightMessageResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "highlight_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -4094,8 +4883,14 @@ export async function highlightMessage<Fields extends HighlightMessageFields | u
 }
 
 
+/**
+ * Create a new HighlightedMessage
+ *
+ * @ashActionType :create
+ */
 export async function highlightMessageChannel<Fields extends HighlightMessageFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: HighlightMessageInput;
   fields?: Fields;
   resultHandler: (result: HighlightMessageResult<Fields>) => void;
@@ -4107,6 +4902,7 @@ export async function highlightMessageChannel<Fields extends HighlightMessageFie
     config.channel,
     {
     action: "highlight_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -4127,8 +4923,14 @@ export type ClearHighlightResult = | { success: true; data: InferClearHighlightR
 
 ;
 
+/**
+ * Execute generic action on HighlightedMessage
+ *
+ * @ashActionType :action
+ */
 export async function clearHighlight(
   config: {
+  tenant?: string;
   input: ClearHighlightInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4138,6 +4940,7 @@ export async function clearHighlight(
 ): Promise<ClearHighlightResult> {
   const payload = {
     action: "clear_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4148,8 +4951,14 @@ export async function clearHighlight(
 }
 
 
+/**
+ * Execute generic action on HighlightedMessage
+ *
+ * @ashActionType :action
+ */
 export async function clearHighlightChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: ClearHighlightInput;
   resultHandler: (result: ClearHighlightResult) => void;
   errorHandler?: (error: any) => void;
@@ -4160,6 +4969,7 @@ export async function clearHighlightChannel(config: {
     config.channel,
     {
     action: "clear_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4182,8 +4992,14 @@ export type GetHighlightedMessageResult<Fields extends GetHighlightedMessageFiel
 
 ;
 
+/**
+ * Read HighlightedMessage records
+ *
+ * @ashActionType :read
+ */
 export async function getHighlightedMessage<Fields extends GetHighlightedMessageFields>(
   config: {
+  tenant?: string;
   input: GetHighlightedMessageInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -4196,6 +5012,7 @@ export async function getHighlightedMessage<Fields extends GetHighlightedMessage
 ): Promise<GetHighlightedMessageResult<Fields>> {
   const payload = {
     action: "get_highlighted_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -4209,8 +5026,14 @@ export async function getHighlightedMessage<Fields extends GetHighlightedMessage
 }
 
 
+/**
+ * Read HighlightedMessage records
+ *
+ * @ashActionType :read
+ */
 export async function getHighlightedMessageChannel<Fields extends GetHighlightedMessageFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetHighlightedMessageInput;
   fields: Fields;
   filter?: HighlightedMessageFilterInput;
@@ -4224,10 +5047,264 @@ export async function getHighlightedMessageChannel<Fields extends GetHighlighted
     config.channel,
     {
     action: "get_highlighted_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetChatBotConfigInput = {
+  userId: UUID;
+};
+
+export type GetChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+export type InferGetChatBotConfigResult<
+  Fields extends GetChatBotConfigFields,
+> = Array<InferResult<ChatBotConfigResourceSchema, Fields>>;
+
+export type GetChatBotConfigResult<Fields extends GetChatBotConfigFields> = | { success: true; data: InferGetChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read ChatBotConfig records
+ *
+ * @ashActionType :read
+ */
+export async function getChatBotConfig<Fields extends GetChatBotConfigFields>(
+  config: {
+  tenant?: string;
+  input: GetChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: ChatBotConfigFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetChatBotConfigResult<Fields>> {
+  const payload = {
+    action: "get_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetChatBotConfigResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read ChatBotConfig records
+ *
+ * @ashActionType :read
+ */
+export async function getChatBotConfigChannel<Fields extends GetChatBotConfigFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetChatBotConfigInput;
+  fields: Fields;
+  filter?: ChatBotConfigFilterInput;
+  sort?: string;
+  resultHandler: (result: GetChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "get_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpsertChatBotConfigInput = {
+  enabled?: boolean;
+  greetingEnabled?: boolean;
+  greetingMessage?: string;
+  commandPrefix?: string;
+  aiChatEnabled?: boolean;
+  aiPersonality?: string | null;
+  aiBotName?: string;
+  aiProvider?: string;
+  autoShoutoutEnabled?: boolean;
+  linkProtectionEnabled?: boolean;
+  slowModeOnRaidEnabled?: boolean;
+};
+
+export type UpsertChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+
+export type InferUpsertChatBotConfigResult<
+  Fields extends UpsertChatBotConfigFields | undefined,
+> = InferResult<ChatBotConfigResourceSchema, Fields>;
+
+export type UpsertChatBotConfigResult<Fields extends UpsertChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpsertChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new ChatBotConfig
+ *
+ * @ashActionType :create
+ */
+export async function upsertChatBotConfig<Fields extends UpsertChatBotConfigFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input?: UpsertChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "upsert_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new ChatBotConfig
+ *
+ * @ashActionType :create
+ */
+export async function upsertChatBotConfigChannel<Fields extends UpsertChatBotConfigFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input?: UpsertChatBotConfigInput;
+  fields?: Fields;
+  resultHandler: (result: UpsertChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpsertChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "upsert_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateChatBotConfigInput = {
+  enabled?: boolean;
+  greetingEnabled?: boolean;
+  greetingMessage?: string;
+  commandPrefix?: string;
+  aiChatEnabled?: boolean;
+  aiPersonality?: string | null;
+  aiBotName?: string;
+  aiProvider?: string;
+  autoShoutoutEnabled?: boolean;
+  linkProtectionEnabled?: boolean;
+  slowModeOnRaidEnabled?: boolean;
+};
+
+export type UpdateChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+
+export type InferUpdateChatBotConfigResult<
+  Fields extends UpdateChatBotConfigFields | undefined,
+> = InferResult<ChatBotConfigResourceSchema, Fields>;
+
+export type UpdateChatBotConfigResult<Fields extends UpdateChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpdateChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing ChatBotConfig
+ *
+ * @ashActionType :update
+ */
+export async function updateChatBotConfig<Fields extends UpdateChatBotConfigFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input?: UpdateChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing ChatBotConfig
+ *
+ * @ashActionType :update
+ */
+export async function updateChatBotConfigChannel<Fields extends UpdateChatBotConfigFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input?: UpdateChatBotConfigInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "update_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config
@@ -4250,8 +5327,14 @@ export type GoLiveResult = | { success: true; data: InferGoLiveResult; }
 
 ;
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function goLive(
   config: {
+  tenant?: string;
   input: GoLiveInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4261,6 +5344,7 @@ export async function goLive(
 ): Promise<GoLiveResult> {
   const payload = {
     action: "go_live",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4271,8 +5355,14 @@ export async function goLive(
 }
 
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function goLiveChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: GoLiveInput;
   resultHandler: (result: GoLiveResult) => void;
   errorHandler?: (error: any) => void;
@@ -4283,6 +5373,7 @@ export async function goLiveChannel(config: {
     config.channel,
     {
     action: "go_live",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4302,8 +5393,14 @@ export type StopStreamResult = | { success: true; data: InferStopStreamResult; }
 
 ;
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function stopStream(
   config: {
+  tenant?: string;
   input: StopStreamInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4313,6 +5410,7 @@ export async function stopStream(
 ): Promise<StopStreamResult> {
   const payload = {
     action: "stop_stream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4323,8 +5421,14 @@ export async function stopStream(
 }
 
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function stopStreamChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: StopStreamInput;
   resultHandler: (result: StopStreamResult) => void;
   errorHandler?: (error: any) => void;
@@ -4335,6 +5439,7 @@ export async function stopStreamChannel(config: {
     config.channel,
     {
     action: "stop_stream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4359,8 +5464,14 @@ export type UpdateStreamMetadataResult = | { success: true; data: InferUpdateStr
 
 ;
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function updateStreamMetadata(
   config: {
+  tenant?: string;
   input: UpdateStreamMetadataInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4370,6 +5481,7 @@ export async function updateStreamMetadata(
 ): Promise<UpdateStreamMetadataResult> {
   const payload = {
     action: "update_stream_metadata",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4380,8 +5492,14 @@ export async function updateStreamMetadata(
 }
 
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function updateStreamMetadataChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: UpdateStreamMetadataInput;
   resultHandler: (result: UpdateStreamMetadataResult) => void;
   errorHandler?: (error: any) => void;
@@ -4392,6 +5510,7 @@ export async function updateStreamMetadataChannel(config: {
     config.channel,
     {
     action: "update_stream_metadata",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4413,8 +5532,14 @@ export type SendStreamMessageResult = | { success: true; data: InferSendStreamMe
 
 ;
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function sendStreamMessage(
   config: {
+  tenant?: string;
   input: SendStreamMessageInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4424,6 +5549,7 @@ export async function sendStreamMessage(
 ): Promise<SendStreamMessageResult> {
   const payload = {
     action: "send_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4434,8 +5560,14 @@ export async function sendStreamMessage(
 }
 
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function sendStreamMessageChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: SendStreamMessageInput;
   resultHandler: (result: SendStreamMessageResult) => void;
   errorHandler?: (error: any) => void;
@@ -4446,6 +5578,7 @@ export async function sendStreamMessageChannel(config: {
     config.channel,
     {
     action: "send_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4467,8 +5600,14 @@ export type TogglePlatformResult = | { success: true; data: InferTogglePlatformR
 
 ;
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function togglePlatform(
   config: {
+  tenant?: string;
   input: TogglePlatformInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -4478,6 +5617,7 @@ export async function togglePlatform(
 ): Promise<TogglePlatformResult> {
   const payload = {
     action: "toggle_platform",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -4488,8 +5628,14 @@ export async function togglePlatform(
 }
 
 
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
 export async function togglePlatformChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: TogglePlatformInput;
   resultHandler: (result: TogglePlatformResult) => void;
   errorHandler?: (error: any) => void;
@@ -4500,6 +5646,7 @@ export async function togglePlatformChannel(config: {
     config.channel,
     {
     action: "toggle_platform",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -4518,8 +5665,14 @@ export type GetCurrentUserResult<Fields extends GetCurrentUserFields> = | { succ
 
 ;
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getCurrentUser<Fields extends GetCurrentUserFields>(
   config: {
+  tenant?: string;
   hookCtx?: ActionHookContext;
   fields: Fields;
   headers?: Record<string, string>;
@@ -4529,6 +5682,7 @@ export async function getCurrentUser<Fields extends GetCurrentUserFields>(
 ): Promise<GetCurrentUserResult<Fields>> {
   const payload = {
     action: "get_current_user",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
@@ -4539,8 +5693,14 @@ export async function getCurrentUser<Fields extends GetCurrentUserFields>(
 }
 
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getCurrentUserChannel<Fields extends GetCurrentUserFields>(config: {
   channel: Channel;
+  tenant?: string;
   fields: Fields;
   resultHandler: (result: GetCurrentUserResult<Fields>) => void;
   errorHandler?: (error: any) => void;
@@ -4551,6 +5711,7 @@ export async function getCurrentUserChannel<Fields extends GetCurrentUserFields>
     config.channel,
     {
     action: "get_current_user",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
@@ -4573,8 +5734,14 @@ export type GetPublicProfileResult<Fields extends GetPublicProfileFields> = | { 
 
 ;
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getPublicProfile<Fields extends GetPublicProfileFields>(
   config: {
+  tenant?: string;
   input: GetPublicProfileInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -4585,6 +5752,7 @@ export async function getPublicProfile<Fields extends GetPublicProfileFields>(
 ): Promise<GetPublicProfileResult<Fields>> {
   const payload = {
     action: "get_public_profile",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -4596,8 +5764,14 @@ export async function getPublicProfile<Fields extends GetPublicProfileFields>(
 }
 
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getPublicProfileChannel<Fields extends GetPublicProfileFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetPublicProfileInput;
   fields: Fields;
   resultHandler: (result: GetPublicProfileResult<Fields>) => void;
@@ -4609,6 +5783,7 @@ export async function getPublicProfileChannel<Fields extends GetPublicProfileFie
     config.channel,
     {
     action: "get_public_profile",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -4637,6 +5812,7 @@ export type InferListUsersResult<
 }>;
 
 export type ListUsersConfig = {
+  tenant?: string;
   hookCtx?: ActionHookContext;
   fields: ListUsersFields;
   filter?: UserFilterInput;
@@ -4658,11 +5834,17 @@ export type ListUsersResult<Fields extends ListUsersFields, Page extends ListUse
 
 ;
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function listUsers<Fields extends ListUsersFields, Config extends ListUsersConfig = ListUsersConfig>(
   config: Config & { fields: Fields }
 ): Promise<ListUsersResult<Fields, Config["page"]>> {
   const payload = {
     action: "list_users",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -4676,8 +5858,14 @@ export async function listUsers<Fields extends ListUsersFields, Config extends L
 }
 
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function listUsersChannel<Fields extends ListUsersFields>(config: {
   channel: Channel;
+  tenant?: string;
   fields: Fields;
   filter?: UserFilterInput;
   sort?: string;
@@ -4697,6 +5885,7 @@ export async function listUsersChannel<Fields extends ListUsersFields>(config: {
     config.channel,
     {
     action: "list_users",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -4722,8 +5911,14 @@ export type GetUserByNameResult<Fields extends GetUserByNameFields> = | { succes
 
 ;
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getUserByName<Fields extends GetUserByNameFields>(
   config: {
+  tenant?: string;
   input: GetUserByNameInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -4734,6 +5929,7 @@ export async function getUserByName<Fields extends GetUserByNameFields>(
 ): Promise<GetUserByNameResult<Fields>> {
   const payload = {
     action: "get_user_by_name",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -4745,8 +5941,14 @@ export async function getUserByName<Fields extends GetUserByNameFields>(
 }
 
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getUserByNameChannel<Fields extends GetUserByNameFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetUserByNameInput;
   fields: Fields;
   resultHandler: (result: GetUserByNameResult<Fields>) => void;
@@ -4758,6 +5960,7 @@ export async function getUserByNameChannel<Fields extends GetUserByNameFields>(c
     config.channel,
     {
     action: "get_user_by_name",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -4781,8 +5984,14 @@ export type GetUserInfoResult<Fields extends GetUserInfoFields> = | { success: t
 
 ;
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getUserInfo<Fields extends GetUserInfoFields>(
   config: {
+  tenant?: string;
   input: GetUserInfoInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -4793,6 +6002,7 @@ export async function getUserInfo<Fields extends GetUserInfoFields>(
 ): Promise<GetUserInfoResult<Fields>> {
   const payload = {
     action: "get_user_info",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -4804,8 +6014,14 @@ export async function getUserInfo<Fields extends GetUserInfoFields>(
 }
 
 
+/**
+ * Read User records
+ *
+ * @ashActionType :read
+ */
 export async function getUserInfoChannel<Fields extends GetUserInfoFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetUserInfoInput;
   fields: Fields;
   resultHandler: (result: GetUserInfoResult<Fields>) => void;
@@ -4817,6 +6033,7 @@ export async function getUserInfoChannel<Fields extends GetUserInfoFields>(confi
     config.channel,
     {
     action: "get_user_info",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -4841,8 +6058,14 @@ export type UpdateNameResult<Fields extends UpdateNameFields | undefined = undef
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function updateName<Fields extends UpdateNameFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: UpdateNameInput;
   hookCtx?: ActionHookContext;
@@ -4854,6 +6077,7 @@ export async function updateName<Fields extends UpdateNameFields | undefined = u
 ): Promise<UpdateNameResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "update_name",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4866,8 +6090,14 @@ export async function updateName<Fields extends UpdateNameFields | undefined = u
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function updateNameChannel<Fields extends UpdateNameFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: UpdateNameInput;
   fields?: Fields;
@@ -4880,6 +6110,7 @@ export async function updateNameChannel<Fields extends UpdateNameFields | undefi
     config.channel,
     {
     action: "update_name",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4906,8 +6137,14 @@ export type UpdateAvatarResult<Fields extends UpdateAvatarFields | undefined = u
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function updateAvatar<Fields extends UpdateAvatarFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: UpdateAvatarInput;
   hookCtx?: ActionHookContext;
@@ -4919,6 +6156,7 @@ export async function updateAvatar<Fields extends UpdateAvatarFields | undefined
 ): Promise<UpdateAvatarResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "update_avatar",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4931,8 +6169,14 @@ export async function updateAvatar<Fields extends UpdateAvatarFields | undefined
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function updateAvatarChannel<Fields extends UpdateAvatarFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: UpdateAvatarInput;
   fields?: Fields;
@@ -4945,6 +6189,7 @@ export async function updateAvatarChannel<Fields extends UpdateAvatarFields | un
     config.channel,
     {
     action: "update_avatar",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -4966,8 +6211,14 @@ export type ToggleEmailNotificationsResult<Fields extends ToggleEmailNotificatio
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function toggleEmailNotifications<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -4978,6 +6229,7 @@ export async function toggleEmailNotifications<Fields extends ToggleEmailNotific
 ): Promise<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "toggle_email_notifications",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -4989,8 +6241,14 @@ export async function toggleEmailNotifications<Fields extends ToggleEmailNotific
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function toggleEmailNotificationsChannel<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: ToggleEmailNotificationsResult<Fields>) => void;
@@ -5002,6 +6260,7 @@ export async function toggleEmailNotificationsChannel<Fields extends ToggleEmail
     config.channel,
     {
     action: "toggle_email_notifications",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5029,8 +6288,14 @@ export type SaveDonationSettingsResult<Fields extends SaveDonationSettingsFields
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function saveDonationSettings<Fields extends SaveDonationSettingsFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input?: SaveDonationSettingsInput;
   hookCtx?: ActionHookContext;
@@ -5042,6 +6307,7 @@ export async function saveDonationSettings<Fields extends SaveDonationSettingsFi
 ): Promise<SaveDonationSettingsResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "save_donation_settings",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5054,8 +6320,14 @@ export async function saveDonationSettings<Fields extends SaveDonationSettingsFi
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function saveDonationSettingsChannel<Fields extends SaveDonationSettingsFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input?: SaveDonationSettingsInput;
   fields?: Fields;
@@ -5068,6 +6340,7 @@ export async function saveDonationSettingsChannel<Fields extends SaveDonationSet
     config.channel,
     {
     action: "save_donation_settings",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5093,8 +6366,14 @@ export type SaveLanguagePreferenceResult<Fields extends SaveLanguagePreferenceFi
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function saveLanguagePreference<Fields extends SaveLanguagePreferenceFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: SaveLanguagePreferenceInput;
   hookCtx?: ActionHookContext;
@@ -5106,6 +6385,7 @@ export async function saveLanguagePreference<Fields extends SaveLanguagePreferen
 ): Promise<SaveLanguagePreferenceResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "save_language_preference",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5118,8 +6398,14 @@ export async function saveLanguagePreference<Fields extends SaveLanguagePreferen
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function saveLanguagePreferenceChannel<Fields extends SaveLanguagePreferenceFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: SaveLanguagePreferenceInput;
   fields?: Fields;
@@ -5132,6 +6418,7 @@ export async function saveLanguagePreferenceChannel<Fields extends SaveLanguageP
     config.channel,
     {
     action: "save_language_preference",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5158,8 +6445,14 @@ export type GrantProAccessResult<Fields extends GrantProAccessFields | undefined
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function grantProAccess<Fields extends GrantProAccessFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input: GrantProAccessInput;
   hookCtx?: ActionHookContext;
@@ -5171,6 +6464,7 @@ export async function grantProAccess<Fields extends GrantProAccessFields | undef
 ): Promise<GrantProAccessResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "grant_pro_access",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5183,8 +6477,14 @@ export async function grantProAccess<Fields extends GrantProAccessFields | undef
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function grantProAccessChannel<Fields extends GrantProAccessFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input: GrantProAccessInput;
   fields?: Fields;
@@ -5197,6 +6497,7 @@ export async function grantProAccessChannel<Fields extends GrantProAccessFields 
     config.channel,
     {
     action: "grant_pro_access",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -5218,8 +6519,14 @@ export type RevokeProAccessResult<Fields extends RevokeProAccessFields | undefin
 
 ;
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function revokeProAccess<Fields extends RevokeProAccessFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5230,6 +6537,7 @@ export async function revokeProAccess<Fields extends RevokeProAccessFields | und
 ): Promise<RevokeProAccessResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "revoke_pro_access",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5241,8 +6549,14 @@ export async function revokeProAccess<Fields extends RevokeProAccessFields | und
 }
 
 
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
 export async function revokeProAccessChannel<Fields extends RevokeProAccessFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: RevokeProAccessResult<Fields>) => void;
@@ -5254,6 +6568,7 @@ export async function revokeProAccessChannel<Fields extends RevokeProAccessField
     config.channel,
     {
     action: "revoke_pro_access",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5280,8 +6595,14 @@ export type InviteUserRoleResult<Fields extends InviteUserRoleFields | undefined
 
 ;
 
+/**
+ * Create a new UserRole
+ *
+ * @ashActionType :create
+ */
 export async function inviteUserRole<Fields extends InviteUserRoleFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: InviteUserRoleInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5292,6 +6613,7 @@ export async function inviteUserRole<Fields extends InviteUserRoleFields | undef
 ): Promise<InviteUserRoleResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "invite_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5303,8 +6625,14 @@ export async function inviteUserRole<Fields extends InviteUserRoleFields | undef
 }
 
 
+/**
+ * Create a new UserRole
+ *
+ * @ashActionType :create
+ */
 export async function inviteUserRoleChannel<Fields extends InviteUserRoleFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: InviteUserRoleInput;
   fields?: Fields;
   resultHandler: (result: InviteUserRoleResult<Fields>) => void;
@@ -5316,6 +6644,7 @@ export async function inviteUserRoleChannel<Fields extends InviteUserRoleFields 
     config.channel,
     {
     action: "invite_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5336,8 +6665,14 @@ export type AcceptRoleInvitationResult<Fields extends AcceptRoleInvitationFields
 
 ;
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function acceptRoleInvitation<Fields extends AcceptRoleInvitationFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5348,6 +6683,7 @@ export async function acceptRoleInvitation<Fields extends AcceptRoleInvitationFi
 ): Promise<AcceptRoleInvitationResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "accept_role_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5359,8 +6695,14 @@ export async function acceptRoleInvitation<Fields extends AcceptRoleInvitationFi
 }
 
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function acceptRoleInvitationChannel<Fields extends AcceptRoleInvitationFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: AcceptRoleInvitationResult<Fields>) => void;
@@ -5372,6 +6714,7 @@ export async function acceptRoleInvitationChannel<Fields extends AcceptRoleInvit
     config.channel,
     {
     action: "accept_role_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5392,8 +6735,14 @@ export type DeclineRoleInvitationResult<Fields extends DeclineRoleInvitationFiel
 
 ;
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function declineRoleInvitation<Fields extends DeclineRoleInvitationFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5404,6 +6753,7 @@ export async function declineRoleInvitation<Fields extends DeclineRoleInvitation
 ): Promise<DeclineRoleInvitationResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "decline_role_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5415,8 +6765,14 @@ export async function declineRoleInvitation<Fields extends DeclineRoleInvitation
 }
 
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function declineRoleInvitationChannel<Fields extends DeclineRoleInvitationFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: DeclineRoleInvitationResult<Fields>) => void;
@@ -5428,6 +6784,7 @@ export async function declineRoleInvitationChannel<Fields extends DeclineRoleInv
     config.channel,
     {
     action: "decline_role_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5448,8 +6805,14 @@ export type RevokeUserRoleResult<Fields extends RevokeUserRoleFields | undefined
 
 ;
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function revokeUserRole<Fields extends RevokeUserRoleFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5460,6 +6823,7 @@ export async function revokeUserRole<Fields extends RevokeUserRoleFields | undef
 ): Promise<RevokeUserRoleResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "revoke_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5471,8 +6835,14 @@ export async function revokeUserRole<Fields extends RevokeUserRoleFields | undef
 }
 
 
+/**
+ * Update an existing UserRole
+ *
+ * @ashActionType :update
+ */
 export async function revokeUserRoleChannel<Fields extends RevokeUserRoleFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: RevokeUserRoleResult<Fields>) => void;
@@ -5484,6 +6854,7 @@ export async function revokeUserRoleChannel<Fields extends RevokeUserRoleFields 
     config.channel,
     {
     action: "revoke_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5508,8 +6879,14 @@ export type GetWidgetConfigResult<Fields extends GetWidgetConfigFields> = | { su
 
 ;
 
+/**
+ * Read WidgetConfig records
+ *
+ * @ashActionType :read
+ */
 export async function getWidgetConfig<Fields extends GetWidgetConfigFields>(
   config: {
+  tenant?: string;
   input: GetWidgetConfigInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -5520,6 +6897,7 @@ export async function getWidgetConfig<Fields extends GetWidgetConfigFields>(
 ): Promise<GetWidgetConfigResult<Fields>> {
   const payload = {
     action: "get_widget_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5531,8 +6909,14 @@ export async function getWidgetConfig<Fields extends GetWidgetConfigFields>(
 }
 
 
+/**
+ * Read WidgetConfig records
+ *
+ * @ashActionType :read
+ */
 export async function getWidgetConfigChannel<Fields extends GetWidgetConfigFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetWidgetConfigInput;
   fields: Fields;
   resultHandler: (result: GetWidgetConfigResult<Fields>) => void;
@@ -5544,6 +6928,7 @@ export async function getWidgetConfigChannel<Fields extends GetWidgetConfigField
     config.channel,
     {
     action: "get_widget_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5579,6 +6964,7 @@ export type InferListWidgetConfigsResult<
 }>;
 
 export type ListWidgetConfigsConfig = {
+  tenant?: string;
   hookCtx?: ActionHookContext;
   fields: ListWidgetConfigsFields;
   filter?: WidgetConfigFilterInput;
@@ -5604,11 +6990,17 @@ export type ListWidgetConfigsResult<Fields extends ListWidgetConfigsFields, Page
 
 ;
 
+/**
+ * Read WidgetConfig records
+ *
+ * @ashActionType :read
+ */
 export async function listWidgetConfigs<Fields extends ListWidgetConfigsFields, Config extends ListWidgetConfigsConfig = ListWidgetConfigsConfig>(
   config: Config & { fields: Fields }
 ): Promise<ListWidgetConfigsResult<Fields, Config["page"]>> {
   const payload = {
     action: "list_widget_configs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -5622,8 +7014,14 @@ export async function listWidgetConfigs<Fields extends ListWidgetConfigsFields, 
 }
 
 
+/**
+ * Read WidgetConfig records
+ *
+ * @ashActionType :read
+ */
 export async function listWidgetConfigsChannel<Fields extends ListWidgetConfigsFields>(config: {
   channel: Channel;
+  tenant?: string;
   fields: Fields;
   filter?: WidgetConfigFilterInput;
   sort?: string;
@@ -5647,6 +7045,7 @@ export async function listWidgetConfigsChannel<Fields extends ListWidgetConfigsF
     config.channel,
     {
     action: "list_widget_configs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -5675,8 +7074,14 @@ export type SaveWidgetConfigResult<Fields extends SaveWidgetConfigFields | undef
 
 ;
 
+/**
+ * Create a new WidgetConfig
+ *
+ * @ashActionType :create
+ */
 export async function saveWidgetConfig<Fields extends SaveWidgetConfigFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: SaveWidgetConfigInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5687,6 +7092,7 @@ export async function saveWidgetConfig<Fields extends SaveWidgetConfigFields | u
 ): Promise<SaveWidgetConfigResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "save_widget_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5698,8 +7104,14 @@ export async function saveWidgetConfig<Fields extends SaveWidgetConfigFields | u
 }
 
 
+/**
+ * Create a new WidgetConfig
+ *
+ * @ashActionType :create
+ */
 export async function saveWidgetConfigChannel<Fields extends SaveWidgetConfigFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: SaveWidgetConfigInput;
   fields?: Fields;
   resultHandler: (result: SaveWidgetConfigResult<Fields>) => void;
@@ -5711,6 +7123,7 @@ export async function saveWidgetConfigChannel<Fields extends SaveWidgetConfigFie
     config.channel,
     {
     action: "save_widget_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5746,6 +7159,7 @@ export type InferListStreamingAccountsResult<
 }>;
 
 export type ListStreamingAccountsConfig = {
+  tenant?: string;
   hookCtx?: ActionHookContext;
   fields: ListStreamingAccountsFields;
   filter?: StreamingAccountFilterInput;
@@ -5771,11 +7185,17 @@ export type ListStreamingAccountsResult<Fields extends ListStreamingAccountsFiel
 
 ;
 
+/**
+ * Read StreamingAccount records
+ *
+ * @ashActionType :read
+ */
 export async function listStreamingAccounts<Fields extends ListStreamingAccountsFields, Config extends ListStreamingAccountsConfig = ListStreamingAccountsConfig>(
   config: Config & { fields: Fields }
 ): Promise<ListStreamingAccountsResult<Fields, Config["page"]>> {
   const payload = {
     action: "list_streaming_accounts",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -5789,8 +7209,14 @@ export async function listStreamingAccounts<Fields extends ListStreamingAccounts
 }
 
 
+/**
+ * Read StreamingAccount records
+ *
+ * @ashActionType :read
+ */
 export async function listStreamingAccountsChannel<Fields extends ListStreamingAccountsFields>(config: {
   channel: Channel;
+  tenant?: string;
   fields: Fields;
   filter?: StreamingAccountFilterInput;
   sort?: string;
@@ -5814,6 +7240,7 @@ export async function listStreamingAccountsChannel<Fields extends ListStreamingA
     config.channel,
     {
     action: "list_streaming_accounts",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -5836,8 +7263,14 @@ export type RefreshStreamingAccountStatsResult<Fields extends RefreshStreamingAc
 
 ;
 
+/**
+ * Update an existing StreamingAccount
+ *
+ * @ashActionType :update
+ */
 export async function refreshStreamingAccountStats<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -5848,6 +7281,7 @@ export async function refreshStreamingAccountStats<Fields extends RefreshStreami
 ): Promise<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "refresh_streaming_account_stats",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5859,8 +7293,14 @@ export async function refreshStreamingAccountStats<Fields extends RefreshStreami
 }
 
 
+/**
+ * Update an existing StreamingAccount
+ *
+ * @ashActionType :update
+ */
 export async function refreshStreamingAccountStatsChannel<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   fields?: Fields;
   resultHandler: (result: RefreshStreamingAccountStatsResult<Fields>) => void;
@@ -5872,6 +7312,7 @@ export async function refreshStreamingAccountStatsChannel<Fields extends Refresh
     config.channel,
     {
     action: "refresh_streaming_account_stats",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -5887,8 +7328,14 @@ export type DisconnectStreamingAccountResult = | { success: true; data: {}; }
 
 ;
 
+/**
+ * Delete a StreamingAccount
+ *
+ * @ashActionType :destroy
+ */
 export async function disconnectStreamingAccount(
   config: {
+  tenant?: string;
   identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -5898,6 +7345,7 @@ export async function disconnectStreamingAccount(
 ): Promise<DisconnectStreamingAccountResult> {
   const payload = {
     action: "disconnect_streaming_account",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   };
 
@@ -5908,8 +7356,14 @@ export async function disconnectStreamingAccount(
 }
 
 
+/**
+ * Delete a StreamingAccount
+ *
+ * @ashActionType :destroy
+ */
 export async function disconnectStreamingAccountChannel(config: {
   channel: Channel;
+  tenant?: string;
   identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   resultHandler: (result: DisconnectStreamingAccountResult) => void;
   errorHandler?: (error: any) => void;
@@ -5920,6 +7374,7 @@ export async function disconnectStreamingAccountChannel(config: {
     config.channel,
     {
     action: "disconnect_streaming_account",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   },
     config.timeout,
@@ -5942,8 +7397,14 @@ export type GetSmartCanvasLayoutResult<Fields extends GetSmartCanvasLayoutFields
 
 ;
 
+/**
+ * Read SmartCanvasLayout records
+ *
+ * @ashActionType :read
+ */
 export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFields>(
   config: {
+  tenant?: string;
   input: GetSmartCanvasLayoutInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -5954,6 +7415,7 @@ export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFi
 ): Promise<GetSmartCanvasLayoutResult<Fields>> {
   const payload = {
     action: "get_smart_canvas_layout",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -5965,8 +7427,14 @@ export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFi
 }
 
 
+/**
+ * Read SmartCanvasLayout records
+ *
+ * @ashActionType :read
+ */
 export async function getSmartCanvasLayoutChannel<Fields extends GetSmartCanvasLayoutFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetSmartCanvasLayoutInput;
   fields: Fields;
   resultHandler: (result: GetSmartCanvasLayoutResult<Fields>) => void;
@@ -5978,6 +7446,7 @@ export async function getSmartCanvasLayoutChannel<Fields extends GetSmartCanvasL
     config.channel,
     {
     action: "get_smart_canvas_layout",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6003,8 +7472,14 @@ export type SaveSmartCanvasLayoutResult<Fields extends SaveSmartCanvasLayoutFiel
 
 ;
 
+/**
+ * Create a new SmartCanvasLayout
+ *
+ * @ashActionType :create
+ */
 export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: SaveSmartCanvasLayoutInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6015,6 +7490,7 @@ export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayout
 ): Promise<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "save_smart_canvas_layout",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6026,8 +7502,14 @@ export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayout
 }
 
 
+/**
+ * Create a new SmartCanvasLayout
+ *
+ * @ashActionType :create
+ */
 export async function saveSmartCanvasLayoutChannel<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: SaveSmartCanvasLayoutInput;
   fields?: Fields;
   resultHandler: (result: SaveSmartCanvasLayoutResult<Fields>) => void;
@@ -6039,6 +7521,7 @@ export async function saveSmartCanvasLayoutChannel<Fields extends SaveSmartCanva
     config.channel,
     {
     action: "save_smart_canvas_layout",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6063,8 +7546,14 @@ export type GetStreamKeyResult<Fields extends GetStreamKeyFields> = | { success:
 
 ;
 
+/**
+ * Read LiveInput records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamKey<Fields extends GetStreamKeyFields>(
   config: {
+  tenant?: string;
   input: GetStreamKeyInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
@@ -6077,6 +7566,7 @@ export async function getStreamKey<Fields extends GetStreamKeyFields>(
 ): Promise<GetStreamKeyResult<Fields>> {
   const payload = {
     action: "get_stream_key",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -6090,8 +7580,14 @@ export async function getStreamKey<Fields extends GetStreamKeyFields>(
 }
 
 
+/**
+ * Read LiveInput records
+ *
+ * @ashActionType :read
+ */
 export async function getStreamKeyChannel<Fields extends GetStreamKeyFields>(config: {
   channel: Channel;
+  tenant?: string;
   input: GetStreamKeyInput;
   fields: Fields;
   filter?: LiveInputFilterInput;
@@ -6105,6 +7601,7 @@ export async function getStreamKeyChannel<Fields extends GetStreamKeyFields>(con
     config.channel,
     {
     action: "get_stream_key",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
@@ -6127,8 +7624,14 @@ export type RegenerateStreamKeyResult<Fields extends RegenerateStreamKeyFields |
 
 ;
 
+/**
+ * Update an existing LiveInput
+ *
+ * @ashActionType :update
+ */
 export async function regenerateStreamKey<Fields extends RegenerateStreamKeyFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: { userId: UUID; orientation: "horizontal" | "vertical" };
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6139,6 +7642,7 @@ export async function regenerateStreamKey<Fields extends RegenerateStreamKeyFiel
 ): Promise<RegenerateStreamKeyResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "regenerate_stream_key",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6150,8 +7654,14 @@ export async function regenerateStreamKey<Fields extends RegenerateStreamKeyFiel
 }
 
 
+/**
+ * Update an existing LiveInput
+ *
+ * @ashActionType :update
+ */
 export async function regenerateStreamKeyChannel<Fields extends RegenerateStreamKeyFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: { userId: UUID; orientation: "horizontal" | "vertical" };
   fields?: Fields;
   resultHandler: (result: RegenerateStreamKeyResult<Fields>) => void;
@@ -6163,6 +7673,7 @@ export async function regenerateStreamKeyChannel<Fields extends RegenerateStream
     config.channel,
     {
     action: "regenerate_stream_key",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6191,8 +7702,14 @@ export type CreateNotificationResult<Fields extends CreateNotificationFields | u
 
 ;
 
+/**
+ * Create a new Notification
+ *
+ * @ashActionType :create
+ */
 export async function createNotification<Fields extends CreateNotificationFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: CreateNotificationInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6203,6 +7720,7 @@ export async function createNotification<Fields extends CreateNotificationFields
 ): Promise<CreateNotificationResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "create_notification",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6214,8 +7732,14 @@ export async function createNotification<Fields extends CreateNotificationFields
 }
 
 
+/**
+ * Create a new Notification
+ *
+ * @ashActionType :create
+ */
 export async function createNotificationChannel<Fields extends CreateNotificationFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: CreateNotificationInput;
   fields?: Fields;
   resultHandler: (result: CreateNotificationResult<Fields>) => void;
@@ -6227,6 +7751,7 @@ export async function createNotificationChannel<Fields extends CreateNotificatio
     config.channel,
     {
     action: "create_notification",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6242,8 +7767,14 @@ export type DeleteNotificationResult = | { success: true; data: {}; }
 
 ;
 
+/**
+ * Delete a Notification
+ *
+ * @ashActionType :destroy
+ */
 export async function deleteNotification(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -6253,6 +7784,7 @@ export async function deleteNotification(
 ): Promise<DeleteNotificationResult> {
   const payload = {
     action: "delete_notification",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   };
 
@@ -6263,8 +7795,14 @@ export async function deleteNotification(
 }
 
 
+/**
+ * Delete a Notification
+ *
+ * @ashActionType :destroy
+ */
 export async function deleteNotificationChannel(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   resultHandler: (result: DeleteNotificationResult) => void;
   errorHandler?: (error: any) => void;
@@ -6275,6 +7813,7 @@ export async function deleteNotificationChannel(config: {
     config.channel,
     {
     action: "delete_notification",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
   },
     config.timeout,
@@ -6298,8 +7837,14 @@ export type MarkNotificationReadResult<Fields extends MarkNotificationReadFields
 
 ;
 
+/**
+ * Create a new NotificationRead
+ *
+ * @ashActionType :create
+ */
 export async function markNotificationRead<Fields extends MarkNotificationReadFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: MarkNotificationReadInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6310,6 +7855,7 @@ export async function markNotificationRead<Fields extends MarkNotificationReadFi
 ): Promise<MarkNotificationReadResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "mark_notification_read",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6321,8 +7867,14 @@ export async function markNotificationRead<Fields extends MarkNotificationReadFi
 }
 
 
+/**
+ * Create a new NotificationRead
+ *
+ * @ashActionType :create
+ */
 export async function markNotificationReadChannel<Fields extends MarkNotificationReadFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: MarkNotificationReadInput;
   fields?: Fields;
   resultHandler: (result: MarkNotificationReadResult<Fields>) => void;
@@ -6334,6 +7886,7 @@ export async function markNotificationReadChannel<Fields extends MarkNotificatio
     config.channel,
     {
     action: "mark_notification_read",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6354,8 +7907,14 @@ export type MarkNotificationUnreadResult = | { success: true; data: InferMarkNot
 
 ;
 
+/**
+ * Execute generic action on NotificationRead
+ *
+ * @ashActionType :action
+ */
 export async function markNotificationUnread(
   config: {
+  tenant?: string;
   input: MarkNotificationUnreadInput;
   hookCtx?: ActionHookContext;
   headers?: Record<string, string>;
@@ -6365,6 +7924,7 @@ export async function markNotificationUnread(
 ): Promise<MarkNotificationUnreadResult> {
   const payload = {
     action: "mark_notification_unread",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   };
 
@@ -6375,8 +7935,14 @@ export async function markNotificationUnread(
 }
 
 
+/**
+ * Execute generic action on NotificationRead
+ *
+ * @ashActionType :action
+ */
 export async function markNotificationUnreadChannel(config: {
   channel: Channel;
+  tenant?: string;
   input: MarkNotificationUnreadInput;
   resultHandler: (result: MarkNotificationUnreadResult) => void;
   errorHandler?: (error: any) => void;
@@ -6387,6 +7953,7 @@ export async function markNotificationUnreadChannel(config: {
     config.channel,
     {
     action: "mark_notification_unread",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },
     config.timeout,
@@ -6413,8 +7980,14 @@ export type RequestFileUploadResult<Fields extends RequestFileUploadFields | und
 
 ;
 
+/**
+ * Create a new File
+ *
+ * @ashActionType :create
+ */
 export async function requestFileUpload<Fields extends RequestFileUploadFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: RequestFileUploadInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6425,6 +7998,7 @@ export async function requestFileUpload<Fields extends RequestFileUploadFields |
 ): Promise<RequestFileUploadResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "request_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6436,8 +8010,14 @@ export async function requestFileUpload<Fields extends RequestFileUploadFields |
 }
 
 
+/**
+ * Create a new File
+ *
+ * @ashActionType :create
+ */
 export async function requestFileUploadChannel<Fields extends RequestFileUploadFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: RequestFileUploadInput;
   fields?: Fields;
   resultHandler: (result: RequestFileUploadResult<Fields>) => void;
@@ -6449,6 +8029,7 @@ export async function requestFileUploadChannel<Fields extends RequestFileUploadF
     config.channel,
     {
     action: "request_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6473,8 +8054,14 @@ export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | und
 
 ;
 
+/**
+ * Update an existing File
+ *
+ * @ashActionType :update
+ */
 export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   input?: ConfirmFileUploadInput;
   hookCtx?: ActionHookContext;
@@ -6486,6 +8073,7 @@ export async function confirmFileUpload<Fields extends ConfirmFileUploadFields |
 ): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "confirm_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -6498,8 +8086,14 @@ export async function confirmFileUpload<Fields extends ConfirmFileUploadFields |
 }
 
 
+/**
+ * Update an existing File
+ *
+ * @ashActionType :update
+ */
 export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   input?: ConfirmFileUploadInput;
   fields?: Fields;
@@ -6512,6 +8106,7 @@ export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadF
     config.channel,
     {
     action: "confirm_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -6539,8 +8134,14 @@ export type CreateSupportTicketResult<Fields extends CreateSupportTicketFields |
 
 ;
 
+/**
+ * Create a new Ticket
+ *
+ * @ashActionType :create
+ */
 export async function createSupportTicket<Fields extends CreateSupportTicketFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: CreateSupportTicketInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6551,6 +8152,7 @@ export async function createSupportTicket<Fields extends CreateSupportTicketFiel
 ): Promise<CreateSupportTicketResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "create_support_ticket",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6562,8 +8164,14 @@ export async function createSupportTicket<Fields extends CreateSupportTicketFiel
 }
 
 
+/**
+ * Create a new Ticket
+ *
+ * @ashActionType :create
+ */
 export async function createSupportTicketChannel<Fields extends CreateSupportTicketFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: CreateSupportTicketInput;
   fields?: Fields;
   resultHandler: (result: CreateSupportTicketResult<Fields>) => void;
@@ -6575,6 +8183,7 @@ export async function createSupportTicketChannel<Fields extends CreateSupportTic
     config.channel,
     {
     action: "create_support_ticket",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6595,8 +8204,14 @@ export type ResolveSupportTicketResult<Fields extends ResolveSupportTicketFields
 
 ;
 
+/**
+ * Update an existing Ticket
+ *
+ * @ashActionType :update
+ */
 export async function resolveSupportTicket<Fields extends ResolveSupportTicketFields | undefined = undefined>(
   config: {
+  tenant?: string;
   identity: UUID;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6607,6 +8222,7 @@ export async function resolveSupportTicket<Fields extends ResolveSupportTicketFi
 ): Promise<ResolveSupportTicketResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "resolve_support_ticket",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6618,8 +8234,14 @@ export async function resolveSupportTicket<Fields extends ResolveSupportTicketFi
 }
 
 
+/**
+ * Update an existing Ticket
+ *
+ * @ashActionType :update
+ */
 export async function resolveSupportTicketChannel<Fields extends ResolveSupportTicketFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   identity: UUID;
   fields?: Fields;
   resultHandler: (result: ResolveSupportTicketResult<Fields>) => void;
@@ -6631,6 +8253,7 @@ export async function resolveSupportTicketChannel<Fields extends ResolveSupportT
     config.channel,
     {
     action: "resolve_support_ticket",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -6657,8 +8280,14 @@ export type SendSupportMessageResult<Fields extends SendSupportMessageFields | u
 
 ;
 
+/**
+ * Create a new Message
+ *
+ * @ashActionType :create
+ */
 export async function sendSupportMessage<Fields extends SendSupportMessageFields | undefined = undefined>(
   config: {
+  tenant?: string;
   input: SendSupportMessageInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
@@ -6669,6 +8298,7 @@ export async function sendSupportMessage<Fields extends SendSupportMessageFields
 ): Promise<SendSupportMessageResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
     action: "send_support_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
@@ -6680,8 +8310,14 @@ export async function sendSupportMessage<Fields extends SendSupportMessageFields
 }
 
 
+/**
+ * Create a new Message
+ *
+ * @ashActionType :create
+ */
 export async function sendSupportMessageChannel<Fields extends SendSupportMessageFields | undefined = undefined>(config: {
   channel: Channel;
+  tenant?: string;
   input: SendSupportMessageInput;
   fields?: Fields;
   resultHandler: (result: SendSupportMessageResult<Fields>) => void;
@@ -6693,6 +8329,7 @@ export async function sendSupportMessageChannel<Fields extends SendSupportMessag
     config.channel,
     {
     action: "send_support_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },

@@ -78,8 +78,13 @@ export default function Terms() {
 								<h2 class="mb-4 font-semibold text-2xl text-neutral-900">
 									{t("terms.section10Title")}
 								</h2>
+								<p class="mb-6 text-neutral-600">{t("terms.section10Text")}</p>
+
+								<h2 class="mb-4 font-semibold text-2xl text-neutral-900">
+									{t("terms.section11Title")}
+								</h2>
 								<p class="text-neutral-600">
-									{t("terms.section10Text")}{" "}
+									{t("terms.section11Text")}{" "}
 									<A
 										class="text-primary-light hover:text-primary-200"
 										href="/contact">

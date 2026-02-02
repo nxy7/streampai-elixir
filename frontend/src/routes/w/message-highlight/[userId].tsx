@@ -40,7 +40,7 @@ export default function MessageHighlightWidgetDisplay() {
 			senderUsername: (m.sender_username as string) ?? "",
 			senderChannelId: (m.sender_channel_id as string) ?? undefined,
 			platform: (m.platform as string) ?? "",
-			viewerId: (m.viewer_id as string) ?? undefined,
+			viewerId: m.viewer_id?.toString() ?? undefined,
 			highlightedAt: (m.highlighted_at as string) ?? "",
 		};
 	});

@@ -15,6 +15,7 @@ import {
 } from "~/components/dashboard";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getGreetingKey, sortByInsertedAt } from "~/lib/formatters";
 import {
 	useDashboardStats,
@@ -29,6 +30,11 @@ export default function Dashboard() {
 	const { user, isLoading } = useCurrentUser();
 	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const greetingKey = getGreetingKey();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.overview"), href: "/dashboard" },
+		{ label: t("dashboardNav.dashboard") },
+	]);
 
 	// User-scoped data
 	const INTERNAL_EVENT_TYPES = ["platform_started", "platform_stopped"];
@@ -65,7 +71,9 @@ export default function Dashboard() {
 	return (
 		<>
 			<Title>Dashboard - Streampai</Title>
-			<Show fallback={<DashboardLoadingSkeleton />} when={!isLoading()}>
+			<Show
+				fallback={<DashboardLoadingSkeleton />}
+				when={!isLoading() && !stats.isLoading()}>
 				<Show
 					fallback={
 						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">

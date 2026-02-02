@@ -6,6 +6,8 @@ defmodule StreampaiWeb.CloudflareWebhookController do
   """
   use StreampaiWeb, :controller
 
+  import StreampaiWeb.Plugs.ConnHelpers, only: [get_raw_body: 1]
+
   alias Streampai.Cloudflare.LiveInput
   alias Streampai.LivestreamManager.StreamManager
   alias Streampai.SystemActor
@@ -89,14 +91,6 @@ defmodule StreampaiWeb.CloudflareWebhookController do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, Jason.encode!(%{status: "received"}))
-  end
-
-  defp get_raw_body(conn) do
-    # The raw body should be cached by a plug that reads it before JSON parsing
-    case conn.assigns[:raw_body] do
-      nil -> {:ok, Jason.encode!(conn.params)}
-      body -> {:ok, body}
-    end
   end
 
   defp verify_webhook_signature(conn, raw_body) do

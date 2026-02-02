@@ -18,7 +18,9 @@ import {
 	Skeleton,
 	Stat,
 } from "~/design-system";
+import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import type { Livestream } from "~/lib/electric";
 import { formatDurationShort } from "~/lib/formatters";
 import { useUserLivestreams } from "~/lib/useElectric";
@@ -112,7 +114,13 @@ function computeDurationSeconds(
 }
 
 export default function StreamHistory() {
+	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.streaming"), href: "/dashboard/stream" },
+		{ label: t("dashboardNav.streamHistory") },
+	]);
 
 	const [dateRange, setDateRange] = createSignal<DateRange>("30days");
 	const [sortBy, setSortBy] = createSignal<SortBy>("recent");
@@ -374,7 +382,7 @@ function StreamHistoryContent(props: {
 							<For each={filteredAndSortedStreams()}>
 								{(stream) => (
 									<A
-										class="block px-6 py-4 transition-colors hover:bg-neutral-50"
+										class="block px-6 py-4 transition-colors"
 										href={`/dashboard/stream-history/${stream.id}`}>
 										<div class="flex items-center space-x-4">
 											<Show

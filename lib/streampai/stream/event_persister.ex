@@ -14,7 +14,7 @@ defmodule Streampai.Stream.EventPersister do
   require Logger
 
   @batch_size 100
-  @flush_interval 3_000
+  @flush_interval 50
   @sent_message_ttl_ms 30_000
   @sent_message_ids_table :event_persister_sent_message_ids
 
@@ -119,9 +119,8 @@ defmodule Streampai.Stream.EventPersister do
   end
 
   defp maybe_flush_on_batch_size(state, messages, events, type) do
-    should_flush =
-      (type == :messages and length(messages) >= @batch_size) or
-        (type == :events and length(events) >= @batch_size)
+    count = if type == :messages, do: length(messages), else: length(events)
+    should_flush = count >= @batch_size
 
     if should_flush do
       {_result, new_state} =
@@ -156,7 +155,7 @@ defmodule Streampai.Stream.EventPersister do
   end
 
   defp has_pending_items?(state) do
-    length(state.chat_messages) > 0 or length(state.stream_events) > 0
+    state.chat_messages != [] or state.stream_events != []
   end
 
   @impl true
@@ -264,7 +263,7 @@ defmodule Streampai.Stream.EventPersister do
     item_attrs = Enum.map(items, attrs_fn)
 
     item_attrs
-    |> Ash.bulk_create(resource, :upsert)
+    |> Ash.bulk_create(resource, :upsert, return_errors?: true)
     |> handle_bulk_result(length(items))
   rescue
     e -> {:error, e}
@@ -296,9 +295,23 @@ defmodule Streampai.Stream.EventPersister do
       platform: msg.platform,
       user_id: msg.user_id,
       livestream_id: msg.livestream_id,
-      viewer_id: Map.get(msg, :viewer_id) || msg.sender_channel_id
+      viewer_id: Map.get(msg, :viewer_id) || msg.sender_channel_id,
+      inserted_at: parse_platform_timestamp(msg[:platform_timestamp])
     })
   end
+
+  defp parse_platform_timestamp(nil), do: DateTime.utc_now()
+
+  defp parse_platform_timestamp(%DateTime{} = dt), do: dt
+
+  defp parse_platform_timestamp(ts) when is_binary(ts) do
+    case DateTime.from_iso8601(ts) do
+      {:ok, dt, _offset} -> dt
+      _ -> DateTime.utc_now()
+    end
+  end
+
+  defp parse_platform_timestamp(_), do: DateTime.utc_now()
 
   defp event_to_attrs(%StreamEvent{} = event) do
     %{
@@ -309,7 +322,8 @@ defmodule Streampai.Stream.EventPersister do
       platform: event.platform,
       user_id: event.user_id,
       livestream_id: event.livestream_id,
-      viewer_id: event.viewer_id
+      viewer_id: event.viewer_id,
+      inserted_at: event.inserted_at
     }
   end
 

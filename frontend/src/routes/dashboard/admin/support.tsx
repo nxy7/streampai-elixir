@@ -15,6 +15,7 @@ import Card from "~/design-system/Card";
 import { cn, text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import {
 	type SupportMessage,
 	type SupportTicket,
@@ -29,6 +30,11 @@ export default function AdminSupport() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { user: currentUser, isLoading: authLoading } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.admin"), href: "/dashboard/admin/users" },
+		{ label: t("dashboardNav.support") },
+	]);
 
 	const [selectedTicketId, setSelectedTicketId] = createSignal<string | null>(
 		null,

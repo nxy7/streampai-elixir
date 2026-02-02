@@ -1,9 +1,10 @@
 import { Title } from "@solidjs/meta";
 import { For, Show, createSignal } from "solid-js";
-import Card from "~/design-system/Card";
+import { Card, Toggle } from "~/design-system";
 import { button, input } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
+import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { useStreamTimers } from "~/lib/useElectric";
 import {
 	createStreamTimer,
@@ -16,6 +17,12 @@ import {
 export default function TimersConfigPage() {
 	const { t } = useTranslation();
 	const { user } = useCurrentUser();
+
+	useBreadcrumbs(() => [
+		{ label: t("sidebar.tools"), href: "/dashboard/tools/timers" },
+		{ label: t("dashboardNav.timers") },
+	]);
+
 	const [showAddForm, setShowAddForm] = createSignal(false);
 	const [editingId, setEditingId] = createSignal<string | null>(null);
 	const [label, setLabel] = createSignal("");
@@ -30,8 +37,8 @@ export default function TimersConfigPage() {
 				new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
 		);
 
-	const formatInterval = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60);
+	const formatInterval = (seconds: number | bigint): string => {
+		const mins = Math.floor(Number(seconds) / 60);
 		if (mins >= 60) {
 			const hrs = Math.floor(mins / 60);
 			const remainingMins = mins % 60;
@@ -83,7 +90,7 @@ export default function TimersConfigPage() {
 		setEditingId(timer.id);
 		setLabel(timer.label);
 		setContent(timer.content);
-		setIntervalMinutes(Math.round(timer.interval_seconds / 60));
+		setIntervalMinutes(Math.round(Number(timer.interval_seconds) / 60));
 		setShowAddForm(true);
 	};
 
@@ -104,14 +111,9 @@ export default function TimersConfigPage() {
 			<Title>{t("dashboardNav.timers")} - Streampai</Title>
 			<div class="mx-auto max-w-3xl space-y-6">
 				<div class="flex items-center justify-between">
-					<div>
-						<h1 class="font-bold text-2xl text-neutral-900">
-							{t("dashboardNav.timers")}
-						</h1>
-						<p class="mt-1 text-neutral-500 text-sm">
-							{t("timers.configDescription")}
-						</p>
-					</div>
+					<p class="text-neutral-500 text-sm">
+						{t("timers.configDescription")}
+					</p>
 					<Show when={!showAddForm()}>
 						<button
 							class={button.primary}
@@ -124,7 +126,7 @@ export default function TimersConfigPage() {
 
 				{/* Add/Edit Form */}
 				<Show when={showAddForm()}>
-					<Card>
+					<Card variant="ghost">
 						<div class="space-y-4 p-4">
 							<h3 class="font-semibold text-lg">
 								{editingId() ? t("timers.editTimer") : t("timers.addTimer")}
@@ -197,7 +199,7 @@ export default function TimersConfigPage() {
 				{/* Timer List */}
 				<Show
 					fallback={
-						<Card>
+						<Card variant="ghost">
 							<div class="flex flex-col items-center justify-center py-12 text-center">
 								<div class="mb-3 text-4xl text-neutral-300">&#9201;</div>
 								<p class="text-neutral-600">{t("timers.empty")}</p>
@@ -213,23 +215,22 @@ export default function TimersConfigPage() {
 							{(timer) => {
 								const isDisabled = () => timer.disabled_at !== null;
 								return (
-									<Card>
+									<Card variant="ghost">
 										<div class="flex items-center gap-4 p-4">
+											<Toggle
+												aria-label={
+													isDisabled()
+														? t("timers.enable")
+														: t("timers.disable")
+												}
+												checked={!isDisabled()}
+												onChange={() => handleToggle(timer.id, isDisabled())}
+											/>
 											<div class="min-w-0 flex-1">
 												<div class="flex items-center gap-2">
 													<span
 														class={`font-medium ${isDisabled() ? "text-neutral-400" : "text-neutral-900"}`}>
 														{timer.label}
-													</span>
-													<span
-														class={`rounded-full px-2 py-0.5 text-xs ${
-															isDisabled()
-																? "bg-neutral-100 text-neutral-500"
-																: "bg-green-100 text-green-700"
-														}`}>
-														{isDisabled()
-															? t("timers.disabled")
-															: t("timers.enabled")}
 													</span>
 													<span class="text-neutral-400 text-sm">
 														{t("timers.every")}{" "}
@@ -245,26 +246,16 @@ export default function TimersConfigPage() {
 											</div>
 											<div class="flex shrink-0 items-center gap-2">
 												<button
-													class={
-														isDisabled() ? button.primary : button.secondary
-													}
-													onClick={() => handleToggle(timer.id, isDisabled())}
-													type="button">
-													{isDisabled()
-														? t("timers.enable")
-														: t("timers.disable")}
-												</button>
-												<button
 													class={button.secondary}
 													onClick={() => handleEdit(timer)}
 													type="button">
 													{t("timers.edit")}
 												</button>
 												<button
-													class="rounded-lg border border-red-200 px-3 py-1.5 text-red-600 text-sm transition-colors hover:bg-red-50"
+													class={button.secondary}
 													onClick={() => handleDelete(timer.id)}
 													type="button">
-													{t("timers.delete")}
+													<span class="text-red-600">{t("timers.delete")}</span>
 												</button>
 											</div>
 										</div>

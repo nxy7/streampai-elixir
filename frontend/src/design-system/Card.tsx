@@ -1,5 +1,13 @@
-import { type JSX, splitProps } from "solid-js";
+import { type JSX, Show, splitProps } from "solid-js";
 import { cn } from "~/design-system/design-system";
+import { useProximityGlow } from "./useProximityGlow";
+
+// Proximity detection range (pixels outside the card)
+const PROXIMITY_RANGE = 100;
+// Glow circle size
+const GLOW_SIZE = 300;
+// Glow color for cards
+const GLOW_COLOR = "rgba(255, 255, 255, 0.08)";
 
 export type CardVariant =
 	| "default"
@@ -20,6 +28,8 @@ const variantClasses: Record<CardVariant, string> = {
 export interface CardProps extends JSX.HTMLAttributes<HTMLDivElement> {
 	variant?: CardVariant;
 	padding?: "none" | "sm" | "md" | "lg";
+	/** Enable cursor proximity glow effect */
+	glow?: boolean;
 	children: JSX.Element;
 }
 
@@ -34,19 +44,38 @@ export default function Card(props: CardProps) {
 	const [local, rest] = splitProps(props, [
 		"variant",
 		"padding",
+		"glow",
 		"children",
 		"class",
 	]);
 
+	const { mousePos, glowOpacity, setRef } = useProximityGlow({
+		range: PROXIMITY_RANGE,
+	});
+
 	return (
 		<div
 			class={cn(
-				"rounded-2xl",
+				"relative overflow-hidden rounded-2xl",
 				variantClasses[local.variant ?? "default"],
 				paddingClasses[local.padding ?? "md"],
 				local.class,
 			)}
+			ref={local.glow ? setRef : undefined}
 			{...rest}>
+			<Show when={local.glow}>
+				<span
+					class="pointer-events-none absolute rounded-full transition-all duration-300 ease-out"
+					style={{
+						opacity: glowOpacity(),
+						background: `radial-gradient(circle, ${GLOW_COLOR} 0%, transparent 70%)`,
+						width: `${GLOW_SIZE}px`,
+						height: `${GLOW_SIZE}px`,
+						left: `${(mousePos()?.x ?? 0) - GLOW_SIZE / 2}px`,
+						top: `${(mousePos()?.y ?? 0) - GLOW_SIZE / 2}px`,
+					}}
+				/>
+			</Show>
 			{local.children}
 		</div>
 	);

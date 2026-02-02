@@ -72,7 +72,7 @@ export default function RecentStreams(props: RecentStreamsProps) {
 					<For each={props.streams}>
 						{(stream) => (
 							<A
-								class="block px-6 py-4 hover:bg-neutral-50"
+								class="block px-6 py-4"
 								href={`/dashboard/stream-history/${stream.id}`}>
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-4">

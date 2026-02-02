@@ -26,6 +26,8 @@ defmodule Streampai.Stream.CurrentStreamData do
     extensions: [AshTypescript.Resource],
     primary_read_warning?: false
 
+  import Streampai.MapUtils, only: [maybe_put: 3, stringify_keys: 1]
+
   alias Streampai.Stream.PlatformStatus
 
   @platform_atoms [:youtube, :twitch, :kick]
@@ -625,11 +627,4 @@ defmodule Streampai.Stream.CurrentStreamData do
   defp platform_column(:youtube), do: :youtube_data
   defp platform_column(:twitch), do: :twitch_data
   defp platform_column(:kick), do: :kick_data
-
-  defp stringify_keys(map) when is_map(map) do
-    Map.new(map, fn {k, v} -> {to_string(k), v} end)
-  end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

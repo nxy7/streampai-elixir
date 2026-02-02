@@ -9,6 +9,8 @@ defmodule StreampaiWeb.Router do
   alias StreampaiWeb.Plugs.ErrorTracker
   alias StreampaiWeb.Plugs.RateLimiter
   alias StreampaiWeb.Plugs.RedirectAfterAuth
+  alias StreampaiWeb.Plugs.RequireAdminAccess
+  alias StreampaiWeb.Plugs.RequireAdminUser
   alias StreampaiWeb.Plugs.RpcLogger
   alias StreampaiWeb.Plugs.SafeLoadFromSession
 
@@ -26,7 +28,7 @@ defmodule StreampaiWeb.Router do
 
   pipeline :admin do
     plug(:accepts, ["html"])
-    plug(:require_admin_access)
+    plug(RequireAdminAccess)
     plug(:fetch_session)
     plug(:fetch_flash)
     plug(:put_root_layout, html: {StreampaiWeb.Layouts, :root})
@@ -77,7 +79,7 @@ defmodule StreampaiWeb.Router do
     plug(:accepts, ["json"])
     plug(:fetch_session)
     plug(SafeLoadFromSession)
-    plug(:require_admin_user)
+    plug(RequireAdminUser)
   end
 
   # Admin routes (not prefixed with /api - internal only)
@@ -114,6 +116,7 @@ defmodule StreampaiWeb.Router do
     get("/streaming/connect/:provider", MultiProviderAuth, :request)
     get("/streaming/connect/:provider/callback", MultiProviderAuth, :callback)
     get("/settings/paypal/callback", PayPalCallbackController, :handle_callback)
+    get("/paddle/callback", PaddleCallbackController, :callback)
 
     sign_out_route(AuthController, "/auth/sign-out")
 
@@ -123,7 +126,7 @@ defmodule StreampaiWeb.Router do
   # Protected monitoring endpoints (require admin access)
   pipeline :api_monitoring do
     plug(:accepts, ["json"])
-    plug(:require_admin_access)
+    plug(RequireAdminAccess)
     plug(ErrorTracker)
   end
 
@@ -134,6 +137,7 @@ defmodule StreampaiWeb.Router do
     get("/health", MonitoringController, :health_check)
     post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
     post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
+    post("/webhooks/paddle", PaddleWebhookController, :handle_webhook)
   end
 
   # Protected monitoring endpoints (admin access required)
@@ -167,6 +171,7 @@ defmodule StreampaiWeb.Router do
     get("/highlighted_messages/:user_id", SyncController, :highlighted_messages)
     get("/current_stream_data/:user_id", SyncController, :current_stream_data)
     get("/stream_timers/:user_id", SyncController, :stream_timers)
+    get("/chat_bot_configs/:user_id", SyncController, :chat_bot_configs)
     get("/support_tickets/:user_id", SyncController, :support_tickets)
     get("/support_messages/:ticket_id", SyncController, :support_messages)
   end
@@ -185,80 +190,11 @@ defmodule StreampaiWeb.Router do
     post("/run", AshTypescriptRpcController, :run)
     post("/validate", AshTypescriptRpcController, :validate)
     get("/socket-token", AshTypescriptRpcController, :socket_token)
+    post("/paddle/checkout", PaddleCheckoutController, :create)
     get("/impersonation-status", AshTypescriptRpcController, :impersonation_status)
 
     # Impersonation API endpoints (JSON responses for SPA)
     post("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)
     post("/impersonation/stop", ImpersonationController, :stop_impersonation)
-  end
-
-  @monitoring_allowed_ips ["127.0.0.1", "::1", "194.9.78.14"]
-
-  def require_admin_access(conn, _opts) do
-    require Logger
-
-    client_ip = get_client_ip(conn)
-    admin_token = conn |> Plug.Conn.get_req_header("x-admin-token") |> List.first()
-    allowed_token = System.get_env("ADMIN_TOKEN")
-
-    cond do
-      # Allow access from trusted IPs (localhost only)
-      client_ip in @monitoring_allowed_ips ->
-        conn
-
-      # Allow access with valid admin token (token must be configured, no default)
-      allowed_token && admin_token && Plug.Crypto.secure_compare(admin_token, allowed_token) ->
-        conn
-
-      # Block access if ADMIN_TOKEN is not configured (security: no default token)
-      is_nil(allowed_token) ->
-        Logger.warning("Admin access denied: ADMIN_TOKEN not configured, from IP: #{client_ip}")
-
-        conn
-        |> put_status(:forbidden)
-        |> Phoenix.Controller.text("Access denied")
-        |> halt()
-
-      # Block access for invalid token
-      true ->
-        Logger.warning("Denied access to admin interface from IP: #{client_ip}")
-
-        conn
-        |> put_status(:forbidden)
-        |> Phoenix.Controller.text("Access denied")
-        |> halt()
-    end
-  end
-
-  defp get_client_ip(conn) do
-    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
-      [forwarded_ip | _] ->
-        forwarded_ip |> String.split(",") |> List.first() |> String.trim()
-
-      [] ->
-        conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
-  end
-
-  def require_admin_user(conn, _opts) do
-    alias Streampai.Accounts.UserPolicy
-
-    case conn.assigns[:current_user] do
-      nil ->
-        conn
-        |> put_status(:unauthorized)
-        |> Phoenix.Controller.json(%{error: "Authentication required"})
-        |> halt()
-
-      user ->
-        if UserPolicy.admin?(user) do
-          conn
-        else
-          conn
-          |> put_status(:forbidden)
-          |> Phoenix.Controller.json(%{error: "Admin access required"})
-          |> halt()
-        end
-    end
   end
 end

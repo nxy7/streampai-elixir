@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate, useSearchParams } from "@solidjs/router";
 import {
 	For,
 	type JSX,
@@ -17,6 +17,7 @@ import {
 } from "~/lib/BreadcrumbContext";
 import type { SupportMessage, SupportTicket } from "~/lib/electric";
 import {
+	useStreamActor,
 	useTicketMessages,
 	useUserPreferencesForUser,
 	useUserSupportTickets,
@@ -551,6 +552,8 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const isFullscreen = () => searchParams.fullscreen === "true";
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
 	const { items: breadcrumbItems } = useBreadcrumbContext();
 
@@ -563,6 +566,10 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 
 	// Use Electric-synced preferences for real-time avatar/name updates
 	const prefs = useUserPreferencesForUser(() => user()?.id);
+
+	// Stream status for sidebar LIVE badge
+	const streamActor = useStreamActor(() => user()?.id);
+	const isLive = () => streamActor.streamStatus() === "streaming";
 
 	// Auto-detect current page from URL
 	const currentPage = createMemo(() => getCurrentPage(location.pathname));
@@ -594,7 +601,7 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 				<Show when={mobileSidebarOpen()}>
 					<button
 						aria-label={t("dashboard.closeSidebar")}
-						class="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+						class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm md:hidden"
 						onClick={() => setMobileSidebarOpen(false)}
 						type="button"
 					/>
@@ -604,6 +611,7 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 				<Sidebar
 					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
+					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}
 				/>
 
@@ -611,13 +619,14 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 				<MobileSidebar
 					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
+					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}
 					onClose={() => setMobileSidebarOpen(false)}
 					open={mobileSidebarOpen}
 				/>
 
 				{/* Main area — header + content, shifted right by sidebar */}
-				<div class="flex flex-1 flex-col overflow-hidden md:ml-72">
+				<div class="flex flex-1 flex-col md:ml-72">
 					<Header
 						breadcrumbItems={breadcrumbItems}
 						onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -626,7 +635,8 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 						user={user()}
 					/>
 
-					<main class="flex-1 overflow-y-auto overflow-x-hidden bg-neutral-50 px-4 py-6">
+					<main
+						class={`flex-1 bg-neutral-50 px-4 py-6 ${isFullscreen() ? "" : "overflow-y-auto overflow-x-hidden"}`}>
 						{props.children}
 					</main>
 				</div>

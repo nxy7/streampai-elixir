@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useParams } from "@solidjs/router";
-import { For, Show, createSignal, onMount } from "solid-js";
+import { For, Show, createMemo, createSignal, onMount } from "solid-js";
 import { Badge, Card, Skeleton } from "~/design-system";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
@@ -185,31 +185,6 @@ interface StreamEvent {
 }
 
 // Helper functions
-const getPlatformBadgeVariant = (
-	platform: string,
-): "info" | "error" | "success" | "warning" | "neutral" => {
-	const variants: Record<
-		string,
-		"info" | "error" | "success" | "warning" | "neutral"
-	> = {
-		twitch: "info",
-		youtube: "error",
-		facebook: "info",
-		kick: "success",
-	};
-	return variants[platform.toLowerCase()] || "neutral";
-};
-
-const platformName = (platform: string) => {
-	const names: Record<string, string> = {
-		twitch: "Twitch",
-		youtube: "YouTube",
-		facebook: "Facebook",
-		kick: "Kick",
-	};
-	return names[platform.toLowerCase()] || platform;
-};
-
 const formatDateTime = (datetime: string) => {
 	const date = new Date(datetime);
 	const now = new Date();
@@ -249,6 +224,7 @@ const formatFullDate = (datetime: string) => {
 
 const formatEventData = (event: StreamEvent) => {
 	const data = event.data;
+	if (!data) return "—";
 
 	if (data.donation) {
 		return `${data.donation.donorName} donated ${data.donation.amount} ${data.donation.currency}${data.donation.message ? `: ${data.donation.message}` : ""}`;
@@ -270,6 +246,63 @@ const formatEventData = (event: StreamEvent) => {
 	}
 
 	return "—";
+};
+
+// Unified activity item for the combined timeline
+type UnifiedActivity =
+	| { kind: "chat"; item: ChatMessage }
+	| { kind: "event"; item: StreamEvent };
+
+const getActivityTimestamp = (activity: UnifiedActivity) =>
+	activity.item.insertedAt;
+
+const getActivityLivestreamId = (activity: UnifiedActivity) =>
+	activity.item.livestreamId;
+
+const getActivityTypeLabel = (activity: UnifiedActivity): string => {
+	if (activity.kind === "chat") return "Chat";
+	const data = activity.item.data;
+	if (!data) return activity.item.type;
+	if (data.donation) return "Donation";
+	if (data.follow) return "Follow";
+	if (data.subscription) return "Subscription";
+	if (data.raid) return "Raid";
+	if (data.platformStarted) return "Stream Started";
+	if (data.platformStopped) return "Stream Stopped";
+	return activity.item.type;
+};
+
+const getActivityIcon = (activity: UnifiedActivity): string => {
+	if (activity.kind === "chat") return "💬";
+	const data = activity.item.data;
+	if (!data) return "•";
+	if (data.donation) return "$";
+	if (data.follow) return "+";
+	if (data.subscription) return "★";
+	if (data.raid) return "⚡";
+	if (data.platformStarted) return "▶";
+	if (data.platformStopped) return "■";
+	return "•";
+};
+
+const getActivityColor = (activity: UnifiedActivity): string => {
+	if (activity.kind === "chat") return "text-neutral-500";
+	const data = activity.item.data;
+	if (!data) return "text-neutral-400";
+	if (data.donation) return "text-green-600";
+	if (data.follow) return "text-blue-500";
+	if (data.subscription) return "text-purple-500";
+	if (data.raid) return "text-orange-500";
+	if (data.platformStarted) return "text-green-500";
+	if (data.platformStopped) return "text-red-500";
+	return "text-neutral-400";
+};
+
+const getActivityContent = (activity: UnifiedActivity): string => {
+	if (activity.kind === "chat") {
+		return activity.item.data.chatMessage?.message ?? "";
+	}
+	return formatEventData(activity.item);
 };
 
 // Skeleton for viewer detail page
@@ -309,42 +342,18 @@ function ViewerDetailSkeleton() {
 				</div>
 			</div>
 
-			{/* Recent Messages skeleton */}
-			<div class="rounded-lg border border-neutral-200 bg-surface shadow-sm">
-				<div class="border-neutral-200 border-b px-6 py-4">
-					<Skeleton class="h-6 w-40" />
-				</div>
-				<div class="divide-y divide-neutral-200">
-					<For each={[1, 2, 3, 4, 5]}>
-						{() => (
-							<div class="p-6">
-								<div class="mb-1 flex items-center space-x-2">
-									<Skeleton class="h-5 w-16 rounded" />
-									<Skeleton class="h-4 w-24" />
-								</div>
-								<Skeleton class="mt-2 h-4 w-full" />
-								<Skeleton class="mt-1 h-4 w-3/4" />
-							</div>
-						)}
-					</For>
-				</div>
-			</div>
-
-			{/* Recent Events skeleton */}
+			{/* Activity timeline skeleton */}
 			<div class="rounded-lg border border-neutral-200 bg-surface shadow-sm">
 				<div class="border-neutral-200 border-b px-6 py-4">
 					<Skeleton class="h-6 w-32" />
 				</div>
-				<div class="divide-y divide-neutral-200">
-					<For each={[1, 2, 3]}>
+				<div class="divide-y divide-neutral-100">
+					<For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
 						{() => (
-							<div class="p-6">
-								<div class="mb-1 flex items-center space-x-2">
-									<Skeleton class="h-5 w-20 rounded" />
-									<Skeleton class="h-5 w-16 rounded" />
-									<Skeleton class="h-4 w-24" />
-								</div>
-								<Skeleton class="mt-2 h-4 w-2/3" />
+							<div class="flex items-center gap-2 px-4 py-2">
+								<Skeleton class="h-4 w-4 shrink-0 rounded" />
+								<Skeleton class="h-4 flex-1" />
+								<Skeleton class="h-3 w-14 shrink-0" />
 							</div>
 						)}
 					</For>
@@ -367,6 +376,26 @@ export default function ViewerDetail() {
 	const [error, setError] = createSignal<string | null>(null);
 
 	const viewerId = () => params.id;
+
+	// Merge messages and events into a single sorted timeline
+	const timeline = createMemo<UnifiedActivity[]>(() => {
+		const chatItems: UnifiedActivity[] = messages().map((m) => ({
+			kind: "chat" as const,
+			item: m,
+		}));
+		// Filter out chat_message events - they're already in the chat data
+		const eventItems: UnifiedActivity[] = events()
+			.filter((e) => e.type !== "chat_message")
+			.map((e) => ({
+				kind: "event" as const,
+				item: e,
+			}));
+		return [...chatItems, ...eventItems].sort(
+			(a, b) =>
+				new Date(getActivityTimestamp(b)).getTime() -
+				new Date(getActivityTimestamp(a)).getTime(),
+		);
+	});
 
 	// Register breadcrumbs via context
 	useBreadcrumbs(() => [
@@ -548,90 +577,13 @@ export default function ViewerDetail() {
 						</dl>
 					</Card>
 
-					{/* Recent Messages */}
+					{/* Activity Timeline */}
 					<Card>
 						<div class="border-neutral-200 border-b px-6 py-4">
 							<h3 class={text.h3}>
-								Recent Messages
+								Activity
 								<span class={`${text.muted} ml-2 text-sm`}>
-									({messages().length})
-								</span>
-							</h3>
-						</div>
-						<Show
-							fallback={
-								<div class="p-12 text-center">
-									<svg
-										aria-hidden="true"
-										class="mx-auto h-12 w-12 text-neutral-400"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24">
-										<path
-											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-										/>
-									</svg>
-									<p class="mt-4 text-neutral-500">No messages yet</p>
-									<p class="mt-1 text-neutral-400 text-sm">
-										Messages will appear here once this viewer chats
-									</p>
-								</div>
-							}
-							when={messages().length > 0}>
-							<div class="divide-y divide-neutral-200">
-								<For each={messages()}>
-									{(message) => (
-										<div class="p-6">
-											<div class="mb-1 flex items-center space-x-2">
-												<Show when={message.platform}>
-													<Badge
-														variant={getPlatformBadgeVariant(
-															message.platform ?? "",
-														)}>
-														{platformName(message.platform ?? "")}
-													</Badge>
-												</Show>
-												<Show when={message.data.chatMessage?.isModerator}>
-													<Badge variant="success">Moderator</Badge>
-												</Show>
-												<Show when={message.livestreamId}>
-													<button
-														class="text-blue-600 text-xs hover:underline"
-														onClick={() =>
-															navigate(
-																`/dashboard/stream-history/${message.livestreamId}`,
-															)
-														}
-														type="button">
-														{formatDateTime(message.insertedAt)}
-													</button>
-												</Show>
-												<Show when={!message.livestreamId}>
-													<span class="text-neutral-500 text-xs">
-														{formatDateTime(message.insertedAt)}
-													</span>
-												</Show>
-											</div>
-											<p class="text-neutral-600 text-sm">
-												{message.data.chatMessage?.message}
-											</p>
-										</div>
-									)}
-								</For>
-							</div>
-						</Show>
-					</Card>
-
-					{/* Recent Events */}
-					<Card>
-						<div class="border-neutral-200 border-b px-6 py-4">
-							<h3 class={text.h3}>
-								Recent Events
-								<span class={`${text.muted} ml-2 text-sm`}>
-									({events().length})
+									({timeline().length})
 								</span>
 							</h3>
 						</div>
@@ -651,50 +603,62 @@ export default function ViewerDetail() {
 											stroke-width="2"
 										/>
 									</svg>
-									<p class="mt-4 text-neutral-500">No events yet</p>
+									<p class="mt-4 text-neutral-500">No activity yet</p>
 									<p class="mt-1 text-neutral-400 text-sm">
-										Events like donations and subscriptions will appear here
+										Messages, donations, and other events will appear here
 									</p>
 								</div>
 							}
-							when={events().length > 0}>
-							<div class="divide-y divide-neutral-200">
-								<For each={events()}>
-									{(event) => (
-										<div class="p-6">
-											<div class="mb-1 flex items-center space-x-2">
-												<Badge variant="info">{event.type}</Badge>
-												<Show when={event.platform}>
-													<Badge
-														variant={getPlatformBadgeVariant(
-															event.platform ?? "",
-														)}>
-														{platformName(event.platform ?? "")}
-													</Badge>
-												</Show>
-												<Show when={event.livestreamId}>
-													<button
-														class="text-blue-600 text-xs hover:underline"
-														onClick={() =>
-															navigate(
-																`/dashboard/stream-history/${event.livestreamId}`,
-															)
-														}
-														type="button">
-														{formatDateTime(event.insertedAt)}
-													</button>
-												</Show>
-												<Show when={!event.livestreamId}>
-													<span class="text-neutral-500 text-xs">
-														{formatDateTime(event.insertedAt)}
-													</span>
-												</Show>
+							when={timeline().length > 0}>
+							<div class="divide-y divide-neutral-100">
+								<For each={timeline()}>
+									{(activity) => {
+										const livestreamId = getActivityLivestreamId(activity);
+										const content = getActivityContent(activity);
+										const timestamp = getActivityTimestamp(activity);
+										const isChat = activity.kind === "chat";
+
+										return (
+											<div class="flex items-start gap-2 px-4 py-2">
+												<span
+													class={`mt-px shrink-0 text-xs ${getActivityColor(activity)}`}>
+													{getActivityIcon(activity)}
+												</span>
+
+												<div class="min-w-0 flex-1">
+													<div class="flex items-baseline gap-1.5">
+														<Show when={!isChat}>
+															<span
+																class={`font-medium text-xs ${getActivityColor(activity)}`}>
+																{getActivityTypeLabel(activity)}
+															</span>
+														</Show>
+														<span
+															class={`flex-1 truncate text-sm ${isChat ? "text-foreground" : "text-neutral-600"}`}>
+															{content || "—"}
+														</span>
+														<Show when={livestreamId}>
+															<button
+																class="shrink-0 text-neutral-400 text-xs hover:text-blue-500 hover:underline"
+																onClick={() =>
+																	navigate(
+																		`/dashboard/stream-history/${livestreamId}`,
+																	)
+																}
+																type="button">
+																{formatDateTime(timestamp)}
+															</button>
+														</Show>
+														<Show when={!livestreamId}>
+															<span class="shrink-0 text-neutral-400 text-xs">
+																{formatDateTime(timestamp)}
+															</span>
+														</Show>
+													</div>
+												</div>
 											</div>
-											<p class="text-neutral-600 text-sm">
-												{formatEventData(event)}
-											</p>
-										</div>
-									)}
+										);
+									}}
 								</For>
 							</div>
 						</Show>
