@@ -34,6 +34,11 @@ function LandingHero() {
 
   return (
     <section class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
+      <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+        <div class="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-secondary/10 blur-3xl" />
+        <div class="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-primary-light/10 blur-3xl" />
+      </div>
       <div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <div class="text-center">
           <h1 class="mb-8 font-bold text-5xl text-neutral-900 md:text-7xl">
@@ -157,7 +162,11 @@ function LandingFeatures() {
 
   return (
     <>
-      <section class="bg-neutral-50 py-24" id="features">
+      <section
+        class="relative bg-neutral-50 py-24"
+        id="features"
+        style="background-image: radial-gradient(circle, var(--color-neutral-300) 1px, transparent 1px); background-size: 24px 24px"
+      >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="mb-20 text-center">
             <h2 class="mb-6 font-bold text-4xl text-neutral-900 md:text-5xl">
@@ -337,7 +346,11 @@ function LandingFeatures() {
         </div>
       </section>
 
-      <section class="bg-surface py-24" id="about">
+      <section class="relative overflow-hidden bg-surface py-24" id="about">
+        <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div class="absolute -top-20 right-0 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
+          <div class="absolute bottom-0 -left-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
+        </div>
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
             <div>
