@@ -11,22 +11,7 @@ export default function NotFound() {
 	return (
 		<>
 			<Title>{t("notFound.code")} - Streampai</Title>
-			<main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-				{/* Animated background blobs */}
-				<div class="absolute top-20 left-10 h-32 w-32 animate-pulse rounded-full bg-primary-light/20 blur-xl" />
-				<div
-					class="absolute top-40 right-20 h-48 w-48 animate-pulse rounded-full bg-secondary/20 blur-xl"
-					style="animation-delay: 1000ms"
-				/>
-				<div
-					class="absolute bottom-20 left-1/4 h-24 w-24 animate-pulse rounded-full bg-blue-500/20 blur-xl"
-					style="animation-delay: 500ms"
-				/>
-				<div
-					class="absolute right-1/3 bottom-40 h-36 w-36 animate-pulse rounded-full bg-indigo-500/20 blur-xl"
-					style="animation-delay: 1500ms"
-				/>
-
+			<main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
 				<div class="relative z-10 mx-auto max-w-2xl px-4 text-center">
 					{/* Logo */}
 					<div class="mb-8 flex items-center justify-center space-x-3">
@@ -35,7 +20,7 @@ export default function NotFound() {
 							class="h-12 w-12"
 							src="/images/logo-white.png"
 						/>
-						<span class="font-bold text-2xl text-white">Streampai</span>
+						<span class="font-bold text-2xl text-neutral-900">Streampai</span>
 					</div>
 
 					{/* Cute TV/Monitor illustration with static */}
@@ -85,7 +70,7 @@ export default function NotFound() {
 					</div>
 
 					{/* Error message */}
-					<h1 class="mb-4 font-bold text-3xl text-white md:text-4xl">
+					<h1 class="mb-4 font-bold text-3xl text-neutral-900 md:text-4xl">
 						{t("notFound.title")}
 					</h1>
 
@@ -93,7 +78,7 @@ export default function NotFound() {
 						{t("notFound.description")}
 					</p>
 
-					<p class="mb-8 text-neutral-400">{t("notFound.suggestion")}</p>
+					<p class="mb-8 text-neutral-500">{t("notFound.suggestion")}</p>
 
 					{/* Action buttons */}
 					<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -118,7 +103,7 @@ export default function NotFound() {
 
 						<Show when={user()}>
 							<A
-								class="inline-flex items-center justify-center rounded-lg border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/20"
+								class="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-6 py-3 font-semibold text-neutral-900 shadow-lg transition-all hover:bg-neutral-100"
 								href="/dashboard">
 								<svg
 									aria-hidden="true"
@@ -139,7 +124,7 @@ export default function NotFound() {
 					</div>
 
 					{/* Footer hint */}
-					<p class="mt-12 text-neutral-500 text-sm">
+					<p class="mt-12 text-neutral-400 text-sm">
 						{t("notFound.searchHint")}
 					</p>
 				</div>

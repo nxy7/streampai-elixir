@@ -140,14 +140,14 @@ export default function LoginPage() {
 	return (
 		<>
 			<Title>{t("auth.pageTitle")}</Title>
-			<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
+			<div class="flex min-h-screen items-center justify-center bg-surface px-4">
 				<Show
 					fallback={
-						<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 text-center backdrop-blur-lg">
-							<h2 class="mb-4 font-bold text-2xl text-white">
+						<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center">
+							<h2 class="mb-4 font-bold text-2xl text-neutral-900">
 								{t("auth.alreadySignedIn")}
 							</h2>
-							<p class="mb-6 text-neutral-300">{t("auth.alreadyLoggedIn")}</p>
+							<p class="mb-6 text-neutral-600">{t("auth.alreadyLoggedIn")}</p>
 							<A
 								class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 								href={getDashboardUrl()}>
@@ -156,7 +156,7 @@ export default function LoginPage() {
 						</div>
 					}
 					when={!user()}>
-					<div class="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg">
+					<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
 						<div class="mb-8 text-center">
 							<A class="mb-6 inline-flex items-center space-x-2" href="/">
 								<img
@@ -164,12 +164,14 @@ export default function LoginPage() {
 									class="h-10 w-10"
 									src="/images/logo-white.png"
 								/>
-								<span class="font-bold text-2xl text-white">Streampai</span>
+								<span class="font-bold text-2xl text-neutral-900">
+									Streampai
+								</span>
 							</A>
-							<h1 class="mb-2 font-bold text-3xl text-white">
+							<h1 class="mb-2 font-bold text-3xl text-neutral-900">
 								{t("auth.welcomeBack")}
 							</h1>
-							<p class="text-neutral-300">{t("auth.signInToContinue")}</p>
+							<p class="text-neutral-600">{t("auth.signInToContinue")}</p>
 						</div>
 
 						{/* OAuth Buttons */}
@@ -191,10 +193,10 @@ export default function LoginPage() {
 							</a>
 						</div>
 
-						<div class="my-8 flex items-center gap-4 text-neutral-400 text-sm">
-							<div class="h-px flex-1 bg-white/20" />
+						<div class="my-8 flex items-center gap-4 text-neutral-500 text-sm">
+							<div class="h-px flex-1 bg-neutral-200" />
 							<span class="shrink-0">{t("auth.orContinueWithEmail")}</span>
-							<div class="h-px flex-1 bg-white/20" />
+							<div class="h-px flex-1 bg-neutral-200" />
 						</div>
 
 						{/* Success Message */}
@@ -215,12 +217,12 @@ export default function LoginPage() {
 						<form class="space-y-4" onSubmit={handleSubmit}>
 							<div>
 								<label
-									class="mb-1 block font-medium text-neutral-300 text-sm"
+									class="mb-1 block font-medium text-neutral-900 text-sm"
 									for="email">
 									{t("auth.emailLabel")}
 								</label>
 								<input
-									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
+									class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 									id="email"
 									name="email"
 									onInput={(e) => setEmail(e.currentTarget.value)}
@@ -233,12 +235,12 @@ export default function LoginPage() {
 
 							<div>
 								<label
-									class="mb-1 block font-medium text-neutral-300 text-sm"
+									class="mb-1 block font-medium text-neutral-900 text-sm"
 									for="password">
 									{t("auth.passwordLabel")}
 								</label>
 								<input
-									class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
+									class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 									id="password"
 									minLength={8}
 									name="password"
@@ -253,12 +255,12 @@ export default function LoginPage() {
 							<Show when={mode() === "register"}>
 								<div>
 									<label
-										class="mb-1 block font-medium text-neutral-300 text-sm"
+										class="mb-1 block font-medium text-neutral-900 text-sm"
 										for="password_confirmation">
 										{t("auth.confirmPasswordLabel")}
 									</label>
 									<input
-										class="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
+										class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
 										id="password_confirmation"
 										minLength={8}
 										name="password_confirmation"
@@ -286,7 +288,7 @@ export default function LoginPage() {
 							</button>
 						</form>
 
-						<p class="mt-8 text-center text-neutral-400 text-sm">
+						<p class="mt-8 text-center text-neutral-600 text-sm">
 							{t("auth.noAccount")}{" "}
 							<a
 								class="text-primary-light hover:text-primary-200"
@@ -296,13 +298,15 @@ export default function LoginPage() {
 							</a>
 						</p>
 
-						<p class="mt-4 text-center text-neutral-500 text-xs">
+						<p class="mt-4 text-center text-neutral-400 text-xs">
 							{t("auth.agreeToTerms")}{" "}
-							<A class="text-neutral-400 hover:text-white" href="/terms">
+							<A class="text-neutral-500 hover:text-neutral-900" href="/terms">
 								{t("auth.termsOfService")}
 							</A>{" "}
 							{t("auth.and")}{" "}
-							<A class="text-neutral-400 hover:text-white" href="/privacy">
+							<A
+								class="text-neutral-500 hover:text-neutral-900"
+								href="/privacy">
 								{t("auth.privacyPolicy")}
 							</A>
 						</p>
