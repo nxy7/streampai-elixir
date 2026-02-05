@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/solid-router";
 import { type JSX, Show } from "solid-js";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
@@ -44,11 +45,11 @@ export default function RequireAuth(props: RequireAuthProps) {
 							<p class="mb-6 text-neutral-300">
 								{props.message ?? t("dashboard.signInToAccess")}
 							</p>
-							<a
+							<Link
 								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-								href={getLoginUrl()}>
+								to={getLoginUrl()}>
 								{t("nav.signIn")}
-							</a>
+							</Link>
 						</div>
 					</div>
 				}

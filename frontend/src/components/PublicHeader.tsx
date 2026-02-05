@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { For, Show, createSignal } from "solid-js";
 import Logo from "~/components/Logo";
 import { Button, ThemeToggle } from "~/design-system";
@@ -19,13 +19,24 @@ export default function PublicHeader(props: PublicHeaderProps) {
 	const { user, isLoading: isUserLoading } = useCurrentUser();
 	const [mobileMenuOpen, setMobileMenuOpen] = createSignal(false);
 
+	const handleNavClick = (e: MouseEvent, url: string) => {
+		if (url.startsWith("#") && typeof document !== "undefined") {
+			e.preventDefault();
+			const target = document.querySelector(url);
+			if (target) {
+				target.scrollIntoView({ behavior: "smooth" });
+				setMobileMenuOpen(false);
+			}
+		}
+	};
+
 	return (
 		<nav class="sticky top-0 z-50 border-neutral-200 border-b bg-surface/95 backdrop-blur-md">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="flex items-center justify-between py-4">
-					<A href="/">
+					<Link to="/">
 						<Logo showText size="md" />
-					</A>
+					</Link>
 
 					<div class="hidden items-center space-x-6 md:flex">
 						<Show when={props.navItems}>
@@ -33,7 +44,8 @@ export default function PublicHeader(props: PublicHeaderProps) {
 								{(item) => (
 									<a
 										class="text-neutral-600 transition-colors hover:text-neutral-900"
-										href={item.url}>
+										href={item.url}
+										onClick={(e) => handleNavClick(e, item.url)}>
 										{t(item.labelKey)}
 									</a>
 								)}
@@ -72,7 +84,7 @@ export default function PublicHeader(props: PublicHeaderProps) {
 							<Show
 								fallback={
 									<Button
-										as="a"
+										as="link"
 										class="h-9 w-[120px]"
 										href={getLoginUrl()}
 										variant="gradient">
@@ -122,7 +134,8 @@ export default function PublicHeader(props: PublicHeaderProps) {
 									{(item) => (
 										<a
 											class="block py-2 text-neutral-600 hover:text-neutral-900"
-											href={item.url}>
+											href={item.url}
+											onClick={(e) => handleNavClick(e, item.url)}>
 											{t(item.labelKey)}
 										</a>
 									)}
@@ -157,7 +170,7 @@ export default function PublicHeader(props: PublicHeaderProps) {
 									<Show
 										fallback={
 											<Button
-												as="a"
+												as="link"
 												fullWidth
 												href={getLoginUrl()}
 												variant="gradient">

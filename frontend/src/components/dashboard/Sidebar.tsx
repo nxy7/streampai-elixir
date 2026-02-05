@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { type Accessor, For, Show } from "solid-js";
 import LiveBadge from "~/components/LiveBadge";
 import Logo from "~/components/Logo";
@@ -14,7 +14,6 @@ import {
 } from "./navConfig";
 
 interface SidebarProps {
-	currentPage: Accessor<string>;
 	isAdmin: boolean;
 	isLive: Accessor<boolean>;
 	isModerator: boolean;
@@ -29,9 +28,9 @@ export default function Sidebar(props: SidebarProps) {
 		<div class="sidebar fixed top-0 bottom-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-surface-inset text-surface-inset-text md:translate-x-0">
 			{/* Header */}
 			<div class="flex h-16 shrink-0 items-center px-4">
-				<A class="transition-opacity hover:opacity-80" href="/">
+				<Link class="transition-opacity hover:opacity-80" to="/">
 					<Logo showText size="md" />
-				</A>
+				</Link>
 			</div>
 
 			{/* Scrollable nav */}
@@ -44,22 +43,14 @@ export default function Sidebar(props: SidebarProps) {
 				<nav class="mt-2">
 					<For each={navSections}>
 						{(section) => (
-							<NavSectionGroup
-								currentPage={props.currentPage}
-								isLive={props.isLive}
-								section={section}
-							/>
+							<NavSectionGroup isLive={props.isLive} section={section} />
 						)}
 					</For>
 
 					<Show when={props.isAdmin}>
 						<For each={adminSections}>
 							{(section) => (
-								<NavSectionGroup
-									currentPage={props.currentPage}
-									isLive={props.isLive}
-									section={section}
-								/>
+								<NavSectionGroup isLive={props.isLive} section={section} />
 							)}
 						</For>
 					</Show>
@@ -96,7 +87,6 @@ export default function Sidebar(props: SidebarProps) {
 
 interface NavSectionGroupProps {
 	section: NavSection;
-	currentPage: Accessor<string>;
 	isLive?: Accessor<boolean>;
 }
 
@@ -112,8 +102,6 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 				<For each={props.section.items}>
 					{(item) => {
 						const label = () => t(item.labelKey);
-						const isActive = () =>
-							props.currentPage() === item.url.split("/").pop();
 
 						if (item.comingSoon) {
 							return (
@@ -133,23 +121,25 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 							item.url === "/dashboard/stream" && props.isLive?.();
 
 						return (
-							<Button
-								as="link"
-								class={`justify-start p-3 ${
-									isActive()
-										? "bg-primary text-white"
-										: "text-surface-inset-text"
-								}`}
-								fullWidth
-								href={item.url}
+							<Link
+								activeOptions={{
+									exact: item.url === "/dashboard",
+								}}
+								activeProps={{
+									class: "bg-primary text-white",
+								}}
+								class="group relative inline-flex w-full items-center justify-start rounded-lg p-3 font-medium transition-colors text-surface-inset-text"
+								inactiveProps={{
+									class: "text-surface-inset-text",
+								}}
 								title={label()}
-								variant={isActive() ? "primary" : "ghost"}>
+								to={item.url}>
 								{item.icon}
 								<span class="ml-3 whitespace-nowrap">{label()}</span>
 								<Show when={showLiveBadge()}>
 									<LiveBadge class="ml-auto" size="sm" />
 								</Show>
-							</Button>
+							</Link>
 						);
 					}}
 				</For>
@@ -180,31 +170,23 @@ export function MobileSidebar(props: MobileSidebarProps) {
 			}}>
 			{/* Sidebar Header */}
 			<div class="relative flex items-center justify-center p-4">
-				<A class="transition-opacity hover:opacity-80" href="/">
+				<Link class="transition-opacity hover:opacity-80" to="/">
 					<Logo showText size="md" />
-				</A>
+				</Link>
 			</div>
 
 			{/* Main Navigation */}
 			<nav class="mt-6 flex-1">
 				<For each={navSections}>
 					{(section) => (
-						<NavSectionGroup
-							currentPage={props.currentPage}
-							isLive={props.isLive}
-							section={section}
-						/>
+						<NavSectionGroup isLive={props.isLive} section={section} />
 					)}
 				</For>
 
 				<Show when={props.isAdmin}>
 					<For each={adminSections}>
 						{(section) => (
-							<NavSectionGroup
-								currentPage={props.currentPage}
-								isLive={props.isLive}
-								section={section}
-							/>
+							<NavSectionGroup isLive={props.isLive} section={section} />
 						)}
 					</For>
 				</Show>

@@ -1,6 +1,7 @@
 {
+	"include": ["src/**/*.ts", "src/**/*.tsx"],
 	"compilerOptions": {
-		"target": "ESNext",
+		"target": "ES2022",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"allowSyntheticDefaultImports": true,
@@ -10,13 +11,15 @@
 		"allowJs": true,
 		"noEmit": true,
 		"strict": true,
-		"types": ["vinxi/types/client"],
 		"isolatedModules": true,
 		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"forceConsistentCasingInFileNames": true,
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"baseUrl": ".",
 		"paths": {
 			"~/*": ["./src/*"]
 		}
 	},
-	"include": ["src"],
 	"exclude": ["node_modules"]
 }

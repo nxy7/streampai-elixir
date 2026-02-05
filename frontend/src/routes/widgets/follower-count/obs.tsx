@@ -1,13 +1,27 @@
-import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { createFileRoute, useSearch } from "@tanstack/solid-router";
+import {
+	type Accessor,
+	Show,
+	createEffect,
+	createMemo,
+	createSignal,
+} from "solid-js";
 import { streamEventsCollection } from "~/lib/electric";
 import { getEventsCollection } from "~/lib/useEventsCollection";
 
-export default function FollowerCountOBS() {
-	const [params] = useSearchParams();
-	const userId = () =>
-		Array.isArray(params.userId) ? params.userId[0] : params.userId;
+export const Route = createFileRoute("/widgets/follower-count/obs")({
+	component: FollowerCountOBS,
+});
+
+function FollowerCountOBS() {
+	const params = useSearch({ strict: false }) as Accessor<
+		Record<string, string | string[] | undefined>
+	>;
+	const userId = () => {
+		const raw = params().userId;
+		return Array.isArray(raw) ? raw[0] : raw;
+	};
 
 	const [followerCount, setFollowerCount] = createSignal(0);
 	const [isAnimating, setIsAnimating] = createSignal(false);

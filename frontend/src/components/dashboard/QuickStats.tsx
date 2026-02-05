@@ -116,7 +116,7 @@ export default function QuickStats(props: QuickStatsProps) {
 					</div>
 					<div>
 						<p class="font-bold text-2xl text-neutral-900">
-							${props.totalDonations.toFixed(2)}
+							${(props.totalDonations ?? 0).toFixed(2)}
 						</p>
 						<p class="text-neutral-500 text-sm">{t("dashboard.donations")}</p>
 					</div>

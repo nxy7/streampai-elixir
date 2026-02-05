@@ -175,7 +175,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 					<For each={props.availablePlatforms}>
 						{(platform) => (
 							<Show
-								when={!props.connectedPlatforms.has(platform.targetPlatform)}>
+								when={!props.connectedPlatforms?.has(platform.targetPlatform)}>
 								<Card
 									class="flex items-center justify-between p-4"
 									glow

@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { Show, createSignal } from "solid-js";
 import { useTranslation } from "~/i18n";
 
@@ -36,9 +36,9 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 								{t("dashboard.testAlert")}
 							</span>
 						</button>
-						<A
+						<Link
 							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-primary-50 hover:text-primary-hover"
-							href="/dashboard/widgets">
+							to="/dashboard/widgets">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
@@ -53,10 +53,10 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 								/>
 							</svg>
 							<span class="font-medium text-sm">{t("dashboard.widgets")}</span>
-						</A>
-						<A
+						</Link>
+						<Link
 							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-green-50 hover:text-green-700"
-							href="/dashboard/stream">
+							to="/dashboard/stream">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
@@ -71,10 +71,10 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 								/>
 							</svg>
 							<span class="font-medium text-sm">{t("dashboard.goLive")}</span>
-						</A>
-						<A
+						</Link>
+						<Link
 							class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-neutral-700 transition-colors hover:bg-neutral-100"
-							href="/dashboard/settings">
+							to="/dashboard/settings">
 							<svg
 								aria-hidden="true"
 								class="h-5 w-5"
@@ -97,7 +97,7 @@ export default function QuickActionsPanel(props: QuickActionsPanelProps) {
 							<span class="font-medium text-sm">
 								{t("dashboardNav.settings")}
 							</span>
-						</A>
+						</Link>
 					</div>
 				</div>
 			</Show>

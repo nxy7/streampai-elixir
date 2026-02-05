@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useSearchParams } from "@solidjs/router";
+import { useLocation, useNavigate, useSearch } from "@tanstack/solid-router";
 import {
 	For,
 	type JSX,
@@ -66,7 +66,7 @@ function SupportChatButton() {
 	);
 
 	const tickets = createMemo(() => {
-		const data = ticketsQuery.data() as SupportTicket[];
+		const data = (ticketsQuery.data() ?? []) as SupportTicket[];
 		return [...data].sort(
 			(a, b) =>
 				new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
@@ -74,7 +74,7 @@ function SupportChatButton() {
 	});
 
 	const chatMessages = createMemo(() => {
-		const data = messagesQuery.data() as SupportMessage[];
+		const data = (messagesQuery.data() ?? []) as SupportMessage[];
 		return [...data].sort(
 			(a, b) =>
 				new Date(a.inserted_at).getTime() - new Date(b.inserted_at).getTime(),
@@ -552,15 +552,18 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 	const { user, isLoading } = useCurrentUser();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
-	const isFullscreen = () => searchParams.fullscreen === "true";
+	const searchParams = useSearch({ strict: false }) as () => Record<
+		string,
+		unknown
+	>;
+	const isFullscreen = () => searchParams()?.fullscreen === "true";
 	const [mobileSidebarOpen, setMobileSidebarOpen] = createSignal(false);
 	const { items: breadcrumbItems } = useBreadcrumbContext();
 
 	// Redirect to login if user is not authenticated
 	createEffect(() => {
 		if (!isLoading() && !user()) {
-			navigate("/login", { replace: true });
+			navigate({ to: "/login", replace: true });
 		}
 	});
 
@@ -572,7 +575,7 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 	const isLive = () => streamActor.streamStatus() === "streaming";
 
 	// Auto-detect current page from URL
-	const currentPage = createMemo(() => getCurrentPage(location.pathname));
+	const currentPage = createMemo(() => getCurrentPage(location().pathname));
 
 	// Extract page title from current page (translated)
 	const pageTitle = createMemo(() => {
@@ -609,7 +612,6 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 
 				{/* Desktop Sidebar */}
 				<Sidebar
-					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
 					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}
@@ -617,7 +619,6 @@ function DashboardLayoutInner(props: DashboardLayoutProps) {
 
 				{/* Mobile Sidebar */}
 				<MobileSidebar
-					currentPage={currentPage}
 					isAdmin={user()?.role === "admin"}
 					isLive={isLive}
 					isModerator={user()?.isModerator ?? false}

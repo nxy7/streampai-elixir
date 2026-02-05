@@ -1,4 +1,4 @@
-import { Title } from "@solidjs/meta";
+import { createFileRoute } from "@tanstack/solid-router";
 import { For } from "solid-js";
 import Card from "~/design-system/Card";
 import { button } from "~/design-system/design-system";
@@ -24,7 +24,14 @@ const actions = [
 	{ key: "actionEmail" as const, icon: "📧" },
 ];
 
-export default function HooksPage() {
+export const Route = createFileRoute("/dashboard/tools/hooks")({
+	component: HooksPage,
+	head: () => ({
+		meta: [{ title: "Hooks | Streampai" }],
+	}),
+});
+
+function HooksPage() {
 	const { t } = useTranslation();
 
 	useBreadcrumbs(() => [
@@ -34,8 +41,6 @@ export default function HooksPage() {
 
 	return (
 		<div class="mx-auto max-w-6xl space-y-6">
-			<Title>Hooks | Streampai</Title>
-
 			{/* Header */}
 			<div class="flex items-center justify-between">
 				<p class="text-neutral-500">{t("hooks.description")}</p>

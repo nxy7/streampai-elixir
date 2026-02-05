@@ -1,6 +1,12 @@
-import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { createFileRoute, useSearch } from "@tanstack/solid-router";
+import {
+	type Accessor,
+	Show,
+	createEffect,
+	createMemo,
+	createSignal,
+} from "solid-js";
 import { streamEventsCollection } from "~/lib/electric";
 import { getEventsCollection } from "~/lib/useEventsCollection";
 
@@ -20,10 +26,18 @@ type AlertEvent = {
 	timestamp: Date;
 };
 
-export default function AlertboxOBS() {
-	const [params] = useSearchParams();
-	const userId = () =>
-		Array.isArray(params.userId) ? params.userId[0] : params.userId;
+export const Route = createFileRoute("/widgets/alertbox/obs")({
+	component: AlertboxOBS,
+});
+
+function AlertboxOBS() {
+	const params = useSearch({ strict: false }) as Accessor<
+		Record<string, string | string[] | undefined>
+	>;
+	const userId = () => {
+		const val = params().userId;
+		return (Array.isArray(val) ? val[0] : val) as string | undefined;
+	};
 
 	const [alertQueue, setAlertQueue] = createSignal<AlertEvent[]>([]);
 	const [currentAlert, setCurrentAlert] = createSignal<AlertEvent | null>(null);

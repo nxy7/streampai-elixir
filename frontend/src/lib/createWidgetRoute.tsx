@@ -1,5 +1,4 @@
-import { Title } from "@solidjs/meta";
-import { useParams } from "@solidjs/router";
+import { useParams } from "@tanstack/solid-router";
 import { type JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
@@ -48,11 +47,11 @@ export function createWidgetRoute<T extends object>(
 	options: WidgetRouteOptions<T>,
 ) {
 	return function WidgetDisplay() {
-		const params = useParams<{ userId: string }>();
+		const params = useParams({ strict: false });
 		const [config, setConfig] = createSignal<T | null>(null);
 
 		async function loadConfig() {
-			const userId = params.userId;
+			const userId = params().userId;
 			if (!userId) return;
 
 			const result = await getWidgetConfig({
@@ -90,12 +89,9 @@ export function createWidgetRoute<T extends object>(
 		};
 
 		return (
-			<>
-				{options.title && <Title>{options.title} - Streampai</Title>}
-				<div style={containerStyle}>
-					<Show when={config()}>{(cfg) => options.render(cfg())}</Show>
-				</div>
-			</>
+			<div style={containerStyle}>
+				<Show when={config()}>{(cfg) => options.render(cfg())}</Show>
+			</div>
 		);
 	};
 }

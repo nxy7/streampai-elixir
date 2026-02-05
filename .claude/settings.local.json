@@ -48,7 +48,9 @@
       "mcp__acp__Edit",
       "mcp__acp__Write",
       "mcp__acp__Bash",
-      "WebFetch(domain:developer.paddle.com)"
+      "WebFetch(domain:developer.paddle.com)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright-headless__browser_navigate"
     ],
     "deny": [],
     "ask": []

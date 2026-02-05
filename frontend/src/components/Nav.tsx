@@ -1,4 +1,4 @@
-import { A, useLocation } from "@solidjs/router";
+import { Link, useLocation } from "@tanstack/solid-router";
 import { Show } from "solid-js";
 import { useTranslation } from "~/i18n";
 import {
@@ -14,7 +14,7 @@ export default function Nav() {
 	const { user, isLoading } = useCurrentUser();
 
 	const active = (path: string) =>
-		path === location.pathname
+		path === location().pathname
 			? "border-sky-600"
 			: "border-transparent hover:border-sky-600";
 
@@ -23,10 +23,10 @@ export default function Nav() {
 			<div class="container flex items-center justify-between p-3 text-neutral-200">
 				<ul class="flex items-center">
 					<li class={`border-b-2 ${active("/")} mx-1.5 sm:mx-6`}>
-						<A href="/">{t("nav.home")}</A>
+						<Link to="/">{t("nav.home")}</Link>
 					</li>
 					<li class={`border-b-2 ${active("/about")} mx-1.5 sm:mx-6`}>
-						<A href="/about">{t("nav.about")}</A>
+						<Link to="/about">{t("nav.about")}</Link>
 					</li>
 				</ul>
 
@@ -35,11 +35,11 @@ export default function Nav() {
 						<Show
 							fallback={
 								<div class="flex gap-2">
-									<a
+									<Link
 										class="rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover"
-										href={getLoginUrl()}>
+										to={getLoginUrl()}>
 										{t("nav.signIn")}
-									</a>
+									</Link>
 									<a
 										class="flex items-center gap-2 rounded bg-white px-4 py-2 text-neutral-900 transition-colors hover:bg-neutral-100"
 										href={getLoginUrl("google")}>
@@ -85,11 +85,11 @@ export default function Nav() {
 											name: currentUser().name || currentUser().email || "",
 										})}
 									</span>
-									<A
+									<Link
 										class="rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover"
-										href={getDashboardUrl()}>
+										to={getDashboardUrl()}>
 										{t("nav.dashboard")}
-									</A>
+									</Link>
 									<a
 										class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
 										href={getLogoutUrl()}

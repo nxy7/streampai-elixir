@@ -112,7 +112,7 @@ export default function ViewerEngagementScore(
 				<div class="flex justify-between">
 					<span class="text-neutral-400">{t("dashboard.totalValue")}</span>
 					<span class="font-medium text-neutral-600">
-						${props.totalDonationAmount.toFixed(0)}
+						${(props.totalDonationAmount ?? 0).toFixed(0)}
 					</span>
 				</div>
 			</div>

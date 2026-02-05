@@ -1,6 +1,5 @@
-import { Title } from "@solidjs/meta";
-import { A } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 import {
 	ErrorBoundary,
 	For,
@@ -77,7 +76,14 @@ function ChatHistorySkeleton() {
 	);
 }
 
-export default function ChatHistory() {
+export const Route = createFileRoute("/dashboard/chat-history")({
+	component: ChatHistory,
+	head: () => ({
+		meta: [{ title: "Chat History - Streampai" }],
+	}),
+});
+
+function ChatHistory() {
 	const { t } = useTranslation();
 	const { user } = useCurrentUser();
 
@@ -91,51 +97,48 @@ export default function ChatHistory() {
 	const [search, setSearch] = createSignal("");
 
 	return (
-		<>
-			<Title>Chat History - Streampai</Title>
-			<Show
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="py-12 text-center">
-							<h2 class="mb-4 font-bold text-2xl text-white">
-								{t("chatHistory.empty.notAuthenticated")}
-							</h2>
-							<p class="mb-6 text-neutral-300">
-								{t("chatHistory.empty.signInToView")}
-							</p>
-							<a
-								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-								href={getLoginUrl()}>
-								{t("chatHistory.empty.signIn")}
-							</a>
-						</div>
+		<Show
+			fallback={
+				<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
+					<div class="py-12 text-center">
+						<h2 class="mb-4 font-bold text-2xl text-white">
+							{t("chatHistory.empty.notAuthenticated")}
+						</h2>
+						<p class="mb-6 text-neutral-300">
+							{t("chatHistory.empty.signInToView")}
+						</p>
+						<Link
+							class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
+							to={getLoginUrl()}>
+							{t("chatHistory.empty.signIn")}
+						</Link>
 					</div>
-				}
-				when={user()}>
-				{(currentUser) => (
-					<ErrorBoundary
-						fallback={(err) => (
-							<div class="mx-auto mt-8 max-w-6xl">
-								<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-									{t("chatHistory.messages.errorLoading")} {err.message}
-								</div>
+				</div>
+			}
+			when={user()}>
+			{(currentUser) => (
+				<ErrorBoundary
+					fallback={(err) => (
+						<div class="mx-auto mt-8 max-w-6xl">
+							<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
+								{t("chatHistory.messages.errorLoading")} {err.message}
 							</div>
-						)}>
-						<Suspense fallback={<ChatHistorySkeleton />}>
-							<ChatHistoryContent
-								dateRange={dateRange}
-								platform={platform}
-								search={search}
-								setDateRange={setDateRange}
-								setPlatform={setPlatform}
-								setSearch={setSearch}
-								userId={currentUser().id}
-							/>
-						</Suspense>
-					</ErrorBoundary>
-				)}
-			</Show>
-		</>
+						</div>
+					)}>
+					<Suspense fallback={<ChatHistorySkeleton />}>
+						<ChatHistoryContent
+							dateRange={dateRange}
+							platform={platform}
+							search={search}
+							setDateRange={setDateRange}
+							setPlatform={setPlatform}
+							setSearch={setSearch}
+							userId={currentUser().id}
+						/>
+					</Suspense>
+				</ErrorBoundary>
+			)}
+		</Show>
 	);
 }
 
@@ -436,16 +439,17 @@ function ChatHistoryContent(props: {
 																</span>
 															}
 															when={msg.viewer_id}>
-															<A
+															<Link
 																class={cn(
 																	"shrink-0 font-semibold text-sm hover:underline",
 																	isStreamer
 																		? "text-primary hover:text-primary-hover"
 																		: getPlatformColor(msg.platform ?? ""),
 																)}
-																href={`/dashboard/viewers/${msg.viewer_id?.toString()}`}>
+																params={{ id: msg.viewer_id?.toString() ?? "" }}
+																to="/dashboard/viewers/$id">
 																{chatData?.username ?? "Unknown"}
-															</A>
+															</Link>
 														</Show>
 
 														{/* Badges */}

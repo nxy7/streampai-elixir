@@ -1,4 +1,4 @@
-import { Title } from "@solidjs/meta";
+import { createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { Card, Skeleton, Toggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
@@ -7,7 +7,14 @@ import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { useChatBotConfig } from "~/lib/useElectric";
 import { upsertChatBotConfig } from "~/sdk/ash_rpc";
 
-export default function ChatBotConfigPage() {
+export const Route = createFileRoute("/dashboard/tools/chatbot")({
+	component: ChatBotConfigPage,
+	head: () => ({
+		meta: [{ title: "Chat Bot - Streampai" }],
+	}),
+});
+
+function ChatBotConfigPage() {
 	const { t } = useTranslation();
 	const { user } = useCurrentUser();
 	const configQuery = useChatBotConfig(() => user()?.id);
@@ -29,7 +36,7 @@ export default function ChatBotConfigPage() {
 
 	// Check if we're still loading (status is not yet 'ready')
 	const isLoading = () => {
-		const status = configQuery.status();
+		const status = configQuery.status() as string;
 		return status !== "ready" && status !== "disabled";
 	};
 
@@ -83,171 +90,168 @@ export default function ChatBotConfigPage() {
 	};
 
 	return (
-		<>
-			<Title>{t("dashboardNav.chatBot")} - Streampai</Title>
-			<div class="mx-auto max-w-3xl space-y-4">
-				<Show fallback={<ChatBotSkeleton />} when={isReady()}>
-					{/* Master toggle */}
-					<div class="flex items-center justify-between">
-						<p class="text-neutral-500 text-sm">{t("chatbot.description")}</p>
-						<Toggle
-							checked={enabled()}
-							onChange={() => toggleSetting(setEnabled, enabled(), "enabled")}
+		<div class="mx-auto max-w-3xl space-y-4">
+			<Show fallback={<ChatBotSkeleton />} when={isReady()}>
+				{/* Master toggle */}
+				<div class="flex items-center justify-between">
+					<p class="text-neutral-500 text-sm">{t("chatbot.description")}</p>
+					<Toggle
+						checked={enabled()}
+						onChange={() => toggleSetting(setEnabled, enabled(), "enabled")}
+					/>
+				</div>
+
+				<Card variant="ghost">
+					<div class="divide-y divide-neutral-800/50">
+						{/* Stream Greeting */}
+						<SettingRow
+							checked={greetingEnabled()}
+							description={t("chatbot.greetingDescription")}
+							onChange={() =>
+								toggleSetting(
+									setGreetingEnabled,
+									greetingEnabled(),
+									"greetingEnabled",
+								)
+							}
+							t={t}
+							title={t("chatbot.greeting")}
 						/>
-					</div>
 
-					<Card variant="ghost">
-						<div class="divide-y divide-neutral-800/50">
-							{/* Stream Greeting */}
-							<SettingRow
-								checked={greetingEnabled()}
-								description={t("chatbot.greetingDescription")}
-								onChange={() =>
-									toggleSetting(
-										setGreetingEnabled,
-										greetingEnabled(),
-										"greetingEnabled",
-									)
-								}
-								t={t}
-								title={t("chatbot.greeting")}
+						{/* Command Prefix & Commands */}
+						<div class="space-y-2 p-3">
+							<div>
+								<h3 class="font-medium">{t("chatbot.commandPrefix")}</h3>
+								<p class="text-neutral-400 text-xs">
+									{t("chatbot.commandPrefixDescription")}
+								</p>
+							</div>
+							<input
+								class="w-16 rounded-lg bg-surface px-3 py-2 text-center placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
+								maxLength={5}
+								onBlur={() => saveConfig()}
+								onInput={(e) => setCommandPrefix(e.currentTarget.value)}
+								type="text"
+								value={commandPrefix()}
 							/>
+							<div class="space-y-1">
+								<For
+									each={[
+										{ cmd: "hi", key: "commandHiDescription" },
+										{ cmd: "uptime", key: "commandUptimeDescription" },
+										{ cmd: "followage", key: "commandFollowageDescription" },
+										{ cmd: "socials", key: "commandSocialsDescription" },
+										{ cmd: "lurk", key: "commandLurkDescription" },
+										{ cmd: "dice", key: "commandDiceDescription" },
+										{ cmd: "quote", key: "commandQuoteDescription" },
+										{ cmd: "commands", key: "commandCommandsDescription" },
+									]}>
+									{(item) => (
+										<div class="flex items-center gap-2 rounded border border-neutral-700 bg-neutral-800 px-3 py-2">
+											<code class="shrink-0 font-mono font-semibold text-primary text-sm">
+												{commandPrefix()}
+												{item.cmd}
+											</code>
+											<span class="text-neutral-400 text-sm">
+												{t(`chatbot.${item.key}`)}
+											</span>
+										</div>
+									)}
+								</For>
+							</div>
+						</div>
 
-							{/* Command Prefix & Commands */}
-							<div class="space-y-2 p-3">
-								<div>
-									<h3 class="font-medium">{t("chatbot.commandPrefix")}</h3>
-									<p class="text-neutral-400 text-xs">
-										{t("chatbot.commandPrefixDescription")}
-									</p>
-								</div>
-								<input
-									class="w-16 rounded-lg bg-surface px-3 py-2 text-center placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-									maxLength={5}
-									onBlur={() => saveConfig()}
-									onInput={(e) => setCommandPrefix(e.currentTarget.value)}
-									type="text"
-									value={commandPrefix()}
-								/>
+						{/* AI Chat Participation */}
+						<SettingRow
+							checked={aiChatEnabled()}
+							description={t("chatbot.aiChatDescription")}
+							experimental
+							onChange={() =>
+								toggleSetting(
+									setAiChatEnabled,
+									aiChatEnabled(),
+									"aiChatEnabled",
+								)
+							}
+							t={t}
+							title={t("chatbot.aiChat")}
+						/>
+
+						{/* AI Chat Sub-settings */}
+						<Show when={aiChatEnabled()}>
+							<div class="ml-3 space-y-3 border-violet-800/50 border-l-2 py-2 pl-3">
+								{/* Personality */}
 								<div class="space-y-1">
-									<For
-										each={[
-											{ cmd: "hi", key: "commandHiDescription" },
-											{ cmd: "uptime", key: "commandUptimeDescription" },
-											{ cmd: "followage", key: "commandFollowageDescription" },
-											{ cmd: "socials", key: "commandSocialsDescription" },
-											{ cmd: "lurk", key: "commandLurkDescription" },
-											{ cmd: "dice", key: "commandDiceDescription" },
-											{ cmd: "quote", key: "commandQuoteDescription" },
-											{ cmd: "commands", key: "commandCommandsDescription" },
-										]}>
-										{(item) => (
-											<div class="flex items-center gap-2 rounded border border-neutral-700 bg-neutral-800 px-3 py-2">
-												<code class="shrink-0 font-mono font-semibold text-primary text-sm">
-													{commandPrefix()}
-													{item.cmd}
-												</code>
-												<span class="text-neutral-400 text-sm">
-													{t(`chatbot.${item.key}`)}
-												</span>
-											</div>
-										)}
-									</For>
+									<h4 class="font-medium text-sm">
+										{t("chatbot.aiPersonality")}
+									</h4>
+									<p class="text-neutral-400 text-xs">
+										{t("chatbot.aiPersonalityDescription")}
+									</p>
+									<textarea
+										class="w-full rounded-lg bg-surface px-3 py-2 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
+										maxLength={1000}
+										onBlur={() => saveConfig()}
+										onInput={(e) => setAiPersonality(e.currentTarget.value)}
+										placeholder={t("chatbot.aiPersonalityPlaceholder")}
+										rows={4}
+										value={aiPersonality()}
+									/>
 								</div>
 							</div>
+						</Show>
 
-							{/* AI Chat Participation */}
-							<SettingRow
-								checked={aiChatEnabled()}
-								description={t("chatbot.aiChatDescription")}
-								experimental
-								onChange={() =>
-									toggleSetting(
-										setAiChatEnabled,
-										aiChatEnabled(),
-										"aiChatEnabled",
-									)
-								}
-								t={t}
-								title={t("chatbot.aiChat")}
-							/>
+						{/* Auto Shoutout */}
+						<SettingRow
+							checked={autoShoutoutEnabled()}
+							comingSoon
+							description={t("chatbot.autoShoutoutDescription")}
+							onChange={() =>
+								toggleSetting(
+									setAutoShoutoutEnabled,
+									autoShoutoutEnabled(),
+									"autoShoutoutEnabled",
+								)
+							}
+							t={t}
+							title={t("chatbot.autoShoutout")}
+						/>
 
-							{/* AI Chat Sub-settings */}
-							<Show when={aiChatEnabled()}>
-								<div class="ml-3 space-y-3 border-violet-800/50 border-l-2 py-2 pl-3">
-									{/* Personality */}
-									<div class="space-y-1">
-										<h4 class="font-medium text-sm">
-											{t("chatbot.aiPersonality")}
-										</h4>
-										<p class="text-neutral-400 text-xs">
-											{t("chatbot.aiPersonalityDescription")}
-										</p>
-										<textarea
-											class="w-full rounded-lg bg-surface px-3 py-2 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-											maxLength={1000}
-											onBlur={() => saveConfig()}
-											onInput={(e) => setAiPersonality(e.currentTarget.value)}
-											placeholder={t("chatbot.aiPersonalityPlaceholder")}
-											rows={4}
-											value={aiPersonality()}
-										/>
-									</div>
-								</div>
-							</Show>
+						{/* Link Protection */}
+						<SettingRow
+							checked={linkProtectionEnabled()}
+							comingSoon
+							description={t("chatbot.linkProtectionDescription")}
+							onChange={() =>
+								toggleSetting(
+									setLinkProtectionEnabled,
+									linkProtectionEnabled(),
+									"linkProtectionEnabled",
+								)
+							}
+							t={t}
+							title={t("chatbot.linkProtection")}
+						/>
 
-							{/* Auto Shoutout */}
-							<SettingRow
-								checked={autoShoutoutEnabled()}
-								comingSoon
-								description={t("chatbot.autoShoutoutDescription")}
-								onChange={() =>
-									toggleSetting(
-										setAutoShoutoutEnabled,
-										autoShoutoutEnabled(),
-										"autoShoutoutEnabled",
-									)
-								}
-								t={t}
-								title={t("chatbot.autoShoutout")}
-							/>
-
-							{/* Link Protection */}
-							<SettingRow
-								checked={linkProtectionEnabled()}
-								comingSoon
-								description={t("chatbot.linkProtectionDescription")}
-								onChange={() =>
-									toggleSetting(
-										setLinkProtectionEnabled,
-										linkProtectionEnabled(),
-										"linkProtectionEnabled",
-									)
-								}
-								t={t}
-								title={t("chatbot.linkProtection")}
-							/>
-
-							{/* Slow Mode on Raid */}
-							<SettingRow
-								checked={slowModeOnRaidEnabled()}
-								comingSoon
-								description={t("chatbot.slowModeOnRaidDescription")}
-								onChange={() =>
-									toggleSetting(
-										setSlowModeOnRaidEnabled,
-										slowModeOnRaidEnabled(),
-										"slowModeOnRaidEnabled",
-									)
-								}
-								t={t}
-								title={t("chatbot.slowModeOnRaid")}
-							/>
-						</div>
-					</Card>
-				</Show>
-			</div>
-		</>
+						{/* Slow Mode on Raid */}
+						<SettingRow
+							checked={slowModeOnRaidEnabled()}
+							comingSoon
+							description={t("chatbot.slowModeOnRaidDescription")}
+							onChange={() =>
+								toggleSetting(
+									setSlowModeOnRaidEnabled,
+									slowModeOnRaidEnabled(),
+									"slowModeOnRaidEnabled",
+								)
+							}
+							t={t}
+							title={t("chatbot.slowModeOnRaid")}
+						/>
+					</div>
+				</Card>
+			</Show>
+		</div>
 	);
 }
 

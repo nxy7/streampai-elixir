@@ -1,4 +1,4 @@
-import { Title } from "@solidjs/meta";
+import { createFileRoute } from "@tanstack/solid-router";
 import { createSignal } from "solid-js";
 import PlatformIcon from "~/components/PlatformIcon";
 import PublicFooter from "~/components/PublicFooter";
@@ -6,6 +6,7 @@ import PublicHeader from "~/components/PublicHeader";
 import { Button, Card, TextHighlight, Toggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { useTween } from "~/lib/useTween";
+import { useParallax } from "~/lib/useParallax";
 import { useTypewriter } from "~/lib/useTypewriter";
 
 const LANDING_NAV_ITEMS = [
@@ -36,9 +37,16 @@ function LandingHero() {
 		}, 1000);
 	};
 
+	const heroParallax = useParallax({ speed: 0.35 });
+
 	return (
-		<section class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
-			<div aria-hidden="true" class="pointer-events-none absolute inset-0">
+		<section
+			ref={heroParallax.setRef}
+			class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
+			<div
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-0"
+				style={heroParallax.transformStyle()}>
 				<div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
 				<div class="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-secondary/10 blur-3xl" />
 				<div class="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-primary-light/10 blur-3xl" />
@@ -158,7 +166,7 @@ function LandingHero() {
 
 function LandingFeatures() {
 	const { t } = useTranslation();
-
+	const aboutParallax = useParallax({ speed: 0.3 });
 	return (
 		<>
 			<section
@@ -336,8 +344,14 @@ function LandingFeatures() {
 				</div>
 			</section>
 
-			<section class="relative overflow-hidden bg-surface py-24" id="about">
-				<div aria-hidden="true" class="pointer-events-none absolute inset-0">
+			<section
+				ref={aboutParallax.setRef}
+				class="relative overflow-hidden bg-surface py-24"
+				id="about">
+				<div
+					aria-hidden="true"
+					class="pointer-events-none absolute inset-0"
+					style={aboutParallax.transformStyle()}>
 					<div class="absolute -top-20 right-0 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
 					<div class="absolute bottom-0 -left-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
 				</div>
@@ -477,10 +491,17 @@ function LandingPricing() {
 			chars: "abcdefghijklmnopqrstuvwxyz",
 		},
 	);
+	const pricingParallax = useParallax({ speed: 0.3 });
 
 	return (
-		<section class="relative bg-surface py-24" id="pricing">
-			<div aria-hidden="true" class="pointer-events-none absolute inset-0">
+		<section
+			ref={pricingParallax.setRef}
+			class="relative bg-surface py-24"
+			id="pricing">
+			<div
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-0"
+				style={pricingParallax.transformStyle()}>
 				<div class="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
 				<div class="absolute right-1/4 bottom-0 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
 			</div>
@@ -751,18 +772,22 @@ function LandingCTA() {
 	);
 }
 
-export default function Home() {
+export const Route = createFileRoute("/")({
+	component: Home,
+	head: () => ({
+		meta: [{ title: "Streampai - Multi-Platform Streaming Solution" }],
+	}),
+});
+
+function Home() {
 	return (
-		<>
-			<Title>Streampai - Multi-Platform Streaming Solution</Title>
-			<div class="min-h-screen bg-surface">
-				<PublicHeader navItems={LANDING_NAV_ITEMS} />
-				<LandingHero />
-				<LandingFeatures />
-				<LandingPricing />
-				<LandingCTA />
-				<PublicFooter showTagline />
-			</div>
-		</>
+		<div class="min-h-screen bg-surface">
+			<PublicHeader navItems={LANDING_NAV_ITEMS} />
+			<LandingHero />
+			<LandingFeatures />
+			<LandingPricing />
+			<LandingCTA />
+			<PublicFooter showTagline />
+		</div>
 	);
 }

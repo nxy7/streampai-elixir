@@ -1,5 +1,4 @@
-import { Title } from "@solidjs/meta";
-import { A } from "@solidjs/router";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 import {
 	ErrorBoundary,
 	For,
@@ -113,7 +112,14 @@ function computeDurationSeconds(
 	return Math.floor((end - start) / 1000);
 }
 
-export default function StreamHistory() {
+export const Route = createFileRoute("/dashboard/stream-history/")({
+	component: StreamHistory,
+	head: () => ({
+		meta: [{ title: "Stream History - Streampai" }],
+	}),
+});
+
+function StreamHistory() {
 	const { t } = useTranslation();
 	const { user, isLoading } = useCurrentUser();
 
@@ -126,51 +132,48 @@ export default function StreamHistory() {
 	const [sortBy, setSortBy] = createSignal<SortBy>("recent");
 
 	return (
-		<>
-			<Title>Stream History - Streampai</Title>
-			<Show fallback={<StreamHistorySkeleton />} when={!isLoading()}>
-				<Show
-					fallback={
-						<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-							<div class="py-12 text-center">
-								<h2 class="mb-4 font-bold text-2xl text-white">
-									Not Authenticated
-								</h2>
-								<p class="mb-6 text-neutral-300">
-									Please sign in to view stream history.
-								</p>
-								<a
-									class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-									href={getLoginUrl()}>
-									Sign In
-								</a>
-							</div>
+		<Show fallback={<StreamHistorySkeleton />} when={!isLoading()}>
+			<Show
+				fallback={
+					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
+						<div class="py-12 text-center">
+							<h2 class="mb-4 font-bold text-2xl text-white">
+								Not Authenticated
+							</h2>
+							<p class="mb-6 text-neutral-300">
+								Please sign in to view stream history.
+							</p>
+							<Link
+								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
+								to={getLoginUrl()}>
+								Sign In
+							</Link>
 						</div>
-					}
-					when={user()}>
-					{(currentUser) => (
-						<ErrorBoundary
-							fallback={(err) => (
-								<div class="mx-auto mt-8 max-w-7xl">
-									<Alert variant="error">
-										Error loading streams: {err.message}
-									</Alert>
-								</div>
-							)}>
-							<Suspense fallback={<StreamHistorySkeleton />}>
-								<StreamHistoryContent
-									dateRange={dateRange}
-									setDateRange={setDateRange}
-									setSortBy={setSortBy}
-									sortBy={sortBy}
-									userId={currentUser().id}
-								/>
-							</Suspense>
-						</ErrorBoundary>
-					)}
-				</Show>
+					</div>
+				}
+				when={user()}>
+				{(currentUser) => (
+					<ErrorBoundary
+						fallback={(err) => (
+							<div class="mx-auto mt-8 max-w-7xl">
+								<Alert variant="error">
+									Error loading streams: {err.message}
+								</Alert>
+							</div>
+						)}>
+						<Suspense fallback={<StreamHistorySkeleton />}>
+							<StreamHistoryContent
+								dateRange={dateRange}
+								setDateRange={setDateRange}
+								setSortBy={setSortBy}
+								sortBy={sortBy}
+								userId={currentUser().id}
+							/>
+						</Suspense>
+					</ErrorBoundary>
+				)}
 			</Show>
-		</>
+		</Show>
 	);
 }
 
@@ -381,9 +384,10 @@ function StreamHistoryContent(props: {
 						<div class="divide-y divide-neutral-200">
 							<For each={filteredAndSortedStreams()}>
 								{(stream) => (
-									<A
+									<Link
 										class="block px-6 py-4 transition-colors"
-										href={`/dashboard/stream-history/${stream.id}`}>
+										params={{ id: stream.id }}
+										to="/dashboard/stream-history/$id">
 										<div class="flex items-center space-x-4">
 											<Show
 												fallback={
@@ -460,7 +464,7 @@ function StreamHistoryContent(props: {
 												</svg>
 											</div>
 										</div>
-									</A>
+									</Link>
 								)}
 							</For>
 						</div>

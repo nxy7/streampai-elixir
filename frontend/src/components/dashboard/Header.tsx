@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { type Accessor, Show } from "solid-js";
 import { Breadcrumbs, Skeleton, ThemeToggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
@@ -79,10 +79,10 @@ function UserSection(props: UserSectionProps) {
 			fallback={<UserSectionSkeleton />}
 			when={!props.prefs.isLoading() || props.prefs.data()}>
 			<div class="flex items-center space-x-3">
-				<A
+				<Link
 					class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary-light transition-colors hover:bg-primary"
-					href="/dashboard/settings"
-					title={t("dashboard.goToSettings")}>
+					title={t("dashboard.goToSettings")}
+					to="/dashboard/settings">
 					<Show
 						fallback={
 							<span class="font-medium text-sm text-white">
@@ -98,7 +98,7 @@ function UserSection(props: UserSectionProps) {
 							src={props.prefs.data()?.avatar_url ?? ""}
 						/>
 					</Show>
-				</A>
+				</Link>
 				<div class="hidden md:block">
 					<p class="font-medium text-neutral-900 text-sm">
 						{props.prefs.data()?.name || props.user.email || ""}

@@ -23,9 +23,10 @@ export default function ActivityFeed(props: ActivityFeedProps) {
 	const [filter, setFilter] = createSignal<EventFilter>("all");
 
 	const filteredEvents = createMemo(() => {
+		const events = props.events ?? [];
 		const f = filter();
-		if (f === "all") return props.events.slice(0, 10);
-		return props.events.filter((e) => e.type === f).slice(0, 10);
+		if (f === "all") return events.slice(0, 10);
+		return events.filter((e) => e.type === f).slice(0, 10);
 	});
 
 	const filterButtons = createMemo<{ value: EventFilter; label: string }[]>(
