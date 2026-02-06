@@ -1,4 +1,4 @@
-defmodule Streampai.Repo.Migrations.T do
+defmodule Streampai.Repo.Migrations.UpdateChatbotCommandPrefixDefault do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
