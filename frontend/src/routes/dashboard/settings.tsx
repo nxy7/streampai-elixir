@@ -7,7 +7,7 @@ import {
 	PlatformConnectionsPanel,
 	UserRolesManagement,
 } from "~/components/settings";
-import { Button, Card, Skeleton, Toggle } from "~/design-system";
+import { Button, Card, Input, Skeleton, Toggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -335,38 +335,26 @@ function Settings() {
 						</h3>
 						<div class="space-y-6">
 							{/* Email (read-only) */}
-							<div>
-								<label class="block font-medium text-neutral-700 text-sm">
-									{t("settings.email")}
-									<input
-										class="mt-2 w-full rounded-lg bg-surface px-3 py-2"
-										disabled
-										type="email"
-										value={user()?.email || ""}
-									/>
-								</label>
-								<p class="mt-1 text-neutral-500 text-xs">
-									{t("settings.emailCannotChange")}
-								</p>
-							</div>
+							<Input
+								class="bg-surface-inset"
+								disabled
+								helperText={t("settings.emailCannotChange")}
+								label={t("settings.email")}
+								type="email"
+								value={user()?.email || ""}
+							/>
 
 							{/* Display Name */}
 							<div>
-								<label class="block font-medium text-neutral-700 text-sm">
-									{t("settings.displayName")}
-									<div class="relative mt-2">
-										<input
-											class="w-full rounded-lg bg-surface px-3 py-2 pr-10"
-											onInput={(e) => setDisplayName(e.currentTarget.value)}
-											placeholder={t("settings.displayNamePlaceholder")}
-											type="text"
-											value={displayName() || prefs.data()?.name || ""}
-										/>
-									</div>
-								</label>
-								<p class="mt-1 text-neutral-500 text-xs">
-									{t("settings.displayNameHelp")}
-								</p>
+								<Input
+									class="bg-surface-inset"
+									helperText={t("settings.displayNameHelp")}
+									label={t("settings.displayName")}
+									onInput={(e) => setDisplayName(e.currentTarget.value)}
+									placeholder={t("settings.displayNamePlaceholder")}
+									type="text"
+									value={displayName() || prefs.data()?.name || ""}
+								/>
 								<div class="mt-3 flex items-center gap-3">
 									<Button
 										disabled={isUpdatingName()}
@@ -411,34 +399,31 @@ function Settings() {
 						</h3>
 						<div class="space-y-4">
 							<div>
-								<label class="block font-medium text-neutral-700 text-sm">
-									{t("settings.publicDonationUrl")}
-									<div class="mt-2 flex items-center space-x-3">
-										<input
-											class="flex-1 rounded-lg bg-surface px-3 py-2"
-											readonly
-											type="text"
-											value={`${window.location.origin}/u/${
-												prefs.data()?.name || ""
-											}`}
-										/>
-										<Button
-											onClick={() => {
-												navigator.clipboard.writeText(
-													`${window.location.origin}/u/${
-														prefs.data()?.name || ""
-													}`,
-												);
-											}}
-											size="sm"
-											variant="primary">
-											{t("settings.copyUrl")}
-										</Button>
-									</div>
-								</label>
-								<p class="mt-1 text-neutral-500 text-xs">
-									{t("settings.donationUrlHelp")}
-								</p>
+								<div class="flex items-center space-x-3">
+									<Input
+										class="flex-1 bg-surface-inset"
+										helperText={t("settings.donationUrlHelp")}
+										label={t("settings.publicDonationUrl")}
+										readonly
+										type="text"
+										value={`${window.location.origin}/u/${
+											prefs.data()?.name || ""
+										}`}
+									/>
+									<Button
+										class="mt-6"
+										onClick={() => {
+											navigator.clipboard.writeText(
+												`${window.location.origin}/u/${
+													prefs.data()?.name || ""
+												}`,
+											);
+										}}
+										size="sm"
+										variant="primary">
+										{t("settings.copyUrl")}
+									</Button>
+								</div>
 							</div>
 
 							<div class="flex items-center justify-between rounded-lg bg-neutral-50 p-3">

@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/solid-router";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
 export const Route = createFileRoute("/support")({
@@ -25,7 +26,7 @@ function Support() {
 					</div>
 
 					<div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-						<div class="rounded-2xl bg-neutral-50 p-6 transition-all hover:bg-neutral-100">
+						<Card class="bg-neutral-50" glow variant="ghost">
 							<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 								<svg
 									aria-hidden="true"
@@ -48,9 +49,9 @@ function Support() {
 								{t("support.documentationDescription")}
 							</p>
 							<span class="text-primary-light">{t("support.comingSoon")}</span>
-						</div>
+						</Card>
 
-						<div class="rounded-2xl bg-neutral-50 p-6 transition-all hover:bg-neutral-100">
+						<Card class="bg-neutral-50" glow variant="ghost">
 							<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-cyan-500">
 								<svg
 									aria-hidden="true"
@@ -71,9 +72,9 @@ function Support() {
 							</h3>
 							<p class="mb-4 text-neutral-600">{t("support.faqDescription")}</p>
 							<span class="text-primary-light">{t("support.comingSoon")}</span>
-						</div>
+						</Card>
 
-						<div class="rounded-2xl bg-neutral-50 p-6 transition-all hover:bg-neutral-100">
+						<Card class="bg-neutral-50" glow variant="ghost">
 							<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500">
 								<svg
 									aria-hidden="true"
@@ -96,9 +97,9 @@ function Support() {
 								{t("support.discordDescription")}
 							</p>
 							<span class="text-primary-light">{t("support.comingSoon")}</span>
-						</div>
+						</Card>
 
-						<div class="rounded-2xl bg-neutral-50 p-6 transition-all hover:bg-neutral-100">
+						<Card class="bg-neutral-50" glow variant="ghost">
 							<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-orange-500 to-red-500">
 								<svg
 									aria-hidden="true"
@@ -125,10 +126,10 @@ function Support() {
 								to="/contact">
 								{t("support.contactUs")}
 							</Link>
-						</div>
+						</Card>
 					</div>
 
-					<div class="rounded-2xl bg-neutral-50 p-8">
+					<Card padding="lg" variant="ghost">
 						<h3 class="mb-6 font-semibold text-2xl text-neutral-900">
 							{t("support.faqTitle")}
 						</h3>
@@ -182,7 +183,7 @@ function Support() {
 								</p>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</main>
 

@@ -1,5 +1,5 @@
-import { For, Show, createSignal } from "solid-js";
-import { Alert, Button, Card } from "~/design-system";
+import { Show, createSignal } from "solid-js";
+import { Alert, Button, Card, Input, Select } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { saveDonationSettings } from "~/sdk/ash_rpc";
 
@@ -71,87 +71,72 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 			</h3>
 			<form class="space-y-4" onSubmit={handleSaveDonationSettings}>
 				<div class="grid gap-4 md:grid-cols-3">
-					<div>
-						<label class="block font-medium text-neutral-700 text-sm">
-							{t("settings.minimumAmount")}
-							<div class="relative mt-2">
-								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<span class="text-neutral-500 text-sm">{currency()}</span>
-								</div>
-								<input
-									class="w-full rounded-lg bg-surface py-2 pr-3 pl-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light"
-									onInput={(e) => {
-										const val = e.currentTarget.value;
-										setMinAmount(val ? Number.parseInt(val, 10) : null);
-									}}
-									placeholder={t("settings.noMinimum")}
-									type="number"
-									value={minAmount() ?? ""}
-								/>
-							</div>
-						</label>
-						<p class="mt-1 text-neutral-500 text-xs">
-							{t("settings.leaveEmptyNoMin")}
-						</p>
+					<div class="relative">
+						<span class="pointer-events-none absolute top-9 left-3 z-10 text-neutral-500 text-sm">
+							{currency()}
+						</span>
+						<Input
+							class="bg-surface-inset pl-12"
+							helperText={t("settings.leaveEmptyNoMin")}
+							label={t("settings.minimumAmount")}
+							onInput={(e) => {
+								const val = e.currentTarget.value;
+								setMinAmount(val ? Number.parseInt(val, 10) : null);
+							}}
+							placeholder={t("settings.noMinimum")}
+							type="number"
+							value={minAmount() ?? ""}
+						/>
 					</div>
 
-					<div>
-						<label class="block font-medium text-neutral-700 text-sm">
-							{t("settings.maximumAmount")}
-							<div class="relative mt-2">
-								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<span class="text-neutral-500 text-sm">{currency()}</span>
-								</div>
-								<input
-									class="w-full rounded-lg bg-surface py-2 pr-3 pl-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light"
-									onInput={(e) => {
-										const val = e.currentTarget.value;
-										setMaxAmount(val ? Number.parseInt(val, 10) : null);
-									}}
-									placeholder={t("settings.noMaximum")}
-									type="number"
-									value={maxAmount() ?? ""}
-								/>
-							</div>
-						</label>
-						<p class="mt-1 text-neutral-500 text-xs">
-							{t("settings.leaveEmptyNoMax")}
-						</p>
+					<div class="relative">
+						<span class="pointer-events-none absolute top-9 left-3 z-10 text-neutral-500 text-sm">
+							{currency()}
+						</span>
+						<Input
+							class="bg-surface-inset pl-12"
+							helperText={t("settings.leaveEmptyNoMax")}
+							label={t("settings.maximumAmount")}
+							onInput={(e) => {
+								const val = e.currentTarget.value;
+								setMaxAmount(val ? Number.parseInt(val, 10) : null);
+							}}
+							placeholder={t("settings.noMaximum")}
+							type="number"
+							value={maxAmount() ?? ""}
+						/>
 					</div>
 
-					<div>
-						<label class="block font-medium text-neutral-700 text-sm">
-							{t("settings.currency")}
-							<select
-								class="mt-2 w-full rounded-lg bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light"
-								onChange={(e) => setCurrency(e.currentTarget.value)}
-								value={currency()}>
-								<For each={CURRENCIES}>
-									{(curr) => <option value={curr}>{curr}</option>}
-								</For>
-							</select>
-						</label>
-					</div>
+					<Select
+						class="bg-surface-inset"
+						label={t("settings.currency")}
+						onChange={setCurrency}
+						options={CURRENCIES.map((curr) => ({
+							value: curr,
+							label: curr,
+						}))}
+						value={currency()}
+					/>
 				</div>
 
-				<div>
-					<label class="block font-medium text-neutral-700 text-sm">
-						{t("settings.defaultTtsVoice")}
-						<select
-							class="mt-2 w-full rounded-lg bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light"
-							onChange={(e) => setDefaultVoice(e.currentTarget.value)}
-							value={defaultVoice()}>
-							<option value="random">{t("settings.randomVoice")}</option>
-							<option value="google_en_us_male">
-								Google TTS - English (US) Male
-							</option>
-							<option value="google_en_us_female">
-								Google TTS - English (US) Female
-							</option>
-						</select>
-					</label>
-					<p class="mt-1 text-neutral-500 text-xs">{t("settings.voiceHelp")}</p>
-				</div>
+				<Select
+					class="bg-surface-inset"
+					helperText={t("settings.voiceHelp")}
+					label={t("settings.defaultTtsVoice")}
+					onChange={setDefaultVoice}
+					options={[
+						{ value: "random", label: t("settings.randomVoice") },
+						{
+							value: "google_en_us_male",
+							label: "Google TTS - English (US) Male",
+						},
+						{
+							value: "google_en_us_female",
+							label: "Google TTS - English (US) Female",
+						},
+					]}
+					value={defaultVoice()}
+				/>
 
 				<Alert title={t("settings.donationLimitsInfo")} variant="info">
 					<ul class="space-y-1">

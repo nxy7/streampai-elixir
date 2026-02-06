@@ -14,6 +14,7 @@ import {
 	Card,
 	CardContent,
 	CardHeader,
+	Select,
 	Skeleton,
 	SkeletonChart,
 	SkeletonTableRow,
@@ -272,15 +273,18 @@ function Analytics() {
 							</p>
 						</div>
 
-						<select
-							class="rounded-md border-neutral-300 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
-							onChange={(e) => setTimeframe(e.currentTarget.value as Timeframe)}
-							value={timeframe()}>
-							<option value="day">{t("analytics.last24Hours")}</option>
-							<option value="week">{t("analytics.last7Days")}</option>
-							<option value="month">{t("analytics.last30Days")}</option>
-							<option value="year">{t("analytics.lastYear")}</option>
-						</select>
+						<Select
+							class="bg-surface-inset"
+							onChange={(value) => setTimeframe(value as Timeframe)}
+							options={[
+								{ value: "day", label: t("analytics.last24Hours") },
+								{ value: "week", label: t("analytics.last7Days") },
+								{ value: "month", label: t("analytics.last30Days") },
+								{ value: "year", label: t("analytics.lastYear") },
+							]}
+							value={timeframe()}
+							wrapperClass="w-auto"
+						/>
 					</div>
 
 					<Show when={error()}>

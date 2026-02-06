@@ -14,6 +14,7 @@ import {
 	CardContent,
 	CardHeader,
 	CardTitle,
+	Select,
 	Skeleton,
 	Stat,
 } from "~/design-system";
@@ -271,35 +272,27 @@ function StreamHistoryContent(props: {
 					Filter Streams
 				</h3>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<div>
-						<label class="block font-medium text-neutral-700 text-sm">
-							Date Range
-							<select
-								class="mt-2 w-full rounded-lg bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-								onChange={(e) =>
-									props.setDateRange(e.currentTarget.value as DateRange)
-								}
-								value={props.dateRange()}>
-								<option value="7days">Last 7 days</option>
-								<option value="30days">Last 30 days</option>
-								<option value="all">All time</option>
-							</select>
-						</label>
-					</div>
-					<div>
-						<label class="block font-medium text-neutral-700 text-sm">
-							Sort By
-							<select
-								class="mt-2 w-full rounded-lg bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-								onChange={(e) =>
-									props.setSortBy(e.currentTarget.value as SortBy)
-								}
-								value={props.sortBy()}>
-								<option value="recent">Most Recent</option>
-								<option value="duration">Longest Duration</option>
-							</select>
-						</label>
-					</div>
+					<Select
+						class="bg-surface-inset"
+						label="Date Range"
+						onChange={(value) => props.setDateRange(value as DateRange)}
+						options={[
+							{ value: "7days", label: "Last 7 days" },
+							{ value: "30days", label: "Last 30 days" },
+							{ value: "all", label: "All time" },
+						]}
+						value={props.dateRange()}
+					/>
+					<Select
+						class="bg-surface-inset"
+						label="Sort By"
+						onChange={(value) => props.setSortBy(value as SortBy)}
+						options={[
+							{ value: "recent", label: "Most Recent" },
+							{ value: "duration", label: "Longest Duration" },
+						]}
+						value={props.sortBy()}
+					/>
 				</div>
 			</Card>
 

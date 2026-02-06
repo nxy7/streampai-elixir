@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createSignal } from "solid-js";
 import { Card, Skeleton, Toggle } from "~/design-system";
-import { button, input } from "~/design-system/design-system";
+import { button } from "~/design-system/design-system";
+import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -181,52 +182,38 @@ function TimersConfigPage() {
 						<h3 class="font-semibold text-lg">
 							{editingId() ? t("timers.editTimer") : t("timers.addTimer")}
 						</h3>
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.label")}
-								<input
-									class={`${input.text} mt-1 w-full`}
-									onInput={(e) => setLabel(e.currentTarget.value)}
-									placeholder={t("timers.labelPlaceholder")}
-									type="text"
-									value={label()}
-								/>
-							</label>
-						</div>
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.message")} *
-								<textarea
-									class={`${input.textarea} mt-1 w-full`}
-									onInput={(e) => setContent(e.currentTarget.value)}
-									placeholder={t("timers.messagePlaceholder")}
-									rows="3"
-									value={content()}
-								/>
-							</label>
-						</div>
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.interval")}
-								<input
-									class={`${input.text} mt-1 w-full`}
-									max="180"
-									min="1"
-									onInput={(e) =>
-										setIntervalMinutes(
-											Number.parseInt(e.currentTarget.value, 10) || 5,
-										)
-									}
-									type="number"
-									value={intervalMinutes()}
-								/>
-							</label>
-							<p class="mt-1 text-neutral-400 text-xs">
-								{t("timers.intervalHelp", {
-									minutes: String(intervalMinutes()),
-								})}
-							</p>
-						</div>
+						<Input
+							class="bg-surface-inset"
+							label={t("timers.label")}
+							onInput={(e) => setLabel(e.currentTarget.value)}
+							placeholder={t("timers.labelPlaceholder")}
+							type="text"
+							value={label()}
+						/>
+						<Textarea
+							class="bg-surface-inset"
+							label={`${t("timers.message")} *`}
+							onInput={(e) => setContent(e.currentTarget.value)}
+							placeholder={t("timers.messagePlaceholder")}
+							rows={3}
+							value={content()}
+						/>
+						<Input
+							class="bg-surface-inset"
+							helperText={t("timers.intervalHelp", {
+								minutes: String(intervalMinutes()),
+							})}
+							label={t("timers.interval")}
+							max={180}
+							min={1}
+							onInput={(e) =>
+								setIntervalMinutes(
+									Number.parseInt(e.currentTarget.value, 10) || 5,
+								)
+							}
+							type="number"
+							value={intervalMinutes()}
+						/>
 						<div class="flex gap-2">
 							<button
 								class={button.primary}
