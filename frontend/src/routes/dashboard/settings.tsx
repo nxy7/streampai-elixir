@@ -469,10 +469,10 @@ function Settings() {
 								</div>
 								<Link
 									class="font-medium text-primary text-sm hover:text-primary-hover"
+									params={{ username: prefs.data()?.name || "" }}
 									rel="noreferrer"
 									target="_blank"
-									to="/u/$username"
-									params={{ username: prefs.data()?.name || "" }}>
+									to="/u/$username">
 									{t("settings.preview")} →
 								</Link>
 							</div>

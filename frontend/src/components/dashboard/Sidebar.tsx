@@ -128,7 +128,7 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 								activeProps={{
 									class: "bg-primary text-white",
 								}}
-								class="group relative inline-flex w-full items-center justify-start rounded-lg p-3 font-medium transition-colors text-surface-inset-text"
+								class="group relative inline-flex w-full items-center justify-start rounded-lg p-3 font-medium text-surface-inset-text transition-colors"
 								inactiveProps={{
 									class: "text-surface-inset-text",
 								}}

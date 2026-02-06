@@ -186,12 +186,14 @@ export function ActivityRow(props: ActivityRowProps) {
 								</span>
 							}
 							when={props.item.viewerId}>
-							<Link
-								class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
-								params={{ id: props.item.viewerId! }}
-								to="/dashboard/viewers/$id">
-								{props.item.username}
-							</Link>
+							{(viewerId) => (
+								<Link
+									class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
+									params={{ id: viewerId() }}
+									to="/dashboard/viewers/$id">
+									{props.item.username}
+								</Link>
+							)}
 						</Show>
 					</Show>
 					<Show when={props.item.amount}>

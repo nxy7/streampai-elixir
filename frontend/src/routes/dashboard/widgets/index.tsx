@@ -110,8 +110,8 @@ function Widgets() {
 											<div class="flex items-center gap-1">
 												<Link
 													class="rounded-md px-3 py-1 text-primary text-sm transition-colors hover:bg-primary-50"
-													to="/dashboard/widgets/$slug"
-													params={{ slug: widget.slug }}>
+													params={{ slug: widget.slug }}
+													to="/dashboard/widgets/$slug">
 													Configure
 												</Link>
 												{/* biome-ignore lint/a11y/useAnchorContent: aria-label provides accessible content */}

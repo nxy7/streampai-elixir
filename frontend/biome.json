@@ -46,6 +46,12 @@
 			"formatter": {
 				"enabled": false
 			}
+		},
+		{
+			"includes": ["src/routeTree.gen.ts"],
+			"linter": {
+				"enabled": false
+			}
 		}
 	]
 }

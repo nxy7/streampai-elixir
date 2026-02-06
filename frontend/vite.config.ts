@@ -29,7 +29,12 @@ export default defineConfig({
 		tailwindcss(),
 		tsConfigPaths({ projects: ["./tsconfig.json"] }),
 		tanstackStart({
-			spa: { enabled: true },
+			spa: {
+				enabled: true,
+				prerender: {
+					outputPath: "/index",
+				},
+			},
 			router: {
 				autoCodeSplitting: false,
 			},

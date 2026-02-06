@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	},
 });
 
-function RootShell(props: { children: any }) {
+function RootShell(props: { children: JSX.Element }) {
 	return (
 		<html lang="en">
 			<head>

@@ -5,8 +5,8 @@ import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
 import { Button, Card, TextHighlight, Toggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
-import { useTween } from "~/lib/useTween";
 import { useParallax } from "~/lib/useParallax";
+import { useTween } from "~/lib/useTween";
 import { useTypewriter } from "~/lib/useTypewriter";
 
 const LANDING_NAV_ITEMS = [
@@ -41,8 +41,8 @@ function LandingHero() {
 
 	return (
 		<section
-			ref={heroParallax.setRef}
-			class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface">
+			class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface"
+			ref={heroParallax.setRef}>
 			<div
 				aria-hidden="true"
 				class="pointer-events-none absolute inset-0"
@@ -345,9 +345,9 @@ function LandingFeatures() {
 			</section>
 
 			<section
-				ref={aboutParallax.setRef}
 				class="relative overflow-hidden bg-surface py-24"
-				id="about">
+				id="about"
+				ref={aboutParallax.setRef}>
 				<div
 					aria-hidden="true"
 					class="pointer-events-none absolute inset-0"
@@ -495,9 +495,9 @@ function LandingPricing() {
 
 	return (
 		<section
-			ref={pricingParallax.setRef}
 			class="relative bg-surface py-24"
-			id="pricing">
+			id="pricing"
+			ref={pricingParallax.setRef}>
 			<div
 				aria-hidden="true"
 				class="pointer-events-none absolute inset-0"
