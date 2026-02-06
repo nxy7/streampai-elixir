@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/solid-router";
 import { For, Match, Show, Switch, createSignal } from "solid-js";
 import Card from "~/design-system/Card";
-import { button, input } from "~/design-system/design-system";
+import { button } from "~/design-system/design-system";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -165,7 +166,7 @@ function ClipsPage() {
 					<div class="relative">
 						<svg
 							aria-hidden="true"
-							class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400"
+							class="pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 text-neutral-400"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24">
@@ -176,8 +177,8 @@ function ClipsPage() {
 								stroke-width="2"
 							/>
 						</svg>
-						<input
-							class={`${input.text} pl-10`}
+						<Input
+							class="bg-surface-inset pl-10"
 							onInput={(e) => setSearch(e.currentTarget.value)}
 							placeholder={t("clips.searchPlaceholder")}
 							type="text"
@@ -294,7 +295,7 @@ function ClipsPage() {
 						<div class="relative">
 							<svg
 								aria-hidden="true"
-								class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400"
+								class="pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 text-neutral-400"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24">
@@ -305,8 +306,8 @@ function ClipsPage() {
 									stroke-width="2"
 								/>
 							</svg>
-							<input
-								class={`${input.text} pl-10`}
+							<Input
+								class="bg-surface-inset pl-10"
 								onInput={(e) => setSearch(e.currentTarget.value)}
 								placeholder={t("clips.searchPlaceholder")}
 								type="text"

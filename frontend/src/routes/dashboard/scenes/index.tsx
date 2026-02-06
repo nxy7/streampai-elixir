@@ -3,6 +3,7 @@ import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -559,8 +560,8 @@ function SmartCanvas() {
 								1920x1080):
 							</p>
 							<div class="flex gap-2">
-								<input
-									class="flex-1 rounded-lg border border-neutral-500/30 bg-surface px-3 py-2 font-mono text-sm"
+								<Input
+									class="flex-1 bg-surface-inset font-mono"
 									readonly
 									type="text"
 									value={obsUrl()}

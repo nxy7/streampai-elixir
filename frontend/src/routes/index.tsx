@@ -4,6 +4,7 @@ import PlatformIcon from "~/components/PlatformIcon";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
 import { Button, Card, TextHighlight, Toggle } from "~/design-system";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useParallax } from "~/lib/useParallax";
 import { useTween } from "~/lib/useTween";
@@ -86,8 +87,8 @@ function LandingHero() {
 						<form
 							class="mx-auto flex max-w-md flex-col gap-3 sm:flex-row"
 							onSubmit={handleNewsletterSignup}>
-							<input
-								class="flex-1 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
+							<Input
+								class="flex-1 bg-neutral-800 py-3 text-base text-white placeholder:text-neutral-400"
 								onInput={(e) => setEmail(e.currentTarget.value)}
 								placeholder={t("landing.emailPlaceholder")}
 								required
@@ -95,6 +96,7 @@ function LandingHero() {
 								value={email()}
 							/>
 							<Button
+								class="shrink-0 whitespace-nowrap"
 								disabled={loading()}
 								size="lg"
 								type="submit"
@@ -355,7 +357,7 @@ function LandingFeatures() {
 					<div class="absolute -top-20 right-0 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
 					<div class="absolute bottom-0 -left-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
 				</div>
-				<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
 					<div class="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
 						<div>
 							<h2 class="mb-8 font-bold text-4xl text-neutral-900 md:text-5xl">

@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/solid-router";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
+import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
 export const Route = createFileRoute("/privacy")({
@@ -17,7 +18,7 @@ function Privacy() {
 
 			<main class="flex-1 py-12">
 				<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-					<div class="rounded-2xl bg-neutral-50 p-8">
+					<Card padding="lg" variant="ghost">
 						<div class="prose prose-invert max-w-none">
 							<p class="mb-6 text-neutral-600">{t("privacy.lastUpdated")}</p>
 
@@ -111,7 +112,7 @@ function Privacy() {
 								.
 							</p>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</main>
 

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { Card, Skeleton, Toggle } from "~/design-system";
+import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -126,8 +127,8 @@ function ChatBotConfigPage() {
 									{t("chatbot.commandPrefixDescription")}
 								</p>
 							</div>
-							<input
-								class="w-16 rounded-lg bg-surface px-3 py-2 text-center placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
+							<Input
+								class="w-16 bg-surface-inset text-center"
 								maxLength={5}
 								onBlur={() => saveConfig()}
 								onInput={(e) => setCommandPrefix(e.currentTarget.value)}
@@ -181,23 +182,17 @@ function ChatBotConfigPage() {
 						<Show when={aiChatEnabled()}>
 							<div class="ml-3 space-y-3 border-violet-800/50 border-l-2 py-2 pl-3">
 								{/* Personality */}
-								<div class="space-y-1">
-									<h4 class="font-medium text-sm">
-										{t("chatbot.aiPersonality")}
-									</h4>
-									<p class="text-neutral-400 text-xs">
-										{t("chatbot.aiPersonalityDescription")}
-									</p>
-									<textarea
-										class="w-full rounded-lg bg-surface px-3 py-2 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-										maxLength={1000}
-										onBlur={() => saveConfig()}
-										onInput={(e) => setAiPersonality(e.currentTarget.value)}
-										placeholder={t("chatbot.aiPersonalityPlaceholder")}
-										rows={4}
-										value={aiPersonality()}
-									/>
-								</div>
+								<Textarea
+									class="bg-surface-inset"
+									helperText={t("chatbot.aiPersonalityDescription")}
+									label={t("chatbot.aiPersonality")}
+									maxLength={1000}
+									onBlur={() => saveConfig()}
+									onInput={(e) => setAiPersonality(e.currentTarget.value)}
+									placeholder={t("chatbot.aiPersonalityPlaceholder")}
+									rows={4}
+									value={aiPersonality()}
+								/>
 							</div>
 						</Show>
 

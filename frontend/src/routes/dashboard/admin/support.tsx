@@ -12,6 +12,7 @@ import Badge, { type BadgeVariant } from "~/design-system/Badge";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { cn, text } from "~/design-system/design-system";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
@@ -437,8 +438,8 @@ function AdminSupport() {
 														e.preventDefault();
 														handleSendMessage();
 													}}>
-													<input
-														class="flex-1 rounded-lg border-0 bg-surface-inset px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+													<Input
+														class="flex-1 bg-surface-inset"
 														disabled={isSending()}
 														onInput={(e) =>
 															setMessageInput(e.currentTarget.value)

@@ -1058,6 +1058,9 @@ export const dict = {
 		anonymousPlaceholder: "Anonymous",
 		emailPlaceholder: "email@example.com",
 		messagePlaceholder: "Say something nice...",
+		yourName: "Your Name (optional)",
+		yourEmail: "Your Email (for receipt)",
+		message: "Message (optional)",
 	},
 
 	// Contact page

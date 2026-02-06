@@ -9,6 +9,7 @@ import {
 } from "solid-js";
 import Badge from "~/design-system/Badge";
 import Button from "~/design-system/Button";
+import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { useCurrentUser } from "~/lib/auth";
 import {
@@ -329,15 +330,15 @@ function SupportChatButton() {
 							}>
 							{ticketTypeLabel(ticketType())}
 						</Badge>
-						<input
-							class="w-full rounded-lg border-0 bg-surface-inset px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+						<Input
+							class="bg-surface-inset"
 							onInput={(e) => setSubject(e.currentTarget.value)}
 							placeholder={t("support.chat.subjectPlaceholder")}
 							type="text"
 							value={subject()}
 						/>
-						<textarea
-							class="w-full resize-none rounded-lg border-0 bg-surface-inset px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+						<Textarea
+							class="bg-surface-inset"
 							onInput={(e) => setMessage(e.currentTarget.value)}
 							placeholder={t("support.chat.messagePlaceholder")}
 							rows={3}
@@ -485,8 +486,8 @@ function SupportChatButton() {
 										e.preventDefault();
 										handleSendChat();
 									}}>
-									<input
-										class="flex-1 rounded-lg border-0 bg-surface-inset px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+									<Input
+										class="flex-1 bg-surface-inset"
 										disabled={isSending()}
 										onInput={(e) => setChatInput(e.currentTarget.value)}
 										placeholder={t("support.chat.messagePlaceholder")}

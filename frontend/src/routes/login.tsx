@@ -2,6 +2,7 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { Show, createSignal } from "solid-js";
 import Logo from "~/components/Logo";
 import { Button } from "~/design-system";
+import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
 import { API_PATH, getApiBase } from "~/lib/constants";
@@ -234,64 +235,41 @@ function LoginPage() {
 								value={honeypot()}
 							/>
 						</div>
-						<div>
-							<label
-								class="mb-1 block font-medium text-neutral-900 text-sm"
-								for="email">
-								{t("auth.emailLabel")}
-							</label>
-							<input
-								class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-								id="email"
-								name="email"
-								onInput={(e) => setEmail(e.currentTarget.value)}
-								placeholder={t("auth.emailPlaceholder")}
-								required
-								type="email"
-								value={email()}
-							/>
-						</div>
+						<Input
+							class="bg-surface-inset"
+							label={t("auth.emailLabel")}
+							name="email"
+							onInput={(e) => setEmail(e.currentTarget.value)}
+							placeholder={t("auth.emailPlaceholder")}
+							required
+							type="email"
+							value={email()}
+						/>
 
-						<div>
-							<label
-								class="mb-1 block font-medium text-neutral-900 text-sm"
-								for="password">
-								{t("auth.passwordLabel")}
-							</label>
-							<input
-								class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-								id="password"
-								minLength={8}
-								name="password"
-								onInput={(e) => setPassword(e.currentTarget.value)}
-								placeholder={t("auth.passwordPlaceholder")}
-								required
-								type="password"
-								value={password()}
-							/>
-						</div>
+						<Input
+							class="bg-surface-inset"
+							label={t("auth.passwordLabel")}
+							minLength={8}
+							name="password"
+							onInput={(e) => setPassword(e.currentTarget.value)}
+							placeholder={t("auth.passwordPlaceholder")}
+							required
+							type="password"
+							value={password()}
+						/>
 
 						<Show when={mode() === "register"}>
-							<div>
-								<label
-									class="mb-1 block font-medium text-neutral-900 text-sm"
-									for="password_confirmation">
-									{t("auth.confirmPasswordLabel")}
-								</label>
-								<input
-									class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary-light"
-									id="password_confirmation"
-									minLength={8}
-									name="password_confirmation"
-									onInput={(e) =>
-										setPasswordConfirmation(e.currentTarget.value)
-									}
-									placeholder={t("auth.confirmPasswordPlaceholder")}
-									required
-									type="password"
-									value={passwordConfirmation()}
-								/>
-							</div>
+							<Input
+								class="bg-surface-inset"
+								label={t("auth.confirmPasswordLabel")}
+								minLength={8}
+								name="password_confirmation"
+								onInput={(e) => setPasswordConfirmation(e.currentTarget.value)}
+								placeholder={t("auth.confirmPasswordPlaceholder")}
+								required
+								type="password"
+								value={passwordConfirmation()}
+							/>
 						</Show>
 
 						<Button

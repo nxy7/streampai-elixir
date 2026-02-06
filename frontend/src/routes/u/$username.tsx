@@ -2,6 +2,7 @@ import { useLiveQuery } from "@tanstack/solid-db";
 import { Link, createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { createUserPreferencesCollection } from "~/lib/electric";
 import { useTheme } from "~/lib/theme";
@@ -313,11 +314,11 @@ function DonationPage() {
 
 								{/* Custom Amount */}
 								<div class="relative">
-									<span class="absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400 text-sm">
+									<span class="absolute top-1/2 left-3 z-10 -translate-y-1/2 text-neutral-400 text-sm">
 										{getCurrencySymbol(currency())}
 									</span>
-									<input
-										class="w-full rounded-lg bg-surface px-3 py-2.5 pl-8 text-neutral-900 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
+									<Input
+										class="bg-surface-inset pl-8"
 										inputMode="decimal"
 										onBeforeInput={(e) => {
 											const data = e.data;
@@ -385,52 +386,38 @@ function DonationPage() {
 							</div>
 
 							{/* Donor Name */}
-							<div class="mb-4">
-								<label class="block font-medium text-neutral-700 text-sm">
-									Your Name (optional)
-									<input
-										class="mt-1.5 w-full rounded-lg bg-surface px-3 py-2.5 text-neutral-900 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-										onInput={(e) => setDonorInfo("name", e.currentTarget.value)}
-										placeholder={t("donation.anonymousPlaceholder")}
-										type="text"
-										value={donorInfo.name}
-									/>
-								</label>
-							</div>
+							<Input
+								class="mb-4 bg-surface-inset"
+								label={t("donation.yourName")}
+								onInput={(e) => setDonorInfo("name", e.currentTarget.value)}
+								placeholder={t("donation.anonymousPlaceholder")}
+								type="text"
+								value={donorInfo.name}
+							/>
 
 							{/* Donor Email */}
-							<div class="mb-4">
-								<label class="block font-medium text-neutral-700 text-sm">
-									Your Email (for receipt)
-									<input
-										class="mt-1.5 w-full rounded-lg bg-surface px-3 py-2.5 text-neutral-900 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-										onInput={(e) =>
-											setDonorInfo("email", e.currentTarget.value)
-										}
-										placeholder={t("donation.emailPlaceholder")}
-										type="email"
-										value={donorInfo.email}
-									/>
-								</label>
-							</div>
+							<Input
+								class="mb-4 bg-surface-inset"
+								label={t("donation.yourEmail")}
+								onInput={(e) => setDonorInfo("email", e.currentTarget.value)}
+								placeholder={t("donation.emailPlaceholder")}
+								type="email"
+								value={donorInfo.email}
+							/>
 
 							{/* Message */}
-							<div class="mb-6">
-								<label class="block font-medium text-neutral-700 text-sm">
-									Message (optional)
-									<textarea
-										class="mt-1.5 w-full resize-none rounded-lg bg-surface px-3 py-2.5 text-neutral-900 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-light"
-										onInput={(e) =>
-											updateStreamerPrefs({
-												message: e.currentTarget.value,
-											})
-										}
-										placeholder={t("donation.messagePlaceholder")}
-										rows={3}
-										value={currentStreamerPrefs().message}
-									/>
-								</label>
-							</div>
+							<Textarea
+								class="mb-6 bg-surface-inset"
+								label={t("donation.message")}
+								onInput={(e) =>
+									updateStreamerPrefs({
+										message: e.currentTarget.value,
+									})
+								}
+								placeholder={t("donation.messagePlaceholder")}
+								rows={3}
+								value={currentStreamerPrefs().message}
+							/>
 
 							{/* Donate Button */}
 							<button

@@ -1054,6 +1054,9 @@ export const dict: Dictionary = {
 		anonymousPlaceholder: "Anónimo",
 		emailPlaceholder: "correo@ejemplo.com",
 		messagePlaceholder: "Escribe algo lindo...",
+		yourName: "Tu nombre (opcional)",
+		yourEmail: "Tu correo (para recibo)",
+		message: "Mensaje (opcional)",
 	},
 
 	// Contact page

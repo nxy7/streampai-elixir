@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/solid-router";
 import { createSignal } from "solid-js";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
+import Card from "~/design-system/Card";
+import Input, { Textarea } from "~/design-system/Input";
+import Select from "~/design-system/Select";
 import { useTranslation } from "~/i18n";
 
 export const Route = createFileRoute("/contact")({
@@ -51,7 +54,7 @@ function Contact() {
 
 					<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 						<div class="space-y-6 lg:col-span-1">
-							<div class="rounded-2xl bg-neutral-50 p-6">
+							<Card class="bg-neutral-50" glow variant="ghost">
 								<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-primary-light to-secondary">
 									<svg
 										aria-hidden="true"
@@ -71,9 +74,9 @@ function Contact() {
 									{t("contact.emailTitle")}
 								</h3>
 								<p class="text-neutral-600">support@streampai.com</p>
-							</div>
+							</Card>
 
-							<div class="rounded-2xl bg-neutral-50 p-6">
+							<Card class="bg-neutral-50" glow variant="ghost">
 								<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-cyan-500">
 									<svg
 										aria-hidden="true"
@@ -98,9 +101,9 @@ function Contact() {
 								<span class="text-primary-light text-sm">
 									{t("contact.comingSoon")}
 								</span>
-							</div>
+							</Card>
 
-							<div class="rounded-2xl bg-neutral-50 p-6">
+							<Card class="bg-neutral-50" glow variant="ghost">
 								<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500">
 									<svg
 										aria-hidden="true"
@@ -117,103 +120,77 @@ function Contact() {
 								<span class="text-primary-light text-sm">
 									{t("contact.comingSoon")}
 								</span>
-							</div>
+							</Card>
 						</div>
 
 						<div class="lg:col-span-2">
-							<div class="rounded-2xl bg-neutral-50 p-8">
+							<Card padding="lg" variant="ghost">
 								<h3 class="mb-6 font-semibold text-neutral-900 text-xl">
 									{t("contact.formTitle")}
 								</h3>
 
 								<form class="space-y-6" onSubmit={handleSubmit}>
 									<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-										<div>
-											<label
-												class="mb-2 block font-medium text-neutral-900 text-sm"
-												for="name">
-												{t("contact.nameLabel")}
-											</label>
-											<input
-												class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
-												id="name"
-												onInput={(e) => setName(e.currentTarget.value)}
-												placeholder={t("contact.namePlaceholder")}
-												required
-												type="text"
-												value={name()}
-											/>
-										</div>
-										<div>
-											<label
-												class="mb-2 block font-medium text-neutral-900 text-sm"
-												for="email">
-												{t("contact.emailLabel")}
-											</label>
-											<input
-												class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
-												id="email"
-												onInput={(e) => setEmail(e.currentTarget.value)}
-												placeholder={t("contact.emailPlaceholder")}
-												required
-												type="email"
-												value={email()}
-											/>
-										</div>
-									</div>
-
-									<div>
-										<label
-											class="mb-2 block font-medium text-neutral-900 text-sm"
-											for="subject">
-											{t("contact.subjectLabel")}
-										</label>
-										<select
-											class="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
-											id="subject"
-											onChange={(e) => setSubject(e.currentTarget.value)}
+										<Input
+											class="bg-surface-inset"
+											label={t("contact.nameLabel")}
+											onInput={(e) => setName(e.currentTarget.value)}
+											placeholder={t("contact.namePlaceholder")}
 											required
-											value={subject()}>
-											<option class="bg-neutral-800" value="">
-												{t("contact.subjectPlaceholder")}
-											</option>
-											<option class="bg-neutral-800" value="general">
-												{t("contact.subjectGeneral")}
-											</option>
-											<option class="bg-neutral-800" value="support">
-												{t("contact.subjectSupport")}
-											</option>
-											<option class="bg-neutral-800" value="billing">
-												{t("contact.subjectBilling")}
-											</option>
-											<option class="bg-neutral-800" value="feature">
-												{t("contact.subjectFeature")}
-											</option>
-											<option class="bg-neutral-800" value="bug">
-												{t("contact.subjectBug")}
-											</option>
-											<option class="bg-neutral-800" value="partnership">
-												{t("contact.subjectPartnership")}
-											</option>
-										</select>
-									</div>
-
-									<div>
-										<label
-											class="mb-2 block font-medium text-neutral-900 text-sm"
-											for="message">
-											{t("contact.messageLabel")}
-										</label>
-										<textarea
-											class="w-full resize-none rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-3 text-neutral-900 placeholder-neutral-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-light"
-											id="message"
-											onInput={(e) => setMessage(e.currentTarget.value)}
-											placeholder={t("contact.messagePlaceholder")}
+											type="text"
+											value={name()}
+										/>
+										<Input
+											class="bg-surface-inset"
+											label={t("contact.emailLabel")}
+											onInput={(e) => setEmail(e.currentTarget.value)}
+											placeholder={t("contact.emailPlaceholder")}
 											required
-											rows={6}
-											value={message()}
+											type="email"
+											value={email()}
 										/>
 									</div>
+
+									<Select
+										class="bg-surface-inset"
+										label={t("contact.subjectLabel")}
+										onChange={setSubject}
+										options={[
+											{
+												value: "general",
+												label: t("contact.subjectGeneral"),
+											},
+											{
+												value: "support",
+												label: t("contact.subjectSupport"),
+											},
+											{
+												value: "billing",
+												label: t("contact.subjectBilling"),
+											},
+											{
+												value: "feature",
+												label: t("contact.subjectFeature"),
+											},
+											{ value: "bug", label: t("contact.subjectBug") },
+											{
+												value: "partnership",
+												label: t("contact.subjectPartnership"),
+											},
+										]}
+										placeholder={t("contact.subjectPlaceholder")}
+										value={subject()}
+									/>
+
+									<Textarea
+										class="bg-surface-inset"
+										label={t("contact.messageLabel")}
+										onInput={(e) => setMessage(e.currentTarget.value)}
+										placeholder={t("contact.messagePlaceholder")}
+										required
+										rows={6}
+										value={message()}
+									/>
 
 									<button
 										class="w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover disabled:opacity-50"
@@ -236,7 +213,7 @@ function Contact() {
 										</div>
 									)}
 								</form>
-							</div>
+							</Card>
 						</div>
 					</div>
 				</div>
