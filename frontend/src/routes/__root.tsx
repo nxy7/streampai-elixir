@@ -4,7 +4,7 @@ import {
 	Scripts,
 	createRootRouteWithContext,
 } from "@tanstack/solid-router";
-import { Suspense } from "solid-js";
+import { type JSX, Suspense } from "solid-js";
 import { HydrationScript } from "solid-js/web";
 import "../app.css";
 import { ImpersonationBanner } from "~/components/ImpersonationBanner";
