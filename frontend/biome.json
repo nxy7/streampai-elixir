@@ -3,7 +3,14 @@
 	"extends": ["../biome.json"],
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"]
+		"includes": [
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.js",
+			"**/*.jsx",
+			"**/*.json",
+			"!**/routeTree.gen.ts"
+		]
 	},
 	"css": {
 		"parser": {
@@ -40,15 +47,6 @@
 		},
 		{
 			"includes": ["src/sdk/**"],
-			"linter": {
-				"enabled": false
-			},
-			"formatter": {
-				"enabled": false
-			}
-		},
-		{
-			"includes": ["src/routeTree.gen.ts"],
 			"linter": {
 				"enabled": false
 			},
