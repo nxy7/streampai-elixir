@@ -11,8 +11,8 @@ import { useTypewriter } from "~/lib/useTypewriter";
 
 const LANDING_NAV_ITEMS = [
 	{ url: "#features", labelKey: "landing.features" },
-	{ url: "#pricing", labelKey: "landing.pricing" },
 	{ url: "#about", labelKey: "landing.about" },
+	{ url: "#pricing", labelKey: "landing.pricing" },
 ];
 
 function LandingHero() {
