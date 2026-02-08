@@ -89,7 +89,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 
 			<Show
 				fallback={
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-1">
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
 						<For each={[1, 2, 3, 4]}>
 							{() => (
 								<div class="flex items-center justify-between rounded-lg bg-surface p-4">
@@ -107,7 +107,7 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 					</div>
 				}
 				when={!props.isLoading}>
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-1">
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
 					{/* Connected accounts */}
 					<For each={props.streamingAccounts}>
 						{(account) => {

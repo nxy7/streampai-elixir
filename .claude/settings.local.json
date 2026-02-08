@@ -50,7 +50,9 @@
       "mcp__acp__Bash",
       "WebFetch(domain:developer.paddle.com)",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright-headless__browser_navigate"
+      "mcp__playwright-headless__browser_navigate",
+      "Skill(commit)",
+      "Skill(commit:*)"
     ],
     "deny": [],
     "ask": []

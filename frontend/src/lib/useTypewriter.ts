@@ -23,8 +23,10 @@ interface TypewriterVariantOptions extends TypewriterBaseOptions {
 
 interface MatrixVariantOptions extends TypewriterBaseOptions {
 	variant: "matrix";
-	/** Ms between each scramble tick. Default: 30 */
+	/** Ms between each scramble tick. Default: 30. Mutually exclusive with `durationMs`. */
 	tickMs?: number;
+	/** Fixed total animation duration in ms. Overrides `tickMs` — tick interval is computed from text length. */
+	durationMs?: number;
 	/** Number of random character cycles before a character resolves. Default: 4 */
 	scrambleRounds?: number;
 	/** Delay in ticks between each character starting to resolve (left-to-right wave). Default: 2 */
@@ -142,10 +144,11 @@ function useMatrixTransition(
 	text: Accessor<string>,
 	options?: MatrixVariantOptions,
 ): Accessor<string> {
-	const tickMs = options?.tickMs ?? 30;
 	const scrambleRounds = options?.scrambleRounds ?? 4;
 	const stagger = options?.stagger ?? 2;
 	const chars = options?.chars ?? DEFAULT_MATRIX_CHARS;
+	const durationMs = options?.durationMs;
+	const baseTickMs = options?.tickMs ?? 30;
 
 	const [displayed, setDisplayed] = createSignal(text());
 	let timer: ReturnType<typeof setInterval> | null = null;
@@ -167,6 +170,12 @@ function useMatrixTransition(
 			if (current === target) return;
 
 			const maxLen = Math.max(current.length, target.length);
+
+			const lastCharTicks = scrambleRounds + (maxLen - 1) * stagger;
+			const tickMs =
+				durationMs != null
+					? Math.max(10, Math.floor(durationMs / lastCharTicks))
+					: baseTickMs;
 
 			// For each character position, track how many ticks until it resolves.
 			// Characters that are already correct resolve immediately.

@@ -15,7 +15,7 @@
         "x86_64-darwin"
       ];
       perSystem =
-        { config, system, ... }:
+        { system, ... }:
         let
           pkgs = import nixpkgs { inherit system; };
           isLinux = pkgs.stdenv.isLinux;

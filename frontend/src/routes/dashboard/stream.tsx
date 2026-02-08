@@ -74,7 +74,7 @@ const availablePlatforms = [
 // Skeleton for stream page loading state
 function StreamPageSkeleton() {
 	return (
-		<div class="mx-auto max-w-7xl space-y-6 2xl:grid 2xl:grid-cols-[1fr_340px] 2xl:gap-6 2xl:space-y-0">
+		<div class="mx-auto max-w-7xl space-y-6 xl:grid xl:grid-cols-[1fr_340px] xl:gap-6 xl:space-y-0">
 			{/* Stream Status Card skeleton */}
 			<Card>
 				<div class="mb-6 flex items-center justify-between">
@@ -365,7 +365,7 @@ function StreamContent() {
 		<Show
 			fallback={<StreamPageSkeleton />}
 			when={streamActor.status() === "ready"}>
-			<div class="mx-auto max-w-7xl space-y-6 2xl:grid 2xl:grid-cols-[1fr_340px] 2xl:gap-6 2xl:space-y-0">
+			<div class="mx-auto max-w-7xl space-y-6 xl:grid xl:grid-cols-[1fr_340px] xl:gap-6 xl:space-y-0">
 				{/* Stream Status Card */}
 				<Card
 					class={

@@ -555,6 +555,25 @@ export const dict = {
 		peakViewers: "Peak viewers",
 		avgViewers: "Avg viewers",
 		daysStreamed: "Days streamed",
+		// Metric picker
+		metricViewers: "Viewers",
+		metricStreams: "Streams",
+		metricActivity: "Stream Activity",
+		metricIncome: "Income",
+		// Streams metric stats
+		totalStreams: "Total streams",
+		avgStreamsPerDay: "Avg per day",
+		avgStreamDuration: "Avg duration",
+		totalDuration: "Total duration",
+		// Activity metric stats
+		totalActivity: "Total messages",
+		avgActivityPerStream: "Avg per stream",
+		peakActivity: "Peak messages",
+		noStreams: "No streams",
+		// Income metric stats
+		totalIncome: "Total income",
+		avgIncomePerStream: "Avg per stream",
+		peakIncome: "Peak income",
 		// Empty states
 		noStreamingData: "No streaming data for this period",
 		streamToSee: "Stream to see your viewer trends here",
@@ -711,7 +730,7 @@ export const dict = {
 		and: "and",
 		privacyPolicy: "Privacy Policy",
 		alreadySignedIn: "Already signed in!",
-		alreadyLoggedIn: "You're already logged in.",
+		alreadyLoggedIn: "You're logged in as {{name}}",
 		goToDashboard: "Go to Dashboard",
 		pageTitle: "Sign In - Streampai",
 		emailPlaceholder: "you@example.com",

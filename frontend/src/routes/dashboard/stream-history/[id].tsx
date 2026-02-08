@@ -1,9 +1,10 @@
-import { A, useParams } from "@solidjs/router";
+import { A, useParams, useSearchParams } from "@solidjs/router";
 import {
 	ErrorBoundary,
 	For,
 	Show,
 	Suspense,
+	createEffect,
 	createMemo,
 	createResource,
 	createSignal,
@@ -447,6 +448,24 @@ function StreamDetailContent(props: { streamId: string }) {
 	const chatMessages = () => chatData() ?? [];
 	const events = () => eventsData() ?? [];
 	const [currentTimelinePosition, setCurrentTimelinePosition] = createSignal(0);
+	const [searchParams] = useSearchParams();
+
+	// Set timeline position from ?t= query param (ISO timestamp from chat history)
+	createEffect(() => {
+		const t = searchParams.t;
+		const s = stream();
+		if (!t || !s?.startedAt || !s?.durationSeconds) return;
+		const tValue = Array.isArray(t) ? t[0] : t;
+		const targetTime = new Date(tValue).getTime();
+		const startTime = new Date(s.startedAt).getTime();
+		const durationMs = s.durationSeconds * 1000;
+		if (durationMs <= 0) return;
+		const position = Math.max(
+			0,
+			Math.min(100, ((targetTime - startTime) / durationMs) * 100),
+		);
+		setCurrentTimelinePosition(Math.round(position));
+	});
 
 	// Register breadcrumbs via context
 	useBreadcrumbs(() => [

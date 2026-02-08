@@ -1,6 +1,7 @@
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
 import Logo from "~/components/Logo";
+import UserAvatar from "~/components/UserAvatar";
 import { Button } from "~/design-system";
 import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
@@ -146,10 +147,21 @@ export default function LoginPage() {
 			<Show
 				fallback={
 					<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center">
-						<h2 class="mb-4 font-bold text-2xl text-neutral-900">
-							{t("auth.alreadySignedIn")}
-						</h2>
-						<p class="mb-6 text-neutral-600">{t("auth.alreadyLoggedIn")}</p>
+						<div class="mb-4 flex flex-col items-center gap-3">
+							<UserAvatar
+								avatarUrl={user()?.displayAvatar}
+								name={user()?.name}
+								size="lg"
+							/>
+							<h2 class="font-bold text-2xl text-neutral-900">
+								{t("auth.alreadySignedIn")}
+							</h2>
+						</div>
+						<p class="mb-6 text-neutral-600">
+							{t("auth.alreadyLoggedIn", {
+								name: user()?.name || user()?.email || "",
+							})}
+						</p>
 						<A
 							class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
 							href={getDashboardUrl()}>
@@ -158,7 +170,7 @@ export default function LoginPage() {
 						<a
 							class="mt-3 inline-block w-full rounded-lg border border-neutral-200 px-4 py-3 text-center font-semibold text-neutral-600 transition-colors hover:bg-neutral-100"
 							href={getLogoutUrl()}>
-							{t("auth.signOut")}
+							{t("nav.signOut")}
 						</a>
 					</div>
 				}

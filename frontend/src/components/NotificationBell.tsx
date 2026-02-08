@@ -72,13 +72,13 @@ export default function NotificationBell() {
 	return (
 		<div class="relative">
 			<button
-				class="relative rounded-lg p-2 transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-light"
+				class="group relative rounded-lg p-2 transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-light"
 				onClick={() => setIsOpen(!isOpen())}
 				title="Notifications"
 				type="button">
 				<svg
 					aria-hidden="true"
-					class="h-6 w-6 text-neutral-600"
+					class="h-6 w-6 origin-top text-neutral-600 group-hover:animate-[bell-wiggle_0.4s_ease-in-out]"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24">

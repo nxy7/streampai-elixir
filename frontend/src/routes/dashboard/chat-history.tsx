@@ -392,9 +392,19 @@ function ChatHistoryContent(props: {
 															isStreamer && "bg-primary/5",
 														)}>
 														{/* Timestamp */}
-														<span class="w-12 shrink-0 font-mono text-neutral-400 text-xs tabular-nums">
-															{formatTime(msg.inserted_at)}
-														</span>
+														<Show
+															fallback={
+																<span class="w-12 shrink-0 font-mono text-neutral-400 text-xs tabular-nums">
+																	{formatTime(msg.inserted_at)}
+																</span>
+															}
+															when={msg.livestream_id}>
+															<A
+																class="w-12 shrink-0 font-mono text-neutral-400 text-xs tabular-nums hover:text-primary hover:underline"
+																href={`/dashboard/stream-history/${msg.livestream_id}?t=${new Date(msg.inserted_at).toISOString()}`}>
+																{formatTime(msg.inserted_at)}
+															</A>
+														</Show>
 
 														{/* Username */}
 														<Show

@@ -4,4 +4,8 @@ export {
 	PlatformDistributionChart,
 } from "./PlatformDistributionChart";
 export { type StreamData, StreamTable } from "./StreamTable";
-export { ViewerChart, type ViewerDataPoint } from "./ViewerChart";
+export {
+	type ChartStat,
+	ViewerChart,
+	type ViewerDataPoint,
+} from "./ViewerChart";

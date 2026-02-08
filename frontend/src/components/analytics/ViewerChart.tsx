@@ -1,300 +1,438 @@
+import type { ApexOptions } from "apexcharts";
+import { SolidApexCharts } from "solid-apexcharts";
 import { For, Show, createMemo } from "solid-js";
 import { Card, Stat, StatGroup } from "~/design-system";
 import { useTranslation } from "~/i18n";
+import { toDateKey } from "~/lib/formatters";
+import { useTypewriter } from "~/lib/useTypewriter";
 
 export interface ViewerDataPoint {
 	time: Date;
 	value: number;
 }
 
-interface DailyStreamData {
-	date: Date;
-	dateKey: string;
-	peakViewers: number;
-	avgViewers: number;
-	streamCount: number;
-	totalHours: number;
+interface ChartSeries {
+	name: string;
+	data: number[];
+}
+
+export interface ChartStat {
+	id?: string;
+	label: string;
+	value: string;
+	highlight?: boolean;
 }
 
 interface ViewerChartProps {
 	title: string;
 	data: ViewerDataPoint[];
+	series?: ChartSeries[];
+	stats?: ChartStat[];
+	chartType?: "area" | "bar" | "heatmap";
+	activeStat?: string;
+	onStatClick?: (id: string) => void;
+	yaxisFormatter?: (val: number) => string;
+}
+
+function MatrixStat(props: {
+	label: string;
+	value: string;
+	highlight?: boolean;
+}) {
+	const animatedValue = useTypewriter(() => props.value, {
+		variant: "matrix",
+		durationMs: 350,
+		scrambleRounds: 2,
+		stagger: 1,
+	});
+	return (
+		<Stat
+			highlight={props.highlight}
+			label={props.label}
+			value={animatedValue()}
+		/>
+	);
 }
 
 export function ViewerChart(props: ViewerChartProps) {
 	const { t } = useTranslation();
-	// Aggregate hourly data into daily summaries
-	const dailyData = createMemo((): DailyStreamData[] => {
-		const dailyMap = new Map<
-			string,
-			{
-				date: Date;
-				values: number[];
-				hours: number;
-			}
-		>();
+	const titleText = useTypewriter(() => props.title, {
+		variant: "matrix",
+		durationMs: 450,
+		scrambleRounds: 3,
+		stagger: 1,
+	});
 
-		props.data.forEach((point) => {
-			const dateKey = point.time.toISOString().split("T")[0];
-			if (!dailyMap.has(dateKey)) {
-				dailyMap.set(dateKey, {
-					date: new Date(
-						point.time.getFullYear(),
-						point.time.getMonth(),
-						point.time.getDate(),
-					),
-					values: [],
-					hours: 0,
-				});
-			}
+	const type = () => props.chartType ?? "area";
+	const isBar = () => type() === "bar";
+	const isHeatmap = () => type() === "heatmap";
+
+	// Aggregate hourly data into daily categories for area/bar charts
+	const dailyCategories = createMemo(() => {
+		if (type() === "heatmap") return [];
+		const dayMap = new Map<string, Date>();
+		for (const point of props.data) {
+			const key = toDateKey(point.time);
+			if (!dayMap.has(key)) dayMap.set(key, point.time);
+		}
+		const sorted = Array.from(dayMap.entries()).sort(([a], [b]) =>
+			a.localeCompare(b),
+		);
+		return sorted.map(([, d]) =>
+			d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+		);
+	});
+
+	// Aggregate hourly data into daily peak/avg for the dual-series fallback
+	const dailyAggregated = createMemo(() => {
+		if (props.series) return null; // parent provides series, skip aggregation
+		const dayMap = new Map<string, number[]>();
+		for (const point of props.data) {
+			const key = toDateKey(point.time);
 			if (point.value > 0) {
-				dailyMap.get(dateKey)?.values.push(point.value);
-				const entry = dailyMap.get(dateKey);
-				if (entry) entry.hours++;
+				if (!dayMap.has(key)) dayMap.set(key, []);
+				dayMap.get(key)?.push(point.value);
 			}
-		});
-
-		const result: DailyStreamData[] = [];
-		dailyMap.forEach((data, dateKey) => {
-			const values = data.values;
-			result.push({
-				date: data.date,
-				dateKey,
-				peakViewers: values.length > 0 ? Math.max(...values) : 0,
-				avgViewers:
-					values.length > 0
-						? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
-						: 0,
-				streamCount: values.length > 0 ? 1 : 0, // Simplified - actual count would need stream boundaries
-				totalHours: data.hours,
-			});
-		});
-
-		return result.sort((a, b) => a.date.getTime() - b.date.getTime());
+		}
+		const _sorted = Array.from(dayMap.keys()).sort();
+		// Include all days from dailyCategories for alignment
+		const allDays = new Map<string, Date>();
+		for (const point of props.data) {
+			const key = toDateKey(point.time);
+			if (!allDays.has(key)) allDays.set(key, point.time);
+		}
+		const sortedDays = Array.from(allDays.keys()).sort();
+		return {
+			peak: sortedDays.map((key) => {
+				const vals = dayMap.get(key);
+				return vals ? Math.max(...vals) : 0;
+			}),
+			avg: sortedDays.map((key) => {
+				const vals = dayMap.get(key);
+				return vals
+					? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+					: 0;
+			}),
+		};
 	});
 
-	const daysWithData = createMemo(() =>
-		dailyData().filter((d) => d.peakViewers > 0),
-	);
-	const hasAnyData = createMemo(() => daysWithData().length > 0);
-
-	const maxValue = createMemo(() => {
-		const rawMax = Math.max(...dailyData().map((d) => d.peakViewers), 100);
-		const roundingFactor = rawMax < 500 ? 10 : 100;
-		return Math.ceil(rawMax / roundingFactor) * roundingFactor;
-	});
-
-	const formatChartDate = (date: Date): string => {
-		return date.toLocaleDateString(undefined, {
-			month: "short",
-			day: "numeric",
-		});
-	};
-
-	const labelIndices = createMemo(() => {
-		const len = dailyData().length;
-		if (len <= 5) return dailyData().map((_, i) => i);
+	// Use provided series or fall back to default peak/avg viewer series
+	const chartSeries = createMemo<ChartSeries[]>(() => {
+		if (props.series) return props.series;
+		const agg = dailyAggregated();
+		if (!agg) return [];
 		return [
-			0,
-			Math.floor(len / 4),
-			Math.floor(len / 2),
-			Math.floor((3 * len) / 4),
-			len - 1,
+			{ name: t("analytics.peakViewers"), data: agg.peak },
+			{ name: t("analytics.avgViewers"), data: agg.avg },
 		];
 	});
 
-	const chartColors = {
-		primary: "rgb(99, 102, 241)",
-		primaryLight: "rgb(165, 180, 252)",
-		primaryDark: "rgb(79, 70, 229)",
-		gridLine: "#e5e7eb",
-		baseline: "#d1d5db",
-	};
+	const hasAnyData = createMemo(() => {
+		if (props.chartType === "heatmap")
+			return props.data.some((d) => d.value > 0);
+		return chartSeries().some((s) => s.data.some((v) => v > 0));
+	});
+
+	const chartStats = createMemo(() => props.stats ?? []);
+
+	// Heatmap: aligned date grid for series + tooltip lookups
+	const heatmapGrid = createMemo(() => {
+		const data = props.data;
+		if (!isHeatmap() || data.length === 0) return null;
+
+		const valueByDate = new Map<string, number>();
+		for (const d of data) {
+			valueByDate.set(toDateKey(d.time), d.value);
+		}
+
+		const first = data[0].time;
+		const last = data[data.length - 1].time;
+
+		// Align start to Monday
+		const startDay = first.getDay();
+		const startOffset = startDay === 0 ? 6 : startDay - 1;
+		const alignedStart = new Date(first);
+		alignedStart.setDate(alignedStart.getDate() - startOffset);
+
+		// Align end to Sunday
+		const endDay = last.getDay();
+		const endOffset = endDay === 0 ? 0 : 7 - endDay;
+		const alignedEnd = new Date(last);
+		alignedEnd.setDate(alignedEnd.getDate() + endOffset);
+
+		const allDates: Date[] = [];
+		const cur = new Date(alignedStart);
+		while (cur <= alignedEnd) {
+			allDates.push(new Date(cur));
+			cur.setDate(cur.getDate() + 1);
+		}
+
+		const weekColumns: string[] = [];
+		for (let i = 0; i < allDates.length; i += 7) {
+			weekColumns.push(
+				allDates[i].toLocaleDateString(undefined, {
+					month: "short",
+					day: "numeric",
+				}),
+			);
+		}
+
+		const today = new Date();
+		today.setHours(23, 59, 59, 999);
+
+		return { allDates, weekColumns, valueByDate, today };
+	});
+
+	// Heatmap series: 7 rows (Mon-Sun) x N columns (weeks)
+	const heatmapSeries = createMemo(() => {
+		const grid = heatmapGrid();
+		if (!grid) return undefined;
+
+		const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+		return dayNames
+			.map((name, dayIdx) => ({
+				name,
+				data: grid.weekColumns.map((weekLabel, weekIdx) => {
+					const date = grid.allDates[weekIdx * 7 + dayIdx];
+					if (!date) return { x: weekLabel, y: -1 };
+					// Future dates (padding for Sunday alignment) are invisible
+					if (date > grid.today) return { x: weekLabel, y: -1 };
+					const key = toDateKey(date);
+					const val = grid.valueByDate.get(key);
+					// Past/present dates with no data show as "no streams" (gray), not transparent
+					return { x: weekLabel, y: val ?? 0 };
+				}),
+			}))
+			.reverse();
+	});
+
+	const options = createMemo((): ApexOptions => {
+		const fmt = props.yaxisFormatter;
+
+		if (isHeatmap()) {
+			return {
+				chart: {
+					type: "heatmap",
+					toolbar: { show: false },
+					background: "transparent",
+					fontFamily: "inherit",
+				},
+				theme: { mode: "dark" },
+				dataLabels: { enabled: false },
+				stroke: { width: 3, colors: ["#1e293b"] },
+				plotOptions: {
+					heatmap: {
+						radius: 4,
+						enableShades: false,
+						colorScale: {
+							ranges: [
+								{ from: -1, to: -1, color: "transparent", name: "" },
+								{
+									from: 0,
+									to: 0,
+									color: "#374151",
+									name: t("analytics.noStreams"),
+								},
+								{ from: 1, to: 1, color: "#6366f1", name: "1" },
+								{ from: 2, to: 3, color: "#818cf8", name: "2-3" },
+								{ from: 4, to: 100, color: "#a5b4fc", name: "4+" },
+							],
+						},
+					},
+				},
+				xaxis: {
+					labels: {
+						style: { colors: "#9ca3af", fontSize: "11px" },
+						hideOverlappingLabels: true,
+					},
+					tickAmount: 4,
+					axisBorder: { show: false },
+					axisTicks: { show: false },
+					position: "top",
+					tooltip: { enabled: false },
+					crosshairs: { show: false },
+				},
+				yaxis: {
+					labels: {
+						style: { colors: "#6b7280", fontSize: "11px" },
+					},
+				},
+				grid: { show: false },
+				tooltip: {
+					theme: "dark",
+					custom: ({
+						seriesIndex,
+						dataPointIndex,
+					}: {
+						seriesIndex: number;
+						dataPointIndex: number;
+					}) => {
+						const grid = heatmapGrid();
+						if (!grid) return "";
+						// Series are reversed (0=Sun, 6=Mon), so real dayIdx = 6 - seriesIndex
+						const dayIdx = 6 - seriesIndex;
+						const date = grid.allDates[dataPointIndex * 7 + dayIdx];
+						if (!date) return "";
+						const val = grid.valueByDate.get(toDateKey(date));
+						const dateStr = date.toLocaleDateString(undefined, {
+							weekday: "short",
+							month: "short",
+							day: "numeric",
+						});
+						const label =
+							val && val > 0
+								? `${val} ${val === 1 ? "stream" : "streams"}`
+								: t("analytics.noStreams");
+						return `<div class="apexcharts-tooltip-text" style="padding: 6px 10px">${dateStr}: <b>${label}</b></div>`;
+					},
+				},
+				legend: { show: false },
+			};
+		}
+
+		return {
+			chart: {
+				type: type(),
+				toolbar: { show: false },
+				background: "transparent",
+				fontFamily: "inherit",
+			},
+			theme: { mode: "dark" },
+			colors: ["#6366f1", "#a5b4fc"],
+			dataLabels: { enabled: false },
+			stroke: isBar() ? { width: 0 } : { curve: "smooth", width: 2 },
+			fill: isBar()
+				? { opacity: 0.85 }
+				: {
+						type: "gradient",
+						gradient: { opacityFrom: 0.4, opacityTo: 0.05 },
+					},
+			plotOptions: isBar()
+				? { bar: { borderRadius: 4, columnWidth: "60%" } }
+				: {},
+			markers: isBar() ? { size: 0 } : { size: 4, hover: { size: 6 } },
+			xaxis: {
+				categories: dailyCategories(),
+				labels: {
+					style: { colors: "#9ca3af", fontSize: "12px" },
+				},
+				axisBorder: { show: false },
+				axisTicks: { show: false },
+			},
+			yaxis: {
+				labels: {
+					style: { colors: "#9ca3af", fontSize: "12px" },
+					...(fmt ? { formatter: fmt } : {}),
+				},
+			},
+			grid: {
+				borderColor: "#374151",
+				strokeDashArray: 4,
+				xaxis: { lines: { show: false } },
+			},
+			tooltip: {
+				theme: "dark",
+				...(fmt ? { y: { formatter: fmt } } : {}),
+			},
+			legend: {
+				labels: { colors: "#9ca3af" },
+				position: "top",
+				horizontalAlign: "right",
+				markers: { strokeWidth: 0 },
+			},
+		};
+	});
 
 	return (
 		<Card>
-			<div class="mb-4 flex items-center justify-between">
-				<h3 class="font-medium text-lg text-neutral-900">{props.title}</h3>
-				<Show when={hasAnyData()}>
-					<div class="flex items-center gap-4 text-neutral-500 text-xs">
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded-full bg-indigo-500" />
-							<span>{t("analytics.peakViewers")}</span>
-						</div>
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded-full bg-indigo-300" />
-							<span>{t("analytics.avgViewers")}</span>
-						</div>
-					</div>
-				</Show>
-			</div>
+			<h3 class="mb-4 font-medium text-lg text-neutral-900">{titleText()}</h3>
 
-			<Show
-				fallback={
-					<div class="flex h-64 items-center justify-center rounded-lg bg-neutral-50">
-						<div class="text-center">
-							<svg
-								aria-hidden="true"
-								class="mx-auto h-12 w-12 text-neutral-400"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
+			<div class="flex flex-col-reverse gap-4">
+				<StatGroup columns={chartStats().length as 2 | 3 | 4}>
+					<For each={chartStats()}>
+						{(stat) => {
+							const clickable = () => !!stat.id && !!props.onStatClick;
+							const active = () =>
+								stat.id != null && stat.id === props.activeStat;
+							return (
+								<Show
+									fallback={
+										<div class="rounded-lg px-2 py-1">
+											<MatrixStat
+												highlight={stat.highlight}
+												label={stat.label}
+												value={stat.value}
+											/>
+										</div>
+									}
+									when={clickable()}>
+									<button
+										class={`w-full rounded-lg px-2 py-1 text-left transition-colors ${
+											active()
+												? "bg-indigo-500/10 ring-1 ring-indigo-500/30"
+												: "hover:bg-neutral-100"
+										}`}
+										onClick={() =>
+											stat.id
+												? props.onStatClick?.(stat.id)
+												: console.error("s")
+										}
+										type="button">
+										<MatrixStat
+											highlight={stat.highlight || active()}
+											label={stat.label}
+											value={stat.value}
+										/>
+									</button>
+								</Show>
+							);
+						}}
+					</For>
+				</StatGroup>
+
+				<div class="h-[280px] overflow-hidden">
+					<Show
+						fallback={
+							<div class="flex h-[280px] items-center justify-center rounded-lg bg-neutral-50">
+								<div class="text-center">
+									<svg
+										aria-hidden="true"
+										class="mx-auto h-12 w-12 text-neutral-400"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									<p class="mt-2 font-medium text-neutral-900 text-sm">
+										{t("analytics.noStreamingData")}
+									</p>
+									<p class="mt-1 text-neutral-500 text-xs">
+										{t("analytics.streamToSee")}
+									</p>
+								</div>
+							</div>
+						}
+						when={hasAnyData()}>
+						<Show keyed when={type()}>
+							{(chartType) => (
+								<SolidApexCharts
+									height={280}
+									options={options()}
+									series={heatmapSeries() ?? chartSeries()}
+									type={chartType}
+									width="100%"
 								/>
-							</svg>
-							<p class="mt-2 font-medium text-neutral-900 text-sm">
-								{t("analytics.noStreamingData")}
-							</p>
-							<p class="mt-1 text-neutral-500 text-xs">
-								{t("analytics.streamToSee")}
-							</p>
-						</div>
-					</div>
-				}
-				when={hasAnyData()}>
-				<div class="relative h-64 pl-12">
-					<svg
-						aria-hidden="true"
-						class="h-full w-full"
-						preserveAspectRatio="none"
-						viewBox="0 0 800 300">
-						{/* Grid lines */}
-						<For each={[0, 1, 2, 3, 4]}>
-							{(i) => {
-								const y = i * 60 + 10;
-								return (
-									<line
-										stroke={chartColors.gridLine}
-										stroke-width="1"
-										x1="0"
-										x2="800"
-										y1={y}
-										y2={y}
-									/>
-								);
-							}}
-						</For>
-
-						{/* Baseline */}
-						<line
-							stroke={chartColors.baseline}
-							stroke-width="1"
-							x1="0"
-							x2="800"
-							y1="290"
-							y2="290"
-						/>
-
-						{/* Bars for each day */}
-						<For each={dailyData()}>
-							{(day, i) => {
-								const barWidth = Math.max(
-									8,
-									Math.min(40, 780 / dailyData().length - 4),
-								);
-								const x =
-									(i() / Math.max(dailyData().length - 1, 1)) *
-									(800 - barWidth);
-								const peakHeight = (day.peakViewers / maxValue()) * 280;
-								const avgHeight = (day.avgViewers / maxValue()) * 280;
-
-								return (
-									<Show when={day.peakViewers > 0}>
-										<g>
-											{/* Peak viewers bar (background) */}
-											<rect
-												fill={chartColors.primary}
-												height={peakHeight}
-												opacity="0.9"
-												rx="2"
-												width={barWidth}
-												x={x}
-												y={290 - peakHeight}
-											/>
-											{/* Average viewers bar (overlay) */}
-											<rect
-												fill={chartColors.primaryLight}
-												height={avgHeight}
-												rx="2"
-												width={barWidth}
-												x={x}
-												y={290 - avgHeight}
-											/>
-											{/* Peak dot on top */}
-											<circle
-												cx={x + barWidth / 2}
-												cy={290 - peakHeight}
-												fill={chartColors.primaryDark}
-												r="4"
-												stroke="white"
-												stroke-width="2"
-											/>
-										</g>
-									</Show>
-								);
-							}}
-						</For>
-					</svg>
-
-					{/* Y-axis labels */}
-					<div class="absolute top-0 left-0 flex h-full flex-col justify-between pr-2 text-neutral-500 text-xs">
-						<For each={[4, 3, 2, 1, 0]}>
-							{(i) => (
-								<span class="pr-2 text-right">
-									{Math.floor((maxValue() * i) / 4)}
-								</span>
 							)}
-						</For>
-					</div>
-
-					{/* X-axis labels */}
-					<div class="absolute right-0 bottom-0 left-12 flex translate-y-5 transform justify-between text-neutral-500 text-xs">
-						<For each={labelIndices()}>
-							{(idx) => (
-								<span>
-									{dailyData()[idx]
-										? formatChartDate(dailyData()[idx].date)
-										: ""}
-								</span>
-							)}
-						</For>
-					</div>
+						</Show>
+					</Show>
 				</div>
-
-				{/* Summary stats below chart */}
-				<div class="mt-8">
-					<StatGroup columns={3}>
-						<Stat
-							label={t("analytics.daysStreamed")}
-							value={String(daysWithData().length)}
-						/>
-						<Stat
-							highlight
-							label={t("analytics.peakViewers")}
-							value={String(
-								hasAnyData()
-									? Math.max(...daysWithData().map((d) => d.peakViewers))
-									: 0,
-							)}
-						/>
-						<Stat
-							label={t("analytics.avgViewers")}
-							value={String(
-								hasAnyData()
-									? Math.round(
-											daysWithData().reduce((sum, d) => sum + d.avgViewers, 0) /
-												daysWithData().length,
-										)
-									: 0,
-							)}
-						/>
-					</StatGroup>
-				</div>
-			</Show>
+			</div>
 		</Card>
 	);
 }

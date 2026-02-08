@@ -72,3 +72,65 @@ export function sortByInsertedAt<T extends { inserted_at: string }>(
 			new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime(),
 	);
 }
+
+/** Extract "YYYY-MM-DD" date key from a Date object. */
+export function toDateKey(date: Date): string {
+	return date.toISOString().split("T")[0];
+}
+
+/** Capitalize first letter of a string. */
+export function capitalize(s: string): string {
+	return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Format minutes as short duration (e.g. "2h 15m"). */
+export function formatMinutes(val: number): string {
+	if (val < 60) return `${Math.round(val)}m`;
+	const h = Math.floor(val / 60);
+	const m = Math.round(val % 60);
+	return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+/**
+ * Build a daily time series from items, aggregating values per day.
+ *
+ * @param items - source items to aggregate
+ * @param getDate - extract Date from an item
+ * @param getValue - extract numeric value from an item
+ * @param mode - "sum" adds values, "avg" averages them, "max" takes the max
+ * @param days - number of days to cover (ending today)
+ */
+export function buildDailyTimeSeries<T>(
+	items: T[],
+	getDate: (item: T) => Date,
+	getValue: (item: T) => number,
+	mode: "sum" | "avg" | "max",
+	days: number,
+): { time: Date; value: number }[] {
+	const buckets = new Map<string, number[]>();
+
+	for (const item of items) {
+		const key = toDateKey(getDate(item));
+		if (!buckets.has(key)) buckets.set(key, []);
+		buckets.get(key)?.push(getValue(item));
+	}
+
+	const now = new Date();
+	const result: { time: Date; value: number }[] = [];
+
+	for (let i = days - 1; i >= 0; i--) {
+		const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+		const key = toDateKey(d);
+		const vals = buckets.get(key);
+		let value = 0;
+		if (vals && vals.length > 0) {
+			if (mode === "sum") value = vals.reduce((a, b) => a + b, 0);
+			else if (mode === "avg")
+				value = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+			else value = Math.max(...vals);
+		}
+		result.push({ time: d, value });
+	}
+
+	return result;
+}
