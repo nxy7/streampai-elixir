@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { type Accessor, For, Show } from "solid-js";
 import LiveBadge from "~/components/LiveBadge";
 import Logo from "~/components/Logo";
@@ -28,9 +28,9 @@ export default function Sidebar(props: SidebarProps) {
 		<div class="sidebar fixed top-0 bottom-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-surface-inset text-surface-inset-text md:translate-x-0">
 			{/* Header */}
 			<div class="flex h-16 shrink-0 items-center px-4">
-				<Link class="transition-opacity hover:opacity-80" to="/">
+				<A class="transition-opacity hover:opacity-80" href="/">
 					<Logo showText size="md" />
-				</Link>
+				</A>
 			</div>
 
 			{/* Scrollable nav */}
@@ -121,25 +121,19 @@ function NavSectionGroup(props: NavSectionGroupProps) {
 							item.url === "/dashboard/stream" && props.isLive?.();
 
 						return (
-							<Link
-								activeOptions={{
-									exact: item.url === "/dashboard",
-								}}
-								activeProps={{
-									class: "bg-primary text-white",
-								}}
+							<A
+								activeClass="bg-primary text-white"
 								class="group relative inline-flex w-full items-center justify-start rounded-lg p-3 font-medium text-surface-inset-text transition-colors"
-								inactiveProps={{
-									class: "text-surface-inset-text",
-								}}
-								title={label()}
-								to={item.url}>
+								end={item.url === "/dashboard"}
+								href={item.url}
+								inactiveClass="text-surface-inset-text"
+								title={label()}>
 								{item.icon}
 								<span class="ml-3 whitespace-nowrap">{label()}</span>
 								<Show when={showLiveBadge()}>
 									<LiveBadge class="ml-auto" size="sm" />
 								</Show>
-							</Link>
+							</A>
 						);
 					}}
 				</For>
@@ -170,9 +164,9 @@ export function MobileSidebar(props: MobileSidebarProps) {
 			}}>
 			{/* Sidebar Header */}
 			<div class="relative flex items-center justify-center p-4">
-				<Link class="transition-opacity hover:opacity-80" to="/">
+				<A class="transition-opacity hover:opacity-80" href="/">
 					<Logo showText size="md" />
-				</Link>
+				</A>
 			</div>
 
 			{/* Main Navigation */}

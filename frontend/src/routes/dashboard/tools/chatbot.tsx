@@ -1,23 +1,23 @@
-import { createFileRoute } from "@tanstack/solid-router";
-import { For, Show, createEffect, createSignal } from "solid-js";
+import { For, Show, Suspense, createEffect, createSignal } from "solid-js";
 import { Card, Skeleton, Toggle } from "~/design-system";
 import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
+import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { useChatBotConfig } from "~/lib/useElectric";
 import { upsertChatBotConfig } from "~/sdk/ash_rpc";
 
-export const Route = createFileRoute("/dashboard/tools/chatbot")({
-	component: ChatBotConfigPage,
-	head: () => ({
-		meta: [{ title: "Chat Bot - Streampai" }],
-	}),
-});
+export default function ChatBotConfigPage() {
+	return (
+		<Suspense fallback={<ChatBotSkeleton />}>
+			<ChatBotConfigPageContent />
+		</Suspense>
+	);
+}
 
-function ChatBotConfigPage() {
+function ChatBotConfigPageContent() {
 	const { t } = useTranslation();
-	const { user } = useCurrentUser();
+	const { user } = useAuthenticatedUser();
 	const configQuery = useChatBotConfig(() => user()?.id);
 
 	useBreadcrumbs(() => [

@@ -3147,7 +3147,7 @@ export async function executeActionChannelPush<T>(
 
 
 export type GetStreamHistoryInput = {
-  userId: UUID;
+  userId?: UUID;
 };
 
 export type GetStreamHistoryFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
@@ -3168,7 +3168,7 @@ export type GetStreamHistoryResult<Fields extends GetStreamHistoryFields> = | { 
 export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
   config: {
   tenant?: string;
-  input: GetStreamHistoryInput;
+  input?: GetStreamHistoryInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
   filter?: LivestreamFilterInput;
@@ -3202,7 +3202,7 @@ export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
 export async function getStreamHistoryChannel<Fields extends GetStreamHistoryFields>(config: {
   channel: Channel;
   tenant?: string;
-  input: GetStreamHistoryInput;
+  input?: GetStreamHistoryInput;
   fields: Fields;
   filter?: LivestreamFilterInput;
   sort?: string;

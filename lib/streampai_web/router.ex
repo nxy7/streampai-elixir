@@ -191,7 +191,7 @@ defmodule StreampaiWeb.Router do
     post("/validate", AshTypescriptRpcController, :validate)
     get("/socket-token", AshTypescriptRpcController, :socket_token)
     post("/paddle/checkout", PaddleCheckoutController, :create)
-    get("/impersonation-status", AshTypescriptRpcController, :impersonation_status)
+    get("/session-status", AshTypescriptRpcController, :session_status)
 
     # Impersonation API endpoints (JSON responses for SPA)
     post("/impersonation/start/:user_id", ImpersonationController, :start_impersonation)

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/solid-router";
 import { For } from "solid-js";
 import Card from "~/design-system/Card";
 import { button } from "~/design-system/design-system";
@@ -24,14 +23,7 @@ const actions = [
 	{ key: "actionEmail" as const, icon: "📧" },
 ];
 
-export const Route = createFileRoute("/dashboard/tools/hooks")({
-	component: HooksPage,
-	head: () => ({
-		meta: [{ title: "Hooks | Streampai" }],
-	}),
-});
-
-function HooksPage() {
+export default function HooksPage() {
 	const { t } = useTranslation();
 
 	useBreadcrumbs(() => [

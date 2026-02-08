@@ -1,7 +1,6 @@
 import { createEffect, createMemo } from "solid-js";
 import { useI18n } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
-import { useImpersonation } from "~/lib/impersonation";
+import { useCurrentUser, useImpersonation } from "~/lib/auth";
 import { useUserPreferencesForUser } from "~/lib/useElectric";
 
 /**

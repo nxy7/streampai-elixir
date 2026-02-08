@@ -1,7 +1,8 @@
-import { Link, createFileRoute, useSearch } from "@tanstack/solid-router";
+import { useSearchParams } from "@solidjs/router";
 import {
 	For,
 	Show,
+	Suspense,
 	createEffect,
 	createMemo,
 	createSignal,
@@ -27,7 +28,7 @@ import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
-import { getLoginUrl, useCurrentUser } from "~/lib/auth";
+import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 
 import {
@@ -133,16 +134,17 @@ function StreamPageSkeleton() {
 
 type StreamStatus = "offline" | "starting" | "live" | "stopping";
 
-export const Route = createFileRoute("/dashboard/stream")({
-	component: Stream,
-	head: () => ({
-		meta: [{ title: "Stream - Streampai" }],
-	}),
-});
+export default function Stream() {
+	return (
+		<Suspense fallback={<StreamPageSkeleton />}>
+			<StreamContent />
+		</Suspense>
+	);
+}
 
-function Stream() {
+function StreamContent() {
 	const { t } = useTranslation();
-	const { user, isLoading } = useCurrentUser();
+	const { user } = useAuthenticatedUser();
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.streaming"), href: "/dashboard/stream" },
@@ -207,19 +209,10 @@ function Stream() {
 			"stream-controls-settings",
 			{ showAvatars: true },
 		);
-	const searchParams = useSearch({ strict: false }) as () => Record<
-		string,
-		unknown
-	>;
-	const navigate = Route.useNavigate();
-	const isFullscreen = () => searchParams()?.fullscreen === "true";
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isFullscreen = () => searchParams.fullscreen === "true";
 	const toggleFullscreen = () =>
-		navigate({
-			search: (prev: Record<string, unknown>) => ({
-				...prev,
-				fullscreen: isFullscreen() ? undefined : "true",
-			}),
-		});
+		setSearchParams({ fullscreen: isFullscreen() ? undefined : "true" });
 	const [streamDuration, setStreamDuration] = createSignal(0);
 
 	// Compute stream duration from backend started_at timestamp (synced via Electric)
@@ -369,424 +362,389 @@ function Stream() {
 	};
 
 	return (
-		<Show fallback={<StreamPageSkeleton />} when={!isLoading()}>
-			<Show
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="py-12 text-center">
-							<h2 class="mb-4 font-bold text-2xl text-white">
-								{t("auth.notAuthenticated")}
-							</h2>
-							<p class="mb-6 text-neutral-300">
-								{t("auth.signInToAccessStream")}
-							</p>
-							<Link
-								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-								to={getLoginUrl()}>
-								{t("auth.signIn")}
-							</Link>
+		<Show
+			fallback={<StreamPageSkeleton />}
+			when={streamActor.status() === "ready"}>
+			<div class="mx-auto max-w-7xl space-y-6">
+				{/* Stream Status Card */}
+				<Card
+					class={
+						isFullscreen()
+							? "!fixed !inset-0 !z-[9999] !m-0 !rounded-none flex flex-col overflow-auto"
+							: ""
+					}
+					padding="none">
+					<div class="mb-4 flex items-center justify-between px-6 pt-6">
+						<div class="flex items-center gap-4">
+							<h2 class={text.h2}>{t("stream.controls.title")}</h2>
+							<Show
+								when={
+									streamStatus() !== "live" && streamStatus() !== "starting"
+								}>
+								<Badge variant="neutral">{streamStatus().toUpperCase()}</Badge>
+							</Show>
 						</div>
-					</div>
-				}
-				when={user()}>
-				<Show
-					fallback={<StreamPageSkeleton />}
-					when={streamActor.status() === "ready"}>
-					<div class="mx-auto max-w-7xl space-y-6">
-						{/* Stream Status Card */}
-						<Card
-							class={
-								isFullscreen()
-									? "!fixed !inset-0 !z-[9999] !m-0 !rounded-none flex flex-col overflow-auto"
-									: ""
-							}
-							padding="none">
-							<div class="mb-4 flex items-center justify-between px-6 pt-6">
-								<div class="flex items-center gap-4">
-									<h2 class={text.h2}>{t("stream.controls.title")}</h2>
-									<Show
-										when={
-											streamStatus() !== "live" && streamStatus() !== "starting"
-										}>
-										<Badge variant="neutral">
-											{streamStatus().toUpperCase()}
-										</Badge>
-									</Show>
-								</div>
-								<div class="flex items-center gap-3">
-									<Show
-										when={
-											streamStatus() === "live" || streamStatus() === "starting"
-										}>
-										<LiveStatusBadge
-											duration={streamDuration()}
-											isStopping={streamStatus() === "stopping"}
-											onStopStream={handleStopStream}
-											platforms={
-												streamActor.platformStatuses() as Record<
-													string,
-													{
-														status?: string;
-														viewer_count?: number;
-														url?: string;
-													}
-												>
+						<div class="flex items-center gap-3">
+							<Show
+								when={
+									streamStatus() === "live" || streamStatus() === "starting"
+								}>
+								<LiveStatusBadge
+									duration={streamDuration()}
+									isStopping={streamStatus() === "stopping"}
+									onStopStream={handleStopStream}
+									platforms={
+										streamActor.platformStatuses() as Record<
+											string,
+											{
+												status?: string;
+												viewer_count?: number;
+												url?: string;
 											}
-											stopLabel={t("stream.controls.stopStream")}
-											stoppingLabel={t("stream.controls.stopping")}
-										/>
-									</Show>
-									<Button
-										onClick={toggleFullscreen}
-										size="sm"
-										title={
-											isFullscreen()
-												? t("stream.exitFullscreen")
-												: t("stream.fullscreen")
-										}
-										variant="ghost">
-										<Show
-											fallback={
-												<svg
-													aria-hidden="true"
-													class="h-5 w-5"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2"
-													viewBox="0 0 24 24">
-													<path
-														d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"
-														stroke-linecap="round"
-														stroke-linejoin="round"
-													/>
-												</svg>
-											}
-											when={isFullscreen()}>
-											<svg
-												aria-hidden="true"
-												class="h-5 w-5"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-												viewBox="0 0 24 24">
-												<path
-													d="M8 4v4H4M16 4v4h4M8 20v-4H4M16 20v-4h4"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												/>
-											</svg>
-										</Show>
-									</Button>
-								</div>
-							</div>
-
-							{/* Error Banner */}
-							<Show when={streamError()}>
-								<div class="mx-6 mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-									<p class="text-red-800 text-sm">{streamError()}</p>
-									<button
-										aria-label={t("common.close")}
-										class="text-red-500 hover:text-red-700"
-										onClick={() => setStreamError(null)}
-										type="button">
+										>
+									}
+									stopLabel={t("stream.controls.stopStream")}
+									stoppingLabel={t("stream.controls.stopping")}
+								/>
+							</Show>
+							<Button
+								onClick={toggleFullscreen}
+								size="sm"
+								title={
+									isFullscreen()
+										? t("stream.exitFullscreen")
+										: t("stream.fullscreen")
+								}
+								variant="ghost">
+								<Show
+									fallback={
 										<svg
 											aria-hidden="true"
-											class="h-4 w-4"
+											class="h-5 w-5"
 											fill="none"
 											stroke="currentColor"
 											stroke-width="2"
 											viewBox="0 0 24 24">
 											<path
-												d="M6 18L18 6M6 6l12 12"
+												d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 											/>
 										</svg>
-									</button>
-								</div>
-							</Show>
-
-							{/* During Stream - Live Control Center */}
-							<Show
-								when={
-									streamStatus() === "live" || streamStatus() === "starting"
-								}>
-								<div
-									class={
-										isFullscreen() ? "min-h-0 flex-1" : "h-[400px] md:h-[600px]"
-									}>
-									<LiveStreamControlCenter
-										activities={activities()}
-										allConnectedPlatforms={
-											(streamingAccounts.data() ?? []).map(
-												(a) => a.platform,
-											) as Platform[]
-										}
-										connectedPlatforms={
-											Object.keys(streamActor.platformStatuses()) as Platform[]
-										}
-										controlSettings={controlSettings}
-										currentDescription={
-											streamActor.data()?.stream_data?.description as
-												| string
-												| undefined
-										}
-										currentTags={
-											streamActor.data()?.stream_data?.tags as
-												| string[]
-												| undefined
-										}
-										currentThumbnailUrl={streamMetadata.thumbnailUrl}
-										currentTitle={
-											streamActor.data()?.stream_data?.title as
-												| string
-												| undefined
-										}
-										isStopping={streamStatus() === "stopping"}
-										onControlSettingsChange={(field, value) =>
-											setControlSettings(
-												field as keyof StreamControlsSettings,
-												value as never,
-											)
-										}
-										onSendMessage={(message, platforms) => {
-											const currentUser = user();
-											if (!currentUser) return;
-											sendStreamMessage({
-												input: {
-													userId: currentUser.id,
-													message,
-													platforms: platforms.length ? platforms : undefined,
-												},
-												fetchOptions: { credentials: "include" },
-											});
-										}}
-										onStopStream={handleStopStream}
-										onTogglePlatform={(platform, enabled) => {
-											const currentUser = user();
-											if (!currentUser) return;
-											togglePlatform({
-												input: {
-													userId: currentUser.id,
-													platform,
-													enabled,
-												},
-												fetchOptions: { credentials: "include" },
-											});
-										}}
-										onUpdateMetadata={(metadata) => {
-											const currentUser = user();
-											if (!currentUser) return;
-											updateStreamMetadata({
-												input: {
-													userId: currentUser.id,
-													...metadata,
-												},
-												fetchOptions: { credentials: "include" },
-											});
-										}}
-										platformStatuses={streamActor.platformStatuses()}
-										streamDuration={streamDuration()}
-										streamStartedAt={
-											(streamActor.data()?.stream_data?.started_at as
-												| string
-												| null) ?? null
-										}
-										timers={streamTimers()}
-										viewerCount={Object.values(
-											streamActor.platformStatuses() as Record<
-												string,
-												{ viewer_count?: number }
-											>,
-										).reduce((sum, info) => sum + (info?.viewer_count ?? 0), 0)}
-									/>
-								</div>
-							</Show>
-
-							{/* Before Stream - Metadata & Controls */}
-							<Show
-								when={
-									streamStatus() === "offline" || streamStatus() === "stopping"
-								}>
-								<div class="px-6 pb-6">
-									{/* Live Input Preview */}
-									<div class="mb-6">
-										<LiveInputPreview
-											encoderConnected={encoderConnected()}
-											liveInputUid={streamActor.liveInputUid()}
+									}
+									when={isFullscreen()}>
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										viewBox="0 0 24 24">
+										<path
+											d="M8 4v4H4M16 4v4h4M8 20v-4H4M16 20v-4h4"
+											stroke-linecap="round"
+											stroke-linejoin="round"
 										/>
-									</div>
+									</svg>
+								</Show>
+							</Button>
+						</div>
+					</div>
 
-									{/* Stream Metadata */}
-									<div class="mb-6">
-										<StreamSettingsForm
-											onChange={(field, value) => {
-												setStreamMetadata(
-													field as keyof StreamMetadata,
-													value as never,
+					{/* Error Banner */}
+					<Show when={streamError()}>
+						<div class="mx-6 mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+							<p class="text-red-800 text-sm">{streamError()}</p>
+							<button
+								aria-label={t("common.close")}
+								class="text-red-500 hover:text-red-700"
+								onClick={() => setStreamError(null)}
+								type="button">
+								<svg
+									aria-hidden="true"
+									class="h-4 w-4"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									viewBox="0 0 24 24">
+									<path
+										d="M6 18L18 6M6 6l12 12"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</button>
+						</div>
+					</Show>
+
+					{/* During Stream - Live Control Center */}
+					<Show
+						when={streamStatus() === "live" || streamStatus() === "starting"}>
+						<div
+							class={
+								isFullscreen() ? "min-h-0 flex-1" : "h-[400px] md:h-[600px]"
+							}>
+							<LiveStreamControlCenter
+								activities={activities()}
+								allConnectedPlatforms={
+									(streamingAccounts.data() ?? []).map(
+										(a) => a.platform,
+									) as Platform[]
+								}
+								connectedPlatforms={
+									Object.keys(streamActor.platformStatuses()) as Platform[]
+								}
+								controlSettings={controlSettings}
+								currentDescription={
+									streamActor.data()?.stream_data?.description as
+										| string
+										| undefined
+								}
+								currentTags={
+									streamActor.data()?.stream_data?.tags as string[] | undefined
+								}
+								currentThumbnailUrl={streamMetadata.thumbnailUrl}
+								currentTitle={
+									streamActor.data()?.stream_data?.title as string | undefined
+								}
+								isStopping={streamStatus() === "stopping"}
+								onControlSettingsChange={(field, value) =>
+									setControlSettings(
+										field as keyof StreamControlsSettings,
+										value as never,
+									)
+								}
+								onSendMessage={(message, platforms) => {
+									const currentUser = user();
+									if (!currentUser) return;
+									sendStreamMessage({
+										input: {
+											userId: currentUser.id,
+											message,
+											platforms: platforms.length ? platforms : undefined,
+										},
+										fetchOptions: { credentials: "include" },
+									});
+								}}
+								onStopStream={handleStopStream}
+								onTogglePlatform={(platform, enabled) => {
+									const currentUser = user();
+									if (!currentUser) return;
+									togglePlatform({
+										input: {
+											userId: currentUser.id,
+											platform,
+											enabled,
+										},
+										fetchOptions: { credentials: "include" },
+									});
+								}}
+								onUpdateMetadata={(metadata) => {
+									const currentUser = user();
+									if (!currentUser) return;
+									updateStreamMetadata({
+										input: {
+											userId: currentUser.id,
+											...metadata,
+										},
+										fetchOptions: { credentials: "include" },
+									});
+								}}
+								platformStatuses={streamActor.platformStatuses()}
+								streamDuration={streamDuration()}
+								streamStartedAt={
+									(streamActor.data()?.stream_data?.started_at as
+										| string
+										| null) ?? null
+								}
+								timers={streamTimers()}
+								viewerCount={Object.values(
+									streamActor.platformStatuses() as Record<
+										string,
+										{ viewer_count?: number }
+									>,
+								).reduce((sum, info) => sum + (info?.viewer_count ?? 0), 0)}
+							/>
+						</div>
+					</Show>
+
+					{/* Before Stream - Metadata & Controls */}
+					<Show
+						when={
+							streamStatus() === "offline" || streamStatus() === "stopping"
+						}>
+						<div class="px-6 pb-6">
+							{/* Live Input Preview */}
+							<div class="mb-6">
+								<LiveInputPreview
+									encoderConnected={encoderConnected()}
+									liveInputUid={streamActor.liveInputUid()}
+								/>
+							</div>
+
+							{/* Stream Metadata */}
+							<div class="mb-6">
+								<StreamSettingsForm
+									onChange={(field, value) => {
+										setStreamMetadata(
+											field as keyof StreamMetadata,
+											value as never,
+										);
+									}}
+									values={{
+										title: streamMetadata.title,
+										description: streamMetadata.description,
+										tags: streamMetadata.tags ?? [],
+										thumbnailFileId: streamMetadata.thumbnailFileId,
+										thumbnailUrl: streamMetadata.thumbnailUrl,
+									}}
+								/>
+							</div>
+
+							{/* Platform Selection */}
+							<Show when={streamingAccounts.data()?.length > 0}>
+								<div class="mb-6">
+									{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
+									<label class="block font-medium text-neutral-700 text-sm">
+										{t("stream.controls.platforms")}
+									</label>
+									<div class="mt-2 flex flex-wrap gap-3">
+										<For each={streamingAccounts.data()}>
+											{(account) => {
+												const platformConfig = availablePlatforms.find(
+													(p) => p.targetPlatform === account.platform,
+												);
+												const isEnabled = () => {
+													const enabled = streamMetadata.enabledPlatforms;
+													if (!enabled) return true; // undefined = all selected by default
+													return enabled.includes(account.platform);
+												};
+												const toggle = () => {
+													const current = streamMetadata.enabledPlatforms;
+													const allPlatforms = (
+														streamingAccounts.data() ?? []
+													).map((a) => a.platform);
+													if (!current) {
+														// First toggle from default (all enabled): remove this one
+														setStreamMetadata(
+															"enabledPlatforms",
+															allPlatforms.filter(
+																(p) => p !== account.platform,
+															),
+														);
+													} else if (isEnabled()) {
+														setStreamMetadata(
+															"enabledPlatforms",
+															current.filter((p) => p !== account.platform),
+														);
+													} else {
+														setStreamMetadata("enabledPlatforms", [
+															...current,
+															account.platform,
+														]);
+													}
+												};
+												return (
+													<button
+														class={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+															isEnabled()
+																? "bg-surface-inset text-surface-inset-text"
+																: "bg-surface-inset text-surface-inset-text opacity-40"
+														}`}
+														onClick={toggle}
+														type="button">
+														<PlatformIcon
+															platform={account.platform}
+															size="sm"
+														/>
+														<span>
+															{platformConfig?.name ?? account.platform}
+														</span>
+														<div
+															class={`h-4 w-4 rounded border transition-colors ${
+																isEnabled()
+																	? "border-primary bg-primary"
+																	: "border-neutral-300 bg-surface"
+															}`}>
+															<Show when={isEnabled()}>
+																<svg
+																	aria-hidden="true"
+																	class="h-4 w-4 text-white"
+																	fill="none"
+																	stroke="currentColor"
+																	stroke-width="3"
+																	viewBox="0 0 24 24">
+																	<path
+																		d="M5 13l4 4L19 7"
+																		stroke-linecap="round"
+																		stroke-linejoin="round"
+																	/>
+																</svg>
+															</Show>
+														</div>
+													</button>
 												);
 											}}
-											values={{
-												title: streamMetadata.title,
-												description: streamMetadata.description,
-												tags: streamMetadata.tags ?? [],
-												thumbnailFileId: streamMetadata.thumbnailFileId,
-												thumbnailUrl: streamMetadata.thumbnailUrl,
-											}}
-										/>
+										</For>
 									</div>
-
-									{/* Platform Selection */}
-									<Show when={streamingAccounts.data()?.length > 0}>
-										<div class="mb-6">
-											{/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps the control */}
-											<label class="block font-medium text-neutral-700 text-sm">
-												{t("stream.controls.platforms")}
-											</label>
-											<div class="mt-2 flex flex-wrap gap-3">
-												<For each={streamingAccounts.data()}>
-													{(account) => {
-														const platformConfig = availablePlatforms.find(
-															(p) => p.targetPlatform === account.platform,
-														);
-														const isEnabled = () => {
-															const enabled = streamMetadata.enabledPlatforms;
-															if (!enabled) return true; // undefined = all selected by default
-															return enabled.includes(account.platform);
-														};
-														const toggle = () => {
-															const current = streamMetadata.enabledPlatforms;
-															const allPlatforms = (
-																streamingAccounts.data() ?? []
-															).map((a) => a.platform);
-															if (!current) {
-																// First toggle from default (all enabled): remove this one
-																setStreamMetadata(
-																	"enabledPlatforms",
-																	allPlatforms.filter(
-																		(p) => p !== account.platform,
-																	),
-																);
-															} else if (isEnabled()) {
-																setStreamMetadata(
-																	"enabledPlatforms",
-																	current.filter((p) => p !== account.platform),
-																);
-															} else {
-																setStreamMetadata("enabledPlatforms", [
-																	...current,
-																	account.platform,
-																]);
-															}
-														};
-														return (
-															<button
-																class={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-																	isEnabled()
-																		? "bg-surface-inset text-surface-inset-text"
-																		: "bg-surface-inset text-surface-inset-text opacity-40"
-																}`}
-																onClick={toggle}
-																type="button">
-																<PlatformIcon
-																	platform={account.platform}
-																	size="sm"
-																/>
-																<span>
-																	{platformConfig?.name ?? account.platform}
-																</span>
-																<div
-																	class={`h-4 w-4 rounded border transition-colors ${
-																		isEnabled()
-																			? "border-primary bg-primary"
-																			: "border-neutral-300 bg-surface"
-																	}`}>
-																	<Show when={isEnabled()}>
-																		<svg
-																			aria-hidden="true"
-																			class="h-4 w-4 text-white"
-																			fill="none"
-																			stroke="currentColor"
-																			stroke-width="3"
-																			viewBox="0 0 24 24">
-																			<path
-																				d="M5 13l4 4L19 7"
-																				stroke-linecap="round"
-																				stroke-linejoin="round"
-																			/>
-																		</svg>
-																	</Show>
-																</div>
-															</button>
-														);
-													}}
-												</For>
-											</div>
-										</div>
-									</Show>
-
-									{/* Stream Controls */}
-									<div class="flex items-center space-x-3">
-										<Show
-											fallback={
-												<Button
-													disabled={streamStatus() === "stopping"}
-													onClick={handleStopStream}
-													variant="danger">
-													{streamStatus() === "stopping"
-														? t("stream.controls.stopping")
-														: t("stream.controls.stopStream")}
-												</Button>
-											}
-											when={streamStatus() === "offline"}>
-											<Button
-												disabled={
-													streamStatus() === "starting" || !encoderConnected()
-												}
-												onClick={handleStartStream}
-												title={
-													!encoderConnected()
-														? t("stream.encoder.connectFirst")
-														: undefined
-												}
-												variant="success">
-												{streamStatus() === "starting"
-													? t("stream.controls.starting")
-													: t("stream.controls.goLive")}
-											</Button>
-										</Show>
-										<Button
-											onClick={() => setShowStreamKey(!showStreamKey())}
-											variant="secondary">
-											{showStreamKey()
-												? t("stream.key.hide")
-												: t("stream.key.show")}
-										</Button>
-									</div>
-
-									{/* Stream Key Display */}
-									<StreamKeyDisplay
-										// biome-ignore lint/style/noNonNullAssertion: inside Show when={user()}
-										userId={user()!.id}
-										visible={showStreamKey()}
-									/>
 								</div>
 							</Show>
-						</Card>
 
-						{/* Platform Connections */}
-						<PlatformConnectionsCard
-							availablePlatforms={availablePlatforms}
-							connectedPlatforms={connectedPlatforms()}
-							isLoading={streamingAccounts.isLoading()}
-							platformStatuses={streamActor.platformStatuses()}
-							streamingAccounts={streamingAccounts.data()}
-							// biome-ignore lint/style/noNonNullAssertion: inside Show when={user()}
-							userId={user()!.id}
-						/>
-					</div>
-				</Show>
-			</Show>
+							{/* Stream Controls */}
+							<div class="flex items-center space-x-3">
+								<Show
+									fallback={
+										<Button
+											disabled={streamStatus() === "stopping"}
+											onClick={handleStopStream}
+											variant="danger">
+											{streamStatus() === "stopping"
+												? t("stream.controls.stopping")
+												: t("stream.controls.stopStream")}
+										</Button>
+									}
+									when={streamStatus() === "offline"}>
+									<Button
+										disabled={
+											streamStatus() === "starting" || !encoderConnected()
+										}
+										onClick={handleStartStream}
+										title={
+											!encoderConnected()
+												? t("stream.encoder.connectFirst")
+												: undefined
+										}
+										variant="success">
+										{streamStatus() === "starting"
+											? t("stream.controls.starting")
+											: t("stream.controls.goLive")}
+									</Button>
+								</Show>
+								<Button
+									onClick={() => setShowStreamKey(!showStreamKey())}
+									variant="secondary">
+									{showStreamKey()
+										? t("stream.key.hide")
+										: t("stream.key.show")}
+								</Button>
+							</div>
+
+							{/* Stream Key Display */}
+							<StreamKeyDisplay userId={user().id} visible={showStreamKey()} />
+						</div>
+					</Show>
+				</Card>
+
+				{/* Platform Connections */}
+				<PlatformConnectionsCard
+					availablePlatforms={availablePlatforms}
+					connectedPlatforms={connectedPlatforms()}
+					isLoading={streamingAccounts.isLoading()}
+					platformStatuses={streamActor.platformStatuses()}
+					streamingAccounts={streamingAccounts.data()}
+					userId={user().id}
+				/>
+			</div>
 		</Show>
 	);
 }

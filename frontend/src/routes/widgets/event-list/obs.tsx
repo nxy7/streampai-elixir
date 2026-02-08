@@ -1,6 +1,6 @@
+import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createFileRoute, useSearch } from "@tanstack/solid-router";
-import { type Accessor, For, Show, createMemo } from "solid-js";
+import { For, Show, createMemo } from "solid-js";
 import { streamEventsCollection } from "~/lib/electric";
 import { getEventsCollection } from "~/lib/useEventsCollection";
 
@@ -21,18 +21,12 @@ type Event = {
 	timestamp: Date;
 };
 
-export const Route = createFileRoute("/widgets/event-list/obs")({
-	component: EventListOBS,
-});
-
-function EventListOBS() {
-	const params = useSearch({ strict: false }) as Accessor<
-		Record<string, string | string[] | undefined>
-	>;
-	const rawUserId = params().userId;
+export default function EventListOBS() {
+	const [params] = useSearchParams();
+	const rawUserId = params.userId;
 	const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
 	const maxEvents = () => {
-		const raw = params().maxEvents;
+		const raw = params.maxEvents;
 		const value = Array.isArray(raw) ? raw[0] : raw;
 		return parseInt(value || "10", 10);
 	};

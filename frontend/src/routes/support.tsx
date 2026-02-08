@@ -1,15 +1,10 @@
-import { Link, createFileRoute } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
 import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
-export const Route = createFileRoute("/support")({
-	component: Support,
-	head: () => ({ meta: [{ title: "Support - Streampai" }] }),
-});
-
-function Support() {
+export default function Support() {
 	const { t } = useTranslation();
 
 	return (
@@ -121,11 +116,11 @@ function Support() {
 							<p class="mb-4 text-neutral-600">
 								{t("support.emailSupportDescription")}
 							</p>
-							<Link
+							<A
 								class="text-primary-light transition-colors hover:text-primary-200"
-								to="/contact">
+								href="/contact">
 								{t("support.contactUs")}
-							</Link>
+							</A>
 						</Card>
 					</div>
 
@@ -155,11 +150,11 @@ function Support() {
 								</h4>
 								<p class="text-neutral-600">
 									{t("support.faqA3")}{" "}
-									<Link
+									<A
 										class="text-primary-light hover:text-primary-200"
-										to="/privacy">
+										href="/privacy">
 										{t("support.privacyPolicy")}
-									</Link>{" "}
+									</A>{" "}
 									{t("support.faqA3End")}
 								</p>
 							</div>

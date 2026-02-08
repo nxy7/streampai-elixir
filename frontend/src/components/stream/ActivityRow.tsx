@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { Portal } from "solid-js/web";
 import PlatformIcon from "~/components/PlatformIcon";
@@ -187,12 +187,11 @@ export function ActivityRow(props: ActivityRowProps) {
 							}
 							when={props.item.viewerId}>
 							{(viewerId) => (
-								<Link
+								<A
 									class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
-									params={{ id: viewerId() }}
-									to="/dashboard/viewers/$id">
+									href={`/dashboard/viewers/${viewerId()}`}>
 									{props.item.username}
-								</Link>
+								</A>
 							)}
 						</Show>
 					</Show>

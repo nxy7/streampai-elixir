@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { Card } from "~/design-system";
 import { useTranslation } from "~/i18n";
 
@@ -7,7 +7,7 @@ export default function DashboardQuickActions() {
 
 	return (
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-			<Link class="h-full" to="/dashboard/widgets">
+			<A class="h-full" href="/dashboard/widgets">
 				<Card class="group flex h-full items-center p-6" glow variant="ghost">
 					<div class="flex items-center gap-4">
 						<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-primary-light transition-transform group-hover:scale-105">
@@ -35,9 +35,9 @@ export default function DashboardQuickActions() {
 						</div>
 					</div>
 				</Card>
-			</Link>
+			</A>
 
-			<Link class="h-full" to="/dashboard/analytics">
+			<A class="h-full" href="/dashboard/analytics">
 				<Card class="group flex h-full items-center p-6" glow variant="ghost">
 					<div class="flex items-center gap-4">
 						<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105">
@@ -63,9 +63,9 @@ export default function DashboardQuickActions() {
 						</div>
 					</div>
 				</Card>
-			</Link>
+			</A>
 
-			<Link class="h-full" to="/dashboard/settings">
+			<A class="h-full" href="/dashboard/settings">
 				<Card class="group flex h-full items-center p-6" glow variant="ghost">
 					<div class="flex items-center gap-4">
 						<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-pink-500 to-rose-500 transition-transform group-hover:scale-105">
@@ -99,7 +99,7 @@ export default function DashboardQuickActions() {
 						</div>
 					</div>
 				</Card>
-			</Link>
+			</A>
 		</div>
 	);
 }

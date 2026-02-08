@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import {
 	Badge,
@@ -115,15 +115,14 @@ export function StreamTable(props: StreamTableProps) {
 									{(stream) => (
 										<tr>
 											<td class="whitespace-nowrap px-6 py-4">
-												<Link
+												<A
 													class="block hover:text-primary"
-													params={{ id: stream.id }}
-													to="/dashboard/stream-history/$id">
+													href={`/dashboard/stream-history/${stream.id}`}>
 													<div class="font-medium text-sm">{stream.title}</div>
 													<div class="text-neutral-500 text-xs">
 														{formatDate(stream.startTime)}
 													</div>
-												</Link>
+												</A>
 											</td>
 											<td class="whitespace-nowrap px-6 py-4">
 												<div class="flex flex-wrap gap-1.5">

@@ -1,10 +1,10 @@
-import { Link, createFileRoute } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, Match, Show, Switch, createSignal } from "solid-js";
 import Card from "~/design-system/Card";
 import { button } from "~/design-system/design-system";
 import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
+import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 
 type ClipTab = "viewer" | "ai";
@@ -83,16 +83,9 @@ function formatViews(views: number): string {
 	return String(views);
 }
 
-export const Route = createFileRoute("/dashboard/tools/clips/")({
-	component: ClipsPage,
-	head: () => ({
-		meta: [{ title: "Stream Clips - Streampai" }],
-	}),
-});
-
-function ClipsPage() {
+export default function ClipsPage() {
 	const { t } = useTranslation();
-	const { user } = useCurrentUser();
+	const { user } = useAuthenticatedUser();
 	const [tab, setTab] = createSignal<ClipTab>("viewer");
 	const [search, setSearch] = createSignal("");
 
@@ -203,9 +196,7 @@ function ClipsPage() {
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 							<For each={filteredViewerClips()}>
 								{(clip) => (
-									<Link
-										params={{ id: clip.id }}
-										to="/dashboard/tools/clips/$id">
+									<A href={`/dashboard/tools/clips/${clip.id}`}>
 										<Card
 											class="transition-transform hover:scale-[1.02]"
 											variant="ghost">
@@ -244,7 +235,7 @@ function ClipsPage() {
 												</div>
 											</div>
 										</Card>
-									</Link>
+									</A>
 								)}
 							</For>
 						</div>
@@ -332,9 +323,7 @@ function ClipsPage() {
 							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 								<For each={filteredAiClips()}>
 									{(clip) => (
-										<Link
-											params={{ id: clip.id }}
-											to="/dashboard/tools/clips/$id">
+										<A href={`/dashboard/tools/clips/${clip.id}`}>
 											<Card
 												class="transition-transform hover:scale-[1.02]"
 												variant="ghost">
@@ -393,7 +382,7 @@ function ClipsPage() {
 													</div>
 												</div>
 											</Card>
-										</Link>
+										</A>
 									)}
 								</For>
 							</div>

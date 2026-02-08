@@ -1,11 +1,11 @@
-import { Link, createFileRoute, useNavigate } from "@tanstack/solid-router";
+import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
 import Logo from "~/components/Logo";
 import { Button } from "~/design-system";
 import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
 import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
-import { API_PATH, getApiBase } from "~/lib/constants";
+import { getApiUrl } from "~/lib/constants";
 import { getCsrfHeaders } from "~/lib/csrf";
 
 function GoogleIcon() {
@@ -68,12 +68,7 @@ function EmailIcon() {
 	);
 }
 
-export const Route = createFileRoute("/login")({
-	component: LoginPage,
-	head: () => ({ meta: [{ title: "Sign In - Streampai" }] }),
-});
-
-function LoginPage() {
+export default function LoginPage() {
 	const { user, refresh } = useCurrentUser();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -95,7 +90,7 @@ function LoginPage() {
 
 		try {
 			const isRegister = mode() === "register";
-			const endpoint = `${getApiBase()}${API_PATH}/auth/${isRegister ? "register" : "sign-in"}`;
+			const endpoint = `${getApiUrl()}/auth/${isRegister ? "register" : "sign-in"}`;
 
 			const body = {
 				email: email(),
@@ -128,7 +123,7 @@ function LoginPage() {
 				} else {
 					// Refresh the user context and navigate to dashboard
 					await refresh();
-					navigate({ to: getDashboardUrl() });
+					navigate(getDashboardUrl());
 				}
 			} else {
 				setError(
@@ -155,19 +150,19 @@ function LoginPage() {
 							{t("auth.alreadySignedIn")}
 						</h2>
 						<p class="mb-6 text-neutral-600">{t("auth.alreadyLoggedIn")}</p>
-						<Link
+						<A
 							class="inline-block w-full rounded-lg bg-linear-to-r from-primary-light to-secondary px-4 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-							to={getDashboardUrl()}>
+							href={getDashboardUrl()}>
 							{t("auth.goToDashboard")}
-						</Link>
+						</A>
 					</div>
 				}
 				when={!user()}>
 				<div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
 					<div class="mb-8 text-center">
-						<Link class="mb-6 inline-flex justify-center" to="/">
+						<A class="mb-6 inline-flex justify-center" href="/">
 							<Logo showText size="lg" />
-						</Link>
+						</A>
 						<h1 class="mb-2 font-bold text-3xl text-neutral-900">
 							{t("auth.welcomeBack")}
 						</h1>
@@ -179,7 +174,7 @@ function LoginPage() {
 						<Button
 							as="a"
 							fullWidth
-							href={`${getApiBase()}${API_PATH}/auth/user/google`}
+							href={`${getApiUrl()}/auth/user/google`}
 							size="lg"
 							variant="secondary">
 							<GoogleIcon />
@@ -189,7 +184,7 @@ function LoginPage() {
 						<Button
 							as="a"
 							fullWidth
-							href={`${getApiBase()}${API_PATH}/auth/user/twitch`}
+							href={`${getApiUrl()}/auth/user/twitch`}
 							size="lg"
 							variant="secondary">
 							<TwitchIcon />
@@ -236,7 +231,7 @@ function LoginPage() {
 							/>
 						</div>
 						<Input
-							class="bg-surface-inset"
+							class="bg-background"
 							label={t("auth.emailLabel")}
 							name="email"
 							onInput={(e) => setEmail(e.currentTarget.value)}
@@ -247,7 +242,7 @@ function LoginPage() {
 						/>
 
 						<Input
-							class="bg-surface-inset"
+							class="bg-background"
 							label={t("auth.passwordLabel")}
 							minLength={8}
 							name="password"
@@ -260,7 +255,7 @@ function LoginPage() {
 
 						<Show when={mode() === "register"}>
 							<Input
-								class="bg-surface-inset"
+								class="bg-background"
 								label={t("auth.confirmPasswordLabel")}
 								minLength={8}
 								name="password_confirmation"
@@ -313,13 +308,13 @@ function LoginPage() {
 
 					<p class="mt-4 text-center text-neutral-400 text-xs">
 						{t("auth.agreeToTerms")}{" "}
-						<Link class="text-neutral-500 hover:text-neutral-900" to="/terms">
+						<A class="text-neutral-500 hover:text-neutral-900" href="/terms">
 							{t("auth.termsOfService")}
-						</Link>{" "}
+						</A>{" "}
 						{t("auth.and")}{" "}
-						<Link class="text-neutral-500 hover:text-neutral-900" to="/privacy">
+						<A class="text-neutral-500 hover:text-neutral-900" href="/privacy">
 							{t("auth.privacyPolicy")}
-						</Link>
+						</A>
 					</p>
 				</div>
 			</Show>

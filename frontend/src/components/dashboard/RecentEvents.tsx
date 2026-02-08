@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import EventIcon from "~/components/EventIcon";
 import Card from "~/design-system/Card";
@@ -25,11 +25,11 @@ export default function RecentEvents(props: RecentEventsProps) {
 		<Card padding="none">
 			<div class="flex items-center justify-between border-neutral-200 border-b px-6 py-4">
 				<h3 class={text.h3}>{t("dashboard.recentEvents")}</h3>
-				<Link
+				<A
 					class="text-primary text-sm hover:text-primary-hover"
-					to="/dashboard/stream-history">
+					href="/dashboard/stream-history">
 					{t("dashboard.viewAll")}
-				</Link>
+				</A>
 			</div>
 			<div class="divide-y divide-neutral-100">
 				<Show

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, type JSX, Show } from "solid-js";
 import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 
@@ -39,11 +39,11 @@ export default function Breadcrumbs(props: BreadcrumbsProps): JSX.Element {
 							}
 							when={item.href}>
 							{(href) => (
-								<Link
+								<A
 									class="text-neutral-500 transition-colors hover:text-primary"
-									to={href()}>
+									href={href()}>
 									{item.label}
-								</Link>
+								</A>
 							)}
 						</Show>
 					</>

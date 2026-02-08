@@ -1,7 +1,6 @@
-import { Link, createFileRoute } from "@tanstack/solid-router";
-import { For, Show, createMemo, createSignal } from "solid-js";
+import { type RouteDefinition, createAsync, query } from "@solidjs/router";
+import { For, Show, Suspense, createMemo, createSignal } from "solid-js";
 import {
-	AnalyticsSkeleton,
 	type PlatformData,
 	PlatformDistributionChart,
 	type StreamData,
@@ -10,7 +9,6 @@ import {
 	type ViewerDataPoint,
 } from "~/components/analytics";
 import {
-	Alert,
 	Card,
 	CardContent,
 	CardHeader,
@@ -20,10 +18,9 @@ import {
 	SkeletonTableRow,
 } from "~/design-system";
 import { useTranslation } from "~/i18n";
-import { getLoginUrl, useCurrentUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { formatDurationShort } from "~/lib/formatters";
-import { type SuccessDataFunc, getStreamHistory } from "~/sdk/ash_rpc";
+import { getStreamHistory } from "~/sdk/ash_rpc";
 
 type Timeframe = "day" | "week" | "month" | "year";
 
@@ -49,20 +46,35 @@ const analyticsFields: (
 	"messagesAmount",
 ];
 
-type Livestream = SuccessDataFunc<
-	typeof getStreamHistory<typeof analyticsFields>
->[number];
+const getStreams = query(async () => {
+	const result = await getStreamHistory({
+		input: {},
+		fields: [...analyticsFields],
+		fetchOptions: { credentials: "include" },
+	});
 
-export const Route = createFileRoute("/dashboard/analytics")({
-	component: Analytics,
-	head: () => ({
-		meta: [{ title: "Analytics - Streampai" }],
-	}),
-});
+	if (!result.success) {
+		throw new Error("Failed to load streams");
+	}
+	return result.data;
+}, "analytics-streams");
 
-function Analytics() {
+export const route = {
+	preload() {
+		getStreams();
+	},
+} satisfies RouteDefinition;
+
+export default function Analytics() {
+	return (
+		<Suspense fallback={<LoadingState />}>
+			<AnalyticsContent />
+		</Suspense>
+	);
+}
+
+function AnalyticsContent() {
 	const { t } = useTranslation();
-	const { user, isLoading } = useCurrentUser();
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.overview"), href: "/dashboard" },
@@ -70,39 +82,8 @@ function Analytics() {
 	]);
 
 	const [timeframe, setTimeframe] = createSignal<Timeframe>("week");
-	const [streams, setStreams] = createSignal<Livestream[]>([]);
-	const [isLoadingStreams, setIsLoadingStreams] = createSignal(false);
-	const [error, setError] = createSignal<string | null>(null);
 
-	const loadStreams = async () => {
-		const currentUser = user();
-		if (!currentUser?.id) return;
-
-		setIsLoadingStreams(true);
-		setError(null);
-
-		try {
-			const result = await getStreamHistory({
-				input: { userId: currentUser.id },
-				fields: [...analyticsFields],
-				fetchOptions: { credentials: "include" },
-			});
-
-			if (!result.success) {
-				setError(t("analytics.failedToLoad"));
-				console.error("RPC error:", result.errors);
-			} else {
-				setStreams(result.data);
-			}
-		} catch (err) {
-			setError(t("analytics.failedToLoad"));
-			console.error("Error loading streams:", err);
-		} finally {
-			setIsLoadingStreams(false);
-		}
-	};
-
-	loadStreams();
+	const streams = createAsync(() => getStreams());
 
 	const daysForTimeframe = (tf: Timeframe): number => {
 		switch (tf) {
@@ -123,7 +104,7 @@ function Analytics() {
 		const days = daysForTimeframe(timeframe());
 		const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-		return streams().filter((stream) => {
+		return (streams() ?? []).filter((stream) => {
 			const startDate = new Date(stream.startedAt);
 			return startDate >= cutoff && stream.endedAt;
 		});
@@ -244,79 +225,53 @@ function Analytics() {
 	});
 
 	return (
-		<Show fallback={<AnalyticsSkeleton />} when={!isLoading()}>
-			<Show
-				fallback={
-					<div class="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-						<div class="py-12 text-center">
-							<h2 class="mb-4 font-bold text-2xl text-white">
-								{t("dashboard.notAuthenticated")}
-							</h2>
-							<p class="mb-6 text-neutral-300">{t("analytics.signInToView")}</p>
-							<Link
-								class="inline-block rounded-lg bg-linear-to-r from-primary-light to-secondary px-6 py-3 font-semibold text-white transition-all hover:from-primary hover:to-secondary-hover"
-								to={getLoginUrl()}>
-								{t("nav.signIn")}
-							</Link>
-						</div>
-					</div>
-				}
-				when={user()}>
-				<div class="space-y-6">
-					<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-						<div>
-							<h1 class="font-bold text-2xl text-neutral-900">
-								{t("analytics.title")}
-							</h1>
-							<p class="mt-1 text-neutral-500 text-sm">
-								{t("analytics.subtitle")}
-							</p>
-						</div>
-
-						<Select
-							class="bg-surface-inset"
-							onChange={(value) => setTimeframe(value as Timeframe)}
-							options={[
-								{ value: "day", label: t("analytics.last24Hours") },
-								{ value: "week", label: t("analytics.last7Days") },
-								{ value: "month", label: t("analytics.last30Days") },
-								{ value: "year", label: t("analytics.lastYear") },
-							]}
-							value={timeframe()}
-							wrapperClass="w-auto"
-						/>
-					</div>
-
-					<Show when={error()}>
-						<Alert variant="error">{error()}</Alert>
-					</Show>
-
-					<Show fallback={<LoadingState />} when={!isLoadingStreams()}>
-						<div class="grid grid-cols-1 gap-6">
-							<ViewerChart
-								data={viewerData()}
-								title={t("analytics.viewerTrends")}
-							/>
-						</div>
-
-						<div class="grid grid-cols-1 gap-6">
-							<PlatformDistributionChart
-								data={platformBreakdown()}
-								title={t("analytics.platformDistribution")}
-							/>
-						</div>
-
-						<StreamTable streams={recentStreams()} />
-					</Show>
+		<div class="space-y-6">
+			<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+				<div>
+					<h1 class="font-bold text-2xl text-neutral-900">
+						{t("analytics.title")}
+					</h1>
+					<p class="mt-1 text-neutral-500 text-sm">{t("analytics.subtitle")}</p>
 				</div>
+
+				<Select
+					class="bg-surface-inset"
+					onChange={(value) => setTimeframe(value as Timeframe)}
+					options={[
+						{ value: "day", label: t("analytics.last24Hours") },
+						{ value: "week", label: t("analytics.last7Days") },
+						{ value: "month", label: t("analytics.last30Days") },
+						{ value: "year", label: t("analytics.lastYear") },
+					]}
+					value={timeframe()}
+					wrapperClass="w-auto"
+				/>
+			</div>
+
+			<Show when={streams()}>
+				<div class="grid grid-cols-1 gap-6">
+					<ViewerChart
+						data={viewerData()}
+						title={t("analytics.viewerTrends")}
+					/>
+				</div>
+
+				<div class="grid grid-cols-1 gap-6">
+					<PlatformDistributionChart
+						data={platformBreakdown()}
+						title={t("analytics.platformDistribution")}
+					/>
+				</div>
+
+				<StreamTable streams={recentStreams()} />
 			</Show>
-		</Show>
+		</div>
 	);
 }
 
 function LoadingState() {
 	return (
-		<>
+		<div class="space-y-6 overflow-hidden">
 			<Card>
 				<SkeletonChart />
 			</Card>
@@ -363,6 +318,6 @@ function LoadingState() {
 					</div>
 				</CardContent>
 			</Card>
-		</>
+		</div>
 	);
 }

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/solid-router";
 import { createSignal } from "solid-js";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
@@ -7,12 +6,7 @@ import Input, { Textarea } from "~/design-system/Input";
 import Select from "~/design-system/Select";
 import { useTranslation } from "~/i18n";
 
-export const Route = createFileRoute("/contact")({
-	component: Contact,
-	head: () => ({ meta: [{ title: "Contact Us - Streampai" }] }),
-});
-
-function Contact() {
+export default function Contact() {
 	const { t } = useTranslation();
 	const [name, setName] = createSignal("");
 	const [email, setEmail] = createSignal("");

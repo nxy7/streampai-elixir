@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { type Accessor, Show } from "solid-js";
-import { Breadcrumbs, Skeleton, ThemeToggle } from "~/design-system";
+import { Breadcrumbs, ThemeToggle } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import type { BreadcrumbItem } from "~/lib/BreadcrumbContext";
 import type { UserPreferences } from "~/lib/electric";
@@ -10,6 +10,8 @@ import { MenuIcon } from "./navConfig";
 interface User {
 	id: string;
 	email: string | null;
+	name: string | null;
+	displayAvatar: string | null;
 	role: string;
 	isModerator: boolean;
 }
@@ -74,49 +76,27 @@ interface UserSectionProps {
 function UserSection(props: UserSectionProps) {
 	const { t } = useTranslation();
 
-	return (
-		<Show
-			fallback={<UserSectionSkeleton />}
-			when={!props.prefs.isLoading() || props.prefs.data()}>
-			<div class="flex items-center space-x-3">
-				<Link
-					class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary-light transition-colors hover:bg-primary"
-					title={t("dashboard.goToSettings")}
-					to="/dashboard/settings">
-					<Show
-						fallback={
-							<span class="font-medium text-sm text-white">
-								{props.prefs.data()?.name?.[0]?.toUpperCase() ||
-									props.user.email?.[0]?.toUpperCase() ||
-									""}
-							</span>
-						}
-						when={props.prefs.data()?.avatar_url}>
-						<img
-							alt="User Avatar"
-							class="h-full w-full object-cover"
-							src={props.prefs.data()?.avatar_url ?? ""}
-						/>
-					</Show>
-				</Link>
-				<div class="hidden md:block">
-					<p class="font-medium text-neutral-900 text-sm">
-						{props.prefs.data()?.name || props.user.email || ""}
-					</p>
-					<p class="text-neutral-500 text-xs">{t("dashboard.freePlan")}</p>
-				</div>
-			</div>
-		</Show>
-	);
-}
-
-function UserSectionSkeleton() {
+	const displayName = () =>
+		props.prefs.data()?.name || props.user.name || props.user.email || "";
+	const avatarUrl = () =>
+		props.prefs.data()?.avatar_url || props.user.displayAvatar;
 	return (
 		<div class="flex items-center space-x-3">
-			<Skeleton circle class="h-8 w-8" />
+			<A
+				class="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary-light transition-colors hover:bg-primary"
+				href="/dashboard/settings"
+				title={t("dashboard.goToSettings")}>
+				<Show when={avatarUrl()}>
+					<img
+						alt="User Avatar"
+						class="h-full w-full object-cover duration-300"
+						src={avatarUrl() ?? ""}
+					/>
+				</Show>
+			</A>
 			<div class="hidden md:block">
-				<Skeleton class="h-4 w-20" />
-				<Skeleton class="mt-1 h-3 w-14" />
+				<p class="font-medium text-neutral-900 text-sm">{displayName()}</p>
+				<p class="text-neutral-500 text-xs">{t("dashboard.freePlan")}</p>
 			</div>
 		</div>
 	);

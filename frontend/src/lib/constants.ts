@@ -13,9 +13,6 @@ export const BASE_URL = isProduction
 // API path prefix - backend routes are under /api
 export const API_PATH = "/api";
 
-// Full API URL with path prefix
-export const API_URL = `${BASE_URL}${API_PATH}`;
-
 // Helper to get the API base URL for fetch calls
 // In production: https://api.streampai.com
 // In development: window.location.origin (for Caddy proxy) or BASE_URL
@@ -27,6 +24,11 @@ export function getApiBase(): string {
 		return window.location.origin;
 	}
 	return BASE_URL;
+}
+
+// Full API URL — use this for all API requests
+export function getApiUrl(): string {
+	return `${getApiBase()}${API_PATH}`;
 }
 
 // Maps display platform names to OAuth provider names
@@ -41,7 +43,7 @@ export const apiRoutes = {
 		connect: (platform: string) => {
 			const normalized = platform.toLowerCase();
 			const provider = platformToProvider[normalized] ?? normalized;
-			return `${getApiBase()}${API_PATH}/streaming/connect/${provider}`;
+			return `${getApiUrl()}/streaming/connect/${provider}`;
 		},
 	},
 };

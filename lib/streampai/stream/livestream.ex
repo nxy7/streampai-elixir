@@ -23,7 +23,7 @@ defmodule Streampai.Stream.Livestream do
     define :read
     define :update
     define :destroy
-    define :get_completed_by_user, args: [:user_id]
+    define :get_completed_by_user, args: [{:optional, :user_id}]
 
     define :start_livestream, args: [:user_id]
 
@@ -76,7 +76,19 @@ defmodule Streampai.Stream.Livestream do
 
     read :get_completed_by_user do
       argument :user_id, :uuid do
-        allow_nil? false
+        allow_nil? true
+      end
+
+      prepare fn query, context ->
+        case Ash.Query.get_argument(query, :user_id) do
+          nil ->
+            if context.actor,
+              do: Ash.Query.set_argument(query, :user_id, context.actor.id),
+              else: query
+
+          _ ->
+            query
+        end
       end
 
       filter expr(user_id == ^arg(:user_id) and not is_nil(ended_at))

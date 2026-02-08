@@ -1,8 +1,7 @@
 import { Show } from "solid-js";
 import { cn } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
-import { useImpersonation } from "~/lib/impersonation";
+import { useCurrentUser, useImpersonation } from "~/lib/auth";
 
 /**
  * A floating banner that appears when an admin is impersonating another user.

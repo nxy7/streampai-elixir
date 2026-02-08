@@ -292,5 +292,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy frontend/dist/client --project-name=streampai --commit-dirty=true
+          command: pages deploy frontend/.output/public --project-name=streampai --commit-dirty=true
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

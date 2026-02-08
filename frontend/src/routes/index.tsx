@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/solid-router";
 import { createSignal } from "solid-js";
 import PlatformIcon from "~/components/PlatformIcon";
 import PublicFooter from "~/components/PublicFooter";
@@ -774,14 +773,7 @@ function LandingCTA() {
 	);
 }
 
-export const Route = createFileRoute("/")({
-	component: Home,
-	head: () => ({
-		meta: [{ title: "Streampai - Multi-Platform Streaming Solution" }],
-	}),
-});
-
-function Home() {
+export default function Home() {
 	return (
 		<div class="min-h-screen bg-surface">
 			<PublicHeader navItems={LANDING_NAV_ITEMS} />

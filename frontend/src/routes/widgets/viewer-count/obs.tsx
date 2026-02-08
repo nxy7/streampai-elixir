@@ -1,25 +1,13 @@
+import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createFileRoute, useSearch } from "@tanstack/solid-router";
-import {
-	type Accessor,
-	Show,
-	createEffect,
-	createMemo,
-	createSignal,
-} from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import { streamEventsCollection } from "~/lib/electric";
 import { getEventsCollection } from "~/lib/useEventsCollection";
 
-export const Route = createFileRoute("/widgets/viewer-count/obs")({
-	component: ViewerCountOBS,
-});
-
-function ViewerCountOBS() {
-	const params = useSearch({ strict: false }) as Accessor<
-		Record<string, string | string[] | undefined>
-	>;
+export default function ViewerCountOBS() {
+	const [params] = useSearchParams();
 	const userId = () => {
-		const raw = params().userId;
+		const raw = params.userId;
 		return Array.isArray(raw) ? raw[0] : raw;
 	};
 

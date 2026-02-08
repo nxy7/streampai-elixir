@@ -1,12 +1,10 @@
-import { createFileRoute } from "@tanstack/solid-router";
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, Suspense, createSignal } from "solid-js";
 import { Card, Skeleton, Toggle } from "~/design-system";
 import { button } from "~/design-system/design-system";
 import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
+import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
-import { createStreamTimersCollection } from "~/lib/electric";
 import { useStreamTimers } from "~/lib/useElectric";
 import {
 	createStreamTimer,
@@ -15,42 +13,6 @@ import {
 	enableStreamTimer,
 	updateStreamTimer,
 } from "~/sdk/ash_rpc";
-
-// Cache for collections to avoid creating duplicates
-const collectionCache = new Map<
-	string,
-	ReturnType<typeof createStreamTimersCollection>
->();
-
-function getOrCreateCollection(userId: string) {
-	let collection = collectionCache.get(userId);
-	if (!collection) {
-		collection = createStreamTimersCollection(userId);
-		collectionCache.set(userId, collection);
-	}
-	return collection;
-}
-
-export const Route = createFileRoute("/dashboard/tools/timers")({
-	component: TimersConfigPage,
-	pendingComponent: TimersLoadingSkeleton,
-	pendingMs: 0, // Show immediately
-	pendingMinMs: 200, // Minimum display time to avoid flash
-	head: () => ({
-		meta: [{ title: "Timers - Streampai" }],
-	}),
-	// Preload Electric collection using user from router context
-	loader: async ({ context }) => {
-		// Skip on server side
-		if (typeof window === "undefined") return null;
-		const userId = context.user?.id;
-		if (userId) {
-			const collection = getOrCreateCollection(userId);
-			await collection.preload();
-		}
-		return null;
-	},
-});
 
 function TimersLoadingSkeleton() {
 	return (
@@ -68,9 +30,17 @@ function TimersLoadingSkeleton() {
 	);
 }
 
-function TimersConfigPage() {
+export default function TimersConfigPage() {
+	return (
+		<Suspense fallback={<TimersLoadingSkeleton />}>
+			<TimersConfigPageContent />
+		</Suspense>
+	);
+}
+
+function TimersConfigPageContent() {
 	const { t } = useTranslation();
-	const { user } = useCurrentUser();
+	const { user } = useAuthenticatedUser();
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.tools"), href: "/dashboard/tools/timers" },

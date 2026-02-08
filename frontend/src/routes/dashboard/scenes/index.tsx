@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/solid-router";
 import { For, Show, createEffect, createSignal, onMount } from "solid-js";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
-import { useCurrentUser } from "~/lib/auth";
+import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { getSmartCanvasLayout, saveSmartCanvasLayout } from "~/sdk/ash_rpc";
 
@@ -294,16 +293,9 @@ function CanvasWidgetComponent(props: {
 	);
 }
 
-export const Route = createFileRoute("/dashboard/scenes/")({
-	component: SmartCanvas,
-	head: () => ({
-		meta: [{ title: "Scenes - Streampai" }],
-	}),
-});
-
-function SmartCanvas() {
+export default function SmartCanvas() {
 	const { t } = useTranslation();
-	const { user } = useCurrentUser();
+	const { user } = useAuthenticatedUser();
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.widgets"), href: "/dashboard/widgets" },
@@ -537,168 +529,159 @@ function SmartCanvas() {
 		}
 	});
 
-	const obsUrl = () => {
-		if (!user()?.id) return "";
-		return `${window.location.origin}/w/smart-canvas/${user()?.id}`;
-	};
+	const obsUrl = () => `${window.location.origin}/w/smart-canvas/${user().id}`;
 
 	return (
-		<Show when={user()}>
-			<div class="space-y-6">
-				<p class={text.muted}>
-					Compose your stream overlay with interactive widgets. Click widgets
-					from the palette to add them to the canvas.
-				</p>
+		<div class="space-y-6">
+			<p class={text.muted}>
+				Compose your stream overlay with interactive widgets. Click widgets from
+				the palette to add them to the canvas.
+			</p>
 
-				<Card class="border-blue-500/20 bg-blue-500/10" variant="ghost">
-					<div class="flex items-start gap-3">
-						<div class="shrink-0 text-blue-400">ℹ️</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">OBS Browser Source URL</h3>
-							<p class="mb-2 text-sm opacity-70">
-								Copy this URL and add it as a Browser Source in OBS (set to
-								1920x1080):
-							</p>
-							<div class="flex gap-2">
-								<Input
-									class="flex-1 bg-surface-inset font-mono"
-									readonly
-									type="text"
-									value={obsUrl()}
-								/>
-								<Button
-									onClick={() => {
-										navigator.clipboard.writeText(obsUrl());
-									}}>
-									Copy
-								</Button>
-							</div>
-						</div>
-					</div>
-				</Card>
-
-				<Card variant="ghost">
-					<div class="flex items-center justify-between">
+			<Card class="border-blue-500/20 bg-blue-500/10" variant="ghost">
+				<div class="flex items-start gap-3">
+					<div class="shrink-0 text-blue-400">ℹ️</div>
+					<div class="flex-1">
+						<h3 class="mb-1 font-semibold">OBS Browser Source URL</h3>
+						<p class="mb-2 text-sm opacity-70">
+							Copy this URL and add it as a Browser Source in OBS (set to
+							1920x1080):
+						</p>
 						<div class="flex gap-2">
+							<Input
+								class="flex-1 bg-surface-inset font-mono"
+								readonly
+								type="text"
+								value={obsUrl()}
+							/>
 							<Button
-								onClick={saveLayout}
-								variant={layoutSaved() ? "success" : "primary"}>
-								{layoutSaved()
-									? t("scenes.layoutSaved")
-									: t("scenes.saveLayout")}
-							</Button>
-							<Button onClick={clearWidgets} variant="secondary">
-								{t("scenes.clearAll")}
-							</Button>
-							<Button
-								onClick={() => setCanvasMaximized(!canvasMaximized())}
-								variant="ghost">
-								{canvasMaximized()
-									? t("scenes.exitFullscreen")
-									: t("scenes.fullscreen")}
-							</Button>
-						</div>
-						<div class="text-neutral-600 text-sm">
-							{t("scenes.widgetCount", { count: widgets().length })}
-						</div>
-					</div>
-				</Card>
-
-				<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-					<div class="lg:col-span-1">
-						<Card class="max-h-[700px] overflow-y-auto">
-							<h3 class={`${text.h3} mb-4`}>{t("scenes.widgetPalette")}</h3>
-							<p class="mb-4 text-neutral-600 text-sm">
-								{t("scenes.clickToAdd")}
-							</p>
-							<div class="space-y-2">
-								<For each={AVAILABLE_WIDGETS}>
-									{(widgetDef) => <PaletteWidgetItem widgetDef={widgetDef} />}
-								</For>
-							</div>
-						</Card>
-					</div>
-
-					<div class="lg:col-span-3">
-						<Card
-							class="bg-neutral-900 p-4"
-							classList={{
-								"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
-							}}>
-							<Show when={canvasMaximized()}>
-								<button
-									class="absolute top-4 right-4 z-50 rounded-lg bg-neutral-800 p-2 text-white hover:bg-neutral-700"
-									onClick={() => setCanvasMaximized(false)}
-									type="button">
-									✕
-								</button>
-							</Show>
-
-							<div
-								class="mb-2 text-neutral-400 text-sm"
-								classList={{ hidden: canvasMaximized() }}>
-								Canvas: 1920x1080 (16:9)
-							</div>
-
-							<div
-								class="w-full"
-								style={{
-									"aspect-ratio": "16/9",
-									"max-height": canvasMaximized() ? "100vh" : "650px",
+								onClick={() => {
+									navigator.clipboard.writeText(obsUrl());
 								}}>
-								<div class="relative h-full w-full">
-									<div
-										class="absolute overflow-hidden rounded-lg border-2 border-neutral-700 bg-neutral-950"
-										onClick={() => setSelectedWidgetId(null)}
-										onKeyDown={(e) => {
-											if (e.key === "Escape") {
-												setSelectedWidgetId(null);
-											}
-										}}
-										ref={setCanvasRef}
-										role="application"
-										style={{
-											width: "1920px",
-											height: "1080px",
-											"transform-origin": "top left",
-											transform: `scale(${scale()})`,
-											background:
-												"linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
-											"background-size": "50px 50px",
-										}}>
-										<For each={widgets()}>
-											{(widget) => (
-												<CanvasWidgetComponent
-													onDelete={deleteWidget}
-													onSelect={setSelectedWidgetId}
-													onUpdatePosition={updateWidgetPosition}
-													onUpdateSize={updateWidgetSize}
-													scale={scale()}
-													selectedWidgetId={selectedWidgetId()}
-													setIsResizing={setIsResizing}
-													widget={widget}
-												/>
-											)}
-										</For>
-
-										<Show when={widgets().length === 0}>
-											<div class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400">
-												<div class="mb-4 text-6xl">🎨</div>
-												<h3 class="mb-2 font-semibold text-xl">
-													No Widgets Yet
-												</h3>
-												<p class="text-sm">
-													Click widgets from the palette to get started
-												</p>
-											</div>
-										</Show>
-									</div>
-								</div>
-							</div>
-						</Card>
+								Copy
+							</Button>
+						</div>
 					</div>
 				</div>
+			</Card>
+
+			<Card variant="ghost">
+				<div class="flex items-center justify-between">
+					<div class="flex gap-2">
+						<Button
+							onClick={saveLayout}
+							variant={layoutSaved() ? "success" : "primary"}>
+							{layoutSaved() ? t("scenes.layoutSaved") : t("scenes.saveLayout")}
+						</Button>
+						<Button onClick={clearWidgets} variant="secondary">
+							{t("scenes.clearAll")}
+						</Button>
+						<Button
+							onClick={() => setCanvasMaximized(!canvasMaximized())}
+							variant="ghost">
+							{canvasMaximized()
+								? t("scenes.exitFullscreen")
+								: t("scenes.fullscreen")}
+						</Button>
+					</div>
+					<div class="text-neutral-600 text-sm">
+						{t("scenes.widgetCount", { count: widgets().length })}
+					</div>
+				</div>
+			</Card>
+
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+				<div class="lg:col-span-1">
+					<Card class="max-h-[700px] overflow-y-auto">
+						<h3 class={`${text.h3} mb-4`}>{t("scenes.widgetPalette")}</h3>
+						<p class="mb-4 text-neutral-600 text-sm">
+							{t("scenes.clickToAdd")}
+						</p>
+						<div class="space-y-2">
+							<For each={AVAILABLE_WIDGETS}>
+								{(widgetDef) => <PaletteWidgetItem widgetDef={widgetDef} />}
+							</For>
+						</div>
+					</Card>
+				</div>
+
+				<div class="lg:col-span-3">
+					<Card
+						class="bg-neutral-900 p-4"
+						classList={{
+							"!fixed !inset-0 !z-50 !m-0 !rounded-none": canvasMaximized(),
+						}}>
+						<Show when={canvasMaximized()}>
+							<button
+								class="absolute top-4 right-4 z-50 rounded-lg bg-neutral-800 p-2 text-white hover:bg-neutral-700"
+								onClick={() => setCanvasMaximized(false)}
+								type="button">
+								✕
+							</button>
+						</Show>
+
+						<div
+							class="mb-2 text-neutral-400 text-sm"
+							classList={{ hidden: canvasMaximized() }}>
+							Canvas: 1920x1080 (16:9)
+						</div>
+
+						<div
+							class="w-full"
+							style={{
+								"aspect-ratio": "16/9",
+								"max-height": canvasMaximized() ? "100vh" : "650px",
+							}}>
+							<div class="relative h-full w-full">
+								<div
+									class="absolute overflow-hidden rounded-lg border-2 border-neutral-700 bg-neutral-950"
+									onClick={() => setSelectedWidgetId(null)}
+									onKeyDown={(e) => {
+										if (e.key === "Escape") {
+											setSelectedWidgetId(null);
+										}
+									}}
+									ref={setCanvasRef}
+									role="application"
+									style={{
+										width: "1920px",
+										height: "1080px",
+										"transform-origin": "top left",
+										transform: `scale(${scale()})`,
+										background:
+											"linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+										"background-size": "50px 50px",
+									}}>
+									<For each={widgets()}>
+										{(widget) => (
+											<CanvasWidgetComponent
+												onDelete={deleteWidget}
+												onSelect={setSelectedWidgetId}
+												onUpdatePosition={updateWidgetPosition}
+												onUpdateSize={updateWidgetSize}
+												scale={scale()}
+												selectedWidgetId={selectedWidgetId()}
+												setIsResizing={setIsResizing}
+												widget={widget}
+											/>
+										)}
+									</For>
+
+									<Show when={widgets().length === 0}>
+										<div class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400">
+											<div class="mb-4 text-6xl">🎨</div>
+											<h3 class="mb-2 font-semibold text-xl">No Widgets Yet</h3>
+											<p class="text-sm">
+												Click widgets from the palette to get started
+											</p>
+										</div>
+									</Show>
+								</div>
+							</div>
+						</div>
+					</Card>
+				</div>
 			</div>
-		</Show>
+		</div>
 	);
 }

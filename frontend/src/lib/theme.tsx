@@ -16,7 +16,8 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue>();
 
 function getInitialTheme(): Theme {
-	if (typeof window === "undefined") return "light";
+	if (typeof window === "undefined" || typeof localStorage === "undefined")
+		return "light";
 	const stored = localStorage.getItem("theme");
 	if (stored === "dark" || stored === "light") return stored;
 	return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -48,7 +49,7 @@ export function ThemeProvider(props: ParentProps) {
 		};
 
 		// Use View Transition API if available
-		if (document.startViewTransition) {
+		if (typeof document !== "undefined" && document.startViewTransition) {
 			const transition = document.startViewTransition(applyChange);
 
 			// Animate with diagonal wipe via clip-path polygon

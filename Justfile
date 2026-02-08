@@ -220,10 +220,7 @@ worktree-setup:
     grep -v '^PORT=' .env > .env.tmp && mv .env.tmp .env || true
     grep -v '^FRONTEND_PORT=' .env > .env.tmp && mv .env.tmp .env || true
     grep -v '^CADDY_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-    grep -v '^FRONTEND_HMR_CLIENT_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-    grep -v '^FRONTEND_HMR_SERVER_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-    grep -v '^FRONTEND_HMR_SERVER_FUNCTION_PORT=' .env > .env.tmp && mv .env.tmp .env || true
-    grep -v '^FRONTEND_HMR_SSR_PORT=' .env > .env.tmp && mv .env.tmp .env || true
+
     grep -v '^DISABLE_LIVE_DEBUGGER=' .env > .env.tmp && mv .env.tmp .env || true
     grep -v '^DB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
     grep -v '^PGWEB_PORT=' .env > .env.tmp && mv .env.tmp .env || true
@@ -264,10 +261,7 @@ worktree-setup:
     PHOENIX_PORT=$(get_or_generate_port PORT 4100 4999)
     FRONTEND_PORT=$(get_or_generate_port FRONTEND_PORT 3100 3999)
     CADDY_PORT=$(get_or_generate_port CADDY_PORT 8100 8999)
-    FRONTEND_HMR_CLIENT_PORT=$(get_or_generate_port FRONTEND_HMR_CLIENT_PORT 3100 3999)
-    FRONTEND_HMR_SERVER_PORT=$(get_or_generate_port FRONTEND_HMR_SERVER_PORT 3100 3999)
-    FRONTEND_HMR_SERVER_FUNCTION_PORT=$(get_or_generate_port FRONTEND_HMR_SERVER_FUNCTION_PORT 3100 3999)
-    FRONTEND_HMR_SSR_PORT=$(get_or_generate_port FRONTEND_HMR_SSR_PORT 3100 3999)
+
 
     # Use worktree name as compose project name for isolated containers/volumes
     COMPOSE_PROJECT="streampai_$(echo "$name" | tr '-' '_')"
@@ -286,10 +280,7 @@ worktree-setup:
     echo "PORT=$PHOENIX_PORT" >> .env
     echo "FRONTEND_PORT=$FRONTEND_PORT" >> .env
     echo "CADDY_PORT=$CADDY_PORT" >> .env
-    echo "FRONTEND_HMR_CLIENT_PORT=$FRONTEND_HMR_CLIENT_PORT" >> .env
-    echo "FRONTEND_HMR_SERVER_PORT=$FRONTEND_HMR_SERVER_PORT" >> .env
-    echo "FRONTEND_HMR_SERVER_FUNCTION_PORT=$FRONTEND_HMR_SERVER_FUNCTION_PORT" >> .env
-    echo "FRONTEND_HMR_SSR_PORT=$FRONTEND_HMR_SSR_PORT" >> .env
+
     echo "DISABLE_LIVE_DEBUGGER=true" >> .env
 
     echo ""
@@ -496,18 +487,14 @@ kill-ports:
     PHOENIX_PORT=${PORT:-4000}
     FRONTEND_PORT=${FRONTEND_PORT:-3000}
     CADDY_PORT=${CADDY_PORT:-8000}
-    FRONTEND_HMR_CLIENT_PORT=${FRONTEND_HMR_CLIENT_PORT:-3001}
-    FRONTEND_HMR_SERVER_PORT=${FRONTEND_HMR_SERVER_PORT:-3002}
-    FRONTEND_HMR_SERVER_FUNCTION_PORT=${FRONTEND_HMR_SERVER_FUNCTION_PORT:-3003}
-    FRONTEND_HMR_SSR_PORT=${FRONTEND_HMR_SSR_PORT:-3004}
-
 
     echo "🔪 Killing processes on dev ports..."
 
     kill_port() {
     	local port=$1
     	local name=$2
-    	local pids=$(lsof -ti :$port 2>/dev/null)
+    	# Filter out Docker processes to avoid stopping Docker Desktop
+    	local pids=$(lsof -i :$port -P -n 2>/dev/null | grep LISTEN | grep -iv 'docker\|com\.docke' | awk '{print $2}' | sort -u | tail -n +1)
     	if [ -n "$pids" ]; then
     		echo "   Killing $name on port $port (PIDs: $pids)"
     		echo "$pids" | xargs kill -9 2>/dev/null || true
@@ -519,10 +506,7 @@ kill-ports:
     kill_port $PHOENIX_PORT "Phoenix"
     kill_port $FRONTEND_PORT "Frontend"
     kill_port $CADDY_PORT "Caddy"
-    kill_port $FRONTEND_HMR_CLIENT_PORT "Frontend HMR Client"
-    kill_port $FRONTEND_HMR_SERVER_PORT "Frontend HMR Server"
-    kill_port $FRONTEND_HMR_SERVER_FUNCTION_PORT "Frontend HMR Server Function"
-    kill_port $FRONTEND_HMR_SSR_PORT "Frontend HMR SSR"
+
     echo "✅ Done"
 
 # ============================================================================

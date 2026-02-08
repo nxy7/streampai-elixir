@@ -1,22 +1,16 @@
+import { useSearchParams } from "@solidjs/router";
 import { useLiveQuery } from "@tanstack/solid-db";
-import { createFileRoute, useSearch } from "@tanstack/solid-router";
-import { type Accessor, Show, createMemo } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import { streamEventsCollection } from "~/lib/electric";
 import { getEventsCollection } from "~/lib/useEventsCollection";
 
-export const Route = createFileRoute("/widgets/donation-goal/obs")({
-	component: DonationGoalOBS,
-});
-
-function DonationGoalOBS() {
-	const params = useSearch({ strict: false }) as Accessor<
-		Record<string, string | string[] | undefined>
-	>;
-	const rawUserId = params().userId;
+export default function DonationGoalOBS() {
+	const [params] = useSearchParams();
+	const rawUserId = params.userId;
 	const userId = () => (Array.isArray(rawUserId) ? rawUserId[0] : rawUserId);
-	const _goalId = () => params().goalId;
+	const _goalId = () => params.goalId;
 	const targetAmount = () => {
-		const raw = params().targetAmount;
+		const raw = params.targetAmount;
 		const value = Array.isArray(raw) ? raw[0] : raw;
 		return parseFloat(value || "100");
 	};

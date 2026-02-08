@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import Logo from "~/components/Logo";
 import { useTranslation } from "~/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -17,36 +17,34 @@ export default function PublicFooter(props: PublicFooterProps) {
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="flex flex-col gap-6 md:flex-row md:gap-8">
 					{/* Logo - spans full height on desktop */}
-					<Link
+					<A
 						class="flex shrink-0 items-center justify-center md:justify-start"
-						to="/">
+						href="/">
 						<Logo showText size="md" />
-					</Link>
+					</A>
 
 					{/* Right section - nav links on top, copyright and language picker at bottom */}
 					<div class="flex flex-1 flex-col gap-4">
 						{/* Navigation links */}
 						<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-neutral-600 text-sm md:justify-end">
-							<Link
+							<A
 								class="transition-colors hover:text-neutral-900"
-								to="/privacy">
+								href="/privacy">
 								{t("footer.privacy")}
-							</Link>
-							<Link
-								class="transition-colors hover:text-neutral-900"
-								to="/terms">
+							</A>
+							<A class="transition-colors hover:text-neutral-900" href="/terms">
 								{t("footer.terms")}
-							</Link>
-							<Link
+							</A>
+							<A
 								class="transition-colors hover:text-neutral-900"
-								to="/support">
+								href="/support">
 								{t("footer.support")}
-							</Link>
-							<Link
+							</A>
+							<A
 								class="transition-colors hover:text-neutral-900"
-								to="/contact">
+								href="/contact">
 								{t("footer.contact")}
-							</Link>
+							</A>
 						</div>
 
 						{/* Bottom row - copyright and language picker */}

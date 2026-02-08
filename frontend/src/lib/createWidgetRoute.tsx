@@ -1,4 +1,4 @@
-import { useParams } from "@tanstack/solid-router";
+import { useParams } from "@solidjs/router";
 import { type JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import { getWidgetConfig } from "~/sdk/ash_rpc";
 
@@ -47,11 +47,11 @@ export function createWidgetRoute<T extends object>(
 	options: WidgetRouteOptions<T>,
 ) {
 	return function WidgetDisplay() {
-		const params = useParams({ strict: false });
+		const params = useParams();
 		const [config, setConfig] = createSignal<T | null>(null);
 
 		async function loadConfig() {
-			const userId = params().userId;
+			const userId = params.userId;
 			if (!userId) return;
 
 			const result = await getWidgetConfig({

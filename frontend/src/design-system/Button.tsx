@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { type JSX, splitProps } from "solid-js";
 import { cn } from "~/design-system/design-system";
 import { useProximityGlow } from "./useProximityGlow";
@@ -126,13 +126,13 @@ export default function Button(props: ButtonProps) {
 
 	if (local.as === "link") {
 		return (
-			<Link
+			<A
 				class={classes()}
+				href={local.href ?? ""}
 				ref={setRef}
-				to={local.href ?? ""}
 				{...(rest as JSX.AnchorHTMLAttributes<HTMLAnchorElement>)}>
 				{content}
-			</Link>
+			</A>
 		);
 	}
 

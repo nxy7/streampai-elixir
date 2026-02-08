@@ -15,10 +15,17 @@ export type User = {
 	tier: string | null;
 };
 
-export type AuthContextValue = {
+export type Impersonator = {
+	id: string;
+	email: string;
+	name: string | null;
+};
+
+export type SessionContextValue = {
 	user: () => User | null;
+	impersonator: () => Impersonator | null;
 	isLoading: () => boolean;
 	refresh: () => Promise<void>;
 };
 
-export const AuthContext = createContext<AuthContextValue>();
+export const SessionContext = createContext<SessionContextValue>();

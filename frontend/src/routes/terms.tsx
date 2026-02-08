@@ -1,15 +1,10 @@
-import { Link, createFileRoute } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
 import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
-export const Route = createFileRoute("/terms")({
-	component: Terms,
-	head: () => ({ meta: [{ title: "Terms of Service - Streampai" }] }),
-});
-
-function Terms() {
+export default function Terms() {
 	const { t } = useTranslation();
 
 	return (
@@ -84,11 +79,11 @@ function Terms() {
 							</h2>
 							<p class="text-neutral-600">
 								{t("terms.section11Text")}{" "}
-								<Link
+								<A
 									class="text-primary-light hover:text-primary-200"
-									to="/contact">
+									href="/contact">
 									{t("terms.contactUs")}
-								</Link>
+								</A>
 								.
 							</p>
 						</div>

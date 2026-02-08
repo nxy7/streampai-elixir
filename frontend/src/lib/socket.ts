@@ -1,6 +1,6 @@
 import { type Channel, Presence, Socket } from "phoenix";
 import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
-import { API_PATH, BASE_URL, getApiBase } from "./constants";
+import { API_PATH, BASE_URL, getApiUrl } from "./constants";
 
 // Socket singleton
 let socketInstance: Socket | null = null;
@@ -21,12 +21,9 @@ let currentPresenceUsers: PresenceUser[] = [];
  */
 async function fetchSocketToken(): Promise<string | null> {
 	try {
-		const response = await fetch(
-			`${getApiBase()}${API_PATH}/rpc/socket-token`,
-			{
-				credentials: "include",
-			},
-		);
+		const response = await fetch(`${getApiUrl()}/rpc/socket-token`, {
+			credentials: "include",
+		});
 
 		if (!response.ok) {
 			// User is likely not authenticated, return null silently

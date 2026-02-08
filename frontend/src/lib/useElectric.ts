@@ -75,7 +75,7 @@ function createUserScopedHook<TResult extends object>(
 		});
 
 		return {
-			data: createMemo(() => query.data ?? []),
+			data: createMemo(() => query() ?? []),
 			isLoading: createMemo(() => query.isLoading),
 			status: createMemo(() => query.status),
 			state: query.state,
@@ -115,9 +115,7 @@ function _useFilteredStreamEvents(eventType: string) {
 	const query = useStreamEvents();
 	return {
 		...query,
-		data: createMemo(() =>
-			(query.data ?? []).filter((e) => e.type === eventType),
-		),
+		data: createMemo(() => (query() ?? []).filter((e) => e.type === eventType)),
 	};
 }
 
@@ -136,7 +134,7 @@ export function useUserPreferencesForUser(userId: () => string | undefined) {
 		data: createMemo(() => {
 			const id = userId();
 			if (!id) return null;
-			return (query.data ?? []).find((p) => p.id === id) ?? null;
+			return (query() ?? []).find((p) => p.id === id) ?? null;
 		}),
 		isLoading: createMemo(() => query.isLoading),
 		status: createMemo(() => query.status),
@@ -313,7 +311,7 @@ export function useNotificationsWithReadStatus(
 export function useGlobalNotifications() {
 	const query = useLiveQuery(() => globalNotificationsCollection);
 	return {
-		data: createMemo(() => sortByInsertedAt(query.data ?? [])),
+		data: createMemo(() => sortByInsertedAt(query() ?? [])),
 		isLoading: createMemo(() => query.isLoading),
 		status: createMemo(() => query.status),
 		state: query.state,
@@ -391,7 +389,7 @@ export function useChatBotConfig(userId: () => string | undefined) {
 	return {
 		data: createMemo(() => {
 			if (!userId()) return null;
-			const configs = (query.data ?? []) as ChatBotConfigRow[];
+			const configs = (query() ?? []) as ChatBotConfigRow[];
 			return configs.length > 0 ? configs[0] : null;
 		}),
 		isLoading: createMemo(() => query.isLoading),
@@ -411,7 +409,7 @@ export function useHighlightedMessage(userId: () => string | undefined) {
 	return {
 		data: createMemo(() => {
 			if (!userId()) return null;
-			const messages = (query.data ?? []) as HighlightedMessage[];
+			const messages = (query() ?? []) as HighlightedMessage[];
 			// Return the first (and should be only) highlighted message, or null
 			return messages.length > 0 ? messages[0] : null;
 		}),
@@ -430,7 +428,7 @@ export function useStreamActor(userId: () => string | undefined) {
 	});
 
 	const streamData = createMemo(() => {
-		const rows = query.data ?? [];
+		const rows = query() ?? [];
 		return (rows as CurrentStreamData[])[0] ?? null;
 	});
 
@@ -452,6 +450,7 @@ export function useStreamActor(userId: () => string | undefined) {
 			if (!row) return {} as Record<string, PlatformStatusData>;
 			const result: Record<string, PlatformStatusData> = {};
 			if (row.youtube_data && Object.keys(row.youtube_data).length > 0) {
+				const _z = row.youtube_data;
 				result.youtube = row.youtube_data as unknown as PlatformStatusData;
 			}
 			if (row.twitch_data && Object.keys(row.twitch_data).length > 0) {
@@ -490,7 +489,7 @@ export function useTicketMessages(ticketId: () => string | undefined) {
 	});
 
 	return {
-		data: createMemo(() => query.data ?? []),
+		data: createMemo(() => query() ?? []),
 		isLoading: createMemo(() => query.isLoading),
 		status: createMemo(() => query.status),
 	};

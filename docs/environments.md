@@ -17,8 +17,8 @@ This document describes the development and production environments for Streampa
 │      /api/*       /_build/*    /* (other)                        │
 │         │             │           │                               │
 │         ▼             ▼           ▼                               │
-│     Phoenix       Vite HMR    Frontend                           │
-│    (port 4000)   (ports 3001-3003) (port 3000)                   │
+│     Phoenix      Frontend                                        │
+│    (port 4000)  (port 3000)                                      │
 │         │                                                         │
 │         ▼                                                         │
 │    PostgreSQL + Electric SQL                                      │
@@ -60,21 +60,18 @@ The development environment uses Caddy as a local reverse proxy for several crit
 
 3. **Unified Entry Point**: Single `https://localhost:8000` endpoint serves both frontend and API, matching production behavior.
 
-4. **HMR Support**: Caddy properly proxies Vite's Hot Module Replacement WebSocket connections across multiple ports.
+4. **HMR Support**: Caddy proxies Vite's Hot Module Replacement WebSocket connections transparently.
 
 ### Services
 
-| Service             | Port      | Description                            |
-| ------------------- | --------- | -------------------------------------- |
-| Caddy               | 8000      | HTTPS reverse proxy (entry point)      |
-| Phoenix             | 4000      | Elixir backend API                     |
-| Frontend            | 3000      | SolidJS dev server                     |
-| HMR Client          | 3001      | Vite HMR (client router)               |
-| HMR Server          | 3002      | Vite HMR (server router)               |
-| HMR Server Function | 3003      | Vite HMR (server function router)      |
-| PostgreSQL          | 5432      | TimescaleDB (PostgreSQL + time-series) |
-| PgWeb               | 8082      | Database admin UI                      |
-| MinIO               | 9000/9001 | S3-compatible storage                  |
+| Service    | Port      | Description                            |
+| ---------- | --------- | -------------------------------------- |
+| Caddy      | 8000      | HTTPS reverse proxy (entry point)      |
+| Phoenix    | 4000      | Elixir backend API                     |
+| Frontend   | 3000      | SolidJS dev server (includes HMR)      |
+| PostgreSQL | 5432      | TimescaleDB (PostgreSQL + time-series) |
+| PgWeb      | 8082      | Database admin UI                      |
+| MinIO      | 9000/9001 | S3-compatible storage                  |
 
 ### Starting Development
 
@@ -115,12 +112,7 @@ localhost:{$CADDY_PORT:8000} {
         reverse_proxy localhost:{$PORT:4000}
     }
 
-    # Vite HMR WebSockets
-    handle /_build/_hmr/client {
-        reverse_proxy localhost:{$FRONTEND_HMR_CLIENT_PORT:3001}
-    }
-
-    # Frontend (default)
+    # Frontend (default, including HMR WebSocket)
     handle {
         reverse_proxy localhost:{$FRONTEND_PORT:3000}
     }

@@ -1,15 +1,10 @@
-import { Link, createFileRoute } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import PublicFooter from "~/components/PublicFooter";
 import PublicHeader from "~/components/PublicHeader";
 import Card from "~/design-system/Card";
 import { useTranslation } from "~/i18n";
 
-export const Route = createFileRoute("/privacy")({
-	component: Privacy,
-	head: () => ({ meta: [{ title: "Privacy Policy - Streampai" }] }),
-});
-
-function Privacy() {
+export default function Privacy() {
 	const { t } = useTranslation();
 
 	return (
@@ -104,11 +99,11 @@ function Privacy() {
 							</h2>
 							<p class="text-neutral-600">
 								{t("privacy.section11Text")}{" "}
-								<Link
+								<A
 									class="text-primary-light hover:text-primary-200"
-									to="/contact">
+									href="/contact">
 									{t("privacy.contactUs")}
-								</Link>
+								</A>
 								.
 							</p>
 						</div>

@@ -1,5 +1,5 @@
-import { createFileRoute, useSearch } from "@tanstack/solid-router";
-import { type Accessor, For, Show, createSignal } from "solid-js";
+import { useSearchParams } from "@solidjs/router";
+import { For, Show, createSignal } from "solid-js";
 
 type PollOption = {
 	id: string;
@@ -14,16 +14,10 @@ type Poll = {
 	totalVotes: number;
 };
 
-export const Route = createFileRoute("/widgets/poll/obs")({
-	component: PollOBS,
-});
-
-function PollOBS() {
-	const params = useSearch({ strict: false }) as Accessor<
-		Record<string, string | string[] | undefined>
-	>;
+export default function PollOBS() {
+	const [params] = useSearchParams();
 	const userId = () => {
-		const raw = params().userId;
+		const raw = params.userId;
 		return Array.isArray(raw) ? raw[0] : raw;
 	};
 

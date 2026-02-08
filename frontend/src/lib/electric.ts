@@ -1,10 +1,7 @@
 import type { Row } from "@electric-sql/client";
 import { electricCollectionOptions } from "@tanstack/electric-db-collection";
 import { createCollection } from "@tanstack/solid-db";
-import { API_PATH, getApiBase } from "./constants";
-
-// Use the API base URL for Electric sync requests
-const getShapesBaseUrl = () => `${getApiBase()}${API_PATH}`;
+import { getApiUrl } from "./constants";
 
 export type StreamEvent = Row & {
 	id: string;
@@ -176,7 +173,7 @@ export type WidgetType =
 	| "eventlist_widget"
 	| "message_highlight_widget";
 
-const SHAPES_URL = `${getShapesBaseUrl()}/shapes`;
+const SHAPES_URL = `${getApiUrl()}/shapes`;
 
 export const streamEventsCollection = createCollection(
 	electricCollectionOptions<StreamEvent>({

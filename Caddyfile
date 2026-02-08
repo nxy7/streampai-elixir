@@ -32,36 +32,12 @@ localhost:{$CADDY_PORT:8000} {
 		reverse_proxy 127.0.0.1:{$PORT:4000}
 	}
 
-	# Vite HMR WebSocket - client router
-	handle /_hmr/client {
-		reverse_proxy localhost:{$FRONTEND_HMR_CLIENT_PORT:3001}
-	}
-	handle /_build/_hmr/client {
-		reverse_proxy localhost:{$FRONTEND_HMR_CLIENT_PORT:3001}
-	}
-
-	# Vite HMR WebSocket - server router
-	handle /_hmr/server {
-		reverse_proxy localhost:{$FRONTEND_HMR_SERVER_PORT:3002}
-	}
-	handle /_build/_hmr/server {
-		reverse_proxy localhost:{$FRONTEND_HMR_SERVER_PORT:3002}
-	}
-
-	# Vite HMR WebSocket - server-function router
-	handle /_hmr/server-function {
-		reverse_proxy localhost:{$FRONTEND_HMR_SERVER_FUNCTION_PORT:3003}
-	}
-	handle /_build/_hmr/server-function {
-		reverse_proxy localhost:{$FRONTEND_HMR_SERVER_FUNCTION_PORT:3003}
-	}
-
-	# Vite dev server assets (all other /_build/* paths)
+	# Vite dev server assets
 	handle /_build/* {
 		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}
 
-	# Everything else goes to frontend
+	# Everything else goes to frontend (including HMR WebSocket)
 	handle {
 		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}

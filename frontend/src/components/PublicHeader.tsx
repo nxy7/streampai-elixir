@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/solid-router";
+import { A } from "@solidjs/router";
 import { For, Show, createSignal } from "solid-js";
 import Logo from "~/components/Logo";
 import { Button, ThemeToggle } from "~/design-system";
@@ -34,9 +34,9 @@ export default function PublicHeader(props: PublicHeaderProps) {
 		<nav class="sticky top-0 z-50 border-neutral-200 border-b bg-surface/95 backdrop-blur-md">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="flex items-center justify-between py-4">
-					<Link to="/">
+					<A href="/">
 						<Logo showText size="md" />
-					</Link>
+					</A>
 
 					<div class="hidden items-center space-x-6 md:flex">
 						<Show when={props.navItems}>
