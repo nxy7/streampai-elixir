@@ -1,17 +1,13 @@
 import { Show, Suspense, createMemo, createSignal } from "solid-js";
 import {
 	ActivityFeed,
-	ActivityFeedSkeleton,
+	DashboardLoadingSkeleton,
 	DashboardQuickActions,
 	QuickActionsPanel,
 	QuickStats,
-	QuickStatsSkeleton,
 	RecentChat,
-	RecentChatSkeleton,
 	RecentEvents,
-	RecentEventsSkeleton,
 	RecentStreams,
-	RecentStreamsSkeleton,
 	StreamGoalsTracker,
 	StreamHealthMonitor,
 	ViewerEngagementScore,
@@ -57,28 +53,20 @@ export default function Dashboard() {
 				userName={user().name}
 			/>
 
-			{/* Quick Stats */}
-			<Suspense fallback={<QuickStatsSkeleton />}>
+			<Suspense fallback={<DashboardLoadingSkeleton />}>
+				{/* Quick Stats */}
 				<DashboardStats userId={() => user().id} />
-			</Suspense>
 
-			{/* Main Content Grid */}
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-				<Suspense fallback={<RecentChatSkeleton />}>
+				{/* Main Content Grid */}
+				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					<DashboardRecentChat userId={() => user().id} />
-				</Suspense>
-				<Suspense fallback={<RecentEventsSkeleton />}>
 					<DashboardRecentEvents userId={() => user().id} />
-				</Suspense>
-			</div>
+				</div>
 
-			{/* Activity Feed with Filters */}
-			<Suspense fallback={<ActivityFeedSkeleton />}>
+				{/* Activity Feed with Filters */}
 				<DashboardActivityFeed userId={() => user().id} />
-			</Suspense>
 
-			{/* Recent Streams */}
-			<Suspense fallback={<RecentStreamsSkeleton />}>
+				{/* Recent Streams */}
 				<DashboardRecentStreams userId={() => user().id} />
 			</Suspense>
 
