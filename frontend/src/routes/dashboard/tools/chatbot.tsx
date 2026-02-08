@@ -1,4 +1,5 @@
-import { For, Show, Suspense, createEffect, createSignal } from "solid-js";
+import { For, Show, Suspense, createEffect } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
 import { Card, Skeleton, Toggle } from "~/design-system";
 import Input, { Textarea } from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
@@ -6,6 +7,28 @@ import { useAuthenticatedUser } from "~/lib/auth";
 import { useBreadcrumbs } from "~/lib/BreadcrumbContext";
 import { useChatBotConfig } from "~/lib/useElectric";
 import { upsertChatBotConfig } from "~/sdk/ash_rpc";
+
+type ChatBotConfigForm = {
+	enabled: boolean;
+	greeting_enabled: boolean;
+	command_prefix: string;
+	ai_chat_enabled: boolean;
+	ai_personality: string;
+	auto_shoutout_enabled: boolean;
+	link_protection_enabled: boolean;
+	slow_mode_on_raid_enabled: boolean;
+};
+
+const defaults: ChatBotConfigForm = {
+	enabled: true,
+	greeting_enabled: false,
+	command_prefix: "!",
+	ai_chat_enabled: false,
+	ai_personality: "",
+	auto_shoutout_enabled: false,
+	link_protection_enabled: false,
+	slow_mode_on_raid_enabled: false,
+};
 
 export default function ChatBotConfigPage() {
 	return (
@@ -18,103 +41,77 @@ export default function ChatBotConfigPage() {
 function ChatBotConfigPageContent() {
 	const { t } = useTranslation();
 	const { user } = useAuthenticatedUser();
-	const configQuery = useChatBotConfig(() => user()?.id);
+	const configQuery = useChatBotConfig(() => user().id);
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.tools"), href: "/dashboard/tools/timers" },
 		{ label: t("dashboardNav.chatBot") },
 	]);
 
-	const [enabled, setEnabled] = createSignal(true);
-	const [greetingEnabled, setGreetingEnabled] = createSignal(false);
-	const [commandPrefix, setCommandPrefix] = createSignal("!");
-	const [aiChatEnabled, setAiChatEnabled] = createSignal(false);
-	const [aiPersonality, setAiPersonality] = createSignal("");
-	const [autoShoutoutEnabled, setAutoShoutoutEnabled] = createSignal(false);
-	const [linkProtectionEnabled, setLinkProtectionEnabled] = createSignal(false);
-	const [slowModeOnRaidEnabled, setSlowModeOnRaidEnabled] = createSignal(false);
-	const [initialized, setInitialized] = createSignal(false);
-
-	// Check if we're still loading (status is not yet 'ready')
 	const isLoading = () => {
 		const status = configQuery.status() as string;
 		return status !== "ready" && status !== "disabled";
 	};
 
-	// Ready to show content when loaded (either with data or confirmed no data)
-	const isReady = () =>
-		!isLoading() && (initialized() || configQuery.data() === null);
+	const [form, setForm] = createStore<ChatBotConfigForm>({ ...defaults });
 
-	// Sync local state from Electric data
+	// Sync store from Electric data
 	createEffect(() => {
-		const config = configQuery.data();
-		if (config && !initialized()) {
-			setEnabled(config.enabled);
-			setGreetingEnabled(config.greeting_enabled);
-			setCommandPrefix(config.command_prefix);
-			setAiChatEnabled(config.ai_chat_enabled);
-			setAiPersonality(config.ai_personality ?? "");
-			setAutoShoutoutEnabled(config.auto_shoutout_enabled);
-			setLinkProtectionEnabled(config.link_protection_enabled);
-			setSlowModeOnRaidEnabled(config.slow_mode_on_raid_enabled);
-			setInitialized(true);
-		}
-		// If loaded but no config exists, also mark as initialized to use defaults
-		if (!isLoading() && config === null && !initialized()) {
-			setInitialized(true);
+		const c = configQuery.data();
+		if (c) {
+			setForm(
+				reconcile({
+					enabled: c.enabled,
+					greeting_enabled: c.greeting_enabled,
+					command_prefix: c.command_prefix,
+					ai_chat_enabled: c.ai_chat_enabled,
+					ai_personality: c.ai_personality ?? "",
+					auto_shoutout_enabled: c.auto_shoutout_enabled,
+					link_protection_enabled: c.link_protection_enabled,
+					slow_mode_on_raid_enabled: c.slow_mode_on_raid_enabled,
+				}),
+			);
 		}
 	});
 
-	const saveConfig = async (overrides: Record<string, unknown> = {}) => {
+	const saveConfig = async (overrides: Partial<ChatBotConfigForm> = {}) => {
+		const merged = { ...form, ...overrides };
 		await upsertChatBotConfig({
 			input: {
-				enabled: enabled(),
-				greetingEnabled: greetingEnabled(),
-				commandPrefix: commandPrefix(),
-				aiChatEnabled: aiChatEnabled(),
-				aiPersonality: aiPersonality(),
-				autoShoutoutEnabled: autoShoutoutEnabled(),
-				linkProtectionEnabled: linkProtectionEnabled(),
-				slowModeOnRaidEnabled: slowModeOnRaidEnabled(),
-				...overrides,
+				enabled: merged.enabled,
+				greetingEnabled: merged.greeting_enabled,
+				commandPrefix: merged.command_prefix,
+				aiChatEnabled: merged.ai_chat_enabled,
+				aiPersonality: merged.ai_personality,
+				autoShoutoutEnabled: merged.auto_shoutout_enabled,
+				linkProtectionEnabled: merged.link_protection_enabled,
+				slowModeOnRaidEnabled: merged.slow_mode_on_raid_enabled,
 			},
 		});
 	};
 
-	const toggleSetting = async (
-		setter: (v: boolean) => void,
-		current: boolean,
-		field: string,
-	) => {
-		setter(!current);
-		await saveConfig({ [field]: !current });
+	const toggle = async (field: keyof ChatBotConfigForm) => {
+		const newValue = !form[field];
+		setForm(field, newValue as never);
+		await saveConfig({ [field]: newValue });
 	};
 
 	return (
 		<div class="mx-auto max-w-3xl space-y-4">
-			<Show fallback={<ChatBotSkeleton />} when={isReady()}>
+			<Show fallback={<ChatBotSkeleton />} when={!isLoading()}>
 				{/* Master toggle */}
 				<div class="flex items-center justify-between">
 					<p class="text-neutral-500 text-sm">{t("chatbot.description")}</p>
-					<Toggle
-						checked={enabled()}
-						onChange={() => toggleSetting(setEnabled, enabled(), "enabled")}
-					/>
+					<Toggle checked={form.enabled} onChange={() => toggle("enabled")} />
 				</div>
 
 				<Card variant="ghost">
 					<div class="divide-y divide-neutral-800/50">
 						{/* Stream Greeting */}
 						<SettingRow
-							checked={greetingEnabled()}
+							checked={form.greeting_enabled}
 							description={t("chatbot.greetingDescription")}
-							onChange={() =>
-								toggleSetting(
-									setGreetingEnabled,
-									greetingEnabled(),
-									"greetingEnabled",
-								)
-							}
+							onChange={() => toggle("greeting_enabled")}
 							t={t}
 							title={t("chatbot.greeting")}
 						/>
@@ -131,9 +128,11 @@ function ChatBotConfigPageContent() {
 								class="w-16 bg-surface-inset text-center"
 								maxLength={5}
 								onBlur={() => saveConfig()}
-								onInput={(e) => setCommandPrefix(e.currentTarget.value)}
+								onInput={(e) =>
+									setForm("command_prefix", e.currentTarget.value)
+								}
 								type="text"
-								value={commandPrefix()}
+								value={form.command_prefix}
 							/>
 							<div class="space-y-1">
 								<For
@@ -150,7 +149,7 @@ function ChatBotConfigPageContent() {
 									{(item) => (
 										<div class="flex items-center gap-2 rounded border border-neutral-700 bg-neutral-800 px-3 py-2">
 											<code class="shrink-0 font-mono font-semibold text-primary text-sm">
-												{commandPrefix()}
+												{form.command_prefix}
 												{item.cmd}
 											</code>
 											<span class="text-neutral-400 text-sm">
@@ -164,82 +163,59 @@ function ChatBotConfigPageContent() {
 
 						{/* AI Chat Participation */}
 						<SettingRow
-							checked={aiChatEnabled()}
+							checked={form.ai_chat_enabled}
 							description={t("chatbot.aiChatDescription")}
 							experimental
-							onChange={() =>
-								toggleSetting(
-									setAiChatEnabled,
-									aiChatEnabled(),
-									"aiChatEnabled",
-								)
-							}
+							onChange={() => toggle("ai_chat_enabled")}
 							t={t}
 							title={t("chatbot.aiChat")}
 						/>
 
 						{/* AI Chat Sub-settings */}
-						<Show when={aiChatEnabled()}>
+						<Show when={form.ai_chat_enabled}>
 							<div class="ml-3 space-y-3 border-violet-800/50 border-l-2 py-2 pl-3">
-								{/* Personality */}
 								<Textarea
 									class="bg-surface-inset"
 									helperText={t("chatbot.aiPersonalityDescription")}
 									label={t("chatbot.aiPersonality")}
 									maxLength={1000}
 									onBlur={() => saveConfig()}
-									onInput={(e) => setAiPersonality(e.currentTarget.value)}
+									onInput={(e) =>
+										setForm("ai_personality", e.currentTarget.value)
+									}
 									placeholder={t("chatbot.aiPersonalityPlaceholder")}
 									rows={4}
-									value={aiPersonality()}
+									value={form.ai_personality}
 								/>
 							</div>
 						</Show>
 
 						{/* Auto Shoutout */}
 						<SettingRow
-							checked={autoShoutoutEnabled()}
+							checked={form.auto_shoutout_enabled}
 							comingSoon
 							description={t("chatbot.autoShoutoutDescription")}
-							onChange={() =>
-								toggleSetting(
-									setAutoShoutoutEnabled,
-									autoShoutoutEnabled(),
-									"autoShoutoutEnabled",
-								)
-							}
+							onChange={() => toggle("auto_shoutout_enabled")}
 							t={t}
 							title={t("chatbot.autoShoutout")}
 						/>
 
 						{/* Link Protection */}
 						<SettingRow
-							checked={linkProtectionEnabled()}
+							checked={form.link_protection_enabled}
 							comingSoon
 							description={t("chatbot.linkProtectionDescription")}
-							onChange={() =>
-								toggleSetting(
-									setLinkProtectionEnabled,
-									linkProtectionEnabled(),
-									"linkProtectionEnabled",
-								)
-							}
+							onChange={() => toggle("link_protection_enabled")}
 							t={t}
 							title={t("chatbot.linkProtection")}
 						/>
 
 						{/* Slow Mode on Raid */}
 						<SettingRow
-							checked={slowModeOnRaidEnabled()}
+							checked={form.slow_mode_on_raid_enabled}
 							comingSoon
 							description={t("chatbot.slowModeOnRaidDescription")}
-							onChange={() =>
-								toggleSetting(
-									setSlowModeOnRaidEnabled,
-									slowModeOnRaidEnabled(),
-									"slowModeOnRaidEnabled",
-								)
-							}
+							onChange={() => toggle("slow_mode_on_raid_enabled")}
 							t={t}
 							title={t("chatbot.slowModeOnRaid")}
 						/>
@@ -262,7 +238,6 @@ function ChatBotSkeleton() {
 			{/* Settings card skeleton */}
 			<Card variant="ghost">
 				<div class="divide-y divide-neutral-800/50">
-					{/* Setting rows */}
 					<div class="flex items-center justify-between p-3">
 						<div class="space-y-1">
 							<Skeleton class="h-5 w-32" />

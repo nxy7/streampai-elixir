@@ -314,11 +314,8 @@ export default function SmartCanvas() {
 	const [canvasRef, setCanvasRef] = createSignal<HTMLDivElement | undefined>();
 
 	async function loadLayout() {
-		const userId = user()?.id;
-		if (!userId) return;
-
 		const result = await getSmartCanvasLayout({
-			input: { userId },
+			input: { userId: user().id },
 			fields: [...layoutFields],
 			fetchOptions: { credentials: "include" },
 		});
@@ -350,9 +347,6 @@ export default function SmartCanvas() {
 	}
 
 	async function saveLayout() {
-		const userId = user()?.id;
-		if (!userId) return;
-
 		const widgetsData = widgets().map((w) => ({
 			id: w.id,
 			type: w.widgetType,
@@ -365,7 +359,7 @@ export default function SmartCanvas() {
 
 		// The create action uses upsert, so we can use it for both create and update
 		const result = await saveSmartCanvasLayout({
-			input: { userId, widgets: widgetsData },
+			input: { userId: user().id, widgets: widgetsData },
 			fields: [...layoutFields],
 			fetchOptions: { credentials: "include" },
 		});
@@ -460,7 +454,7 @@ export default function SmartCanvas() {
 
 	// Load layout when user becomes available
 	createEffect(() => {
-		if (user()?.id) {
+		if (user().id) {
 			loadLayout();
 		}
 	});

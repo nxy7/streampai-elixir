@@ -32,12 +32,17 @@ localhost:{$CADDY_PORT:8000} {
 		reverse_proxy 127.0.0.1:{$PORT:4000}
 	}
 
+	# Vite HMR WebSocket (proxied through Caddy for TLS)
+	handle /_build/_hmr {
+		reverse_proxy localhost:{$FRONTEND_HMR_PORT:3001}
+	}
+
 	# Vite dev server assets
 	handle /_build/* {
 		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}
 
-	# Everything else goes to frontend (including HMR WebSocket)
+	# Everything else goes to frontend
 	handle {
 		reverse_proxy localhost:{$FRONTEND_PORT:3000}
 	}

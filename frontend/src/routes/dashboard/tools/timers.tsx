@@ -54,7 +54,7 @@ function TimersConfigPageContent() {
 	const [intervalMinutes, setIntervalMinutes] = createSignal(5);
 
 	// Data should be preloaded by the route loader
-	const streamTimers = useStreamTimers(() => user()?.id);
+	const streamTimers = useStreamTimers(() => user().id);
 
 	const timers = () =>
 		[...(streamTimers.data() ?? [])].sort(

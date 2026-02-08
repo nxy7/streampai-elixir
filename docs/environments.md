@@ -60,7 +60,7 @@ The development environment uses Caddy as a local reverse proxy for several crit
 
 3. **Unified Entry Point**: Single `https://localhost:8000` endpoint serves both frontend and API, matching production behavior.
 
-4. **HMR Support**: Caddy proxies Vite's Hot Module Replacement WebSocket connections transparently.
+4. **HMR Support**: Caddy proxies Vite's HMR WebSocket connections (vinxi runs HMR on a dedicated port, Caddy routes WebSocket upgrades to it).
 
 ### Services
 
@@ -68,7 +68,8 @@ The development environment uses Caddy as a local reverse proxy for several crit
 | ---------- | --------- | -------------------------------------- |
 | Caddy      | 8000      | HTTPS reverse proxy (entry point)      |
 | Phoenix    | 4000      | Elixir backend API                     |
-| Frontend   | 3000      | SolidJS dev server (includes HMR)      |
+| Frontend   | 3000      | SolidJS dev server                     |
+| HMR        | 3001      | Vite HMR WebSocket (proxied by Caddy)  |
 | PostgreSQL | 5432      | TimescaleDB (PostgreSQL + time-series) |
 | PgWeb      | 8082      | Database admin UI                      |
 | MinIO      | 9000/9001 | S3-compatible storage                  |
@@ -112,7 +113,7 @@ localhost:{$CADDY_PORT:8000} {
         reverse_proxy localhost:{$PORT:4000}
     }
 
-    # Frontend (default, including HMR WebSocket)
+    # Frontend (Caddy also proxies HMR WebSocket upgrades to FRONTEND_HMR_PORT)
     handle {
         reverse_proxy localhost:{$FRONTEND_PORT:3000}
     }

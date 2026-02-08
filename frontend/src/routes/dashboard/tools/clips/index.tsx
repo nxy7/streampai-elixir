@@ -94,7 +94,7 @@ export default function ClipsPage() {
 		{ label: t("dashboardNav.streamClips") },
 	]);
 
-	const isPro = () => user()?.tier === "pro";
+	const isPro = () => user().tier === "pro";
 
 	const filteredViewerClips = () => {
 		const q = search().toLowerCase();

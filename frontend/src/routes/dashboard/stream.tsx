@@ -151,11 +151,11 @@ function StreamContent() {
 		{ label: t("dashboardNav.stream") },
 	]);
 
-	const streamingAccounts = useStreamingAccounts(() => user()?.id);
-	const streamActor = useStreamActor(() => user()?.id);
-	const streamEvents = useUserStreamEvents(() => user()?.id);
-	const viewers = useUserViewers(() => user()?.id);
-	const streamTimersQuery = useStreamTimers(() => user()?.id);
+	const streamingAccounts = useStreamingAccounts(() => user().id);
+	const streamActor = useStreamActor(() => user().id);
+	const streamEvents = useUserStreamEvents(() => user().id);
+	const viewers = useUserViewers(() => user().id);
+	const streamTimersQuery = useStreamTimers(() => user().id);
 	const streamTimers = () =>
 		(streamTimersQuery.data() ?? []).map((row) => ({
 			id: row.id,
@@ -278,7 +278,7 @@ function StreamContent() {
 					viewerId: ev.viewer_id ?? undefined,
 					isSentByStreamer: isChatMessage ? isSentByStreamer : undefined,
 					avatarUrl: isSentByStreamer
-						? (user()?.displayAvatar ?? undefined)
+						? (user().displayAvatar ?? undefined)
 						: ev.viewer_id
 							? avatars.get(ev.viewer_id)
 							: undefined,

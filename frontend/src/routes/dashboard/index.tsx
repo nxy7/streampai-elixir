@@ -1,13 +1,17 @@
 import { Show, Suspense, createMemo, createSignal } from "solid-js";
 import {
 	ActivityFeed,
-	DashboardLoadingSkeleton,
+	ActivityFeedSkeleton,
 	DashboardQuickActions,
 	QuickActionsPanel,
 	QuickStats,
+	QuickStatsSkeleton,
 	RecentChat,
+	RecentChatSkeleton,
 	RecentEvents,
+	RecentEventsSkeleton,
 	RecentStreams,
+	RecentStreamsSkeleton,
 	StreamGoalsTracker,
 	StreamHealthMonitor,
 	ViewerEngagementScore,
@@ -24,49 +28,18 @@ import {
 	useUserStreamEvents,
 } from "~/lib/useElectric";
 
-export default function Dashboard() {
-	return (
-		<Suspense fallback={<DashboardLoadingSkeleton />}>
-			<DashboardContent />
-		</Suspense>
-	);
-}
+const INTERNAL_EVENT_TYPES = ["platform_started", "platform_stopped"];
+const HIDDEN_EVENT_TYPES = [...INTERNAL_EVENT_TYPES, "chat_message"];
 
-function DashboardContent() {
+export default function Dashboard() {
 	const { t } = useTranslation();
 	const { user } = useAuthenticatedUser();
-	const prefs = useUserPreferencesForUser(() => user()?.id);
 	const greetingKey = getGreetingKey();
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.overview"), href: "/dashboard" },
 		{ label: t("dashboardNav.dashboard") },
 	]);
-
-	// User-scoped data
-	const INTERNAL_EVENT_TYPES = ["platform_started", "platform_stopped"];
-	const HIDDEN_EVENT_TYPES = [...INTERNAL_EVENT_TYPES, "chat_message"];
-
-	const recentEventsAll = useRecentUserStreamEvents(() => user()?.id, 50);
-	const recentMessages = createMemo(() =>
-		recentEventsAll()
-			.filter((e) => e.type === "chat_message")
-			.slice(0, 5),
-	);
-	const recentEvents = createMemo(() =>
-		recentEventsAll()
-			.filter((e) => !HIDDEN_EVENT_TYPES.includes(e.type))
-			.slice(0, 5),
-	);
-	const recentStreams = useRecentUserLivestreams(() => user()?.id, 3);
-	const stats = useDashboardStats(() => user()?.id);
-
-	const allEventsQuery = useUserStreamEvents(() => user()?.id);
-	const allEvents = createMemo(() =>
-		sortByInsertedAt(allEventsQuery.data() ?? []).filter(
-			(e) => !HIDDEN_EVENT_TYPES.includes(e.type),
-		),
-	);
 
 	// Alert test handler
 	const [showTestAlert, setShowTestAlert] = createSignal(false);
@@ -76,61 +49,41 @@ function DashboardContent() {
 	};
 
 	return (
-		<Show fallback={<DashboardLoadingSkeleton />} when={!stats.isLoading()}>
-			<div class="space-y-6">
-				{/* Header with greeting */}
-				<div class="rounded-2xl p-8">
-					<div>
-						<h1 class="mb-2 font-bold text-3xl text-neutral-900">
-							{t(greetingKey)},{" "}
-							{prefs.data()?.name || user().name || "Streamer"}!
-						</h1>
-						<p class="text-neutral-600">{t("dashboard.welcomeMessage")}</p>
-					</div>
-				</div>
+		<div class="space-y-6">
+			{/* Header with greeting */}
+			<DashboardGreeting
+				greetingKey={greetingKey}
+				userId={() => user().id}
+				userName={user().name}
+			/>
 
-				{/* Quick Stats */}
-				<QuickStats
-					followCount={stats.followCount()}
-					totalDonations={stats.totalDonations()}
-					totalMessages={stats.totalMessages()}
-					uniqueViewers={stats.uniqueViewers()}
-				/>
+			{/* Quick Stats */}
+			<Suspense fallback={<QuickStatsSkeleton />}>
+				<DashboardStats userId={() => user().id} />
+			</Suspense>
 
-				{/* Features Row: Stream Health, Engagement Score, Goals */}
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<StreamHealthMonitor />
-					<ViewerEngagementScore
-						chatMessages={stats.totalMessages()}
-						donations={stats.donationCount()}
-						follows={stats.followCount()}
-						totalDonationAmount={stats.totalDonations()}
-					/>
-					<StreamGoalsTracker
-						currentDonations={stats.totalDonations()}
-						currentFollowers={stats.followCount()}
-						currentMessages={stats.totalMessages()}
-					/>
-				</div>
-
-				{/* Main Content Grid */}
-				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-					<RecentChat
-						messages={recentMessages()}
-						streamerAvatarUrl={prefs.data()?.avatar_url}
-					/>
-					<RecentEvents events={recentEvents()} />
-				</div>
-
-				{/* Activity Feed with Filters */}
-				<ActivityFeed events={allEvents()} />
-
-				{/* Recent Streams */}
-				<RecentStreams streams={recentStreams()} />
-
-				{/* Quick Actions */}
-				<DashboardQuickActions />
+			{/* Main Content Grid */}
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<Suspense fallback={<RecentChatSkeleton />}>
+					<DashboardRecentChat userId={() => user().id} />
+				</Suspense>
+				<Suspense fallback={<RecentEventsSkeleton />}>
+					<DashboardRecentEvents userId={() => user().id} />
+				</Suspense>
 			</div>
+
+			{/* Activity Feed with Filters */}
+			<Suspense fallback={<ActivityFeedSkeleton />}>
+				<DashboardActivityFeed userId={() => user().id} />
+			</Suspense>
+
+			{/* Recent Streams */}
+			<Suspense fallback={<RecentStreamsSkeleton />}>
+				<DashboardRecentStreams userId={() => user().id} />
+			</Suspense>
+
+			{/* Quick Actions */}
+			<DashboardQuickActions />
 
 			{/* Quick Actions Floating Panel */}
 			<QuickActionsPanel onTestAlert={handleTestAlert} />
@@ -163,6 +116,104 @@ function DashboardContent() {
 					</div>
 				</div>
 			</Show>
-		</Show>
+		</div>
 	);
+}
+
+// --- Isolated data components (each has its own Suspense boundary) ---
+
+function DashboardGreeting(props: {
+	userId: () => string;
+	userName: string | null;
+	greetingKey: string;
+}) {
+	const { t } = useTranslation();
+	const prefs = useUserPreferencesForUser(props.userId);
+
+	return (
+		<div class="rounded-2xl p-8">
+			<div>
+				<h1 class="mb-2 font-bold text-3xl text-neutral-900">
+					{t(props.greetingKey)},{" "}
+					{prefs.data()?.name || props.userName || "Streamer"}!
+				</h1>
+				<p class="text-neutral-600">{t("dashboard.welcomeMessage")}</p>
+			</div>
+		</div>
+	);
+}
+
+function DashboardStats(props: { userId: () => string }) {
+	const stats = useDashboardStats(props.userId);
+
+	return (
+		<>
+			<QuickStats
+				followCount={stats.followCount()}
+				totalDonations={stats.totalDonations()}
+				totalMessages={stats.totalMessages()}
+				uniqueViewers={stats.uniqueViewers()}
+			/>
+
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<StreamHealthMonitor />
+				<ViewerEngagementScore
+					chatMessages={stats.totalMessages()}
+					donations={stats.donationCount()}
+					follows={stats.followCount()}
+					totalDonationAmount={stats.totalDonations()}
+				/>
+				<StreamGoalsTracker
+					currentDonations={stats.totalDonations()}
+					currentFollowers={stats.followCount()}
+					currentMessages={stats.totalMessages()}
+				/>
+			</div>
+		</>
+	);
+}
+
+function DashboardRecentChat(props: { userId: () => string }) {
+	const recentEventsAll = useRecentUserStreamEvents(props.userId, 50);
+	const prefs = useUserPreferencesForUser(props.userId);
+	const recentMessages = createMemo(() =>
+		recentEventsAll()
+			.filter((e) => e.type === "chat_message")
+			.slice(0, 5),
+	);
+
+	return (
+		<RecentChat
+			messages={recentMessages()}
+			streamerAvatarUrl={prefs.data()?.avatar_url}
+		/>
+	);
+}
+
+function DashboardRecentEvents(props: { userId: () => string }) {
+	const recentEventsAll = useRecentUserStreamEvents(props.userId, 50);
+	const recentEvents = createMemo(() =>
+		recentEventsAll()
+			.filter((e) => !HIDDEN_EVENT_TYPES.includes(e.type))
+			.slice(0, 5),
+	);
+
+	return <RecentEvents events={recentEvents()} />;
+}
+
+function DashboardActivityFeed(props: { userId: () => string }) {
+	const allEventsQuery = useUserStreamEvents(props.userId);
+	const allEvents = createMemo(() =>
+		sortByInsertedAt(allEventsQuery.data() ?? []).filter(
+			(e) => !HIDDEN_EVENT_TYPES.includes(e.type),
+		),
+	);
+
+	return <ActivityFeed events={allEvents()} />;
+}
+
+function DashboardRecentStreams(props: { userId: () => string }) {
+	const recentStreams = useRecentUserLivestreams(props.userId, 3);
+
+	return <RecentStreams streams={recentStreams()} />;
 }

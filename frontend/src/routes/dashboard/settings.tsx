@@ -30,14 +30,14 @@ export default function Settings() {
 function SettingsContent() {
 	const { t } = useTranslation();
 	const { user } = useAuthenticatedUser();
-	const prefs = useUserPreferencesForUser(() => user()?.id);
+	const prefs = useUserPreferencesForUser(() => user().id);
 
 	useBreadcrumbs(() => [
 		{ label: t("sidebar.account"), href: "/dashboard/settings" },
 		{ label: t("dashboardNav.settings") },
 	]);
-	const rolesData = useUserRolesData(() => user()?.id);
-	const streamingAccounts = useStreamingAccounts(() => user()?.id);
+	const rolesData = useUserRolesData(() => user().id);
+	const streamingAccounts = useStreamingAccounts(() => user().id);
 
 	const [displayName, setDisplayName] = createSignal("");
 	const [isUpdatingName, setIsUpdatingName] = createSignal(false);
@@ -226,7 +226,7 @@ function SettingsContent() {
 						helperText={t("settings.emailCannotChange")}
 						label={t("settings.email")}
 						type="email"
-						value={user()?.email || ""}
+						value={user().email}
 					/>
 
 					{/* Display Name */}
@@ -264,14 +264,14 @@ function SettingsContent() {
 					<AvatarUploadSection
 						currentAvatarUrl={prefs.data()?.avatar_url}
 						displayName={prefs.data()?.name}
-						userId={user()?.id || ""}
+						userId={user().id}
 					/>
 
 					{/* Platform Connections */}
 					<PlatformConnectionsPanel
 						accounts={streamingAccounts.data()}
 						isLoading={streamingAccounts.isLoading()}
-						userId={user()?.id || ""}
+						userId={user().id}
 					/>
 				</div>
 			</Card>
@@ -351,7 +351,7 @@ function SettingsContent() {
 				initialDefaultVoice={prefs.data()?.default_voice}
 				initialMaxAmount={prefs.data()?.max_donation_amount}
 				initialMinAmount={prefs.data()?.min_donation_amount}
-				userId={user()?.id || ""}
+				userId={user().id}
 			/>
 
 			{/* User Roles Management */}
@@ -361,7 +361,7 @@ function SettingsContent() {
 				pendingInvitations={pendingInvitations()}
 				pendingInvitationsSent={pendingInvitationsSent()}
 				rolesIGranted={rolesIGranted()}
-				userId={user()?.id || ""}
+				userId={user().id}
 			/>
 
 			{/* Notification Preferences */}

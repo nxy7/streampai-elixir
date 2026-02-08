@@ -1,5 +1,4 @@
 import { Show } from "solid-js";
-import { useTheme } from "~/lib/theme";
 
 interface LogoProps {
 	/** Size of the logo */
@@ -18,28 +17,35 @@ const sizeClasses = {
 };
 
 const textSizeClasses = {
-	sm: "text-lg",
-	md: "text-xl",
-	lg: "text-2xl",
-	xl: "text-3xl",
+	sm: "text-xl",
+	md: "text-2xl",
+	lg: "text-3xl",
+	xl: "text-4xl",
 };
 
 export default function Logo(props: LogoProps) {
-	const { theme } = useTheme();
 	const size = () => props.size ?? "md";
-
-	const logoSrc = () =>
-		theme() === "dark" ? "/images/logo-white.png" : "/images/logo-black.png";
 
 	return (
 		<div class={`flex items-center gap-2 ${props.class ?? ""}`}>
-			<img
-				alt="Streampai Logo"
-				class={`shrink-0 ${sizeClasses[size()]}`}
-				src={logoSrc()}
+			<div
+				aria-label="Streampai Logo"
+				class={`shrink-0 bg-gradient-to-r from-primary to-secondary ${sizeClasses[size()]}`}
+				role="img"
+				style={{
+					"-webkit-mask-image": "url(/images/logo-white.png)",
+					"mask-image": "url(/images/logo-white.png)",
+					"-webkit-mask-size": "contain",
+					"mask-size": "contain",
+					"-webkit-mask-repeat": "no-repeat",
+					"mask-repeat": "no-repeat",
+					"-webkit-mask-position": "center",
+					"mask-position": "center",
+				}}
 			/>
 			<Show when={props.showText}>
-				<span class={`font-bold text-foreground ${textSizeClasses[size()]}`}>
+				<span
+					class={`bg-gradient-to-r from-primary to-secondary bg-clip-text font-bold text-transparent ${textSizeClasses[size()]}`}>
 					Streampai
 				</span>
 			</Show>
