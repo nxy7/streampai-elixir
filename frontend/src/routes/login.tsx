@@ -4,7 +4,7 @@ import Logo from "~/components/Logo";
 import { Button } from "~/design-system";
 import Input from "~/design-system/Input";
 import { useTranslation } from "~/i18n";
-import { getDashboardUrl, useCurrentUser } from "~/lib/auth";
+import { getDashboardUrl, getLogoutUrl, useCurrentUser } from "~/lib/auth";
 import { getApiUrl } from "~/lib/constants";
 import { getCsrfHeaders } from "~/lib/csrf";
 
@@ -155,6 +155,11 @@ export default function LoginPage() {
 							href={getDashboardUrl()}>
 							{t("auth.goToDashboard")}
 						</A>
+						<a
+							class="mt-3 inline-block w-full rounded-lg border border-neutral-200 px-4 py-3 text-center font-semibold text-neutral-600 transition-colors hover:bg-neutral-100"
+							href={getLogoutUrl()}>
+							{t("auth.signOut")}
+						</a>
 					</div>
 				}
 				when={!user()}>
