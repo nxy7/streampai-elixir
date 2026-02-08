@@ -33,7 +33,9 @@ defmodule Streampai.Repo.Migrations.AddNotifications do
             name: "notification_reads_user_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), primary_key: true, null: false
+          ),
+          primary_key: true,
+          null: false
 
       add :notification_id,
           references(:notifications,
@@ -41,7 +43,9 @@ defmodule Streampai.Repo.Migrations.AddNotifications do
             name: "notification_reads_notification_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), primary_key: true, null: false
+          ),
+          primary_key: true,
+          null: false
 
       add :seen_at, :utc_datetime_usec,
         null: false,

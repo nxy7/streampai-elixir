@@ -1,4 +1,5 @@
 import { debounce } from "@solid-primitives/scheduled";
+import { createVirtualizer } from "@tanstack/solid-virtual";
 import {
 	For,
 	Show,
@@ -11,6 +12,7 @@ import {
 import { useTranslation } from "~/i18n";
 import { ActivityRow } from "./ActivityRow";
 import {
+	ACTIVITY_ROW_HEIGHT,
 	ACTIVITY_TYPE_LABELS,
 	ALL_ACTIVITY_TYPES,
 	type ActivityItem,
@@ -253,10 +255,11 @@ export function ActivityFeed(props: ActivityFeedProps) {
 		return null;
 	});
 
-	const stickyIndexMap = createMemo(() => {
+	// Sticky activities extracted for rendering outside the virtualizer
+	const stickyActivities = createMemo(() => {
 		const ids = stickyItemIds();
-		if (ids.size === 0) return new Map<string, number>();
-		const stickyItems = sortedActivities()
+		if (ids.size === 0) return [];
+		return sortedActivities()
 			.filter((item) => ids.has(item.id))
 			.sort((a, b) => {
 				const timeA =
@@ -269,22 +272,24 @@ export function ActivityFeed(props: ActivityFeedProps) {
 						: new Date(b.timestamp).getTime();
 				return timeA - timeB;
 			});
-		const indexMap = new Map<string, number>();
-		for (const [index, item] of stickyItems.entries()) {
-			indexMap.set(item.id, index);
-		}
-		return indexMap;
+	});
+
+	// Virtualizer
+	const virtualizer = createVirtualizer({
+		get count() {
+			return groupedActivities().length;
+		},
+		getScrollElement: () => scrollContainerRef ?? null,
+		estimateSize: () => ACTIVITY_ROW_HEIGHT,
+		overscan: 5,
+		getItemKey: (index: number) => groupedActivities()[index]?.id ?? index,
 	});
 
 	// Auto-scroll
 	createEffect(() => {
-		const activities = sortedActivities();
-		if (shouldAutoScroll() && scrollContainerRef && activities.length > 0) {
-			requestAnimationFrame(() => {
-				if (scrollContainerRef) {
-					scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight;
-				}
-			});
+		const items = groupedActivities();
+		if (shouldAutoScroll() && items.length > 0) {
+			virtualizer.scrollToIndex(items.length - 1, { align: "end" });
 		}
 	});
 
@@ -500,25 +505,56 @@ export function ActivityFeed(props: ActivityFeedProps) {
 						</div>
 					}
 					when={sortedActivities().length > 0}>
-					<For each={groupedActivities()}>
-						{(item) => {
-							const isSticky = () => stickyItemIds().has(item.id);
-							const stickyIndex = () =>
-								isSticky() ? stickyIndexMap().get(item.id) : undefined;
-							return (
-								<ActivityRow
-									isLatestStreamerMessage={
-										latestStreamerMessageId() === item.id
-									}
-									isSticky={isSticky()}
-									item={item}
-									moderationCallbacks={props.moderationCallbacks}
-									showAvatars={props.showAvatars}
-									stickyIndex={stickyIndex()}
-								/>
-							);
-						}}
+					{/* Sticky items rendered outside the virtualizer */}
+					<For each={stickyActivities()}>
+						{(item, index) => (
+							<ActivityRow
+								isLatestStreamerMessage={latestStreamerMessageId() === item.id}
+								isSticky
+								item={item}
+								moderationCallbacks={props.moderationCallbacks}
+								showAvatars={props.showAvatars}
+								stickyIndex={index()}
+							/>
+						)}
 					</For>
+
+					{/* Virtualized list */}
+					<div
+						style={{
+							height: `${virtualizer.getTotalSize()}px`,
+							width: "100%",
+							position: "relative",
+						}}>
+						<For each={virtualizer.getVirtualItems()}>
+							{(virtualRow) => {
+								const item = () => groupedActivities()[virtualRow.index];
+								return (
+									<div
+										data-index={virtualRow.index}
+										ref={(el) =>
+											queueMicrotask(() => virtualizer.measureElement(el))
+										}
+										style={{
+											position: "absolute",
+											top: 0,
+											left: 0,
+											width: "100%",
+											transform: `translateY(${virtualRow.start}px)`,
+										}}>
+										<ActivityRow
+											isLatestStreamerMessage={
+												latestStreamerMessageId() === item().id
+											}
+											item={item()}
+											moderationCallbacks={props.moderationCallbacks}
+											showAvatars={props.showAvatars}
+										/>
+									</div>
+								);
+							}}
+						</For>
+					</div>
 				</Show>
 			</div>
 		</>

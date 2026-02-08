@@ -30,7 +30,7 @@ export default function Logo(props: LogoProps) {
 		<div class={`flex items-center gap-2 ${props.class ?? ""}`}>
 			<div
 				aria-label="Streampai Logo"
-				class={`shrink-0 bg-gradient-to-r from-primary to-secondary ${sizeClasses[size()]}`}
+				class={`shrink-0 bg-foreground ${sizeClasses[size()]}`}
 				role="img"
 				style={{
 					"-webkit-mask-image": "url(/images/logo-white.png)",
@@ -44,8 +44,7 @@ export default function Logo(props: LogoProps) {
 				}}
 			/>
 			<Show when={props.showText}>
-				<span
-					class={`bg-gradient-to-r from-primary to-secondary bg-clip-text font-bold text-transparent ${textSizeClasses[size()]}`}>
+				<span class={`font-bold text-foreground ${textSizeClasses[size()]}`}>
 					Streampai
 				</span>
 			</Show>
