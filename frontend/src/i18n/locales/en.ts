@@ -58,10 +58,46 @@ export const dict = {
 		actionObsScene: "Switch OBS scene",
 		actionPlaySound: "Play sound alert",
 		actionEmail: "Send email notification",
-		comingSoonBadge: "Coming soon",
-		comingSoonDescription:
-			"Hooks are under active development. You'll be able to create custom automations here soon.",
 		createHook: "Create Hook",
+		editHook: "Edit Hook",
+		name: "Hook name",
+		namePlaceholder: "e.g. Thank donors on Discord",
+		triggerType: "When this happens",
+		actionType: "Do this",
+		conditions: "Conditions",
+		actionConfig: "Action settings",
+		save: "Save",
+		cancel: "Cancel",
+		edit: "Edit",
+		delete: "Delete",
+		enabled: "Enabled",
+		disabled: "Disabled",
+		empty: "No hooks yet",
+		emptyHint: "Create a hook to automate responses to stream events",
+		showLogs: "Show Logs",
+		hideLogs: "Hide Logs",
+		logsEmpty: "No executions yet",
+		logStatus: "Status",
+		logTriggeredAt: "Triggered",
+		logDuration: "Duration",
+		logError: "Error",
+		statusSuccess: "Success",
+		statusFailure: "Failed",
+		statusSkippedCooldown: "Cooldown",
+		statusSkippedCondition: "Condition",
+		minAmount: "Minimum amount",
+		currency: "Currency",
+		contains: "Message contains",
+		isModerator: "Moderator only",
+		minViewers: "Minimum viewers",
+		webhookUrl: "Webhook URL",
+		webhookMethod: "HTTP Method",
+		bodyTemplate: "Body template",
+		discordWebhookUrl: "Discord webhook URL",
+		messageTemplate: "Message template",
+		chatMessageText: "Chat message",
+		templateHelp:
+			"Use {{username}}, {{amount}}, {{message}} for dynamic values",
 	},
 
 	// Dashboard sidebar sections
@@ -339,6 +375,7 @@ export const dict = {
 		// Live preview
 		preview: {
 			noInput: "No input. Start streaming to OBS to see a preview.",
+			loading: "Loading preview...",
 		},
 		// Stream key
 		key: {
@@ -367,6 +404,8 @@ export const dict = {
 			disconnect: "Disconnect",
 			disconnectConfirm:
 				"Are you sure you want to disconnect this platform? You will need to reconnect it to stream again.",
+			needsReauth: "Reconnect needed",
+			reconnect: "Reconnect",
 		},
 		// Live statistics
 		stats: {
@@ -616,6 +655,7 @@ export const dict = {
 		streamingPlatforms: "Streaming Platforms",
 		notConnected: "Not connected",
 		connect: "Connect",
+		needsReauth: "Connection expired",
 		// Plan
 		getStarted: "Get started with basic features",
 		upgradeToPro: "Upgrade to Pro",
@@ -755,6 +795,8 @@ export const dict = {
 		invalidUsername: "Invalid username",
 		userNotFound: "User not found",
 		failedToLoadUser: "Failed to load user",
+		serviceUnavailable:
+			"Service may be temporarily unavailable. Please try again shortly.",
 	},
 
 	// 404 Page

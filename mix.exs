@@ -37,11 +37,8 @@ defmodule Streampai.MixProject do
   defp deps do
     [
       {:styler, "~> 1.8", only: [:dev, :test], runtime: false},
-      {:ex_money_sql, "~> 1.0"},
-      {:ex_cldr, "~> 2.0"},
       {:usage_rules, "~> 0.1"},
       {:oban, "~> 2.0"},
-      {:ash_money, "~> 0.2"},
       {:ash_ai, "~> 0.2"},
       {:tidewave, "~> 0.4", only: [:dev]},
       {:kino, "~> 0.15", only: [:dev]},
@@ -49,7 +46,6 @@ defmodule Streampai.MixProject do
       {:ash_state_machine, "~> 0.2"},
       {:oban_web, "~> 2.0"},
       {:ash_oban, "~> 0.4"},
-      {:uuid, "~> 1.1"},
       {:bcrypt_elixir, "~> 3.0"},
       {:ash_admin, "~> 0.13"},
       {:req, "~> 0.5.10"},
@@ -95,7 +91,19 @@ defmodule Streampai.MixProject do
       {:phoenix_sync, "~> 0.6.1"},
       # Discord bot integration for full bot functionality (join servers, list channels, send messages)
       # runtime: false prevents auto-start; we start it manually when DISCORD_BOT_TOKEN is configured
-      {:nostrum, "~> 0.10", runtime: false}
+      {:nostrum, "~> 0.10", runtime: false},
+      # Membrane framework for self-hosted RTMP relay pipeline
+      {:membrane_core, "~> 1.2"},
+      {:membrane_rtmp_plugin, "~> 0.29"},
+      {:membrane_tee_plugin, "~> 0.12"},
+      {:membrane_funnel_plugin, "~> 0.9"},
+      # Membrane HLS preview output (CMAF muxing + adaptive stream segments)
+      {:membrane_mp4_plugin, "~> 0.36"},
+      {:membrane_http_adaptive_stream_plugin, "~> 0.18"},
+      # Membrane audio processing for WhisperLive transcription
+      {:membrane_aac_plugin, "~> 0.19"},
+      {:membrane_aac_fdk_plugin, "~> 0.18"},
+      {:membrane_ffmpeg_swresample_plugin, "~> 0.20"}
     ]
   end
 

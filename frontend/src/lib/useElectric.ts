@@ -10,6 +10,8 @@ import {
 	type Notification,
 	type NotificationRead,
 	type StreamEvent,
+	type StreamHookLogRow,
+	type StreamHookRow,
 	type StreamingAccount,
 	type SupportMessage,
 	type SupportTicket,
@@ -23,6 +25,8 @@ import {
 	createHighlightedMessagesCollection,
 	createNotificationReadsCollection,
 	createNotificationsCollection,
+	createStreamHookLogsCollection,
+	createStreamHooksCollection,
 	createStreamTimersCollection,
 	createStreamingAccountsCollection,
 	createSupportMessagesCollection,
@@ -379,6 +383,12 @@ export const useStreamTimers = createUserScopedHook(
 	createStreamTimersCollection,
 );
 
+export const useStreamHooks = createUserScopedHook(createStreamHooksCollection);
+
+export const useStreamHookLogs = createUserScopedHook(
+	createStreamHookLogsCollection,
+);
+
 export function useChatBotConfig(userId: () => string | undefined) {
 	const getCollection = createCollectionCache(createChatBotConfigsCollection);
 	const query = useOptionalLiveQuery(() => {
@@ -445,12 +455,20 @@ export function useStreamActor(userId: () => string | undefined) {
 			(streamData()?.stream_data?.livestream_id as string) ?? null,
 		liveInputUid: () =>
 			(streamData()?.cloudflare_data?.live_input_uid as string) ?? null,
+		inputBitrate: () =>
+			streamData()?.cloudflare_data?.input_bitrate_kbps as number | undefined,
+		previewHlsUrl: () =>
+			(streamData()?.cloudflare_data?.preview_hls_url as string) ?? null,
 		platformStatuses: () => {
 			const row = streamData();
 			if (!row) return {} as Record<string, PlatformStatusData>;
+			// Don't expose platform statuses when overall stream is idle —
+			// platform columns may contain stale data from a previous session
+			if (row.status === "idle" || row.status == null) {
+				return {} as Record<string, PlatformStatusData>;
+			}
 			const result: Record<string, PlatformStatusData> = {};
 			if (row.youtube_data && Object.keys(row.youtube_data).length > 0) {
-				const _z = row.youtube_data;
 				result.youtube = row.youtube_data as unknown as PlatformStatusData;
 			}
 			if (row.twitch_data && Object.keys(row.twitch_data).length > 0) {
@@ -500,6 +518,8 @@ export type {
 	ChatBotConfigRow,
 	CurrentStreamData,
 	StreamEvent,
+	StreamHookRow,
+	StreamHookLogRow,
 	HighlightedMessage,
 	Livestream,
 	Viewer,

@@ -10,7 +10,7 @@ defmodule Streampai.Stream.CurrentStreamData do
 
   - `status` — top-level stream status (idle, streaming, disconnected, error, stopping)
   - `stream_data` — core stream info (livestream_id, title, description, timestamps, etc.)
-  - `cloudflare_data` — Cloudflare input state (live_input_uid, input_streaming)
+  - `cloudflare_data` — Broadcast strategy ingest state (live_input_uid, input_streaming). Named for legacy reasons.
   - `youtube_data` — YouTube platform status (viewer_count, url, title, etc.)
   - `twitch_data` — Twitch platform status
   - `kick_data` — Kick platform status
@@ -339,13 +339,15 @@ defmodule Streampai.Stream.CurrentStreamData do
 
     attribute :stream_data, :map do
       description "Core stream data: livestream_id, started_at, title, description, tags, error info"
+
       allow_nil? false
       default %{}
       public? true
     end
 
     attribute :cloudflare_data, :map do
-      description "Cloudflare input state: live_input_uid, input_streaming"
+      description "Broadcast strategy ingest state (live_input_uid, input_streaming). Named cloudflare_data for legacy reasons — stores relay/ingest data regardless of backend."
+
       allow_nil? false
       default %{}
       public? true

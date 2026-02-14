@@ -1,4 +1,4 @@
-import { type JSX, Show, splitProps } from "solid-js";
+import { type JSX, Show, createEffect, splitProps, untrack } from "solid-js";
 import { cn } from "~/design-system/design-system";
 
 export type ProgressBarVariant = "primary" | "success" | "warning" | "danger";
@@ -24,6 +24,8 @@ export interface ProgressBarProps extends JSX.HTMLAttributes<HTMLDivElement> {
 	size?: ProgressBarSize;
 	label?: string;
 	showValue?: boolean;
+	/** When set, the bar animates from `value` to 0 over this many seconds using CSS transition. */
+	countdown?: number;
 }
 
 export default function ProgressBar(props: ProgressBarProps) {
@@ -34,11 +36,35 @@ export default function ProgressBar(props: ProgressBarProps) {
 		"size",
 		"label",
 		"showValue",
+		"countdown",
 		"class",
 	]);
 
-	const max = local.max ?? 100;
-	const percentage = Math.min(100, Math.max(0, (local.value / max) * 100));
+	let barRef: HTMLDivElement | undefined;
+
+	const max = () => local.max ?? 100;
+	const percentage = () =>
+		Math.min(100, Math.max(0, (local.value / max()) * 100));
+
+	// Countdown mode: jump to current %, then CSS-transition to 0%.
+	// Only re-triggers when `countdown` changes (cycle reset), not when `value` ticks.
+	createEffect(() => {
+		const duration = local.countdown;
+		if (!barRef || !duration) return;
+
+		const pct = untrack(percentage);
+
+		// Jump to current position instantly
+		barRef.style.transition = "none";
+		barRef.style.width = `${pct}%`;
+
+		// Force reflow so the browser applies the jump
+		barRef.offsetWidth;
+
+		// Animate to 0%
+		barRef.style.transition = `width ${duration}s linear`;
+		barRef.style.width = "0%";
+	});
 
 	return (
 		<div class={cn("w-full", local.class)} {...rest}>
@@ -50,7 +76,7 @@ export default function ProgressBar(props: ProgressBarProps) {
 					<Show when={local.showValue}>
 						<span class="font-medium text-neutral-900">
 							{local.value}
-							{max !== 100 && `/${max}`}
+							{max() !== 100 && `/${max()}`}
 						</span>
 					</Show>
 				</div>
@@ -61,15 +87,17 @@ export default function ProgressBar(props: ProgressBarProps) {
 					sizeClasses[local.size ?? "md"],
 				)}>
 				<div
-					aria-valuemax={max}
+					aria-valuemax={max()}
 					aria-valuemin={0}
 					aria-valuenow={local.value}
 					class={cn(
-						"h-full rounded-full transition-all duration-500",
+						"h-full rounded-full",
+						!local.countdown && "transition-all duration-500",
 						variantClasses[local.variant ?? "primary"],
 					)}
+					ref={barRef}
 					role="progressbar"
-					style={{ width: `${percentage}%` }}
+					style={local.countdown ? undefined : { width: `${percentage()}%` }}
 				/>
 			</div>
 		</div>

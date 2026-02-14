@@ -18,6 +18,8 @@ defmodule Streampai.YouTube.TokenManager do
 
   use GenServer
 
+  alias Streampai.Accounts.StreamingAccount
+
   require Logger
 
   defstruct [
@@ -128,6 +130,10 @@ defmodule Streampai.YouTube.TokenManager do
       {:ok, new_state} ->
         {:noreply, new_state}
 
+      {:error, {:http_error, 400, %{"error" => "invalid_grant"}}} ->
+        Logger.error("Token permanently revoked, stopping auto-refresh")
+        {:noreply, %{state | refresh_timer: nil}}
+
       {:error, reason} ->
         Logger.error("Automatic token refresh failed: #{inspect(reason)}")
         # Schedule retry in 1 minute
@@ -170,6 +176,12 @@ defmodule Streampai.YouTube.TokenManager do
 
         Logger.info("Token refreshed successfully")
         {:ok, new_state}
+
+      {:error, {:http_error, 400, %{"error" => "invalid_grant"}} = reason} ->
+        Logger.error("Refresh token revoked or expired (invalid_grant)")
+        mark_account_needs_reauth(state.user_id)
+        broadcast_token_revoked(state.user_id)
+        {:error, reason}
 
       {:error, reason} ->
         {:error, reason}
@@ -218,7 +230,7 @@ defmodule Streampai.YouTube.TokenManager do
     require Ash.Query
 
     # Use authorize?: false for background token updates
-    Streampai.Accounts.StreamingAccount
+    StreamingAccount
     |> Ash.Query.filter(user_id: user_id, platform: :youtube)
     |> Ash.read_one!(authorize?: false)
     |> case do
@@ -268,6 +280,26 @@ defmodule Streampai.YouTube.TokenManager do
       Streampai.PubSub,
       "youtube_token:#{user_id}",
       {:token_updated, user_id, new_token}
+    )
+  end
+
+  defp mark_account_needs_reauth(user_id) do
+    require Ash.Query
+
+    StreamingAccount
+    |> Ash.Query.filter(user_id: user_id, platform: :youtube)
+    |> Ash.read_one!(authorize?: false)
+    |> case do
+      nil -> :ok
+      account -> Ash.update!(account, action: :mark_needs_reauth, authorize?: false)
+    end
+  end
+
+  defp broadcast_token_revoked(user_id) do
+    Phoenix.PubSub.broadcast(
+      Streampai.PubSub,
+      "youtube_token:#{user_id}",
+      {:token_revoked, user_id}
     )
   end
 

@@ -5,6 +5,7 @@ import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
 import { formatTimeAgo } from "~/lib/formatters";
+import { stringToColor } from "~/lib/string-color";
 
 interface ChatMessage {
 	id: string;
@@ -92,7 +93,11 @@ export default function RecentChat(props: RecentChatProps) {
 										<div class="flex items-center gap-2">
 											<Show
 												fallback={
-													<span class="font-medium text-neutral-900 text-sm">
+													<span
+														class="font-medium text-sm"
+														style={{
+															color: stringToColor(msg.data.username ?? ""),
+														}}>
 														{msg.data.username}
 													</span>
 												}
@@ -101,8 +106,11 @@ export default function RecentChat(props: RecentChatProps) {
 													!msg.data.is_sent_by_streamer
 												}>
 												<A
-													class="font-medium text-neutral-900 text-sm hover:text-primary hover:underline"
-													href={`/dashboard/viewers/${msg.data.sender_channel_id as string}`}>
+													class="font-medium text-sm hover:underline"
+													href={`/dashboard/viewers/${msg.data.sender_channel_id as string}`}
+													style={{
+														color: stringToColor(msg.data.username ?? ""),
+													}}>
 													{msg.data.username}
 												</A>
 											</Show>

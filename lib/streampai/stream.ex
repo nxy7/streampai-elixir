@@ -10,6 +10,8 @@ defmodule Streampai.Stream do
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamAction
   alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.StreamHook
+  alias Streampai.Stream.StreamHookLog
   alias Streampai.Stream.StreamTimer
   alias Streampai.Stream.StreamViewer
 
@@ -69,12 +71,27 @@ defmodule Streampai.Stream do
       rpc_action(:update_chat_bot_config, :update)
     end
 
+    resource StreamHook do
+      rpc_action(:get_stream_hooks, :get_for_user)
+      rpc_action(:create_stream_hook, :create_hook)
+      rpc_action(:update_stream_hook, :update)
+      rpc_action(:toggle_stream_hook, :toggle)
+      rpc_action(:delete_stream_hook, :destroy)
+    end
+
+    resource StreamHookLog do
+      rpc_action(:get_stream_hook_logs, :get_for_user)
+      rpc_action(:get_hook_logs, :get_for_hook)
+    end
+
     resource StreamAction do
       rpc_action(:go_live, :start_stream)
       rpc_action(:stop_stream, :stop_stream)
       rpc_action(:update_stream_metadata, :update_stream_metadata)
       rpc_action(:send_stream_message, :send_message)
       rpc_action(:toggle_platform, :toggle_platform)
+      rpc_action(:get_ingest_credentials, :get_ingest_credentials)
+      rpc_action(:regenerate_ingest_credentials, :regenerate_ingest_credentials)
     end
   end
 
@@ -84,8 +101,11 @@ defmodule Streampai.Stream do
     resource HighlightedMessage
     resource Livestream
     resource Streampai.Stream.LivestreamMetric
+    resource Streampai.Stream.MembraneLiveInput
     resource CurrentStreamData
     resource StreamEvent
+    resource StreamHook
+    resource StreamHookLog
     resource Streampai.Stream.StreamSettings
     resource Streampai.Stream.StreamStateEvent
     resource StreamTimer

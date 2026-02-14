@@ -9,6 +9,7 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
   use GenServer
 
   alias Phoenix.PubSub
+  alias Streampai.Stream.CurrentStreamData
   alias Streampai.Stream.LivestreamMetric
 
   require Logger
@@ -70,19 +71,36 @@ defmodule Streampai.LivestreamManager.LivestreamMetricsCollector do
 
   defp save_current_metrics(state) do
     if map_size(state.current_viewers) > 0 do
-      case LivestreamMetric.create(
-             %{
-               livestream_id: state.stream_id,
-               youtube_viewers: Map.get(state.current_viewers, :youtube, 0),
-               twitch_viewers: Map.get(state.current_viewers, :twitch, 0),
-               facebook_viewers: Map.get(state.current_viewers, :facebook, 0),
-               kick_viewers: Map.get(state.current_viewers, :kick, 0)
-             },
-             actor: Streampai.SystemActor.system()
-           ) do
+      bitrate = fetch_current_bitrate(state.user_id)
+
+      attrs =
+        then(
+          %{
+            livestream_id: state.stream_id,
+            youtube_viewers: Map.get(state.current_viewers, :youtube, 0),
+            twitch_viewers: Map.get(state.current_viewers, :twitch, 0),
+            facebook_viewers: Map.get(state.current_viewers, :facebook, 0),
+            kick_viewers: Map.get(state.current_viewers, :kick, 0)
+          },
+          fn attrs ->
+            if bitrate, do: Map.put(attrs, :input_bitrate_kbps, bitrate), else: attrs
+          end
+        )
+
+      case LivestreamMetric.create(attrs, actor: Streampai.SystemActor.system()) do
         {:ok, _} -> :ok
         {:error, reason} -> Logger.error("Failed to save metrics: #{inspect(reason)}")
       end
+    end
+  end
+
+  defp fetch_current_bitrate(user_id) do
+    case CurrentStreamData.get_by_user(user_id, actor: Streampai.SystemActor.system()) do
+      {:ok, record} when not is_nil(record) ->
+        get_in(record.cloudflare_data, ["input_bitrate_kbps"])
+
+      _ ->
+        nil
     end
   end
 

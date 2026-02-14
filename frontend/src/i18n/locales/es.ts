@@ -60,10 +60,47 @@ export const dict: Dictionary = {
 		actionObsScene: "Cambiar escena de OBS",
 		actionPlaySound: "Reproducir alerta de sonido",
 		actionEmail: "Enviar notificación por email",
-		comingSoonBadge: "Próximamente",
-		comingSoonDescription:
-			"Los hooks están en desarrollo activo. Pronto podrás crear automatizaciones personalizadas aquí.",
 		createHook: "Crear Hook",
+		editHook: "Editar Hook",
+		name: "Nombre del hook",
+		namePlaceholder: "ej. Agradecer donaciones en Discord",
+		triggerType: "Cuando ocurra esto",
+		actionType: "Hacer esto",
+		conditions: "Condiciones",
+		actionConfig: "Configuración de acción",
+		save: "Guardar",
+		cancel: "Cancelar",
+		edit: "Editar",
+		delete: "Eliminar",
+		enabled: "Activado",
+		disabled: "Desactivado",
+		empty: "Sin hooks",
+		emptyHint:
+			"Crea un hook para responder automáticamente a eventos del stream",
+		showLogs: "Ver registros",
+		hideLogs: "Ocultar registros",
+		logsEmpty: "Sin ejecuciones",
+		logStatus: "Estado",
+		logTriggeredAt: "Activado",
+		logDuration: "Duración",
+		logError: "Error",
+		statusSuccess: "Exitoso",
+		statusFailure: "Fallido",
+		statusSkippedCooldown: "Espera",
+		statusSkippedCondition: "Condición",
+		minAmount: "Monto mínimo",
+		currency: "Moneda",
+		contains: "Mensaje contiene",
+		isModerator: "Solo moderadores",
+		minViewers: "Mínimo de espectadores",
+		webhookUrl: "URL del webhook",
+		webhookMethod: "Método HTTP",
+		bodyTemplate: "Plantilla del cuerpo",
+		discordWebhookUrl: "URL del webhook de Discord",
+		messageTemplate: "Plantilla del mensaje",
+		chatMessageText: "Mensaje del chat",
+		templateHelp:
+			"Usa {{username}}, {{amount}}, {{message}} para valores dinámicos",
 	},
 
 	// Dashboard sidebar sections
@@ -348,6 +385,7 @@ export const dict: Dictionary = {
 		},
 		preview: {
 			noInput: "Sin señal. Inicia OBS para ver una vista previa.",
+			loading: "Cargando vista previa...",
 		},
 		// Stream key
 		key: {
@@ -376,6 +414,8 @@ export const dict: Dictionary = {
 			disconnect: "Desconectar",
 			disconnectConfirm:
 				"¿Estás seguro de que quieres desconectar esta plataforma? Tendrás que reconectarla para transmitir de nuevo.",
+			needsReauth: "Reconexión necesaria",
+			reconnect: "Reconectar",
 		},
 		// Live statistics
 		stats: {
@@ -622,6 +662,7 @@ export const dict: Dictionary = {
 		streamingPlatforms: "Plataformas de streaming",
 		notConnected: "No conectado",
 		connect: "Conectar",
+		needsReauth: "Conexión expirada",
 		// Plan
 		getStarted: "Comienza con funciones básicas",
 		upgradeToPro: "Actualizar a Pro",
@@ -760,6 +801,8 @@ export const dict: Dictionary = {
 		invalidUsername: "Nombre de usuario inválido",
 		userNotFound: "Usuario no encontrado",
 		failedToLoadUser: "Error al cargar usuario",
+		serviceUnavailable:
+			"El servicio puede no estar disponible temporalmente. Inténtalo de nuevo en breve.",
 	},
 
 	// 404 Page

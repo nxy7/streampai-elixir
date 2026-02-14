@@ -1,6 +1,5 @@
 import Config
 
-alias AshMoney.Types.Money
 alias Ueberauth.Strategy.OAuth2
 
 # Phoenix.Sync configuration (embedded Electric)
@@ -17,8 +16,7 @@ config :ash,
   custom_types: [
     ticket_status: Streampai.Support.Ticket.Types.Status,
     ticket_type: Streampai.Support.Ticket.Types.TicketType,
-    event_type: Streampai.Stream.StreamEvent.Type,
-    money: Money
+    event_type: Streampai.Stream.StreamEvent.Type
   ],
   allow_forbidden_field_for_relationships_by_default?: true,
   show_keysets_for_all_actions?: false,
@@ -26,7 +24,7 @@ config :ash,
   default_actions_require_atomic?: true,
   read_action_after_action_hooks_in_order?: true,
   bulk_actions_default_to_errors?: true,
-  known_types: [Money]
+  known_types: []
 
 config :ash_oban, pro?: false
 
@@ -48,8 +46,6 @@ config :ash_typescript,
       file: "../lib/rpcHooks"
     }
   ]
-
-config :ex_cldr, default_backend: Streampai.Cldr
 
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
@@ -197,7 +193,14 @@ config :streampai,
     key: "_streampai_key",
     signing_salt: "streampai_session_salt",
     same_site: "Lax"
-  ]
+  ],
+  default_broadcast_strategy: :membrane,
+  membrane_rtmp_port: 1935,
+  membrane_rtmp_host: "localhost",
+  whisper_live_enabled: false,
+  whisper_live_url: "ws://localhost:9090",
+  whisper_live_model: "large-v3-turbo",
+  whisper_live_language: nil
 
 # Configure Tesla to disable deprecated builder warnings
 config :tesla, disable_deprecated_builder_warning: true

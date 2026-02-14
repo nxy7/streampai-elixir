@@ -3,7 +3,7 @@ defmodule Streampai.Repo do
     otp_app: :streampai
 
   def installed_extensions do
-    ["ash-functions", "citext", AshMoney.AshPostgresExtension]
+    ["ash-functions", "citext"]
   end
 
   def prefer_transaction? do

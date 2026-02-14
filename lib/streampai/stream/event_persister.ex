@@ -277,7 +277,7 @@ defmodule Streampai.Stream.EventPersister do
 
   defp message_to_stream_event(msg) when is_map(msg) do
     # Use UUID v5 to derive a deterministic StreamEvent ID from the chat message ID
-    event_id = UUID.uuid5(:url, "chat_message:#{msg.id}")
+    event_id = deterministic_uuid("chat_message:#{msg.id}")
 
     struct(StreamEvent, %{
       id: event_id,
@@ -360,5 +360,23 @@ defmodule Streampai.Stream.EventPersister do
       :undefined -> :ets.new(@sent_message_ids_table, [:set, :public, :named_table])
       _ref -> @sent_message_ids_table
     end
+  end
+
+  # UUID v5 (SHA-1, URL namespace) — deterministic UUID from a string.
+  # Replaces the `uuid` hex package's UUID.uuid5/2.
+  @uuid_url_namespace <<0x6B, 0xA7, 0xB8, 0x10, 0x9D, 0xAD, 0x11, 0xD1, 0x80, 0xB4, 0x00, 0xC0, 0x4F, 0xD4, 0x30, 0xC8>>
+
+  defp deterministic_uuid(name) do
+    <<u0::48, _::4, u1::12, _::2, u2::62>> =
+      :sha
+      |> :crypto.hash(@uuid_url_namespace <> name)
+      |> binary_part(0, 16)
+
+    <<u0::48, 5::4, u1::12, 2::2, u2::62>>
+    |> Base.encode16(case: :lower)
+    |> then(fn hex ->
+      <<a::binary-8, b::binary-4, c::binary-4, d::binary-4, e::binary-12>> = hex
+      "#{a}-#{b}-#{c}-#{d}-#{e}"
+    end)
   end
 end

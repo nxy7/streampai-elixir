@@ -26,7 +26,8 @@ defmodule Streampai.Stream.LivestreamMetric do
         :youtube_viewers,
         :twitch_viewers,
         :facebook_viewers,
-        :kick_viewers
+        :kick_viewers,
+        :input_bitrate_kbps
       ]
     end
   end
@@ -55,6 +56,10 @@ defmodule Streampai.Stream.LivestreamMetric do
     attribute :kick_viewers, :integer do
       allow_nil? false
       default 0
+    end
+
+    attribute :input_bitrate_kbps, :integer do
+      allow_nil? true
     end
 
     attribute :created_at, :utc_datetime do

@@ -27,7 +27,12 @@ defmodule Streampai.LivestreamManager.Supervisor do
           [
             Streampai.LivestreamManager.PresenceManager,
             Streampai.LivestreamManager.MetricsCollector
-          ]
+          ] ++
+            if Application.get_env(:streampai, :default_broadcast_strategy) == :membrane do
+              [Streampai.LivestreamManager.BroadcastStrategy.Membrane.RTMPServer]
+            else
+              []
+            end
         end
 
     Supervisor.init(children, strategy: :one_for_one)

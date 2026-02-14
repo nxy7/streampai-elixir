@@ -2,13 +2,16 @@ import { Show, createEffect, createSignal } from "solid-js";
 import { Skeleton } from "~/design-system";
 import Button from "~/design-system/Button";
 import { useTranslation } from "~/i18n";
-import { getStreamKey, regenerateStreamKey } from "~/sdk/ash_rpc";
+import {
+	getIngestCredentials,
+	regenerateIngestCredentials,
+} from "~/sdk/ash_rpc";
 
 type StreamKeyData = {
-	rtmpsUrl: string;
-	rtmpsStreamKey: string;
+	rtmpUrl: string;
+	streamKey: string;
 	srtUrl?: string;
-	webRtcUrl?: string;
+	webrtcUrl?: string;
 };
 
 interface StreamKeyDisplayProps {
@@ -41,22 +44,26 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 		setIsLoadingStreamKey(true);
 		setStreamKeyError(null);
 		try {
-			const result = await getStreamKey({
+			const result = await getIngestCredentials({
 				input: { userId: props.userId, orientation: "horizontal" },
-				fields: ["data"],
 				fetchOptions: { credentials: "include" },
 			});
 			if (result.success && result.data) {
-				const liveInput = Array.isArray(result.data)
-					? result.data[0]
-					: result.data;
-				const cloudflareData = liveInput?.data;
-				if (cloudflareData?.rtmps) {
+				const creds = result.data as Record<string, unknown>;
+				const rtmpUrl = (creds.rtmpUrl ?? creds.rtmp_url) as string | undefined;
+				const streamKey = (creds.streamKey ?? creds.stream_key) as
+					| string
+					| undefined;
+				const srtUrl = (creds.srtUrl ?? creds.srt_url) as string | undefined;
+				const webrtcUrl = (creds.webrtcUrl ?? creds.webrtc_url) as
+					| string
+					| undefined;
+				if (rtmpUrl && streamKey) {
 					setStreamKeyData({
-						rtmpsUrl: cloudflareData.rtmps.url ?? "",
-						rtmpsStreamKey: cloudflareData.rtmps.streamKey ?? "",
-						srtUrl: cloudflareData.srt?.url,
-						webRtcUrl: cloudflareData.webRTC?.url,
+						rtmpUrl,
+						streamKey,
+						srtUrl: srtUrl || undefined,
+						webrtcUrl: webrtcUrl || undefined,
 					});
 				} else {
 					setStreamKeyError("Invalid stream key data received");
@@ -79,19 +86,26 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 		setIsRegenerating(true);
 		setStreamKeyError(null);
 		try {
-			const result = await regenerateStreamKey({
-				identity: { userId: props.userId, orientation: "horizontal" },
-				fields: ["data"],
+			const result = await regenerateIngestCredentials({
+				input: { userId: props.userId, orientation: "horizontal" },
 				fetchOptions: { credentials: "include" },
 			});
 			if (result.success && result.data) {
-				const cloudflareData = result.data.data;
-				if (cloudflareData?.rtmps) {
+				const creds = result.data as Record<string, unknown>;
+				const rtmpUrl = (creds.rtmpUrl ?? creds.rtmp_url) as string | undefined;
+				const streamKey = (creds.streamKey ?? creds.stream_key) as
+					| string
+					| undefined;
+				const srtUrl = (creds.srtUrl ?? creds.srt_url) as string | undefined;
+				const webrtcUrl = (creds.webrtcUrl ?? creds.webrtc_url) as
+					| string
+					| undefined;
+				if (rtmpUrl && streamKey) {
 					setStreamKeyData({
-						rtmpsUrl: cloudflareData.rtmps.url ?? "",
-						rtmpsStreamKey: cloudflareData.rtmps.streamKey ?? "",
-						srtUrl: cloudflareData.srt?.url,
-						webRtcUrl: cloudflareData.webRTC?.url,
+						rtmpUrl,
+						streamKey,
+						srtUrl: srtUrl || undefined,
+						webrtcUrl: webrtcUrl || undefined,
 					});
 				} else {
 					setStreamKeyError("Failed to regenerate stream key");
@@ -111,7 +125,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 		const data = streamKeyData();
 		if (!data) return;
 		try {
-			await navigator.clipboard.writeText(data.rtmpsStreamKey);
+			await navigator.clipboard.writeText(data.streamKey);
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
 		} catch (error) {
@@ -174,7 +188,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 											{t("stream.key.rtmpUrl")}
 										</span>
 										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-900 text-sm">
-											{data().rtmpsUrl}
+											{data().rtmpUrl}
 										</code>
 									</div>
 									<div class="mb-3">
@@ -182,7 +196,7 @@ export function StreamKeyDisplay(props: StreamKeyDisplayProps) {
 											{t("stream.key.label")}
 										</span>
 										<code class="block rounded bg-surface px-2 py-1 font-mono text-neutral-600 text-sm">
-											{data().rtmpsStreamKey}
+											{data().streamKey}
 										</code>
 									</div>
 

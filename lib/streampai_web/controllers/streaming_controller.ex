@@ -104,7 +104,8 @@ defmodule StreampaiWeb.MultiProviderAuth do
       access_token: auth.credentials.token,
       refresh_token: auth.credentials.refresh_token,
       access_token_expires_at: expires_at_from_auth(auth),
-      extra_data: extra_data
+      extra_data: extra_data,
+      status: :connected
     }
 
     StreamingAccount.create(account_params, upsert?: true, actor: user)

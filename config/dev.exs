@@ -8,6 +8,8 @@ config :logger, :console,
   # Use :all to include all metadata - the formatter will filter what to display
   metadata: :all
 
+config :logger, level: :info
+
 config :phoenix, :plug_init_mode, :runtime
 config :phoenix, :stacktrace_depth, 20
 

@@ -30,6 +30,13 @@ export default function StreamHealthMonitor() {
 		);
 	};
 
+	const bitrate = () => {
+		const cf = streamActor.data()?.cloudflare_data;
+		const kbps = cf?.input_bitrate_kbps;
+		if (typeof kbps !== "number" || kbps <= 0) return null;
+		return kbps >= 1000 ? `${(kbps / 1000).toFixed(1)} Mbps` : `${kbps} Kbps`;
+	};
+
 	const [uptime, setUptime] = createSignal(0);
 
 	createEffect(() => {
@@ -131,7 +138,7 @@ export default function StreamHealthMonitor() {
 					<p class="text-xs uppercase opacity-60">{t("dashboard.uptime")}</p>
 				</div>
 				<div class="py-2">
-					<p class="font-bold text-xl">{isLive() ? "—" : "—"}</p>
+					<p class="font-bold text-xl">{isLive() ? (bitrate() ?? "—") : "—"}</p>
 					<p class="text-xs uppercase opacity-60">{t("dashboard.bitrate")}</p>
 				</div>
 			</div>

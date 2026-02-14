@@ -4,28 +4,28 @@ defmodule Streampai.LivestreamManager.PlatformHelpers do
   Consolidates duplicated logic across Twitch, YouTube, and Kick managers.
   """
 
-  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.StreamManager
   alias Streampai.Stream.CurrentStreamData
 
   require Logger
 
   @doc """
-  Cleans up a Cloudflare output by deleting it.
-  Safely handles nil cloudflare_output_id or cloudflare_input_id.
+  Cleans up a relay output via the broadcast strategy.
+  Safely handles nil broadcast_strategy or relay_output_handle.
   """
-  def cleanup_cloudflare_output(%{cloudflare_output_id: nil}), do: :ok
-  def cleanup_cloudflare_output(%{cloudflare_input_id: nil}), do: :ok
+  def cleanup_relay_output(%{relay_output_handle: nil}), do: :ok
+  def cleanup_relay_output(%{broadcast_strategy: nil}), do: :ok
 
-  def cleanup_cloudflare_output(state) do
-    Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
+  def cleanup_relay_output(state) do
+    {mod, strategy_state} = state.broadcast_strategy
+    Logger.info("Cleaning up relay output: #{state.relay_output_handle}")
 
-    case APIClient.delete_live_output(state.cloudflare_input_id, state.cloudflare_output_id) do
+    case mod.remove_output(strategy_state, state.relay_output_handle) do
       :ok ->
-        Logger.info("Cloudflare output deleted: #{state.cloudflare_output_id}")
+        Logger.info("Relay output deleted: #{state.relay_output_handle}")
 
-      {:error, _error_type, message} ->
-        Logger.warning("Failed to delete Cloudflare output: #{message}")
+      {:error, reason} ->
+        Logger.warning("Failed to delete relay output: #{inspect(reason)}")
     end
   end
 

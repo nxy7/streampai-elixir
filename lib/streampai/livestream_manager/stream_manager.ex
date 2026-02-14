@@ -11,22 +11,19 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
   Delegates to extracted modules for specific concerns:
   - `Actions.StartStream` / `Actions.StopStream` — stream lifecycle
-  - `Cloudflare.InputManager` — live input CRUD and status
-  - `Cloudflare.OutputManager` — live output CRUD and toggling
+  - `BroadcastStrategy` — polymorphic RTMP relay (Cloudflare / Membrane)
   - `PlatformCoordinator` — multi-platform streaming
   - `LivestreamFinalizer` — livestream record finalization
   """
 
   @behaviour :gen_statem
 
-  alias Streampai.Cloudflare.APIClient
-  alias Streampai.Cloudflare.LiveInput
   alias Streampai.LivestreamManager.AlertQueue
+  alias Streampai.LivestreamManager.BroadcastStrategy
+  alias Streampai.LivestreamManager.HookExecutor
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamManager.Actions.StartStream
   alias Streampai.LivestreamManager.StreamManager.Actions.StopStream
-  alias Streampai.LivestreamManager.StreamManager.Cloudflare.InputManager
-  alias Streampai.LivestreamManager.StreamManager.Cloudflare.OutputManager
   alias Streampai.LivestreamManager.StreamManager.PlatformCoordinator
   alias Streampai.LivestreamManager.StreamServices
   alias Streampai.Stream.CurrentStreamData
@@ -38,12 +35,10 @@ defmodule Streampai.LivestreamManager.StreamManager do
     :user_id,
     :livestream_id,
     :started_at,
-    :account_id,
-    :api_token,
+    :strategy_module,
+    :strategy_state,
     :horizontal_input,
     :vertical_input,
-    :live_outputs,
-    :poll_interval,
     :services_pid,
     :metrics_collector_pid
   ]
@@ -82,6 +77,14 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
   def get_stream_status(user_id) when is_binary(user_id) do
     :gen_statem.call(via(user_id), :get_detailed_status, 15_000)
+  end
+
+  def get_ingest_credentials(user_id, orientation) when is_binary(user_id) do
+    :gen_statem.call(via(user_id), {:get_ingest_credentials, orientation}, 15_000)
+  end
+
+  def regenerate_ingest_credentials(user_id, orientation) when is_binary(user_id) do
+    :gen_statem.call(via(user_id), {:regenerate_ingest_credentials, orientation}, 30_000)
   end
 
   def start_stream(user_id, metadata \\ %{}) when is_binary(user_id) do
@@ -163,14 +166,11 @@ defmodule Streampai.LivestreamManager.StreamManager do
   def init(user_id) do
     Logger.metadata(component: :stream_manager, user_id: user_id)
 
-    config = load_cloudflare_config()
+    strategy_module = BroadcastStrategy.strategy_for_user(user_id)
 
     data = %__MODULE__{
       user_id: user_id,
-      account_id: config.account_id,
-      api_token: config.api_token,
-      live_outputs: %{},
-      poll_interval: config.poll_interval
+      strategy_module: strategy_module
     }
 
     {:ok, services_pid} = StreamServices.start_link(user_id)
@@ -195,96 +195,61 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   # ══════════════════════════════════════════════════════════════════
-  # :initializing — setting up Cloudflare inputs
+  # :initializing — setting up broadcast strategy
   # ══════════════════════════════════════════════════════════════════
 
   def handle_event(:internal, :initialize, :initializing, data) do
     data = load_stream_actor_state(data)
 
-    case InputManager.get_live_inputs(data) do
-      {:ok, %{horizontal: horizontal, vertical: vertical}} ->
-        data = %{data | horizontal_input: horizontal, vertical_input: vertical}
-        send(self(), :poll_input_status)
+    case data.strategy_module.init(data.user_id, self()) do
+      {:ok, %{state: strategy_state, horizontal_input: horizontal, vertical_input: vertical}} ->
+        data = %{
+          data
+          | strategy_state: strategy_state,
+            horizontal_input: horizontal,
+            vertical_input: vertical
+        }
 
-        Logger.info("[StreamManager] live inputs ready: H=#{horizontal.input_id}, V=#{vertical.input_id}")
+        Logger.info("[StreamManager] inputs ready: H=#{horizontal.input_id}, V=#{vertical.input_id}")
 
-        # Check actual Cloudflare input status to pick correct initial state
-        encoder_live =
-          case InputManager.check_streaming_status(data) do
-            {:ok, :live} -> true
-            _ -> false
-          end
+        write_cloudflare_update(data.user_id, %{live_input_uid: horizontal.input_id})
 
-        # If DB says we were streaming and encoder is still connected,
-        # restore to :streaming so stop_stream works after a restart.
+        # The strategy will send {:strategy_event, :encoder_connected/:encoder_disconnected}
+        # to determine if encoder is already connected. For now, pick initial state
+        # based on DB state only — the strategy's first poll/push will correct it.
         initial_state =
-          cond do
-            data.livestream_id != nil && encoder_live ->
-              Logger.info(
-                "[StreamManager] restoring :streaming state (encoder connected, livestream_id=#{data.livestream_id})"
-              )
+          if data.livestream_id == nil do
+            :offline
+            # DB says streaming — go to :disconnected so the strategy event
+            # or auto-stop timeout can resolve it
 
-              write_cloudflare_update(data.user_id, %{
-                live_input_uid: horizontal.input_id,
-                input_streaming: true
-              })
+            # Reattach platform managers (non-blocking)
+          else
+            Logger.info("[StreamManager] DB says streaming, entering :disconnected pending encoder check")
 
-              # Reattach platform managers (non-blocking)
-              maybe_reattach_platforms(data)
+            maybe_reattach_platforms(data)
 
-              # Restart timer server and chat bot with the original stream start time
-              if data.started_at do
-                StreamServices.start_stream_timer_server(data.user_id, data.started_at)
-                StreamServices.start_chat_bot_server(data.user_id, data.started_at)
-              end
+            if data.started_at do
+              StreamServices.start_stream_timer_server(data.user_id, data.started_at)
+              StreamServices.start_chat_bot_server(data.user_id, data.started_at)
+            end
 
-              :streaming
-
-            encoder_live ->
-              Logger.info("[StreamManager] encoder already connected on init")
-
-              write_cloudflare_update(data.user_id, %{
-                live_input_uid: horizontal.input_id,
-                input_streaming: true
-              })
-
-              :ready
-
-            data.livestream_id != nil ->
-              # DB says streaming but encoder disconnected — go to disconnected
-              # so the auto-stop timeout can fire
-              Logger.warning("[StreamManager] DB says streaming but encoder offline, entering :disconnected")
-
-              write_cloudflare_update(data.user_id, %{
-                live_input_uid: horizontal.input_id,
-                input_streaming: false
-              })
-
-              :disconnected
-
-            true ->
-              write_cloudflare_update(data.user_id, %{live_input_uid: horizontal.input_id})
-              :offline
+            :disconnected
           end
 
         {:next_state, initial_state, data}
 
       {:error, reason} ->
-        Logger.error("[StreamManager] failed to get live inputs: #{inspect(reason)}")
+        Logger.error("[StreamManager] failed to initialize strategy: #{inspect(reason)}")
 
         write_stream_actor_error(
           data.user_id,
-          "Failed to initialize Cloudflare live input: #{inspect(reason)}"
+          "Failed to initialize broadcast strategy: #{inspect(reason)}"
         )
 
         Process.send_after(self(), :retry_initialize, 30_000)
         {:next_state, :error, data}
     end
-  end
-
-  # Ignore polls during init/error
-  def handle_event(:info, :poll_input_status, state, _data) when state in [:initializing, :error] do
-    :keep_state_and_data
   end
 
   # ══════════════════════════════════════════════════════════════════
@@ -295,6 +260,13 @@ defmodule Streampai.LivestreamManager.StreamManager do
     Logger.warning("[StreamManager] AUTO-STOP: encoder disconnected for 10+ seconds")
     StreamServices.stop_stream_timer_server(data.user_id)
     StreamServices.stop_chat_bot_server(data.user_id)
+
+    HookExecutor.trigger_lifecycle_event(data.user_id, :stream_end, %{
+      livestream_id: data.livestream_id,
+      stopped_at: DateTime.utc_now(),
+      reason: :auto_stop
+    })
+
     write_stream_actor_error(data.user_id, "Stream disconnected for 10+ seconds - auto-stopped")
     {:ok, data} = StopStream.execute(data)
     CurrentStreamData.clear_all_platforms(data.user_id)
@@ -310,13 +282,97 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   # ══════════════════════════════════════════════════════════════════
-  # Polling — shared by :offline, :ready, :streaming, :disconnected
+  # Strategy events — pushed by the broadcast strategy
   # ══════════════════════════════════════════════════════════════════
 
-  def handle_event(:info, :poll_input_status, state, data) when state in [:offline, :ready, :streaming, :disconnected] do
-    {next_state, data, actions} = handle_poll(data, state)
-    schedule_input_poll(data.poll_interval)
+  def handle_event(:info, {:strategy_event, :encoder_connected}, state, data) do
+    {next_state, data, actions} = apply_input_status_change(:live, state, data)
     {:next_state, next_state, data, actions}
+  end
+
+  def handle_event(:info, {:strategy_event, :encoder_disconnected}, state, data) do
+    {next_state, data, actions} = apply_input_status_change(:offline, state, data)
+    {:next_state, next_state, data, actions}
+  end
+
+  def handle_event(:info, {:strategy_event, :input_deleted}, _state, data) do
+    Logger.warning("[StreamManager] input deleted, reinitializing...")
+
+    case data.strategy_module.handle_input_deletion(data.strategy_state) do
+      {:reinitialize, new_strategy_state} ->
+        data = %{
+          data
+          | strategy_state: new_strategy_state,
+            horizontal_input: nil,
+            vertical_input: nil
+        }
+
+        send(self(), :retry_initialize)
+        {:next_state, :initializing, data}
+
+      :ok ->
+        :keep_state_and_data
+    end
+  end
+
+  # Forward poll timer to the strategy (Cloudflare uses this internally)
+  def handle_event(:info, :broadcast_strategy_poll, _state, data) do
+    new_strategy_state = BroadcastStrategy.Cloudflare.handle_poll_message(data.strategy_state)
+    {:keep_state, %{data | strategy_state: new_strategy_state}}
+  end
+
+  # Membrane RTMPServer notifies us that an encoder connected
+  def handle_event(:info, {:membrane_client_connected, client_ref}, state, data) do
+    case data.strategy_module do
+      BroadcastStrategy.Membrane ->
+        new_strategy_state =
+          BroadcastStrategy.Membrane.handle_new_client(data.strategy_state, client_ref)
+
+        data = %{data | strategy_state: new_strategy_state}
+
+        # The pipeline is started — treat as encoder connected
+        if new_strategy_state.pipeline_pid do
+          {next_state, data, actions} = apply_input_status_change(:live, state, data)
+          {:next_state, next_state, data, actions}
+        else
+          :keep_state_and_data
+        end
+
+      _ ->
+        :keep_state_and_data
+    end
+  end
+
+  # Membrane pipeline reports input bitrate
+  def handle_event(:info, {:membrane_bitrate, bitrate_kbps}, _state, data) do
+    write_cloudflare_update(data.user_id, %{input_bitrate_kbps: bitrate_kbps})
+    :keep_state_and_data
+  end
+
+  # A single RTMP output sink crashed (crash group isolated it from the rest)
+  def handle_event(:info, {:output_crashed, handle, platform}, _state, data) do
+    Logger.warning("[StreamManager] Output #{handle} (#{platform}) crashed — removing from state")
+
+    data =
+      if data.strategy_state do
+        update_in(data, [:strategy_state, :outputs], &Map.delete(&1, handle))
+      else
+        data
+      end
+
+    {:keep_state, data}
+  end
+
+  # Membrane pipeline process crashed — treat as encoder disconnected
+  def handle_event(:info, {:DOWN, _ref, :process, pid, _reason}, state, data) do
+    if data.strategy_state && data.strategy_state[:pipeline_pid] == pid do
+      Logger.warning("[StreamManager] Membrane pipeline down, treating as encoder disconnect")
+      data = put_in(data, [:strategy_state, :pipeline_pid], nil)
+      {next_state, data, actions} = apply_input_status_change(:offline, state, data)
+      {:next_state, next_state, data, actions}
+    else
+      :keep_state_and_data
+    end
   end
 
   # Retry initialization from error state
@@ -334,14 +390,19 @@ defmodule Streampai.LivestreamManager.StreamManager do
   # ══════════════════════════════════════════════════════════════════
 
   def handle_event({:call, from}, {:start_stream, metadata}, :ready, data) do
-    # Inject cloudflare_input_id so platforms can create their own outputs directly
-    input_id = InputManager.get_input_id(InputManager.get_primary_input(data))
-    metadata = Map.put(metadata, :cloudflare_input_id, input_id)
+    # Inject broadcast strategy so platforms can create relay outputs
+    metadata = Map.put(metadata, :broadcast_strategy, {data.strategy_module, data.strategy_state})
 
     case StartStream.execute(data, metadata) do
       {:ok, livestream_id, data} ->
         StreamServices.start_stream_timer_server(data.user_id, data.started_at)
         StreamServices.start_chat_bot_server(data.user_id, data.started_at)
+
+        HookExecutor.trigger_lifecycle_event(data.user_id, :stream_start, %{
+          livestream_id: livestream_id,
+          started_at: data.started_at
+        })
+
         {:next_state, :streaming, data, [{:reply, from, {:ok, livestream_id}}]}
 
       {:error, reason} ->
@@ -370,6 +431,12 @@ defmodule Streampai.LivestreamManager.StreamManager do
   def handle_event({:call, from}, :stop_stream, state, data) when state in [:streaming, :disconnected] do
     StreamServices.stop_stream_timer_server(data.user_id)
     StreamServices.stop_chat_bot_server(data.user_id)
+
+    HookExecutor.trigger_lifecycle_event(data.user_id, :stream_end, %{
+      livestream_id: data.livestream_id,
+      stopped_at: DateTime.utc_now()
+    })
+
     {:ok, data} = StopStream.execute(data)
     CurrentStreamData.clear_all_platforms(data.user_id)
     next_state = stopped_target_state(data)
@@ -409,11 +476,8 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
   def handle_event({:call, from}, {:toggle_platform, platform, true}, :streaming, data) do
     Logger.info("[StreamManager] enabling platform #{platform} mid-stream")
-
-    # Reply immediately — platform start is async to avoid slow network calls blocking the gen_statem.
     user_id = data.user_id
     livestream_id = data.livestream_id
-    input_id = InputManager.get_input_id(InputManager.get_primary_input(data))
 
     # Read current stream metadata so the new platform gets the correct title/description.
     metadata =
@@ -437,22 +501,24 @@ defmodule Streampai.LivestreamManager.StreamManager do
           %{}
       end
 
-    metadata = Map.put(metadata, :cloudflare_input_id, input_id)
+    metadata = Map.put(metadata, :broadcast_strategy, {data.strategy_module, data.strategy_state})
 
-    Task.start(fn ->
+    result =
       case PlatformCoordinator.start_streaming(user_id, livestream_id, metadata, [platform]) do
         {[{^platform, :ok}], _failed} ->
           Logger.info("[StreamManager] platform #{platform} enabled successfully")
+          :ok
 
         {_succeeded, [{^platform, {:error, reason}}]} ->
           Logger.error("[StreamManager] failed to enable platform #{platform}: #{inspect(reason)}")
 
-        _ ->
-          :ok
-      end
-    end)
+          {:error, reason}
 
-    {:keep_state_and_data, [{:reply, from, :ok}]}
+        _ ->
+          {:error, :unknown_platform_error}
+      end
+
+    {:keep_state_and_data, [{:reply, from, result}]}
   end
 
   def handle_event({:call, from}, {:toggle_platform, platform, false}, :streaming, data) do
@@ -476,11 +542,27 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   def handle_event({:call, from}, :get_stream_config, state, data) do
-    {:keep_state_and_data, [{:reply, from, InputManager.build_stream_config(data, state)}]}
+    {:keep_state_and_data, [{:reply, from, data.strategy_module.build_stream_config(data.strategy_state, state)}]}
   end
 
   def handle_event({:call, from}, :get_detailed_status, state, data) do
     {:keep_state_and_data, [{:reply, from, build_detailed_status(state, data)}]}
+  end
+
+  def handle_event({:call, from}, {:get_ingest_credentials, orientation}, _state, data) do
+    result = data.strategy_module.get_ingest_credentials(data.strategy_state, orientation)
+    {:keep_state_and_data, [{:reply, from, result}]}
+  end
+
+  def handle_event({:call, from}, {:regenerate_ingest_credentials, orientation}, _state, data) do
+    case data.strategy_module.regenerate_ingest_credentials(data.strategy_state, orientation) do
+      {:ok, creds, new_strategy_state} ->
+        data = %{data | strategy_state: new_strategy_state}
+        {:keep_state, data, [{:reply, from, {:ok, creds}}]}
+
+      {:error, reason} ->
+        {:keep_state_and_data, [{:reply, from, {:error, reason}}]}
+    end
   end
 
   def handle_event({:call, from}, :get_input_streaming_status, state, _data) do
@@ -493,8 +575,8 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   def handle_event({:call, from}, :cleanup_all_outputs, _state, data) do
-    OutputManager.cleanup_all(data)
-    {:keep_state, %{data | live_outputs: %{}}, [{:reply, from, :ok}]}
+    data.strategy_module.cleanup_all_outputs(data.strategy_state)
+    {:keep_state_and_data, [{:reply, from, :ok}]}
   end
 
   def handle_event({:call, from}, {:set_live_input_id, input_id}, _state, data) do
@@ -516,18 +598,14 @@ defmodule Streampai.LivestreamManager.StreamManager do
   # ══════════════════════════════════════════════════════════════════
 
   def handle_event(:cast, {:webhook_event, event_type}, state, data) do
-    new_streaming_status =
-      case event_type do
-        "stream.live_input.connected" -> :live
-        "stream.live_input.disconnected" -> :offline
-        _ -> nil
-      end
+    case data.strategy_module.handle_event(data.strategy_state, event_type) do
+      {:status_change, new_status, new_strategy_state} ->
+        data = %{data | strategy_state: new_strategy_state}
+        {next_state, data, actions} = apply_input_status_change(new_status, state, data)
+        {:next_state, next_state, data, actions}
 
-    if new_streaming_status do
-      {next_state, data, actions} = apply_input_status_change(new_streaming_status, state, data)
-      {:next_state, next_state, data, actions}
-    else
-      :keep_state_and_data
+      :ignore ->
+        :keep_state_and_data
     end
   end
 
@@ -581,6 +659,20 @@ defmodule Streampai.LivestreamManager.StreamManager do
     :keep_state_and_data
   end
 
+  # Transcription crash group went down — log and continue, relay is unaffected
+  def handle_event(:info, {:transcription_crashed}, _state, data) do
+    Logger.warning("[StreamManager] Transcription crashed for user #{data.user_id}. Relay continues unaffected.")
+
+    data =
+      if data.strategy_state do
+        put_in(data, [:strategy_state, :transcription_client_pid], nil)
+      else
+        data
+      end
+
+    {:keep_state, data}
+  end
+
   # Catch-all for unhandled info messages
   def handle_event(:info, msg, state, _data) do
     Logger.warning("[StreamManager] Unhandled info in state #{state}: #{inspect(msg)}")
@@ -588,33 +680,23 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   # ══════════════════════════════════════════════════════════════════
-  # Polling & input status transitions
+  # Input status transitions
   # ══════════════════════════════════════════════════════════════════
-
-  defp handle_poll(data, current_state) do
-    case InputManager.check_streaming_status(data) do
-      {:ok, new_streaming_status} ->
-        apply_input_status_change(new_streaming_status, current_state, data)
-
-      {:error, :input_deleted} ->
-        Logger.warning("[StreamManager] live input deleted from Cloudflare, recreating...")
-        data = InputManager.handle_deletion(data)
-        {:initializing, data, []}
-
-      {:error, _reason} ->
-        {current_state, data, []}
-    end
-  end
 
   # Encoder connected
   defp apply_input_status_change(:live, :offline, data) do
     live_input_uid = data.horizontal_input && data.horizontal_input.input_id
 
+    preview_hls_url =
+      data.strategy_module.build_stream_config(data.strategy_state, :ready)[:preview_hls_url]
+
     write_cloudflare_update(data.user_id, %{
       input_streaming: true,
-      live_input_uid: live_input_uid
+      live_input_uid: live_input_uid,
+      preview_hls_url: preview_hls_url
     })
 
+    CurrentStreamData.update_status_for_user(data.user_id, "ready")
     write_stream_data_update(data.user_id, %{status_message: "Input connected"})
 
     {:ready, data, []}
@@ -629,7 +711,8 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
   # Encoder disconnected
   defp apply_input_status_change(:offline, :ready, data) do
-    write_cloudflare_update(data.user_id, %{input_streaming: false})
+    write_cloudflare_update(data.user_id, %{input_streaming: false, preview_hls_url: nil})
+    CurrentStreamData.update_status_for_user(data.user_id, "idle")
     write_stream_data_update(data.user_id, %{status_message: "Input disconnected"})
 
     {:offline, data, []}
@@ -638,7 +721,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
   defp apply_input_status_change(:offline, :streaming, data) do
     disconnect_timeout = Application.get_env(:streampai, :stream_disconnect_timeout, 10_000)
 
-    write_cloudflare_update(data.user_id, %{input_streaming: false})
+    write_cloudflare_update(data.user_id, %{input_streaming: false, preview_hls_url: nil})
     write_stream_data_update(data.user_id, %{status_message: "Input disconnected"})
 
     {:disconnected, data, [{:state_timeout, disconnect_timeout, :auto_stop}]}
@@ -656,21 +739,17 @@ defmodule Streampai.LivestreamManager.StreamManager do
   @impl true
   def terminate(reason, _state_name, data) do
     Logger.info("[StreamManager] terminating: #{inspect(reason)}")
-    OutputManager.cleanup_all(data)
+
+    if data.strategy_module && data.strategy_state do
+      data.strategy_module.terminate(data.strategy_state)
+    end
+
     :ok
   end
 
   # ══════════════════════════════════════════════════════════════════
   # Private helpers
   # ══════════════════════════════════════════════════════════════════
-
-  defp load_cloudflare_config do
-    %{
-      account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID") || "default_account",
-      api_token: System.get_env("CLOUDFLARE_API_TOKEN") || "default_token",
-      poll_interval: Application.get_env(:streampai, :cloudflare_input_poll_interval, 5_000)
-    }
-  end
 
   defp load_stream_actor_state(data) do
     case CurrentStreamData.get_or_create_for_user(data.user_id) do
@@ -737,11 +816,9 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   defp write_stream_actor_error(user_id, error_message) do
-    Logger.info("[STATE_WRITE] mark_error: msg=#{error_message}")
-
     case CurrentStreamData.mark_error(user_id, error_message) do
-      {:ok, record} ->
-        Logger.info("[STATE_WRITE] mark_error OK: status=#{record.status}")
+      {:ok, _record} ->
+        :ok
 
       {:error, reason} ->
         Logger.error("[STATE_WRITE] mark_error FAILED: #{inspect(reason)}")
@@ -751,7 +828,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
   defp write_cloudflare_update(user_id, updates) do
     case CurrentStreamData.update_cloudflare_data_for_user(user_id, updates) do
       {:ok, _record} ->
-        Logger.info("[STATE_WRITE] cloudflare update OK: #{inspect(Map.keys(updates))}")
+        :ok
 
       {:error, reason} ->
         Logger.error("[STATE_WRITE] cloudflare update FAILED: #{inspect(reason)}")
@@ -761,24 +838,21 @@ defmodule Streampai.LivestreamManager.StreamManager do
   defp write_stream_data_update(user_id, updates) do
     case CurrentStreamData.update_stream_data_for_user(user_id, updates) do
       {:ok, _record} ->
-        Logger.info("[STATE_WRITE] stream_data update OK: #{inspect(Map.keys(updates))}")
+        :ok
 
       {:error, reason} ->
         Logger.error("[STATE_WRITE] stream_data update FAILED: #{inspect(reason)}")
     end
   end
 
-  # After stopping a stream, check if encoder is still connected to pick
-  # the right target state (:ready vs :offline) without an extra poll bounce.
+  # After stopping a stream, check the last known encoder status to pick
+  # the right target state (:ready vs :offline). The strategy's poll/push
+  # will correct if this is stale.
   defp stopped_target_state(data) do
-    case InputManager.check_streaming_status(data) do
-      {:ok, :live} -> :ready
+    case data.strategy_state do
+      %{last_status: :live} -> :ready
       _ -> :offline
     end
-  end
-
-  defp schedule_input_poll(interval) do
-    Process.send_after(self(), :poll_input_status, interval)
   end
 
   defp via(user_id) do
@@ -808,17 +882,21 @@ defmodule Streampai.LivestreamManager.StreamManager do
   defp state_to_legacy_fields(:error), do: {:offline, :error, :offline}
 
   defp build_detailed_status(state, data) do
-    primary_input = InputManager.get_primary_input(data)
+    horizontal_input_id = get_input_id(data.horizontal_input)
+    vertical_input_id = get_input_id(data.vertical_input)
 
     %{
       user_id: data.user_id,
       is_streaming: state in [:streaming, :disconnected],
-      live_input_id: InputManager.get_input_id(primary_input),
-      horizontal_input_id: InputManager.get_input_id(data.horizontal_input),
-      vertical_input_id: InputManager.get_input_id(data.vertical_input),
-      last_status: primary_input
+      live_input_id: horizontal_input_id,
+      horizontal_input_id: horizontal_input_id,
+      vertical_input_id: vertical_input_id,
+      last_status: data.horizontal_input
     }
   end
+
+  defp get_input_id(%{input_id: id}) when is_binary(id), do: id
+  defp get_input_id(_), do: nil
 
   defp handle_set_live_input_id(data, input_id) do
     Logger.info("[StreamManager] horizontal live input ID set to: #{input_id}")
@@ -829,12 +907,19 @@ defmodule Streampai.LivestreamManager.StreamManager do
     end
   end
 
+  # NOTE: regenerate_live_input is Cloudflare-specific. It delegates to the
+  # Cloudflare modules directly. When Membrane is implemented, this will need
+  # to be abstracted into the BroadcastStrategy behaviour.
   defp handle_regenerate_live_input(data, orientation) do
+    alias Streampai.Cloudflare.APIClient
+    alias Streampai.Cloudflare.LiveInput
+    alias Streampai.LivestreamManager.StreamManager.Cloudflare.InputManager
+
     Logger.info("[StreamManager] regenerating #{orientation} live input for user #{data.user_id}")
 
     input = if orientation == :vertical, do: data.vertical_input, else: data.horizontal_input
 
-    case InputManager.get_input_id(input) do
+    case get_input_id(input) do
       nil ->
         Logger.info("[StreamManager] no existing #{orientation} live input to delete")
 
@@ -856,14 +941,26 @@ defmodule Streampai.LivestreamManager.StreamManager do
         :ok
     end
 
-    case InputManager.fetch_input_for_orientation(data, orientation) do
+    input_manager_data = %{user_id: data.user_id, account_id: nil, api_token: nil}
+
+    case InputManager.fetch_input_for_orientation(input_manager_data, orientation) do
       {:ok, new_input} ->
         new_data =
           if orientation == :vertical,
             do: %{data | vertical_input: new_input},
             else: %{data | horizontal_input: new_input}
 
-        stream_config = InputManager.build_stream_config(new_data, :offline)
+        # Update strategy state with new input info
+        new_strategy_state =
+          if orientation == :vertical,
+            do: %{data.strategy_state | vertical_input: new_input},
+            else: %{data.strategy_state | horizontal_input: new_input}
+
+        new_data = %{new_data | strategy_state: new_strategy_state}
+
+        stream_config =
+          data.strategy_module.build_stream_config(new_data.strategy_state, :offline)
+
         {{:ok, stream_config}, new_data}
 
       {:error, reason} ->

@@ -101,4 +101,5 @@ pids
 assets/.vite/deps
 tasks
 .playwright-mcp
+test-results/
 .elixir_ls

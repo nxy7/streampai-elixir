@@ -7,7 +7,6 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
 
   use GenServer
 
-  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
@@ -26,8 +25,8 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     :channel_id,
     :channel_slug,
     :livestream_id,
-    :cloudflare_input_id,
-    :cloudflare_output_id,
+    :broadcast_strategy,
+    :relay_output_handle,
     :rtmp_url,
     :stream_key,
     :is_active,
@@ -127,13 +126,13 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   @impl true
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id} with metadata: #{inspect(metadata)}")
-    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
+    broadcast_strategy = metadata[:broadcast_strategy]
 
     with {:get_channel, {:ok, channel_info}} <- {:get_channel, get_channel_info(state)},
          rtmp_url = "rtmps://fa723fc1b171.global-contribute.live-video.net:443/app/",
          stream_key = generate_stream_key(),
-         {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(cloudflare_input_id, rtmp_url, stream_key)},
+         {:create_output, {:ok, output_handle}} <-
+           {:create_output, create_relay_output(broadcast_strategy, rtmp_url, stream_key)},
          {:update_metadata, :ok} <- {:update_metadata, do_update_stream_metadata(metadata, state)} do
       new_state = %{
         state
@@ -142,11 +141,11 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
           channel_id: Map.get(channel_info, "broadcaster_user_id"),
           rtmp_url: rtmp_url,
           stream_key: stream_key,
-          cloudflare_input_id: cloudflare_input_id,
-          cloudflare_output_id: output_id
+          broadcast_strategy: broadcast_strategy,
+          relay_output_handle: output_handle
       }
 
-      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Cloudflare Output: #{output_id}")
+      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Output: #{output_handle}")
 
       StreamEvents.emit_platform_started(state.user_id, livestream_id, :kick)
 
@@ -174,7 +173,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   def handle_call(:stop_streaming, _from, state) do
     Logger.info("Stopping stream")
 
-    cleanup_cloudflare_output(state)
+    PlatformHelpers.cleanup_relay_output(state)
 
     if state.livestream_id do
       StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :kick)
@@ -185,7 +184,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
       state
       | is_active: false,
         livestream_id: nil,
-        cloudflare_output_id: nil,
+        relay_output_handle: nil,
         rtmp_url: nil,
         stream_key: nil
     }
@@ -251,8 +250,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
       state
       | is_active: true,
         livestream_id: livestream_id,
-        cloudflare_input_id: reattach_data["cloudflare_input_id"],
-        cloudflare_output_id: reattach_data["cloudflare_output_id"],
+        relay_output_handle: reattach_data["relay_output_handle"],
         stream_key: reattach_data["stream_key"]
     }
 
@@ -282,9 +280,9 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   def terminate(reason, state) do
     Logger.info("Terminating Kick manager, reason: #{inspect(reason)}")
 
-    if state.cloudflare_output_id do
-      Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-      cleanup_cloudflare_output(state)
+    if state.relay_output_handle do
+      Logger.info("Cleaning up relay output: #{state.relay_output_handle}")
+      PlatformHelpers.cleanup_relay_output(state)
     end
 
     :ok
@@ -307,8 +305,7 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
   defp store_reconnection_data(state) do
     PlatformHelpers.store_reconnection_data(state.user_id, :kick, %{
       "livestream_id" => state.livestream_id,
-      "cloudflare_input_id" => state.cloudflare_input_id,
-      "cloudflare_output_id" => state.cloudflare_output_id,
+      "relay_output_handle" => state.relay_output_handle,
       "stream_key" => state.stream_key
     })
   end
@@ -540,26 +537,26 @@ defmodule Streampai.LivestreamManager.Platforms.KickManager do
     32 |> :crypto.strong_rand_bytes() |> Base.encode64() |> binary_part(0, 32)
   end
 
-  defp create_cloudflare_output(nil, _rtmp_url, _stream_key) do
-    Logger.error("Cannot create Cloudflare output: no input ID")
-    {:error, :no_input_id}
+  defp create_relay_output(nil, _rtmp_url, _stream_key) do
+    Logger.error("Cannot create relay output: no broadcast strategy")
+    {:error, :no_strategy}
   end
 
-  defp create_cloudflare_output(input_id, rtmp_url, stream_key) do
-    output_config = %{rtmp_url: rtmp_url, stream_key: stream_key, enabled: true}
+  defp create_relay_output({mod, strategy_state}, rtmp_url, stream_key) do
+    case mod.add_output(strategy_state, %{
+           rtmp_url: rtmp_url,
+           stream_key: stream_key,
+           platform: :kick
+         }) do
+      {:ok, handle, _new_strategy_state} ->
+        Logger.info("Created relay output for kick: #{handle}")
+        {:ok, handle}
 
-    case APIClient.create_live_output(input_id, output_config) do
-      {:ok, %{"uid" => output_id}} ->
-        Logger.info("Created Cloudflare output for kick: #{output_id}")
-        {:ok, output_id}
-
-      {:error, error_type, message} ->
-        Logger.error("Failed to create Cloudflare output for kick: #{message}")
-        {:error, {error_type, message}}
+      {:error, reason} ->
+        Logger.error("Failed to create relay output for kick: #{inspect(reason)}")
+        {:error, reason}
     end
   end
-
-  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   defp via_tuple(user_id) do
     RegistryHelpers.via_tuple(:platform_manager, user_id, :kick)

@@ -185,12 +185,16 @@ defmodule Streampai.Twitch.EventsubClient do
 
   @impl true
   def handle_info({:gun_ws, _conn_pid, _stream_ref, {:close, code, reason}}, state) do
-    Logger.warning("WebSocket closed with code #{code}: #{reason}")
+    # Code 4003 = "connection unused" - expected when subscription fails or is slow
+    if code == 4003 do
+      Logger.info("WebSocket closed (connection unused, code 4003) - expected during reconnection")
+    else
+      Logger.warning("WebSocket closed with code #{code}: #{reason}")
+    end
 
-    # Code 4003 = "connection unused" - Twitch closes if no subscription made in time
-    # If we already have a reconnect pending (e.g., from 401 error), don't schedule another
-    if code == 4003 and state.reconnect_timer_ref do
-      Logger.debug("Connection closed as unused, but reconnect already pending - ignoring")
+    # If we already have a reconnect pending (e.g., from subscription error), don't schedule another
+    if state.reconnect_timer_ref do
+      Logger.debug("Connection closed, but reconnect already pending - ignoring")
       {:noreply, state}
     else
       handle_reconnect(state, {:closed, code, reason})
@@ -199,7 +203,11 @@ defmodule Streampai.Twitch.EventsubClient do
 
   @impl true
   def handle_info({:gun_down, _conn_pid, _protocol, reason, _}, state) do
-    Logger.error("WebSocket connection down: #{inspect(reason)}")
+    case reason do
+      :normal -> Logger.info("WebSocket connection closed normally")
+      :closed -> Logger.info("WebSocket connection closed")
+      _ -> Logger.warning("WebSocket connection down: #{inspect(reason)}")
+    end
 
     # If we already have a reconnect pending, don't schedule another
     if state.reconnect_timer_ref do
@@ -412,6 +420,30 @@ defmodule Streampai.Twitch.EventsubClient do
   end
 
   defp subscribe_to_chat_messages(state, session_id) do
+    case create_eventsub_subscription(state, session_id) do
+      :ok ->
+        :ok
+
+      {:error, {:subscription_exists, _}} ->
+        # 409 Conflict - subscription already exists with different transport
+        # Clean up the old one and retry
+        Logger.info("Existing subscription found (409), cleaning up stale subscriptions")
+        cleanup_stale_subscriptions(state)
+        create_eventsub_subscription(state, session_id)
+
+      {:error, {:rate_limited, _}} ->
+        # 429 Too Many Requests - max subscriptions for this type+condition
+        # Clean up stale subscriptions and retry once
+        Logger.info("Subscription limit reached (429), cleaning up stale subscriptions")
+        cleanup_stale_subscriptions(state)
+        create_eventsub_subscription(state, session_id)
+
+      error ->
+        error
+    end
+  end
+
+  defp create_eventsub_subscription(state, session_id) do
     client_id = Application.get_env(:streampai, :twitch_client_id)
 
     url = "https://api.twitch.tv/helix/eventsub/subscriptions"
@@ -457,6 +489,14 @@ defmodule Streampai.Twitch.EventsubClient do
 
         {:error, {:missing_scopes, response_body}}
 
+      {:ok, %{status: 409, body: response_body}} ->
+        Logger.warning("EventSub subscription already exists: #{inspect(response_body)}")
+        {:error, {:subscription_exists, response_body}}
+
+      {:ok, %{status: 429, body: response_body}} ->
+        Logger.warning("EventSub subscription limit reached: #{inspect(response_body)}")
+        {:error, {:rate_limited, response_body}}
+
       {:ok, %{status: status, body: response_body}} ->
         Logger.error("Failed to subscribe: HTTP #{status}, body: #{inspect(response_body)}")
         {:error, {:http_error, status, response_body}}
@@ -464,6 +504,72 @@ defmodule Streampai.Twitch.EventsubClient do
       {:error, reason} ->
         Logger.error("Failed to subscribe: #{inspect(reason)}")
         {:error, reason}
+    end
+  end
+
+  defp cleanup_stale_subscriptions(state) do
+    case list_eventsub_subscriptions(state) do
+      {:ok, subscriptions} ->
+        stale =
+          Enum.filter(subscriptions, fn sub ->
+            sub["type"] == "channel.chat.message" &&
+              get_in(sub, ["condition", "broadcaster_user_id"]) == state.broadcaster_id &&
+              get_in(sub, ["transport", "method"]) == "websocket"
+          end)
+
+        Logger.info("Found #{length(stale)} stale EventSub subscription(s) to clean up")
+
+        Enum.each(stale, fn sub ->
+          case delete_eventsub_subscription(state, sub["id"]) do
+            :ok ->
+              Logger.info("Deleted stale subscription #{sub["id"]}")
+
+            {:error, reason} ->
+              Logger.warning("Failed to delete subscription #{sub["id"]}: #{inspect(reason)}")
+          end
+        end)
+
+      {:error, reason} ->
+        Logger.warning("Failed to list subscriptions for cleanup: #{inspect(reason)}")
+    end
+  end
+
+  defp list_eventsub_subscriptions(state) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{state.access_token}"},
+      {"Client-Id", client_id}
+    ]
+
+    case Req.get(url: "https://api.twitch.tv/helix/eventsub/subscriptions", headers: headers) do
+      {:ok, %{status: status, body: %{"data" => data}}} when status in 200..299 ->
+        {:ok, data}
+
+      {:ok, %{status: status, body: body}} ->
+        {:error, {:http_error, status, body}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp delete_eventsub_subscription(state, subscription_id) do
+    client_id = Application.get_env(:streampai, :twitch_client_id)
+
+    headers = [
+      {"Authorization", "Bearer #{state.access_token}"},
+      {"Client-Id", client_id}
+    ]
+
+    case Req.delete(
+           url: "https://api.twitch.tv/helix/eventsub/subscriptions",
+           headers: headers,
+           params: %{id: subscription_id}
+         ) do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, %{status: status, body: body}} -> {:error, {:http_error, status, body}}
+      {:error, reason} -> {:error, reason}
     end
   end
 

@@ -1,6 +1,6 @@
 import { For, Show, createSignal } from "solid-js";
 import PlatformIcon from "~/components/PlatformIcon";
-import { Skeleton } from "~/design-system";
+import { Alert, Skeleton } from "~/design-system";
 import Button from "~/design-system/Button";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
@@ -17,6 +17,7 @@ interface PlatformConfig {
 interface StreamingAccount {
 	platform: string;
 	extra_data?: { name?: string; nickname?: string };
+	status?: "connected" | "needs_reauth";
 }
 
 interface PlatformStatus {
@@ -82,9 +83,9 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 			</div>
 
 			<Show when={disconnectError()}>
-				<div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800 text-sm">
+				<Alert class="mb-4" variant="error">
 					{disconnectError()}
-				</div>
+				</Alert>
 			</Show>
 
 			<Show
@@ -124,7 +125,11 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 									<div class="flex items-center space-x-3">
 										<div class="relative">
 											<PlatformIcon platform={account.platform} size="lg" />
-											<Show when={platformStatus()}>
+											<Show
+												when={
+													platformStatus()?.status &&
+													platformStatus()?.status !== "idle"
+												}>
 												<span
 													class={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-white ${
 														platformStatus()?.status === "live"
@@ -142,7 +147,11 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 												<span class="font-medium text-neutral-900">
 													{platformConfig?.name ?? account.platform}
 												</span>
-												<Show when={platformStatus()?.viewer_count != null}>
+												<Show
+													when={
+														platformStatus()?.status === "live" &&
+														platformStatus()?.viewer_count != null
+													}>
 													<span class="text-neutral-500 text-xs">
 														{platformStatus()?.viewer_count === 1
 															? `1 ${t("stream.viewer")}`
@@ -150,22 +159,47 @@ export function PlatformConnectionsCard(props: PlatformConnectionsCardProps) {
 													</span>
 												</Show>
 											</div>
-											<span class="text-green-600 text-xs">
-												{account.extra_data?.name ||
-													account.extra_data?.nickname ||
-													t("stream.platforms.connected")}
-											</span>
+											<Show
+												fallback={
+													<span class="text-green-600 text-xs">
+														{account.extra_data?.name ||
+															account.extra_data?.nickname ||
+															t("stream.platforms.connected")}
+													</span>
+												}
+												when={account.status === "needs_reauth"}>
+												<span class="text-amber-600 text-xs">
+													{t("stream.platforms.needsReauth")}
+												</span>
+											</Show>
 										</div>
 									</div>
-									<Button
-										disabled={disconnectingPlatform() === account.platform}
-										onClick={() => handleDisconnectAccount(account.platform)}
-										size="sm"
-										variant="secondary">
-										{disconnectingPlatform() === account.platform
-											? "..."
-											: t("stream.platforms.disconnect")}
-									</Button>
+									<Show
+										fallback={
+											<Button
+												disabled={disconnectingPlatform() === account.platform}
+												onClick={() =>
+													handleDisconnectAccount(account.platform)
+												}
+												size="sm"
+												variant="secondary">
+												{disconnectingPlatform() === account.platform
+													? "..."
+													: t("stream.platforms.disconnect")}
+											</Button>
+										}
+										when={account.status === "needs_reauth"}>
+										<Button
+											as="a"
+											class="bg-amber-600 text-white"
+											href={apiRoutes.streaming.connect(
+												platformConfig?.platform ?? account.platform,
+											)}
+											size="sm"
+											variant="secondary">
+											{t("stream.platforms.reconnect")}
+										</Button>
+									</Show>
 								</Card>
 							);
 						}}
