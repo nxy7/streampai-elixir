@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
-import { type JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
-import { getWidgetConfig } from "~/sdk/ash_rpc";
+import { type JSX, Show, createMemo } from "solid-js";
+import type { WidgetType } from "~/lib/electric";
+import { useWidgetConfig } from "~/lib/useElectric";
 
 /**
  * Converts a camelCase string to snake_case.
@@ -28,7 +29,7 @@ function mapConfig<T extends object>(
 
 interface WidgetRouteOptions<T extends object> {
 	/** The widget type string for the API call, e.g. "timer_widget" */
-	widgetType: string;
+	widgetType: WidgetType;
 	/** Title for the page, e.g. "Timer Widget" */
 	title?: string;
 	/** Default config values */
@@ -40,42 +41,26 @@ interface WidgetRouteOptions<T extends object> {
 }
 
 /**
- * Creates a widget display route component with standardized config loading,
- * polling, and rendering boilerplate.
+ * Creates a widget display route component with standardized config loading
+ * via Electric real-time sync.
  */
 export function createWidgetRoute<T extends object>(
 	options: WidgetRouteOptions<T>,
 ) {
 	return function WidgetDisplay() {
-		const params = useParams();
-		const [config, setConfig] = createSignal<T | null>(null);
+		const params = useParams<{ userId: string }>();
 
-		async function loadConfig() {
-			const userId = params.userId;
-			if (!userId) return;
+		const widgetConfig = useWidgetConfig(
+			() => params.userId,
+			() => options.widgetType,
+		);
 
-			const result = await getWidgetConfig({
-				input: { userId, type: options.widgetType },
-				fields: ["id", "config"],
-				fetchOptions: { credentials: "include" },
-			});
-
-			if (result.success && result.data.config) {
-				setConfig(() =>
-					mapConfig(
-						result.data.config as Record<string, unknown>,
-						options.defaults,
-					),
-				);
-			} else {
-				setConfig(() => options.defaults);
-			}
-		}
-
-		onMount(() => {
-			loadConfig();
-			const interval = setInterval(loadConfig, 5000);
-			onCleanup(() => clearInterval(interval));
+		const config = createMemo<T>(() => {
+			const raw = widgetConfig.data()?.config as
+				| Record<string, unknown>
+				| undefined;
+			if (!raw) return options.defaults;
+			return mapConfig(raw, options.defaults);
 		});
 
 		const containerStyle: JSX.CSSProperties = {

@@ -60,10 +60,47 @@ export const dict: Dictionary = {
 		actionObsScene: "OBS-Szene wechseln",
 		actionPlaySound: "Soundalarm abspielen",
 		actionEmail: "E-Mail-Benachrichtigung senden",
-		comingSoonBadge: "Demnächst",
-		comingSoonDescription:
-			"Hooks werden aktiv entwickelt. Du kannst hier bald eigene Automatisierungen erstellen.",
 		createHook: "Hook erstellen",
+		editHook: "Hook bearbeiten",
+		name: "Hook-Name",
+		namePlaceholder: "z.B. Spendern auf Discord danken",
+		triggerType: "Wenn das passiert",
+		actionType: "Dann mach das",
+		conditions: "Bedingungen",
+		actionConfig: "Aktionseinstellungen",
+		save: "Speichern",
+		cancel: "Abbrechen",
+		edit: "Bearbeiten",
+		delete: "Löschen",
+		enabled: "Aktiviert",
+		disabled: "Deaktiviert",
+		empty: "Noch keine Hooks",
+		emptyHint:
+			"Erstelle einen Hook, um automatisch auf Stream-Ereignisse zu reagieren",
+		showLogs: "Protokoll anzeigen",
+		hideLogs: "Protokoll ausblenden",
+		logsEmpty: "Noch keine Ausführungen",
+		logStatus: "Status",
+		logTriggeredAt: "Ausgelöst",
+		logDuration: "Dauer",
+		logError: "Fehler",
+		statusSuccess: "Erfolg",
+		statusFailure: "Fehlgeschlagen",
+		statusSkippedCooldown: "Abklingzeit",
+		statusSkippedCondition: "Bedingung",
+		minAmount: "Mindestbetrag",
+		currency: "Währung",
+		contains: "Nachricht enthält",
+		isModerator: "Nur Moderatoren",
+		minViewers: "Mindestzuschauer",
+		webhookUrl: "Webhook-URL",
+		webhookMethod: "HTTP-Methode",
+		bodyTemplate: "Body-Vorlage",
+		discordWebhookUrl: "Discord-Webhook-URL",
+		messageTemplate: "Nachrichtenvorlage",
+		chatMessageText: "Chat-Nachricht",
+		templateHelp:
+			"Verwende {{username}}, {{amount}}, {{message}} für dynamische Werte",
 	},
 
 	// Dashboard sidebar sections
@@ -344,6 +381,7 @@ export const dict: Dictionary = {
 		},
 		preview: {
 			noInput: "Kein Signal. Starte OBS, um eine Vorschau zu sehen.",
+			loading: "Vorschau wird geladen...",
 		},
 		// Stream key
 		key: {
@@ -372,6 +410,8 @@ export const dict: Dictionary = {
 			disconnect: "Trennen",
 			disconnectConfirm:
 				"Bist du sicher, dass du diese Plattform trennen möchtest? Du musst sie erneut verbinden, um wieder zu streamen.",
+			needsReauth: "Erneut verbinden nötig",
+			reconnect: "Erneut verbinden",
 		},
 		// Live statistics
 		stats: {
@@ -616,6 +656,7 @@ export const dict: Dictionary = {
 		streamingPlatforms: "Streaming-Plattformen",
 		notConnected: "Nicht verbunden",
 		connect: "Verbinden",
+		needsReauth: "Verbindung abgelaufen",
 		// Plan
 		getStarted: "Starte mit den Basisfunktionen",
 		upgradeToPro: "Auf Pro upgraden",
@@ -753,6 +794,8 @@ export const dict: Dictionary = {
 		invalidUsername: "Ungültiger Benutzername",
 		userNotFound: "Benutzer nicht gefunden",
 		failedToLoadUser: "Benutzer konnte nicht geladen werden",
+		serviceUnavailable:
+			"Der Dienst ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.",
 	},
 
 	// 404 Page

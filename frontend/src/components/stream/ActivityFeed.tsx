@@ -1,5 +1,4 @@
 import { debounce } from "@solid-primitives/scheduled";
-import { createVirtualizer } from "@tanstack/solid-virtual";
 import {
 	For,
 	Show,
@@ -12,7 +11,6 @@ import {
 import { useTranslation } from "~/i18n";
 import { ActivityRow } from "./ActivityRow";
 import {
-	ACTIVITY_ROW_HEIGHT,
 	ACTIVITY_TYPE_LABELS,
 	ALL_ACTIVITY_TYPES,
 	type ActivityItem,
@@ -35,6 +33,8 @@ interface ActivityFeedProps {
 	showAvatars?: boolean;
 	/** Optional element to render at the end of the filter bar (e.g. view mode toggle) */
 	toolbarEnd?: import("solid-js").JSX.Element;
+	nameSaturation?: number;
+	nameLightness?: number;
 }
 
 export function ActivityFeed(props: ActivityFeedProps) {
@@ -229,13 +229,14 @@ export function ActivityFeed(props: ActivityFeedProps) {
 						current.platform === item.platform)
 			) {
 				// Merge: append message, take latest timestamp & delivery status
+				// Keep the first message's id as the group key so the virtualizer
+				// can re-measure the existing row instead of treating it as a new item.
 				const prev = current as ActivityItem;
 				current = {
 					...prev,
 					message: `${prev.message}\n${item.message ?? ""}`,
 					timestamp: item.timestamp,
 					deliveryStatus: item.deliveryStatus ?? prev.deliveryStatus,
-					id: item.id, // use latest id for keying
 				};
 			} else {
 				if (current) result.push(current);
@@ -274,22 +275,12 @@ export function ActivityFeed(props: ActivityFeedProps) {
 			});
 	});
 
-	// Virtualizer
-	const virtualizer = createVirtualizer({
-		get count() {
-			return groupedActivities().length;
-		},
-		getScrollElement: () => scrollContainerRef ?? null,
-		estimateSize: () => ACTIVITY_ROW_HEIGHT,
-		overscan: 5,
-		getItemKey: (index: number) => groupedActivities()[index]?.id ?? index,
-	});
-
-	// Auto-scroll
+	// Auto-scroll to bottom when new messages arrive
+	let bottomAnchorRef: HTMLDivElement | undefined;
 	createEffect(() => {
-		const items = groupedActivities();
-		if (shouldAutoScroll() && items.length > 0) {
-			virtualizer.scrollToIndex(items.length - 1, { align: "end" });
+		groupedActivities(); // track changes
+		if (shouldAutoScroll() && bottomAnchorRef) {
+			bottomAnchorRef.scrollIntoView({ block: "end" });
 		}
 	});
 
@@ -513,48 +504,28 @@ export function ActivityFeed(props: ActivityFeedProps) {
 								isSticky
 								item={item}
 								moderationCallbacks={props.moderationCallbacks}
+								nameLightness={props.nameLightness}
+								nameSaturation={props.nameSaturation}
 								showAvatars={props.showAvatars}
 								stickyIndex={index()}
 							/>
 						)}
 					</For>
 
-					{/* Virtualized list */}
-					<div
-						style={{
-							height: `${virtualizer.getTotalSize()}px`,
-							width: "100%",
-							position: "relative",
-						}}>
-						<For each={virtualizer.getVirtualItems()}>
-							{(virtualRow) => {
-								const item = () => groupedActivities()[virtualRow.index];
-								return (
-									<div
-										data-index={virtualRow.index}
-										ref={(el) =>
-											queueMicrotask(() => virtualizer.measureElement(el))
-										}
-										style={{
-											position: "absolute",
-											top: 0,
-											left: 0,
-											width: "100%",
-											transform: `translateY(${virtualRow.start}px)`,
-										}}>
-										<ActivityRow
-											isLatestStreamerMessage={
-												latestStreamerMessageId() === item().id
-											}
-											item={item()}
-											moderationCallbacks={props.moderationCallbacks}
-											showAvatars={props.showAvatars}
-										/>
-									</div>
-								);
-							}}
-						</For>
-					</div>
+					{/* Message list */}
+					<For each={groupedActivities()}>
+						{(item) => (
+							<ActivityRow
+								isLatestStreamerMessage={latestStreamerMessageId() === item.id}
+								item={item}
+								moderationCallbacks={props.moderationCallbacks}
+								nameLightness={props.nameLightness}
+								nameSaturation={props.nameSaturation}
+								showAvatars={props.showAvatars}
+							/>
+						)}
+					</For>
+					<div ref={bottomAnchorRef} />
 				</Show>
 			</div>
 		</>

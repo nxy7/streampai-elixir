@@ -22,6 +22,7 @@ export interface SelectProps {
 
 export default function Select(props: SelectProps) {
 	const [isOpen, setIsOpen] = createSignal(false);
+	const [opensUp, setOpensUp] = createSignal(false);
 	const [dropdownPosition, setDropdownPosition] = createSignal({
 		top: 0,
 		left: 0,
@@ -33,12 +34,22 @@ export default function Select(props: SelectProps) {
 	const selectedOption = () =>
 		props.options.find((opt) => opt.value === props.value);
 
+	// max-h-60 = 15rem = 240px
+	const MAX_DROPDOWN_HEIGHT = 240;
+	const GAP = 4;
+
 	const updateDropdownPosition = () => {
 		if (triggerRef) {
 			const rect = triggerRef.getBoundingClientRect();
+			const spaceBelow = window.innerHeight - rect.bottom - GAP;
+			const spaceAbove = rect.top - GAP;
+			const shouldOpenUp =
+				spaceBelow < MAX_DROPDOWN_HEIGHT && spaceAbove > spaceBelow;
+
+			setOpensUp(shouldOpenUp);
 			setDropdownPosition({
-				top: rect.bottom + window.scrollY + 4,
-				left: rect.left + window.scrollX,
+				top: shouldOpenUp ? rect.top - GAP : rect.bottom + GAP,
+				left: rect.left,
 				width: rect.width,
 			});
 		}
@@ -149,7 +160,7 @@ export default function Select(props: SelectProps) {
 					aria-haspopup="listbox"
 					aria-labelledby={props.label ? `${inputId}-label` : undefined}
 					class={cn(
-						"flex w-full items-center justify-between rounded-lg bg-surface px-3 py-2 text-left text-sm transition-colors",
+						"flex w-full items-center justify-between rounded-lg bg-surface-input px-3 py-2 text-left text-sm transition-colors",
 						"focus:outline-none",
 						props.error
 							? "ring-1 ring-red-300"
@@ -190,7 +201,11 @@ export default function Select(props: SelectProps) {
 							ref={dropdownRef}
 							role="listbox"
 							style={{
-								top: `${dropdownPosition().top}px`,
+								...(opensUp()
+									? {
+											bottom: `${window.innerHeight - dropdownPosition().top}px`,
+										}
+									: { top: `${dropdownPosition().top}px` }),
 								left: `${dropdownPosition().left}px`,
 								width: `${dropdownPosition().width}px`,
 							}}>
@@ -199,32 +214,15 @@ export default function Select(props: SelectProps) {
 									<button
 										aria-selected={option.value === props.value}
 										class={cn(
-											"flex w-full items-center px-3 py-2 text-left text-sm transition-colors hover:bg-surface-secondary",
+											"w-full px-4 py-2 text-left text-sm transition-colors hover:bg-surface-secondary",
 											option.value === props.value
-												? "text-primary"
+												? "font-medium text-primary"
 												: "text-foreground",
 										)}
 										onClick={() => handleSelect(option.value)}
 										role="option"
 										type="button">
-										<Show when={option.value === props.value}>
-											<svg
-												aria-hidden="true"
-												class="mr-2 h-4 w-4 text-primary"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24">
-												<path
-													d="M5 13l4 4L19 7"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-												/>
-											</svg>
-										</Show>
-										<span class={option.value !== props.value ? "ml-6" : ""}>
-											{option.label}
-										</span>
+										{option.label}
 									</button>
 								)}
 							</For>

@@ -41,8 +41,13 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
         Task.async(fn ->
           try do
             ensure_platform_manager_started(user_id, platform)
-            start_platform(platform, user_id, livestream_id, metadata)
-            {platform, :ok}
+
+            case start_platform(platform, user_id, livestream_id, metadata) do
+              :ok -> {platform, :ok}
+              {:ok, _} -> {platform, :ok}
+              {:error, reason} -> {platform, {:error, reason}}
+              _ -> {platform, :ok}
+            end
           rescue
             error ->
               Logger.error("Failed to start platform #{platform}: #{inspect(error)}")
@@ -76,8 +81,11 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
       Enum.map(active_platforms, fn platform ->
         Task.async(fn ->
           try do
-            stop_platform(platform, user_id)
-            {platform, :ok}
+            case stop_platform(platform, user_id) do
+              :ok -> {platform, :ok}
+              {:error, reason} -> {platform, {:error, reason}}
+              _ -> {platform, :ok}
+            end
           rescue
             error ->
               Logger.error("Failed to stop platform #{platform}: #{inspect(error)}")
@@ -150,9 +158,24 @@ defmodule Streampai.LivestreamManager.StreamManager.PlatformCoordinator do
             Task.async(fn ->
               try do
                 ensure_platform_manager_started(user_id, platform)
-                module.reattach_streaming(user_id, livestream_id, data)
-                Logger.info("Reattached platform #{platform} for user #{user_id}")
-                {platform, :ok}
+
+                case module.reattach_streaming(user_id, livestream_id, data) do
+                  :ok ->
+                    Logger.info("Reattached platform #{platform} for user #{user_id}")
+                    {platform, :ok}
+
+                  {:ok, _} ->
+                    Logger.info("Reattached platform #{platform} for user #{user_id}")
+                    {platform, :ok}
+
+                  {:error, reason} ->
+                    Logger.error("Failed to reattach #{platform}: #{inspect(reason)}")
+                    {platform, {:error, reason}}
+
+                  _ ->
+                    Logger.info("Reattached platform #{platform} for user #{user_id}")
+                    {platform, :ok}
+                end
               rescue
                 error ->
                   Logger.error("Failed to reattach #{platform}: #{inspect(error)}")

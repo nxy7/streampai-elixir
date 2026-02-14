@@ -7,7 +7,6 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   use GenServer
 
-  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.RegistryHelpers
   alias Streampai.LivestreamManager.StreamEvents
@@ -29,8 +28,8 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     :websocket_pid,
     :eventsub_client_pid,
     :stream_key,
-    :cloudflare_input_id,
-    :cloudflare_output_id,
+    :broadcast_strategy,
+    :relay_output_handle,
     # :connecting, :connected, :disconnected, :error
     :connection_status,
     :last_viewer_count,
@@ -179,29 +178,35 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
   @impl true
   def handle_info(:check_viewer_count, state) do
-    {:ok, stream_info} = get_stream_info(state)
+    # Only report viewer counts when actively streaming
+    if state.livestream_id do
+      {:ok, stream_info} = get_stream_info(state)
 
-    if stream_info.viewer_count != state.last_viewer_count do
-      PlatformHelpers.broadcast_viewer_update(state.user_id, :twitch, stream_info.viewer_count)
+      if stream_info.viewer_count != state.last_viewer_count do
+        PlatformHelpers.broadcast_viewer_update(state.user_id, :twitch, stream_info.viewer_count)
 
-      # Update stream state
-      update_platform_status(state, %{viewer_count: stream_info.viewer_count})
-    end
+        # Update stream state
+        update_platform_status(state, %{viewer_count: stream_info.viewer_count})
+      end
 
-    # Report platform status with metadata (title, category, viewer count)
-    StreamManager.report_platform_status(
-      state.user_id,
-      :twitch,
-      PlatformStatus.new(:live,
-        viewer_count: stream_info.viewer_count,
-        title: stream_info.title,
-        category: stream_info.category,
-        url: if(state.username, do: "https://www.twitch.tv/#{state.username}")
+      # Report platform status with metadata (title, category, viewer count)
+      StreamManager.report_platform_status(
+        state.user_id,
+        :twitch,
+        PlatformStatus.new(:live,
+          viewer_count: stream_info.viewer_count,
+          title: stream_info.title,
+          category: stream_info.category,
+          url: if(state.username, do: "https://www.twitch.tv/#{state.username}")
+        )
       )
-    )
 
-    schedule_viewer_count_check()
-    {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
+      schedule_viewer_count_check()
+      {:noreply, %{state | last_viewer_count: stream_info.viewer_count}}
+    else
+      schedule_viewer_count_check()
+      {:noreply, state}
+    end
   end
 
   @impl true
@@ -280,15 +285,15 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id}, stream_key present: #{!is_nil(state.stream_key)}")
 
-    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
+    broadcast_strategy = metadata[:broadcast_strategy]
 
     # Start EventSub chat client
     eventsub_client_pid = start_chat_streaming(state, livestream_id)
 
-    # Create Cloudflare output for Twitch if stream key is available
-    case create_cloudflare_output(cloudflare_input_id, state) do
-      {:ok, output_id} ->
-        Logger.info("Created Cloudflare output for Twitch: #{output_id}")
+    # Create relay output for Twitch if stream key is available
+    case create_relay_output(broadcast_strategy, state) do
+      {:ok, output_handle} ->
+        Logger.info("Created relay output for Twitch: #{output_handle}")
         StreamEvents.emit_platform_started(state.user_id, livestream_id, :twitch)
 
         StreamManager.report_platform_status(
@@ -308,8 +313,8 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         new_state = %{
           state
           | livestream_id: livestream_id,
-            cloudflare_input_id: cloudflare_input_id,
-            cloudflare_output_id: output_id,
+            broadcast_strategy: broadcast_strategy,
+            relay_output_handle: output_handle,
             eventsub_client_pid: eventsub_client_pid
         }
 
@@ -323,7 +328,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           "Cannot create Twitch output: no stream key configured. Connection status: #{state.connection_status}"
         )
 
-        # Still start streaming but without Cloudflare output
+        # Still start streaming but without relay output
         StreamEvents.emit_platform_started(state.user_id, livestream_id, :twitch)
 
         StreamManager.report_platform_status(
@@ -338,6 +343,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         new_state = %{
           state
           | livestream_id: livestream_id,
+            broadcast_strategy: broadcast_strategy,
             eventsub_client_pid: eventsub_client_pid
         }
 
@@ -347,7 +353,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
         {:reply, {:error, :no_stream_key}, new_state}
 
       {:error, reason} ->
-        Logger.error("Failed to create Cloudflare output: #{inspect(reason)}")
+        Logger.error("Failed to create relay output: #{inspect(reason)}")
         {:reply, {:error, reason}, state}
     end
   end
@@ -359,15 +365,15 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     # Stop EventSub chat client
     stop_chat_streaming(state)
 
-    # Cleanup Cloudflare output if it exists
-    cleanup_cloudflare_output(state)
+    # Cleanup relay output if it exists
+    PlatformHelpers.cleanup_relay_output(state)
 
     if state.livestream_id do
       StreamEvents.emit_platform_stopped(state.user_id, state.livestream_id, :twitch)
       StreamManager.report_platform_stopped(state.user_id, :twitch)
     end
 
-    new_state = %{state | livestream_id: nil, cloudflare_output_id: nil, eventsub_client_pid: nil}
+    new_state = %{state | livestream_id: nil, relay_output_handle: nil, eventsub_client_pid: nil}
     {:reply, :ok, new_state}
   end
 
@@ -412,8 +418,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   def handle_call({:reattach_streaming, livestream_id, reattach_data}, _from, state) do
     Logger.info("Reattaching to stream #{livestream_id}")
 
-    cloudflare_input_id = reattach_data["cloudflare_input_id"]
-    cloudflare_output_id = reattach_data["cloudflare_output_id"]
+    relay_output_handle = reattach_data["relay_output_handle"]
 
     # Start EventSub chat client
     eventsub_client_pid = start_chat_streaming(state, livestream_id)
@@ -421,8 +426,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     new_state = %{
       state
       | livestream_id: livestream_id,
-        cloudflare_input_id: cloudflare_input_id,
-        cloudflare_output_id: cloudflare_output_id,
+        relay_output_handle: relay_output_handle,
         eventsub_client_pid: eventsub_client_pid
     }
 
@@ -729,36 +733,34 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
     RegistryHelpers.via_tuple(:platform_manager, user_id, :twitch)
   end
 
-  defp create_cloudflare_output(_input_id, %{stream_key: nil}) do
+  defp create_relay_output(_broadcast_strategy, %{stream_key: nil}) do
     {:error, :no_stream_key}
   end
 
-  defp create_cloudflare_output(nil, _state) do
-    Logger.error("Cannot create Cloudflare output: no input ID")
-    {:error, :no_input_id}
+  defp create_relay_output(nil, _state) do
+    Logger.error("Cannot create relay output: no broadcast strategy")
+    {:error, :no_strategy}
   end
 
-  defp create_cloudflare_output(input_id, state) do
+  defp create_relay_output({mod, strategy_state}, state) do
     rtmp_url = "rtmp://live.twitch.tv/app"
 
-    Logger.info(
-      "Creating Cloudflare output with RTMP URL: #{rtmp_url}, stream_key length: #{String.length(state.stream_key)}"
-    )
+    Logger.info("Creating relay output with RTMP URL: #{rtmp_url}, stream_key length: #{String.length(state.stream_key)}")
 
-    output_config = %{rtmp_url: rtmp_url, stream_key: state.stream_key, enabled: true}
+    case mod.add_output(strategy_state, %{
+           rtmp_url: rtmp_url,
+           stream_key: state.stream_key,
+           platform: :twitch
+         }) do
+      {:ok, handle, _new_strategy_state} ->
+        Logger.info("Created relay output for twitch: #{handle}")
+        {:ok, handle}
 
-    case APIClient.create_live_output(input_id, output_config) do
-      {:ok, %{"uid" => output_id}} ->
-        Logger.info("Created Cloudflare output for twitch: #{output_id}")
-        {:ok, output_id}
-
-      {:error, error_type, message} ->
-        Logger.error("Failed to create Cloudflare output for twitch: #{message}")
-        {:error, {error_type, message}}
+      {:error, reason} ->
+        Logger.error("Failed to create relay output for twitch: #{inspect(reason)}")
+        {:error, reason}
     end
   end
-
-  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   # ── Reattach after restart ──
 
@@ -781,8 +783,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
   defp store_reconnection_data(state) do
     PlatformHelpers.store_reconnection_data(state.user_id, :twitch, %{
       "livestream_id" => state.livestream_id,
-      "cloudflare_input_id" => state.cloudflare_input_id,
-      "cloudflare_output_id" => state.cloudflare_output_id
+      "relay_output_handle" => state.relay_output_handle
     })
   end
 

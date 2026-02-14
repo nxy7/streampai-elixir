@@ -12,6 +12,7 @@ defmodule Streampai.LivestreamManager.StreamManager.Actions.StartStream do
   """
 
   alias Streampai.Accounts.User
+  alias Streampai.LivestreamManager.BroadcastStrategy.Cloudflare, as: CloudflareStrategy
   alias Streampai.LivestreamManager.StreamManager.Cloudflare.OutputManager
   alias Streampai.LivestreamManager.StreamManager.LivestreamFinalizer
   alias Streampai.LivestreamManager.StreamManager.PlatformCoordinator
@@ -50,9 +51,16 @@ defmodule Streampai.LivestreamManager.StreamManager.Actions.StartStream do
           started_at: DateTime.utc_now()
       }
 
-      OutputManager.cleanup_all(data)
+      # Clean up stale outputs from previous stream (Cloudflare-only)
+      if data.strategy_module == CloudflareStrategy do
+        OutputManager.cleanup_all(data)
+      end
 
-      selected_platforms = metadata[:platforms] || metadata["platforms"]
+      selected_platforms =
+        case metadata[:platforms] || metadata["platforms"] do
+          [] -> nil
+          other -> other
+        end
 
       data =
         case LivestreamFinalizer.start_metrics_collector(data.user_id, livestream_id) do

@@ -62,6 +62,9 @@
   ); /* sidebar, panels — slightly off from main surface */
   --color-surface-inset-text: var(--color-neutral-600);
   --color-surface-inset-border: var(--color-neutral-200);
+  --color-surface-input: var(
+    --color-neutral-100
+  ); /* input fields — distinct from page bg */
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -334,6 +337,7 @@
   --color-surface-inset: #111827;
   --color-surface-inset-text: #9ca3af;
   --color-surface-inset-border: #1f2937;
+  --color-surface-input: #172033; /* input fields — darker than surface (#1f2937), lighter than body (#111827) */
 
   /* Invert the neutral scale so all neutral-* utilities auto-flip */
   --color-neutral-50: #111827;
@@ -369,6 +373,10 @@
 body {
   color: var(--app-text);
   background: var(--app-bg);
+}
+
+body:has([data-widget-embed]) {
+  background: transparent;
 }
 
 /* View Transition: diagonal wipe for theme toggle */

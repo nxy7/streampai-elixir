@@ -55,6 +55,8 @@ interface LiveStreamControlCenterProps extends StreamActionCallbacks {
 		field: keyof StreamControlsSettings,
 		value: boolean,
 	) => void;
+	nameSaturation?: number;
+	nameLightness?: number;
 }
 
 export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
@@ -208,6 +210,8 @@ export function LiveStreamControlCenter(props: LiveStreamControlCenterProps) {
 				<ActivityFeed
 					activities={props.activities}
 					moderationCallbacks={props.moderationCallbacks}
+					nameLightness={props.nameLightness}
+					nameSaturation={props.nameSaturation}
 					showAvatars={props.controlSettings?.showAvatars ?? true}
 					stickyDuration={props.stickyDuration}
 					toolbarEnd={viewModeToggle()}

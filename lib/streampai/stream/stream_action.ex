@@ -79,7 +79,7 @@ defmodule Streampai.Stream.StreamAction do
              }}
 
           {:error, reason} ->
-            {:error, reason}
+            {:error, stream_error_message(reason)}
         end
       end
     end
@@ -142,6 +142,50 @@ defmodule Streampai.Stream.StreamAction do
           {:error, "No metadata provided to update"}
         else
           handle_metadata_update(user_id, metadata, platforms, actor)
+        end
+      end
+    end
+
+    action :get_ingest_credentials, :map do
+      description "Get RTMP URL and stream key for the current broadcast strategy"
+
+      argument :user_id, :uuid, allow_nil?: false
+
+      argument :orientation, :atom do
+        allow_nil? false
+        default :horizontal
+        constraints one_of: [:horizontal, :vertical]
+      end
+
+      run fn input, _context ->
+        user_id = to_string(input.arguments.user_id)
+        orientation = input.arguments.orientation
+
+        case StreamManager.get_ingest_credentials(user_id, orientation) do
+          {:ok, creds} -> {:ok, creds}
+          {:error, reason} -> {:error, reason}
+        end
+      end
+    end
+
+    action :regenerate_ingest_credentials, :map do
+      description "Regenerate the stream key for the current broadcast strategy"
+
+      argument :user_id, :uuid, allow_nil?: false
+
+      argument :orientation, :atom do
+        allow_nil? false
+        default :horizontal
+        constraints one_of: [:horizontal, :vertical]
+      end
+
+      run fn input, _context ->
+        user_id = to_string(input.arguments.user_id)
+        orientation = input.arguments.orientation
+
+        case StreamManager.regenerate_ingest_credentials(user_id, orientation) do
+          {:ok, creds} -> {:ok, creds}
+          {:error, reason} -> {:error, reason}
         end
       end
     end
@@ -301,6 +345,18 @@ defmodule Streampai.Stream.StreamAction do
 
     policy action(:toggle_platform) do
       description "Only the stream owner can toggle platforms"
+      authorize_if IsStreamOwner
+      access_type :strict
+    end
+
+    policy action(:get_ingest_credentials) do
+      description "Only the stream owner can view ingest credentials"
+      authorize_if IsStreamOwner
+      access_type :strict
+    end
+
+    policy action(:regenerate_ingest_credentials) do
+      description "Only the stream owner can regenerate ingest credentials"
       authorize_if IsStreamOwner
       access_type :strict
     end
@@ -518,4 +574,16 @@ defmodule Streampai.Stream.StreamAction do
         table
     end
   end
+
+  defp stream_error_message(:encoder_not_connected),
+    do: "Encoder is not connected. Start streaming to your ingest URL first."
+
+  defp stream_error_message(:already_streaming), do: "Stream is already live."
+  defp stream_error_message(:all_platforms_failed), do: "All platforms failed to start."
+
+  defp stream_error_message(:initializing), do: "Stream manager is still initializing. Please try again."
+
+  defp stream_error_message(:stopping), do: "Stream is currently stopping. Please wait."
+  defp stream_error_message(reason) when is_binary(reason), do: reason
+  defp stream_error_message(reason), do: "Failed to start stream: #{inspect(reason)}"
 end

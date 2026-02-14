@@ -72,11 +72,11 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 			<form class="space-y-4" onSubmit={handleSaveDonationSettings}>
 				<div class="grid gap-4 md:grid-cols-3">
 					<div class="relative">
-						<span class="pointer-events-none absolute top-9 left-3 z-10 text-neutral-500 text-sm">
+						<span class="pointer-events-none absolute top-8 left-3 z-10 text-neutral-500 text-sm">
 							{currency()}
 						</span>
 						<Input
-							class="bg-surface-inset pl-12"
+							class="pl-12"
 							helperText={t("settings.leaveEmptyNoMin")}
 							label={t("settings.minimumAmount")}
 							onInput={(e) => {
@@ -90,11 +90,11 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 					</div>
 
 					<div class="relative">
-						<span class="pointer-events-none absolute top-9 left-3 z-10 text-neutral-500 text-sm">
+						<span class="pointer-events-none absolute top-8 left-3 z-10 text-neutral-500 text-sm">
 							{currency()}
 						</span>
 						<Input
-							class="bg-surface-inset pl-12"
+							class="pl-12"
 							helperText={t("settings.leaveEmptyNoMax")}
 							label={t("settings.maximumAmount")}
 							onInput={(e) => {
@@ -108,7 +108,6 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 					</div>
 
 					<Select
-						class="bg-surface-inset"
 						label={t("settings.currency")}
 						onChange={setCurrency}
 						options={CURRENCIES.map((curr) => ({
@@ -120,7 +119,6 @@ export default function DonationSettingsForm(props: DonationSettingsFormProps) {
 				</div>
 
 				<Select
-					class="bg-surface-inset"
 					helperText={t("settings.voiceHelp")}
 					label={t("settings.defaultTtsVoice")}
 					onChange={setDefaultVoice}

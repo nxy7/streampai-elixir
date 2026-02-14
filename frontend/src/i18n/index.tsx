@@ -9,6 +9,7 @@ import {
 	useContext,
 } from "solid-js";
 import type { Dictionary } from "./locales/en";
+import { dict as enDict } from "./locales/en";
 
 // Supported locales
 export const SUPPORTED_LOCALES = ["en", "de", "pl", "es"] as const;
@@ -23,8 +24,12 @@ const LOCALE_STORAGE_KEY = "streampai_locale";
 // Type for flattened dictionary
 export type FlatDictionary = i18n.Flatten<Dictionary>;
 
-// Async loader for dictionaries (enables code splitting)
+// Pre-flatten English dictionary so it's available synchronously (no flash)
+const enFlatDict = i18n.flatten(enDict) as FlatDictionary;
+
+// Async loader for dictionaries (enables code splitting for non-default locales)
 async function fetchDictionary(locale: Locale): Promise<FlatDictionary> {
+	if (locale === "en") return enFlatDict;
 	const module = await import(`./locales/${locale}.ts`);
 	return i18n.flatten(module.dict) as FlatDictionary;
 }
@@ -126,7 +131,14 @@ export const I18nProvider: ParentComponent = (props) => {
 	// Translation function with fallback
 	const t = (key: string, params?: Record<string, string | number>): string => {
 		const dictionary = dict();
-		if (!dictionary) return key;
+		if (!dictionary) {
+			// While loading a non-English locale, fall back to English to avoid key flash
+			const value = enFlatDict[key as keyof FlatDictionary];
+			if (typeof value === "string") {
+				return params ? resolveTemplate(value, params) : value;
+			}
+			return key;
+		}
 
 		const value = dictionary[key as keyof FlatDictionary];
 		if (typeof value === "string") {

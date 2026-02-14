@@ -138,6 +138,9 @@ defmodule StreampaiWeb.Router do
     post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
     post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
     post("/webhooks/paddle", PaddleWebhookController, :handle_webhook)
+
+    # HLS preview segments (served from Membrane pipeline output)
+    get("/preview/:user_id/*filename", PreviewController, :serve)
   end
 
   # Protected monitoring endpoints (admin access required)
@@ -172,6 +175,8 @@ defmodule StreampaiWeb.Router do
     get("/current_stream_data/:user_id", SyncController, :current_stream_data)
     get("/stream_timers/:user_id", SyncController, :stream_timers)
     get("/chat_bot_configs/:user_id", SyncController, :chat_bot_configs)
+    get("/stream_hooks/:user_id", SyncController, :stream_hooks)
+    get("/stream_hook_logs/:user_id", SyncController, :stream_hook_logs)
     get("/support_tickets/:user_id", SyncController, :support_tickets)
     get("/support_messages/:ticket_id", SyncController, :support_messages)
   end

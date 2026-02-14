@@ -11,6 +11,7 @@ defmodule Streampai.LivestreamManager.StreamManager.Actions.StopStream do
   caller (StreamManager), not here.
   """
 
+  alias Streampai.LivestreamManager.BroadcastStrategy.Cloudflare, as: CloudflareStrategy
   alias Streampai.LivestreamManager.StreamManager.Cloudflare.OutputManager
   alias Streampai.LivestreamManager.StreamManager.LivestreamFinalizer
   alias Streampai.LivestreamManager.StreamManager.PlatformCoordinator
@@ -41,7 +42,8 @@ defmodule Streampai.LivestreamManager.StreamManager.Actions.StopStream do
       "stop metrics collector"
     )
 
-    OutputManager.cleanup_all(data)
+    # Clean up broadcast outputs via the active strategy
+    cleanup_broadcast_outputs(data)
 
     data = %{data | livestream_id: nil, started_at: nil, metrics_collector_pid: nil}
 
@@ -59,6 +61,16 @@ defmodule Streampai.LivestreamManager.StreamManager.Actions.StopStream do
         action: :update_status,
         actor: Streampai.SystemActor.system()
       )
+    end
+  end
+
+  defp cleanup_broadcast_outputs(data) do
+    # Cloudflare strategy: clean up leftover Cloudflare live outputs via API
+    # Membrane strategy: remove RTMP.Sink children from the pipeline
+    if data.strategy_module == CloudflareStrategy do
+      OutputManager.cleanup_all(data)
+    else
+      data.strategy_module.cleanup_all_outputs(data.strategy_state)
     end
   end
 

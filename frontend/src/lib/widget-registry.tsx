@@ -134,6 +134,8 @@ export const chatSchema = z.object({
 	showBadges: z.boolean().default(true),
 	showPlatform: z.boolean().default(true),
 	showEmotes: z.boolean().default(true),
+	nameSaturation: z.number().min(0).max(100).default(70),
+	nameLightness: z.number().min(0).max(100).default(65),
 });
 
 export const alertboxSchema = z.object({
@@ -312,6 +314,8 @@ const chatMeta: FormMeta<typeof chatSchema.shape> = {
 		description: "Display Twitch/YouTube icons next to messages",
 	},
 	showEmotes: { label: "Show Emotes", description: "Render emotes as images" },
+	nameSaturation: { label: "Name Color Saturation", unit: "%" },
+	nameLightness: { label: "Name Color Lightness", unit: "%" },
 };
 
 const alertboxMeta: FormMeta<typeof alertboxSchema.shape> = {
@@ -575,7 +579,6 @@ const CHAT_MOCK_MESSAGES: ChatMessage[] = [
 		platform: { icon: "twitch", color: "bg-purple-500" },
 		badge: "SUB",
 		badgeColor: "bg-purple-500 text-white",
-		usernameColor: "#9333ea",
 	},
 	{
 		id: "2",
@@ -585,7 +588,6 @@ const CHAT_MOCK_MESSAGES: ChatMessage[] = [
 		platform: { icon: "youtube", color: "bg-red-500" },
 		badge: "MOD",
 		badgeColor: "bg-green-500 text-white",
-		usernameColor: "#10b981",
 	},
 	{
 		id: "3",
@@ -593,7 +595,6 @@ const CHAT_MOCK_MESSAGES: ChatMessage[] = [
 		content: "First time here, really enjoying the stream!",
 		timestamp: new Date(),
 		platform: { icon: "twitch", color: "bg-purple-500" },
-		usernameColor: "#3b82f6",
 	},
 ];
 
@@ -630,9 +631,6 @@ function ChatPreviewWrapper(props: {
 						: undefined,
 				badgeColor:
 					Math.random() > 0.5 ? "bg-purple-500 text-white" : undefined,
-				usernameColor: ["#9333ea", "#10b981", "#3b82f6", "#ef4444"][
-					Math.floor(Math.random() * 4)
-				],
 			};
 			setMessages((prev) => [...prev, newMessage]);
 		}, 3000);

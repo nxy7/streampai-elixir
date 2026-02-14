@@ -7,7 +7,6 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
 
   use GenServer
 
-  alias Streampai.Cloudflare.APIClient
   alias Streampai.LivestreamManager.PlatformHelpers
   alias Streampai.LivestreamManager.Platforms.YouTubeMetricsCollector
   alias Streampai.LivestreamManager.RegistryHelpers
@@ -34,8 +33,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     :metrics_collector_pid,
     :stream_key,
     :rtmp_url,
-    :cloudflare_input_id,
-    :cloudflare_output_id,
+    :broadcast_strategy,
+    :relay_output_handle,
     :is_active,
     :started_at,
     viewer_count: 0
@@ -149,7 +148,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   @impl true
   def handle_call({:start_streaming, livestream_id, metadata}, _from, state) do
     Logger.info("Starting stream: #{livestream_id} with metadata: #{inspect(metadata)}")
-    cloudflare_input_id = metadata[:cloudflare_input_id] || metadata["cloudflare_input_id"]
+    broadcast_strategy = metadata[:broadcast_strategy]
 
     with {:create_broadcast, {:ok, broadcast}} <-
            {:create_broadcast, create_broadcast(state, livestream_id, metadata)},
@@ -162,8 +161,8 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
            {:start_chat, start_chat_streaming(state, livestream_id, broadcast_chat_id)},
          stream_key = get_in(stream, ["cdn", "ingestionInfo", "streamName"]),
          rtmp_url = get_in(stream, ["cdn", "ingestionInfo", "ingestionAddress"]),
-         {:create_output, {:ok, output_id}} <-
-           {:create_output, create_cloudflare_output(cloudflare_input_id, rtmp_url, stream_key)},
+         {:create_output, {:ok, output_handle}} <-
+           {:create_output, create_relay_output(broadcast_strategy, rtmp_url, stream_key)},
          {:start_metrics_collector, {:ok, collector_pid}} <-
            {:start_metrics_collector, start_metrics_collector(state, broadcast["id"])} do
       new_state = %{
@@ -177,11 +176,11 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
           metrics_collector_pid: collector_pid,
           stream_key: stream_key,
           rtmp_url: rtmp_url,
-          cloudflare_input_id: cloudflare_input_id,
-          cloudflare_output_id: output_id
+          broadcast_strategy: broadcast_strategy,
+          relay_output_handle: output_handle
       }
 
-      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Cloudflare Output: #{output_id}")
+      Logger.info("Stream created successfully - RTMP: #{rtmp_url}, Key: #{stream_key}, Output: #{output_handle}")
 
       StreamEvents.emit_platform_started(state.user_id, livestream_id, :youtube)
 
@@ -222,7 +221,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       Process.exit(state.metrics_collector_pid, :normal)
     end
 
-    cleanup_cloudflare_output(state)
+    PlatformHelpers.cleanup_relay_output(state)
     cleanup_broadcast(state)
     cleanup_stream(state)
 
@@ -242,7 +241,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         metrics_collector_pid: nil,
         stream_key: nil,
         rtmp_url: nil,
-        cloudflare_output_id: nil
+        relay_output_handle: nil
     }
 
     {:reply, :ok, new_state}
@@ -308,8 +307,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     broadcast_id = reattach_data["broadcast_id"]
     stream_id = reattach_data["stream_id"]
     chat_id = reattach_data["chat_id"]
-    cloudflare_input_id = reattach_data["cloudflare_input_id"]
-    cloudflare_output_id = reattach_data["cloudflare_output_id"]
+    relay_output_handle = reattach_data["relay_output_handle"]
 
     # Start gRPC chat client if we have a chat_id
     chat_pid =
@@ -346,8 +344,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
         chat_id: chat_id,
         chat_pid: chat_pid,
         metrics_collector_pid: metrics_pid,
-        cloudflare_input_id: cloudflare_input_id,
-        cloudflare_output_id: cloudflare_output_id
+        relay_output_handle: relay_output_handle
     }
 
     Logger.info("Reattached to YouTube stream #{livestream_id}, broadcast=#{broadcast_id}")
@@ -445,6 +442,13 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
   end
 
   @impl true
+  def handle_info({:token_revoked, _user_id}, state) do
+    Logger.warning("YouTube token revoked, cleaning up...")
+    if state.chat_pid, do: GrpcStreamClient.stop(state.chat_pid)
+    {:noreply, %{state | chat_pid: nil, access_token: nil}}
+  end
+
+  @impl true
   def handle_info(msg, state) do
     Logger.debug("Unknown message: #{inspect(msg)}")
     {:noreply, state}
@@ -469,10 +473,10 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       Process.exit(state.metrics_collector_pid, :normal)
     end
 
-    # Delete Cloudflare Live Output
-    if state.cloudflare_output_id do
-      Logger.info("Cleaning up Cloudflare output: #{state.cloudflare_output_id}")
-      delete_cloudflare_output(state)
+    # Delete relay output
+    if state.relay_output_handle do
+      Logger.info("Cleaning up relay output: #{state.relay_output_handle}")
+      PlatformHelpers.cleanup_relay_output(state)
     end
 
     cleanup_broadcast(state)
@@ -501,8 +505,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
       "broadcast_id" => state.broadcast_id,
       "stream_id" => state.stream_id,
       "chat_id" => state.chat_id,
-      "cloudflare_input_id" => state.cloudflare_input_id,
-      "cloudflare_output_id" => state.cloudflare_output_id
+      "relay_output_handle" => state.relay_output_handle
     })
   end
 
@@ -732,28 +735,26 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     )
   end
 
-  defp create_cloudflare_output(nil, _rtmp_url, _stream_key) do
-    Logger.error("Cannot create Cloudflare output: no input ID")
-    {:error, :no_input_id}
+  defp create_relay_output(nil, _rtmp_url, _stream_key) do
+    Logger.error("Cannot create relay output: no broadcast strategy")
+    {:error, :no_strategy}
   end
 
-  defp create_cloudflare_output(input_id, rtmp_url, stream_key) do
-    output_config = %{rtmp_url: rtmp_url, stream_key: stream_key, enabled: true}
+  defp create_relay_output({mod, strategy_state}, rtmp_url, stream_key) do
+    case mod.add_output(strategy_state, %{
+           rtmp_url: rtmp_url,
+           stream_key: stream_key,
+           platform: :youtube
+         }) do
+      {:ok, handle, _new_strategy_state} ->
+        Logger.info("Created relay output for youtube: #{handle}")
+        {:ok, handle}
 
-    case APIClient.create_live_output(input_id, output_config) do
-      {:ok, %{"uid" => output_id}} ->
-        Logger.info("Created Cloudflare output for youtube: #{output_id}")
-        {:ok, output_id}
-
-      {:error, error_type, message} ->
-        Logger.error("Failed to create Cloudflare output for youtube: #{message}")
-        {:error, {error_type, message}}
+      {:error, reason} ->
+        Logger.error("Failed to create relay output for youtube: #{inspect(reason)}")
+        {:error, reason}
     end
   end
-
-  defp delete_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
-
-  defp cleanup_cloudflare_output(state), do: PlatformHelpers.cleanup_cloudflare_output(state)
 
   defp cleanup_broadcast(%{broadcast_id: nil}), do: :ok
 

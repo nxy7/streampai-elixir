@@ -133,6 +133,7 @@ export type StreamingAccount = Row & {
 	follower_count: number | null;
 	unique_viewers_last_30d: number | null;
 	stats_last_refreshed_at: string | null;
+	status: "connected" | "needs_reauth";
 	inserted_at: string;
 	updated_at: string;
 };
@@ -282,7 +283,7 @@ export function getAdminUsersCollection() {
 					fetchClient: (input, init) =>
 						fetch(input, { ...init, credentials: "include" }),
 				},
-				getKey: (item) => item.id as string,
+				getKey: (item) => item.id,
 			}),
 		);
 	}
@@ -420,6 +421,59 @@ export function createStreamTimersCollection(userId: string) {
 			id: `stream_timers_${userId}`,
 			shapeOptions: {
 				url: `${SHAPES_URL}/stream_timers/${userId}`,
+			},
+			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export type StreamHookRow = Row & {
+	id: string;
+	user_id: string;
+	name: string;
+	enabled: boolean;
+	trigger_type: string;
+	conditions: Record<string, unknown> | null;
+	action_type: string;
+	action_config: Record<string, unknown>;
+	cooldown_seconds: number;
+	last_triggered_at: string | null;
+	inserted_at: string;
+	updated_at: string;
+};
+
+export function createStreamHooksCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<StreamHookRow>({
+			id: `stream_hooks_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/stream_hooks/${userId}`,
+			},
+			getKey: (item) => item.id,
+		}),
+	);
+}
+
+export type StreamHookLogRow = Row & {
+	id: string;
+	hook_id: string;
+	user_id: string;
+	stream_event_id: string | null;
+	trigger_type: string;
+	action_type: string;
+	status: string;
+	error_message: string | null;
+	executed_at: string;
+	duration_ms: number | null;
+	inserted_at: string;
+};
+
+export function createStreamHookLogsCollection(userId: string) {
+	return createCollection(
+		electricCollectionOptions<StreamHookLogRow>({
+			id: `stream_hook_logs_${userId}`,
+			shapeOptions: {
+				url: `${SHAPES_URL}/stream_hook_logs/${userId}`,
 			},
 			getKey: (item) => item.id,
 		}),

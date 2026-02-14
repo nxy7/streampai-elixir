@@ -4,6 +4,7 @@ import { Portal } from "solid-js/web";
 import PlatformIcon from "~/components/PlatformIcon";
 import UserAvatar from "~/components/UserAvatar";
 import { formatAmount, formatTimestamp } from "~/lib/formatters";
+import { stringToColor } from "~/lib/string-color";
 import {
 	ACTIVITY_ROW_HEIGHT,
 	type ActivityItem,
@@ -21,6 +22,8 @@ interface ActivityRowProps {
 	moderationCallbacks?: ModerationCallbacks;
 	showAvatars?: boolean;
 	stickyIndex?: number;
+	nameSaturation?: number;
+	nameLightness?: number;
 }
 
 export function ActivityRow(props: ActivityRowProps) {
@@ -181,15 +184,37 @@ export function ActivityRow(props: ActivityRowProps) {
 						<Show
 							fallback={
 								<span
-									class={`font-medium text-sm ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}>
+									class={`font-medium text-sm ${props.item.type !== "chat" ? getEventColor(props.item.type) : ""}`}
+									style={
+										props.item.type === "chat"
+											? {
+													color: stringToColor(
+														props.item.username,
+														props.nameSaturation,
+														props.nameLightness,
+													),
+												}
+											: undefined
+									}>
 									{props.item.username}
 								</span>
 							}
 							when={props.item.viewerId}>
 							{(viewerId) => (
 								<A
-									class={`font-medium text-sm hover:underline ${props.item.type === "chat" ? "text-neutral-800" : getEventColor(props.item.type)}`}
-									href={`/dashboard/viewers/${viewerId()}`}>
+									class={`font-medium text-sm hover:underline ${props.item.type !== "chat" ? getEventColor(props.item.type) : ""}`}
+									href={`/dashboard/viewers/${viewerId()}`}
+									style={
+										props.item.type === "chat"
+											? {
+													color: stringToColor(
+														props.item.username,
+														props.nameSaturation,
+														props.nameLightness,
+													),
+												}
+											: undefined
+									}>
 									{props.item.username}
 								</A>
 							)}

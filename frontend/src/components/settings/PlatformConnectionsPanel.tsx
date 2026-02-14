@@ -32,6 +32,7 @@ interface StreamingAccount {
 	follower_count: number | null;
 	unique_viewers_last_30d: number | null;
 	stats_last_refreshed_at: string | null;
+	status?: "connected" | "needs_reauth";
 }
 
 interface PlatformConnectionsPanelProps {
@@ -124,25 +125,61 @@ export default function PlatformConnectionsPanel(
 				<Show when={props.accounts?.length > 0}>
 					<div class="mb-4 space-y-3">
 						<For each={props.accounts}>
-							{(account) => (
-								<StreamingAccountStats
-									data={{
-										platform: account.platform,
-										accountName:
-											account.extra_data?.name ||
-											account.extra_data?.nickname ||
-											account.platform,
-										accountImage: account.extra_data?.image || null,
-										sponsorCount: account.sponsor_count,
-										viewsLast30d: account.views_last_30d,
-										followerCount: account.follower_count,
-										uniqueViewersLast30d: account.unique_viewers_last_30d,
-										statsLastRefreshedAt: account.stats_last_refreshed_at,
-									}}
-									onDisconnect={() => handleDisconnectAccount(account.platform)}
-									onRefresh={() => handleRefreshStats(account.platform)}
-								/>
-							)}
+							{(account) => {
+								const platformInfo = () =>
+									AVAILABLE_PLATFORMS.find(
+										(p) => p.targetPlatform === account.platform,
+									);
+								return (
+									<Show
+										fallback={
+											<StreamingAccountStats
+												data={{
+													platform: account.platform,
+													accountName:
+														account.extra_data?.name ||
+														account.extra_data?.nickname ||
+														account.platform,
+													accountImage: account.extra_data?.image || null,
+													sponsorCount: account.sponsor_count,
+													viewsLast30d: account.views_last_30d,
+													followerCount: account.follower_count,
+													uniqueViewersLast30d: account.unique_viewers_last_30d,
+													statsLastRefreshedAt: account.stats_last_refreshed_at,
+												}}
+												onDisconnect={() =>
+													handleDisconnectAccount(account.platform)
+												}
+												onRefresh={() => handleRefreshStats(account.platform)}
+											/>
+										}
+										when={account.status === "needs_reauth"}>
+										<div class="flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950">
+											<div class="flex items-center space-x-3">
+												<PlatformIcon platform={account.platform} size="lg" />
+												<div>
+													<p class="font-medium text-neutral-900">
+														{platformInfo()?.name ?? account.platform}
+													</p>
+													<p class="text-amber-700 text-sm dark:text-amber-400">
+														{t("settings.needsReauth")}
+													</p>
+												</div>
+											</div>
+											<Button
+												as="a"
+												class="bg-amber-600 text-white"
+												href={apiRoutes.streaming.connect(
+													platformInfo()?.platform ?? account.platform,
+												)}
+												size="sm"
+												variant="secondary">
+												{t("stream.platforms.reconnect")}
+											</Button>
+										</div>
+									</Show>
+								);
+							}}
 						</For>
 					</div>
 				</Show>

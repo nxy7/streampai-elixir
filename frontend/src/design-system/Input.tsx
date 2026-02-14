@@ -2,12 +2,13 @@ import { type JSX, Show, splitProps } from "solid-js";
 import { cn } from "~/design-system/design-system";
 
 const baseClasses =
-	"w-full rounded-lg px-3 py-2 text-sm bg-surface focus:ring-1 focus:outline-none transition-colors";
+	"w-full rounded-lg px-3 py-2 text-sm bg-surface-input focus:ring-1 focus:outline-none transition-colors";
 
 export interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 	label?: string;
 	error?: string;
 	helperText?: string;
+	wrapperClass?: string;
 }
 
 export default function Input(props: InputProps) {
@@ -16,13 +17,14 @@ export default function Input(props: InputProps) {
 		"error",
 		"helperText",
 		"class",
+		"wrapperClass",
 		"id",
 	]);
 
 	const inputId = local.id ?? `input-${Math.random().toString(36).slice(2)}`;
 
 	return (
-		<div class="w-full">
+		<div class={local.wrapperClass ?? "w-full"}>
 			<Show when={local.label}>
 				<label
 					class="mb-1 block font-medium text-neutral-700 text-sm"

@@ -312,6 +312,78 @@ export type ChatBotConfigAttributesOnlySchema = {
 };
 
 
+// StreamHook Schema
+export type StreamHookResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  name: string;
+  enabled: boolean;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions: Record<string, any> | null;
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  cooldownSeconds: number;
+  lastTriggeredAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamHookAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  name: string;
+  enabled: boolean;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions: Record<string, any> | null;
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  cooldownSeconds: number;
+  lastTriggeredAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+// StreamHookLog Schema
+export type StreamHookLogResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
+  id: UUID;
+  hookId: UUID;
+  userId: UUID;
+  streamEventId: UUID | null;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+  errorMessage: string | null;
+  executedAt: UtcDateTimeUsec;
+  durationMs: number | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamHookLogAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
+  id: UUID;
+  hookId: UUID;
+  userId: UUID;
+  streamEventId: UUID | null;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+  errorMessage: string | null;
+  executedAt: UtcDateTimeUsec;
+  durationMs: number | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
 // StreamAction Schema
 export type StreamActionResourceSchema = {
   __type: "Resource";
@@ -1603,6 +1675,181 @@ export type ChatBotConfigFilterInput = {
   };
 
   updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamHookFilterInput = {
+  and?: Array<StreamHookFilterInput>;
+  or?: Array<StreamHookFilterInput>;
+  not?: Array<StreamHookFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  name?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  enabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  triggerType?: {
+    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
+  };
+
+  conditions?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  actionType?: {
+    eq?: "webhook" | "discord_message" | "chat_message" | "email";
+    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
+    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
+  };
+
+  actionConfig?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  cooldownSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  lastTriggeredAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamHookLogFilterInput = {
+  and?: Array<StreamHookLogFilterInput>;
+  or?: Array<StreamHookLogFilterInput>;
+  not?: Array<StreamHookLogFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  hookId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  streamEventId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  triggerType?: {
+    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
+  };
+
+  actionType?: {
+    eq?: "webhook" | "discord_message" | "chat_message" | "email";
+    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
+    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
+  };
+
+  status?: {
+    eq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+    notEq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+    in?: Array<"success" | "failure" | "skipped_cooldown" | "skipped_condition">;
+  };
+
+  errorMessage?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  executedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  durationMs?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  insertedAt?: {
     eq?: UtcDateTimeUsec;
     notEq?: UtcDateTimeUsec;
     greaterThan?: UtcDateTimeUsec;
@@ -5312,6 +5559,551 @@ export async function updateChatBotConfigChannel<Fields extends UpdateChatBotCon
 }
 
 
+export type GetStreamHooksInput = {
+  userId: UUID;
+};
+
+export type GetStreamHooksFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+export type InferGetStreamHooksResult<
+  Fields extends GetStreamHooksFields,
+> = Array<InferResult<StreamHookResourceSchema, Fields>>;
+
+export type GetStreamHooksResult<Fields extends GetStreamHooksFields> = | { success: true; data: InferGetStreamHooksResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHook records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHooks<Fields extends GetStreamHooksFields>(
+  config: {
+  tenant?: string;
+  input: GetStreamHooksInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHooksResult<Fields>> {
+  const payload = {
+    action: "get_stream_hooks",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHooksResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHook records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHooksChannel<Fields extends GetStreamHooksFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetStreamHooksInput;
+  fields: Fields;
+  filter?: StreamHookFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamHooksResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamHooksResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_hooks",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type CreateStreamHookInput = {
+  name: string;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  conditions?: Record<string, any>;
+  cooldownSeconds?: number;
+};
+
+export type CreateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferCreateStreamHookResult<
+  Fields extends CreateStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type CreateStreamHookResult<Fields extends CreateStreamHookFields | undefined = undefined> = | { success: true; data: InferCreateStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new StreamHook
+ *
+ * @ashActionType :create
+ */
+export async function createStreamHook<Fields extends CreateStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: CreateStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new StreamHook
+ *
+ * @ashActionType :create
+ */
+export async function createStreamHookChannel<Fields extends CreateStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: CreateStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: CreateStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<CreateStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "create_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateStreamHookInput = {
+  name?: string;
+  triggerType?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions?: Record<string, any> | null;
+  actionType?: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig?: Record<string, any>;
+  cooldownSeconds?: number;
+  enabled?: boolean;
+};
+
+export type UpdateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferUpdateStreamHookResult<
+  Fields extends UpdateStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type UpdateStreamHookResult<Fields extends UpdateStreamHookFields | undefined = undefined> = | { success: true; data: InferUpdateStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamHook<Fields extends UpdateStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamHookChannel<Fields extends UpdateStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "update_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ToggleStreamHookInput = {
+  enabled: boolean;
+};
+
+export type ToggleStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferToggleStreamHookResult<
+  Fields extends ToggleStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type ToggleStreamHookResult<Fields extends ToggleStreamHookFields | undefined = undefined> = | { success: true; data: InferToggleStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function toggleStreamHook<Fields extends ToggleStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: ToggleStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "toggle_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function toggleStreamHookChannel<Fields extends ToggleStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: ToggleStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: ToggleStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ToggleStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "toggle_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+
+export type DeleteStreamHookResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a StreamHook
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamHook(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteStreamHookResult> {
+  const payload = {
+    action: "delete_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DeleteStreamHookResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Delete a StreamHook
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamHookChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  resultHandler: (result: DeleteStreamHookResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DeleteStreamHookResult>(
+    config.channel,
+    {
+    action: "delete_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamHookLogsInput = {
+  userId: UUID;
+};
+
+export type GetStreamHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
+export type InferGetStreamHookLogsResult<
+  Fields extends GetStreamHookLogsFields,
+> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
+
+export type GetStreamHookLogsResult<Fields extends GetStreamHookLogsFields> = | { success: true; data: InferGetStreamHookLogsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHookLogs<Fields extends GetStreamHookLogsFields>(
+  config: {
+  tenant?: string;
+  input: GetStreamHookLogsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHookLogsResult<Fields>> {
+  const payload = {
+    action: "get_stream_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHookLogsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHookLogsChannel<Fields extends GetStreamHookLogsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetStreamHookLogsInput;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamHookLogsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamHookLogsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetHookLogsInput = {
+  hookId: UUID;
+};
+
+export type GetHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
+export type InferGetHookLogsResult<
+  Fields extends GetHookLogsFields,
+> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
+
+export type GetHookLogsResult<Fields extends GetHookLogsFields> = | { success: true; data: InferGetHookLogsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getHookLogs<Fields extends GetHookLogsFields>(
+  config: {
+  tenant?: string;
+  input: GetHookLogsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetHookLogsResult<Fields>> {
+  const payload = {
+    action: "get_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetHookLogsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getHookLogsChannel<Fields extends GetHookLogsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetHookLogsInput;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  resultHandler: (result: GetHookLogsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetHookLogsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
 export type GoLiveInput = {
   userId: UUID;
   title?: string;
@@ -5646,6 +6438,140 @@ export async function togglePlatformChannel(config: {
     config.channel,
     {
     action: "toggle_platform",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetIngestCredentialsInput = {
+  userId: UUID;
+  orientation?: "horizontal" | "vertical";
+};
+
+export type InferGetIngestCredentialsResult = Record<string, any>;
+
+export type GetIngestCredentialsResult = | { success: true; data: InferGetIngestCredentialsResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function getIngestCredentials(
+  config: {
+  tenant?: string;
+  input: GetIngestCredentialsInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetIngestCredentialsResult> {
+  const payload = {
+    action: "get_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<GetIngestCredentialsResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function getIngestCredentialsChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetIngestCredentialsInput;
+  resultHandler: (result: GetIngestCredentialsResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetIngestCredentialsResult>(
+    config.channel,
+    {
+    action: "get_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type RegenerateIngestCredentialsInput = {
+  userId: UUID;
+  orientation?: "horizontal" | "vertical";
+};
+
+export type InferRegenerateIngestCredentialsResult = Record<string, any>;
+
+export type RegenerateIngestCredentialsResult = | { success: true; data: InferRegenerateIngestCredentialsResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function regenerateIngestCredentials(
+  config: {
+  tenant?: string;
+  input: RegenerateIngestCredentialsInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RegenerateIngestCredentialsResult> {
+  const payload = {
+    action: "regenerate_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<RegenerateIngestCredentialsResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function regenerateIngestCredentialsChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: RegenerateIngestCredentialsInput;
+  resultHandler: (result: RegenerateIngestCredentialsResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<RegenerateIngestCredentialsResult>(
+    config.channel,
+    {
+    action: "regenerate_ingest_credentials",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
   },

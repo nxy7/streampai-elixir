@@ -60,10 +60,47 @@ export const dict: Dictionary = {
 		actionObsScene: "Przełącz scenę OBS",
 		actionPlaySound: "Odtwórz alert dźwiękowy",
 		actionEmail: "Wyślij powiadomienie e-mail",
-		comingSoonBadge: "Wkrótce",
-		comingSoonDescription:
-			"Hooki są aktywnie rozwijane. Wkrótce będziesz mógł tworzyć własne automatyzacje.",
 		createHook: "Utwórz hook",
+		editHook: "Edytuj hook",
+		name: "Nazwa hooka",
+		namePlaceholder: "np. Podziękuj donatorom na Discordzie",
+		triggerType: "Gdy to nastąpi",
+		actionType: "Wykonaj to",
+		conditions: "Warunki",
+		actionConfig: "Ustawienia akcji",
+		save: "Zapisz",
+		cancel: "Anuluj",
+		edit: "Edytuj",
+		delete: "Usuń",
+		enabled: "Włączony",
+		disabled: "Wyłączony",
+		empty: "Brak hooków",
+		emptyHint:
+			"Utwórz hook, aby automatycznie reagować na wydarzenia ze streama",
+		showLogs: "Pokaż logi",
+		hideLogs: "Ukryj logi",
+		logsEmpty: "Brak wykonań",
+		logStatus: "Status",
+		logTriggeredAt: "Wyzwolono",
+		logDuration: "Czas trwania",
+		logError: "Błąd",
+		statusSuccess: "Sukces",
+		statusFailure: "Niepowodzenie",
+		statusSkippedCooldown: "Odnowienie",
+		statusSkippedCondition: "Warunek",
+		minAmount: "Minimalna kwota",
+		currency: "Waluta",
+		contains: "Wiadomość zawiera",
+		isModerator: "Tylko moderatorzy",
+		minViewers: "Minimalna liczba widzów",
+		webhookUrl: "URL webhooka",
+		webhookMethod: "Metoda HTTP",
+		bodyTemplate: "Szablon treści",
+		discordWebhookUrl: "URL webhooka Discord",
+		messageTemplate: "Szablon wiadomości",
+		chatMessageText: "Wiadomość na czacie",
+		templateHelp:
+			"Użyj {{username}}, {{amount}}, {{message}} dla dynamicznych wartości",
 	},
 
 	// Dashboard sidebar sections
@@ -342,6 +379,7 @@ export const dict: Dictionary = {
 		},
 		preview: {
 			noInput: "Brak sygnału. Uruchom OBS, aby zobaczyć podgląd.",
+			loading: "Ładowanie podglądu...",
 		},
 		// Stream key
 		key: {
@@ -370,6 +408,8 @@ export const dict: Dictionary = {
 			disconnect: "Rozłącz",
 			disconnectConfirm:
 				"Czy na pewno chcesz rozłączyć tę platformę? Będziesz musiał połączyć ją ponownie, aby streamować.",
+			needsReauth: "Wymagane ponowne połączenie",
+			reconnect: "Połącz ponownie",
 		},
 		// Live statistics
 		stats: {
@@ -612,6 +652,7 @@ export const dict: Dictionary = {
 		streamingPlatforms: "Platformy streamingowe",
 		notConnected: "Niepołączone",
 		connect: "Połącz",
+		needsReauth: "Połączenie wygasło",
 		// Plan
 		getStarted: "Zacznij z podstawowymi funkcjami",
 		upgradeToPro: "Ulepsz do Pro",
@@ -749,6 +790,8 @@ export const dict: Dictionary = {
 		invalidUsername: "Nieprawidłowa nazwa użytkownika",
 		userNotFound: "Nie znaleziono użytkownika",
 		failedToLoadUser: "Nie udało się załadować użytkownika",
+		serviceUnavailable:
+			"Serwis może być chwilowo niedostępny. Spróbuj ponownie za chwilę.",
 	},
 
 	// 404 Page

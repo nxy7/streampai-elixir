@@ -24,12 +24,8 @@ defmodule Streampai.Accounts.WidgetConfig.Changes.AtomizeConfigKeys do
 
   defp atomize_keys(map) when is_map(map) do
     Map.new(map, fn
-      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
+      {k, v} when is_binary(k) -> {String.to_atom(k), v}
       {k, v} -> {k, v}
     end)
-  rescue
-    ArgumentError ->
-      # If atom doesn't exist, return original map
-      map
   end
 end

@@ -57,6 +57,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     define :read
     define :for_user, action: :for_user, args: [:user_id]
     define :refresh_stats
+    define :mark_needs_reauth
     define :needs_stats_refresh, action: :needs_stats_refresh, args: [:hours_threshold]
   end
 
@@ -70,7 +71,8 @@ defmodule Streampai.Accounts.StreamingAccount do
         :access_token,
         :refresh_token,
         :access_token_expires_at,
-        :extra_data
+        :extra_data,
+        :status
       ]
 
       upsert? true
@@ -110,6 +112,12 @@ defmodule Streampai.Accounts.StreamingAccount do
       require_atomic? false
 
       validate present([:access_token])
+    end
+
+    update :mark_needs_reauth do
+      accept []
+      require_atomic? false
+      change set_attribute(:status, :needs_reauth)
     end
 
     update :refresh_stats do
@@ -214,6 +222,12 @@ defmodule Streampai.Accounts.StreamingAccount do
     end
 
     attribute :extra_data, :map do
+      allow_nil? false
+    end
+
+    attribute :status, :atom do
+      constraints one_of: [:connected, :needs_reauth]
+      default :connected
       allow_nil? false
     end
 

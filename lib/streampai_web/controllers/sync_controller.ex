@@ -21,6 +21,8 @@ defmodule StreampaiWeb.SyncController do
   alias Streampai.Stream.HighlightedMessage
   alias Streampai.Stream.Livestream
   alias Streampai.Stream.StreamEvent
+  alias Streampai.Stream.StreamHook
+  alias Streampai.Stream.StreamHookLog
   alias Streampai.Stream.StreamTimer
   alias Streampai.Stream.StreamViewer
   alias Streampai.Support.Message, as: SupportMessage
@@ -62,6 +64,7 @@ defmodule StreampaiWeb.SyncController do
     :follower_count,
     :unique_viewers_last_30d,
     :stats_last_refreshed_at,
+    :status,
     :inserted_at,
     :updated_at
   ]
@@ -175,6 +178,18 @@ defmodule StreampaiWeb.SyncController do
   def chat_bot_configs(conn, %{"user_id" => user_id} = params) do
     with_valid_uuid(conn, user_id, fn uuid ->
       sync_render(conn, params, from(c in ChatBotConfig, where: c.user_id == ^uuid))
+    end)
+  end
+
+  def stream_hooks(conn, %{"user_id" => user_id} = params) do
+    with_valid_uuid(conn, user_id, fn uuid ->
+      sync_render(conn, params, from(h in StreamHook, where: h.user_id == ^uuid))
+    end)
+  end
+
+  def stream_hook_logs(conn, %{"user_id" => user_id} = params) do
+    with_valid_uuid(conn, user_id, fn uuid ->
+      sync_render(conn, params, from(l in StreamHookLog, where: l.user_id == ^uuid))
     end)
   end
 

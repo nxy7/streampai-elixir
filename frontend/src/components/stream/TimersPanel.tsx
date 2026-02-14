@@ -1,5 +1,16 @@
-import { For, Show, createSignal, onCleanup } from "solid-js";
-import { button, input } from "~/design-system/design-system";
+import {
+	For,
+	Show,
+	createMemo,
+	createSignal,
+	onCleanup,
+	untrack,
+} from "solid-js";
+import Badge from "~/design-system/Badge";
+import Button from "~/design-system/Button";
+import Input, { Textarea } from "~/design-system/Input";
+import ProgressBar from "~/design-system/ProgressBar";
+import Toggle from "~/design-system/Toggle";
 import { useTranslation } from "~/i18n";
 import {
 	createStreamTimer,
@@ -95,12 +106,21 @@ export function TimersPanel(props: TimersPanelProps) {
 		<div class="flex h-full flex-col">
 			{/* Header with back button */}
 			<div class="mb-4 flex items-center gap-3">
-				<button
-					class="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-					onClick={props.onBack}
-					type="button">
-					{"<"}
-				</button>
+				<Button onClick={props.onBack} size="sm" variant="ghost">
+					<svg
+						aria-hidden="true"
+						class="h-4 w-4"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24">
+						<path
+							d="M15 19l-7-7 7-7"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</Button>
 				<div>
 					<h3 class="font-semibold text-lg text-neutral-900">
 						{t("dashboardNav.timers")}
@@ -129,81 +149,100 @@ export function TimersPanel(props: TimersPanelProps) {
 							const isDisabled = () => timer.disabledAt !== null;
 							const timerProgress = () => getTimerProgress(timer);
 
+							// Memo that only changes when the cycle number changes,
+							// breaking the reactive chain from the 1-second `now()` tick.
+							const cycle = createMemo(() => {
+								const startedAt = props.streamStartedAt;
+								if (!startedAt || timer.disabledAt) return -1;
+								const elapsedS = (now() - new Date(startedAt).getTime()) / 1000;
+								return Math.floor(elapsedS / timer.intervalSeconds);
+							});
+
+							// Countdown seconds — only recalculated when cycle changes.
+							// untrack timerProgress so `now()` doesn't make this memo re-run.
+							const countdown = createMemo(() => {
+								cycle(); // subscribe to cycle changes only
+								return untrack(() => timerProgress().remaining);
+							});
+
 							return (
 								<div
 									class={`rounded-lg border p-4 transition-all ${
 										isDisabled()
-											? "border-neutral-200 bg-neutral-50"
-											: "border-green-200 bg-green-50"
+											? "border-neutral-200 bg-surface"
+											: "border-neutral-200 border-l-2 border-l-primary bg-surface"
 									}`}>
 									<div class="flex items-start justify-between gap-3">
 										<div class="min-w-0 flex-1">
 											<div class="flex items-center gap-2">
-												<div
+												<span
 													class={`font-medium ${isDisabled() ? "text-neutral-400" : "text-neutral-900"}`}>
 													{timer.label}
-												</div>
-												<span
-													class={`rounded-full px-2 py-0.5 text-xs ${
-														isDisabled()
-															? "bg-neutral-100 text-neutral-500"
-															: "bg-green-100 text-green-700"
-													}`}>
+												</span>
+												<Badge
+													size="sm"
+													variant={isDisabled() ? "neutral" : "success"}>
 													{isDisabled()
 														? t("timers.disabled")
 														: t("timers.enabled")}
+												</Badge>
+												<span class="text-neutral-400 text-xs">
+													{t("timers.every")}{" "}
+													{formatInterval(timer.intervalSeconds)}
 												</span>
-											</div>
-											<div class="mt-1 text-neutral-500 text-sm">
-												{t("timers.every")}{" "}
-												{formatInterval(timer.intervalSeconds)}
 											</div>
 
 											{/* Progress bar - only for enabled timers during stream */}
 											<Show when={!isDisabled() && props.streamStartedAt}>
 												<div class="mt-2">
-													<div class="mb-1 flex items-center justify-between">
-														<span class="font-mono text-green-600 text-xs">
-															{formatRemaining(timerProgress().remaining)}
-														</span>
-													</div>
-													<div class="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
-														<div
-															class="h-full rounded-full bg-green-500 transition-all duration-1000"
-															style={{
-																width: `${timerProgress().progress * 100}%`,
-															}}
-														/>
-													</div>
+													<ProgressBar
+														countdown={countdown()}
+														label={formatRemaining(timerProgress().remaining)}
+														max={100}
+														size="lg"
+														value={timerProgress().progress * 100}
+														variant="primary"
+													/>
 												</div>
 											</Show>
 
-											<div class="mt-2 rounded bg-neutral-100 p-2 text-neutral-700 text-sm">
+											<p
+												class={`mt-2 text-sm ${isDisabled() ? "text-neutral-400" : "text-neutral-600"}`}>
 												{timer.content.length > 100
 													? `${timer.content.slice(0, 100)}...`
 													: timer.content}
-											</div>
+											</p>
 										</div>
-										<div class="flex shrink-0 gap-1">
-											<button
-												class={`flex h-8 items-center justify-center rounded border px-2 text-xs transition-colors ${
+										<div class="flex shrink-0 items-center gap-2">
+											<Toggle
+												aria-label={
 													isDisabled()
-														? "border-green-300 bg-green-100 text-green-700 hover:bg-green-200"
-														: "border-yellow-300 bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-												}`}
-												onClick={() => handleToggle(timer.id, isDisabled())}
-												type="button">
-												{isDisabled()
-													? t("timers.enable")
-													: t("timers.disable")}
-											</button>
-											<button
-												class="flex h-8 w-8 items-center justify-center rounded border border-red-300 bg-red-100 text-red-600 transition-colors hover:bg-red-200"
+														? t("timers.enable")
+														: t("timers.disable")
+												}
+												checked={!isDisabled()}
+												onChange={() => handleToggle(timer.id, isDisabled())}
+												size="sm"
+											/>
+											<Button
 												onClick={() => handleDelete(timer.id)}
+												size="sm"
 												title={t("timers.delete")}
-												type="button">
-												x
-											</button>
+												variant="ghost">
+												<svg
+													aria-hidden="true"
+													class="h-4 w-4 text-neutral-400 hover:text-red-500"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													viewBox="0 0 24 24">
+													<path
+														d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+														stroke-linecap="round"
+														stroke-linejoin="round"
+													/>
+												</svg>
+											</Button>
 										</div>
 									</div>
 								</div>
@@ -218,7 +257,7 @@ export function TimersPanel(props: TimersPanelProps) {
 				<Show
 					fallback={
 						<button
-							class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-neutral-300 border-dashed py-3 text-neutral-500 transition-colors hover:border-orange-400 hover:bg-orange-50 hover:text-orange-600"
+							class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-neutral-300 border-dashed py-3 text-neutral-500 transition-colors hover:border-primary hover:bg-primary-50 hover:text-primary"
 							onClick={() => setShowAddForm(true)}
 							type="button">
 							<span class="text-xl">+</span>
@@ -226,67 +265,49 @@ export function TimersPanel(props: TimersPanelProps) {
 						</button>
 					}
 					when={showAddForm()}>
-					<div class="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.label")}
-								<input
-									class={`${input.text} mt-1 w-full`}
-									onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
-									placeholder={t("timers.labelPlaceholder")}
-									type="text"
-									value={newTimerLabel()}
-								/>
-							</label>
-						</div>
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.message")} *
-								<textarea
-									class={`${input.textarea} mt-1 w-full`}
-									onInput={(e) => setNewTimerContent(e.currentTarget.value)}
-									placeholder={t("timers.messagePlaceholder")}
-									rows="2"
-									value={newTimerContent()}
-								/>
-							</label>
-						</div>
-						<div>
-							<label class="mb-1 block font-medium text-neutral-700 text-sm">
-								{t("timers.interval")}
-								<input
-									class={`${input.text} mt-1 w-full`}
-									max="180"
-									min="1"
-									onInput={(e) =>
-										setNewTimerMinutes(
-											Number.parseInt(e.currentTarget.value, 10) || 5,
-										)
-									}
-									type="number"
-									value={newTimerMinutes()}
-								/>
-							</label>
-							<p class="mt-1 text-neutral-400 text-xs">
-								{t("timers.intervalHelp", {
-									minutes: String(newTimerMinutes()),
-								})}
-							</p>
-						</div>
+					<div class="space-y-3 rounded-lg border border-neutral-200 bg-surface p-3">
+						<Input
+							label={t("timers.label")}
+							onInput={(e) => setNewTimerLabel(e.currentTarget.value)}
+							placeholder={t("timers.labelPlaceholder")}
+							type="text"
+							value={newTimerLabel()}
+						/>
+						<Textarea
+							label={`${t("timers.message")} *`}
+							onInput={(e) => setNewTimerContent(e.currentTarget.value)}
+							placeholder={t("timers.messagePlaceholder")}
+							rows="2"
+							value={newTimerContent()}
+						/>
+						<Input
+							helperText={t("timers.intervalHelp", {
+								minutes: String(newTimerMinutes()),
+							})}
+							label={t("timers.interval")}
+							max="180"
+							min="1"
+							onInput={(e) =>
+								setNewTimerMinutes(
+									Number.parseInt(e.currentTarget.value, 10) || 5,
+								)
+							}
+							type="number"
+							value={newTimerMinutes()}
+						/>
 						<div class="flex gap-2">
-							<button
-								class={button.primary}
+							<Button
 								disabled={!newTimerContent().trim()}
 								onClick={handleAddTimer}
-								type="button">
+								size="sm">
 								{t("timers.addTimer")}
-							</button>
-							<button
-								class={button.secondary}
+							</Button>
+							<Button
 								onClick={() => setShowAddForm(false)}
-								type="button">
+								size="sm"
+								variant="secondary">
 								{t("timers.cancel")}
-							</button>
+							</Button>
 						</div>
 					</div>
 				</Show>

@@ -488,6 +488,7 @@ kill-ports:
     FRONTEND_PORT=${FRONTEND_PORT:-3000}
     CADDY_PORT=${CADDY_PORT:-8000}
     FRONTEND_HMR_PORT=${FRONTEND_HMR_PORT:-3001}
+    RTMP_PORT=${MEMBRANE_RTMP_PORT:-1935}
 
     echo "🔪 Killing processes on dev ports..."
 
@@ -556,6 +557,8 @@ test-deploy-prod:
     docker compose -f docker-compose.prod.yml build streampai
     docker compose -f docker-compose.prod.yml up
 
+rtmp_url := env("RTMP_URL", "rtmps://live.streampai.com:443/live")
+
 test-stream stream-key:
     ffmpeg -re -loop 1 -i priv/static/lenny.jpg \
     	-f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
@@ -573,7 +576,10 @@ test-stream stream-key:
     	-c:a aac \
     	-b:a 128k \
     	-f flv \
-    	rtmps://live.streampai.com:443/live/{{ stream-key }}
+    	{{ rtmp_url }}/{{ stream-key }}
 
 proto-gen:
     protoc --proto_path=proto/yt --elixir_out=plugins=grpc:./lib/streampai/youtube/generated stream_list.proto
+
+xref-cycles-check:
+    mix xref graph --format cycles --label compile-connected --fail-above 0

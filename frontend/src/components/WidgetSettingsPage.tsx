@@ -50,6 +50,7 @@
  * ```
  */
 
+import { debounce, leadingAndTrailing } from "@solid-primitives/scheduled";
 import {
 	type Component,
 	type JSX,
@@ -58,7 +59,7 @@ import {
 	createSignal,
 } from "solid-js";
 import type { z } from "zod";
-import Button from "~/design-system/Button";
+import Alert from "~/design-system/Alert";
 import Card from "~/design-system/Card";
 import { text } from "~/design-system/design-system";
 import { useCurrentUser } from "~/lib/auth";
@@ -149,9 +150,8 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 		() => props.widgetType,
 	);
 
-	// State for saving
-	const [saving, setSaving] = createSignal(false);
-	const [saveMessage, setSaveMessage] = createSignal<string | null>(null);
+	// State for save error
+	const [saveError, setSaveError] = createSignal<string | null>(null);
 
 	// Local overrides for unsaved changes
 	const [localOverrides, setLocalOverrides] = createSignal<Partial<Config>>({});
@@ -178,43 +178,38 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 	// Electric data (from cache or sync) will fill in saved values reactively
 	const ready = createMemo(() => !userIsLoading() && !!userId());
 
-	// Handle field changes
+	// Auto-save: fires immediately on first change, then debounces subsequent
+	const scheduledSave = leadingAndTrailing(
+		debounce,
+		async () => {
+			if (!userId()) return;
+			setSaveError(null);
+
+			const backendConfig = keysToBackend(config() as Record<string, unknown>);
+
+			const result = await saveWidgetConfig({
+				input: {
+					userId: userId() ?? "",
+					type: props.widgetType,
+					config: backendConfig,
+				},
+				fields: ["id", "config"],
+				fetchOptions: { credentials: "include" },
+			});
+
+			if (!result.success) {
+				setSaveError(result.errors[0]?.message || "Failed to save");
+			} else {
+				setLocalOverrides({});
+			}
+		},
+		300,
+	);
+
+	// Handle field changes — auto-saves on each change
 	function handleChange<K extends keyof Config>(field: K, value: Config[K]) {
 		setLocalOverrides((prev) => ({ ...prev, [field]: value }));
-	}
-
-	// Save config to backend
-	async function handleSave() {
-		if (!userId()) {
-			setSaveMessage("Error: Not logged in");
-			return;
-		}
-
-		setSaving(true);
-		setSaveMessage(null);
-
-		// Convert to snake_case for backend
-		const backendConfig = keysToBackend(config() as Record<string, unknown>);
-
-		const result = await saveWidgetConfig({
-			input: {
-				userId: userId() ?? "",
-				type: props.widgetType,
-				config: backendConfig,
-			},
-			fields: ["id", "config"],
-			fetchOptions: { credentials: "include" },
-		});
-
-		setSaving(false);
-
-		if (!result.success) {
-			setSaveMessage(`Error: ${result.errors[0]?.message || "Failed to save"}`);
-		} else {
-			setSaveMessage("Configuration saved successfully!");
-			setLocalOverrides({});
-			setTimeout(() => setSaveMessage(null), 3000);
-		}
+		scheduledSave();
 	}
 
 	// Default OBS settings
@@ -241,20 +236,11 @@ export function WidgetSettingsPage<T extends z.ZodRawShape, P = object>(
 								values={config()}
 							/>
 
-							<Show when={saveMessage()}>
-								<div
-									class={
-										saveMessage()?.startsWith("Error")
-											? "rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
-											: "rounded-lg border border-green-200 bg-green-50 p-3 text-green-700"
-									}>
-									{saveMessage()}
-								</div>
+							<Show when={saveError()}>
+								<Alert onClose={() => setSaveError(null)} variant="error">
+									{saveError()}
+								</Alert>
 							</Show>
-
-							<Button disabled={saving()} onClick={handleSave} type="button">
-								{saving() ? "Saving..." : "Save Configuration"}
-							</Button>
 						</div>
 					</Card>
 

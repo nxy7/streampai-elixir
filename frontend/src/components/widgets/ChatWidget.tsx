@@ -1,4 +1,5 @@
 import { For, Show } from "solid-js";
+import { stringToColor } from "~/lib/string-color";
 import { getFontClass } from "~/lib/widgetHelpers";
 
 interface Platform {
@@ -24,6 +25,8 @@ interface ChatConfig {
 	showPlatform: boolean;
 	showEmotes: boolean;
 	maxMessages: number;
+	nameSaturation: number;
+	nameLightness: number;
 }
 
 interface ChatWidgetProps {
@@ -128,7 +131,15 @@ export default function ChatWidget(props: ChatWidgetProps) {
 									</Show>
 									<span
 										class="font-semibold"
-										style={{ color: message.usernameColor }}>
+										style={{
+											color:
+												message.usernameColor ??
+												stringToColor(
+													message.username,
+													props.config.nameSaturation,
+													props.config.nameLightness,
+												),
+										}}>
 										{message.username}:
 									</span>
 									<span class="ml-1 text-gray-100">
