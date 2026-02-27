@@ -492,20 +492,8 @@ function LandingPricing() {
 			chars: "abcdefghijklmnopqrstuvwxyz",
 		},
 	);
-	const pricingParallax = useParallax({ speed: 0.3 });
-
 	return (
-		<section
-			class="relative bg-surface py-24"
-			id="pricing"
-			ref={pricingParallax.setRef}>
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute inset-0"
-				style={pricingParallax.transformStyle()}>
-				<div class="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
-				<div class="absolute right-1/4 bottom-0 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
-			</div>
+		<section class="relative bg-surface py-24" id="pricing">
 			<div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="mb-16 text-center">
 					<h2 class="mb-6 font-bold text-4xl text-neutral-900 md:text-5xl">
@@ -624,134 +612,136 @@ function LandingPricing() {
 					</Card>
 
 					{/* Pro Plan */}
-					<Card
-						class="flex flex-col overflow-visible bg-linear-to-br from-primary-light/10 to-secondary/10 ring-2 ring-primary-light"
-						glow
-						padding="lg"
-						variant="ghost">
-						<div class="absolute -top-3 right-6 rounded-full bg-linear-to-r from-primary-light to-secondary px-3 py-1 font-semibold text-white text-xs">
+					<div class="relative">
+						<div class="absolute -top-3 right-6 z-10 rounded-full bg-linear-to-r from-primary-light to-secondary px-3 py-1 font-semibold text-white text-xs">
 							{t("landing.mostPopular")}
 						</div>
-						<h3 class="mb-2 font-bold text-2xl text-neutral-900">
-							{t("landing.proPlan")}
-						</h3>
-						<div class="mb-6">
-							<div
-								class={`mb-1 flex items-center gap-2 transition-all duration-300 ${yearly() ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
-								<span class="text-lg text-neutral-400 line-through">
-									$299.99
+						<Card
+							class="flex flex-col bg-linear-to-br from-primary-light/10 to-secondary/10 ring-2 ring-primary-light"
+							glow
+							padding="lg"
+							variant="ghost">
+							<h3 class="mb-2 font-bold text-2xl text-neutral-900">
+								{t("landing.proPlan")}
+							</h3>
+							<div class="mb-6">
+								<div
+									class={`mb-1 flex items-center gap-2 transition-all duration-300 ${yearly() ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+									<span class="text-lg text-neutral-400 line-through">
+										$299.99
+									</span>
+									<span class="rounded-full bg-green-100 px-2 py-0.5 font-semibold text-green-700 text-xs">
+										-20%
+									</span>
+								</div>
+								<span class="font-bold text-4xl text-neutral-900 tabular-nums">
+									${tweenedPrice().toFixed(2)}
 								</span>
-								<span class="rounded-full bg-green-100 px-2 py-0.5 font-semibold text-green-700 text-xs">
-									-20%
-								</span>
+								<span class="text-neutral-500">{periodText()}</span>
 							</div>
-							<span class="font-bold text-4xl text-neutral-900 tabular-nums">
-								${tweenedPrice().toFixed(2)}
-							</span>
-							<span class="text-neutral-500">{periodText()}</span>
-						</div>
-						<ul class="mb-8 space-y-3">
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature1")}
-							</li>
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature2")}
-							</li>
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature3")}
-							</li>
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature4")}
-							</li>
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature5")}
-							</li>
-							<li class="flex items-center gap-3 text-neutral-600">
-								<svg
-									aria-hidden="true"
-									class="h-5 w-5 shrink-0 text-primary-light"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M5 13l4 4L19 7"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-									/>
-								</svg>
-								{t("landing.proPlanFeature6")}
-							</li>
-						</ul>
-						<Button as="link" fullWidth href="/login" variant="gradient">
-							{t("landing.upgradeNow")}
-						</Button>
-					</Card>
+							<ul class="mb-8 space-y-3">
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature1")}
+								</li>
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature2")}
+								</li>
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature3")}
+								</li>
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature4")}
+								</li>
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature5")}
+								</li>
+								<li class="flex items-center gap-3 text-neutral-600">
+									<svg
+										aria-hidden="true"
+										class="h-5 w-5 shrink-0 text-primary-light"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M5 13l4 4L19 7"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+										/>
+									</svg>
+									{t("landing.proPlanFeature6")}
+								</li>
+							</ul>
+							<Button as="link" fullWidth href="/login" variant="gradient">
+								{t("landing.upgradeNow")}
+							</Button>
+						</Card>
+					</div>
 				</div>
 			</div>
 		</section>
