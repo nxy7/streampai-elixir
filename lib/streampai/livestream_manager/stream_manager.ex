@@ -291,6 +291,16 @@ defmodule Streampai.LivestreamManager.StreamManager do
   end
 
   def handle_event(:info, {:strategy_event, :encoder_disconnected}, state, data) do
+    # Delegate to strategy so it can clean up (e.g. stop transcription client)
+    data =
+      case data.strategy_module.handle_event(data.strategy_state, :encoder_disconnected) do
+        {:status_change, _status, new_strategy_state} ->
+          %{data | strategy_state: new_strategy_state}
+
+        :ignore ->
+          data
+      end
+
     {next_state, data, actions} = apply_input_status_change(:offline, state, data)
     {:next_state, next_state, data, actions}
   end
@@ -665,7 +675,7 @@ defmodule Streampai.LivestreamManager.StreamManager do
 
     data =
       if data.strategy_state do
-        put_in(data, [:strategy_state, :transcription_client_pid], nil)
+        %{data | strategy_state: Map.put(data.strategy_state, :transcription_client_pid, nil)}
       else
         data
       end

@@ -199,7 +199,7 @@ config :streampai,
   membrane_rtmp_host: "localhost",
   whisper_live_enabled: false,
   whisper_live_url: "ws://localhost:9090",
-  whisper_live_model: "large-v3-turbo",
+  whisper_live_model: "tiny",
   whisper_live_language: nil
 
 # Configure Tesla to disable deprecated builder warnings

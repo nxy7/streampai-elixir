@@ -375,8 +375,9 @@ body {
   background: var(--app-bg);
 }
 
+html:has([data-widget-embed]),
 body:has([data-widget-embed]) {
-  background: transparent;
+  background: transparent !important;
 }
 
 /* View Transition: diagonal wipe for theme toggle */

@@ -16,7 +16,7 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
   @reconnect_delay 3_000
   @max_reconnect_delay 30_000
   @max_reconnect_attempts 5
-  @server_ready_timeout 15_000
+  @server_ready_timeout 120_000
 
   defstruct [
     :user_id,
@@ -32,7 +32,8 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
     :ws_transport,
     server_ready: false,
     reconnect_attempts: 0,
-    max_reconnect_attempts: @max_reconnect_attempts
+    max_reconnect_attempts: @max_reconnect_attempts,
+    last_segments: []
   ]
 
   ## Public API
@@ -104,7 +105,15 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
       {:ok, ws_pid, stream_ref} ->
         new_state = %{state | websocket_pid: ws_pid, stream_ref: stream_ref}
         Logger.info("[Transcription] Connected to WhisperLive")
-        {:noreply, new_state}
+
+        # Send config immediately — the upgrade was consumed in connect_websocket,
+        # so the gun_upgrade handle_info callback won't fire.
+        send_config(new_state)
+
+        if new_state.ready_timeout_ref, do: Process.cancel_timer(new_state.ready_timeout_ref)
+        timeout_ref = Process.send_after(self(), :server_ready_timeout, @server_ready_timeout)
+
+        {:noreply, %{new_state | ready_timeout_ref: timeout_ref}}
 
       {:error, reason} ->
         Logger.error("[Transcription] Failed to connect: #{inspect(reason)}")
@@ -177,7 +186,7 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
         {:noreply, %{state | server_ready: true, ready_timeout_ref: nil, reconnect_attempts: 0}}
 
       {:ok, %{"segments" => segments}} when is_list(segments) ->
-        handle_segments(segments, state)
+        state = handle_segments(segments, state)
         {:noreply, state}
 
       {:ok, %{"status" => "WAIT", "message" => msg}} ->
@@ -323,34 +332,33 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
   end
 
   defp send_config(state) do
-    model = Application.get_env(:streampai, :whisper_live_model, "large-v3-turbo")
+    model = Application.get_env(:streampai, :whisper_live_model, "tiny")
     language = Application.get_env(:streampai, :whisper_live_language)
 
-    config =
-      then(
-        %{
-          uid: state.user_id,
-          task: "transcribe",
-          model: model,
-          use_vad: true
-        },
-        fn cfg ->
-          if language, do: Map.put(cfg, :language, language), else: cfg
-        end
-      )
+    config = %{
+      uid: state.user_id,
+      task: "transcribe",
+      model: model,
+      language: language,
+      use_vad: false
+    }
 
+    Logger.info("[Transcription] Sending config: model=#{model}, language=#{language || "auto"}")
     :gun.ws_send(state.websocket_pid, state.stream_ref, {:text, Jason.encode!(config)})
   end
 
   defp handle_segments(segments, state) do
-    Enum.each(segments, fn segment ->
-      text = String.trim(segment["text"] || "")
+    # Build a fingerprint for each segment to detect changes.
+    # WhisperLive sends its full segment list on every update, so we only log new/changed ones.
+    current =
+      Enum.map(segments, fn seg ->
+        {seg["start"], seg["end"], String.trim(seg["text"] || ""), seg["completed"] || false}
+      end)
 
+    new_segments = current -- state.last_segments
+
+    Enum.each(new_segments, fn {start_time, end_time, text, completed} ->
       if text != "" do
-        completed = segment["completed"] || false
-        start_time = segment["start"]
-        end_time = segment["end"]
-
         prefix = if completed, do: "[FINAL]", else: "[partial]"
 
         Logger.info(
@@ -359,9 +367,18 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
         )
       end
     end)
+
+    %{state | last_segments: current}
   end
 
   defp format_time(nil), do: "?"
+
+  defp format_time(seconds) when is_binary(seconds) do
+    case Float.parse(seconds) do
+      {num, _} -> format_time(num)
+      :error -> seconds
+    end
+  end
 
   defp format_time(seconds) when is_number(seconds) do
     mins = trunc(seconds / 60)

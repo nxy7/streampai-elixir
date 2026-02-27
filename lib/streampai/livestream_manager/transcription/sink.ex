@@ -14,7 +14,7 @@ defmodule Streampai.LivestreamManager.Transcription.Sink do
   require Membrane.Logger
 
   def_input_pad(:input,
-    flow_control: :push,
+    flow_control: :auto,
     accepted_format: Membrane.RawAudio
   )
 
