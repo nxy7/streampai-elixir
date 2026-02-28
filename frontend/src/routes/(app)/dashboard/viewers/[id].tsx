@@ -1,5 +1,6 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { For, Show, createMemo, createResource } from "solid-js";
+import UserAvatar from "~/components/UserAvatar";
 import { Alert, Badge, Card, Skeleton } from "~/design-system";
 import { text } from "~/design-system/design-system";
 import { useTranslation } from "~/i18n";
@@ -495,21 +496,11 @@ export default function ViewerDetail() {
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
 							<div class="flex items-center">
-								<Show
-									fallback={
-										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-300">
-											<span class="font-medium text-neutral-600 text-xl">
-												{viewer()?.displayName.charAt(0).toUpperCase()}
-											</span>
-										</div>
-									}
-									when={viewer()?.avatarUrl}>
-									<img
-										alt={viewer()?.displayName}
-										class="h-12 w-12 rounded-full"
-										src={viewer()?.avatarUrl ?? ""}
-									/>
-								</Show>
+								<UserAvatar
+									avatarUrl={viewer()?.avatarUrl}
+									name={viewer()?.displayName}
+									size="md"
+								/>
 								<div class="ml-4">
 									<h1 class="font-bold text-2xl text-neutral-900">
 										{viewer()?.displayName}

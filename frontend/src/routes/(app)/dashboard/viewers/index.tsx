@@ -1,5 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import { For, Show, createResource, createSignal } from "solid-js";
+import UserAvatar from "~/components/UserAvatar";
 import { Alert, Select, Skeleton } from "~/design-system";
 import Badge from "~/design-system/Badge";
 import Button from "~/design-system/Button";
@@ -371,21 +372,12 @@ export default function Viewers() {
 											}
 											type="button">
 											<div class="flex items-start gap-3">
-												<Show
-													fallback={
-														<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-200">
-															<span class="font-semibold text-lg text-neutral-500">
-																{viewer.displayName[0].toUpperCase()}
-															</span>
-														</div>
-													}
-													when={viewer.avatarUrl}>
-													<img
-														alt={viewer.displayName}
-														class="h-12 w-12 shrink-0 rounded-full"
-														src={viewer.avatarUrl}
-													/>
-												</Show>
+												<UserAvatar
+													avatarUrl={viewer.avatarUrl}
+													class="shrink-0"
+													name={viewer.displayName}
+													size="md"
+												/>
 
 												<div class="min-w-0 flex-1">
 													{/* Viewer Name and All Badges */}

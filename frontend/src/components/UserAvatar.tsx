@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import { cn } from "~/design-system/design-system";
 
 export interface UserAvatarProps {
@@ -16,7 +16,11 @@ const sizeClasses = {
 
 export default function UserAvatar(props: UserAvatarProps) {
 	const size = () => props.size ?? "md";
-	const initial = () => props.name?.[0]?.toUpperCase() || "?";
+	const initial = () => {
+		const name = props.name?.replace(/^@/, "");
+		return name?.[0]?.toUpperCase() || "?";
+	};
+	const [imgFailed, setImgFailed] = createSignal(false);
 
 	return (
 		<div
@@ -27,10 +31,11 @@ export default function UserAvatar(props: UserAvatarProps) {
 			)}>
 			<Show
 				fallback={<span class="font-bold text-white">{initial()}</span>}
-				when={props.avatarUrl}>
+				when={props.avatarUrl && !imgFailed()}>
 				<img
 					alt={props.name || "User"}
 					class="h-full w-full object-cover"
+					onError={() => setImgFailed(true)}
 					src={props.avatarUrl ?? ""}
 				/>
 			</Show>
