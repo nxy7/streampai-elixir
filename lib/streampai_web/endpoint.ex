@@ -51,6 +51,8 @@ defmodule StreampaiWeb.Endpoint do
   plug StreampaiWeb.Router
 
   def log_level(%{path_info: ["api", "shapes" | _]}), do: false
+  def log_level(%{path_info: ["metrics"]}), do: false
+  def log_level(%{path_info: ["api", "health"]}), do: false
   def log_level(_), do: :info
 
   defp cors(conn, _opts) do

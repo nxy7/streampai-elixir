@@ -9,6 +9,7 @@
 import type { ActionConfig } from "~/sdk/ash_rpc";
 import { getApiBase } from "./constants";
 import { getCsrfHeaders } from "./csrf";
+import { getTraceparentHeader } from "./tracing";
 
 /**
  * Global service availability signal.
@@ -63,12 +64,14 @@ export function beforeRequest(
 	config: ActionConfig,
 ): ActionConfig {
 	const csrfHeaders = getCsrfHeaders();
+	const traceHeaders = getTraceparentHeader();
 
 	return {
 		...config,
 		headers: {
 			...config.headers,
 			...csrfHeaders,
+			...traceHeaders,
 		},
 		fetchOptions: {
 			...config.fetchOptions,

@@ -74,6 +74,12 @@ services:
       S3_REGION: ${S3_REGION:-auto}
       S3_PUBLIC_URL: ${S3_PUBLIC_URL}
 
+      # Observability (Grafana Cloud)
+      # Set these to enable tracing/metrics export to Grafana Cloud
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_SERVICE_NAMESPACE: production
+
     depends_on:
       - postgres
     networks:

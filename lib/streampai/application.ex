@@ -8,6 +8,12 @@ defmodule Streampai.Application do
   def start(_type, _args) do
     Logger.info("streampai startup")
 
+    # OpenTelemetry auto-instrumentation setup
+    OpentelemetryBandit.setup()
+    OpentelemetryPhoenix.setup(adapter: :bandit)
+    OpentelemetryEcto.setup([:streampai, :repo])
+    OpentelemetryOban.setup()
+
     # Initialize ETS tables
     :ets.new(:rate_limiter, [:set, :public, :named_table])
     :ets.new(:streampai_errors, [:named_table, :public, :set, {:read_concurrency, true}])
@@ -23,6 +29,7 @@ defmodule Streampai.Application do
       Enum.reject(
         [
           StreampaiWeb.Telemetry,
+          StreampaiWeb.PromEx,
           Streampai.Repo,
           Streampai.Vault,
           {Oban,

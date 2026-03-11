@@ -26,7 +26,9 @@ defmodule Streampai.MixProject do
       extra_applications: [
         :logger,
         :runtime_tools,
-        :inets
+        :inets,
+        :opentelemetry_exporter,
+        :opentelemetry
       ]
     ]
   end
@@ -109,7 +111,18 @@ defmodule Streampai.MixProject do
       # Bumblebee Whisper for native speech-to-text transcription
       {:bumblebee, "~> 0.6"},
       {:nx, "~> 0.9"},
-      {:torchx, "~> 0.9"}
+      {:torchx, "~> 0.9"},
+      # OpenTelemetry core
+      {:opentelemetry, "~> 1.7"},
+      {:opentelemetry_api, "~> 1.5"},
+      {:opentelemetry_exporter, "~> 1.10"},
+      # OpenTelemetry auto-instrumentation
+      {:opentelemetry_phoenix, "~> 2.0"},
+      {:opentelemetry_ecto, "~> 1.2"},
+      {:opentelemetry_oban, "~> 1.2"},
+      {:opentelemetry_bandit, "~> 0.3"},
+      # Prometheus metrics with pre-built dashboards
+      {:prom_ex, "~> 1.11"}
     ]
   end
 

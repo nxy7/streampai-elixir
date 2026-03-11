@@ -82,6 +82,11 @@ defmodule StreampaiWeb.Router do
     plug(RequireAdminUser)
   end
 
+  # Prometheus metrics endpoint (scraped by Prometheus, not for public access)
+  scope "/" do
+    get("/metrics", PromEx.Plug, prom_ex_module: StreampaiWeb.PromEx)
+  end
+
   # Admin routes (not prefixed with /api - internal only)
   scope "/admin" do
     pipe_through(:admin)
@@ -135,6 +140,7 @@ defmodule StreampaiWeb.Router do
     pipe_through(:api)
 
     get("/health", MonitoringController, :health_check)
+    post("/errors/report", ErrorReportController, :report)
     post("/webhooks/cloudflare/stream", CloudflareWebhookController, :handle_webhook)
     post("/webhooks/paypal", PayPalWebhookController, :handle_webhook)
     post("/webhooks/paddle", PaddleWebhookController, :handle_webhook)

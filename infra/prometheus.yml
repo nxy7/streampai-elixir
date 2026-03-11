@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape PromEx metrics from Phoenix app
+  - job_name: "streampai"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:4000"]
+    metrics_path: "/metrics"
+
+  # Scrape OTel Collector's Prometheus exporter
+  - job_name: "otel-collector"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["otel-collector:8889"]

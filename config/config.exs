@@ -10,6 +10,7 @@ electric_worktree_id =
   |> String.replace("-", "_")
 
 config :ash,
+  tracer: [Streampai.OtelAshTracer],
   include_embedded_source_by_default?: false,
   default_page_type: :keyset,
   policies: [no_filter_static_forbidden_reads?: false],
@@ -45,6 +46,14 @@ config :ash_typescript,
       import_name: "RpcHooks",
       file: "../lib/rpcHooks"
     }
+  ]
+
+config :logger,
+  default_handler: [
+    filters: [
+      electric_noise:
+        {Streampai.LogFilter, :filter_electric_noise}
+    ]
   ]
 
 config :logger, :default_formatter,

@@ -24,6 +24,12 @@ if System.get_env("PHX_SERVER") do
   config :streampai, StreampaiWeb.Endpoint, server: true
 end
 
+# OpenTelemetry configuration
+# Dev: sends to local OTel Collector (Docker)
+# Prod: sends to Grafana Cloud OTLP endpoint (set OTEL_EXPORTER_OTLP_ENDPOINT + OTEL_EXPORTER_OTLP_HEADERS)
+# Test: disabled
+otel_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT") || "http://localhost:4318"
+
 # Database configuration for all environments
 database_url =
   case env do
@@ -52,17 +58,53 @@ pool_size =
     :prod -> String.to_integer(System.get_env("POOL_SIZE") || "25")
   end
 
+if env == :test do
+  config :opentelemetry,
+    traces_exporter: :none
+else
+  # Grafana Cloud: set OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64(instanceId:token)>"
+  otel_headers =
+    case System.get_env("OTEL_EXPORTER_OTLP_HEADERS") do
+      nil ->
+        []
+
+      headers_str ->
+        headers_str
+        |> String.split(",")
+        |> Enum.map(fn h ->
+          [k, v] = String.split(h, "=", parts: 2)
+          {k, v}
+        end)
+    end
+
+  config :opentelemetry,
+    resource: [
+      service: [
+        name: "streampai",
+        version: "0.3.1",
+        namespace: System.get_env("OTEL_SERVICE_NAMESPACE") || to_string(env)
+      ]
+    ],
+    span_processor: :batch,
+    traces_exporter: :otlp
+
+  config :opentelemetry_exporter,
+    otlp_protocol: :http_protobuf,
+    otlp_endpoint: otel_endpoint,
+    otlp_headers: otel_headers
+end
+
 config :streampai, Streampai.Repo,
   url: database_url,
   pool_size: pool_size,
   show_sensitive_data_on_connection_error: env != :prod,
   queue_target: 5000,
+  # Configure Electric with unique slot/publication names per database
+  # This is required for worktrees that use different databases
   queue_interval: 1000,
   timeout: 15_000,
   ownership_timeout: 30_000
 
-# Configure Electric with unique slot/publication names per database
-# This is required for worktrees that use different databases
 if env == :dev do
   # Extract database name from URL to create unique Electric identifiers
   db_name =

@@ -60,8 +60,70 @@ services:
       timeout: 5s
       retries: 5
 
+  # --- Observability Stack ---
+
+  otel-collector:
+    container_name: ${COMPOSE_PROJECT_NAME:-streampai}_otel_collector
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    restart: unless-stopped
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+    volumes:
+      - ./infra/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    depends_on:
+      - tempo
+
+  prometheus:
+    container_name: ${COMPOSE_PROJECT_NAME:-streampai}_prometheus
+    image: prom/prometheus:v3.4.0
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  tempo:
+    container_name: ${COMPOSE_PROJECT_NAME:-streampai}_tempo
+    image: grafana/tempo:2.7.2
+    restart: unless-stopped
+    ports:
+      - "${TEMPO_PORT:-3200}:3200"
+    volumes:
+      - ./infra/tempo.yaml:/etc/tempo/config.yaml
+      - tempo_data:/var/tempo
+    command: ["-config.file=/etc/tempo/config.yaml"]
+
+  grafana:
+    container_name: ${COMPOSE_PROJECT_NAME:-streampai}_grafana
+    image: grafana/grafana:11.6.0
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3100}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - tempo
+
 volumes:
   postgres_data:
     driver: local
   minio_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  tempo_data:
+    driver: local
+  grafana_data:
     driver: local
