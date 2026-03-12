@@ -15,391 +15,38 @@ export type UUID = string;
 export type UtcDateTime = string;
 export type UtcDateTimeUsec = string;
 
-// Livestream Schema
-export type LivestreamResourceSchema = {
+// SmartCanvasLayout Schema
+export type SmartCanvasLayoutResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId" | "averageViewers" | "peakViewers" | "messagesAmount" | "durationSeconds" | "platforms";
+  __primitiveFields: "id" | "userId" | "widgets";
   id: UUID;
-  title: string;
-  description: string | null;
-  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
-  subcategory: string | null;
-  language: string | null;
-  tags: Array<string> | null;
-  thumbnailUrl: string | null;
-  thumbnailFileId: UUID | null;
-  startedAt: UtcDateTime;
-  endedAt: UtcDateTime | null;
   userId: UUID;
-  averageViewers: number | null;
-  peakViewers: number | null;
-  messagesAmount: number | null;
-  durationSeconds: number | null;
-  platforms: Array<string> | null;
-  user: { __type: "Relationship"; __resource: UserResourceSchema; };
-  thumbnailFile: { __type: "Relationship"; __resource: FileResourceSchema | null; };
-  streamEvents: { __type: "Relationship"; __array: true; __resource: StreamEventResourceSchema; };
-};
-
-
-
-export type LivestreamAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId";
-  id: UUID;
-  title: string;
-  description: string | null;
-  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
-  subcategory: string | null;
-  language: string | null;
-  tags: Array<string> | null;
-  thumbnailUrl: string | null;
-  thumbnailFileId: UUID | null;
-  startedAt: UtcDateTime;
-  endedAt: UtcDateTime | null;
-  userId: UUID;
-};
-
-
-// StreamEvent Schema
-export type StreamEventResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
-  id: UUID;
-  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
-  authorId: string;
-  livestreamId: UUID;
-  userId: UUID;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
-  viewerId: string | null;
-  wasDisplayed: boolean | null;
-  insertedAt: UtcDateTimeUsec;
-  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
-};
-
-
-
-export type StreamEventAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
-  id: UUID;
-  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
-  authorId: string;
-  livestreamId: UUID;
-  userId: UUID;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
-  viewerId: string | null;
-  wasDisplayed: boolean | null;
-  insertedAt: UtcDateTimeUsec;
-  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataAttributesOnlySchema; donation?: StreampaiStreamEventDataDonationDataAttributesOnlySchema; follow?: StreampaiStreamEventDataFollowDataAttributesOnlySchema; subscription?: StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema; raid?: StreampaiStreamEventDataRaidDataAttributesOnlySchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataAttributesOnlySchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; };
-};
-
-
-// StreamViewer Schema
-export type StreamViewerResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
-  viewerId: string;
-  userId: UUID;
-  platform: "twitch" | "youtube" | "facebook" | "kick";
-  displayName: string;
-  avatarUrl: string | null;
-  channelUrl: string | null;
-  isVerified: boolean | null;
-  isOwner: boolean | null;
-  isModerator: boolean | null;
-  isPatreon: boolean | null;
-  notes: string | null;
-  aiSummary: string | null;
-  firstSeenAt: UtcDateTimeUsec;
-  lastSeenAt: UtcDateTimeUsec;
-};
-
-
-
-export type StreamViewerAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
-  viewerId: string;
-  userId: UUID;
-  platform: "twitch" | "youtube" | "facebook" | "kick";
-  displayName: string;
-  avatarUrl: string | null;
-  channelUrl: string | null;
-  isVerified: boolean | null;
-  isOwner: boolean | null;
-  isModerator: boolean | null;
-  isPatreon: boolean | null;
-  notes: string | null;
-  aiSummary: string | null;
-  firstSeenAt: UtcDateTimeUsec;
-  lastSeenAt: UtcDateTimeUsec;
-};
-
-
-// BannedViewer Schema
-export type BannedViewerResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  viewerUsername: string;
-  viewerPlatformId: string;
-  reason: string | null;
-  durationSeconds: number | null;
-  expiresAt: UtcDateTimeUsec | null;
-  isActive: boolean;
-  platformBanId: string | null;
-  unbannedAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-
-export type BannedViewerAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  viewerUsername: string;
-  viewerPlatformId: string;
-  reason: string | null;
-  durationSeconds: number | null;
-  expiresAt: UtcDateTimeUsec | null;
-  isActive: boolean;
-  platformBanId: string | null;
-  unbannedAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-// CurrentStreamData Schema
-export type CurrentStreamDataResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData" | "activeAlert" | "highlightedMessage" | "alertboxState";
-  id: UUID;
-  status: string;
-  streamData: Record<string, any>;
-  cloudflareData: Record<string, any>;
-  youtubeData: Record<string, any>;
-  twitchData: Record<string, any>;
-  kickData: Record<string, any>;
-  activeAlert: Record<string, any> | null;
-  highlightedMessage: Record<string, any> | null;
-  alertboxState: Record<string, any>;
-};
-
-
-
-export type CurrentStreamDataAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData" | "activeAlert" | "highlightedMessage" | "alertboxState";
-  id: UUID;
-  status: string;
-  streamData: Record<string, any>;
-  cloudflareData: Record<string, any>;
-  youtubeData: Record<string, any>;
-  twitchData: Record<string, any>;
-  kickData: Record<string, any>;
-  activeAlert: Record<string, any> | null;
-  highlightedMessage: Record<string, any> | null;
-  alertboxState: Record<string, any>;
-};
-
-
-// StreamTimer Schema
-export type StreamTimerResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "disabledAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  label: string;
-  content: string;
-  intervalSeconds: number;
-  disabledAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-
-export type StreamTimerAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "disabledAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  label: string;
-  content: string;
-  intervalSeconds: number;
-  disabledAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-// HighlightedMessage Schema
-export type HighlightedMessageResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
-  id: UUID;
-  chatMessageId: string;
-  message: string;
-  senderUsername: string;
-  senderChannelId: string;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  viewerId: string | null;
-  highlightedAt: UtcDateTimeUsec;
-  userId: UUID;
+  widgets: Array<Record<string, any>>;
   user: { __type: "Relationship"; __resource: UserResourceSchema; };
 };
 
 
 
-export type HighlightedMessageAttributesOnlySchema = {
+export type SmartCanvasLayoutAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
+  __primitiveFields: "id" | "userId" | "widgets";
   id: UUID;
-  chatMessageId: string;
-  message: string;
-  senderUsername: string;
-  senderChannelId: string;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  viewerId: string | null;
-  highlightedAt: UtcDateTimeUsec;
   userId: UUID;
+  widgets: Array<Record<string, any>>;
 };
 
 
-// ChatBotConfig Schema
-export type ChatBotConfigResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
-  id: UUID;
-  enabled: boolean;
-  greetingEnabled: boolean;
-  greetingMessage: string;
-  commandPrefix: string;
-  aiChatEnabled: boolean;
-  aiPersonality: string | null;
-  aiBotName: string;
-  aiProvider: string;
-  autoShoutoutEnabled: boolean;
-  linkProtectionEnabled: boolean;
-  slowModeOnRaidEnabled: boolean;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-
-export type ChatBotConfigAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
-  id: UUID;
-  enabled: boolean;
-  greetingEnabled: boolean;
-  greetingMessage: string;
-  commandPrefix: string;
-  aiChatEnabled: boolean;
-  aiPersonality: string | null;
-  aiBotName: string;
-  aiProvider: string;
-  autoShoutoutEnabled: boolean;
-  linkProtectionEnabled: boolean;
-  slowModeOnRaidEnabled: boolean;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-// StreamHook Schema
-export type StreamHookResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  name: string;
-  enabled: boolean;
-  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  conditions: Record<string, any> | null;
-  actionType: "webhook" | "discord_message" | "chat_message" | "email";
-  actionConfig: Record<string, any>;
-  cooldownSeconds: number;
-  lastTriggeredAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-
-export type StreamHookAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
-  id: UUID;
-  name: string;
-  enabled: boolean;
-  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  conditions: Record<string, any> | null;
-  actionType: "webhook" | "discord_message" | "chat_message" | "email";
-  actionConfig: Record<string, any>;
-  cooldownSeconds: number;
-  lastTriggeredAt: UtcDateTimeUsec | null;
-  insertedAt: UtcDateTimeUsec;
-  updatedAt: UtcDateTimeUsec;
-};
-
-
-// StreamHookLog Schema
-export type StreamHookLogResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
-  id: UUID;
-  hookId: UUID;
-  userId: UUID;
-  streamEventId: UUID | null;
-  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  actionType: "webhook" | "discord_message" | "chat_message" | "email";
-  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
-  errorMessage: string | null;
-  executedAt: UtcDateTimeUsec;
-  durationMs: number | null;
-  insertedAt: UtcDateTimeUsec;
-};
-
-
-
-export type StreamHookLogAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
-  id: UUID;
-  hookId: UUID;
-  userId: UUID;
-  streamEventId: UUID | null;
-  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  actionType: "webhook" | "discord_message" | "chat_message" | "email";
-  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
-  errorMessage: string | null;
-  executedAt: UtcDateTimeUsec;
-  durationMs: number | null;
-  insertedAt: UtcDateTimeUsec;
-};
-
-
-// StreamAction Schema
-export type StreamActionResourceSchema = {
+// StreamingAccount Schema
+export type StreamingAccountResourceSchema = {
   __type: "Resource";
   __primitiveFields: never;
 };
 
 
 
-export type StreamActionAttributesOnlySchema = {
+export type StreamingAccountAttributesOnlySchema = {
   __type: "Resource";
   __primitiveFields: never;
-};
-
-
-export type StreamActionInputSchema = {
-
 };
 
 
@@ -503,41 +150,6 @@ export type WidgetConfigAttributesOnlySchema = {
 };
 
 
-// StreamingAccount Schema
-export type StreamingAccountResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: never;
-};
-
-
-
-export type StreamingAccountAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: never;
-};
-
-
-// SmartCanvasLayout Schema
-export type SmartCanvasLayoutResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "userId" | "widgets";
-  id: UUID;
-  userId: UUID;
-  widgets: Array<Record<string, any>>;
-  user: { __type: "Relationship"; __resource: UserResourceSchema; };
-};
-
-
-
-export type SmartCanvasLayoutAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id" | "userId" | "widgets";
-  id: UUID;
-  userId: UUID;
-  widgets: Array<Record<string, any>>;
-};
-
-
 // LiveInput Schema
 export type LiveInputResourceSchema = {
   __type: "Resource";
@@ -555,22 +167,6 @@ export type LiveInputAttributesOnlySchema = {
   userId: UUID;
   orientation: "horizontal" | "vertical";
   data: Record<string, any>;
-};
-
-
-// DiscordWebhook Schema
-export type DiscordWebhookResourceSchema = {
-  __type: "Resource";
-  __primitiveFields: "id";
-  id: UUID;
-};
-
-
-
-export type DiscordWebhookAttributesOnlySchema = {
-  __type: "Resource";
-  __primitiveFields: "id";
-  id: UUID;
 };
 
 
@@ -593,6 +189,22 @@ export type DiscordActorAttributesOnlySchema = {
   type: string;
   data: Record<string, any>;
   status: "active" | "paused" | "terminated";
+};
+
+
+// DiscordWebhook Schema
+export type DiscordWebhookResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
+};
+
+
+
+export type DiscordWebhookAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id";
+  id: UUID;
 };
 
 
@@ -684,59 +296,117 @@ export type FileAttributesOnlySchema = {
 };
 
 
-// SupportTicket Schema
-export type SupportTicketResourceSchema = {
+// BannedViewer Schema
+export type BannedViewerResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  subject: string;
-  status: "open" | "resolved";
-  ticketType: "support" | "feature_request" | "bug_report";
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerUsername: string;
+  viewerPlatformId: string;
+  reason: string | null;
+  durationSeconds: number | null;
+  expiresAt: UtcDateTimeUsec | null;
+  isActive: boolean;
+  platformBanId: string | null;
+  unbannedAt: UtcDateTimeUsec | null;
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
-  userId: UUID;
-  user: { __type: "Relationship"; __resource: UserResourceSchema; };
-  messages: { __type: "Relationship"; __array: true; __resource: SupportMessageResourceSchema; };
 };
 
 
 
-export type SupportTicketAttributesOnlySchema = {
+export type BannedViewerAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  __primitiveFields: "id" | "platform" | "viewerUsername" | "viewerPlatformId" | "reason" | "durationSeconds" | "expiresAt" | "isActive" | "platformBanId" | "unbannedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  subject: string;
-  status: "open" | "resolved";
-  ticketType: "support" | "feature_request" | "bug_report";
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerUsername: string;
+  viewerPlatformId: string;
+  reason: string | null;
+  durationSeconds: number | null;
+  expiresAt: UtcDateTimeUsec | null;
+  isActive: boolean;
+  platformBanId: string | null;
+  unbannedAt: UtcDateTimeUsec | null;
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
-  userId: UUID;
 };
 
 
-// SupportMessage Schema
-export type SupportMessageResourceSchema = {
+// ChatBotConfig Schema
+export type ChatBotConfigResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
   id: UUID;
-  content: string;
+  enabled: boolean;
+  greetingEnabled: boolean;
+  greetingMessage: string;
+  commandPrefix: string;
+  aiChatEnabled: boolean;
+  aiPersonality: string | null;
+  aiBotName: string;
+  aiProvider: string;
+  autoShoutoutEnabled: boolean;
+  linkProtectionEnabled: boolean;
+  slowModeOnRaidEnabled: boolean;
   insertedAt: UtcDateTimeUsec;
-  ticketId: UUID;
-  userId: UUID;
-  ticket: { __type: "Relationship"; __resource: SupportTicketResourceSchema; };
-  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  updatedAt: UtcDateTimeUsec;
 };
 
 
 
-export type SupportMessageAttributesOnlySchema = {
+export type ChatBotConfigAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  __primitiveFields: "id" | "enabled" | "greetingEnabled" | "greetingMessage" | "commandPrefix" | "aiChatEnabled" | "aiPersonality" | "aiBotName" | "aiProvider" | "autoShoutoutEnabled" | "linkProtectionEnabled" | "slowModeOnRaidEnabled" | "insertedAt" | "updatedAt";
   id: UUID;
-  content: string;
+  enabled: boolean;
+  greetingEnabled: boolean;
+  greetingMessage: string;
+  commandPrefix: string;
+  aiChatEnabled: boolean;
+  aiPersonality: string | null;
+  aiBotName: string;
+  aiProvider: string;
+  autoShoutoutEnabled: boolean;
+  linkProtectionEnabled: boolean;
+  slowModeOnRaidEnabled: boolean;
   insertedAt: UtcDateTimeUsec;
-  ticketId: UUID;
-  userId: UUID;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+// CurrentStreamData Schema
+export type CurrentStreamDataResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData" | "activeAlert" | "highlightedMessage" | "alertboxState";
+  id: UUID;
+  status: string;
+  streamData: Record<string, any>;
+  cloudflareData: Record<string, any>;
+  youtubeData: Record<string, any>;
+  twitchData: Record<string, any>;
+  kickData: Record<string, any>;
+  activeAlert: Record<string, any> | null;
+  highlightedMessage: Record<string, any> | null;
+  alertboxState: Record<string, any>;
+};
+
+
+
+export type CurrentStreamDataAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "status" | "streamData" | "cloudflareData" | "youtubeData" | "twitchData" | "kickData" | "activeAlert" | "highlightedMessage" | "alertboxState";
+  id: UUID;
+  status: string;
+  streamData: Record<string, any>;
+  cloudflareData: Record<string, any>;
+  youtubeData: Record<string, any>;
+  twitchData: Record<string, any>;
+  kickData: Record<string, any>;
+  activeAlert: Record<string, any> | null;
+  highlightedMessage: Record<string, any> | null;
+  alertboxState: Record<string, any>;
 };
 
 
@@ -857,39 +527,24 @@ export type StreampaiStreamEventDataFollowDataInputSchema = {
 };
 
 
-// StreampaiStreamEventDataSubscriptionData Schema
-export type StreampaiStreamEventDataSubscriptionDataResourceSchema = {
+// StreampaiStreamEventDataPlatformEventData Schema
+export type StreampaiStreamEventDataPlatformEventDataResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
-  username: string;
-  tier: string;
-  months: string | null;
-  message: string | null;
-  channelId: string | null;
-  metadata: Record<string, any> | null;
+  __primitiveFields: "platform";
+  platform: string;
 };
 
 
 
-export type StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema = {
+export type StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
-  username: string;
-  tier: string;
-  months: string | null;
-  message: string | null;
-  channelId: string | null;
-  metadata: Record<string, any> | null;
+  __primitiveFields: "platform";
+  platform: string;
 };
 
 
-export type StreampaiStreamEventDataSubscriptionDataInputSchema = {
-  username: string;
-  tier: string;
-  months?: string | null;
-  message?: string | null;
-  channelId?: string | null;
-  metadata?: Record<string, any> | null;
+export type StreampaiStreamEventDataPlatformEventDataInputSchema = {
+  platform: string;
 };
 
 
@@ -953,106 +608,383 @@ export type StreampaiStreamEventDataStreamUpdatedDataInputSchema = {
 };
 
 
-// StreampaiStreamEventDataPlatformEventData Schema
-export type StreampaiStreamEventDataPlatformEventDataResourceSchema = {
+// StreampaiStreamEventDataSubscriptionData Schema
+export type StreampaiStreamEventDataSubscriptionDataResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "platform";
-  platform: string;
+  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
+  username: string;
+  tier: string;
+  months: string | null;
+  message: string | null;
+  channelId: string | null;
+  metadata: Record<string, any> | null;
 };
 
 
 
-export type StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema = {
+export type StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "platform";
-  platform: string;
+  __primitiveFields: "username" | "tier" | "months" | "message" | "channelId" | "metadata";
+  username: string;
+  tier: string;
+  months: string | null;
+  message: string | null;
+  channelId: string | null;
+  metadata: Record<string, any> | null;
 };
 
 
-export type StreampaiStreamEventDataPlatformEventDataInputSchema = {
-  platform: string;
+export type StreampaiStreamEventDataSubscriptionDataInputSchema = {
+  username: string;
+  tier: string;
+  months?: string | null;
+  message?: string | null;
+  channelId?: string | null;
+  metadata?: Record<string, any> | null;
+};
+
+
+// HighlightedMessage Schema
+export type HighlightedMessageResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
+  id: UUID;
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId: string | null;
+  highlightedAt: UtcDateTimeUsec;
+  userId: UUID;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
+export type HighlightedMessageAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "chatMessageId" | "message" | "senderUsername" | "senderChannelId" | "platform" | "viewerId" | "highlightedAt" | "userId";
+  id: UUID;
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId: string | null;
+  highlightedAt: UtcDateTimeUsec;
+  userId: UUID;
+};
+
+
+// Livestream Schema
+export type LivestreamResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId" | "averageViewers" | "peakViewers" | "messagesAmount" | "durationSeconds" | "platforms";
+  id: UUID;
+  title: string;
+  description: string | null;
+  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
+  subcategory: string | null;
+  language: string | null;
+  tags: Array<string> | null;
+  thumbnailUrl: string | null;
+  thumbnailFileId: UUID | null;
+  startedAt: UtcDateTime;
+  endedAt: UtcDateTime | null;
+  userId: UUID;
+  averageViewers: number | null;
+  peakViewers: number | null;
+  messagesAmount: number | null;
+  durationSeconds: number | null;
+  platforms: Array<string> | null;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  thumbnailFile: { __type: "Relationship"; __resource: FileResourceSchema | null; };
+  streamEvents: { __type: "Relationship"; __array: true; __resource: StreamEventResourceSchema; };
+};
+
+
+
+export type LivestreamAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "category" | "subcategory" | "language" | "tags" | "thumbnailUrl" | "thumbnailFileId" | "startedAt" | "endedAt" | "userId";
+  id: UUID;
+  title: string;
+  description: string | null;
+  category: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting" | null;
+  subcategory: string | null;
+  language: string | null;
+  tags: Array<string> | null;
+  thumbnailUrl: string | null;
+  thumbnailFileId: UUID | null;
+  startedAt: UtcDateTime;
+  endedAt: UtcDateTime | null;
+  userId: UUID;
+};
+
+
+// StreamAction Schema
+export type StreamActionResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
+
+
+
+export type StreamActionAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: never;
+};
+
+
+export type StreamActionInputSchema = {
+
+};
+
+
+// StreamEvent Schema
+export type StreamEventResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
+  id: UUID;
+  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+  authorId: string;
+  livestreamId: UUID;
+  userId: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
+  viewerId: string | null;
+  wasDisplayed: boolean | null;
+  insertedAt: UtcDateTimeUsec;
+  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
+};
+
+
+
+export type StreamEventAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "type" | "authorId" | "livestreamId" | "userId" | "platform" | "viewerId" | "wasDisplayed" | "insertedAt";
+  id: UUID;
+  type: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+  authorId: string;
+  livestreamId: UUID;
+  userId: UUID;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" | null;
+  viewerId: string | null;
+  wasDisplayed: boolean | null;
+  insertedAt: UtcDateTimeUsec;
+  data: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataAttributesOnlySchema; donation?: StreampaiStreamEventDataDonationDataAttributesOnlySchema; follow?: StreampaiStreamEventDataFollowDataAttributesOnlySchema; subscription?: StreampaiStreamEventDataSubscriptionDataAttributesOnlySchema; raid?: StreampaiStreamEventDataRaidDataAttributesOnlySchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataAttributesOnlySchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataAttributesOnlySchema; };
+};
+
+
+// StreamHook Schema
+export type StreamHookResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  name: string;
+  enabled: boolean;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions: Record<string, any> | null;
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  cooldownSeconds: number;
+  lastTriggeredAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamHookAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "name" | "enabled" | "triggerType" | "conditions" | "actionType" | "actionConfig" | "cooldownSeconds" | "lastTriggeredAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  name: string;
+  enabled: boolean;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions: Record<string, any> | null;
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  cooldownSeconds: number;
+  lastTriggeredAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+// StreamHookLog Schema
+export type StreamHookLogResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
+  id: UUID;
+  hookId: UUID;
+  userId: UUID;
+  streamEventId: UUID | null;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+  errorMessage: string | null;
+  executedAt: UtcDateTimeUsec;
+  durationMs: number | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamHookLogAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "hookId" | "userId" | "streamEventId" | "triggerType" | "actionType" | "status" | "errorMessage" | "executedAt" | "durationMs" | "insertedAt";
+  id: UUID;
+  hookId: UUID;
+  userId: UUID;
+  streamEventId: UUID | null;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  status: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+  errorMessage: string | null;
+  executedAt: UtcDateTimeUsec;
+  durationMs: number | null;
+  insertedAt: UtcDateTimeUsec;
+};
+
+
+// StreamTimer Schema
+export type StreamTimerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "disabledAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  label: string;
+  content: string;
+  intervalSeconds: number;
+  disabledAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamTimerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "label" | "content" | "intervalSeconds" | "disabledAt" | "insertedAt" | "updatedAt";
+  id: UUID;
+  label: string;
+  content: string;
+  intervalSeconds: number;
+  disabledAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+};
+
+
+// StreamViewer Schema
+export type StreamViewerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
+  viewerId: string;
+  userId: UUID;
+  platform: "twitch" | "youtube" | "facebook" | "kick";
+  displayName: string;
+  avatarUrl: string | null;
+  channelUrl: string | null;
+  isVerified: boolean | null;
+  isOwner: boolean | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  notes: string | null;
+  aiSummary: string | null;
+  firstSeenAt: UtcDateTimeUsec;
+  lastSeenAt: UtcDateTimeUsec;
+};
+
+
+
+export type StreamViewerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "viewerId" | "userId" | "platform" | "displayName" | "avatarUrl" | "channelUrl" | "isVerified" | "isOwner" | "isModerator" | "isPatreon" | "notes" | "aiSummary" | "firstSeenAt" | "lastSeenAt";
+  viewerId: string;
+  userId: UUID;
+  platform: "twitch" | "youtube" | "facebook" | "kick";
+  displayName: string;
+  avatarUrl: string | null;
+  channelUrl: string | null;
+  isVerified: boolean | null;
+  isOwner: boolean | null;
+  isModerator: boolean | null;
+  isPatreon: boolean | null;
+  notes: string | null;
+  aiSummary: string | null;
+  firstSeenAt: UtcDateTimeUsec;
+  lastSeenAt: UtcDateTimeUsec;
+};
+
+
+// SupportMessage Schema
+export type SupportMessageResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  id: UUID;
+  content: string;
+  insertedAt: UtcDateTimeUsec;
+  ticketId: UUID;
+  userId: UUID;
+  ticket: { __type: "Relationship"; __resource: SupportTicketResourceSchema; };
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+};
+
+
+
+export type SupportMessageAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "content" | "insertedAt" | "ticketId" | "userId";
+  id: UUID;
+  content: string;
+  insertedAt: UtcDateTimeUsec;
+  ticketId: UUID;
+  userId: UUID;
+};
+
+
+// SupportTicket Schema
+export type SupportTicketResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  id: UUID;
+  subject: string;
+  status: "open" | "resolved";
+  ticketType: "support" | "feature_request" | "bug_report";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  userId: UUID;
+  user: { __type: "Relationship"; __resource: UserResourceSchema; };
+  messages: { __type: "Relationship"; __array: true; __resource: SupportMessageResourceSchema; };
+};
+
+
+
+export type SupportTicketAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "subject" | "status" | "ticketType" | "insertedAt" | "updatedAt" | "userId";
+  id: UUID;
+  subject: string;
+  status: "open" | "resolved";
+  ticketType: "support" | "feature_request" | "bug_report";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  userId: UUID;
 };
 
 
 
 
-export type LivestreamFilterInput = {
-  and?: Array<LivestreamFilterInput>;
-  or?: Array<LivestreamFilterInput>;
-  not?: Array<LivestreamFilterInput>;
+export type SmartCanvasLayoutFilterInput = {
+  and?: Array<SmartCanvasLayoutFilterInput>;
+  or?: Array<SmartCanvasLayoutFilterInput>;
+  not?: Array<SmartCanvasLayoutFilterInput>;
 
   id?: {
     eq?: UUID;
     notEq?: UUID;
     in?: Array<UUID>;
-  };
-
-  title?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  description?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  category?: {
-    eq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
-    notEq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
-    in?: Array<"gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting">;
-  };
-
-  subcategory?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  language?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  tags?: {
-    eq?: Array<string>;
-    notEq?: Array<string>;
-    in?: Array<Array<string>>;
-  };
-
-  thumbnailUrl?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  thumbnailFileId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  startedAt?: {
-    eq?: UtcDateTime;
-    notEq?: UtcDateTime;
-    greaterThan?: UtcDateTime;
-    greaterThanOrEqual?: UtcDateTime;
-    lessThan?: UtcDateTime;
-    lessThanOrEqual?: UtcDateTime;
-    in?: Array<UtcDateTime>;
-  };
-
-  endedAt?: {
-    eq?: UtcDateTime;
-    notEq?: UtcDateTime;
-    greaterThan?: UtcDateTime;
-    greaterThanOrEqual?: UtcDateTime;
-    lessThan?: UtcDateTime;
-    lessThanOrEqual?: UtcDateTime;
-    in?: Array<UtcDateTime>;
   };
 
   userId?: {
@@ -1061,811 +993,20 @@ export type LivestreamFilterInput = {
     in?: Array<UUID>;
   };
 
-  averageViewers?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  peakViewers?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  messagesAmount?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  durationSeconds?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  platforms?: {
-    eq?: Array<string>;
-    notEq?: Array<string>;
-    in?: Array<Array<string>>;
-  };
-
-
-  user?: UserFilterInput;
-
-  thumbnailFile?: FileFilterInput;
-
-  streamEvents?: StreamEventFilterInput;
-
-};
-export type StreamEventFilterInput = {
-  and?: Array<StreamEventFilterInput>;
-  or?: Array<StreamEventFilterInput>;
-  not?: Array<StreamEventFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  type?: {
-    eq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
-    notEq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
-    in?: Array<"chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped">;
-  };
-
-  data?: {
-    eq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
-    notEq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
-    in?: Array<{ __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; }>;
-  };
-
-  authorId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  livestreamId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  platform?: {
-    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
-  };
-
-  viewerId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  wasDisplayed?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type StreamViewerFilterInput = {
-  and?: Array<StreamViewerFilterInput>;
-  or?: Array<StreamViewerFilterInput>;
-  not?: Array<StreamViewerFilterInput>;
-
-  viewerId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  platform?: {
-    eq?: "twitch" | "youtube" | "facebook" | "kick";
-    notEq?: "twitch" | "youtube" | "facebook" | "kick";
-    in?: Array<"twitch" | "youtube" | "facebook" | "kick">;
-  };
-
-  displayName?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  avatarUrl?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  channelUrl?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  isVerified?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  isOwner?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  isModerator?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  isPatreon?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  notes?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  aiSummary?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  firstSeenAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  lastSeenAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type BannedViewerFilterInput = {
-  and?: Array<BannedViewerFilterInput>;
-  or?: Array<BannedViewerFilterInput>;
-  not?: Array<BannedViewerFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  platform?: {
-    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
-  };
-
-  viewerUsername?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  viewerPlatformId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  reason?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  durationSeconds?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  expiresAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  isActive?: {
-    eq?: boolean;
-    notEq?: boolean;
-  };
-
-  platformBanId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  unbannedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  updatedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type CurrentStreamDataFilterInput = {
-  and?: Array<CurrentStreamDataFilterInput>;
-  or?: Array<CurrentStreamDataFilterInput>;
-  not?: Array<CurrentStreamDataFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  status?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  streamData?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  cloudflareData?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  youtubeData?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  twitchData?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  kickData?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  activeAlert?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  highlightedMessage?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  alertboxState?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-
-
-};
-export type StreamTimerFilterInput = {
-  and?: Array<StreamTimerFilterInput>;
-  or?: Array<StreamTimerFilterInput>;
-  not?: Array<StreamTimerFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  label?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  content?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  intervalSeconds?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  disabledAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  updatedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type HighlightedMessageFilterInput = {
-  and?: Array<HighlightedMessageFilterInput>;
-  or?: Array<HighlightedMessageFilterInput>;
-  not?: Array<HighlightedMessageFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  chatMessageId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  message?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  senderUsername?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  senderChannelId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  platform?: {
-    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
-  };
-
-  viewerId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  highlightedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
+  widgets?: {
+    eq?: Array<Record<string, any>>;
+    notEq?: Array<Record<string, any>>;
+    in?: Array<Array<Record<string, any>>>;
   };
 
 
   user?: UserFilterInput;
 
 };
-export type ChatBotConfigFilterInput = {
-  and?: Array<ChatBotConfigFilterInput>;
-  or?: Array<ChatBotConfigFilterInput>;
-  not?: Array<ChatBotConfigFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  enabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  greetingEnabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  greetingMessage?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  commandPrefix?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  aiChatEnabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  aiPersonality?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  aiBotName?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  aiProvider?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  autoShoutoutEnabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  linkProtectionEnabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  slowModeOnRaidEnabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-    in?: Array<boolean>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  updatedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type StreamHookFilterInput = {
-  and?: Array<StreamHookFilterInput>;
-  or?: Array<StreamHookFilterInput>;
-  not?: Array<StreamHookFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  name?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  enabled?: {
-    eq?: boolean;
-    notEq?: boolean;
-  };
-
-  triggerType?: {
-    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
-  };
-
-  conditions?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  actionType?: {
-    eq?: "webhook" | "discord_message" | "chat_message" | "email";
-    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
-    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
-  };
-
-  actionConfig?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
-  };
-
-  cooldownSeconds?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  lastTriggeredAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  updatedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type StreamHookLogFilterInput = {
-  and?: Array<StreamHookLogFilterInput>;
-  or?: Array<StreamHookLogFilterInput>;
-  not?: Array<StreamHookLogFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  hookId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  streamEventId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  triggerType?: {
-    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
-  };
-
-  actionType?: {
-    eq?: "webhook" | "discord_message" | "chat_message" | "email";
-    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
-    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
-  };
-
-  status?: {
-    eq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
-    notEq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
-    in?: Array<"success" | "failure" | "skipped_cooldown" | "skipped_condition">;
-  };
-
-  errorMessage?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  executedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-  durationMs?: {
-    eq?: number;
-    notEq?: number;
-    greaterThan?: number;
-    greaterThanOrEqual?: number;
-    lessThan?: number;
-    lessThanOrEqual?: number;
-    in?: Array<number>;
-  };
-
-  insertedAt?: {
-    eq?: UtcDateTimeUsec;
-    notEq?: UtcDateTimeUsec;
-    greaterThan?: UtcDateTimeUsec;
-    greaterThanOrEqual?: UtcDateTimeUsec;
-    lessThan?: UtcDateTimeUsec;
-    lessThanOrEqual?: UtcDateTimeUsec;
-    in?: Array<UtcDateTimeUsec>;
-  };
-
-
-
-};
-export type StreamActionFilterInput = {
-  and?: Array<StreamActionFilterInput>;
-  or?: Array<StreamActionFilterInput>;
-  not?: Array<StreamActionFilterInput>;
+export type StreamingAccountFilterInput = {
+  and?: Array<StreamingAccountFilterInput>;
+  or?: Array<StreamingAccountFilterInput>;
+  not?: Array<StreamingAccountFilterInput>;
 
 
 
@@ -2123,42 +1264,6 @@ export type WidgetConfigFilterInput = {
   user?: UserFilterInput;
 
 };
-export type StreamingAccountFilterInput = {
-  and?: Array<StreamingAccountFilterInput>;
-  or?: Array<StreamingAccountFilterInput>;
-  not?: Array<StreamingAccountFilterInput>;
-
-
-
-
-};
-export type SmartCanvasLayoutFilterInput = {
-  and?: Array<SmartCanvasLayoutFilterInput>;
-  or?: Array<SmartCanvasLayoutFilterInput>;
-  not?: Array<SmartCanvasLayoutFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
-
-  widgets?: {
-    eq?: Array<Record<string, any>>;
-    notEq?: Array<Record<string, any>>;
-    in?: Array<Array<Record<string, any>>>;
-  };
-
-
-  user?: UserFilterInput;
-
-};
 export type LiveInputFilterInput = {
   and?: Array<LiveInputFilterInput>;
   or?: Array<LiveInputFilterInput>;
@@ -2180,20 +1285,6 @@ export type LiveInputFilterInput = {
     eq?: Record<string, any>;
     notEq?: Record<string, any>;
     in?: Array<Record<string, any>>;
-  };
-
-
-
-};
-export type DiscordWebhookFilterInput = {
-  and?: Array<DiscordWebhookFilterInput>;
-  or?: Array<DiscordWebhookFilterInput>;
-  not?: Array<DiscordWebhookFilterInput>;
-
-  id?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
   };
 
 
@@ -2226,6 +1317,20 @@ export type DiscordActorFilterInput = {
     eq?: "active" | "paused" | "terminated";
     notEq?: "active" | "paused" | "terminated";
     in?: Array<"active" | "paused" | "terminated">;
+  };
+
+
+
+};
+export type DiscordWebhookFilterInput = {
+  and?: Array<DiscordWebhookFilterInput>;
+  or?: Array<DiscordWebhookFilterInput>;
+  not?: Array<DiscordWebhookFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
   };
 
 
@@ -2377,10 +1482,10 @@ export type FileFilterInput = {
 
 
 };
-export type SupportTicketFilterInput = {
-  and?: Array<SupportTicketFilterInput>;
-  or?: Array<SupportTicketFilterInput>;
-  not?: Array<SupportTicketFilterInput>;
+export type BannedViewerFilterInput = {
+  and?: Array<BannedViewerFilterInput>;
+  or?: Array<BannedViewerFilterInput>;
+  not?: Array<BannedViewerFilterInput>;
 
   id?: {
     eq?: UUID;
@@ -2388,22 +1493,69 @@ export type SupportTicketFilterInput = {
     in?: Array<UUID>;
   };
 
-  subject?: {
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerUsername?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
   };
 
-  status?: {
-    eq?: "open" | "resolved";
-    notEq?: "open" | "resolved";
-    in?: Array<"open" | "resolved">;
+  viewerPlatformId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
   };
 
-  ticketType?: {
-    eq?: "support" | "feature_request" | "bug_report";
-    notEq?: "support" | "feature_request" | "bug_report";
-    in?: Array<"support" | "feature_request" | "bug_report">;
+  reason?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  durationSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  expiresAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  isActive?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  platformBanId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  unbannedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
   };
 
   insertedAt?: {
@@ -2426,22 +1578,13 @@ export type SupportTicketFilterInput = {
     in?: Array<UtcDateTimeUsec>;
   };
 
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
-  };
 
-
-  user?: UserFilterInput;
-
-  messages?: SupportMessageFilterInput;
 
 };
-export type SupportMessageFilterInput = {
-  and?: Array<SupportMessageFilterInput>;
-  or?: Array<SupportMessageFilterInput>;
-  not?: Array<SupportMessageFilterInput>;
+export type ChatBotConfigFilterInput = {
+  and?: Array<ChatBotConfigFilterInput>;
+  or?: Array<ChatBotConfigFilterInput>;
+  not?: Array<ChatBotConfigFilterInput>;
 
   id?: {
     eq?: UUID;
@@ -2449,10 +1592,70 @@ export type SupportMessageFilterInput = {
     in?: Array<UUID>;
   };
 
-  content?: {
+  enabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  greetingEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  greetingMessage?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
+  };
+
+  commandPrefix?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiChatEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  aiPersonality?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiBotName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiProvider?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  autoShoutoutEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  linkProtectionEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  slowModeOnRaidEnabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
   };
 
   insertedAt?: {
@@ -2465,22 +1668,85 @@ export type SupportMessageFilterInput = {
     in?: Array<UtcDateTimeUsec>;
   };
 
-  ticketId?: {
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type CurrentStreamDataFilterInput = {
+  and?: Array<CurrentStreamDataFilterInput>;
+  or?: Array<CurrentStreamDataFilterInput>;
+  not?: Array<CurrentStreamDataFilterInput>;
+
+  id?: {
     eq?: UUID;
     notEq?: UUID;
     in?: Array<UUID>;
   };
 
-  userId?: {
-    eq?: UUID;
-    notEq?: UUID;
-    in?: Array<UUID>;
+  status?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  streamData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  cloudflareData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  youtubeData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  twitchData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  kickData?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  activeAlert?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  highlightedMessage?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  alertboxState?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
   };
 
 
-  ticket?: SupportTicketFilterInput;
-
-  user?: UserFilterInput;
 
 };
 export type StreampaiStreamEventDataChatMessageDataFilterInput = {
@@ -2634,45 +1900,15 @@ export type StreampaiStreamEventDataFollowDataFilterInput = {
 
 
 };
-export type StreampaiStreamEventDataSubscriptionDataFilterInput = {
-  and?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
-  or?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
-  not?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+export type StreampaiStreamEventDataPlatformEventDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
 
-  username?: {
+  platform?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
-  };
-
-  tier?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  months?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  message?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  channelId?: {
-    eq?: string;
-    notEq?: string;
-    in?: Array<string>;
-  };
-
-  metadata?: {
-    eq?: Record<string, any>;
-    notEq?: Record<string, any>;
-    in?: Array<Record<string, any>>;
   };
 
 
@@ -2742,18 +1978,782 @@ export type StreampaiStreamEventDataStreamUpdatedDataFilterInput = {
 
 
 };
-export type StreampaiStreamEventDataPlatformEventDataFilterInput = {
-  and?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
-  or?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
-  not?: Array<StreampaiStreamEventDataPlatformEventDataFilterInput>;
+export type StreampaiStreamEventDataSubscriptionDataFilterInput = {
+  and?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+  or?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
+  not?: Array<StreampaiStreamEventDataSubscriptionDataFilterInput>;
 
-  platform?: {
+  username?: {
     eq?: string;
     notEq?: string;
     in?: Array<string>;
   };
 
+  tier?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
 
+  months?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  channelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  metadata?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+
+
+};
+export type HighlightedMessageFilterInput = {
+  and?: Array<HighlightedMessageFilterInput>;
+  or?: Array<HighlightedMessageFilterInput>;
+  not?: Array<HighlightedMessageFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  chatMessageId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  message?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderUsername?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  senderChannelId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  highlightedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  user?: UserFilterInput;
+
+};
+export type LivestreamFilterInput = {
+  and?: Array<LivestreamFilterInput>;
+  or?: Array<LivestreamFilterInput>;
+  not?: Array<LivestreamFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  title?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  description?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  category?: {
+    eq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
+    notEq?: "gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting";
+    in?: Array<"gaming" | "music" | "tech" | "art" | "talk" | "irl" | "just_chatting">;
+  };
+
+  subcategory?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  language?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  tags?: {
+    eq?: Array<string>;
+    notEq?: Array<string>;
+    in?: Array<Array<string>>;
+  };
+
+  thumbnailUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  thumbnailFileId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  startedAt?: {
+    eq?: UtcDateTime;
+    notEq?: UtcDateTime;
+    greaterThan?: UtcDateTime;
+    greaterThanOrEqual?: UtcDateTime;
+    lessThan?: UtcDateTime;
+    lessThanOrEqual?: UtcDateTime;
+    in?: Array<UtcDateTime>;
+  };
+
+  endedAt?: {
+    eq?: UtcDateTime;
+    notEq?: UtcDateTime;
+    greaterThan?: UtcDateTime;
+    greaterThanOrEqual?: UtcDateTime;
+    lessThan?: UtcDateTime;
+    lessThanOrEqual?: UtcDateTime;
+    in?: Array<UtcDateTime>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  averageViewers?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  peakViewers?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  messagesAmount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  durationSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  platforms?: {
+    eq?: Array<string>;
+    notEq?: Array<string>;
+    in?: Array<Array<string>>;
+  };
+
+
+  user?: UserFilterInput;
+
+  thumbnailFile?: FileFilterInput;
+
+  streamEvents?: StreamEventFilterInput;
+
+};
+export type StreamActionFilterInput = {
+  and?: Array<StreamActionFilterInput>;
+  or?: Array<StreamActionFilterInput>;
+  not?: Array<StreamActionFilterInput>;
+
+
+
+
+};
+export type StreamEventFilterInput = {
+  and?: Array<StreamEventFilterInput>;
+  or?: Array<StreamEventFilterInput>;
+  not?: Array<StreamEventFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  type?: {
+    eq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+    notEq?: "chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped";
+    in?: Array<"chat_message" | "donation" | "follow" | "raid" | "subscription" | "stream_updated" | "platform_started" | "platform_stopped">;
+  };
+
+  data?: {
+    eq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
+    notEq?: { __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; };
+    in?: Array<{ __type: "Union"; __primitiveFields: never; chatMessage?: StreampaiStreamEventDataChatMessageDataResourceSchema; donation?: StreampaiStreamEventDataDonationDataResourceSchema; follow?: StreampaiStreamEventDataFollowDataResourceSchema; subscription?: StreampaiStreamEventDataSubscriptionDataResourceSchema; raid?: StreampaiStreamEventDataRaidDataResourceSchema; streamUpdated?: StreampaiStreamEventDataStreamUpdatedDataResourceSchema; platformStarted?: StreampaiStreamEventDataPlatformEventDataResourceSchema; platformStopped?: StreampaiStreamEventDataPlatformEventDataResourceSchema; }>;
+  };
+
+  authorId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  livestreamId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  platform?: {
+    eq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    notEq?: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+    in?: Array<"youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble">;
+  };
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  wasDisplayed?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamHookFilterInput = {
+  and?: Array<StreamHookFilterInput>;
+  or?: Array<StreamHookFilterInput>;
+  not?: Array<StreamHookFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  name?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  enabled?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  triggerType?: {
+    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
+  };
+
+  conditions?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  actionType?: {
+    eq?: "webhook" | "discord_message" | "chat_message" | "email";
+    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
+    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
+  };
+
+  actionConfig?: {
+    eq?: Record<string, any>;
+    notEq?: Record<string, any>;
+    in?: Array<Record<string, any>>;
+  };
+
+  cooldownSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  lastTriggeredAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamHookLogFilterInput = {
+  and?: Array<StreamHookLogFilterInput>;
+  or?: Array<StreamHookLogFilterInput>;
+  not?: Array<StreamHookLogFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  hookId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  streamEventId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  triggerType?: {
+    eq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    notEq?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+    in?: Array<"donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message">;
+  };
+
+  actionType?: {
+    eq?: "webhook" | "discord_message" | "chat_message" | "email";
+    notEq?: "webhook" | "discord_message" | "chat_message" | "email";
+    in?: Array<"webhook" | "discord_message" | "chat_message" | "email">;
+  };
+
+  status?: {
+    eq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+    notEq?: "success" | "failure" | "skipped_cooldown" | "skipped_condition";
+    in?: Array<"success" | "failure" | "skipped_cooldown" | "skipped_condition">;
+  };
+
+  errorMessage?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  executedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  durationMs?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamTimerFilterInput = {
+  and?: Array<StreamTimerFilterInput>;
+  or?: Array<StreamTimerFilterInput>;
+  not?: Array<StreamTimerFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  label?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  content?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  intervalSeconds?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  disabledAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type StreamViewerFilterInput = {
+  and?: Array<StreamViewerFilterInput>;
+  or?: Array<StreamViewerFilterInput>;
+  not?: Array<StreamViewerFilterInput>;
+
+  viewerId?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  platform?: {
+    eq?: "twitch" | "youtube" | "facebook" | "kick";
+    notEq?: "twitch" | "youtube" | "facebook" | "kick";
+    in?: Array<"twitch" | "youtube" | "facebook" | "kick">;
+  };
+
+  displayName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  avatarUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  channelUrl?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  isVerified?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  isOwner?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  isModerator?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  isPatreon?: {
+    eq?: boolean;
+    notEq?: boolean;
+    in?: Array<boolean>;
+  };
+
+  notes?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  aiSummary?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  firstSeenAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  lastSeenAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type SupportMessageFilterInput = {
+  and?: Array<SupportMessageFilterInput>;
+  or?: Array<SupportMessageFilterInput>;
+  not?: Array<SupportMessageFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  content?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  ticketId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  ticket?: SupportTicketFilterInput;
+
+  user?: UserFilterInput;
+
+};
+export type SupportTicketFilterInput = {
+  and?: Array<SupportTicketFilterInput>;
+  or?: Array<SupportTicketFilterInput>;
+  not?: Array<SupportTicketFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  subject?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  status?: {
+    eq?: "open" | "resolved";
+    notEq?: "open" | "resolved";
+    in?: Array<"open" | "resolved">;
+  };
+
+  ticketType?: {
+    eq?: "support" | "feature_request" | "bug_report";
+    notEq?: "support" | "feature_request" | "bug_report";
+    in?: Array<"support" | "feature_request" | "bug_report">;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  userId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  user?: UserFilterInput;
+
+  messages?: SupportMessageFilterInput;
 
 };
 
@@ -3393,284 +3393,44 @@ export async function executeActionChannelPush<T>(
 
 
 
-export type GetStreamHistoryInput = {
-  userId?: UUID;
-};
-
-export type GetStreamHistoryFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
-export type InferGetStreamHistoryResult<
-  Fields extends GetStreamHistoryFields,
-> = Array<InferResult<LivestreamResourceSchema, Fields>>;
-
-export type GetStreamHistoryResult<Fields extends GetStreamHistoryFields> = | { success: true; data: InferGetStreamHistoryResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read Livestream records
- *
- * @ashActionType :read
- */
-export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
-  config: {
-  tenant?: string;
-  input?: GetStreamHistoryInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: LivestreamFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetStreamHistoryResult<Fields>> {
-  const payload = {
-    action: "get_stream_history",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetStreamHistoryResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read Livestream records
- *
- * @ashActionType :read
- */
-export async function getStreamHistoryChannel<Fields extends GetStreamHistoryFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input?: GetStreamHistoryInput;
-  fields: Fields;
-  filter?: LivestreamFilterInput;
-  sort?: string;
-  resultHandler: (result: GetStreamHistoryResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetStreamHistoryResult<Fields>>(
-    config.channel,
-    {
-    action: "get_stream_history",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetLivestreamFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
-export type InferGetLivestreamResult<
-  Fields extends GetLivestreamFields,
-> = InferResult<LivestreamResourceSchema, Fields>;
-
-export type GetLivestreamResult<Fields extends GetLivestreamFields> = | { success: true; data: InferGetLivestreamResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read Livestream records
- *
- * @ashActionType :read
- */
-export async function getLivestream<Fields extends GetLivestreamFields>(
-  config: {
-  tenant?: string;
-  hookCtx?: ActionHookContext;
-  getBy: {
-    id: UUID;
-  };
-  fields: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetLivestreamResult<Fields>> {
-  const payload = {
-    action: "get_livestream",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    getBy: config.getBy,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<GetLivestreamResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read Livestream records
- *
- * @ashActionType :read
- */
-export async function getLivestreamChannel<Fields extends GetLivestreamFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  getBy: {
-    id: UUID;
-  };
-  fields: Fields;
-  resultHandler: (result: GetLivestreamResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetLivestreamResult<Fields>>(
-    config.channel,
-    {
-    action: "get_livestream",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    getBy: config.getBy,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetLivestreamEventsInput = {
-  livestreamId: UUID;
-};
-
-export type GetLivestreamEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
-export type InferGetLivestreamEventsResult<
-  Fields extends GetLivestreamEventsFields,
-> = Array<InferResult<StreamEventResourceSchema, Fields>>;
-
-export type GetLivestreamEventsResult<Fields extends GetLivestreamEventsFields> = | { success: true; data: InferGetLivestreamEventsResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getLivestreamEvents<Fields extends GetLivestreamEventsFields>(
-  config: {
-  tenant?: string;
-  input: GetLivestreamEventsInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetLivestreamEventsResult<Fields>> {
-  const payload = {
-    action: "get_livestream_events",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetLivestreamEventsResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getLivestreamEventsChannel<Fields extends GetLivestreamEventsFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetLivestreamEventsInput;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  resultHandler: (result: GetLivestreamEventsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetLivestreamEventsResult<Fields>>(
-    config.channel,
-    {
-    action: "get_livestream_events",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetViewerEventsInput = {
-  viewerId: string;
+export type GetSmartCanvasLayoutInput = {
   userId: UUID;
 };
 
-export type GetViewerEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
-export type InferGetViewerEventsResult<
-  Fields extends GetViewerEventsFields,
-> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+export type GetSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
+export type InferGetSmartCanvasLayoutResult<
+  Fields extends GetSmartCanvasLayoutFields,
+> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
 
-export type GetViewerEventsResult<Fields extends GetViewerEventsFields> = | { success: true; data: InferGetViewerEventsResult<Fields>; }
+export type GetSmartCanvasLayoutResult<Fields extends GetSmartCanvasLayoutFields> = | { success: true; data: InferGetSmartCanvasLayoutResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Read StreamEvent records
+ * Read SmartCanvasLayout records
  *
  * @ashActionType :read
  */
-export async function getViewerEvents<Fields extends GetViewerEventsFields>(
+export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFields>(
   config: {
   tenant?: string;
-  input: GetViewerEventsInput;
+  input: GetSmartCanvasLayoutInput;
   hookCtx?: ActionHookContext;
   fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<GetViewerEventsResult<Fields>> {
+): Promise<GetSmartCanvasLayoutResult<Fields>> {
   const payload = {
-    action: "get_viewer_events",
+    action: "get_smart_canvas_layout",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
+    ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<GetViewerEventsResult<Fields>>(
+  return executeActionRpcRequest<GetSmartCanvasLayoutResult<Fields>>(
     payload,
     config
   );
@@ -3678,31 +3438,27 @@ export async function getViewerEvents<Fields extends GetViewerEventsFields>(
 
 
 /**
- * Read StreamEvent records
+ * Read SmartCanvasLayout records
  *
  * @ashActionType :read
  */
-export async function getViewerEventsChannel<Fields extends GetViewerEventsFields>(config: {
+export async function getSmartCanvasLayoutChannel<Fields extends GetSmartCanvasLayoutFields>(config: {
   channel: Channel;
   tenant?: string;
-  input: GetViewerEventsInput;
+  input: GetSmartCanvasLayoutInput;
   fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  resultHandler: (result: GetViewerEventsResult<Fields>) => void;
+  resultHandler: (result: GetSmartCanvasLayoutResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<GetViewerEventsResult<Fields>>(
+  executeActionChannelPush<GetSmartCanvasLayoutResult<Fields>>(
     config.channel,
     {
-    action: "get_viewer_events",
+    action: "get_smart_canvas_layout",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
+    ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
     config
@@ -3710,41 +3466,46 @@ export async function getViewerEventsChannel<Fields extends GetViewerEventsField
 }
 
 
-export type MarkStreamEventDisplayedFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type SaveSmartCanvasLayoutInput = {
+  userId: UUID;
+  widgets?: Array<Record<string, any>>;
+};
 
-export type InferMarkStreamEventDisplayedResult<
-  Fields extends MarkStreamEventDisplayedFields | undefined,
-> = InferResult<StreamEventResourceSchema, Fields>;
+export type SaveSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
 
-export type MarkStreamEventDisplayedResult<Fields extends MarkStreamEventDisplayedFields | undefined = undefined> = | { success: true; data: InferMarkStreamEventDisplayedResult<Fields>; }
+export type InferSaveSmartCanvasLayoutResult<
+  Fields extends SaveSmartCanvasLayoutFields | undefined,
+> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
+
+export type SaveSmartCanvasLayoutResult<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined> = | { success: true; data: InferSaveSmartCanvasLayoutResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Update an existing StreamEvent
+ * Create a new SmartCanvasLayout
  *
- * @ashActionType :update
+ * @ashActionType :create
  */
-export async function markStreamEventDisplayed<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(
+export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(
   config: {
   tenant?: string;
-  identity: UUID;
+  input: SaveSmartCanvasLayoutInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>> {
+): Promise<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "mark_stream_event_displayed",
+    action: "save_smart_canvas_layout",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
+    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -3752,26 +3513,26 @@ export async function markStreamEventDisplayed<Fields extends MarkStreamEventDis
 
 
 /**
- * Update an existing StreamEvent
+ * Create a new SmartCanvasLayout
  *
- * @ashActionType :update
+ * @ashActionType :create
  */
-export async function markStreamEventDisplayedChannel<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(config: {
+export async function saveSmartCanvasLayoutChannel<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
-  identity: UUID;
+  input: SaveSmartCanvasLayoutInput;
   fields?: Fields;
-  resultHandler: (result: MarkStreamEventDisplayedResult<Fields>) => void;
+  resultHandler: (result: SaveSmartCanvasLayoutResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<MarkStreamEventDisplayedResult<Fields>>(
+  executeActionChannelPush<SaveSmartCanvasLayoutResult<Fields>>(
     config.channel,
     {
-    action: "mark_stream_event_displayed",
+    action: "save_smart_canvas_layout",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
+    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
@@ -3780,21 +3541,82 @@ export async function markStreamEventDisplayedChannel<Fields extends MarkStreamE
 }
 
 
-export type GetChatHistoryInput = {
-  userId: UUID;
-  platform?: string;
-  dateRange?: string;
-  search?: string;
-};
 
-export type GetChatHistoryFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type DisconnectStreamingAccountResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a StreamingAccount
+ *
+ * @ashActionType :destroy
+ */
+export async function disconnectStreamingAccount(
+  config: {
+  tenant?: string;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DisconnectStreamingAccountResult> {
+  const payload = {
+    action: "disconnect_streaming_account",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DisconnectStreamingAccountResult>(
+    payload,
+    config
+  );
+}
 
 
-export type InferGetChatHistoryResult<
-  Fields extends GetChatHistoryFields | undefined,
-  Page extends GetChatHistoryConfig["page"] = undefined
-> = ConditionalPaginatedResult<Page, Array<InferResult<StreamEventResourceSchema, Fields>>, {
-  results: Array<InferResult<StreamEventResourceSchema, Fields>>;
+/**
+ * Delete a StreamingAccount
+ *
+ * @ashActionType :destroy
+ */
+export async function disconnectStreamingAccountChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
+  resultHandler: (result: DisconnectStreamingAccountResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DisconnectStreamingAccountResult>(
+    config.channel,
+    {
+    action: "disconnect_streaming_account",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ListStreamingAccountsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
+
+
+export type InferListStreamingAccountsResult<
+  Fields extends ListStreamingAccountsFields | undefined,
+  Page extends ListStreamingAccountsConfig["page"] = undefined
+> = ConditionalPaginatedResultMixed<Page, Array<InferResult<StreamingAccountResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  offset: number;
+  count?: number | null;
+  type: "offset";
+}, {
+  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
   hasMore: boolean;
   limit: number;
   after: string | null;
@@ -3805,49 +3627,51 @@ export type InferGetChatHistoryResult<
   type: "keyset";
 }>;
 
-export type GetChatHistoryConfig = {
+export type ListStreamingAccountsConfig = {
   tenant?: string;
-  input: GetChatHistoryInput;
   hookCtx?: ActionHookContext;
-  fields: GetChatHistoryFields;
-  filter?: StreamEventFilterInput;
+  fields: ListStreamingAccountsFields;
+  filter?: StreamingAccountFilterInput;
   sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
+  page?: (
+    {
+      limit?: number;
+      offset?: number;
+      count?: boolean;
+    } | {
+      limit?: number;
+      after?: string;
+      before?: string;
+    }
+  );
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 };
 
-export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page extends GetChatHistoryConfig["page"] = undefined> = | { success: true; data: InferGetChatHistoryResult<Fields, Page>; }
+export type ListStreamingAccountsResult<Fields extends ListStreamingAccountsFields, Page extends ListStreamingAccountsConfig["page"] = undefined> = | { success: true; data: InferListStreamingAccountsResult<Fields, Page>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Read StreamEvent records
+ * Read StreamingAccount records
  *
  * @ashActionType :read
  */
-export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
+export async function listStreamingAccounts<Fields extends ListStreamingAccountsFields, Config extends ListStreamingAccountsConfig = ListStreamingAccountsConfig>(
   config: Config & { fields: Fields }
-): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
+): Promise<ListStreamingAccountsResult<Fields, Config["page"]>> {
   const payload = {
-    action: "get_chat_history",
+    action: "list_streaming_accounts",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
     ...(config.page && { page: config.page })
   };
 
-  return executeActionRpcRequest<GetChatHistoryResult<Fields, Config["page"]>>(
+  return executeActionRpcRequest<ListStreamingAccountsResult<Fields, Config["page"]>>(
     payload,
     config
   );
@@ -3855,380 +3679,37 @@ export async function getChatHistory<Fields extends GetChatHistoryFields, Config
 
 
 /**
- * Read StreamEvent records
+ * Read StreamingAccount records
  *
  * @ashActionType :read
  */
-export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>(config: {
+export async function listStreamingAccountsChannel<Fields extends ListStreamingAccountsFields>(config: {
   channel: Channel;
   tenant?: string;
-  input: GetChatHistoryInput;
   fields: Fields;
-  filter?: StreamEventFilterInput;
+  filter?: StreamingAccountFilterInput;
   sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  resultHandler: (result: GetChatHistoryResult<Fields>) => void;
+  page?: (
+    {
+      limit?: number;
+      offset?: number;
+      count?: boolean;
+    } | {
+      limit?: number;
+      after?: string;
+      before?: string;
+    }
+  );
+  resultHandler: (result: ListStreamingAccountsResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<GetChatHistoryResult<Fields>>(
+  executeActionChannelPush<ListStreamingAccountsResult<Fields>>(
     config.channel,
     {
-    action: "get_chat_history",
+    action: "list_streaming_accounts",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetLivestreamChatInput = {
-  livestreamId: UUID;
-};
-
-export type GetLivestreamChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
-export type InferGetLivestreamChatResult<
-  Fields extends GetLivestreamChatFields,
-> = Array<InferResult<StreamEventResourceSchema, Fields>>;
-
-export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | { success: true; data: InferGetLivestreamChatResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
-  config: {
-  tenant?: string;
-  input: GetLivestreamChatInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetLivestreamChatResult<Fields>> {
-  const payload = {
-    action: "get_livestream_chat",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetLivestreamChatResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getLivestreamChatChannel<Fields extends GetLivestreamChatFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetLivestreamChatInput;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  resultHandler: (result: GetLivestreamChatResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetLivestreamChatResult<Fields>>(
-    config.channel,
-    {
-    action: "get_livestream_chat",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetViewerChatInput = {
-  viewerId: string;
-  userId: UUID;
-};
-
-export type GetViewerChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
-export type InferGetViewerChatResult<
-  Fields extends GetViewerChatFields,
-> = Array<InferResult<StreamEventResourceSchema, Fields>>;
-
-export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { success: true; data: InferGetViewerChatResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getViewerChat<Fields extends GetViewerChatFields>(
-  config: {
-  tenant?: string;
-  input: GetViewerChatInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetViewerChatResult<Fields>> {
-  const payload = {
-    action: "get_viewer_chat",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetViewerChatResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamEvent records
- *
- * @ashActionType :read
- */
-export async function getViewerChatChannel<Fields extends GetViewerChatFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetViewerChatInput;
-  fields: Fields;
-  filter?: StreamEventFilterInput;
-  sort?: string;
-  resultHandler: (result: GetViewerChatResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetViewerChatResult<Fields>>(
-    config.channel,
-    {
-    action: "get_viewer_chat",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ReplayAlertFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
-
-export type InferReplayAlertResult<
-  Fields extends ReplayAlertFields | undefined,
-> = InferResult<StreamEventResourceSchema, Fields>;
-
-export type ReplayAlertResult<Fields extends ReplayAlertFields | undefined = undefined> = | { success: true; data: InferReplayAlertResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamEvent
- *
- * @ashActionType :update
- */
-export async function replayAlert<Fields extends ReplayAlertFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ReplayAlertResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "replay_alert",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<ReplayAlertResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamEvent
- *
- * @ashActionType :update
- */
-export async function replayAlertChannel<Fields extends ReplayAlertFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  fields?: Fields;
-  resultHandler: (result: ReplayAlertResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ReplayAlertResult<Fields>>(
-    config.channel,
-    {
-    action: "replay_alert",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ListViewersInput = {
-  userId: UUID;
-};
-
-export type ListViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
-
-
-export type InferListViewersResult<
-  Fields extends ListViewersFields | undefined,
-  Page extends ListViewersConfig["page"] = undefined
-> = ConditionalPaginatedResult<Page, Array<InferResult<StreamViewerResourceSchema, Fields>>, {
-  results: Array<InferResult<StreamViewerResourceSchema, Fields>>;
-  hasMore: boolean;
-  limit: number;
-  after: string | null;
-  before: string | null;
-  previousPage: string;
-  nextPage: string;
-  count?: number | null;
-  type: "keyset";
-}>;
-
-export type ListViewersConfig = {
-  tenant?: string;
-  input: ListViewersInput;
-  hookCtx?: ActionHookContext;
-  fields: ListViewersFields;
-  filter?: StreamViewerFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-};
-
-export type ListViewersResult<Fields extends ListViewersFields, Page extends ListViewersConfig["page"] = undefined> = | { success: true; data: InferListViewersResult<Fields, Page>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamViewer records
- *
- * @ashActionType :read
- */
-export async function listViewers<Fields extends ListViewersFields, Config extends ListViewersConfig = ListViewersConfig>(
-  config: Config & { fields: Fields }
-): Promise<ListViewersResult<Fields, Config["page"]>> {
-  const payload = {
-    action: "list_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  };
-
-  return executeActionRpcRequest<ListViewersResult<Fields, Config["page"]>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamViewer records
- *
- * @ashActionType :read
- */
-export async function listViewersChannel<Fields extends ListViewersFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: ListViewersInput;
-  fields: Fields;
-  filter?: StreamViewerFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  resultHandler: (result: ListViewersResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ListViewersResult<Fields>>(
-    config.channel,
-    {
-    action: "list_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields }),
     ...(config.filter && { filter: config.filter }),
     ...(config.sort && { sort: config.sort }),
@@ -4240,356 +3721,41 @@ export async function listViewersChannel<Fields extends ListViewersFields>(confi
 }
 
 
-export type SearchViewersInput = {
-  userId: UUID;
-  displayName: string;
-  similarityThreshold?: number;
-};
+export type RefreshStreamingAccountStatsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
 
-export type SearchViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
-export type InferSearchViewersResult<
-  Fields extends SearchViewersFields,
-> = Array<InferResult<StreamViewerResourceSchema, Fields>>;
+export type InferRefreshStreamingAccountStatsResult<
+  Fields extends RefreshStreamingAccountStatsFields | undefined,
+> = InferResult<StreamingAccountResourceSchema, Fields>;
 
-export type SearchViewersResult<Fields extends SearchViewersFields> = | { success: true; data: InferSearchViewersResult<Fields>; }
+export type RefreshStreamingAccountStatsResult<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined> = | { success: true; data: InferRefreshStreamingAccountStatsResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Read StreamViewer records
- *
- * @ashActionType :read
- */
-export async function searchViewers<Fields extends SearchViewersFields>(
-  config: {
-  tenant?: string;
-  input: SearchViewersInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamViewerFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<SearchViewersResult<Fields>> {
-  const payload = {
-    action: "search_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<SearchViewersResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamViewer records
- *
- * @ashActionType :read
- */
-export async function searchViewersChannel<Fields extends SearchViewersFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: SearchViewersInput;
-  fields: Fields;
-  filter?: StreamViewerFilterInput;
-  sort?: string;
-  resultHandler: (result: SearchViewersResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<SearchViewersResult<Fields>>(
-    config.channel,
-    {
-    action: "search_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ListBannedViewersInput = {
-  userId: UUID;
-};
-
-export type ListBannedViewersFields = UnifiedFieldSelection<BannedViewerResourceSchema>[];
-export type InferListBannedViewersResult<
-  Fields extends ListBannedViewersFields,
-> = Array<InferResult<BannedViewerResourceSchema, Fields>>;
-
-export type ListBannedViewersResult<Fields extends ListBannedViewersFields> = | { success: true; data: InferListBannedViewersResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read BannedViewer records
- *
- * @ashActionType :read
- */
-export async function listBannedViewers<Fields extends ListBannedViewersFields>(
-  config: {
-  tenant?: string;
-  input: ListBannedViewersInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: BannedViewerFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ListBannedViewersResult<Fields>> {
-  const payload = {
-    action: "list_banned_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<ListBannedViewersResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read BannedViewer records
- *
- * @ashActionType :read
- */
-export async function listBannedViewersChannel<Fields extends ListBannedViewersFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: ListBannedViewersInput;
-  fields: Fields;
-  filter?: BannedViewerFilterInput;
-  sort?: string;
-  resultHandler: (result: ListBannedViewersResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ListBannedViewersResult<Fields>>(
-    config.channel,
-    {
-    action: "list_banned_viewers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetCurrentStreamDataInput = {
-  userId: UUID;
-};
-
-export type GetCurrentStreamDataFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
-export type InferGetCurrentStreamDataResult<
-  Fields extends GetCurrentStreamDataFields,
-> = InferResult<CurrentStreamDataResourceSchema, Fields>;
-
-export type GetCurrentStreamDataResult<Fields extends GetCurrentStreamDataFields> = | { success: true; data: InferGetCurrentStreamDataResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read CurrentStreamData records
- *
- * @ashActionType :read
- */
-export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFields>(
-  config: {
-  tenant?: string;
-  input: GetCurrentStreamDataInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetCurrentStreamDataResult<Fields>> {
-  const payload = {
-    action: "get_current_stream_data",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<GetCurrentStreamDataResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read CurrentStreamData records
- *
- * @ashActionType :read
- */
-export async function getCurrentStreamDataChannel<Fields extends GetCurrentStreamDataFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetCurrentStreamDataInput;
-  fields: Fields;
-  resultHandler: (result: GetCurrentStreamDataResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetCurrentStreamDataResult<Fields>>(
-    config.channel,
-    {
-    action: "get_current_stream_data",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type HighlightStreamMessageInput = {
-  highlightedMessage: Record<string, any>;
-};
-
-export type HighlightStreamMessageFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
-
-export type InferHighlightStreamMessageResult<
-  Fields extends HighlightStreamMessageFields | undefined,
-> = InferResult<CurrentStreamDataResourceSchema, Fields>;
-
-export type HighlightStreamMessageResult<Fields extends HighlightStreamMessageFields | undefined = undefined> = | { success: true; data: InferHighlightStreamMessageResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing CurrentStreamData
+ * Update an existing StreamingAccount
  *
  * @ashActionType :update
  */
-export async function highlightStreamMessage<Fields extends HighlightStreamMessageFields | undefined = undefined>(
+export async function refreshStreamingAccountStats<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(
   config: {
   tenant?: string;
-  identity: UUID;
-  input: HighlightStreamMessageInput;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   hookCtx?: ActionHookContext;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<HighlightStreamMessageResult<Fields extends undefined ? [] : Fields>> {
+): Promise<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "highlight_stream_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<HighlightStreamMessageResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing CurrentStreamData
- *
- * @ashActionType :update
- */
-export async function highlightStreamMessageChannel<Fields extends HighlightStreamMessageFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: HighlightStreamMessageInput;
-  fields?: Fields;
-  resultHandler: (result: HighlightStreamMessageResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<HighlightStreamMessageResult<Fields>>(
-    config.channel,
-    {
-    action: "highlight_stream_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ClearStreamHighlightFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
-
-export type InferClearStreamHighlightResult<
-  Fields extends ClearStreamHighlightFields | undefined,
-> = InferResult<CurrentStreamDataResourceSchema, Fields>;
-
-export type ClearStreamHighlightResult<Fields extends ClearStreamHighlightFields | undefined = undefined> = | { success: true; data: InferClearStreamHighlightResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing CurrentStreamData
- *
- * @ashActionType :update
- */
-export async function clearStreamHighlight<Fields extends ClearStreamHighlightFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ClearStreamHighlightResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "clear_stream_highlight",
+    action: "refresh_streaming_account_stats",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<ClearStreamHighlightResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -4597,1983 +3763,27 @@ export async function clearStreamHighlight<Fields extends ClearStreamHighlightFi
 
 
 /**
- * Update an existing CurrentStreamData
+ * Update an existing StreamingAccount
  *
  * @ashActionType :update
  */
-export async function clearStreamHighlightChannel<Fields extends ClearStreamHighlightFields | undefined = undefined>(config: {
+export async function refreshStreamingAccountStatsChannel<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
-  identity: UUID;
+  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
   fields?: Fields;
-  resultHandler: (result: ClearStreamHighlightResult<Fields>) => void;
+  resultHandler: (result: RefreshStreamingAccountStatsResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<ClearStreamHighlightResult<Fields>>(
+  executeActionChannelPush<RefreshStreamingAccountStatsResult<Fields>>(
     config.channel,
     {
-    action: "clear_stream_highlight",
+    action: "refresh_streaming_account_stats",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetStreamTimersInput = {
-  userId: UUID;
-};
-
-export type GetStreamTimersFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-export type InferGetStreamTimersResult<
-  Fields extends GetStreamTimersFields,
-> = Array<InferResult<StreamTimerResourceSchema, Fields>>;
-
-export type GetStreamTimersResult<Fields extends GetStreamTimersFields> = | { success: true; data: InferGetStreamTimersResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamTimer records
- *
- * @ashActionType :read
- */
-export async function getStreamTimers<Fields extends GetStreamTimersFields>(
-  config: {
-  tenant?: string;
-  input: GetStreamTimersInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamTimerFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetStreamTimersResult<Fields>> {
-  const payload = {
-    action: "get_stream_timers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetStreamTimersResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamTimer records
- *
- * @ashActionType :read
- */
-export async function getStreamTimersChannel<Fields extends GetStreamTimersFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetStreamTimersInput;
-  fields: Fields;
-  filter?: StreamTimerFilterInput;
-  sort?: string;
-  resultHandler: (result: GetStreamTimersResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetStreamTimersResult<Fields>>(
-    config.channel,
-    {
-    action: "get_stream_timers",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type CreateStreamTimerInput = {
-  label: string;
-  content: string;
-  intervalSeconds: number;
-};
-
-export type CreateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-
-export type InferCreateStreamTimerResult<
-  Fields extends CreateStreamTimerFields | undefined,
-> = InferResult<StreamTimerResourceSchema, Fields>;
-
-export type CreateStreamTimerResult<Fields extends CreateStreamTimerFields | undefined = undefined> = | { success: true; data: InferCreateStreamTimerResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new StreamTimer
- *
- * @ashActionType :create
- */
-export async function createStreamTimer<Fields extends CreateStreamTimerFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input: CreateStreamTimerInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "create_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new StreamTimer
- *
- * @ashActionType :create
- */
-export async function createStreamTimerChannel<Fields extends CreateStreamTimerFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: CreateStreamTimerInput;
-  fields?: Fields;
-  resultHandler: (result: CreateStreamTimerResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<CreateStreamTimerResult<Fields>>(
-    config.channel,
-    {
-    action: "create_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type UpdateStreamTimerInput = {
-  label?: string;
-  content?: string;
-  intervalSeconds?: number;
-};
-
-export type UpdateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-
-export type InferUpdateStreamTimerResult<
-  Fields extends UpdateStreamTimerFields | undefined,
-> = InferResult<StreamTimerResourceSchema, Fields>;
-
-export type UpdateStreamTimerResult<Fields extends UpdateStreamTimerFields | undefined = undefined> = | { success: true; data: InferUpdateStreamTimerResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function updateStreamTimer<Fields extends UpdateStreamTimerFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: UpdateStreamTimerInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpdateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "update_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<UpdateStreamTimerResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function updateStreamTimerChannel<Fields extends UpdateStreamTimerFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: UpdateStreamTimerInput;
-  fields?: Fields;
-  resultHandler: (result: UpdateStreamTimerResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<UpdateStreamTimerResult<Fields>>(
-    config.channel,
-    {
-    action: "update_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type EnableStreamTimerInput = {
-  id: UUID;
-};
-
-export type EnableStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-
-export type InferEnableStreamTimerResult<
-  Fields extends EnableStreamTimerFields | undefined,
-> = InferResult<StreamTimerResourceSchema, Fields>;
-
-export type EnableStreamTimerResult<Fields extends EnableStreamTimerFields | undefined = undefined> = | { success: true; data: InferEnableStreamTimerResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function enableStreamTimer<Fields extends EnableStreamTimerFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: EnableStreamTimerInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<EnableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "enable_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<EnableStreamTimerResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function enableStreamTimerChannel<Fields extends EnableStreamTimerFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: EnableStreamTimerInput;
-  fields?: Fields;
-  resultHandler: (result: EnableStreamTimerResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<EnableStreamTimerResult<Fields>>(
-    config.channel,
-    {
-    action: "enable_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type DisableStreamTimerInput = {
-  id: UUID;
-};
-
-export type DisableStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
-
-export type InferDisableStreamTimerResult<
-  Fields extends DisableStreamTimerFields | undefined,
-> = InferResult<StreamTimerResourceSchema, Fields>;
-
-export type DisableStreamTimerResult<Fields extends DisableStreamTimerFields | undefined = undefined> = | { success: true; data: InferDisableStreamTimerResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function disableStreamTimer<Fields extends DisableStreamTimerFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: DisableStreamTimerInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<DisableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "disable_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<DisableStreamTimerResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamTimer
- *
- * @ashActionType :update
- */
-export async function disableStreamTimerChannel<Fields extends DisableStreamTimerFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: DisableStreamTimerInput;
-  fields?: Fields;
-  resultHandler: (result: DisableStreamTimerResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<DisableStreamTimerResult<Fields>>(
-    config.channel,
-    {
-    action: "disable_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-
-export type DeleteStreamTimerResult = | { success: true; data: {}; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Delete a StreamTimer
- *
- * @ashActionType :destroy
- */
-export async function deleteStreamTimer(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<DeleteStreamTimerResult> {
-  const payload = {
-    action: "delete_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  };
-
-  return executeActionRpcRequest<DeleteStreamTimerResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Delete a StreamTimer
- *
- * @ashActionType :destroy
- */
-export async function deleteStreamTimerChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  resultHandler: (result: DeleteStreamTimerResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<DeleteStreamTimerResult>(
-    config.channel,
-    {
-    action: "delete_stream_timer",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type HighlightMessageInput = {
-  chatMessageId: string;
-  message: string;
-  senderUsername: string;
-  senderChannelId: string;
-  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
-  viewerId?: string | null;
-  userId: UUID;
-};
-
-export type HighlightMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
-
-export type InferHighlightMessageResult<
-  Fields extends HighlightMessageFields | undefined,
-> = InferResult<HighlightedMessageResourceSchema, Fields>;
-
-export type HighlightMessageResult<Fields extends HighlightMessageFields | undefined = undefined> = | { success: true; data: InferHighlightMessageResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new HighlightedMessage
- *
- * @ashActionType :create
- */
-export async function highlightMessage<Fields extends HighlightMessageFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input: HighlightMessageInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<HighlightMessageResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "highlight_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<HighlightMessageResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new HighlightedMessage
- *
- * @ashActionType :create
- */
-export async function highlightMessageChannel<Fields extends HighlightMessageFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: HighlightMessageInput;
-  fields?: Fields;
-  resultHandler: (result: HighlightMessageResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<HighlightMessageResult<Fields>>(
-    config.channel,
-    {
-    action: "highlight_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ClearHighlightInput = {
-  userId: UUID;
-};
-
-export type InferClearHighlightResult = boolean;
-
-export type ClearHighlightResult = | { success: true; data: InferClearHighlightResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on HighlightedMessage
- *
- * @ashActionType :action
- */
-export async function clearHighlight(
-  config: {
-  tenant?: string;
-  input: ClearHighlightInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ClearHighlightResult> {
-  const payload = {
-    action: "clear_highlight",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<ClearHighlightResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on HighlightedMessage
- *
- * @ashActionType :action
- */
-export async function clearHighlightChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: ClearHighlightInput;
-  resultHandler: (result: ClearHighlightResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ClearHighlightResult>(
-    config.channel,
-    {
-    action: "clear_highlight",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetHighlightedMessageInput = {
-  userId: UUID;
-};
-
-export type GetHighlightedMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
-export type InferGetHighlightedMessageResult<
-  Fields extends GetHighlightedMessageFields,
-> = Array<InferResult<HighlightedMessageResourceSchema, Fields>>;
-
-export type GetHighlightedMessageResult<Fields extends GetHighlightedMessageFields> = | { success: true; data: InferGetHighlightedMessageResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read HighlightedMessage records
- *
- * @ashActionType :read
- */
-export async function getHighlightedMessage<Fields extends GetHighlightedMessageFields>(
-  config: {
-  tenant?: string;
-  input: GetHighlightedMessageInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: HighlightedMessageFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetHighlightedMessageResult<Fields>> {
-  const payload = {
-    action: "get_highlighted_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetHighlightedMessageResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read HighlightedMessage records
- *
- * @ashActionType :read
- */
-export async function getHighlightedMessageChannel<Fields extends GetHighlightedMessageFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetHighlightedMessageInput;
-  fields: Fields;
-  filter?: HighlightedMessageFilterInput;
-  sort?: string;
-  resultHandler: (result: GetHighlightedMessageResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetHighlightedMessageResult<Fields>>(
-    config.channel,
-    {
-    action: "get_highlighted_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetChatBotConfigInput = {
-  userId: UUID;
-};
-
-export type GetChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
-export type InferGetChatBotConfigResult<
-  Fields extends GetChatBotConfigFields,
-> = Array<InferResult<ChatBotConfigResourceSchema, Fields>>;
-
-export type GetChatBotConfigResult<Fields extends GetChatBotConfigFields> = | { success: true; data: InferGetChatBotConfigResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read ChatBotConfig records
- *
- * @ashActionType :read
- */
-export async function getChatBotConfig<Fields extends GetChatBotConfigFields>(
-  config: {
-  tenant?: string;
-  input: GetChatBotConfigInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: ChatBotConfigFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetChatBotConfigResult<Fields>> {
-  const payload = {
-    action: "get_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetChatBotConfigResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read ChatBotConfig records
- *
- * @ashActionType :read
- */
-export async function getChatBotConfigChannel<Fields extends GetChatBotConfigFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetChatBotConfigInput;
-  fields: Fields;
-  filter?: ChatBotConfigFilterInput;
-  sort?: string;
-  resultHandler: (result: GetChatBotConfigResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetChatBotConfigResult<Fields>>(
-    config.channel,
-    {
-    action: "get_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type UpsertChatBotConfigInput = {
-  enabled?: boolean;
-  greetingEnabled?: boolean;
-  greetingMessage?: string;
-  commandPrefix?: string;
-  aiChatEnabled?: boolean;
-  aiPersonality?: string | null;
-  aiBotName?: string;
-  aiProvider?: string;
-  autoShoutoutEnabled?: boolean;
-  linkProtectionEnabled?: boolean;
-  slowModeOnRaidEnabled?: boolean;
-};
-
-export type UpsertChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
-
-export type InferUpsertChatBotConfigResult<
-  Fields extends UpsertChatBotConfigFields | undefined,
-> = InferResult<ChatBotConfigResourceSchema, Fields>;
-
-export type UpsertChatBotConfigResult<Fields extends UpsertChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpsertChatBotConfigResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new ChatBotConfig
- *
- * @ashActionType :create
- */
-export async function upsertChatBotConfig<Fields extends UpsertChatBotConfigFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input?: UpsertChatBotConfigInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "upsert_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new ChatBotConfig
- *
- * @ashActionType :create
- */
-export async function upsertChatBotConfigChannel<Fields extends UpsertChatBotConfigFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input?: UpsertChatBotConfigInput;
-  fields?: Fields;
-  resultHandler: (result: UpsertChatBotConfigResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<UpsertChatBotConfigResult<Fields>>(
-    config.channel,
-    {
-    action: "upsert_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type UpdateChatBotConfigInput = {
-  enabled?: boolean;
-  greetingEnabled?: boolean;
-  greetingMessage?: string;
-  commandPrefix?: string;
-  aiChatEnabled?: boolean;
-  aiPersonality?: string | null;
-  aiBotName?: string;
-  aiProvider?: string;
-  autoShoutoutEnabled?: boolean;
-  linkProtectionEnabled?: boolean;
-  slowModeOnRaidEnabled?: boolean;
-};
-
-export type UpdateChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
-
-export type InferUpdateChatBotConfigResult<
-  Fields extends UpdateChatBotConfigFields | undefined,
-> = InferResult<ChatBotConfigResourceSchema, Fields>;
-
-export type UpdateChatBotConfigResult<Fields extends UpdateChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpdateChatBotConfigResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing ChatBotConfig
- *
- * @ashActionType :update
- */
-export async function updateChatBotConfig<Fields extends UpdateChatBotConfigFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input?: UpdateChatBotConfigInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "update_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing ChatBotConfig
- *
- * @ashActionType :update
- */
-export async function updateChatBotConfigChannel<Fields extends UpdateChatBotConfigFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input?: UpdateChatBotConfigInput;
-  fields?: Fields;
-  resultHandler: (result: UpdateChatBotConfigResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<UpdateChatBotConfigResult<Fields>>(
-    config.channel,
-    {
-    action: "update_chat_bot_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetStreamHooksInput = {
-  userId: UUID;
-};
-
-export type GetStreamHooksFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
-export type InferGetStreamHooksResult<
-  Fields extends GetStreamHooksFields,
-> = Array<InferResult<StreamHookResourceSchema, Fields>>;
-
-export type GetStreamHooksResult<Fields extends GetStreamHooksFields> = | { success: true; data: InferGetStreamHooksResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamHook records
- *
- * @ashActionType :read
- */
-export async function getStreamHooks<Fields extends GetStreamHooksFields>(
-  config: {
-  tenant?: string;
-  input: GetStreamHooksInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamHookFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetStreamHooksResult<Fields>> {
-  const payload = {
-    action: "get_stream_hooks",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetStreamHooksResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamHook records
- *
- * @ashActionType :read
- */
-export async function getStreamHooksChannel<Fields extends GetStreamHooksFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetStreamHooksInput;
-  fields: Fields;
-  filter?: StreamHookFilterInput;
-  sort?: string;
-  resultHandler: (result: GetStreamHooksResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetStreamHooksResult<Fields>>(
-    config.channel,
-    {
-    action: "get_stream_hooks",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type CreateStreamHookInput = {
-  name: string;
-  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  actionType: "webhook" | "discord_message" | "chat_message" | "email";
-  actionConfig: Record<string, any>;
-  conditions?: Record<string, any>;
-  cooldownSeconds?: number;
-};
-
-export type CreateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
-
-export type InferCreateStreamHookResult<
-  Fields extends CreateStreamHookFields | undefined,
-> = InferResult<StreamHookResourceSchema, Fields>;
-
-export type CreateStreamHookResult<Fields extends CreateStreamHookFields | undefined = undefined> = | { success: true; data: InferCreateStreamHookResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new StreamHook
- *
- * @ashActionType :create
- */
-export async function createStreamHook<Fields extends CreateStreamHookFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input: CreateStreamHookInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<CreateStreamHookResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "create_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<CreateStreamHookResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new StreamHook
- *
- * @ashActionType :create
- */
-export async function createStreamHookChannel<Fields extends CreateStreamHookFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: CreateStreamHookInput;
-  fields?: Fields;
-  resultHandler: (result: CreateStreamHookResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<CreateStreamHookResult<Fields>>(
-    config.channel,
-    {
-    action: "create_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type UpdateStreamHookInput = {
-  name?: string;
-  triggerType?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
-  conditions?: Record<string, any> | null;
-  actionType?: "webhook" | "discord_message" | "chat_message" | "email";
-  actionConfig?: Record<string, any>;
-  cooldownSeconds?: number;
-  enabled?: boolean;
-};
-
-export type UpdateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
-
-export type InferUpdateStreamHookResult<
-  Fields extends UpdateStreamHookFields | undefined,
-> = InferResult<StreamHookResourceSchema, Fields>;
-
-export type UpdateStreamHookResult<Fields extends UpdateStreamHookFields | undefined = undefined> = | { success: true; data: InferUpdateStreamHookResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamHook
- *
- * @ashActionType :update
- */
-export async function updateStreamHook<Fields extends UpdateStreamHookFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: UpdateStreamHookInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "update_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamHook
- *
- * @ashActionType :update
- */
-export async function updateStreamHookChannel<Fields extends UpdateStreamHookFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: UpdateStreamHookInput;
-  fields?: Fields;
-  resultHandler: (result: UpdateStreamHookResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<UpdateStreamHookResult<Fields>>(
-    config.channel,
-    {
-    action: "update_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ToggleStreamHookInput = {
-  enabled: boolean;
-};
-
-export type ToggleStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
-
-export type InferToggleStreamHookResult<
-  Fields extends ToggleStreamHookFields | undefined,
-> = InferResult<StreamHookResourceSchema, Fields>;
-
-export type ToggleStreamHookResult<Fields extends ToggleStreamHookFields | undefined = undefined> = | { success: true; data: InferToggleStreamHookResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamHook
- *
- * @ashActionType :update
- */
-export async function toggleStreamHook<Fields extends ToggleStreamHookFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: ToggleStreamHookInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "toggle_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamHook
- *
- * @ashActionType :update
- */
-export async function toggleStreamHookChannel<Fields extends ToggleStreamHookFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  input: ToggleStreamHookInput;
-  fields?: Fields;
-  resultHandler: (result: ToggleStreamHookResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ToggleStreamHookResult<Fields>>(
-    config.channel,
-    {
-    action: "toggle_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-
-export type DeleteStreamHookResult = | { success: true; data: {}; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Delete a StreamHook
- *
- * @ashActionType :destroy
- */
-export async function deleteStreamHook(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<DeleteStreamHookResult> {
-  const payload = {
-    action: "delete_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  };
-
-  return executeActionRpcRequest<DeleteStreamHookResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Delete a StreamHook
- *
- * @ashActionType :destroy
- */
-export async function deleteStreamHookChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  resultHandler: (result: DeleteStreamHookResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<DeleteStreamHookResult>(
-    config.channel,
-    {
-    action: "delete_stream_hook",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetStreamHookLogsInput = {
-  userId: UUID;
-};
-
-export type GetStreamHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
-export type InferGetStreamHookLogsResult<
-  Fields extends GetStreamHookLogsFields,
-> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
-
-export type GetStreamHookLogsResult<Fields extends GetStreamHookLogsFields> = | { success: true; data: InferGetStreamHookLogsResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamHookLog records
- *
- * @ashActionType :read
- */
-export async function getStreamHookLogs<Fields extends GetStreamHookLogsFields>(
-  config: {
-  tenant?: string;
-  input: GetStreamHookLogsInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamHookLogFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetStreamHookLogsResult<Fields>> {
-  const payload = {
-    action: "get_stream_hook_logs",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetStreamHookLogsResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamHookLog records
- *
- * @ashActionType :read
- */
-export async function getStreamHookLogsChannel<Fields extends GetStreamHookLogsFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetStreamHookLogsInput;
-  fields: Fields;
-  filter?: StreamHookLogFilterInput;
-  sort?: string;
-  resultHandler: (result: GetStreamHookLogsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetStreamHookLogsResult<Fields>>(
-    config.channel,
-    {
-    action: "get_stream_hook_logs",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetHookLogsInput = {
-  hookId: UUID;
-};
-
-export type GetHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
-export type InferGetHookLogsResult<
-  Fields extends GetHookLogsFields,
-> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
-
-export type GetHookLogsResult<Fields extends GetHookLogsFields> = | { success: true; data: InferGetHookLogsResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamHookLog records
- *
- * @ashActionType :read
- */
-export async function getHookLogs<Fields extends GetHookLogsFields>(
-  config: {
-  tenant?: string;
-  input: GetHookLogsInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  filter?: StreamHookLogFilterInput;
-  sort?: string;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetHookLogsResult<Fields>> {
-  const payload = {
-    action: "get_hook_logs",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  };
-
-  return executeActionRpcRequest<GetHookLogsResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamHookLog records
- *
- * @ashActionType :read
- */
-export async function getHookLogsChannel<Fields extends GetHookLogsFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetHookLogsInput;
-  fields: Fields;
-  filter?: StreamHookLogFilterInput;
-  sort?: string;
-  resultHandler: (result: GetHookLogsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetHookLogsResult<Fields>>(
-    config.channel,
-    {
-    action: "get_hook_logs",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GoLiveInput = {
-  userId: UUID;
-  title?: string;
-  description?: string;
-  platforms?: Array<string>;
-  metadata?: Record<string, any>;
-};
-
-export type InferGoLiveResult = Record<string, any>;
-
-export type GoLiveResult = | { success: true; data: InferGoLiveResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function goLive(
-  config: {
-  tenant?: string;
-  input: GoLiveInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GoLiveResult> {
-  const payload = {
-    action: "go_live",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<GoLiveResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function goLiveChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GoLiveInput;
-  resultHandler: (result: GoLiveResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GoLiveResult>(
-    config.channel,
-    {
-    action: "go_live",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type StopStreamInput = {
-  userId: UUID;
-};
-
-export type InferStopStreamResult = Record<string, any>;
-
-export type StopStreamResult = | { success: true; data: InferStopStreamResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function stopStream(
-  config: {
-  tenant?: string;
-  input: StopStreamInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<StopStreamResult> {
-  const payload = {
-    action: "stop_stream",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<StopStreamResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function stopStreamChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: StopStreamInput;
-  resultHandler: (result: StopStreamResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<StopStreamResult>(
-    config.channel,
-    {
-    action: "stop_stream",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type UpdateStreamMetadataInput = {
-  userId: UUID;
-  title?: string;
-  description?: string;
-  tags?: Array<string>;
-  thumbnailFileId?: UUID;
-  platforms?: Array<string>;
-};
-
-export type InferUpdateStreamMetadataResult = Record<string, any>;
-
-export type UpdateStreamMetadataResult = | { success: true; data: InferUpdateStreamMetadataResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function updateStreamMetadata(
-  config: {
-  tenant?: string;
-  input: UpdateStreamMetadataInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpdateStreamMetadataResult> {
-  const payload = {
-    action: "update_stream_metadata",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<UpdateStreamMetadataResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function updateStreamMetadataChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: UpdateStreamMetadataInput;
-  resultHandler: (result: UpdateStreamMetadataResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<UpdateStreamMetadataResult>(
-    config.channel,
-    {
-    action: "update_stream_metadata",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type SendStreamMessageInput = {
-  userId: UUID;
-  message: string;
-  platforms?: Array<string>;
-};
-
-export type InferSendStreamMessageResult = Record<string, any>;
-
-export type SendStreamMessageResult = | { success: true; data: InferSendStreamMessageResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function sendStreamMessage(
-  config: {
-  tenant?: string;
-  input: SendStreamMessageInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<SendStreamMessageResult> {
-  const payload = {
-    action: "send_stream_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<SendStreamMessageResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function sendStreamMessageChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: SendStreamMessageInput;
-  resultHandler: (result: SendStreamMessageResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<SendStreamMessageResult>(
-    config.channel,
-    {
-    action: "send_stream_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type TogglePlatformInput = {
-  userId: UUID;
-  platform: string;
-  enabled: boolean;
-};
-
-export type InferTogglePlatformResult = Record<string, any>;
-
-export type TogglePlatformResult = | { success: true; data: InferTogglePlatformResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function togglePlatform(
-  config: {
-  tenant?: string;
-  input: TogglePlatformInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<TogglePlatformResult> {
-  const payload = {
-    action: "toggle_platform",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<TogglePlatformResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function togglePlatformChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: TogglePlatformInput;
-  resultHandler: (result: TogglePlatformResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<TogglePlatformResult>(
-    config.channel,
-    {
-    action: "toggle_platform",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetIngestCredentialsInput = {
-  userId: UUID;
-  orientation?: "horizontal" | "vertical";
-};
-
-export type InferGetIngestCredentialsResult = Record<string, any>;
-
-export type GetIngestCredentialsResult = | { success: true; data: InferGetIngestCredentialsResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function getIngestCredentials(
-  config: {
-  tenant?: string;
-  input: GetIngestCredentialsInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetIngestCredentialsResult> {
-  const payload = {
-    action: "get_ingest_credentials",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<GetIngestCredentialsResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function getIngestCredentialsChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetIngestCredentialsInput;
-  resultHandler: (result: GetIngestCredentialsResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetIngestCredentialsResult>(
-    config.channel,
-    {
-    action: "get_ingest_credentials",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type RegenerateIngestCredentialsInput = {
-  userId: UUID;
-  orientation?: "horizontal" | "vertical";
-};
-
-export type InferRegenerateIngestCredentialsResult = Record<string, any>;
-
-export type RegenerateIngestCredentialsResult = | { success: true; data: InferRegenerateIngestCredentialsResult; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function regenerateIngestCredentials(
-  config: {
-  tenant?: string;
-  input: RegenerateIngestCredentialsInput;
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<RegenerateIngestCredentialsResult> {
-  const payload = {
-    action: "regenerate_ingest_credentials",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
-  };
-
-  return executeActionRpcRequest<RegenerateIngestCredentialsResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Execute generic action on StreamAction
- *
- * @ashActionType :action
- */
-export async function regenerateIngestCredentialsChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  input: RegenerateIngestCredentialsInput;
-  resultHandler: (result: RegenerateIngestCredentialsResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<RegenerateIngestCredentialsResult>(
-    config.channel,
-    {
-    action: "regenerate_ingest_credentials",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input
   },
     config.timeout,
     config
@@ -6712,110 +3922,6 @@ export async function getPublicProfileChannel<Fields extends GetPublicProfileFie
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ListUsersFields = UnifiedFieldSelection<UserResourceSchema>[];
-
-
-export type InferListUsersResult<
-  Fields extends ListUsersFields | undefined,
-  Page extends ListUsersConfig["page"] = undefined
-> = ConditionalPaginatedResult<Page, Array<InferResult<UserResourceSchema, Fields>>, {
-  results: Array<InferResult<UserResourceSchema, Fields>>;
-  hasMore: boolean;
-  limit: number;
-  after: string | null;
-  before: string | null;
-  previousPage: string;
-  nextPage: string;
-  count?: number | null;
-  type: "keyset";
-}>;
-
-export type ListUsersConfig = {
-  tenant?: string;
-  hookCtx?: ActionHookContext;
-  fields: ListUsersFields;
-  filter?: UserFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-};
-
-export type ListUsersResult<Fields extends ListUsersFields, Page extends ListUsersConfig["page"] = undefined> = | { success: true; data: InferListUsersResult<Fields, Page>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read User records
- *
- * @ashActionType :read
- */
-export async function listUsers<Fields extends ListUsersFields, Config extends ListUsersConfig = ListUsersConfig>(
-  config: Config & { fields: Fields }
-): Promise<ListUsersResult<Fields, Config["page"]>> {
-  const payload = {
-    action: "list_users",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  };
-
-  return executeActionRpcRequest<ListUsersResult<Fields, Config["page"]>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read User records
- *
- * @ashActionType :read
- */
-export async function listUsersChannel<Fields extends ListUsersFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  fields: Fields;
-  filter?: UserFilterInput;
-  sort?: string;
-  page?: {
-    limit?: number;
-    after?: string;
-    before?: string;
-    offset?: never;
-    count?: never;
-  };
-  resultHandler: (result: ListUsersResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ListUsersResult<Fields>>(
-    config.channel,
-    {
-    action: "list_users",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
   },
     config.timeout,
     config
@@ -6969,17 +4075,18 @@ export async function getUserInfoChannel<Fields extends GetUserInfoFields>(confi
 }
 
 
-export type UpdateNameInput = {
-  name?: string;
+export type GrantProAccessInput = {
+  durationDays: number;
+  reason: string;
 };
 
-export type UpdateNameFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type GrantProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
 
-export type InferUpdateNameResult<
-  Fields extends UpdateNameFields | undefined,
+export type InferGrantProAccessResult<
+  Fields extends GrantProAccessFields | undefined,
 > = InferResult<UserResourceSchema, Fields>;
 
-export type UpdateNameResult<Fields extends UpdateNameFields | undefined = undefined> = | { success: true; data: InferUpdateNameResult<Fields>; }
+export type GrantProAccessResult<Fields extends GrantProAccessFields | undefined = undefined> = | { success: true; data: InferGrantProAccessResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
@@ -6989,27 +4096,27 @@ export type UpdateNameResult<Fields extends UpdateNameFields | undefined = undef
  *
  * @ashActionType :update
  */
-export async function updateName<Fields extends UpdateNameFields | undefined = undefined>(
+export async function grantProAccess<Fields extends GrantProAccessFields | undefined = undefined>(
   config: {
   tenant?: string;
   identity: UUID;
-  input: UpdateNameInput;
+  input: GrantProAccessInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<UpdateNameResult<Fields extends undefined ? [] : Fields>> {
+): Promise<GrantProAccessResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "update_name",
+    action: "grant_pro_access",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<UpdateNameResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<GrantProAccessResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -7021,21 +4128,21 @@ export async function updateName<Fields extends UpdateNameFields | undefined = u
  *
  * @ashActionType :update
  */
-export async function updateNameChannel<Fields extends UpdateNameFields | undefined = undefined>(config: {
+export async function grantProAccessChannel<Fields extends GrantProAccessFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
   identity: UUID;
-  input: UpdateNameInput;
+  input: GrantProAccessInput;
   fields?: Fields;
-  resultHandler: (result: UpdateNameResult<Fields>) => void;
+  resultHandler: (result: GrantProAccessResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<UpdateNameResult<Fields>>(
+  executeActionChannelPush<GrantProAccessResult<Fields>>(
     config.channel,
     {
-    action: "update_name",
+    action: "grant_pro_access",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
@@ -7047,48 +4154,65 @@ export async function updateNameChannel<Fields extends UpdateNameFields | undefi
 }
 
 
-export type UpdateAvatarInput = {
-  avatarFileId?: UUID | null;
-  fileId: UUID;
+export type ListUsersFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+
+export type InferListUsersResult<
+  Fields extends ListUsersFields | undefined,
+  Page extends ListUsersConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<UserResourceSchema, Fields>>, {
+  results: Array<InferResult<UserResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListUsersConfig = {
+  tenant?: string;
+  hookCtx?: ActionHookContext;
+  fields: ListUsersFields;
+  filter?: UserFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 };
 
-export type UpdateAvatarFields = UnifiedFieldSelection<UserResourceSchema>[];
-
-export type InferUpdateAvatarResult<
-  Fields extends UpdateAvatarFields | undefined,
-> = InferResult<UserResourceSchema, Fields>;
-
-export type UpdateAvatarResult<Fields extends UpdateAvatarFields | undefined = undefined> = | { success: true; data: InferUpdateAvatarResult<Fields>; }
+export type ListUsersResult<Fields extends ListUsersFields, Page extends ListUsersConfig["page"] = undefined> = | { success: true; data: InferListUsersResult<Fields, Page>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Update an existing User
+ * Read User records
  *
- * @ashActionType :update
+ * @ashActionType :read
  */
-export async function updateAvatar<Fields extends UpdateAvatarFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  input: UpdateAvatarInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<UpdateAvatarResult<Fields extends undefined ? [] : Fields>> {
+export async function listUsers<Fields extends ListUsersFields, Config extends ListUsersConfig = ListUsersConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListUsersResult<Fields, Config["page"]>> {
   const payload = {
-    action: "update_avatar",
+    action: "list_users",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
   };
 
-  return executeActionRpcRequest<UpdateAvatarResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<ListUsersResult<Fields, Config["page"]>>(
     payload,
     config
   );
@@ -7096,29 +4220,37 @@ export async function updateAvatar<Fields extends UpdateAvatarFields | undefined
 
 
 /**
- * Update an existing User
+ * Read User records
  *
- * @ashActionType :update
+ * @ashActionType :read
  */
-export async function updateAvatarChannel<Fields extends UpdateAvatarFields | undefined = undefined>(config: {
+export async function listUsersChannel<Fields extends ListUsersFields>(config: {
   channel: Channel;
   tenant?: string;
-  identity: UUID;
-  input: UpdateAvatarInput;
-  fields?: Fields;
-  resultHandler: (result: UpdateAvatarResult<Fields>) => void;
+  fields: Fields;
+  filter?: UserFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  resultHandler: (result: ListUsersResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<UpdateAvatarResult<Fields>>(
+  executeActionChannelPush<ListUsersResult<Fields>>(
     config.channel,
     {
-    action: "update_avatar",
+    action: "list_users",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
   },
     config.timeout,
     config
@@ -7126,13 +4258,13 @@ export async function updateAvatarChannel<Fields extends UpdateAvatarFields | un
 }
 
 
-export type ToggleEmailNotificationsFields = UnifiedFieldSelection<UserResourceSchema>[];
+export type RevokeProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
 
-export type InferToggleEmailNotificationsResult<
-  Fields extends ToggleEmailNotificationsFields | undefined,
+export type InferRevokeProAccessResult<
+  Fields extends RevokeProAccessFields | undefined,
 > = InferResult<UserResourceSchema, Fields>;
 
-export type ToggleEmailNotificationsResult<Fields extends ToggleEmailNotificationsFields | undefined = undefined> = | { success: true; data: InferToggleEmailNotificationsResult<Fields>; }
+export type RevokeProAccessResult<Fields extends RevokeProAccessFields | undefined = undefined> = | { success: true; data: InferRevokeProAccessResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
@@ -7142,7 +4274,7 @@ export type ToggleEmailNotificationsResult<Fields extends ToggleEmailNotificatio
  *
  * @ashActionType :update
  */
-export async function toggleEmailNotifications<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(
+export async function revokeProAccess<Fields extends RevokeProAccessFields | undefined = undefined>(
   config: {
   tenant?: string;
   identity: UUID;
@@ -7152,15 +4284,15 @@ export async function toggleEmailNotifications<Fields extends ToggleEmailNotific
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>> {
+): Promise<RevokeProAccessResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "toggle_email_notifications",
+    action: "revoke_pro_access",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<RevokeProAccessResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -7172,20 +4304,20 @@ export async function toggleEmailNotifications<Fields extends ToggleEmailNotific
  *
  * @ashActionType :update
  */
-export async function toggleEmailNotificationsChannel<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(config: {
+export async function revokeProAccessChannel<Fields extends RevokeProAccessFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
   identity: UUID;
   fields?: Fields;
-  resultHandler: (result: ToggleEmailNotificationsResult<Fields>) => void;
+  resultHandler: (result: RevokeProAccessResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<ToggleEmailNotificationsResult<Fields>>(
+  executeActionChannelPush<RevokeProAccessResult<Fields>>(
     config.channel,
     {
-    action: "toggle_email_notifications",
+    action: "revoke_pro_access",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -7355,18 +4487,13 @@ export async function saveLanguagePreferenceChannel<Fields extends SaveLanguageP
 }
 
 
-export type GrantProAccessInput = {
-  durationDays: number;
-  reason: string;
-};
+export type ToggleEmailNotificationsFields = UnifiedFieldSelection<UserResourceSchema>[];
 
-export type GrantProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
-
-export type InferGrantProAccessResult<
-  Fields extends GrantProAccessFields | undefined,
+export type InferToggleEmailNotificationsResult<
+  Fields extends ToggleEmailNotificationsFields | undefined,
 > = InferResult<UserResourceSchema, Fields>;
 
-export type GrantProAccessResult<Fields extends GrantProAccessFields | undefined = undefined> = | { success: true; data: InferGrantProAccessResult<Fields>; }
+export type ToggleEmailNotificationsResult<Fields extends ToggleEmailNotificationsFields | undefined = undefined> = | { success: true; data: InferToggleEmailNotificationsResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
@@ -7376,27 +4503,25 @@ export type GrantProAccessResult<Fields extends GrantProAccessFields | undefined
  *
  * @ashActionType :update
  */
-export async function grantProAccess<Fields extends GrantProAccessFields | undefined = undefined>(
+export async function toggleEmailNotifications<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(
   config: {
   tenant?: string;
   identity: UUID;
-  input: GrantProAccessInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<GrantProAccessResult<Fields extends undefined ? [] : Fields>> {
+): Promise<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "grant_pro_access",
+    action: "toggle_email_notifications",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
-    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<GrantProAccessResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<ToggleEmailNotificationsResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -7408,21 +4533,98 @@ export async function grantProAccess<Fields extends GrantProAccessFields | undef
  *
  * @ashActionType :update
  */
-export async function grantProAccessChannel<Fields extends GrantProAccessFields | undefined = undefined>(config: {
+export async function toggleEmailNotificationsChannel<Fields extends ToggleEmailNotificationsFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
   identity: UUID;
-  input: GrantProAccessInput;
   fields?: Fields;
-  resultHandler: (result: GrantProAccessResult<Fields>) => void;
+  resultHandler: (result: ToggleEmailNotificationsResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<GrantProAccessResult<Fields>>(
+  executeActionChannelPush<ToggleEmailNotificationsResult<Fields>>(
     config.channel,
     {
-    action: "grant_pro_access",
+    action: "toggle_email_notifications",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateAvatarInput = {
+  avatarFileId?: UUID | null;
+  fileId: UUID;
+};
+
+export type UpdateAvatarFields = UnifiedFieldSelection<UserResourceSchema>[];
+
+export type InferUpdateAvatarResult<
+  Fields extends UpdateAvatarFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
+
+export type UpdateAvatarResult<Fields extends UpdateAvatarFields | undefined = undefined> = | { success: true; data: InferUpdateAvatarResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
+export async function updateAvatar<Fields extends UpdateAvatarFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateAvatarInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateAvatarResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_avatar",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateAvatarResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing User
+ *
+ * @ashActionType :update
+ */
+export async function updateAvatarChannel<Fields extends UpdateAvatarFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: UpdateAvatarInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateAvatarResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateAvatarResult<Fields>>(
+    config.channel,
+    {
+    action: "update_avatar",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
     input: config.input,
@@ -7434,117 +4636,47 @@ export async function grantProAccessChannel<Fields extends GrantProAccessFields 
 }
 
 
-export type RevokeProAccessFields = UnifiedFieldSelection<UserResourceSchema>[];
-
-export type InferRevokeProAccessResult<
-  Fields extends RevokeProAccessFields | undefined,
-> = InferResult<UserResourceSchema, Fields>;
-
-export type RevokeProAccessResult<Fields extends RevokeProAccessFields | undefined = undefined> = | { success: true; data: InferRevokeProAccessResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing User
- *
- * @ashActionType :update
- */
-export async function revokeProAccess<Fields extends RevokeProAccessFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: UUID;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<RevokeProAccessResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "revoke_pro_access",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<RevokeProAccessResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing User
- *
- * @ashActionType :update
- */
-export async function revokeProAccessChannel<Fields extends RevokeProAccessFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: UUID;
-  fields?: Fields;
-  resultHandler: (result: RevokeProAccessResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<RevokeProAccessResult<Fields>>(
-    config.channel,
-    {
-    action: "revoke_pro_access",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type InviteUserRoleInput = {
-  userId: UUID;
-  granterId: UUID;
-  roleType: string;
+export type UpdateNameInput = {
+  name?: string;
 };
 
-export type InviteUserRoleFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+export type UpdateNameFields = UnifiedFieldSelection<UserResourceSchema>[];
 
-export type InferInviteUserRoleResult<
-  Fields extends InviteUserRoleFields | undefined,
-> = InferResult<UserRoleResourceSchema, Fields>;
+export type InferUpdateNameResult<
+  Fields extends UpdateNameFields | undefined,
+> = InferResult<UserResourceSchema, Fields>;
 
-export type InviteUserRoleResult<Fields extends InviteUserRoleFields | undefined = undefined> = | { success: true; data: InferInviteUserRoleResult<Fields>; }
+export type UpdateNameResult<Fields extends UpdateNameFields | undefined = undefined> = | { success: true; data: InferUpdateNameResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Create a new UserRole
+ * Update an existing User
  *
- * @ashActionType :create
+ * @ashActionType :update
  */
-export async function inviteUserRole<Fields extends InviteUserRoleFields | undefined = undefined>(
+export async function updateName<Fields extends UpdateNameFields | undefined = undefined>(
   config: {
   tenant?: string;
-  input: InviteUserRoleInput;
+  identity: UUID;
+  input: UpdateNameInput;
   hookCtx?: ActionHookContext;
   fields?: Fields;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<InviteUserRoleResult<Fields extends undefined ? [] : Fields>> {
+): Promise<UpdateNameResult<Fields extends undefined ? [] : Fields>> {
   const payload = {
-    action: "invite_user_role",
+    action: "update_name",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   };
 
-  return executeActionRpcRequest<InviteUserRoleResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<UpdateNameResult<Fields extends undefined ? [] : Fields>>(
     payload,
     config
   );
@@ -7552,25 +4684,27 @@ export async function inviteUserRole<Fields extends InviteUserRoleFields | undef
 
 
 /**
- * Create a new UserRole
+ * Update an existing User
  *
- * @ashActionType :create
+ * @ashActionType :update
  */
-export async function inviteUserRoleChannel<Fields extends InviteUserRoleFields | undefined = undefined>(config: {
+export async function updateNameChannel<Fields extends UpdateNameFields | undefined = undefined>(config: {
   channel: Channel;
   tenant?: string;
-  input: InviteUserRoleInput;
+  identity: UUID;
+  input: UpdateNameInput;
   fields?: Fields;
-  resultHandler: (result: InviteUserRoleResult<Fields>) => void;
+  resultHandler: (result: UpdateNameResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<InviteUserRoleResult<Fields>>(
+  executeActionChannelPush<UpdateNameResult<Fields>>(
     config.channel,
     {
-    action: "invite_user_role",
+    action: "update_name",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -7712,6 +4846,82 @@ export async function declineRoleInvitationChannel<Fields extends DeclineRoleInv
     action: "decline_role_invitation",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type InviteUserRoleInput = {
+  userId: UUID;
+  granterId: UUID;
+  roleType: string;
+};
+
+export type InviteUserRoleFields = UnifiedFieldSelection<UserRoleResourceSchema>[];
+
+export type InferInviteUserRoleResult<
+  Fields extends InviteUserRoleFields | undefined,
+> = InferResult<UserRoleResourceSchema, Fields>;
+
+export type InviteUserRoleResult<Fields extends InviteUserRoleFields | undefined = undefined> = | { success: true; data: InferInviteUserRoleResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new UserRole
+ *
+ * @ashActionType :create
+ */
+export async function inviteUserRole<Fields extends InviteUserRoleFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: InviteUserRoleInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<InviteUserRoleResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "invite_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<InviteUserRoleResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new UserRole
+ *
+ * @ashActionType :create
+ */
+export async function inviteUserRoleChannel<Fields extends InviteUserRoleFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: InviteUserRoleInput;
+  fields?: Fields;
+  resultHandler: (result: InviteUserRoleResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<InviteUserRoleResult<Fields>>(
+    config.channel,
+    {
+    action: "invite_user_role",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,
@@ -8049,404 +5259,6 @@ export async function saveWidgetConfigChannel<Fields extends SaveWidgetConfigFie
     config.channel,
     {
     action: "save_widget_config",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type ListStreamingAccountsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
-
-
-export type InferListStreamingAccountsResult<
-  Fields extends ListStreamingAccountsFields | undefined,
-  Page extends ListStreamingAccountsConfig["page"] = undefined
-> = ConditionalPaginatedResultMixed<Page, Array<InferResult<StreamingAccountResourceSchema, Fields>>, {
-  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
-  hasMore: boolean;
-  limit: number;
-  offset: number;
-  count?: number | null;
-  type: "offset";
-}, {
-  results: Array<InferResult<StreamingAccountResourceSchema, Fields>>;
-  hasMore: boolean;
-  limit: number;
-  after: string | null;
-  before: string | null;
-  previousPage: string;
-  nextPage: string;
-  count?: number | null;
-  type: "keyset";
-}>;
-
-export type ListStreamingAccountsConfig = {
-  tenant?: string;
-  hookCtx?: ActionHookContext;
-  fields: ListStreamingAccountsFields;
-  filter?: StreamingAccountFilterInput;
-  sort?: string;
-  page?: (
-    {
-      limit?: number;
-      offset?: number;
-      count?: boolean;
-    } | {
-      limit?: number;
-      after?: string;
-      before?: string;
-    }
-  );
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-};
-
-export type ListStreamingAccountsResult<Fields extends ListStreamingAccountsFields, Page extends ListStreamingAccountsConfig["page"] = undefined> = | { success: true; data: InferListStreamingAccountsResult<Fields, Page>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read StreamingAccount records
- *
- * @ashActionType :read
- */
-export async function listStreamingAccounts<Fields extends ListStreamingAccountsFields, Config extends ListStreamingAccountsConfig = ListStreamingAccountsConfig>(
-  config: Config & { fields: Fields }
-): Promise<ListStreamingAccountsResult<Fields, Config["page"]>> {
-  const payload = {
-    action: "list_streaming_accounts",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  };
-
-  return executeActionRpcRequest<ListStreamingAccountsResult<Fields, Config["page"]>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read StreamingAccount records
- *
- * @ashActionType :read
- */
-export async function listStreamingAccountsChannel<Fields extends ListStreamingAccountsFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  fields: Fields;
-  filter?: StreamingAccountFilterInput;
-  sort?: string;
-  page?: (
-    {
-      limit?: number;
-      offset?: number;
-      count?: boolean;
-    } | {
-      limit?: number;
-      after?: string;
-      before?: string;
-    }
-  );
-  resultHandler: (result: ListStreamingAccountsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<ListStreamingAccountsResult<Fields>>(
-    config.channel,
-    {
-    action: "list_streaming_accounts",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    ...(config.fields !== undefined && { fields: config.fields }),
-    ...(config.filter && { filter: config.filter }),
-    ...(config.sort && { sort: config.sort }),
-    ...(config.page && { page: config.page })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type RefreshStreamingAccountStatsFields = UnifiedFieldSelection<StreamingAccountResourceSchema>[];
-
-export type InferRefreshStreamingAccountStatsResult<
-  Fields extends RefreshStreamingAccountStatsFields | undefined,
-> = InferResult<StreamingAccountResourceSchema, Fields>;
-
-export type RefreshStreamingAccountStatsResult<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined> = | { success: true; data: InferRefreshStreamingAccountStatsResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Update an existing StreamingAccount
- *
- * @ashActionType :update
- */
-export async function refreshStreamingAccountStats<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "refresh_streaming_account_stats",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<RefreshStreamingAccountStatsResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Update an existing StreamingAccount
- *
- * @ashActionType :update
- */
-export async function refreshStreamingAccountStatsChannel<Fields extends RefreshStreamingAccountStatsFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
-  fields?: Fields;
-  resultHandler: (result: RefreshStreamingAccountStatsResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<RefreshStreamingAccountStatsResult<Fields>>(
-    config.channel,
-    {
-    action: "refresh_streaming_account_stats",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-
-export type DisconnectStreamingAccountResult = | { success: true; data: {}; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Delete a StreamingAccount
- *
- * @ashActionType :destroy
- */
-export async function disconnectStreamingAccount(
-  config: {
-  tenant?: string;
-  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
-  hookCtx?: ActionHookContext;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<DisconnectStreamingAccountResult> {
-  const payload = {
-    action: "disconnect_streaming_account",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  };
-
-  return executeActionRpcRequest<DisconnectStreamingAccountResult>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Delete a StreamingAccount
- *
- * @ashActionType :destroy
- */
-export async function disconnectStreamingAccountChannel(config: {
-  channel: Channel;
-  tenant?: string;
-  identity: { userId: UUID; platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble" };
-  resultHandler: (result: DisconnectStreamingAccountResult) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<DisconnectStreamingAccountResult>(
-    config.channel,
-    {
-    action: "disconnect_streaming_account",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type GetSmartCanvasLayoutInput = {
-  userId: UUID;
-};
-
-export type GetSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
-export type InferGetSmartCanvasLayoutResult<
-  Fields extends GetSmartCanvasLayoutFields,
-> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
-
-export type GetSmartCanvasLayoutResult<Fields extends GetSmartCanvasLayoutFields> = | { success: true; data: InferGetSmartCanvasLayoutResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Read SmartCanvasLayout records
- *
- * @ashActionType :read
- */
-export async function getSmartCanvasLayout<Fields extends GetSmartCanvasLayoutFields>(
-  config: {
-  tenant?: string;
-  input: GetSmartCanvasLayoutInput;
-  hookCtx?: ActionHookContext;
-  fields: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<GetSmartCanvasLayoutResult<Fields>> {
-  const payload = {
-    action: "get_smart_canvas_layout",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<GetSmartCanvasLayoutResult<Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Read SmartCanvasLayout records
- *
- * @ashActionType :read
- */
-export async function getSmartCanvasLayoutChannel<Fields extends GetSmartCanvasLayoutFields>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: GetSmartCanvasLayoutInput;
-  fields: Fields;
-  resultHandler: (result: GetSmartCanvasLayoutResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<GetSmartCanvasLayoutResult<Fields>>(
-    config.channel,
-    {
-    action: "get_smart_canvas_layout",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type SaveSmartCanvasLayoutInput = {
-  userId: UUID;
-  widgets?: Array<Record<string, any>>;
-};
-
-export type SaveSmartCanvasLayoutFields = UnifiedFieldSelection<SmartCanvasLayoutResourceSchema>[];
-
-export type InferSaveSmartCanvasLayoutResult<
-  Fields extends SaveSmartCanvasLayoutFields | undefined,
-> = InferResult<SmartCanvasLayoutResourceSchema, Fields>;
-
-export type SaveSmartCanvasLayoutResult<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined> = | { success: true; data: InferSaveSmartCanvasLayoutResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new SmartCanvasLayout
- *
- * @ashActionType :create
- */
-export async function saveSmartCanvasLayout<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input: SaveSmartCanvasLayoutInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "save_smart_canvas_layout",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<SaveSmartCanvasLayoutResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new SmartCanvasLayout
- *
- * @ashActionType :create
- */
-export async function saveSmartCanvasLayoutChannel<Fields extends SaveSmartCanvasLayoutFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: SaveSmartCanvasLayoutInput;
-  fields?: Fields;
-  resultHandler: (result: SaveSmartCanvasLayoutResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<SaveSmartCanvasLayoutResult<Fields>>(
-    config.channel,
-    {
-    action: "save_smart_canvas_layout",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
@@ -8888,6 +5700,84 @@ export async function markNotificationUnreadChannel(config: {
 }
 
 
+export type ConfirmFileUploadInput = {
+  contentHash?: string | null;
+};
+
+export type ConfirmFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+
+export type InferConfirmFileUploadResult<
+  Fields extends ConfirmFileUploadFields | undefined,
+> = InferResult<FileResourceSchema, Fields>;
+
+export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | undefined = undefined> = | { success: true; data: InferConfirmFileUploadResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing File
+ *
+ * @ashActionType :update
+ */
+export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input?: ConfirmFileUploadInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "confirm_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing File
+ *
+ * @ashActionType :update
+ */
+export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input?: ConfirmFileUploadInput;
+  fields?: Fields;
+  resultHandler: (result: ConfirmFileUploadResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ConfirmFileUploadResult<Fields>>(
+    config.channel,
+    {
+    action: "confirm_file_upload",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
 export type RequestFileUploadInput = {
   filename: string;
   contentType?: string;
@@ -8965,47 +5855,48 @@ export async function requestFileUploadChannel<Fields extends RequestFileUploadF
 }
 
 
-export type ConfirmFileUploadInput = {
-  contentHash?: string | null;
+export type ListBannedViewersInput = {
+  userId: UUID;
 };
 
-export type ConfirmFileUploadFields = UnifiedFieldSelection<FileResourceSchema>[];
+export type ListBannedViewersFields = UnifiedFieldSelection<BannedViewerResourceSchema>[];
+export type InferListBannedViewersResult<
+  Fields extends ListBannedViewersFields,
+> = Array<InferResult<BannedViewerResourceSchema, Fields>>;
 
-export type InferConfirmFileUploadResult<
-  Fields extends ConfirmFileUploadFields | undefined,
-> = InferResult<FileResourceSchema, Fields>;
-
-export type ConfirmFileUploadResult<Fields extends ConfirmFileUploadFields | undefined = undefined> = | { success: true; data: InferConfirmFileUploadResult<Fields>; }
+export type ListBannedViewersResult<Fields extends ListBannedViewersFields> = | { success: true; data: InferListBannedViewersResult<Fields>; }
 | { success: false; errors: AshRpcError[]; }
 
 ;
 
 /**
- * Update an existing File
+ * Read BannedViewer records
  *
- * @ashActionType :update
+ * @ashActionType :read
  */
-export async function confirmFileUpload<Fields extends ConfirmFileUploadFields | undefined = undefined>(
+export async function listBannedViewers<Fields extends ListBannedViewersFields>(
   config: {
   tenant?: string;
-  identity: UUID;
-  input?: ConfirmFileUploadInput;
+  input: ListBannedViewersInput;
   hookCtx?: ActionHookContext;
-  fields?: Fields;
+  fields: Fields;
+  filter?: BannedViewerFilterInput;
+  sort?: string;
   headers?: Record<string, string>;
   fetchOptions?: RequestInit;
   customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
-): Promise<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>> {
+): Promise<ListBannedViewersResult<Fields>> {
   const payload = {
-    action: "confirm_file_upload",
+    action: "list_banned_viewers",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
-    identity: config.identity,
     input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
   };
 
-  return executeActionRpcRequest<ConfirmFileUploadResult<Fields extends undefined ? [] : Fields>>(
+  return executeActionRpcRequest<ListBannedViewersResult<Fields>>(
     payload,
     config
   );
@@ -9013,27 +5904,3212 @@ export async function confirmFileUpload<Fields extends ConfirmFileUploadFields |
 
 
 /**
- * Update an existing File
+ * Read BannedViewer records
  *
- * @ashActionType :update
+ * @ashActionType :read
  */
-export async function confirmFileUploadChannel<Fields extends ConfirmFileUploadFields | undefined = undefined>(config: {
+export async function listBannedViewersChannel<Fields extends ListBannedViewersFields>(config: {
   channel: Channel;
   tenant?: string;
-  identity: UUID;
-  input?: ConfirmFileUploadInput;
-  fields?: Fields;
-  resultHandler: (result: ConfirmFileUploadResult<Fields>) => void;
+  input: ListBannedViewersInput;
+  fields: Fields;
+  filter?: BannedViewerFilterInput;
+  sort?: string;
+  resultHandler: (result: ListBannedViewersResult<Fields>) => void;
   errorHandler?: (error: any) => void;
   timeoutHandler?: () => void;
   timeout?: number;
 }) {
-  executeActionChannelPush<ConfirmFileUploadResult<Fields>>(
+  executeActionChannelPush<ListBannedViewersResult<Fields>>(
     config.channel,
     {
-    action: "confirm_file_upload",
+    action: "list_banned_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetChatBotConfigInput = {
+  userId: UUID;
+};
+
+export type GetChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+export type InferGetChatBotConfigResult<
+  Fields extends GetChatBotConfigFields,
+> = Array<InferResult<ChatBotConfigResourceSchema, Fields>>;
+
+export type GetChatBotConfigResult<Fields extends GetChatBotConfigFields> = | { success: true; data: InferGetChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read ChatBotConfig records
+ *
+ * @ashActionType :read
+ */
+export async function getChatBotConfig<Fields extends GetChatBotConfigFields>(
+  config: {
+  tenant?: string;
+  input: GetChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: ChatBotConfigFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetChatBotConfigResult<Fields>> {
+  const payload = {
+    action: "get_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetChatBotConfigResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read ChatBotConfig records
+ *
+ * @ashActionType :read
+ */
+export async function getChatBotConfigChannel<Fields extends GetChatBotConfigFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetChatBotConfigInput;
+  fields: Fields;
+  filter?: ChatBotConfigFilterInput;
+  sort?: string;
+  resultHandler: (result: GetChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "get_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateChatBotConfigInput = {
+  enabled?: boolean;
+  greetingEnabled?: boolean;
+  greetingMessage?: string;
+  commandPrefix?: string;
+  aiChatEnabled?: boolean;
+  aiPersonality?: string | null;
+  aiBotName?: string;
+  aiProvider?: string;
+  autoShoutoutEnabled?: boolean;
+  linkProtectionEnabled?: boolean;
+  slowModeOnRaidEnabled?: boolean;
+};
+
+export type UpdateChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+
+export type InferUpdateChatBotConfigResult<
+  Fields extends UpdateChatBotConfigFields | undefined,
+> = InferResult<ChatBotConfigResourceSchema, Fields>;
+
+export type UpdateChatBotConfigResult<Fields extends UpdateChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpdateChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing ChatBotConfig
+ *
+ * @ashActionType :update
+ */
+export async function updateChatBotConfig<Fields extends UpdateChatBotConfigFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input?: UpdateChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_chat_bot_config",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing ChatBotConfig
+ *
+ * @ashActionType :update
+ */
+export async function updateChatBotConfigChannel<Fields extends UpdateChatBotConfigFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input?: UpdateChatBotConfigInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "update_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpsertChatBotConfigInput = {
+  enabled?: boolean;
+  greetingEnabled?: boolean;
+  greetingMessage?: string;
+  commandPrefix?: string;
+  aiChatEnabled?: boolean;
+  aiPersonality?: string | null;
+  aiBotName?: string;
+  aiProvider?: string;
+  autoShoutoutEnabled?: boolean;
+  linkProtectionEnabled?: boolean;
+  slowModeOnRaidEnabled?: boolean;
+};
+
+export type UpsertChatBotConfigFields = UnifiedFieldSelection<ChatBotConfigResourceSchema>[];
+
+export type InferUpsertChatBotConfigResult<
+  Fields extends UpsertChatBotConfigFields | undefined,
+> = InferResult<ChatBotConfigResourceSchema, Fields>;
+
+export type UpsertChatBotConfigResult<Fields extends UpsertChatBotConfigFields | undefined = undefined> = | { success: true; data: InferUpsertChatBotConfigResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new ChatBotConfig
+ *
+ * @ashActionType :create
+ */
+export async function upsertChatBotConfig<Fields extends UpsertChatBotConfigFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input?: UpsertChatBotConfigInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "upsert_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpsertChatBotConfigResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new ChatBotConfig
+ *
+ * @ashActionType :create
+ */
+export async function upsertChatBotConfigChannel<Fields extends UpsertChatBotConfigFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input?: UpsertChatBotConfigInput;
+  fields?: Fields;
+  resultHandler: (result: UpsertChatBotConfigResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpsertChatBotConfigResult<Fields>>(
+    config.channel,
+    {
+    action: "upsert_chat_bot_config",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ClearStreamHighlightFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
+
+export type InferClearStreamHighlightResult<
+  Fields extends ClearStreamHighlightFields | undefined,
+> = InferResult<CurrentStreamDataResourceSchema, Fields>;
+
+export type ClearStreamHighlightResult<Fields extends ClearStreamHighlightFields | undefined = undefined> = | { success: true; data: InferClearStreamHighlightResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
+export async function clearStreamHighlight<Fields extends ClearStreamHighlightFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ClearStreamHighlightResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "clear_stream_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ClearStreamHighlightResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
+export async function clearStreamHighlightChannel<Fields extends ClearStreamHighlightFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  resultHandler: (result: ClearStreamHighlightResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ClearStreamHighlightResult<Fields>>(
+    config.channel,
+    {
+    action: "clear_stream_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetCurrentStreamDataInput = {
+  userId: UUID;
+};
+
+export type GetCurrentStreamDataFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
+export type InferGetCurrentStreamDataResult<
+  Fields extends GetCurrentStreamDataFields,
+> = InferResult<CurrentStreamDataResourceSchema, Fields>;
+
+export type GetCurrentStreamDataResult<Fields extends GetCurrentStreamDataFields> = | { success: true; data: InferGetCurrentStreamDataResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read CurrentStreamData records
+ *
+ * @ashActionType :read
+ */
+export async function getCurrentStreamData<Fields extends GetCurrentStreamDataFields>(
+  config: {
+  tenant?: string;
+  input: GetCurrentStreamDataInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetCurrentStreamDataResult<Fields>> {
+  const payload = {
+    action: "get_current_stream_data",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetCurrentStreamDataResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read CurrentStreamData records
+ *
+ * @ashActionType :read
+ */
+export async function getCurrentStreamDataChannel<Fields extends GetCurrentStreamDataFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetCurrentStreamDataInput;
+  fields: Fields;
+  resultHandler: (result: GetCurrentStreamDataResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetCurrentStreamDataResult<Fields>>(
+    config.channel,
+    {
+    action: "get_current_stream_data",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type HighlightStreamMessageInput = {
+  highlightedMessage: Record<string, any>;
+};
+
+export type HighlightStreamMessageFields = UnifiedFieldSelection<CurrentStreamDataResourceSchema>[];
+
+export type InferHighlightStreamMessageResult<
+  Fields extends HighlightStreamMessageFields | undefined,
+> = InferResult<CurrentStreamDataResourceSchema, Fields>;
+
+export type HighlightStreamMessageResult<Fields extends HighlightStreamMessageFields | undefined = undefined> = | { success: true; data: InferHighlightStreamMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
+export async function highlightStreamMessage<Fields extends HighlightStreamMessageFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: HighlightStreamMessageInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<HighlightStreamMessageResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "highlight_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<HighlightStreamMessageResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing CurrentStreamData
+ *
+ * @ashActionType :update
+ */
+export async function highlightStreamMessageChannel<Fields extends HighlightStreamMessageFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: HighlightStreamMessageInput;
+  fields?: Fields;
+  resultHandler: (result: HighlightStreamMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<HighlightStreamMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "highlight_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ClearHighlightInput = {
+  userId: UUID;
+};
+
+export type InferClearHighlightResult = boolean;
+
+export type ClearHighlightResult = | { success: true; data: InferClearHighlightResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on HighlightedMessage
+ *
+ * @ashActionType :action
+ */
+export async function clearHighlight(
+  config: {
+  tenant?: string;
+  input: ClearHighlightInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ClearHighlightResult> {
+  const payload = {
+    action: "clear_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<ClearHighlightResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on HighlightedMessage
+ *
+ * @ashActionType :action
+ */
+export async function clearHighlightChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: ClearHighlightInput;
+  resultHandler: (result: ClearHighlightResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ClearHighlightResult>(
+    config.channel,
+    {
+    action: "clear_highlight",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetHighlightedMessageInput = {
+  userId: UUID;
+};
+
+export type GetHighlightedMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
+export type InferGetHighlightedMessageResult<
+  Fields extends GetHighlightedMessageFields,
+> = Array<InferResult<HighlightedMessageResourceSchema, Fields>>;
+
+export type GetHighlightedMessageResult<Fields extends GetHighlightedMessageFields> = | { success: true; data: InferGetHighlightedMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read HighlightedMessage records
+ *
+ * @ashActionType :read
+ */
+export async function getHighlightedMessage<Fields extends GetHighlightedMessageFields>(
+  config: {
+  tenant?: string;
+  input: GetHighlightedMessageInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: HighlightedMessageFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetHighlightedMessageResult<Fields>> {
+  const payload = {
+    action: "get_highlighted_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetHighlightedMessageResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read HighlightedMessage records
+ *
+ * @ashActionType :read
+ */
+export async function getHighlightedMessageChannel<Fields extends GetHighlightedMessageFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetHighlightedMessageInput;
+  fields: Fields;
+  filter?: HighlightedMessageFilterInput;
+  sort?: string;
+  resultHandler: (result: GetHighlightedMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetHighlightedMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "get_highlighted_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type HighlightMessageInput = {
+  chatMessageId: string;
+  message: string;
+  senderUsername: string;
+  senderChannelId: string;
+  platform: "youtube" | "twitch" | "facebook" | "kick" | "tiktok" | "trovo" | "instagram" | "rumble";
+  viewerId?: string | null;
+  userId: UUID;
+};
+
+export type HighlightMessageFields = UnifiedFieldSelection<HighlightedMessageResourceSchema>[];
+
+export type InferHighlightMessageResult<
+  Fields extends HighlightMessageFields | undefined,
+> = InferResult<HighlightedMessageResourceSchema, Fields>;
+
+export type HighlightMessageResult<Fields extends HighlightMessageFields | undefined = undefined> = | { success: true; data: InferHighlightMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new HighlightedMessage
+ *
+ * @ashActionType :create
+ */
+export async function highlightMessage<Fields extends HighlightMessageFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: HighlightMessageInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<HighlightMessageResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "highlight_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<HighlightMessageResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new HighlightedMessage
+ *
+ * @ashActionType :create
+ */
+export async function highlightMessageChannel<Fields extends HighlightMessageFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: HighlightMessageInput;
+  fields?: Fields;
+  resultHandler: (result: HighlightMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<HighlightMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "highlight_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetLivestreamFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
+export type InferGetLivestreamResult<
+  Fields extends GetLivestreamFields,
+> = InferResult<LivestreamResourceSchema, Fields>;
+
+export type GetLivestreamResult<Fields extends GetLivestreamFields> = | { success: true; data: InferGetLivestreamResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestream<Fields extends GetLivestreamFields>(
+  config: {
+  tenant?: string;
+  hookCtx?: ActionHookContext;
+  getBy: {
+    id: UUID;
+  };
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamResult<Fields>> {
+  const payload = {
+    action: "get_livestream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    getBy: config.getBy,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<GetLivestreamResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestreamChannel<Fields extends GetLivestreamFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  getBy: {
+    id: UUID;
+  };
+  fields: Fields;
+  resultHandler: (result: GetLivestreamResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetLivestreamResult<Fields>>(
+    config.channel,
+    {
+    action: "get_livestream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    getBy: config.getBy,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamHistoryInput = {
+  userId?: UUID;
+};
+
+export type GetStreamHistoryFields = UnifiedFieldSelection<LivestreamResourceSchema>[];
+export type InferGetStreamHistoryResult<
+  Fields extends GetStreamHistoryFields,
+> = Array<InferResult<LivestreamResourceSchema, Fields>>;
+
+export type GetStreamHistoryResult<Fields extends GetStreamHistoryFields> = | { success: true; data: InferGetStreamHistoryResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHistory<Fields extends GetStreamHistoryFields>(
+  config: {
+  tenant?: string;
+  input?: GetStreamHistoryInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: LivestreamFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHistoryResult<Fields>> {
+  const payload = {
+    action: "get_stream_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHistoryResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read Livestream records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHistoryChannel<Fields extends GetStreamHistoryFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input?: GetStreamHistoryInput;
+  fields: Fields;
+  filter?: LivestreamFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamHistoryResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamHistoryResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetIngestCredentialsInput = {
+  userId: UUID;
+  orientation?: "horizontal" | "vertical";
+};
+
+export type InferGetIngestCredentialsResult = Record<string, any>;
+
+export type GetIngestCredentialsResult = | { success: true; data: InferGetIngestCredentialsResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function getIngestCredentials(
+  config: {
+  tenant?: string;
+  input: GetIngestCredentialsInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetIngestCredentialsResult> {
+  const payload = {
+    action: "get_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<GetIngestCredentialsResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function getIngestCredentialsChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetIngestCredentialsInput;
+  resultHandler: (result: GetIngestCredentialsResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetIngestCredentialsResult>(
+    config.channel,
+    {
+    action: "get_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GoLiveInput = {
+  userId: UUID;
+  title?: string;
+  description?: string;
+  platforms?: Array<string>;
+  metadata?: Record<string, any>;
+};
+
+export type InferGoLiveResult = Record<string, any>;
+
+export type GoLiveResult = | { success: true; data: InferGoLiveResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function goLive(
+  config: {
+  tenant?: string;
+  input: GoLiveInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GoLiveResult> {
+  const payload = {
+    action: "go_live",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<GoLiveResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function goLiveChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GoLiveInput;
+  resultHandler: (result: GoLiveResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GoLiveResult>(
+    config.channel,
+    {
+    action: "go_live",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type RegenerateIngestCredentialsInput = {
+  userId: UUID;
+  orientation?: "horizontal" | "vertical";
+};
+
+export type InferRegenerateIngestCredentialsResult = Record<string, any>;
+
+export type RegenerateIngestCredentialsResult = | { success: true; data: InferRegenerateIngestCredentialsResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function regenerateIngestCredentials(
+  config: {
+  tenant?: string;
+  input: RegenerateIngestCredentialsInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<RegenerateIngestCredentialsResult> {
+  const payload = {
+    action: "regenerate_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<RegenerateIngestCredentialsResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function regenerateIngestCredentialsChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: RegenerateIngestCredentialsInput;
+  resultHandler: (result: RegenerateIngestCredentialsResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<RegenerateIngestCredentialsResult>(
+    config.channel,
+    {
+    action: "regenerate_ingest_credentials",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SendStreamMessageInput = {
+  userId: UUID;
+  message: string;
+  platforms?: Array<string>;
+};
+
+export type InferSendStreamMessageResult = Record<string, any>;
+
+export type SendStreamMessageResult = | { success: true; data: InferSendStreamMessageResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function sendStreamMessage(
+  config: {
+  tenant?: string;
+  input: SendStreamMessageInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SendStreamMessageResult> {
+  const payload = {
+    action: "send_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<SendStreamMessageResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function sendStreamMessageChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: SendStreamMessageInput;
+  resultHandler: (result: SendStreamMessageResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SendStreamMessageResult>(
+    config.channel,
+    {
+    action: "send_stream_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type StopStreamInput = {
+  userId: UUID;
+};
+
+export type InferStopStreamResult = Record<string, any>;
+
+export type StopStreamResult = | { success: true; data: InferStopStreamResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function stopStream(
+  config: {
+  tenant?: string;
+  input: StopStreamInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<StopStreamResult> {
+  const payload = {
+    action: "stop_stream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<StopStreamResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function stopStreamChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: StopStreamInput;
+  resultHandler: (result: StopStreamResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<StopStreamResult>(
+    config.channel,
+    {
+    action: "stop_stream",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type TogglePlatformInput = {
+  userId: UUID;
+  platform: string;
+  enabled: boolean;
+};
+
+export type InferTogglePlatformResult = Record<string, any>;
+
+export type TogglePlatformResult = | { success: true; data: InferTogglePlatformResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function togglePlatform(
+  config: {
+  tenant?: string;
+  input: TogglePlatformInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<TogglePlatformResult> {
+  const payload = {
+    action: "toggle_platform",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<TogglePlatformResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function togglePlatformChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: TogglePlatformInput;
+  resultHandler: (result: TogglePlatformResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<TogglePlatformResult>(
+    config.channel,
+    {
+    action: "toggle_platform",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateStreamMetadataInput = {
+  userId: UUID;
+  title?: string;
+  description?: string;
+  tags?: Array<string>;
+  thumbnailFileId?: UUID;
+  platforms?: Array<string>;
+};
+
+export type InferUpdateStreamMetadataResult = Record<string, any>;
+
+export type UpdateStreamMetadataResult = | { success: true; data: InferUpdateStreamMetadataResult; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function updateStreamMetadata(
+  config: {
+  tenant?: string;
+  input: UpdateStreamMetadataInput;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateStreamMetadataResult> {
+  const payload = {
+    action: "update_stream_metadata",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeActionRpcRequest<UpdateStreamMetadataResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Execute generic action on StreamAction
+ *
+ * @ashActionType :action
+ */
+export async function updateStreamMetadataChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  input: UpdateStreamMetadataInput;
+  resultHandler: (result: UpdateStreamMetadataResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateStreamMetadataResult>(
+    config.channel,
+    {
+    action: "update_stream_metadata",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetChatHistoryInput = {
+  userId: UUID;
+  platform?: string;
+  dateRange?: string;
+  search?: string;
+};
+
+export type GetChatHistoryFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+
+
+export type InferGetChatHistoryResult<
+  Fields extends GetChatHistoryFields | undefined,
+  Page extends GetChatHistoryConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<StreamEventResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamEventResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type GetChatHistoryConfig = {
+  tenant?: string;
+  input: GetChatHistoryInput;
+  hookCtx?: ActionHookContext;
+  fields: GetChatHistoryFields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type GetChatHistoryResult<Fields extends GetChatHistoryFields, Page extends GetChatHistoryConfig["page"] = undefined> = | { success: true; data: InferGetChatHistoryResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getChatHistory<Fields extends GetChatHistoryFields, Config extends GetChatHistoryConfig = GetChatHistoryConfig>(
+  config: Config & { fields: Fields }
+): Promise<GetChatHistoryResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "get_chat_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<GetChatHistoryResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getChatHistoryChannel<Fields extends GetChatHistoryFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetChatHistoryInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  resultHandler: (result: GetChatHistoryResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetChatHistoryResult<Fields>>(
+    config.channel,
+    {
+    action: "get_chat_history",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetLivestreamChatInput = {
+  livestreamId: UUID;
+};
+
+export type GetLivestreamChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetLivestreamChatResult<
+  Fields extends GetLivestreamChatFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetLivestreamChatResult<Fields extends GetLivestreamChatFields> = | { success: true; data: InferGetLivestreamChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestreamChat<Fields extends GetLivestreamChatFields>(
+  config: {
+  tenant?: string;
+  input: GetLivestreamChatInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamChatResult<Fields>> {
+  const payload = {
+    action: "get_livestream_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetLivestreamChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestreamChatChannel<Fields extends GetLivestreamChatFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetLivestreamChatInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetLivestreamChatResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetLivestreamChatResult<Fields>>(
+    config.channel,
+    {
+    action: "get_livestream_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetLivestreamEventsInput = {
+  livestreamId: UUID;
+};
+
+export type GetLivestreamEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetLivestreamEventsResult<
+  Fields extends GetLivestreamEventsFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetLivestreamEventsResult<Fields extends GetLivestreamEventsFields> = | { success: true; data: InferGetLivestreamEventsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestreamEvents<Fields extends GetLivestreamEventsFields>(
+  config: {
+  tenant?: string;
+  input: GetLivestreamEventsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetLivestreamEventsResult<Fields>> {
+  const payload = {
+    action: "get_livestream_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetLivestreamEventsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getLivestreamEventsChannel<Fields extends GetLivestreamEventsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetLivestreamEventsInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetLivestreamEventsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetLivestreamEventsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_livestream_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetViewerChatInput = {
+  viewerId: string;
+  userId: UUID;
+};
+
+export type GetViewerChatFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetViewerChatResult<
+  Fields extends GetViewerChatFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetViewerChatResult<Fields extends GetViewerChatFields> = | { success: true; data: InferGetViewerChatResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getViewerChat<Fields extends GetViewerChatFields>(
+  config: {
+  tenant?: string;
+  input: GetViewerChatInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetViewerChatResult<Fields>> {
+  const payload = {
+    action: "get_viewer_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetViewerChatResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getViewerChatChannel<Fields extends GetViewerChatFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetViewerChatInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetViewerChatResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetViewerChatResult<Fields>>(
+    config.channel,
+    {
+    action: "get_viewer_chat",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetViewerEventsInput = {
+  viewerId: string;
+  userId: UUID;
+};
+
+export type GetViewerEventsFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+export type InferGetViewerEventsResult<
+  Fields extends GetViewerEventsFields,
+> = Array<InferResult<StreamEventResourceSchema, Fields>>;
+
+export type GetViewerEventsResult<Fields extends GetViewerEventsFields> = | { success: true; data: InferGetViewerEventsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getViewerEvents<Fields extends GetViewerEventsFields>(
+  config: {
+  tenant?: string;
+  input: GetViewerEventsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetViewerEventsResult<Fields>> {
+  const payload = {
+    action: "get_viewer_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetViewerEventsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamEvent records
+ *
+ * @ashActionType :read
+ */
+export async function getViewerEventsChannel<Fields extends GetViewerEventsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetViewerEventsInput;
+  fields: Fields;
+  filter?: StreamEventFilterInput;
+  sort?: string;
+  resultHandler: (result: GetViewerEventsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetViewerEventsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_viewer_events",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type MarkStreamEventDisplayedFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+
+export type InferMarkStreamEventDisplayedResult<
+  Fields extends MarkStreamEventDisplayedFields | undefined,
+> = InferResult<StreamEventResourceSchema, Fields>;
+
+export type MarkStreamEventDisplayedResult<Fields extends MarkStreamEventDisplayedFields | undefined = undefined> = | { success: true; data: InferMarkStreamEventDisplayedResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
+export async function markStreamEventDisplayed<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "mark_stream_event_displayed",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<MarkStreamEventDisplayedResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
+export async function markStreamEventDisplayedChannel<Fields extends MarkStreamEventDisplayedFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  resultHandler: (result: MarkStreamEventDisplayedResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<MarkStreamEventDisplayedResult<Fields>>(
+    config.channel,
+    {
+    action: "mark_stream_event_displayed",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ReplayAlertFields = UnifiedFieldSelection<StreamEventResourceSchema>[];
+
+export type InferReplayAlertResult<
+  Fields extends ReplayAlertFields | undefined,
+> = InferResult<StreamEventResourceSchema, Fields>;
+
+export type ReplayAlertResult<Fields extends ReplayAlertFields | undefined = undefined> = | { success: true; data: InferReplayAlertResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
+export async function replayAlert<Fields extends ReplayAlertFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ReplayAlertResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "replay_alert",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ReplayAlertResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamEvent
+ *
+ * @ashActionType :update
+ */
+export async function replayAlertChannel<Fields extends ReplayAlertFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  resultHandler: (result: ReplayAlertResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ReplayAlertResult<Fields>>(
+    config.channel,
+    {
+    action: "replay_alert",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type CreateStreamHookInput = {
+  name: string;
+  triggerType: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  actionType: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig: Record<string, any>;
+  conditions?: Record<string, any>;
+  cooldownSeconds?: number;
+};
+
+export type CreateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferCreateStreamHookResult<
+  Fields extends CreateStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type CreateStreamHookResult<Fields extends CreateStreamHookFields | undefined = undefined> = | { success: true; data: InferCreateStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new StreamHook
+ *
+ * @ashActionType :create
+ */
+export async function createStreamHook<Fields extends CreateStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: CreateStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new StreamHook
+ *
+ * @ashActionType :create
+ */
+export async function createStreamHookChannel<Fields extends CreateStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: CreateStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: CreateStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<CreateStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "create_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+
+export type DeleteStreamHookResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a StreamHook
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamHook(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteStreamHookResult> {
+  const payload = {
+    action: "delete_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DeleteStreamHookResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Delete a StreamHook
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamHookChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  resultHandler: (result: DeleteStreamHookResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DeleteStreamHookResult>(
+    config.channel,
+    {
+    action: "delete_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamHooksInput = {
+  userId: UUID;
+};
+
+export type GetStreamHooksFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+export type InferGetStreamHooksResult<
+  Fields extends GetStreamHooksFields,
+> = Array<InferResult<StreamHookResourceSchema, Fields>>;
+
+export type GetStreamHooksResult<Fields extends GetStreamHooksFields> = | { success: true; data: InferGetStreamHooksResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHook records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHooks<Fields extends GetStreamHooksFields>(
+  config: {
+  tenant?: string;
+  input: GetStreamHooksInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHooksResult<Fields>> {
+  const payload = {
+    action: "get_stream_hooks",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHooksResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHook records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHooksChannel<Fields extends GetStreamHooksFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetStreamHooksInput;
+  fields: Fields;
+  filter?: StreamHookFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamHooksResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamHooksResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_hooks",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ToggleStreamHookInput = {
+  enabled: boolean;
+};
+
+export type ToggleStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferToggleStreamHookResult<
+  Fields extends ToggleStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type ToggleStreamHookResult<Fields extends ToggleStreamHookFields | undefined = undefined> = | { success: true; data: InferToggleStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function toggleStreamHook<Fields extends ToggleStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: ToggleStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "toggle_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<ToggleStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function toggleStreamHookChannel<Fields extends ToggleStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: ToggleStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: ToggleStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ToggleStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "toggle_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateStreamHookInput = {
+  name?: string;
+  triggerType?: "donation" | "follow" | "raid" | "subscription" | "stream_start" | "stream_end" | "chat_message";
+  conditions?: Record<string, any> | null;
+  actionType?: "webhook" | "discord_message" | "chat_message" | "email";
+  actionConfig?: Record<string, any>;
+  cooldownSeconds?: number;
+  enabled?: boolean;
+};
+
+export type UpdateStreamHookFields = UnifiedFieldSelection<StreamHookResourceSchema>[];
+
+export type InferUpdateStreamHookResult<
+  Fields extends UpdateStreamHookFields | undefined,
+> = InferResult<StreamHookResourceSchema, Fields>;
+
+export type UpdateStreamHookResult<Fields extends UpdateStreamHookFields | undefined = undefined> = | { success: true; data: InferUpdateStreamHookResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamHook<Fields extends UpdateStreamHookFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamHookInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateStreamHookResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamHook
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamHookChannel<Fields extends UpdateStreamHookFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamHookInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateStreamHookResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateStreamHookResult<Fields>>(
+    config.channel,
+    {
+    action: "update_stream_hook",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetHookLogsInput = {
+  hookId: UUID;
+};
+
+export type GetHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
+export type InferGetHookLogsResult<
+  Fields extends GetHookLogsFields,
+> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
+
+export type GetHookLogsResult<Fields extends GetHookLogsFields> = | { success: true; data: InferGetHookLogsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getHookLogs<Fields extends GetHookLogsFields>(
+  config: {
+  tenant?: string;
+  input: GetHookLogsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetHookLogsResult<Fields>> {
+  const payload = {
+    action: "get_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetHookLogsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getHookLogsChannel<Fields extends GetHookLogsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetHookLogsInput;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  resultHandler: (result: GetHookLogsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetHookLogsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamHookLogsInput = {
+  userId: UUID;
+};
+
+export type GetStreamHookLogsFields = UnifiedFieldSelection<StreamHookLogResourceSchema>[];
+export type InferGetStreamHookLogsResult<
+  Fields extends GetStreamHookLogsFields,
+> = Array<InferResult<StreamHookLogResourceSchema, Fields>>;
+
+export type GetStreamHookLogsResult<Fields extends GetStreamHookLogsFields> = | { success: true; data: InferGetStreamHookLogsResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHookLogs<Fields extends GetStreamHookLogsFields>(
+  config: {
+  tenant?: string;
+  input: GetStreamHookLogsInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamHookLogsResult<Fields>> {
+  const payload = {
+    action: "get_stream_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamHookLogsResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamHookLog records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamHookLogsChannel<Fields extends GetStreamHookLogsFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetStreamHookLogsInput;
+  fields: Fields;
+  filter?: StreamHookLogFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamHookLogsResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamHookLogsResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_hook_logs",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type CreateStreamTimerInput = {
+  label: string;
+  content: string;
+  intervalSeconds: number;
+};
+
+export type CreateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferCreateStreamTimerResult<
+  Fields extends CreateStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type CreateStreamTimerResult<Fields extends CreateStreamTimerFields | undefined = undefined> = | { success: true; data: InferCreateStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new StreamTimer
+ *
+ * @ashActionType :create
+ */
+export async function createStreamTimer<Fields extends CreateStreamTimerFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: CreateStreamTimerInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "create_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<CreateStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new StreamTimer
+ *
+ * @ashActionType :create
+ */
+export async function createStreamTimerChannel<Fields extends CreateStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: CreateStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: CreateStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<CreateStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "create_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+
+export type DeleteStreamTimerResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a StreamTimer
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamTimer(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  hookCtx?: ActionHookContext;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteStreamTimerResult> {
+  const payload = {
+    action: "delete_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DeleteStreamTimerResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Delete a StreamTimer
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteStreamTimerChannel(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  resultHandler: (result: DeleteStreamTimerResult) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DeleteStreamTimerResult>(
+    config.channel,
+    {
+    action: "delete_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type DisableStreamTimerInput = {
+  id: UUID;
+};
+
+export type DisableStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferDisableStreamTimerResult<
+  Fields extends DisableStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type DisableStreamTimerResult<Fields extends DisableStreamTimerFields | undefined = undefined> = | { success: true; data: InferDisableStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function disableStreamTimer<Fields extends DisableStreamTimerFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: DisableStreamTimerInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DisableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "disable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<DisableStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function disableStreamTimerChannel<Fields extends DisableStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: DisableStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: DisableStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<DisableStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "disable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type EnableStreamTimerInput = {
+  id: UUID;
+};
+
+export type EnableStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferEnableStreamTimerResult<
+  Fields extends EnableStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type EnableStreamTimerResult<Fields extends EnableStreamTimerFields | undefined = undefined> = | { success: true; data: InferEnableStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function enableStreamTimer<Fields extends EnableStreamTimerFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: EnableStreamTimerInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<EnableStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "enable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<EnableStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function enableStreamTimerChannel<Fields extends EnableStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: EnableStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: EnableStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<EnableStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "enable_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type GetStreamTimersInput = {
+  userId: UUID;
+};
+
+export type GetStreamTimersFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+export type InferGetStreamTimersResult<
+  Fields extends GetStreamTimersFields,
+> = Array<InferResult<StreamTimerResourceSchema, Fields>>;
+
+export type GetStreamTimersResult<Fields extends GetStreamTimersFields> = | { success: true; data: InferGetStreamTimersResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamTimer records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamTimers<Fields extends GetStreamTimersFields>(
+  config: {
+  tenant?: string;
+  input: GetStreamTimersInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamTimerFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<GetStreamTimersResult<Fields>> {
+  const payload = {
+    action: "get_stream_timers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<GetStreamTimersResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamTimer records
+ *
+ * @ashActionType :read
+ */
+export async function getStreamTimersChannel<Fields extends GetStreamTimersFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: GetStreamTimersInput;
+  fields: Fields;
+  filter?: StreamTimerFilterInput;
+  sort?: string;
+  resultHandler: (result: GetStreamTimersResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<GetStreamTimersResult<Fields>>(
+    config.channel,
+    {
+    action: "get_stream_timers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type UpdateStreamTimerInput = {
+  label?: string;
+  content?: string;
+  intervalSeconds?: number;
+};
+
+export type UpdateStreamTimerFields = UnifiedFieldSelection<StreamTimerResourceSchema>[];
+
+export type InferUpdateStreamTimerResult<
+  Fields extends UpdateStreamTimerFields | undefined,
+> = InferResult<StreamTimerResourceSchema, Fields>;
+
+export type UpdateStreamTimerResult<Fields extends UpdateStreamTimerFields | undefined = undefined> = | { success: true; data: InferUpdateStreamTimerResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamTimer<Fields extends UpdateStreamTimerFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamTimerInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateStreamTimerResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateStreamTimerResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Update an existing StreamTimer
+ *
+ * @ashActionType :update
+ */
+export async function updateStreamTimerChannel<Fields extends UpdateStreamTimerFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  identity: UUID;
+  input: UpdateStreamTimerInput;
+  fields?: Fields;
+  resultHandler: (result: UpdateStreamTimerResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<UpdateStreamTimerResult<Fields>>(
+    config.channel,
+    {
+    action: "update_stream_timer",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type ListViewersInput = {
+  userId: UUID;
+};
+
+export type ListViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
+
+
+export type InferListViewersResult<
+  Fields extends ListViewersFields | undefined,
+  Page extends ListViewersConfig["page"] = undefined
+> = ConditionalPaginatedResult<Page, Array<InferResult<StreamViewerResourceSchema, Fields>>, {
+  results: Array<InferResult<StreamViewerResourceSchema, Fields>>;
+  hasMore: boolean;
+  limit: number;
+  after: string | null;
+  before: string | null;
+  previousPage: string;
+  nextPage: string;
+  count?: number | null;
+  type: "keyset";
+}>;
+
+export type ListViewersConfig = {
+  tenant?: string;
+  input: ListViewersInput;
+  hookCtx?: ActionHookContext;
+  fields: ListViewersFields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+};
+
+export type ListViewersResult<Fields extends ListViewersFields, Page extends ListViewersConfig["page"] = undefined> = | { success: true; data: InferListViewersResult<Fields, Page>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
+export async function listViewers<Fields extends ListViewersFields, Config extends ListViewersConfig = ListViewersConfig>(
+  config: Config & { fields: Fields }
+): Promise<ListViewersResult<Fields, Config["page"]>> {
+  const payload = {
+    action: "list_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  };
+
+  return executeActionRpcRequest<ListViewersResult<Fields, Config["page"]>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
+export async function listViewersChannel<Fields extends ListViewersFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: ListViewersInput;
+  fields: Fields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  page?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+    offset?: never;
+    count?: never;
+  };
+  resultHandler: (result: ListViewersResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<ListViewersResult<Fields>>(
+    config.channel,
+    {
+    action: "list_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort }),
+    ...(config.page && { page: config.page })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SearchViewersInput = {
+  userId: UUID;
+  displayName: string;
+  similarityThreshold?: number;
+};
+
+export type SearchViewersFields = UnifiedFieldSelection<StreamViewerResourceSchema>[];
+export type InferSearchViewersResult<
+  Fields extends SearchViewersFields,
+> = Array<InferResult<StreamViewerResourceSchema, Fields>>;
+
+export type SearchViewersResult<Fields extends SearchViewersFields> = | { success: true; data: InferSearchViewersResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
+export async function searchViewers<Fields extends SearchViewersFields>(
+  config: {
+  tenant?: string;
+  input: SearchViewersInput;
+  hookCtx?: ActionHookContext;
+  fields: Fields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SearchViewersResult<Fields>> {
+  const payload = {
+    action: "search_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  };
+
+  return executeActionRpcRequest<SearchViewersResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Read StreamViewer records
+ *
+ * @ashActionType :read
+ */
+export async function searchViewersChannel<Fields extends SearchViewersFields>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: SearchViewersInput;
+  fields: Fields;
+  filter?: StreamViewerFilterInput;
+  sort?: string;
+  resultHandler: (result: SearchViewersResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SearchViewersResult<Fields>>(
+    config.channel,
+    {
+    action: "search_viewers",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: config.sort })
+  },
+    config.timeout,
+    config
+  );
+}
+
+
+export type SendSupportMessageInput = {
+  content: string;
+  ticketId: UUID;
+  userId: UUID;
+};
+
+export type SendSupportMessageFields = UnifiedFieldSelection<SupportMessageResourceSchema>[];
+
+export type InferSendSupportMessageResult<
+  Fields extends SendSupportMessageFields | undefined,
+> = InferResult<SupportMessageResourceSchema, Fields>;
+
+export type SendSupportMessageResult<Fields extends SendSupportMessageFields | undefined = undefined> = | { success: true; data: InferSendSupportMessageResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Create a new Message
+ *
+ * @ashActionType :create
+ */
+export async function sendSupportMessage<Fields extends SendSupportMessageFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: SendSupportMessageInput;
+  hookCtx?: ActionHookContext;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SendSupportMessageResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "send_support_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SendSupportMessageResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Create a new Message
+ *
+ * @ashActionType :create
+ */
+export async function sendSupportMessageChannel<Fields extends SendSupportMessageFields | undefined = undefined>(config: {
+  channel: Channel;
+  tenant?: string;
+  input: SendSupportMessageInput;
+  fields?: Fields;
+  resultHandler: (result: SendSupportMessageResult<Fields>) => void;
+  errorHandler?: (error: any) => void;
+  timeoutHandler?: () => void;
+  timeout?: number;
+}) {
+  executeActionChannelPush<SendSupportMessageResult<Fields>>(
+    config.channel,
+    {
+    action: "send_support_message",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
@@ -9181,82 +9257,6 @@ export async function resolveSupportTicketChannel<Fields extends ResolveSupportT
     action: "resolve_support_ticket",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity,
-    ...(config.fields !== undefined && { fields: config.fields })
-  },
-    config.timeout,
-    config
-  );
-}
-
-
-export type SendSupportMessageInput = {
-  content: string;
-  ticketId: UUID;
-  userId: UUID;
-};
-
-export type SendSupportMessageFields = UnifiedFieldSelection<SupportMessageResourceSchema>[];
-
-export type InferSendSupportMessageResult<
-  Fields extends SendSupportMessageFields | undefined,
-> = InferResult<SupportMessageResourceSchema, Fields>;
-
-export type SendSupportMessageResult<Fields extends SendSupportMessageFields | undefined = undefined> = | { success: true; data: InferSendSupportMessageResult<Fields>; }
-| { success: false; errors: AshRpcError[]; }
-
-;
-
-/**
- * Create a new Message
- *
- * @ashActionType :create
- */
-export async function sendSupportMessage<Fields extends SendSupportMessageFields | undefined = undefined>(
-  config: {
-  tenant?: string;
-  input: SendSupportMessageInput;
-  hookCtx?: ActionHookContext;
-  fields?: Fields;
-  headers?: Record<string, string>;
-  fetchOptions?: RequestInit;
-  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-}
-): Promise<SendSupportMessageResult<Fields extends undefined ? [] : Fields>> {
-  const payload = {
-    action: "send_support_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
-    ...(config.fields !== undefined && { fields: config.fields })
-  };
-
-  return executeActionRpcRequest<SendSupportMessageResult<Fields extends undefined ? [] : Fields>>(
-    payload,
-    config
-  );
-}
-
-
-/**
- * Create a new Message
- *
- * @ashActionType :create
- */
-export async function sendSupportMessageChannel<Fields extends SendSupportMessageFields | undefined = undefined>(config: {
-  channel: Channel;
-  tenant?: string;
-  input: SendSupportMessageInput;
-  fields?: Fields;
-  resultHandler: (result: SendSupportMessageResult<Fields>) => void;
-  errorHandler?: (error: any) => void;
-  timeoutHandler?: () => void;
-  timeout?: number;
-}) {
-  executeActionChannelPush<SendSupportMessageResult<Fields>>(
-    config.channel,
-    {
-    action: "send_support_message",
-    ...(config.tenant !== undefined && { tenant: config.tenant }),
-    input: config.input,
     ...(config.fields !== undefined && { fields: config.fields })
   },
     config.timeout,

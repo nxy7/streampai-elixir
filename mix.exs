@@ -57,6 +57,8 @@ defmodule Streampai.MixProject do
       {:ash_authentication_phoenix, "~> 2.10"},
       {:ash, "~> 3.0"},
       {:ash_typescript, "~> 0.2"},
+      {:ash_cloak, "~> 0.2"},
+      {:cloak, "~> 1.1"},
       {:igniter, "~> 0.6", override: true},
       {:phoenix, "~> 1.8.1"},
       {:phoenix_html, "~> 4.2"},

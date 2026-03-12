@@ -28,7 +28,7 @@ Comprehensive security and code quality audit results. Check off items as they a
 
 ### Critical — Security
 
-- [ ] **S1: OAuth tokens stored plaintext**
+- [x] **S1: OAuth tokens stored plaintext**
   - **File**: `lib/streampai/integrations/resources/streaming_account.ex:210-218`
   - **Detail**: Fields are marked `sensitive? true` which suppresses log output only. No encryption library exists in the project. A database breach exposes Twitch, YouTube, Discord, and PayPal OAuth tokens in full, enabling complete account takeover on all connected platforms.
   - **Fix**: Encrypt token fields at rest using `cloak_ecto` or equivalent before writing to the database.
@@ -307,8 +307,8 @@ Comprehensive security and code quality audit results. Check off items as they a
 
 | Severity | Count | Fixed |
 |----------|-------|-------|
-| Critical | 7 | 0 |
-| High | 14 | 0 |
-| Medium | 15 | 0 |
+| Critical | 7 | 1 |
+| High | 14 | 3 |
+| Medium | 15 | 1 |
 | Low | 8 | 0 |
-| **Total** | **44** | **0** |
+| **Total** | **44** | **5** |

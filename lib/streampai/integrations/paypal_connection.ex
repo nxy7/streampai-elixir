@@ -9,11 +9,18 @@ defmodule Streampai.Integrations.PayPalConnection do
     otp_app: :streampai,
     domain: Streampai.Integrations,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshCloak]
 
   postgres do
     table "paypal_connections"
     repo Streampai.Repo
+  end
+
+  cloak do
+    vault(Streampai.Vault)
+    attributes [:access_token, :refresh_token]
+    decrypt_by_default([:access_token, :refresh_token])
   end
 
   code_interface do

@@ -4,7 +4,7 @@ defmodule Streampai.Accounts.StreamingAccount do
     otp_app: :streampai,
     domain: Streampai.Accounts,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshOban, AshTypescript.Resource],
+    extensions: [AshOban, AshTypescript.Resource, AshCloak],
     data_layer: AshPostgres.DataLayer
 
   require Ash.Query
@@ -49,6 +49,12 @@ defmodule Streampai.Accounts.StreamingAccount do
 
   typescript do
     type_name("StreamingAccount")
+  end
+
+  cloak do
+    vault(Streampai.Vault)
+    attributes [:access_token, :refresh_token]
+    decrypt_by_default([:access_token, :refresh_token])
   end
 
   code_interface do

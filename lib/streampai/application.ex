@@ -20,32 +20,35 @@ defmodule Streampai.Application do
     maybe_start_nostrum()
 
     children =
-      [
-        StreampaiWeb.Telemetry,
-        Streampai.Repo,
-        {Oban,
-         AshOban.config(
-           Application.fetch_env!(:streampai, :ash_domains),
-           Application.fetch_env!(:streampai, Oban)
-         )},
-        {Phoenix.PubSub, name: Streampai.PubSub},
-        StreampaiWeb.Presence,
-        {Finch, name: Streampai.Finch},
-        {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
-        {AshAuthentication.Supervisor, [otp_app: :streampai]},
-        {Task.Supervisor, name: Streampai.TaskSupervisor},
-        {DynamicSupervisor, strategy: :one_for_one, name: GRPC.Client.Supervisor},
-        Streampai.Stream.EventPersister,
-        Streampai.YouTube.TokenSupervisor,
-        # Discord bot integration
-        {Registry, keys: :unique, name: Streampai.Integrations.Discord.BotRegistry},
-        Streampai.Integrations.Discord.BotManager,
-        # Bumblebee Whisper serving for transcription (nil when disabled)
-        maybe_whisper_serving(),
-        {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
-      ]
-      |> Enum.reject(&is_nil/1)
+      Enum.reject(
+        [
+          StreampaiWeb.Telemetry,
+          Streampai.Repo,
+          Streampai.Vault,
+          {Oban,
+           AshOban.config(
+             Application.fetch_env!(:streampai, :ash_domains),
+             Application.fetch_env!(:streampai, Oban)
+           )},
+          {Phoenix.PubSub, name: Streampai.PubSub},
+          StreampaiWeb.Presence,
+          {Finch, name: Streampai.Finch},
+          {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
+          {AshAuthentication.Supervisor, [otp_app: :streampai]},
+          {Task.Supervisor, name: Streampai.TaskSupervisor},
+          {DynamicSupervisor, strategy: :one_for_one, name: GRPC.Client.Supervisor},
+          Streampai.Stream.EventPersister,
+          Streampai.YouTube.TokenSupervisor,
+          {Registry, keys: :unique, name: Streampai.Integrations.Discord.BotRegistry},
+          Streampai.Integrations.Discord.BotManager,
+          maybe_whisper_serving(),
+          {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
+        ],
+        &is_nil/1
+      )
 
+    # Discord bot integration
+    # Bumblebee Whisper serving for transcription (nil when disabled)
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]
     Supervisor.start_link(children, opts)
   end
@@ -75,10 +78,7 @@ defmodule Streampai.Application do
       Logger.info("Starting Bumblebee Whisper serving with model: #{model}")
 
       {Nx.Serving,
-       serving: build_whisper_serving(model),
-       name: Streampai.WhisperServing,
-       batch_size: 1,
-       batch_timeout: 100}
+       serving: build_whisper_serving(model), name: Streampai.WhisperServing, batch_size: 1, batch_timeout: 100}
     end
   end
 
