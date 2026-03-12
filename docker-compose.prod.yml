@@ -1,7 +1,7 @@
 services:
-  timescaledb:
+  postgres:
     container_name: streampai-db
-    image: timescale/timescaledb:2.24.0-pg16
+    image: postgres:18
     restart: unless-stopped
     command: >
       postgres
@@ -20,9 +20,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      TIMESCALEDB_TELEMETRY: "off"
     volumes:
-      - timescaledb_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - streampai-network
 
@@ -33,7 +32,7 @@ services:
     ports:
       - "80:4000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
       ECTO_IPV6: "false"
       POOL_SIZE: "35"
 
@@ -76,7 +75,7 @@ services:
       S3_PUBLIC_URL: ${S3_PUBLIC_URL}
 
     depends_on:
-      - timescaledb
+      - postgres
     networks:
       - streampai-network
 
@@ -85,5 +84,5 @@ networks:
     driver: bridge
 
 volumes:
-  timescaledb_data:
+  postgres_data:
     driver: local

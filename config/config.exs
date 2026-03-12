@@ -97,6 +97,8 @@ config :logger, :default_formatter,
     :size
   ]
 
+config :nx, default_backend: Torchx.Backend
+
 config :phoenix, :json_library, Jason
 
 config :phoenix_sync,
@@ -200,8 +202,6 @@ config :streampai,
   transcription_enabled: false,
   transcription_model: "openai/whisper-tiny",
   transcription_language: nil
-
-config :nx, default_backend: Torchx.Backend
 
 # Configure Tesla to disable deprecated builder warnings
 config :tesla, disable_deprecated_builder_warning: true

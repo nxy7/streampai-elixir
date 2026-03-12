@@ -119,15 +119,15 @@ defmodule Streampai.LivestreamManager.Transcription.Client do
           end_time = (chunk[:end_timestamp_seconds] || duration) + state.segment_offset
           text = String.trim(chunk.text)
 
-          if text != "" do
+          if text == "" do
+            []
+          else
             Logger.info(
               "[Transcription] [FINAL] [#{format_time(start_time)}->#{format_time(end_time)}] #{text}",
               user_id: state.user_id
             )
 
             [%{start: start_time, end: end_time, text: text}]
-          else
-            []
           end
         end)
 

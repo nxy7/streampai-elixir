@@ -1,14 +1,13 @@
 services:
-  timescaledb:
+  postgres:
     container_name: ${COMPOSE_PROJECT_NAME:-streampai}_db
-    image: timescale/timescaledb:2.24.0-pg16
+    image: postgres:18
     restart: unless-stopped
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      TIMESCALEDB_TELEMETRY: "off"
     command: >
       postgres
       -c max_connections=500
@@ -23,7 +22,7 @@ services:
       -c max_worker_processes=32
       -c max_parallel_workers=8
     volumes:
-      - timescaledb_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -37,9 +36,9 @@ services:
     ports:
       - "${PGWEB_PORT:-8082}:8081"
     environment:
-      - PGWEB_DATABASE_URL=postgresql://postgres:postgres@timescaledb:5432/postgres?sslmode=disable
+      - PGWEB_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
     depends_on:
-      timescaledb:
+      postgres:
         condition: service_healthy
 
   minio:
@@ -62,7 +61,7 @@ services:
       retries: 5
 
 volumes:
-  timescaledb_data:
+  postgres_data:
     driver: local
   minio_data:
     driver: local
