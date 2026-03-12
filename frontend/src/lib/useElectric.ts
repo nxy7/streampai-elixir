@@ -6,6 +6,7 @@ import {
 	type ChatBotConfigRow,
 	type CurrentStreamData,
 	type HighlightedMessage,
+	type PlatformStatusData,
 	type Livestream,
 	type Notification,
 	type NotificationRead,
@@ -469,27 +470,17 @@ export function useStreamActor(userId: () => string | undefined) {
 			}
 			const result: Record<string, PlatformStatusData> = {};
 			if (row.youtube_data && Object.keys(row.youtube_data).length > 0) {
-				result.youtube = row.youtube_data as unknown as PlatformStatusData;
+				result.youtube = row.youtube_data;
 			}
 			if (row.twitch_data && Object.keys(row.twitch_data).length > 0) {
-				result.twitch = row.twitch_data as unknown as PlatformStatusData;
+				result.twitch = row.twitch_data;
 			}
 			if (row.kick_data && Object.keys(row.kick_data).length > 0) {
-				result.kick = row.kick_data as unknown as PlatformStatusData;
+				result.kick = row.kick_data;
 			}
 			return result;
 		},
 	};
-}
-
-interface PlatformStatusData {
-	status: "starting" | "live" | "stopping" | "error";
-	started_at?: string;
-	error_message?: string;
-	error_at?: string;
-	viewer_count?: number;
-	title?: string;
-	category?: string;
 }
 
 export const useUserSupportTickets = createUserScopedHook(

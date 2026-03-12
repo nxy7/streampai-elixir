@@ -38,17 +38,17 @@ function toSnakeCase(str: string): string {
 	return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-function mapConfig(
+function mapConfig<T extends object>(
 	loaded: Record<string, unknown>,
-	defaults: ChatConfig,
-): ChatConfig {
-	const result = {} as Record<string, unknown>;
-	const defaultsRecord = defaults as unknown as Record<string, unknown>;
+	defaults: T,
+): T {
+	const defaultsRecord = defaults as Record<string, unknown>;
+	const result: Record<string, unknown> = {};
 	for (const key of Object.keys(defaultsRecord)) {
 		const snakeKey = toSnakeCase(key);
 		result[key] = loaded[snakeKey] ?? defaultsRecord[key];
 	}
-	return result as unknown as ChatConfig;
+	return result as T;
 }
 
 export default function ChatDisplay() {

@@ -1,7 +1,7 @@
 services:
   timescaledb:
     container_name: ${COMPOSE_PROJECT_NAME:-streampai}_db
-    image: timescale/timescaledb:latest-pg16
+    image: timescale/timescaledb:2.19.3-pg16
     restart: unless-stopped
     ports:
       - "${DB_PORT:-5432}:5432"
@@ -44,7 +44,7 @@ services:
 
   minio:
     container_name: ${COMPOSE_PROJECT_NAME:-streampai}_minio
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     restart: unless-stopped
     ports:
       - "${MINIO_PORT:-9000}:9000"

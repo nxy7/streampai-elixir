@@ -592,15 +592,25 @@ export function getAdminSupportMessagesCollection() {
 	return adminSupportMessagesCache;
 }
 
+export interface PlatformStatusData {
+	status: "starting" | "live" | "stopping" | "error";
+	started_at?: string;
+	error_message?: string;
+	error_at?: string;
+	viewer_count?: number;
+	title?: string;
+	category?: string;
+}
+
 export type CurrentStreamData = Row & {
 	id: string;
 	user_id: string;
 	status: string;
 	stream_data: Record<string, unknown>;
 	cloudflare_data: Record<string, unknown>;
-	youtube_data: Record<string, unknown>;
-	twitch_data: Record<string, unknown>;
-	kick_data: Record<string, unknown>;
+	youtube_data: PlatformStatusData | null;
+	twitch_data: PlatformStatusData | null;
+	kick_data: PlatformStatusData | null;
 	active_alert: Record<string, unknown> | null;
 	highlighted_message: Record<string, unknown> | null;
 	alertbox_state: Record<string, unknown>;

@@ -18,7 +18,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -38,8 +38,8 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.18.4"
-          otp-version: "27.2"
+          elixir-version: "1.19.4"
+          otp-version: "28.0"
 
       - name: Cache deps
         uses: actions/cache@v4

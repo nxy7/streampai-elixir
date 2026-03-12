@@ -199,7 +199,7 @@ function CanvasWidgetComponent(props: {
 		document.addEventListener("mouseup", handleMouseUp);
 	};
 
-	const handleSelect = (e: MouseEvent) => {
+	const handleSelect = (e: MouseEvent | KeyboardEvent) => {
 		e.stopPropagation();
 		props.onSelect(props.widget.id);
 	};
@@ -212,7 +212,7 @@ function CanvasWidgetComponent(props: {
 			onKeyDown={(e) => {
 				if (e.key === "Enter" || e.key === " ") {
 					e.preventDefault();
-					handleSelect(e as unknown as MouseEvent);
+					handleSelect(e);
 				}
 			}}
 			role="button"
