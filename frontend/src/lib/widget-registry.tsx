@@ -635,7 +635,7 @@ function ChatPreviewWrapper(props: {
 			setMessages((prev) => [...prev, newMessage]);
 		}, 3000);
 
-		return () => clearInterval(interval);
+		onCleanup(() => clearInterval(interval));
 	});
 
 	return (
@@ -760,7 +760,7 @@ function EventListPreviewWrapper(props: {
 			setEvents((prev) => [newEvent, ...prev].slice(0, 15));
 		}, 4000);
 
-		return () => clearInterval(interval);
+		onCleanup(() => clearInterval(interval));
 	});
 
 	const fullConfig = () => ({

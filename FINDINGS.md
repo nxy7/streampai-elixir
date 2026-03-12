@@ -140,7 +140,7 @@ Comprehensive security and code quality audit results. Check off items as they a
 
 ### High — Frontend
 
-- [ ] **H-F1: Memory leak — `onMount` cleanup return value ignored**
+- [x] **H-F1: Memory leak — `onMount` cleanup return value ignored**
   - **File**: `frontend/src/lib/widget-registry.tsx:608-639,733-764`
   - **Detail**: `onMount` in SolidJS does not use the return value for cleanup. Returning a cleanup function from `onMount` has no effect; the function is never called. `setInterval` handles created inside these callbacks run indefinitely.
   - **Fix**: Use `onCleanup(() => clearInterval(id))` explicitly alongside `onMount`, or use `createEffect` which does honor cleanup return values.
