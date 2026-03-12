@@ -83,6 +83,10 @@ defmodule Streampai.Notifications.NotificationRead do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     policy action(:read) do
       authorize_if actor_present()
     end

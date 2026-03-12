@@ -84,7 +84,7 @@ defmodule Streampai.Changes.NotifyUser do
 
   defp create_notification(user_id, content) do
     Notification
-    |> Ash.Changeset.for_create(:create, %{user_id: user_id, content: content}, authorize?: false)
-    |> Ash.create()
+    |> Ash.Changeset.for_create(:create, %{user_id: user_id, content: content})
+    |> Ash.create(actor: Streampai.SystemActor.system())
   end
 end

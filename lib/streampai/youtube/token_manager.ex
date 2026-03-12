@@ -229,10 +229,9 @@ defmodule Streampai.YouTube.TokenManager do
   defp update_streaming_account_tokens(user_id, new_config) do
     require Ash.Query
 
-    # Use authorize?: false for background token updates
     StreamingAccount
     |> Ash.Query.filter(user_id: user_id, platform: :youtube)
-    |> Ash.read_one!(authorize?: false)
+    |> Ash.read_one!(actor: Streampai.SystemActor.system())
     |> case do
       nil ->
         Logger.warning("No streaming account found for user #{user_id}")
@@ -244,7 +243,7 @@ defmodule Streampai.YouTube.TokenManager do
           refresh_token: new_config.refresh_token,
           access_token_expires_at: new_config.expires_at
         })
-        |> Ash.update!(authorize?: false)
+        |> Ash.update!(actor: Streampai.SystemActor.system())
     end
   end
 
@@ -288,10 +287,13 @@ defmodule Streampai.YouTube.TokenManager do
 
     StreamingAccount
     |> Ash.Query.filter(user_id: user_id, platform: :youtube)
-    |> Ash.read_one!(authorize?: false)
+    |> Ash.read_one!(actor: Streampai.SystemActor.system())
     |> case do
-      nil -> :ok
-      account -> Ash.update!(account, action: :mark_needs_reauth, authorize?: false)
+      nil ->
+        :ok
+
+      account ->
+        Ash.update!(account, action: :mark_needs_reauth, actor: Streampai.SystemActor.system())
     end
   end
 

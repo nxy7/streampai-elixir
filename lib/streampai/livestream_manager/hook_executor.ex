@@ -145,7 +145,9 @@ defmodule Streampai.LivestreamManager.HookExecutor do
   # ── Private: initialization ─────────────────────────────────────
 
   defp load_initial_hooks(state) do
-    case StreamHook.get_enabled_for_user(state.user_id, authorize?: false) do
+    case StreamHook.get_enabled_for_user(state.user_id,
+           actor: Streampai.SystemActor.system()
+         ) do
       {:ok, hooks} ->
         hooks_map = Map.new(hooks, &{&1.id, &1})
         Logger.info("[HookExecutor] loaded #{map_size(hooks_map)} enabled hooks")
@@ -321,14 +323,14 @@ defmodule Streampai.LivestreamManager.HookExecutor do
         executed_at: DateTime.utc_now(),
         duration_ms: duration_ms
       },
-      authorize?: false
+      actor: Streampai.SystemActor.system()
     )
   end
 
   defp mark_triggered(hook) do
     hook
     |> Ash.Changeset.for_update(:mark_triggered, %{})
-    |> Ash.update(authorize?: false)
+    |> Ash.update(actor: Streampai.SystemActor.system())
   end
 
   # ── Private: helpers ────────────────────────────────────────────

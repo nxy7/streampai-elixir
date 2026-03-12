@@ -835,7 +835,7 @@ defmodule Streampai.LivestreamManager.Platforms.YouTubeManager do
     case Streampai.Storage.File
          |> Ash.Query.for_read(:read)
          |> Ash.Query.filter(id == ^file_id)
-         |> Ash.read(authorize?: false) do
+         |> Ash.read(actor: Streampai.SystemActor.system()) do
       {:ok, [file]} ->
         # Get the S3 URL and download the file
         storage_key = file.storage_key

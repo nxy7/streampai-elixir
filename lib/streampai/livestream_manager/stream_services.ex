@@ -310,14 +310,14 @@ defmodule Streampai.LivestreamManager.StreamServices do
     delivery_status =
       Map.new(results, fn {platform, status} -> {to_string(platform), to_string(status)} end)
 
-    case Ash.get(StreamEvent, event_id, authorize?: false) do
+    case Ash.get(StreamEvent, event_id, actor: Streampai.SystemActor.system()) do
       {:ok, event} ->
         updated_value = Map.put(event.data.value, :delivery_status, delivery_status)
         updated_data = %{event.data | value: updated_value}
 
         event
         |> Ash.Changeset.for_update(:update_data, %{data: updated_data})
-        |> Ash.update(authorize?: false)
+        |> Ash.update(actor: Streampai.SystemActor.system())
 
       _ ->
         :ok

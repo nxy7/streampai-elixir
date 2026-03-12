@@ -24,7 +24,7 @@ defmodule Streampai.Accounts.User.Calculations.HoursStreamedLast30Days do
          |> Ash.Query.for_read(:get_completed_by_user, %{user_id: record.id})
          |> Ash.Query.filter(started_at >= ^cutoff)
          |> Ash.Query.load(:duration_seconds)
-         |> Ash.read!(authorize?: false)
+         |> Ash.read!(actor: Streampai.SystemActor.system())
          |> Enum.map(&(&1.duration_seconds || 0))
          |> Enum.sum()
 

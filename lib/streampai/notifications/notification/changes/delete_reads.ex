@@ -11,7 +11,7 @@ defmodule Streampai.Notifications.Notification.Changes.DeleteReads do
 
       NotificationRead
       |> Ash.Query.filter(notification_id: notification_id)
-      |> Ash.bulk_destroy!(:destroy, %{}, authorize?: false)
+      |> Ash.bulk_destroy!(:destroy, %{}, actor: Streampai.SystemActor.system())
 
       changeset
     end)

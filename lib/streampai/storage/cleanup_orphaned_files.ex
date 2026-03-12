@@ -59,7 +59,7 @@ defmodule Streampai.Storage.CleanupOrphanedFiles do
     {:ok, pending_files} =
       File
       |> Ash.Query.for_read(:list_pending_old, %{hours_old: 24})
-      |> Ash.read(authorize?: false)
+      |> Ash.read(actor: Streampai.SystemActor.oban())
 
     Logger.info("Found #{length(pending_files)} pending files to clean up")
 

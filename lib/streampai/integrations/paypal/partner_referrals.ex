@@ -202,7 +202,7 @@ defmodule Streampai.Integrations.PayPal.PartnerReferrals do
             access_token: data["access_token"],
             token_expires_at: expires_at
           },
-          authorize?: false
+          actor: Streampai.SystemActor.paypal()
         )
 
       {:ok, %{status: status, body: body}} ->

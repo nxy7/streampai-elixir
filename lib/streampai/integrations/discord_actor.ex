@@ -300,7 +300,7 @@ defmodule Streampai.Integrations.DiscordActor do
   defp update_data_field(actor, updates) do
     current_data = actor.data || %{}
     new_data = Map.merge(current_data, updates)
-    Ash.update!(actor, %{data: new_data}, action: :update, authorize?: false)
+    Ash.update!(actor, %{data: new_data}, action: :update, actor: Streampai.SystemActor.system())
   end
 
   # Public helper to get bot token from actor

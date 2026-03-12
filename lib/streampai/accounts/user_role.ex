@@ -146,6 +146,10 @@ defmodule Streampai.Accounts.UserRole do
   end
 
   policies do
+    bypass Streampai.SystemActor.Check do
+      authorize_if always()
+    end
+
     policy action(:invite) do
       # For create actions, we need to use actor context checks
       authorize_if actor_present()

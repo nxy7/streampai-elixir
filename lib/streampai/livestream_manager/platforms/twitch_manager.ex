@@ -625,7 +625,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
 
     Streampai.Accounts.StreamingAccount
     |> Ash.Query.filter(user_id: user_id, platform: :twitch)
-    |> Ash.read_one!(authorize?: false)
+    |> Ash.read_one!(actor: Streampai.SystemActor.system())
     |> case do
       nil ->
         Logger.warning("No Twitch streaming account found for user #{user_id}")
@@ -637,7 +637,7 @@ defmodule Streampai.LivestreamManager.Platforms.TwitchManager do
           refresh_token: new_config.refresh_token,
           access_token_expires_at: new_config.access_token_expires_at
         })
-        |> Ash.update!(authorize?: false)
+        |> Ash.update!(actor: Streampai.SystemActor.system())
     end
   end
 

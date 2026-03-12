@@ -256,7 +256,7 @@ defmodule Streampai.Stream.StreamAction do
                   viewer_id: nil
                 }
 
-                case StreamEvent.create(event_attrs, authorize?: false) do
+                case StreamEvent.create(event_attrs, actor: Streampai.SystemActor.system()) do
                   {:ok, event} -> event.id
                   _ -> nil
                 end
@@ -504,7 +504,7 @@ defmodule Streampai.Stream.StreamAction do
          |> Ash.Query.load([:thumbnail_url, thumbnail_file: [:url]])
          |> Ash.Query.sort(started_at: :desc)
          |> Ash.Query.limit(1)
-         |> Ash.read(authorize?: false) do
+         |> Ash.read(actor: Streampai.SystemActor.system()) do
       {:ok, [stream]} ->
         stream.thumbnail_url
 

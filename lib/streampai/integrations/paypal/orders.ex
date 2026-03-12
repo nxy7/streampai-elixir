@@ -115,7 +115,7 @@ defmodule Streampai.Integrations.PayPal.Orders do
       }
     }
 
-    case PayPalDonation.create(params, authorize?: false) do
+    case PayPalDonation.create(params, actor: Streampai.SystemActor.paypal()) do
       {:ok, donation} -> {:ok, donation}
       error -> error
     end
@@ -153,7 +153,7 @@ defmodule Streampai.Integrations.PayPal.Orders do
       net_amount: extract_net_amount(capture)
     }
 
-    PayPalDonation.update(donation, params, authorize?: false)
+    PayPalDonation.update(donation, params, actor: Streampai.SystemActor.paypal())
   end
 
   defp extract_approval_url(order) do

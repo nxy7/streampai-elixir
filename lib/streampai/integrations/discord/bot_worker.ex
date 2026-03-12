@@ -207,13 +207,13 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   defp maybe_add_embeds(body, embeds), do: Map.put(body, :embeds, embeds)
 
   defp update_actor_state(actor_id, guilds, channels) do
-    case Ash.get(DiscordActor, actor_id, authorize?: false) do
+    case Ash.get(DiscordActor, actor_id, actor: Streampai.SystemActor.system()) do
       {:ok, actor} ->
         Ash.update(
           actor,
           %{guilds: guilds, channels: channels, last_synced_at: DateTime.utc_now()},
           action: :update_actor_state,
-          authorize?: false
+          actor: Streampai.SystemActor.system()
         )
 
       _ ->
@@ -222,11 +222,11 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   end
 
   defp update_actor_error(actor_id, error) do
-    case Ash.get(DiscordActor, actor_id, authorize?: false) do
+    case Ash.get(DiscordActor, actor_id, actor: Streampai.SystemActor.system()) do
       {:ok, actor} ->
         Ash.update(actor, %{status: :error, last_error: error, last_error_at: DateTime.utc_now()},
           action: :update_status,
-          authorize?: false
+          actor: Streampai.SystemActor.system()
         )
 
       _ ->
@@ -235,11 +235,11 @@ defmodule Streampai.Integrations.Discord.BotWorker do
   end
 
   defp increment_message_count(actor_id) do
-    case Ash.get(DiscordActor, actor_id, authorize?: false) do
+    case Ash.get(DiscordActor, actor_id, actor: Streampai.SystemActor.system()) do
       {:ok, actor} ->
         Ash.update(actor, %{},
           action: :record_message_sent,
-          authorize?: false
+          actor: Streampai.SystemActor.system()
         )
 
       _ ->

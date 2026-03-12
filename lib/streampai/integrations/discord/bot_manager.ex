@@ -191,7 +191,7 @@ defmodule Streampai.Integrations.Discord.BotManager do
   end
 
   defp update_actor_status(actor_id, status, error) do
-    case Ash.get(DiscordActor, actor_id, authorize?: false) do
+    case Ash.get(DiscordActor, actor_id, actor: Streampai.SystemActor.system()) do
       {:ok, actor} ->
         attrs =
           if error do
@@ -200,7 +200,7 @@ defmodule Streampai.Integrations.Discord.BotManager do
             %{status: status}
           end
 
-        Ash.update(actor, attrs, action: :update_status, authorize?: false)
+        Ash.update(actor, attrs, action: :update_status, actor: Streampai.SystemActor.system())
 
       _ ->
         :ok

@@ -11,7 +11,7 @@ defmodule Streampai.Stream.Calculations.Platforms do
     {:ok,
      Enum.map(records, fn record ->
        record.id
-       |> StreamEvent.get_platform_started_for_livestream!(authorize?: false)
+       |> StreamEvent.get_platform_started_for_livestream!(actor: Streampai.SystemActor.system())
        |> Enum.map(& &1.platform)
        |> Enum.uniq()
      end)}
