@@ -1,7 +1,7 @@
 services:
   timescaledb:
     container_name: ${COMPOSE_PROJECT_NAME:-streampai}_db
-    image: timescale/timescaledb:2.19.3-pg16
+    image: timescale/timescaledb:2.24.0-pg16
     restart: unless-stopped
     ports:
       - "${DB_PORT:-5432}:5432"

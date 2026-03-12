@@ -1,7 +1,7 @@
 services:
   timescaledb:
     container_name: streampai-db
-    image: timescale/timescaledb:2.19.3-pg16
+    image: timescale/timescaledb:2.24.0-pg16
     restart: unless-stopped
     command: >
       postgres
