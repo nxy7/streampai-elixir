@@ -154,7 +154,7 @@ Comprehensive security and code quality audit results. Check off items as they a
   - **Detail**: Two independent registry implementations exist with different default configurations. Any change to defaults must be applied to both files manually. They will inevitably drift.
   - **Fix**: Delete one registry and migrate all consumers to the surviving one.
 
-- [ ] **H-F4: Large libraries eagerly imported — no lazy loading**
+- [x] **H-F4: Large libraries eagerly imported — no lazy loading**
   - **Detail**: `apexcharts` (~1.2 MB) and `hls.js` (~350 KB) are imported at module load time. All users pay the full parse and execution cost even if they never visit a chart or watch a stream.
   - **Fix**: Use dynamic `import()` inside the components that need these libraries, or apply route-level code splitting.
 

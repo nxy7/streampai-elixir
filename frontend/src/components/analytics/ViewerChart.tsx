@@ -1,6 +1,10 @@
 import type { ApexOptions } from "apexcharts";
-import { SolidApexCharts } from "solid-apexcharts";
-import { For, Show, createMemo } from "solid-js";
+import { For, Show, Suspense, createMemo, lazy } from "solid-js";
+
+const SolidApexCharts = lazy(() =>
+	import("solid-apexcharts").then((m) => ({ default: m.SolidApexCharts })),
+);
+
 import { Card, Stat, StatGroup } from "~/design-system";
 import { useTranslation } from "~/i18n";
 import { toDateKey } from "~/lib/formatters";
@@ -419,17 +423,19 @@ export function ViewerChart(props: ViewerChartProps) {
 							</div>
 						}
 						when={hasAnyData()}>
-						<Show keyed when={type()}>
-							{(chartType) => (
-								<SolidApexCharts
-									height={280}
-									options={options()}
-									series={heatmapSeries() ?? chartSeries()}
-									type={chartType}
-									width="100%"
-								/>
-							)}
-						</Show>
+						<Suspense>
+							<Show keyed when={type()}>
+								{(chartType) => (
+									<SolidApexCharts
+										height={280}
+										options={options()}
+										series={heatmapSeries() ?? chartSeries()}
+										type={chartType}
+										width="100%"
+									/>
+								)}
+							</Show>
+						</Suspense>
 					</Show>
 				</div>
 			</div>

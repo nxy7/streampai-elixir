@@ -1,4 +1,4 @@
-import Hls from "hls.js";
+import type Hls from "hls.js";
 import { Show, createEffect, createSignal, onCleanup } from "solid-js";
 import { useTranslation } from "~/i18n";
 
@@ -45,8 +45,11 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 			return;
 		}
 
-		// hls.js for other browsers
-		if (Hls.isSupported()) {
+		// Dynamically import hls.js only when needed
+		import("hls.js").then((HlsModule) => {
+			const HlsClass = HlsModule.default;
+			if (!HlsClass.isSupported()) return;
+
 			destroyHls();
 			setLoading(true);
 			// The pipeline needs a few seconds to produce the first HLS segments
@@ -58,7 +61,7 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 				maxRetryDelayMs: 8000,
 				shouldRetry: () => true,
 			};
-			const hls = new Hls({
+			const hls = new HlsClass({
 				liveSyncDurationCount: 3,
 				liveMaxLatencyDurationCount: 6,
 				enableWorker: true,
@@ -72,13 +75,13 @@ export function LiveInputPreview(props: LiveInputPreviewProps) {
 				},
 			});
 			hls.loadSource(url);
-			hls.attachMedia(videoRef);
-			hls.on(Hls.Events.MANIFEST_PARSED, () => {
+			hls.attachMedia(videoRef!);
+			hls.on(HlsClass.Events.MANIFEST_PARSED, () => {
 				setLoading(false);
 				videoRef?.play().catch(() => {});
 			});
 			hlsInstance = hls;
-		}
+		});
 	});
 
 	onCleanup(() => destroyHls());
