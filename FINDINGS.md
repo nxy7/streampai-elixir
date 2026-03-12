@@ -197,7 +197,7 @@ Comprehensive security and code quality audit results. Check off items as they a
 
 ### Medium — Backend
 
-- [ ] **M-B1: `CurrentStreamData` policies use `authorize_if always()`**
+- [x] **M-B1: `CurrentStreamData` policies use `authorize_if always()`**
   - **Detail**: Using `authorize_if always()` as a policy means any authenticated user can update any other user's current stream data. There is no ownership check.
   - **Fix**: Replace with `authorize_if relates_to_actor_via(:user)` or an equivalent ownership-scoped policy.
 

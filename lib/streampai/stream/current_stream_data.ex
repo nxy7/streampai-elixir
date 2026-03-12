@@ -323,7 +323,7 @@ defmodule Streampai.Stream.CurrentStreamData do
              :clear_highlight,
              :update_alertbox_state
            ]) do
-      authorize_if always()
+      authorize_if expr(user_id == ^actor(:id))
     end
   end
 
