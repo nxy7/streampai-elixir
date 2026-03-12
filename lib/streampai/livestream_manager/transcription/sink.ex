@@ -1,11 +1,10 @@
 defmodule Streampai.LivestreamManager.Transcription.Sink do
   @moduledoc """
   Membrane Sink that receives raw PCM audio (float32, 16kHz, mono) and
-  forwards it to a TranscriptionClient process for WhisperLive transcription.
+  forwards it to a TranscriptionClient process for Bumblebee Whisper transcription.
 
-  Uses `flow_control: :push` on its input pad so it never exerts backpressure
-  on the upstream audio pipeline. If the TranscriptionClient is unavailable,
-  buffers are silently dropped.
+  Uses `flow_control: :auto` on its input pad. If the TranscriptionClient is
+  unavailable, buffers are silently dropped.
   """
   use Membrane.Sink
 

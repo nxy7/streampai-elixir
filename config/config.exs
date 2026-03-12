@@ -197,10 +197,11 @@ config :streampai,
   default_broadcast_strategy: :membrane,
   membrane_rtmp_port: 1935,
   membrane_rtmp_host: "localhost",
-  whisper_live_enabled: false,
-  whisper_live_url: "ws://localhost:9090",
-  whisper_live_model: "tiny",
-  whisper_live_language: nil
+  transcription_enabled: false,
+  transcription_model: "openai/whisper-tiny",
+  transcription_language: nil
+
+config :nx, default_backend: Torchx.Backend
 
 # Configure Tesla to disable deprecated builder warnings
 config :tesla, disable_deprecated_builder_warning: true

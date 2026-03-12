@@ -92,6 +92,10 @@ dev:
     (mix deps.get --check-unused 2>/dev/null || mix deps.get) &
     (cd frontend && bun install --frozen-lockfile 2>/dev/null || bun install) &
     wait
+
+    # Patch libtorch to find libomp via @rpath (macOS + Nix: PyTorch hardcodes Homebrew path)
+    just _patch-torchx-libomp
+
     echo "📦 Dependencies ready"
     echo ""
 
@@ -583,3 +587,23 @@ proto-gen:
 
 xref-cycles-check:
     mix xref graph --format cycles --label compile-connected --fail-above 0
+
+# Patch libtorch_cpu.dylib to find libomp via @rpath instead of hardcoded Homebrew path (macOS + Nix only)
+_patch-torchx-libomp:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	# Only needed on macOS
+	[[ "$(uname)" != "Darwin" ]] && exit 0
+
+	DYLIB="deps/torchx/cache/libtorch-2.8.0-cpu/lib/libtorch_cpu.dylib"
+	HOMEBREW_PATH="/opt/homebrew/opt/libomp/lib/libomp.dylib"
+
+	# Skip if dylib doesn't exist yet (deps not fetched)
+	[[ ! -f "$DYLIB" ]] && exit 0
+
+	# Check if it still references the Homebrew path
+	if otool -L "$DYLIB" 2>/dev/null | grep -q "$HOMEBREW_PATH"; then
+		echo "🔧 Patching libtorch_cpu.dylib to use @rpath/libomp.dylib..."
+		install_name_tool -change "$HOMEBREW_PATH" "@rpath/libomp.dylib" "$DYLIB"
+		echo "   ✅ Patched successfully"
+	fi

@@ -34,10 +34,19 @@
                 protobuf
                 protoc-gen-elixir
                 lefthook
+                cmake
               ]
               ++ pkgs.lib.optionals isLinux [
                 inotify-tools
+              ]
+              ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+                pkgs.llvmPackages.openmp
               ];
+
+            # LibTorch expects libomp at Homebrew path; point it to Nix's copy
+            env = pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
+              DYLD_LIBRARY_PATH = "${pkgs.llvmPackages.openmp}/lib";
+            };
           };
         };
     };

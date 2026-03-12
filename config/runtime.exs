@@ -138,10 +138,9 @@ config :streampai,
   cloudflare_account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
   openai_api_key: System.get_env("OPENAI_API_KEY"),
   elevenlabs_api_key: System.get_env("ELEVENLABS_API_KEY"),
-  whisper_live_enabled: System.get_env("WHISPER_LIVE_ENABLED") == "true",
-  whisper_live_url: System.get_env("WHISPER_LIVE_URL") || "ws://localhost:9090",
-  whisper_live_model: System.get_env("WHISPER_LIVE_MODEL") || "tiny",
-  whisper_live_language: System.get_env("WHISPER_LIVE_LANGUAGE")
+  transcription_enabled: System.get_env("TRANSCRIPTION_ENABLED") == "true",
+  transcription_model: System.get_env("TRANSCRIPTION_MODEL") || "openai/whisper-tiny",
+  transcription_language: System.get_env("TRANSCRIPTION_LANGUAGE")
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),

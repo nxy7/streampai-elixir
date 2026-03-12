@@ -19,28 +19,32 @@ defmodule Streampai.Application do
     # Start Nostrum only if Discord is configured
     maybe_start_nostrum()
 
-    children = [
-      StreampaiWeb.Telemetry,
-      Streampai.Repo,
-      {Oban,
-       AshOban.config(
-         Application.fetch_env!(:streampai, :ash_domains),
-         Application.fetch_env!(:streampai, Oban)
-       )},
-      {Phoenix.PubSub, name: Streampai.PubSub},
-      StreampaiWeb.Presence,
-      {Finch, name: Streampai.Finch},
-      {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
-      {AshAuthentication.Supervisor, [otp_app: :streampai]},
-      {Task.Supervisor, name: Streampai.TaskSupervisor},
-      {DynamicSupervisor, strategy: :one_for_one, name: GRPC.Client.Supervisor},
-      Streampai.Stream.EventPersister,
-      Streampai.YouTube.TokenSupervisor,
-      # Discord bot integration
-      {Registry, keys: :unique, name: Streampai.Integrations.Discord.BotRegistry},
-      Streampai.Integrations.Discord.BotManager,
-      {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
-    ]
+    children =
+      [
+        StreampaiWeb.Telemetry,
+        Streampai.Repo,
+        {Oban,
+         AshOban.config(
+           Application.fetch_env!(:streampai, :ash_domains),
+           Application.fetch_env!(:streampai, Oban)
+         )},
+        {Phoenix.PubSub, name: Streampai.PubSub},
+        StreampaiWeb.Presence,
+        {Finch, name: Streampai.Finch},
+        {Streampai.LivestreamManager.Supervisor, [name: Streampai.LivestreamManager.Supervisor]},
+        {AshAuthentication.Supervisor, [otp_app: :streampai]},
+        {Task.Supervisor, name: Streampai.TaskSupervisor},
+        {DynamicSupervisor, strategy: :one_for_one, name: GRPC.Client.Supervisor},
+        Streampai.Stream.EventPersister,
+        Streampai.YouTube.TokenSupervisor,
+        # Discord bot integration
+        {Registry, keys: :unique, name: Streampai.Integrations.Discord.BotRegistry},
+        Streampai.Integrations.Discord.BotManager,
+        # Bumblebee Whisper serving for transcription (nil when disabled)
+        maybe_whisper_serving(),
+        {StreampaiWeb.Endpoint, phoenix_sync: Phoenix.Sync.plug_opts()}
+      ]
+      |> Enum.reject(&is_nil/1)
 
     opts = [strategy: :one_for_one, name: Streampai.Supervisor]
     Supervisor.start_link(children, opts)
@@ -63,6 +67,35 @@ defmodule Streampai.Application do
   def config_change(changed, _new, removed) do
     StreampaiWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp maybe_whisper_serving do
+    if Application.get_env(:streampai, :transcription_enabled, false) do
+      model = Application.get_env(:streampai, :transcription_model, "openai/whisper-tiny")
+      Logger.info("Starting Bumblebee Whisper serving with model: #{model}")
+
+      {Nx.Serving,
+       serving: build_whisper_serving(model),
+       name: Streampai.WhisperServing,
+       batch_size: 1,
+       batch_timeout: 100}
+    end
+  end
+
+  defp build_whisper_serving(model_name) do
+    {:ok, whisper} = Bumblebee.load_model({:hf, model_name})
+    {:ok, featurizer} = Bumblebee.load_featurizer({:hf, model_name})
+    {:ok, tokenizer} = Bumblebee.load_tokenizer({:hf, model_name})
+    {:ok, generation_config} = Bumblebee.load_generation_config({:hf, model_name})
+
+    language = Application.get_env(:streampai, :transcription_language)
+
+    Bumblebee.Audio.speech_to_text_whisper(whisper, featurizer, tokenizer, generation_config,
+      chunk_num_seconds: 30,
+      timestamps: :segments,
+      language: language,
+      task: :transcribe
+    )
   end
 
   defp run_migrations do

@@ -103,3 +103,6 @@ tasks
 .playwright-mcp
 test-results/
 .elixir_ls
+
+# Python virtual environments
+.venv/

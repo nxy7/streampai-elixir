@@ -355,7 +355,7 @@ defmodule Streampai.LivestreamManager.BroadcastStrategy.Membrane do
   end
 
   defp transcription_enabled? do
-    Application.get_env(:streampai, :whisper_live_enabled, false)
+    Application.get_env(:streampai, :transcription_enabled, false)
   end
 
   defp state_to_stream_status(:initializing), do: :inactive

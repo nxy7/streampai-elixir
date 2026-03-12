@@ -52,7 +52,9 @@
       "mcp__playwright__browser_navigate",
       "mcp__playwright-headless__browser_navigate",
       "Skill(commit)",
-      "Skill(commit:*)"
+      "Skill(commit:*)",
+      "Bash(mix deps.clean exla)",
+      "Bash(mix deps.get)"
     ],
     "deny": [],
     "ask": []
