@@ -100,10 +100,14 @@ defmodule Streampai.MixProject do
       # Membrane HLS preview output (CMAF muxing + adaptive stream segments)
       {:membrane_mp4_plugin, "~> 0.36"},
       {:membrane_http_adaptive_stream_plugin, "~> 0.18"},
-      # Membrane audio processing for WhisperLive transcription
+      # Membrane audio processing for transcription
       {:membrane_aac_plugin, "~> 0.19"},
       {:membrane_aac_fdk_plugin, "~> 0.18"},
-      {:membrane_ffmpeg_swresample_plugin, "~> 0.20"}
+      {:membrane_ffmpeg_swresample_plugin, "~> 0.20"},
+      # Bumblebee Whisper for native speech-to-text transcription
+      {:bumblebee, "~> 0.6"},
+      {:nx, "~> 0.9"},
+      {:torchx, "~> 0.9"}
     ]
   end
 
